@@ -3317,7 +3317,10 @@ export default class Core {
     calculateRenderedPrefixesForReplacements(composite, singleReplacement) {
         let namePrefixes = null;
 
-        if (composite.constructor.replacementsAlreadyInResolver) {
+        if (
+            composite.constructor.replacementsAlreadyInResolver ||
+            composite.componentType === "_copy"
+        ) {
             // in this case, we treat the names of composite replacements using the normal algorithm
             namePrefixes = composite.namePrefixesForChildren;
         } else if (

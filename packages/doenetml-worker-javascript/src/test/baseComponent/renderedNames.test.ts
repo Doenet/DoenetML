@@ -15,16 +15,16 @@ describe("Rendered name tests", async () => {
     it("find all potential names", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<p name="p">
-    <math name="x">x</math> <text>hi <text name="t">there</text></text>
-</p>
-<p name="p2">
-    <math name="x">x2</math> <text>bye <text name="t2">now</text></text>
-</p>
-<p><math name="x">x3</math> <text>hi <text name="t">there again</text></text></p>
+        <p name="p">
+            <math name="x">x</math> <text>hi <text name="t">there</text></text>
+        </p>
+        <p name="p2">
+            <math name="x">x2</math> <text>bye <text name="t2">now</text></text>
+        </p>
+        <p><math name="x">x3</math> <text>hi <text name="t">there again</text></text></p>
 
-      
-  `,
+            
+        `,
         });
 
         // Note: for this one test, we check the implementation details
@@ -122,16 +122,15 @@ describe("Rendered name tests", async () => {
     it("rendered names are smallest unique accessible name", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<p name="p">
-    <math name="x">x</math> <text>hi <text name="t">there</text></text>
-</p>
-<p name="p2">
-    <math name="x">x2</math> <text>bye <text name="t2">now</text></text>
-</p>
-<p><math name="x">x3</math> <text>hi <text name="t">there again</text></text></p>
+        <p name="p">
+            <math name="x">x</math> <text>hi <text name="t">there</text></text>
+        </p>
+        <p name="p2">
+            <math name="x">x2</math> <text>bye <text name="t2">now</text></text>
+        </p>
+        <p><math name="x">x3</math> <text>hi <text name="t">there again</text></text></p>
 
-      
-  `,
+        `,
         });
 
         const pIdx = await resolvePathToNodeIdx("p");
@@ -169,13 +168,13 @@ describe("Rendered name tests", async () => {
     it("add groups", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <group name="g">
-        <math name="x">x</math> <text>hi <text name="t">there</text></text>
-    </group>
-    <group name="g2">
-        <math name="x">x2</math> <text>bye <text name="t2">now</text></text>
-    </group>
-    <group><math name="x">x3</math><text>hi <text name="t">there again</text></text></group>`,
+        <group name="g">
+            <math name="x">x</math> <text>hi <text name="t">there</text></text>
+        </group>
+        <group name="g2">
+            <math name="x">x2</math> <text>bye <text name="t2">now</text></text>
+        </group>
+        <group><math name="x">x3</math><text>hi <text name="t">there again</text></text></group>`,
         });
 
         const gIdx = await resolvePathToNodeIdx("g");
@@ -211,18 +210,18 @@ describe("Rendered name tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             
-    <selectFromSequence name="a" />
+        <selectFromSequence name="a" />
 
-    <select name="b">x y</select>
+        <select name="b">x y</select>
 
-    <select name="c">
-        <option>
-            <text>hi</text>
-        </option>
-        <option>
-            <text>bye</text>
-        </option>
-    </select>
+        <select name="c">
+            <option>
+                <text>hi</text>
+            </option>
+            <option>
+                <text>bye</text>
+            </option>
+        </select>
 
             `,
         });
@@ -242,20 +241,20 @@ describe("Rendered name tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
-<booleanInput name="bi" />
-            
-<conditionalContent name="cc" condition="$bi">
-    <math>z</math>
-</conditionalContent>
+        <booleanInput name="bi" />
+                    
+        <conditionalContent name="cc" condition="$bi">
+            <math>z</math>
+        </conditionalContent>
 
-<conditionalContent name="cc2">
-    <case condition="$bi">
-        <math>x</math>
-    </case>
-    <else>
-         <math>y</math>
-    </else>
-</conditionalContent>
+        <conditionalContent name="cc2">
+            <case condition="$bi">
+                <math>x</math>
+            </case>
+            <else>
+                <math>y</math>
+            </else>
+        </conditionalContent>
 
             `,
         });
@@ -297,14 +296,14 @@ describe("Rendered name tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             
-    <select name="s">
-        <option>
-            <text name="t">hi</text><math name="x">x</math>
-        </option>
-        <option>
-            <text name="t">bye</text><math name="x">y</math>
-        </option>
-    </select>
+        <select name="s">
+            <option>
+                <text name="t">hi</text><math name="x">x</math>
+            </option>
+            <option>
+                <text name="t">bye</text><math name="x">y</math>
+            </option>
+        </select>
 
             `,
         });
@@ -330,20 +329,20 @@ describe("Rendered name tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
-<booleanInput name="bi" />
-            
-<conditionalContent name="cc" condition="$bi">
-    <math name="x">z</math><text name="t">grape</text>
-</conditionalContent>
+        <booleanInput name="bi" />
+                    
+        <conditionalContent name="cc" condition="$bi">
+            <math name="x">z</math><text name="t">grape</text>
+        </conditionalContent>
 
-<conditionalContent name="cc2">
-    <case condition="$bi">
-        <math name="x">x</math><text name="t">apple</text>
-    </case>
-    <else>
-        <math name="x">y</math><text name="t">banana</text>
-    </else>
-</conditionalContent>
+        <conditionalContent name="cc2">
+            <case condition="$bi">
+                <math name="x">x</math><text name="t">apple</text>
+            </case>
+            <else>
+                <math name="x">y</math><text name="t">banana</text>
+            </else>
+        </conditionalContent>
 
             `,
         });
@@ -406,7 +405,7 @@ describe("Rendered name tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             
-    <p name="p"><point name="P">(3,4)</point></p>
+        <p name="p"><point name="P">(3,4)</point></p>
 
             `,
         });
@@ -428,5 +427,106 @@ describe("Rendered name tests", async () => {
             3,
             4,
         ]);
+    });
+
+    it("extended and copied components get correct rendered names", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+            
+        <p name="p">hi <group><text name="t">there</text></group></p>
+
+        <p extend="$p" name="p2"></p>
+
+        <p copy="$p" name="p3"></p>
+
+            `,
+        });
+
+        const pIdx = await resolvePathToNodeIdx("p");
+        const p2Idx = await resolvePathToNodeIdx("p2");
+        const p3Idx = await resolvePathToNodeIdx("p3");
+        const tIdx = await resolvePathToNodeIdx("t");
+        const p2tIdx = await resolvePathToNodeIdx("p2.t");
+        const p3tIdx = await resolvePathToNodeIdx("p3.t");
+
+        const getRenderedName = core.core!.getRenderedName;
+
+        expect(getRenderedName(pIdx)).eq("p");
+        expect(getRenderedName(p2Idx)).eq("p2");
+        expect(getRenderedName(p3Idx)).eq("p3");
+        expect(getRenderedName(tIdx)).eq("p.t");
+        expect(getRenderedName(p2tIdx)).eq("p2.t");
+        expect(getRenderedName(p3tIdx)).eq("p3.t");
+    });
+
+    it("extended and copied components get correct rendered names2", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        
+        <section name="s">
+            <p name="p">hi <group><text name="t">there</text></group></p>
+
+            <p extend="$p" name="p2"></p>
+
+            <p copy="$p" name="p3"></p>
+        </section>
+
+        <section extend="$s" name="s2" />
+
+        <section copy="$s2" name="s3" />
+
+            `,
+        });
+
+        const sIdx = await resolvePathToNodeIdx("s");
+        const s2Idx = await resolvePathToNodeIdx("s2");
+        const s3Idx = await resolvePathToNodeIdx("s3");
+        const pIdx = await resolvePathToNodeIdx("p");
+        const p2Idx = await resolvePathToNodeIdx("p2");
+        const p3Idx = await resolvePathToNodeIdx("p3");
+        const tIdx = await resolvePathToNodeIdx("t");
+        const p2tIdx = await resolvePathToNodeIdx("p2.t");
+        const p3tIdx = await resolvePathToNodeIdx("p3.t");
+
+        const s2pIdx = await resolvePathToNodeIdx("s2.p");
+        const s2p2Idx = await resolvePathToNodeIdx("s2.p2");
+        const s2p3Idx = await resolvePathToNodeIdx("s2.p3");
+        const s2tIdx = await resolvePathToNodeIdx("s2.t");
+        const s2p2tIdx = await resolvePathToNodeIdx("s2.p2.t");
+        const s2p3tIdx = await resolvePathToNodeIdx("s2.p3.t");
+
+        const s3pIdx = await resolvePathToNodeIdx("s3.p");
+        const s3p2Idx = await resolvePathToNodeIdx("s3.p2");
+        const s3p3Idx = await resolvePathToNodeIdx("s3.p3");
+        const s3tIdx = await resolvePathToNodeIdx("s3.t");
+        const s3p2tIdx = await resolvePathToNodeIdx("s3.p2.t");
+        const s3p3tIdx = await resolvePathToNodeIdx("s3.p3.t");
+
+        const getRenderedName = core.core!.getRenderedName;
+
+        expect(getRenderedName(sIdx)).eq("s");
+        expect(getRenderedName(s2Idx)).eq("s2");
+        expect(getRenderedName(s3Idx)).eq("s3");
+
+        expect(getRenderedName(pIdx)).eq("s.p");
+        expect(getRenderedName(p2Idx)).eq("s.p2");
+        expect(getRenderedName(p3Idx)).eq("s.p3");
+        expect(getRenderedName(tIdx)).eq("s.p.t");
+        expect(getRenderedName(p2tIdx)).eq("s.p2.t");
+        expect(getRenderedName(p3tIdx)).eq("s.p3.t");
+
+        expect(getRenderedName(s2pIdx)).eq("s2.p");
+        expect(getRenderedName(s2p2Idx)).eq("s2.p2");
+        expect(getRenderedName(s2p3Idx)).eq("s2.p3");
+        expect(getRenderedName(s2tIdx)).eq("s2.p.t");
+        expect(getRenderedName(s2p2tIdx)).eq("s2.p2.t");
+        expect(getRenderedName(s2p3tIdx)).eq("s2.p3.t");
+
+        expect(getRenderedName(s3pIdx)).eq("s3.p");
+        expect(getRenderedName(s3p2Idx)).eq("s3.p2");
+        expect(getRenderedName(s3p3Idx)).eq("s3.p3");
+        expect(getRenderedName(s3tIdx)).eq("s3.p.t");
+        expect(getRenderedName(s3p2tIdx)).eq("s3.p2.t");
+        expect(getRenderedName(s3p3tIdx)).eq("s3.p3.t");
     });
 });
