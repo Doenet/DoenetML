@@ -300,10 +300,6 @@ export class CoreWorker {
         }
     }
 
-    // getJavascriptResolver() {
-    //     return this.javascriptCore?.getResolver();
-    // }
-
     async returnDast(): Promise<FlatDastRootWithErrors> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
