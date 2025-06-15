@@ -11,6 +11,7 @@ export default class BaseComponent {
     constructor({
         componentIdx,
         ancestors,
+        namePrefixesForChildren,
         serializedComponent,
         definingChildren,
         serializedChildren,
@@ -31,6 +32,7 @@ export default class BaseComponent {
 
         this.componentIdx = componentIdx;
         this.ancestors = ancestors;
+        this.namePrefixesForChildren = namePrefixesForChildren;
         this.counters = {};
 
         this.componentInfoObjects = componentInfoObjects;

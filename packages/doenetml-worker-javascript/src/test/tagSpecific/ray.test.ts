@@ -329,7 +329,7 @@ describe("Ray Tag Tests", function () {
       <point extend="$ray1.endpoint" name="endpoint" />
       <point extend="$ray1.through" name="through" />
       <vector extend="$ray1.direction" name="direction" />
-  </grap
+  </graph>
   `,
         });
 
