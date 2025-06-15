@@ -1037,6 +1037,9 @@ export default class Core {
         let rendererInstructions = {
             componentIdx: componentIdx,
             effectiveIdx: component.componentOrAdaptedIdx,
+            id:
+                this.getRenderedName(componentIdx) ??
+                component.componentOrAdaptedIdx.toString(),
             componentType: component.componentType,
             rendererType: component.rendererType,
             actions: requestActions,
