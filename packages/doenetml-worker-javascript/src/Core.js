@@ -1913,7 +1913,18 @@ export default class Core {
      * resolved to the component.
      */
     getRenderedName(componentIdx) {
-        const potentialNames = this.potentialRenderedNames.byIdx[componentIdx];
+        const component = this._components[componentIdx];
+
+        if (!component) {
+            return null;
+        }
+
+        // if adapted from another component, use the original component's rendered name
+        const cIdx = component.adaptedFrom
+            ? component.adaptedFrom.componentIdx
+            : componentIdx;
+
+        const potentialNames = this.potentialRenderedNames.byIdx[cIdx];
 
         if (!potentialNames) {
             return null;

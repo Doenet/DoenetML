@@ -326,7 +326,7 @@ describe("Rendered name tests", async () => {
         );
     });
 
-    it.only("descendant names of single replacements of composite adjust dynamically", async () => {
+    it("descendant names of single replacements of composite adjust dynamically", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
@@ -400,5 +400,33 @@ describe("Rendered name tests", async () => {
         expect(stateVariables[cc2tReplacementIdx].stateValues.value).eq(
             "apple",
         );
+    });
+
+    it("adapted component uses rendered name of original component", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+            
+    <p name="p"><point name="P">(3,4)</point></p>
+
+            `,
+        });
+
+        const PIdx = await resolvePathToNodeIdx("P");
+        const pIdx = await resolvePathToNodeIdx("p");
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const adapterIdx = stateVariables[pIdx].activeChildren[0].componentIdx;
+
+        const getRenderedName = core.core!.getRenderedName;
+
+        expect(getRenderedName(adapterIdx)).eq("P");
+        expect(getRenderedName(PIdx)).eq("P");
+        expect(getRenderedName(pIdx)).eq("p");
+
+        expect(stateVariables[adapterIdx].stateValues.value.tree).eqls([
+            "vector",
+            3,
+            4,
+        ]);
     });
 });
