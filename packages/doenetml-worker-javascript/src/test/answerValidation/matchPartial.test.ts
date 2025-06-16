@@ -23,7 +23,7 @@ async function run_tests({
     }[];
     type?: "math" | "text" | "boolean";
 }) {
-    const { core, resolveComponentName } = await createTestCore({ doenetML });
+    const { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
 
     for (let responseObj of responseCredits) {
         await submit_check(responseObj);
@@ -40,34 +40,34 @@ async function run_tests({
             if (type === "math") {
                 await updateMathInputValue({
                     latex: `${responses[name]}`,
-                    componentIdx: resolveComponentName(name),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     core,
                 });
             } else if (type === "text") {
                 await updateTextInputValue({
                     text: `${responses[name]}`,
-                    componentIdx: resolveComponentName(name),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     core,
                 });
             } else if (type === "boolean") {
                 await updateBooleanInputValue({
                     boolean: Boolean(responses[name]),
-                    componentIdx: resolveComponentName(name),
+                    componentIdx: await resolvePathToNodeIdx(name),
                     core,
                 });
             }
         }
         for (let code in credits) {
             await submitAnswer({
-                componentIdx: resolveComponentName(`ans${code}`),
+                componentIdx: await resolvePathToNodeIdx(`ans${code}`),
                 core,
             });
         }
         const stateVariables = await core.returnAllStateVariables(false, true);
         for (let code in credits) {
             expect(
-                stateVariables[resolveComponentName(`ans${code}`)].stateValues
-                    .creditAchieved,
+                stateVariables[await resolvePathToNodeIdx(`ans${code}`)]
+                    .stateValues.creditAchieved,
             ).eq(
                 credits[code],
                 `${code} credit for response ${JSON.stringify(responses)}`,

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     updateMathInputValue,
     updateSelectedIndices,
@@ -15,14 +15,15 @@ vi.mock("hyperformula");
 describe("ChoiceInput tag tests", async () => {
     async function test_animal_choice_input(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         inline: boolean,
         shuffleOrder: boolean,
     ) {
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
         const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[] =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceTexts;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceTexts;
 
         if (!shuffleOrder) {
             expect(choiceTexts).eqls(originalChoices);
@@ -30,10 +31,11 @@ describe("ChoiceInput tag tests", async () => {
         expect([...choiceTexts].sort()).eqls(originalChoices);
 
         expect(
-            stateVariables[resolveComponentName("ci")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues.inline,
         ).eq(inline);
         expect(
-            stateVariables[resolveComponentName("ci")].stateValues.shuffleOrder,
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .shuffleOrder,
         ).eq(shuffleOrder);
 
         async function check_items(
@@ -46,48 +48,53 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(`Selected value: ${selectedValue ?? ""}`);
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(`Selected index: ${selectedIndex ?? ""}`);
             expect(
-                stateVariables[resolveComponentName("pCat")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pCat")].stateValues
+                    .text,
             ).eq(`Selected cat: ${selectedValue === "cat"}`);
             expect(
-                stateVariables[resolveComponentName("pDog")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pDog")].stateValues
+                    .text,
             ).eq(`Selected dog: ${selectedValue === "dog"}`);
             expect(
-                stateVariables[resolveComponentName("pMonkey")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pMonkey")]
+                    .stateValues.text,
             ).eq(`Selected monkey: ${selectedValue === "monkey"}`);
             expect(
-                stateVariables[resolveComponentName("pMouse")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pMouse")].stateValues
+                    .text,
             ).eq(`Selected mouse: ${selectedValue === "mouse"}`);
 
             expect(
-                stateVariables[resolveComponentName("ci")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                     .selectedValues,
             ).eqls(selectedValue ? [selectedValue] : []);
             expect(
-                stateVariables[resolveComponentName("ci")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                     .selectedIndices,
             ).eqls(selectedIndex ? [selectedIndex] : []);
             expect(
-                stateVariables[resolveComponentName("choice1")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice1")]
+                    .stateValues.selected,
             ).eq(selectedValue === "cat");
             expect(
-                stateVariables[resolveComponentName("choice2")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice2")]
+                    .stateValues.selected,
             ).eq(selectedValue === "dog");
             expect(
-                stateVariables[resolveComponentName("choice3")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice3")]
+                    .stateValues.selected,
             ).eq(selectedValue === "monkey");
             expect(
-                stateVariables[resolveComponentName("choice4")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice4")]
+                    .stateValues.selected,
             ).eq(selectedValue === "mouse");
         }
 
@@ -99,7 +106,7 @@ describe("ChoiceInput tag tests", async () => {
             let selectedValue = originalChoices[i];
             let selectedIndex = choiceTexts.indexOf(selectedValue) + 1;
             await updateSelectedIndices({
-                componentIdx: resolveComponentName("ci"),
+                componentIdx: await resolvePathToNodeIdx("ci"),
                 selectedIndices: [selectedIndex],
                 core,
             });
@@ -108,7 +115,7 @@ describe("ChoiceInput tag tests", async () => {
     }
 
     it("default is block format, not shuffled", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput name="ci">
       <choice name="choice1">cat</choice>
@@ -130,14 +137,14 @@ describe("ChoiceInput tag tests", async () => {
 
         await test_animal_choice_input(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             false,
             false,
         );
     });
 
     it("shuffleOrder", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput shuffleOrder name="ci">
       <choice name="choice1">cat</choice>
@@ -157,11 +164,11 @@ describe("ChoiceInput tag tests", async () => {
             requestedVariantIndex: 8,
         });
 
-        await test_animal_choice_input(core, resolveComponentName, false, true);
+        await test_animal_choice_input(core, resolvePathToNodeIdx, false, true);
     });
 
     it("inline", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput inline name="ci">
       <choice name="choice1">cat</choice>
@@ -181,11 +188,11 @@ describe("ChoiceInput tag tests", async () => {
             requestedVariantIndex: 8,
         });
 
-        await test_animal_choice_input(core, resolveComponentName, true, false);
+        await test_animal_choice_input(core, resolvePathToNodeIdx, true, false);
     });
 
     it("inline, shuffle order", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput inline shuffleOrder name="ci">
       <choice name="choice1">cat</choice>
@@ -205,11 +212,11 @@ describe("ChoiceInput tag tests", async () => {
             requestedVariantIndex: 8,
         });
 
-        await test_animal_choice_input(core, resolveComponentName, true, true);
+        await test_animal_choice_input(core, resolvePathToNodeIdx, true, true);
     });
 
     it("choiceInput references", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <choiceInput inline shuffleOrder name="ci1">
         <choice>a</choice>
@@ -243,10 +250,14 @@ describe("ChoiceInput tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
-            stateVariables[resolveComponentName("ci1")].stateValues.choiceTexts,
-            stateVariables[resolveComponentName("ci2")].stateValues.choiceTexts,
-            stateVariables[resolveComponentName("ci3")].stateValues.choiceTexts,
-            stateVariables[resolveComponentName("ci4")].stateValues.choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
+                .choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                .choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci3")].stateValues
+                .choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci4")].stateValues
+                .choiceTexts,
         ];
 
         expect([...choiceTexts[0]].sort()).eqls(originalChoices);
@@ -256,31 +267,35 @@ describe("ChoiceInput tag tests", async () => {
         }
 
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
+                .inline,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                .inline,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci3")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci3")].stateValues
+                .inline,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci4")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci4")].stateValues
+                .inline,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
                 .shuffleOrder,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
                 .shuffleOrder,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci3")].stateValues
                 .shuffleOrder,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci4")].stateValues
                 .shuffleOrder,
         ).eq(true);
 
@@ -294,24 +309,26 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(
                 `Selected values: ${selectedValue ? Array(4).fill(selectedValue).join(", ") : ""}`,
             );
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(
                 `Selected indices: ${selectedIndex ? Array(4).fill(selectedIndex).join(", ") : ""}`,
             );
 
             for (let i = 1; i <= 4; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedValues,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedValues,
                 ).eqls(selectedValue ? [selectedValue] : []);
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedIndices,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedIndices,
                 ).eqls(selectedIndex ? [selectedIndex] : []);
             }
         }
@@ -326,7 +343,9 @@ describe("ChoiceInput tag tests", async () => {
                 let selectedIndex =
                     choiceTexts[inputInd].indexOf(selectedValue) + 1;
                 await updateSelectedIndices({
-                    componentIdx: resolveComponentName(`ci${inputInd + 1}`),
+                    componentIdx: await resolvePathToNodeIdx(
+                        `ci${inputInd + 1}`,
+                    ),
                     selectedIndices: [selectedIndex],
                     core,
                 });
@@ -336,7 +355,7 @@ describe("ChoiceInput tag tests", async () => {
     });
 
     it("math inside choices", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput shuffleOrder name="ci1">
       <choice>The function is <m>f(\\xi)=\\sin(\\xi)</m>.</choice>
@@ -368,25 +387,29 @@ describe("ChoiceInput tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
-            stateVariables[resolveComponentName("ci1")].stateValues.choiceTexts,
-            stateVariables[resolveComponentName("ci2")].stateValues.choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
+                .choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                .choiceTexts,
         ];
 
         expect([...choiceTexts[0]].sort()).eqls([...originalChoices].sort());
         expect(choiceTexts[1]).eqls(choiceTexts[0]);
 
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
+                .inline,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                .inline,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
                 .shuffleOrder,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
                 .shuffleOrder,
         ).eq(true);
 
@@ -400,24 +423,26 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(
                 `Selected values: ${selectedValue ? Array(2).fill(selectedValue).join(", ") : ""}`,
             );
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(
                 `Selected indices: ${selectedIndex ? Array(2).fill(selectedIndex).join(", ") : ""}`,
             );
 
             for (let i = 1; i <= 2; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedValues,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedValues,
                 ).eqls(selectedValue ? [selectedValue] : []);
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedIndices,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedIndices,
                 ).eqls(selectedIndex ? [selectedIndex] : []);
             }
         }
@@ -432,7 +457,9 @@ describe("ChoiceInput tag tests", async () => {
                 let selectedIndex =
                     choiceTexts[inputInd].indexOf(selectedValue) + 1;
                 await updateSelectedIndices({
-                    componentIdx: resolveComponentName(`ci${inputInd + 1}`),
+                    componentIdx: await resolvePathToNodeIdx(
+                        `ci${inputInd + 1}`,
+                    ),
                     selectedIndices: [selectedIndex],
                     core,
                 });
@@ -442,7 +469,7 @@ describe("ChoiceInput tag tests", async () => {
     });
 
     it("bind value to textInput", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput bindValueTo="$ti" shuffleOrder name="ci1">
       <choice>caT</choice>
@@ -470,25 +497,29 @@ describe("ChoiceInput tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
-            stateVariables[resolveComponentName("ci1")].stateValues.choiceTexts,
-            stateVariables[resolveComponentName("ci2")].stateValues.choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
+                .choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                .choiceTexts,
         ];
 
         expect([...choiceTexts[0]].sort()).eqls([...originalChoices].sort());
         expect(choiceTexts[1]).eqls(choiceTexts[0]);
 
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
+                .inline,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                .inline,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
                 .shuffleOrder,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
                 .shuffleOrder,
         ).eq(true);
 
@@ -503,29 +534,32 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(
                 `Selected values: ${selectedValue ? Array(2).fill(selectedValue).join(", ") : ""}`,
             );
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(
                 `Selected indices: ${selectedIndex ? Array(2).fill(selectedIndex).join(", ") : ""}`,
             );
 
             for (let i = 1; i <= 2; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedValues,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedValues,
                 ).eqls(selectedValue ? [selectedValue] : []);
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedIndices,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedIndices,
                 ).eqls(selectedIndex ? [selectedIndex] : []);
             }
 
             expect(
-                stateVariables[resolveComponentName("ti")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                    .value,
             ).eq(inputText);
         }
 
@@ -540,7 +574,7 @@ describe("ChoiceInput tag tests", async () => {
         selectedValue = "caT";
         selectedIndex = choiceTexts[0].indexOf(selectedValue) + 1;
         await updateSelectedIndices({
-            componentIdx: resolveComponentName(`ci1`),
+            componentIdx: await resolvePathToNodeIdx(`ci1`),
             selectedIndices: [selectedIndex],
             core,
         });
@@ -554,7 +588,7 @@ describe("ChoiceInput tag tests", async () => {
         inputText = "Dog";
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await check_items(selectedIndex, selectedValue, inputText);
@@ -564,7 +598,7 @@ describe("ChoiceInput tag tests", async () => {
         selectedIndex = choiceTexts[0].indexOf(selectedValue) + 1;
         inputText = selectedValue;
         await updateSelectedIndices({
-            componentIdx: resolveComponentName(`ci2`),
+            componentIdx: await resolvePathToNodeIdx(`ci2`),
             selectedIndices: [selectedIndex],
             core,
         });
@@ -576,7 +610,7 @@ describe("ChoiceInput tag tests", async () => {
         inputText = "no cat";
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await check_items(selectedIndex, selectedValue, inputText);
@@ -586,7 +620,7 @@ describe("ChoiceInput tag tests", async () => {
         selectedIndex = choiceTexts[0].indexOf(selectedValue) + 1;
         inputText = selectedValue;
         await updateSelectedIndices({
-            componentIdx: resolveComponentName(`ci2`),
+            componentIdx: await resolvePathToNodeIdx(`ci2`),
             selectedIndices: [selectedIndex],
             core,
         });
@@ -598,7 +632,7 @@ describe("ChoiceInput tag tests", async () => {
         inputText = "no dog";
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await check_items(selectedIndex, selectedValue, inputText);
@@ -608,7 +642,7 @@ describe("ChoiceInput tag tests", async () => {
         selectedIndex = choiceTexts[0].indexOf(selectedValue) + 1;
         inputText = selectedValue;
         await updateSelectedIndices({
-            componentIdx: resolveComponentName(`ci1`),
+            componentIdx: await resolvePathToNodeIdx(`ci1`),
             selectedIndices: [selectedIndex],
             core,
         });
@@ -620,7 +654,7 @@ describe("ChoiceInput tag tests", async () => {
         inputText = "no monkey";
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await check_items(selectedIndex, selectedValue, inputText);
@@ -631,14 +665,14 @@ describe("ChoiceInput tag tests", async () => {
         selectedIndex = choiceTexts[0].indexOf(selectedValue) + 1;
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await check_items(selectedIndex, selectedValue, inputText);
     });
 
     it("bind value to textInput, select multiple", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput bindValueTo="$ti" shuffleOrder selectMultiple name="ci1">
       <choice><text>caT</text></choice>
@@ -671,25 +705,29 @@ describe("ChoiceInput tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
-            stateVariables[resolveComponentName("ci1")].stateValues.choiceTexts,
-            stateVariables[resolveComponentName("ci2")].stateValues.choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
+                .choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                .choiceTexts,
         ];
 
         expect([...choiceTexts[0]].sort()).eqls([...originalChoices].sort());
         expect(choiceTexts[1]).eqls(choiceTexts[0]);
 
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
+                .inline,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                .inline,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
                 .shuffleOrder,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
                 .shuffleOrder,
         ).eq(true);
 
@@ -713,25 +751,28 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(`Selected values: ${selectedValuesString}`);
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(`Selected indices: ${selectedIndicesString}`);
 
             for (let i = 1; i <= 2; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedValues,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedValues,
                 ).eqls(selectedValues);
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedIndices,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedIndices,
                 ).eqls(selectedIndices);
             }
 
             expect(
-                stateVariables[resolveComponentName("ti")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                    .value,
             ).eq(inputText);
         }
 
@@ -753,7 +794,7 @@ describe("ChoiceInput tag tests", async () => {
         );
         inputText = selectedValues.join(", ");
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci1"),
+            componentIdx: await resolvePathToNodeIdx("ci1"),
             selectedIndices,
             core,
         });
@@ -764,7 +805,7 @@ describe("ChoiceInput tag tests", async () => {
         inputText = "Dog";
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         selectedIndices = selectedValues.map(
@@ -780,7 +821,7 @@ describe("ChoiceInput tag tests", async () => {
         inputText = "cat   ,DOG";
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         selectedIndices = selectedValues.map(
@@ -800,7 +841,7 @@ describe("ChoiceInput tag tests", async () => {
         );
         inputText = selectedValues.join(", ");
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci2"),
+            componentIdx: await resolvePathToNodeIdx("ci2"),
             selectedIndices,
             core,
         });
@@ -811,7 +852,7 @@ describe("ChoiceInput tag tests", async () => {
         inputText = "no cat";
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         selectedIndices = selectedValues.map(
@@ -824,7 +865,7 @@ describe("ChoiceInput tag tests", async () => {
         inputText = "cat, no dog";
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         selectedIndices = selectedValues.map(
@@ -839,7 +880,7 @@ describe("ChoiceInput tag tests", async () => {
         inputText = "dog, no monkey,   CAT   ";
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         selectedIndices = selectedValues.map(
@@ -856,7 +897,7 @@ describe("ChoiceInput tag tests", async () => {
         );
         inputText = selectedValues.join(", ");
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci2"),
+            componentIdx: await resolvePathToNodeIdx("ci2"),
             selectedIndices,
             core,
         });
@@ -866,7 +907,7 @@ describe("ChoiceInput tag tests", async () => {
         inputText += ", no dog";
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await check_items(selectedIndices, selectedValues, inputText);
@@ -876,7 +917,7 @@ describe("ChoiceInput tag tests", async () => {
         inputText = "dog,  DOG";
         await updateTextInputValue({
             text: inputText,
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         selectedIndices = selectedValues.map(
@@ -893,7 +934,7 @@ describe("ChoiceInput tag tests", async () => {
         );
         inputText = selectedValues.join(", ");
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci2"),
+            componentIdx: await resolvePathToNodeIdx("ci2"),
             selectedIndices,
             core,
         });
@@ -906,7 +947,7 @@ describe("ChoiceInput tag tests", async () => {
         );
         inputText = selectedValues.join(", ");
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci1"),
+            componentIdx: await resolvePathToNodeIdx("ci1"),
             selectedIndices,
             core,
         });
@@ -914,7 +955,7 @@ describe("ChoiceInput tag tests", async () => {
     });
 
     it("bind value to fixed text, choiceInput reverts to fixed value", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput bindValueTo="$alwaysMonkey" name="ci1">
       <choice>cat</choice>
@@ -955,20 +996,22 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(`Selected values: ${selectedValuesString}`);
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(`Selected indices: ${selectedIndicesString}`);
 
             for (let i = 1; i <= 2; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedValues,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedValues,
                 ).eqls([selectedValue]);
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedIndices,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedIndices,
                 ).eqls([selectedIndex]);
             }
         }
@@ -976,28 +1019,28 @@ describe("ChoiceInput tag tests", async () => {
         await check_still_monkey();
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci1"),
+            componentIdx: await resolvePathToNodeIdx("ci1"),
             selectedIndices: [1],
             core,
         });
         await check_still_monkey();
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci1"),
+            componentIdx: await resolvePathToNodeIdx("ci1"),
             selectedIndices: [2],
             core,
         });
         await check_still_monkey();
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci2"),
+            componentIdx: await resolvePathToNodeIdx("ci2"),
             selectedIndices: [1],
             core,
         });
         await check_still_monkey();
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci2"),
+            componentIdx: await resolvePathToNodeIdx("ci2"),
             selectedIndices: [2],
             core,
         });
@@ -1005,7 +1048,7 @@ describe("ChoiceInput tag tests", async () => {
     });
 
     it("bind value to mathInput", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput bindValueTo="$mi" name="ci1">
       <choice><math>x^2/2</math></choice>
@@ -1035,25 +1078,29 @@ describe("ChoiceInput tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
-            stateVariables[resolveComponentName("ci1")].stateValues.choiceTexts,
-            stateVariables[resolveComponentName("ci2")].stateValues.choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
+                .choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                .choiceTexts,
         ];
 
         expect(choiceTexts[0]).eqls(originalChoices);
         expect(choiceTexts[1]).eqls(originalChoices);
 
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
+                .inline,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues.inline,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                .inline,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
                 .shuffleOrder,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
                 .shuffleOrder,
         ).eq(false);
 
@@ -1068,30 +1115,32 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(
                 `Selected values: ${selectedValue ? Array(2).fill(selectedValue).join(", ") : ""}`,
             );
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(
                 `Selected indices: ${selectedIndex ? Array(2).fill(selectedIndex).join(", ") : ""}`,
             );
 
             for (let i = 1; i <= 2; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedValues,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedValues,
                 ).eqls(selectedValue ? [selectedValue] : []);
                 expect(
-                    stateVariables[resolveComponentName(`ci${i}`)].stateValues
-                        .selectedIndices,
+                    stateVariables[await resolvePathToNodeIdx(`ci${i}`)]
+                        .stateValues.selectedIndices,
                 ).eqls(selectedIndex ? [selectedIndex] : []);
             }
 
             expect(
-                stateVariables[resolveComponentName("mi")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                    .value.tree,
             ).eqls(inputMath);
         }
 
@@ -1107,7 +1156,7 @@ describe("ChoiceInput tag tests", async () => {
         selectedValue = originalChoices[selectedIndex - 1];
         inputMath = ["/", ["^", "x", 2], 2];
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci1"),
+            componentIdx: await resolvePathToNodeIdx("ci1"),
             selectedIndices: [selectedIndex],
             core,
         });
@@ -1119,7 +1168,7 @@ describe("ChoiceInput tag tests", async () => {
         inputMath = 3;
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         await check_items(selectedIndex, selectedValue, inputMath);
@@ -1129,7 +1178,7 @@ describe("ChoiceInput tag tests", async () => {
         selectedValue = originalChoices[selectedIndex - 1];
         inputMath = ["partial_derivative_leibniz", "f", ["tuple", "x"]];
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci2"),
+            componentIdx: await resolvePathToNodeIdx("ci2"),
             selectedIndices: [selectedIndex],
             core,
         });
@@ -1141,7 +1190,7 @@ describe("ChoiceInput tag tests", async () => {
         inputMath = ["^", "e", ["-", "x"]];
         await updateMathInputValue({
             latex: "e^{-x}",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         await check_items(selectedIndex, selectedValue, inputMath);
@@ -1152,7 +1201,7 @@ describe("ChoiceInput tag tests", async () => {
         inputMath = ["/", 1, ["^", "e", "x"]];
         await updateMathInputValue({
             latex: "1/e^x",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         await check_items(selectedIndex, selectedValue, inputMath);
@@ -1162,7 +1211,7 @@ describe("ChoiceInput tag tests", async () => {
         selectedValue = originalChoices[selectedIndex - 1];
         inputMath = "y";
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci2"),
+            componentIdx: await resolvePathToNodeIdx("ci2"),
             selectedIndices: [selectedIndex],
             core,
         });
@@ -1170,7 +1219,7 @@ describe("ChoiceInput tag tests", async () => {
     });
 
     it("preselect choices", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput name="c1" preselectChoice="2">
       <choice>cat</choice>
@@ -1270,51 +1319,51 @@ describe("ChoiceInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("c1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues
                 .selectedIndices,
         ).eqls([2]);
         expect(
-            stateVariables[resolveComponentName("c2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues
                 .selectedIndices,
         ).eqls([2]);
         expect(
-            stateVariables[resolveComponentName("c3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues
                 .selectedValues,
         ).eqls(["mouse"]);
         expect(
-            stateVariables[resolveComponentName("c4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c4")].stateValues
                 .selectedValues,
         ).eqls(["mouse"]);
         expect(
-            stateVariables[resolveComponentName("c5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c5")].stateValues
                 .selectedValues,
         ).eqls(["dog"]);
 
         let dogInd6 =
             stateVariables[
-                resolveComponentName("c6")
+                await resolvePathToNodeIdx("c6")
             ].stateValues.choiceTexts.indexOf("dog");
         let mouseInd6 =
             stateVariables[
-                resolveComponentName("c6")
+                await resolvePathToNodeIdx("c6")
             ].stateValues.choiceTexts.indexOf("mouse");
         let selectedInd6 = Math.min(dogInd6, mouseInd6) + 1;
         expect(
-            stateVariables[resolveComponentName("c6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c6")].stateValues
                 .selectedIndices,
         ).eqls([selectedInd6]);
         expect(
-            stateVariables[resolveComponentName("c7")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c7")].stateValues
                 .selectedValues,
         ).eqls(["mouse"]);
         expect(
-            stateVariables[resolveComponentName("c8")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c8")].stateValues
                 .selectedValues,
         ).eqls(["mouse"]);
     });
 
     it("disabled choice", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput inline placeholder="Choose animal" name="ci">
       <choice name="choice1">cat</choice>
@@ -1333,7 +1382,8 @@ describe("ChoiceInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ci")].stateValues.choiceTexts,
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceTexts,
         ).eqls(originalChoices);
 
         async function check_items(selectedIndex?: number) {
@@ -1346,24 +1396,26 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(`Selected value: ${selectedValue ?? ""}`);
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(`Selected index: ${selectedIndex ?? ""}`);
 
             expect(
-                stateVariables[resolveComponentName(`ci`)].stateValues
+                stateVariables[await resolvePathToNodeIdx(`ci`)].stateValues
                     .selectedValues,
             ).eqls(selectedValue ? [selectedValue] : []);
             expect(
-                stateVariables[resolveComponentName(`ci`)].stateValues
+                stateVariables[await resolvePathToNodeIdx(`ci`)].stateValues
                     .selectedIndices,
             ).eqls(selectedIndex ? [selectedIndex] : []);
 
             for (let i = 1; i <= 4; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`choice${i}`)]
+                    stateVariables[await resolvePathToNodeIdx(`choice${i}`)]
                         .stateValues.selected,
                 ).eq(i === selectedIndex);
             }
@@ -1375,7 +1427,7 @@ describe("ChoiceInput tag tests", async () => {
 
         for (let i = 1; i <= 4; i++) {
             await updateSelectedIndices({
-                componentIdx: resolveComponentName("ci"),
+                componentIdx: await resolvePathToNodeIdx("ci"),
                 selectedIndices: [i],
                 core,
             });
@@ -1389,7 +1441,7 @@ describe("ChoiceInput tag tests", async () => {
     });
 
     it("select multiple", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput shuffleOrder selectMultiple name="ci">
       <choice name="choice1">cat</choice>
@@ -1408,7 +1460,8 @@ describe("ChoiceInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let choiceTexts =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceTexts;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceTexts;
         expect([...choiceTexts].sort()).eqls([...originalChoices].sort());
         const order = choiceTexts.map((v) => originalChoices.indexOf(v));
 
@@ -1420,24 +1473,26 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(`Selected values: ${selectedValues.join(", ")}`);
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(`Selected indices: ${selectedIndices.join(", ")}`);
 
             expect(
-                stateVariables[resolveComponentName(`ci`)].stateValues
+                stateVariables[await resolvePathToNodeIdx(`ci`)].stateValues
                     .selectedValues,
             ).eqls(selectedValues);
             expect(
-                stateVariables[resolveComponentName(`ci`)].stateValues
+                stateVariables[await resolvePathToNodeIdx(`ci`)].stateValues
                     .selectedIndices,
             ).eqls(selectedIndices);
 
             for (let i = 1; i <= 4; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`choice${i}`)]
+                    stateVariables[await resolvePathToNodeIdx(`choice${i}`)]
                         .stateValues.selected,
                 ).eq(selectedIndices.includes(order[i - 1] + 1));
             }
@@ -1451,7 +1506,7 @@ describe("ChoiceInput tag tests", async () => {
         for (let i = 1; i <= 4; i++) {
             selectedIndices.push(i);
             await updateSelectedIndices({
-                componentIdx: resolveComponentName("ci"),
+                componentIdx: await resolvePathToNodeIdx("ci"),
                 selectedIndices,
                 core,
             });
@@ -1464,7 +1519,7 @@ describe("ChoiceInput tag tests", async () => {
         while (selectedIndices.length > 0) {
             selectedIndices = selectedIndices.slice(1, selectedIndices.length);
             await updateSelectedIndices({
-                componentIdx: resolveComponentName("ci"),
+                componentIdx: await resolvePathToNodeIdx("ci"),
                 selectedIndices,
                 core,
             });
@@ -1474,7 +1529,7 @@ describe("ChoiceInput tag tests", async () => {
     });
 
     it("chain update off choiceInput", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput name="ci" >
       <choice>red</choice>
@@ -1490,45 +1545,45 @@ describe("ChoiceInput tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("t")].stateValues.value).eq(
-            "",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.value,
+        ).eq("");
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci"),
+            componentIdx: await resolvePathToNodeIdx("ci"),
             selectedIndices: [2],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("t")].stateValues.value).eq(
-            " orange",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.value,
+        ).eq(" orange");
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci"),
+            componentIdx: await resolvePathToNodeIdx("ci"),
             selectedIndices: [5],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("t")].stateValues.value).eq(
-            " orange blue",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.value,
+        ).eq(" orange blue");
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci"),
+            componentIdx: await resolvePathToNodeIdx("ci"),
             selectedIndices: [1],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("t")].stateValues.value).eq(
-            " orange blue red",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.value,
+        ).eq(" orange blue red");
     });
 
     // verify fixed bug where shuffle order was recalculated
     // causing a copy with no link to have a different shuffle order
     it("shuffleOrder is not recalculated when copy with no link", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <variantControl uniqueVariants="false" />
 
@@ -1549,17 +1604,17 @@ describe("ChoiceInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let choiceOrder =
-            stateVariables[resolveComponentName("g.ci")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g.ci")].stateValues
                 .choiceOrder;
         let choiceOrder2 =
-            stateVariables[resolveComponentName("g2.ci")].stateValues
+            stateVariables[await resolvePathToNodeIdx("g2.ci")].stateValues
                 .choiceOrder;
 
         expect(choiceOrder2).eqls(choiceOrder);
     });
 
     it("math choices", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput name="ci">
       <choice><math>x + x</math></choice>
@@ -1594,16 +1649,20 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(`Selected value: ${selectedValue}`);
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(`Selected index: ${selectedIndex ?? ""}`);
             expect(
-                stateVariables[resolveComponentName("psv2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv2")].stateValues
+                    .text,
             ).eq(`Selected value: ${selectedValue}`);
             expect(
-                stateVariables[resolveComponentName("psvs")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psvs")].stateValues
+                    .text,
             ).eq(`Selected value simplified: ${selectedValueSimp}`);
         }
 
@@ -1611,7 +1670,7 @@ describe("ChoiceInput tag tests", async () => {
 
         for (let i = 1; i <= 4; i++) {
             await updateSelectedIndices({
-                componentIdx: resolveComponentName("ci"),
+                componentIdx: await resolvePathToNodeIdx("ci"),
                 selectedIndices: [i],
                 core,
             });
@@ -1630,7 +1689,7 @@ describe("ChoiceInput tag tests", async () => {
   </choiceInput>
   `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             requestedVariantIndex: 1,
         });
@@ -1642,7 +1701,8 @@ describe("ChoiceInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let choiceOrder =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceOrder;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceOrder;
 
         expect([...choiceOrder].sort((a, b) => a - b)).eqls(
             [...Array(n - m + 1).keys()].map((x) => x + m),
@@ -1654,7 +1714,7 @@ describe("ChoiceInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "8",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
@@ -1663,7 +1723,8 @@ describe("ChoiceInput tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceOrder;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceOrder;
 
         expect([...choiceOrder].sort((a, b) => a - b)).eqls(
             [...Array(n - m + 1).keys()].map((x) => x + m),
@@ -1675,7 +1736,7 @@ describe("ChoiceInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             core,
         });
 
@@ -1684,7 +1745,8 @@ describe("ChoiceInput tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceOrder;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceOrder;
 
         expect(choiceOrder).eqls(orders[`1,6`]);
 
@@ -1694,7 +1756,7 @@ describe("ChoiceInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "10",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
@@ -1703,7 +1765,8 @@ describe("ChoiceInput tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceOrder;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceOrder;
 
         expect(choiceOrder).eqls(orders[`1,8`]);
 
@@ -1711,7 +1774,7 @@ describe("ChoiceInput tag tests", async () => {
 
         // values change with another variant
 
-        ({ resolveComponentName, core } = await createTestCore({
+        ({ resolvePathToNodeIdx, core } = await createTestCore({
             doenetML,
             requestedVariantIndex: 2,
         }));
@@ -1721,7 +1784,8 @@ describe("ChoiceInput tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceOrder;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceOrder;
 
         expect(choiceOrder).not.eqls(orders[`${m},${n}`]);
 
@@ -1735,7 +1799,7 @@ describe("ChoiceInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "8",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
@@ -1744,7 +1808,8 @@ describe("ChoiceInput tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceOrder;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceOrder;
         expect(choiceOrder).not.eqls(orders[`${m},${n}`]);
 
         expect([...choiceOrder].sort((a, b) => a - b)).eqls(
@@ -1757,7 +1822,7 @@ describe("ChoiceInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             core,
         });
 
@@ -1766,7 +1831,8 @@ describe("ChoiceInput tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceOrder;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceOrder;
 
         expect(choiceOrder).eqls(orders[`1,6`]);
 
@@ -1776,7 +1842,7 @@ describe("ChoiceInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "10",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
@@ -1785,7 +1851,8 @@ describe("ChoiceInput tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         choiceOrder =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceOrder;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceOrder;
 
         expect(choiceOrder).eqls(orders[`1,8`]);
 
@@ -1793,7 +1860,7 @@ describe("ChoiceInput tag tests", async () => {
     });
 
     it("shuffle all but last choice", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput name="ci">
       <shuffle>
@@ -1819,7 +1886,8 @@ describe("ChoiceInput tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[] =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceTexts;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceTexts;
 
         expect([...choiceTexts].sort()).eqls(originalChoices);
 
@@ -1833,50 +1901,55 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(`Selected value: ${selectedValue ?? ""}`);
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(`Selected index: ${selectedIndex ?? ""}`);
             expect(
-                stateVariables[resolveComponentName("pCat")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pCat")].stateValues
+                    .text,
             ).eq(`Selected cat: ${selectedValue === "cat"}`);
             expect(
-                stateVariables[resolveComponentName("pDog")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pDog")].stateValues
+                    .text,
             ).eq(`Selected dog: ${selectedValue === "dog"}`);
             expect(
-                stateVariables[resolveComponentName("pMonkey")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pMonkey")]
+                    .stateValues.text,
             ).eq(`Selected monkey: ${selectedValue === "monkey"}`);
             expect(
-                stateVariables[resolveComponentName("pNone")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pNone")].stateValues
+                    .text,
             ).eq(
                 `Selected none of the above: ${selectedValue === "none of the above"}`,
             );
 
             expect(
-                stateVariables[resolveComponentName("ci")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                     .selectedValues,
             ).eqls(selectedValue ? [selectedValue] : []);
             expect(
-                stateVariables[resolveComponentName("ci")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                     .selectedIndices,
             ).eqls(selectedIndex ? [selectedIndex] : []);
             expect(
-                stateVariables[resolveComponentName("choice1")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice1")]
+                    .stateValues.selected,
             ).eq(selectedValue === "cat");
             expect(
-                stateVariables[resolveComponentName("choice2")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice2")]
+                    .stateValues.selected,
             ).eq(selectedValue === "dog");
             expect(
-                stateVariables[resolveComponentName("choice3")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice3")]
+                    .stateValues.selected,
             ).eq(selectedValue === "monkey");
             expect(
-                stateVariables[resolveComponentName("choice4")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice4")]
+                    .stateValues.selected,
             ).eq(selectedValue === "none of the above");
         }
 
@@ -1888,7 +1961,7 @@ describe("ChoiceInput tag tests", async () => {
             let selectedValue = originalChoices[i];
             let selectedIndex = choiceTexts.indexOf(selectedValue) + 1;
             await updateSelectedIndices({
-                componentIdx: resolveComponentName("ci"),
+                componentIdx: await resolvePathToNodeIdx("ci"),
                 selectedIndices: [selectedIndex],
                 core,
             });
@@ -1897,7 +1970,7 @@ describe("ChoiceInput tag tests", async () => {
     });
 
     it("sorted choices", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <choiceInput name="ci">
       <sort sortByProp="text">
@@ -1921,7 +1994,8 @@ describe("ChoiceInput tag tests", async () => {
         let sortedChoices = ["cat", "dog", "monkey", "mouse"];
         const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[] =
-            stateVariables[resolveComponentName("ci")].stateValues.choiceTexts;
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .choiceTexts;
 
         expect(choiceTexts).eqls(sortedChoices);
 
@@ -1935,48 +2009,53 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv")].stateValues
+                    .text,
             ).eq(`Selected value: ${selectedValue ?? ""}`);
             expect(
-                stateVariables[resolveComponentName("psi")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi")].stateValues
+                    .text,
             ).eq(`Selected index: ${selectedIndex ?? ""}`);
             expect(
-                stateVariables[resolveComponentName("pCat")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pCat")].stateValues
+                    .text,
             ).eq(`Selected cat: ${selectedValue === "cat"}`);
             expect(
-                stateVariables[resolveComponentName("pDog")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pDog")].stateValues
+                    .text,
             ).eq(`Selected dog: ${selectedValue === "dog"}`);
             expect(
-                stateVariables[resolveComponentName("pMonkey")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pMonkey")]
+                    .stateValues.text,
             ).eq(`Selected monkey: ${selectedValue === "monkey"}`);
             expect(
-                stateVariables[resolveComponentName("pMouse")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pMouse")].stateValues
+                    .text,
             ).eq(`Selected mouse: ${selectedValue === "mouse"}`);
 
             expect(
-                stateVariables[resolveComponentName("ci")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                     .selectedValues,
             ).eqls(selectedValue ? [selectedValue] : []);
             expect(
-                stateVariables[resolveComponentName("ci")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                     .selectedIndices,
             ).eqls(selectedIndex ? [selectedIndex] : []);
             expect(
-                stateVariables[resolveComponentName("choice1")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice1")]
+                    .stateValues.selected,
             ).eq(selectedValue === "mouse");
             expect(
-                stateVariables[resolveComponentName("choice2")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice2")]
+                    .stateValues.selected,
             ).eq(selectedValue === "dog");
             expect(
-                stateVariables[resolveComponentName("choice3")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice3")]
+                    .stateValues.selected,
             ).eq(selectedValue === "cat");
             expect(
-                stateVariables[resolveComponentName("choice4")].stateValues
-                    .selected,
+                stateVariables[await resolvePathToNodeIdx("choice4")]
+                    .stateValues.selected,
             ).eq(selectedValue === "monkey");
         }
 
@@ -1988,7 +2067,7 @@ describe("ChoiceInput tag tests", async () => {
             let selectedValue = sortedChoices[i];
             let selectedIndex = choiceTexts.indexOf(selectedValue) + 1;
             await updateSelectedIndices({
-                componentIdx: resolveComponentName("ci"),
+                componentIdx: await resolvePathToNodeIdx("ci"),
                 selectedIndices: [selectedIndex],
                 core,
             });
@@ -1997,7 +2076,7 @@ describe("ChoiceInput tag tests", async () => {
     });
 
     it("copy choices", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <choice name="cat0">cat</choice>
@@ -2052,56 +2131,65 @@ describe("ChoiceInput tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("psv1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv1")].stateValues
+                    .text,
             ).eq(`Selected value 1: ${selectedValue1}`);
             expect(
-                stateVariables[resolveComponentName("psi1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi1")].stateValues
+                    .text,
             ).eq(`Selected index 1: ${selectedIndex1 ?? ""}`);
             expect(
-                stateVariables[resolveComponentName("psv2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psv2")].stateValues
+                    .text,
             ).eq(`Selected value 2: ${selectedValue2}`);
             expect(
-                stateVariables[resolveComponentName("psi2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psi2")].stateValues
+                    .text,
             ).eq(`Selected index 2: ${selectedIndex2 ?? ""}`);
 
             expect(
-                stateVariables[resolveComponentName("pCat0")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pCat0")].stateValues
+                    .text,
             ).eq(`Selected cat0: false`);
             expect(
-                stateVariables[resolveComponentName("pCat1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pCat1")].stateValues
+                    .text,
             ).eq(`Selected cat1: ${selectedValue1 === "cat"}`);
             expect(
-                stateVariables[resolveComponentName("pCat2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pCat2")].stateValues
+                    .text,
             ).eq(`Selected cat2: ${selectedValue2 === "cat"}`);
             expect(
-                stateVariables[resolveComponentName("pDog1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pDog1")].stateValues
+                    .text,
             ).eq(`Selected dog1: ${selectedValue1 === "dog"}`);
             expect(
-                stateVariables[resolveComponentName("pDog2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pDog2")].stateValues
+                    .text,
             ).eq(`Selected dog2: ${selectedValue2 === "dog"}`);
             expect(
-                stateVariables[resolveComponentName("pMonkey1")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pMonkey1")]
+                    .stateValues.text,
             ).eq(`Selected monkey1: ${selectedValue1 === "monkey"}`);
             expect(
-                stateVariables[resolveComponentName("pMonkey2")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pMonkey2")]
+                    .stateValues.text,
             ).eq(`Selected monkey2: ${selectedValue2 === "monkey"}`);
 
             expect(
-                stateVariables[resolveComponentName("ci1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
                     .selectedValues,
             ).eqls(selectedValue1 ? [selectedValue1] : []);
             expect(
-                stateVariables[resolveComponentName("ci1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
                     .selectedIndices,
             ).eqls(selectedIndex1 ? [selectedIndex1] : []);
             expect(
-                stateVariables[resolveComponentName("ci2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
                     .selectedValues,
             ).eqls(selectedValue2 ? [selectedValue2] : []);
             expect(
-                stateVariables[resolveComponentName("ci2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
                     .selectedIndices,
             ).eqls(selectedIndex2 ? [selectedIndex2] : []);
         }
@@ -2112,7 +2200,7 @@ describe("ChoiceInput tag tests", async () => {
 
         for (let i = 1; i <= 3; i++) {
             await updateSelectedIndices({
-                componentIdx: resolveComponentName("ci1"),
+                componentIdx: await resolvePathToNodeIdx("ci1"),
                 selectedIndices: [i],
                 core,
             });
@@ -2123,7 +2211,7 @@ describe("ChoiceInput tag tests", async () => {
 
         for (let i = 1; i <= 3; i++) {
             await updateSelectedIndices({
-                componentIdx: resolveComponentName("ci2"),
+                componentIdx: await resolvePathToNodeIdx("ci2"),
                 selectedIndices: [i],
                 core,
             });
@@ -2144,243 +2232,267 @@ describe("ChoiceInput tag tests", async () => {
 
     `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ci1changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci1changed")].stateValues
                 .value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci2changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci2changed")].stateValues
                 .value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci3changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci3changed")].stateValues
                 .value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci4changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci4changed")].stateValues
                 .value,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("ci1a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci1a")].stateValues
+                .value,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("ci2a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci2a")].stateValues
+                .value,
         ).eq("No");
         expect(
-            stateVariables[resolveComponentName("ci3a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci3a")].stateValues
+                .value,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("ci4a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci4a")].stateValues
+                .value,
         ).eq("No");
 
         // selecting from first and second marks only them as changed
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci1"),
+            componentIdx: await resolvePathToNodeIdx("ci1"),
             selectedIndices: [1],
             core,
         });
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci2"),
+            componentIdx: await resolvePathToNodeIdx("ci2"),
             selectedIndices: [1],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ci1changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci1changed")].stateValues
                 .value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci2changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci2changed")].stateValues
                 .value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci3changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci3changed")].stateValues
                 .value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci4changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci4changed")].stateValues
                 .value,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("ci1a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci1a")].stateValues
+                .value,
         ).eq("Yes");
         expect(
-            stateVariables[resolveComponentName("ci2a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci2a")].stateValues
+                .value,
         ).eq("Yes");
         expect(
-            stateVariables[resolveComponentName("ci3a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci3a")].stateValues
+                .value,
         ).eq("Yes");
         expect(
-            stateVariables[resolveComponentName("ci4a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci4a")].stateValues
+                .value,
         ).eq("Yes");
 
         // selecting from third and fourth marks them as changed
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci3"),
+            componentIdx: await resolvePathToNodeIdx("ci3"),
             selectedIndices: [2],
             core,
         });
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci4"),
+            componentIdx: await resolvePathToNodeIdx("ci4"),
             selectedIndices: [2],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ci1changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci1changed")].stateValues
                 .value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci2changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci2changed")].stateValues
                 .value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci3changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci3changed")].stateValues
                 .value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci4changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci4changed")].stateValues
                 .value,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("ci1a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci1a")].stateValues
+                .value,
         ).eq("No");
         expect(
-            stateVariables[resolveComponentName("ci2a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci2a")].stateValues
+                .value,
         ).eq("No");
         expect(
-            stateVariables[resolveComponentName("ci3a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci3a")].stateValues
+                .value,
         ).eq("No");
         expect(
-            stateVariables[resolveComponentName("ci4a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci4a")].stateValues
+                .value,
         ).eq("No");
 
         // reload
 
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ci1changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci1changed")].stateValues
                 .value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci2changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci2changed")].stateValues
                 .value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci3changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci3changed")].stateValues
                 .value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci4changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci4changed")].stateValues
                 .value,
         ).eq(false);
 
         expect(
-            stateVariables[resolveComponentName("ci1a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci1a")].stateValues
+                .value,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("ci2a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci2a")].stateValues
+                .value,
         ).eq("No");
         expect(
-            stateVariables[resolveComponentName("ci3a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci3a")].stateValues
+                .value,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("ci4a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci4a")].stateValues
+                .value,
         ).eq("No");
 
         // selecting from fourth marks second and fourth as changed
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci4"),
+            componentIdx: await resolvePathToNodeIdx("ci4"),
             selectedIndices: [1],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ci1changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci1changed")].stateValues
                 .value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci2changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci2changed")].stateValues
                 .value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci3changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci3changed")].stateValues
                 .value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("ci4changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci4changed")].stateValues
                 .value,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("ci1a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci1a")].stateValues
+                .value,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("ci2a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci2a")].stateValues
+                .value,
         ).eq("Yes");
         expect(
-            stateVariables[resolveComponentName("ci3a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci3a")].stateValues
+                .value,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("ci4a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci4a")].stateValues
+                .value,
         ).eq("Yes");
 
         // selecting from third marks first and third as changed
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("ci3"),
+            componentIdx: await resolvePathToNodeIdx("ci3"),
             selectedIndices: [2],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ci1changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci1changed")].stateValues
                 .value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci2changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci2changed")].stateValues
                 .value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci3changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci3changed")].stateValues
                 .value,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("ci4changed")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ci4changed")].stateValues
                 .value,
         ).eq(true);
 
         expect(
-            stateVariables[resolveComponentName("ci1a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci1a")].stateValues
+                .value,
         ).eq("No");
         expect(
-            stateVariables[resolveComponentName("ci2a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci2a")].stateValues
+                .value,
         ).eq("Yes");
         expect(
-            stateVariables[resolveComponentName("ci3a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci3a")].stateValues
+                .value,
         ).eq("No");
         expect(
-            stateVariables[resolveComponentName("ci4a")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("ci4a")].stateValues
+                .value,
         ).eq("Yes");
     });
 
     it("label", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><choiceInput name="ci1" inline><label name="label1">Select an option</label><choice>Yes</choice><choice>No</choice></choiceInput>
       <choiceInput extend="$ci1" name="ci1a" /> </p>
@@ -2394,54 +2506,60 @@ describe("ChoiceInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues.label,
         ).eq("Select an option");
         expect(
-            stateVariables[resolveComponentName("ci1a")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci1a")].stateValues
+                .label,
         ).eq("Select an option");
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues.label,
         ).eq("Select another option");
         expect(
-            stateVariables[resolveComponentName("ci2a")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci2a")].stateValues
+                .label,
         ).eq("Select another option");
 
         // hide labels
         await updateValue({
-            componentIdx: resolveComponentName("toggleLabels"),
+            componentIdx: await resolvePathToNodeIdx("toggleLabels"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues.label,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("ci1a")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci1a")].stateValues
+                .label,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues.label,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("ci2a")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci2a")].stateValues
+                .label,
         ).eq("");
 
         // show labels again
         await updateValue({
-            componentIdx: resolveComponentName("toggleLabels"),
+            componentIdx: await resolvePathToNodeIdx("toggleLabels"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("ci1")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues.label,
         ).eq("Select an option");
         expect(
-            stateVariables[resolveComponentName("ci1a")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci1a")].stateValues
+                .label,
         ).eq("Select an option");
         expect(
-            stateVariables[resolveComponentName("ci2")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues.label,
         ).eq("Select another option");
         expect(
-            stateVariables[resolveComponentName("ci2a")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("ci2a")].stateValues
+                .label,
         ).eq("Select another option");
     });
 
@@ -2465,270 +2583,274 @@ describe("ChoiceInput tag tests", async () => {
   <p name="p">Selected value: <text extend="$ci" name="selectedValue" /></p>
     `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: `);
 
         // typing in wrong value doesn't do anything
         await updateTextInputValue({
             text: "nothing",
-            componentIdx: resolveComponentName("fromTextCi"),
+            componentIdx: await resolvePathToNodeIdx("fromTextCi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: `);
 
         // Select value from text ci
         await updateTextInputValue({
             text: "maybe",
-            componentIdx: resolveComponentName("fromTextCi"),
+            componentIdx: await resolvePathToNodeIdx("fromTextCi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: maybe`);
 
         // Change value from text ci.selectedValue
         await updateTextInputValue({
             text: "no",
-            componentIdx: resolveComponentName("fromTextSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: no`);
 
         // Invalid value into text ci.selectedValue does nothing
         await updateTextInputValue({
             text: "bad",
-            componentIdx: resolveComponentName("fromTextSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: no`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: `);
 
         // Can change value from one macro after starting afresh
         await updateTextInputValue({
             text: "yes",
-            componentIdx: resolveComponentName("fromMacroCi"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroCi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: yes`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: yes`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: `);
 
         // Can change value from other macro after starting afresh
         await updateTextInputValue({
             text: "no",
-            componentIdx: resolveComponentName("fromMacroSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: no`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: `);
 
         // Change value from text ci.selectedValue works after starting afresh
         await updateTextInputValue({
             text: "maybe",
-            componentIdx: resolveComponentName("fromTextSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: maybe`);
 
         // We can now change from macros
         await updateTextInputValue({
             text: "yes",
-            componentIdx: resolveComponentName("fromMacroCi"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroCi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: yes`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: yes`);
 
         await updateTextInputValue({
             text: "no",
-            componentIdx: resolveComponentName("fromMacroSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: no`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: `);
 
         // Change value from math ci.selectedIndices works after starting afresh
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("fromMathSelectedIndices"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndices"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: maybe`);
 
         // Invalid value into from math ci.selectedIndex deselects all option
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("fromMathSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: `);
 
         // Enter valid value into from math ci.selectedIndex
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("fromMathSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: maybe`);
 
         // Enter value into from macro ci.selectedIndices
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMacroSelectedIndices"),
+            componentIdx: await resolvePathToNodeIdx(
+                "fromMacroSelectedIndices",
+            ),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: no`);
 
         // Enter value into from macro ci.selectedIndex
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: yes`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: yes`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: `);
 
         // Can change value from macros ci.selectedIndices after starting afresh
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMacroSelectedIndices"),
+            componentIdx: await resolvePathToNodeIdx(
+                "fromMacroSelectedIndices",
+            ),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: no`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: `);
 
         // Can change value from macro ci.selectedIndex after starting afresh
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: yes`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: yes`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: `);
 
         // can add value into from math ci.selectedIndex even after starting afresh
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMathSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: no`);
     });
 
     it("change choice input from copied value, text, select multiple", async () => {
@@ -2751,325 +2873,325 @@ describe("ChoiceInput tag tests", async () => {
   <p name="p">Selected values: $ci.selectedValues</p>
     `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // typing in wrong value doesn't do anything
         await updateTextInputValue({
             text: "nothing",
-            componentIdx: resolveComponentName("fromTextSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Select value from text ci.selectedValue
         await updateTextInputValue({
             text: "maybe",
-            componentIdx: resolveComponentName("fromTextSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: maybe`);
 
         // Add second value from text ci.selectedValue2
         await updateTextInputValue({
             text: "no",
-            componentIdx: resolveComponentName("fromTextSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: no, maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: no, maybe`);
 
         // Invalid value into text ci.selectedValue does nothing
         await updateTextInputValue({
             text: "bad",
-            componentIdx: resolveComponentName("fromTextSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: no, maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: no, maybe`);
 
         // Repeat first value from text ci.selectedValue2 reduces to one value
         await updateTextInputValue({
             text: "no",
-            componentIdx: resolveComponentName("fromTextSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: no`);
 
         // Add second value from text ci.selectedValue2
         await updateTextInputValue({
             text: "yes",
-            componentIdx: resolveComponentName("fromTextSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: yes, no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: yes, no`);
 
         // Repeat second value from text ci.selectedValue reduces to one value
         await updateTextInputValue({
             text: "no",
-            componentIdx: resolveComponentName("fromTextSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: no`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Can change value from macros after starting afresh
         await updateTextInputValue({
             text: "yes",
-            componentIdx: resolveComponentName("fromMacroSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: yes`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: yes`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Can change value from macros after starting afresh
         await updateTextInputValue({
             text: "no",
-            componentIdx: resolveComponentName("fromMacroSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: no`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Change value from text ci.selectedValue2 works after starting afresh
         await updateTextInputValue({
             text: "maybe",
-            componentIdx: resolveComponentName("fromTextSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: maybe`);
 
         // Add second value from text ci.selectedValue2
         await updateTextInputValue({
             text: "yes",
-            componentIdx: resolveComponentName("fromTextSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromTextSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: yes, maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: yes, maybe`);
 
         // We can change from macros
         await updateTextInputValue({
             text: "no",
-            componentIdx: resolveComponentName("fromMacroSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: no, maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: no, maybe`);
 
         await updateTextInputValue({
             text: "yes",
-            componentIdx: resolveComponentName("fromMacroSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: yes, no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: yes, no`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Change value from math ci.selectedIndex works after starting afresh
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("fromMathSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: maybe`);
 
         // Invalid value into from math ci.selectedIndex is reverted
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("fromMathSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: maybe`);
 
         // Enter valid value into from math ci.selectedIndex2
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMathSelectedIndex2"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: yes, maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: yes, maybe`);
 
         // Enter value into from macro ci.selectedIndex
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: no, maybe`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: no, maybe`);
 
         // Enter value into from macro ci.selectedIndex2
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex2"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: yes, no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: yes, no`);
 
         // Enter repeated value into from macro ci.selectedIndex2 selects just one
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex2"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: yes`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: yes`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Can change value from macro ci.selectedIndex after starting afresh
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: no`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Can change value from macro ci.selectedIndex2 after starting afresh
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex2"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: yes`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: yes`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // can add value into from math ci.selectedIndex2 even after starting afresh
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMathSelectedIndex2"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: no`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: no`);
     });
 
     it("change choice input from copied value, math", async () => {
@@ -3092,270 +3214,274 @@ describe("ChoiceInput tag tests", async () => {
   <p name="p">Selected value: $ci.selectedValue</p>
     `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Selected value: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Selected value: ");
 
         // typing in wrong value doesn't do anything
         await updateMathInputValue({
             latex: "a",
-            componentIdx: resolveComponentName("fromMathCi"),
+            componentIdx: await resolvePathToNodeIdx("fromMathCi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Selected value: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Selected value: ");
 
         // Select value from math ci
         await updateMathInputValue({
             latex: "z",
-            componentIdx: resolveComponentName("fromMathCi"),
+            componentIdx: await resolvePathToNodeIdx("fromMathCi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: z`);
 
         // Change value from math ci.selectedValue
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("fromMathSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: y`);
 
         // Invalid value into math ci.selectedValue does nothing
         await updateMathInputValue({
             latex: "bad",
-            componentIdx: resolveComponentName("fromMathSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: y`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Selected value: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Selected value: ");
 
         // Can change value from one macro after starting afresh
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("fromMacroCi"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroCi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: x`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: x`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Selected value: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Selected value: ");
 
         // Can change value from other macro after starting afresh
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("fromMacroSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: y`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Selected value: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Selected value: ");
 
         // Change value from math ci.selectedValue works after starting afresh
         await updateMathInputValue({
             latex: "z",
-            componentIdx: resolveComponentName("fromMathSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: z`);
 
         // We can change from macros
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("fromMacroCi"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroCi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: x`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: x`);
 
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("fromMacroSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: y`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Selected value: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Selected value: ");
 
         // Change value from math ci.selectedIndices works after starting afresh
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("fromMathSelectedIndices"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndices"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: z`);
 
         // Invalid value into from math ci.selectedIndex deselects all option
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("fromMathSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Selected value: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Selected value: ");
 
         // Enter valid value into from math ci.selectedIndex
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("fromMathSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: z`);
 
         // Enter value into from macro ci.selectedIndices
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMacroSelectedIndices"),
+            componentIdx: await resolvePathToNodeIdx(
+                "fromMacroSelectedIndices",
+            ),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: y`);
 
         // Enter value into from macro ci.selectedIndex
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: x`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: x`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Selected value: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Selected value: ");
 
         // Can change value from macros ci.selectedIndices after starting afresh
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMacroSelectedIndices"),
+            componentIdx: await resolvePathToNodeIdx(
+                "fromMacroSelectedIndices",
+            ),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: y`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Selected value: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Selected value: ");
 
         // Can change value from macro ci.selectedIndex after starting afresh
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: x`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: x`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Selected value: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Selected value: ");
 
         // can add value into from math ci.selectedIndex even after starting afresh
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMathSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected value: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected value: y`);
     });
 
     it("change choice input from copied value, math, select multiple", async () => {
@@ -3378,324 +3504,324 @@ describe("ChoiceInput tag tests", async () => {
   <p name="p">Selected values: $ci.selectedValues</p>
     `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // typing in wrong value doesn't do anything
         await updateMathInputValue({
             latex: "nothing",
-            componentIdx: resolveComponentName("fromMathSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Select value from text ci.selectedValue
         await updateMathInputValue({
             latex: "z",
-            componentIdx: resolveComponentName("fromMathSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: z`);
 
         // Add second value from text ci.selectedValue2
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("fromMathSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: y, z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: y, z`);
 
         // Invalid value into text ci.selectedValue does nothing
         await updateMathInputValue({
             latex: "bad",
-            componentIdx: resolveComponentName("fromMathSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: y, z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: y, z`);
 
         // Repeat first value from text ci.selectedValue2 reduces to one value
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("fromMathSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: y`);
 
         // Add second value from text ci.selectedValue2
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("fromMathSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: x, y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: x, y`);
 
         // Repeat second value from text ci.selectedValue reduces to one value
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("fromMathSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: y`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Can change value from macros after starting afresh
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("fromMacroSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: x`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: x`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Can change value from macros after starting afresh
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("fromMacroSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: y`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Change value from text ci.selectedValue2 works after starting afresh
         await updateMathInputValue({
             latex: "z",
-            componentIdx: resolveComponentName("fromMathSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: z`);
 
         // Add second value from text ci.selectedValue2
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("fromMathSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: x, z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: x, z`);
 
         // We can change from macros
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("fromMacroSelectedValue"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: y, z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: y, z`);
 
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("fromMacroSelectedValue2"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedValue2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: x, y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: x, y`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Change value from math ci.selectedIndex works after starting afresh
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("fromMathSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: z`);
 
         // Invalid value into from math ci.selectedIndex is reverted
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("fromMathSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: z`);
 
         // Enter valid value into from math ci.selectedIndex2
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMathSelectedIndex2"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: x, z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: x, z`);
 
         // Enter value into from macro ci.selectedIndex
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: y, z`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: y, z`);
 
         // Enter value into from macro ci.selectedIndex2
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex2"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: x, y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: x, y`);
 
         // Enter repeated value into from macro ci.selectedIndex2 selects just one
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex2"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: x`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: x`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Can change value from macro ci.selectedIndex after starting afresh
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: y`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // Can change value from macro ci.selectedIndex2 after starting afresh
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("fromMacroSelectedIndex2"),
+            componentIdx: await resolvePathToNodeIdx("fromMacroSelectedIndex2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: x`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: x`);
 
         // reload
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: `,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: `);
 
         // can add value into from math ci.selectedIndex2 even after starting afresh
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("fromMathSelectedIndex2"),
+            componentIdx: await resolvePathToNodeIdx("fromMathSelectedIndex2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            `Selected values: y`,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq(`Selected values: y`);
     });
 });

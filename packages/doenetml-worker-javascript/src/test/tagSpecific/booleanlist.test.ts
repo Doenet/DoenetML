@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -13,14 +13,14 @@ vi.mock("hyperformula");
 describe("BooleanList tag tests", async () => {
     async function test_booleanList({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         name,
         pName,
         text,
         booleans,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: (name: string, origin?: number) => number;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         name?: string;
         pName?: string;
         text?: string;
@@ -30,19 +30,21 @@ describe("BooleanList tag tests", async () => {
 
         if (text !== undefined && pName !== undefined) {
             expect(
-                stateVariables[resolveComponentName(pName)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(pName)].stateValues
+                    .text,
             ).eq(text);
         }
 
         if (booleans !== undefined && name !== undefined) {
             expect(
-                stateVariables[resolveComponentName(name)].stateValues.booleans,
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .booleans,
             ).eqls(booleans);
         }
     }
 
     it("booleanList from string", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p"><booleanList name="bl1">false true </booleanList></p>
     `,
@@ -50,7 +52,7 @@ describe("BooleanList tag tests", async () => {
 
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl1",
             pName: "p",
             text: "false, true",
@@ -59,7 +61,7 @@ describe("BooleanList tag tests", async () => {
     });
 
     it("booleanList with boolean children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><booleanList name="bl1">
       <boolean>false</boolean>
@@ -77,7 +79,7 @@ describe("BooleanList tag tests", async () => {
 
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl1",
             pName: "p1",
             text,
@@ -86,7 +88,7 @@ describe("BooleanList tag tests", async () => {
 
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl2",
             pName: "p2",
             text,
@@ -95,7 +97,7 @@ describe("BooleanList tag tests", async () => {
     });
 
     it("booleanList with boolean and string children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p"><booleanList name="bl1">
      false true
@@ -106,7 +108,7 @@ describe("BooleanList tag tests", async () => {
 
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl1",
             pName: "p",
             text: "false, true, true, true, false",
@@ -116,11 +118,11 @@ describe("BooleanList tag tests", async () => {
 
     async function test_nested_and_inverse(
         core: PublicDoenetMLCore,
-        resolveComponentName: (name: string, origin?: number) => number,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl1",
             pName: "p",
             text: "true, true, false, true, false, false, true, true, false",
@@ -139,31 +141,31 @@ describe("BooleanList tag tests", async () => {
 
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl2",
             booleans: [true, false],
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl3",
             booleans: [false, false, true, true, false],
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl4",
             booleans: [false, false, true],
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl5",
             booleans: [false, true],
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl6",
             booleans: [true, false],
         });
@@ -171,54 +173,54 @@ describe("BooleanList tag tests", async () => {
         // change values
 
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             boolean: false,
             core,
         });
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             boolean: false,
             core,
         });
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             boolean: true,
             core,
         });
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("mi4"),
+            componentIdx: await resolvePathToNodeIdx("mi4"),
             boolean: false,
             core,
         });
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("mi5"),
+            componentIdx: await resolvePathToNodeIdx("mi5"),
             boolean: true,
             core,
         });
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("mi6"),
+            componentIdx: await resolvePathToNodeIdx("mi6"),
             boolean: true,
             core,
         });
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("mi7"),
+            componentIdx: await resolvePathToNodeIdx("mi7"),
             boolean: false,
             core,
         });
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("mi8"),
+            componentIdx: await resolvePathToNodeIdx("mi8"),
             boolean: false,
             core,
         });
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("mi9"),
+            componentIdx: await resolvePathToNodeIdx("mi9"),
             boolean: true,
             core,
         });
 
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl1",
             pName: "p",
             text: "false, false, true, false, true, true, false, false, true",
@@ -237,38 +239,38 @@ describe("BooleanList tag tests", async () => {
 
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl2",
             booleans: [false, true],
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl3",
             booleans: [true, true, false, false, true],
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl4",
             booleans: [true, true, false],
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl5",
             booleans: [true, false],
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl6",
             booleans: [false, true],
         });
     }
 
     it("booleanList with booleanList children, test inverse", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p"><booleanList name="bl1">
       <boolean>true</boolean>
@@ -296,11 +298,11 @@ describe("BooleanList tag tests", async () => {
     `,
         });
 
-        await test_nested_and_inverse(core, resolveComponentName);
+        await test_nested_and_inverse(core, resolvePathToNodeIdx);
     });
 
     it("booleanList with booleanList children and sugar, test inverse", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p"><booleanList name="bl1">
       true
@@ -327,11 +329,11 @@ describe("BooleanList tag tests", async () => {
     `,
         });
 
-        await test_nested_and_inverse(core, resolveComponentName);
+        await test_nested_and_inverse(core, resolvePathToNodeIdx);
     });
 
     it("booleanList with maximum number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p"><booleanList name="bl1" maxNumber="7">
         <boolean>true</boolean>
@@ -359,7 +361,7 @@ describe("BooleanList tag tests", async () => {
 
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: `bl1`,
             booleans: vals1,
             pName: "p",
@@ -370,7 +372,7 @@ describe("BooleanList tag tests", async () => {
             let vals = sub_vals[i];
             await test_booleanList({
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
                 name: `bl${i + 2}`,
                 booleans: vals,
             });
@@ -379,7 +381,7 @@ describe("BooleanList tag tests", async () => {
 
     // For now, at least, giving up the feature where you can overwrite maximum number and make it larger
     it.skip("copy booleanList and overwrite maximum number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><booleanList name="bl1">true true false false true</booleanList></p>
     <p name="p2"><booleanList extend="$bl1" maxNumber="3" name="bl2" /></p>
@@ -395,7 +397,7 @@ describe("BooleanList tag tests", async () => {
 
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl1",
             booleans: list,
             pName: "p1",
@@ -403,7 +405,7 @@ describe("BooleanList tag tests", async () => {
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl2",
             booleans: list.slice(0, 3),
             pName: "p2",
@@ -411,7 +413,7 @@ describe("BooleanList tag tests", async () => {
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl3",
             booleans: list,
             pName: "p3",
@@ -419,7 +421,7 @@ describe("BooleanList tag tests", async () => {
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl4",
             booleans: list.slice(0, 3),
             pName: "p4",
@@ -427,7 +429,7 @@ describe("BooleanList tag tests", async () => {
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl5",
             booleans: list.slice(0, 4),
             pName: "p5",
@@ -435,7 +437,7 @@ describe("BooleanList tag tests", async () => {
         });
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl6",
             booleans: list,
             pName: "p6",
@@ -444,7 +446,7 @@ describe("BooleanList tag tests", async () => {
     });
 
     it("dynamic maximum number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     
     <p>Maximum number 1: <mathInput name="mn" prefill="2" /></p>
@@ -463,7 +465,7 @@ describe("BooleanList tag tests", async () => {
         async function check_items(maxNum: number) {
             for (let pre of ["sec", "sec2"]) {
                 await test_booleanList({
-                    resolveComponentName,
+                    resolvePathToNodeIdx,
                     core,
                     name: `${pre}.ml1`,
                     booleans: list.slice(0, maxNum),
@@ -471,7 +473,7 @@ describe("BooleanList tag tests", async () => {
                     text: list.slice(0, maxNum).join(", "),
                 });
                 await test_booleanList({
-                    resolveComponentName,
+                    resolvePathToNodeIdx,
                     core,
                     name: `${pre}.ml2`,
                     booleans: list.slice(0, maxNum),
@@ -479,7 +481,7 @@ describe("BooleanList tag tests", async () => {
                     text: list.slice(0, maxNum).join(", "),
                 });
                 await test_booleanList({
-                    resolveComponentName,
+                    resolvePathToNodeIdx,
                     core,
                     booleans: list.slice(0, maxNum),
                     pName: `${pre}.p3`,
@@ -493,7 +495,7 @@ describe("BooleanList tag tests", async () => {
         await check_items(maxNum);
 
         maxNum = Infinity;
-        const mnIdx = resolveComponentName("mn");
+        const mnIdx = await resolvePathToNodeIdx("mn");
         await updateMathInputValue({ latex: "", componentIdx: mnIdx, core });
         await check_items(maxNum);
 
@@ -515,7 +517,7 @@ describe("BooleanList tag tests", async () => {
     });
 
     it("booleanList within booleanLists, ignore child hide", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><booleanList hide="true" name="bl1">true true false</booleanList></p>
 
@@ -533,7 +535,7 @@ describe("BooleanList tag tests", async () => {
 
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl2",
             booleans: [false, true, true, false, true, true, true, false],
             pName: "p2",
@@ -542,7 +544,7 @@ describe("BooleanList tag tests", async () => {
 
         await test_booleanList({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "bl3",
             booleans: [false, true, true, false, true, true],
             pName: "p3",
@@ -551,7 +553,7 @@ describe("BooleanList tag tests", async () => {
     });
 
     it("booleanList does not force composite replacement, even in boolean", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <boolean name="b">
       <booleanList>$nothing true</booleanList> = <booleanList>true</booleanList>
@@ -560,13 +562,13 @@ describe("BooleanList tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("b")].stateValues.value).eq(
-            true,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
     });
 
     it("text from booleanList", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanList name="bl">true true false</booleanList>
 
@@ -577,7 +579,8 @@ describe("BooleanList tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pText")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pText")].stateValues
+                .text,
         ).eq("Text: true, true, false");
     });
 });

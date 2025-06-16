@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     movePoint,
     moveVector,
@@ -59,14 +59,14 @@ describe("Vector Tag Tests", function () {
         headName = "head",
         displacementName = "displacement",
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     }) {
         let displacementx = headx - tailx;
         let displacementy = heady - taily;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         check_vec_htd({
-            componentIdx: resolveComponentName(vectorName),
+            componentIdx: await resolvePathToNodeIdx(vectorName),
             h: [headx, heady],
             t: [tailx, taily],
             d: [displacementx, displacementy],
@@ -74,18 +74,18 @@ describe("Vector Tag Tests", function () {
         });
 
         expect(
-            stateVariables[resolveComponentName(tailName)].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx(tailName)
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([tailx, taily]);
         expect(
-            stateVariables[resolveComponentName(headName)].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx(headName)
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([headx, heady]);
 
         check_vec_htd({
-            componentIdx: resolveComponentName(displacementName),
+            componentIdx: await resolvePathToNodeIdx(displacementName),
             h: [
                 displacementx + displacementTailShiftx,
                 displacementy + displacementTailShifty,
@@ -98,7 +98,7 @@ describe("Vector Tag Tests", function () {
 
     async function common_test_process({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         initialTailX = 0,
         initialTailY = 0,
         initialHeadX = -4,
@@ -107,7 +107,7 @@ describe("Vector Tag Tests", function () {
         pointMovesEntireVector = "tail",
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         initialTailX?: number;
         initialTailY?: number;
         initialHeadX?: number;
@@ -128,14 +128,14 @@ describe("Vector Tag Tests", function () {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("vector1")].stateValues
-                    .label,
+                stateVariables[await resolvePathToNodeIdx("vector1")]
+                    .stateValues.label,
             ).eq("\\(\\vec{v}\\)");
         }
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -154,13 +154,13 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vector1"),
+            componentIdx: await resolvePathToNodeIdx("vector1"),
             tailcoords: [tailx, taily],
             headcoords: [headx, heady],
         });
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -180,13 +180,13 @@ describe("Vector Tag Tests", function () {
         }
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tail"),
+            componentIdx: await resolvePathToNodeIdx("tail"),
             x: tailx,
             y: taily,
         });
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -206,13 +206,13 @@ describe("Vector Tag Tests", function () {
         }
         await movePoint({
             core,
-            componentIdx: resolveComponentName("head"),
+            componentIdx: await resolvePathToNodeIdx("head"),
             x: headx,
             y: heady,
         });
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -240,7 +240,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("displacement"),
+            componentIdx: await resolvePathToNodeIdx("displacement"),
 
             tailcoords: [displacementTailShiftx, displacementTailShifty],
             headcoords: [displacementheadx, displacementheady],
@@ -248,7 +248,7 @@ describe("Vector Tag Tests", function () {
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -259,7 +259,7 @@ describe("Vector Tag Tests", function () {
     }
 
     it("vector with no arguments, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <vector name="vector1" />
@@ -274,7 +274,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialHeadX: 1,
             initialHeadY: 0,
             initialTailX: 0,
@@ -284,7 +284,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with just label, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <vector name="vector1"><label><m>\\vec{v}</m></label></vector>
@@ -299,7 +299,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialHeadX: 1,
             initialHeadY: 0,
             initialTailX: 0,
@@ -309,7 +309,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with sugared tuple giving xs, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1">(-4,2)</vector>
@@ -325,11 +325,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("vector with sugared tuple giving xs and label, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1">
@@ -350,13 +350,13 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             checkLabel: true,
         });
     });
 
     it("vector with point giving displacement, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1"><point>(-4,2)</point></vector>
@@ -372,11 +372,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("vector with point giving displacement and label, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <vector name="vector1"><point>(-4,2)</point><label><m>\\vec{v}</m></label></vector>
@@ -394,13 +394,13 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             checkLabel: true,
         });
     });
 
     it("vector from vector giving displacement, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1"><vector>(-4,2)</vector></vector>
@@ -415,11 +415,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("vector from vector giving displacement and label, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1"><label><m>\\vec{v}</m></label><vector>(-4,2)</vector></vector>
@@ -436,13 +436,13 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             checkLabel: true,
         });
     });
 
     it("vector with just displacement, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" displacement ="(-4,2)" />
@@ -457,11 +457,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("vector with just displacement and label, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" displacement ="(-4,2)" >
@@ -480,13 +480,13 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             checkLabel: true,
         });
     });
 
     it("vector with xs, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" xs="-4 2" />
@@ -501,11 +501,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("vector with xs and label, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" xs="-4 2" ><label><m>\\vec{v}</m></label></vector>
@@ -522,13 +522,13 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             checkLabel: true,
         });
     });
 
     it("vector with math giving displacement, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1"><math>(-4,2)</math></vector>
@@ -544,11 +544,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("vector with math giving displacement and label, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1">
@@ -569,13 +569,13 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             checkLabel: true,
         });
     });
 
     it("vector with copied coords giving displacement, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <coords name="c">(-4,2)</coords>
   <graph>
@@ -594,11 +594,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("vector with copied coords giving displacement and label, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <coords name="c">(-4,2)</coords>
   <graph>
@@ -620,13 +620,13 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             checkLabel: true,
         });
     });
 
     it("vector with x and y, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" x="-4" y="2" />
@@ -641,11 +641,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("vector with x and y and label, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" x="-4" y="2" ><label><m>\\vec{v}</m></label></vector>
@@ -662,13 +662,13 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             checkLabel: true,
         });
     });
 
     it("vector with y, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" y="2" />
@@ -685,14 +685,14 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialHeadX: 0,
             initialHeadY: 2,
         });
     });
 
     it("vector with sugared tuple giving xs and tail, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" tail="(4,1)" >(-8,1)</vector>
@@ -709,14 +709,14 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
         });
     });
 
     it("vector with displacement point child and tail, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" tail="(4,1)" ><point>(-8,1)</point></vector>
@@ -733,14 +733,14 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
         });
     });
 
     it("vector with displacement vector child and tail, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" tail="(4,1)" ><vector>(-8,1)</vector></vector>
@@ -757,14 +757,14 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
         });
     });
 
     it("vector with displacement and tail, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" displacement="(-8,1)" tail="(4,1)" />
@@ -781,14 +781,14 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
         });
     });
 
     it("vector with xs and tail, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" xs="-8 1" tail="(4,1)" />
@@ -805,14 +805,14 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
         });
     });
 
     it("vector with x, y and tail, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" x="-8" y="1" tail="(4,1)" />
@@ -829,14 +829,14 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
         });
     });
 
     it("vector with y and tail, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" y="1" tail="(4,1)" />
@@ -853,7 +853,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
             initialHeadX: 4,
@@ -862,7 +862,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with sugared tuple giving xs and head, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" head="(-4,2)" >(-8,1)</vector>
@@ -879,7 +879,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
             pointMovesEntireVector: "head",
@@ -887,7 +887,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with displacement point child and head, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" head="(-4,2)" ><point>(-8,1)</point></vector>
@@ -904,7 +904,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
             pointMovesEntireVector: "head",
@@ -912,7 +912,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with displacement vector child and head, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" head="(-4,2)" ><vector>(-8,1)</vector></vector>
@@ -929,7 +929,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
             pointMovesEntireVector: "head",
@@ -937,7 +937,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with displacement and head, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" displacement="(-8,1)" head="(-4,2)" />
@@ -954,7 +954,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
             pointMovesEntireVector: "head",
@@ -962,7 +962,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with xs and head, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" xs="-8 1" head="(-4,2)" />
@@ -979,7 +979,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
             pointMovesEntireVector: "head",
@@ -987,7 +987,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with x, y and head, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" x="-8" y="1" head="(-4,2)" />
@@ -1004,7 +1004,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
             pointMovesEntireVector: "head",
@@ -1012,7 +1012,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with y and head, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" y="1" head="(-4,2)" />
@@ -1029,7 +1029,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: -4,
             initialTailY: 1,
             pointMovesEntireVector: "head",
@@ -1037,7 +1037,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with just head, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" head="(-4,2)"/>
@@ -1054,13 +1054,13 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             pointMovesEntireVector: "none",
         });
     });
 
     it("vector with head and tail, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" tail="(4,1)" head="(-4,2)" />
@@ -1077,7 +1077,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 4,
             initialTailY: 1,
             pointMovesEntireVector: "none",
@@ -1085,7 +1085,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with just tail, head/tail/displacement copied", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" tail="(3,4)"/>
@@ -1102,7 +1102,7 @@ describe("Vector Tag Tests", function () {
 
         await common_test_process({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             initialTailX: 3,
             initialTailY: 4,
             initialHeadX: 4,
@@ -1111,7 +1111,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("copied vectors", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g1">
     <vector name="vector1" tail="(-1,2)" head="(-2,3)"/>
@@ -1178,36 +1178,36 @@ describe("Vector Tag Tests", function () {
             for (let name of vector1s) {
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.tail.map((v) => v.tree),
                 ).eqls([v1tx, v1ty]);
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.head.map((v) => v.tree),
                 ).eqls([v1hx, v1hy]);
             }
             for (let name of vector2s) {
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.tail.map((v) => v.tree),
                 ).eqls([v2tx, v2ty]);
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.head.map((v) => v.tree),
                 ).eqls([v2hx, v2hy]);
             }
             for (let name of vector3s) {
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.tail.map((v) => v.tree),
                 ).eqls([v3tx, v3ty]);
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.head.map((v) => v.tree),
                 ).eqls([v3hx, v3hy]);
             }
@@ -1221,7 +1221,7 @@ describe("Vector Tag Tests", function () {
         v1hy = -9;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vector1"),
+            componentIdx: await resolvePathToNodeIdx("g1.vector1"),
             tailcoords: [v1tx, v1ty],
             headcoords: [v1hx, v1hy],
         });
@@ -1234,7 +1234,7 @@ describe("Vector Tag Tests", function () {
         v1hy = -4;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g2.vector1"),
+            componentIdx: await resolvePathToNodeIdx("g2.vector1"),
             tailcoords: [v1tx, v1ty],
             headcoords: [v1hx, v1hy],
         });
@@ -1247,7 +1247,7 @@ describe("Vector Tag Tests", function () {
         v1hy = -8;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g3.vector1"),
+            componentIdx: await resolvePathToNodeIdx("g3.vector1"),
             tailcoords: [v1tx, v1ty],
             headcoords: [v1hx, v1hy],
         });
@@ -1260,7 +1260,7 @@ describe("Vector Tag Tests", function () {
         v2hy = 5;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vector2"),
+            componentIdx: await resolvePathToNodeIdx("g1.vector2"),
             tailcoords: [v2tx, v2ty],
             headcoords: [v2hx, v2hy],
         });
@@ -1273,7 +1273,7 @@ describe("Vector Tag Tests", function () {
         v2hy = -7;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g2.vector2"),
+            componentIdx: await resolvePathToNodeIdx("g2.vector2"),
             tailcoords: [v2tx, v2ty],
             headcoords: [v2hx, v2hy],
         });
@@ -1286,7 +1286,7 @@ describe("Vector Tag Tests", function () {
         v2hy = -9;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g3.vector2"),
+            componentIdx: await resolvePathToNodeIdx("g3.vector2"),
             tailcoords: [v2tx, v2ty],
             headcoords: [v2hx, v2hy],
         });
@@ -1299,7 +1299,7 @@ describe("Vector Tag Tests", function () {
         v3hy = 0;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vector3"),
+            componentIdx: await resolvePathToNodeIdx("g1.vector3"),
             tailcoords: [v3tx, v3ty],
             headcoords: [v3hx, v3hy],
         });
@@ -1312,7 +1312,7 @@ describe("Vector Tag Tests", function () {
         v3hy = -2;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g2.vector3"),
+            componentIdx: await resolvePathToNodeIdx("g2.vector3"),
             tailcoords: [v3tx, v3ty],
             headcoords: [v3hx, v3hy],
         });
@@ -1325,7 +1325,7 @@ describe("Vector Tag Tests", function () {
         v3hy = -6;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g3.vector3"),
+            componentIdx: await resolvePathToNodeIdx("g3.vector3"),
             tailcoords: [v3tx, v3ty],
             headcoords: [v3hx, v3hy],
         });
@@ -1333,7 +1333,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("copied vectors and displacements", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <vector name="vector1"><vector name="d">(1,2)</vector></vector>
@@ -1376,17 +1376,17 @@ describe("Vector Tag Tests", function () {
             for (let name of vectors) {
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.tail.map((v) => v.tree),
                 ).eqls([vector_tx, vector_ty]);
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.head.map((v) => v.tree),
                 ).eqls([vector_hx, vector_hy]);
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.displacement.map((v) => v.tree),
                 ).eqls([displacement_x, displacement_y]);
             }
@@ -1395,17 +1395,17 @@ describe("Vector Tag Tests", function () {
                 let name = displacements[i];
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.tail.map((v) => v.tree),
                 ).eqls([dtail_xs[i], dtail_ys[i]]);
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.head.map((v) => v.tree),
                 ).eqls([dhead_xs[i], dhead_ys[i]]);
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.displacement.map((v) => v.tree),
                 ).eqls([displacement_x, displacement_y]);
             }
@@ -1425,7 +1425,7 @@ describe("Vector Tag Tests", function () {
             vector_hy = hys[i];
             await moveVector({
                 core,
-                componentIdx: resolveComponentName(vectors[i]),
+                componentIdx: await resolvePathToNodeIdx(vectors[i]),
                 tailcoords: [vector_tx, vector_ty],
                 headcoords: [vector_hx, vector_hy],
             });
@@ -1452,7 +1452,7 @@ describe("Vector Tag Tests", function () {
 
             await moveVector({
                 core,
-                componentIdx: resolveComponentName(displacements[i]),
+                componentIdx: await resolvePathToNodeIdx(displacements[i]),
                 tailcoords: [dtail_xs[i], dtail_ys[i]],
                 headcoords: [dhead_xs[i], dhead_ys[i]],
             });
@@ -1461,7 +1461,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("constrain to vector", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <point name="point1">(1,2)</point>
@@ -1494,21 +1494,21 @@ describe("Vector Tag Tests", function () {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.tail.map((v) => v.tree),
             ).eqls([tx, ty]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.head.map((v) => v.tree),
             ).eqls([hx, hy]);
             expect(
-                stateVariables[resolveComponentName("point3")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point3")].stateValues
+                    .xs[0].tree,
             ).closeTo(px, 1e-12);
             expect(
-                stateVariables[resolveComponentName("point3")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point3")].stateValues
+                    .xs[1].tree,
             ).closeTo(py, 1e-12);
         }
         await check_items();
@@ -1530,7 +1530,7 @@ describe("Vector Tag Tests", function () {
         [px, py] = calc_snap(pxOrig, pyOrig);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vector1"),
+            componentIdx: await resolvePathToNodeIdx("vector1"),
             tailcoords: [tx, ty],
             headcoords: [hx, hy],
         });
@@ -1542,7 +1542,7 @@ describe("Vector Tag Tests", function () {
         [px, py] = calc_snap(pxOrig, pyOrig);
         await movePoint({
             core,
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1554,7 +1554,7 @@ describe("Vector Tag Tests", function () {
         [px, py] = calc_snap(pxOrig, pyOrig);
         await movePoint({
             core,
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1566,7 +1566,7 @@ describe("Vector Tag Tests", function () {
         [px, py] = calc_snap(pxOrig, pyOrig);
         await movePoint({
             core,
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1574,7 +1574,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("attract to vector", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <point name="point1">(1,2)</point>
@@ -1607,21 +1607,21 @@ describe("Vector Tag Tests", function () {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.tail.map((v) => v.tree),
             ).eqls([tx, ty]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.head.map((v) => v.tree),
             ).eqls([hx, hy]);
             expect(
-                stateVariables[resolveComponentName("point3")].stateValues.xs[0]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point3")].stateValues
+                    .xs[0].tree,
             ).closeTo(px, 1e-12);
             expect(
-                stateVariables[resolveComponentName("point3")].stateValues.xs[1]
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("point3")].stateValues
+                    .xs[1].tree,
             ).closeTo(py, 1e-12);
         }
         await check_items();
@@ -1633,7 +1633,7 @@ describe("Vector Tag Tests", function () {
         hy = -4;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vector1"),
+            componentIdx: await resolvePathToNodeIdx("vector1"),
             tailcoords: [tx, ty],
             headcoords: [hx, hy],
         });
@@ -1654,7 +1654,7 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1667,7 +1667,7 @@ describe("Vector Tag Tests", function () {
         py = pyOrig;
         await movePoint({
             core,
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1679,7 +1679,7 @@ describe("Vector Tag Tests", function () {
         [px, py] = calc_snap(pxOrig, pyOrig);
         await movePoint({
             core,
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1691,7 +1691,7 @@ describe("Vector Tag Tests", function () {
         [px, py] = calc_snap(pxOrig, pyOrig);
         await movePoint({
             core,
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1704,7 +1704,7 @@ describe("Vector Tag Tests", function () {
         py = pyOrig;
         await movePoint({
             core,
-            componentIdx: resolveComponentName("point3"),
+            componentIdx: await resolvePathToNodeIdx("point3"),
             x: pxOrig,
             y: pyOrig,
         });
@@ -1712,7 +1712,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("constrain to vector, different scales from graph", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
         <vector name="l" head="(-1,-0.05)" tail="(1,0.05)"/>
@@ -1728,9 +1728,11 @@ describe("Vector Tag Tests", function () {
         // test initial state
         let stateVariables = await core.returnAllStateVariables(false, true);
         let x =
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
         let y =
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(y).greaterThan(0);
         expect(y).lessThan(0.01);
         expect(x).closeTo(20 * y, 1e-10);
@@ -1738,13 +1740,17 @@ describe("Vector Tag Tests", function () {
         // move point
         await movePoint({
             core,
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -100,
             y: 0.05,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        x =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        y =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(y).lessThan(0.05);
         expect(y).greaterThan(0.04);
         expect(x).closeTo(20 * y, 1e-10);
@@ -1753,19 +1759,23 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -100,
             y: 0.1,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        x =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        y =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(y).eq(0.05);
         expect(x).closeTo(20 * y, 1e-10);
     });
 
     it("two update paths through vectors", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="zeroFixed" fixed>(0,0)</point>
     <mathInput name="a" prefill="2" modifyIndirectly="false" />
@@ -1791,22 +1801,22 @@ describe("Vector Tag Tests", function () {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("original")
+                    await resolvePathToNodeIdx("original")
                 ].stateValues.tail.map((v) => v.tree),
             ).eqls([0, 0]);
             expect(
                 stateVariables[
-                    resolveComponentName("original")
+                    await resolvePathToNodeIdx("original")
                 ].stateValues.head.map((v) => v.tree),
             ).eqls([ohx, ohy]);
             expect(
                 stateVariables[
-                    resolveComponentName("multiplied")
+                    await resolvePathToNodeIdx("multiplied")
                 ].stateValues.tail.map((v) => v.tree),
             ).eqls([0, 0]);
             expect(
                 stateVariables[
-                    resolveComponentName("multiplied")
+                    await resolvePathToNodeIdx("multiplied")
                 ].stateValues.head.map((v) => v.tree),
             ).eqls([mhx, mhy]);
         }
@@ -1819,7 +1829,7 @@ describe("Vector Tag Tests", function () {
         mhy = 2 * ohy;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("original"),
+            componentIdx: await resolvePathToNodeIdx("original"),
             headcoords: [ohx, ohy],
         });
         await check_items();
@@ -1831,14 +1841,14 @@ describe("Vector Tag Tests", function () {
         ohy = mhy / 2;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("multiplied"),
+            componentIdx: await resolvePathToNodeIdx("multiplied"),
             headcoords: [mhx, mhy],
         });
         await check_items();
 
         // Change factor
         await updateMathInputValue({
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             latex: "-3",
             core,
         });
@@ -1853,14 +1863,14 @@ describe("Vector Tag Tests", function () {
         ohy = mhy / -3;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("multiplied"),
+            componentIdx: await resolvePathToNodeIdx("multiplied"),
             headcoords: [-6, -3],
         });
         await check_items();
     });
 
     it("display vector sum triangle", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <vector name="u" head="(1,1)" />
@@ -1888,48 +1898,48 @@ describe("Vector Tag Tests", function () {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("u")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("u")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([...uTail]);
             expect(
-                stateVariables[resolveComponentName("u")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("u")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([...uHead]);
             expect(
                 stateVariables[
-                    resolveComponentName("u")
+                    await resolvePathToNodeIdx("u")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([...u]);
             expect(
-                stateVariables[resolveComponentName("v")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([...vTail]);
             expect(
-                stateVariables[resolveComponentName("v")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([...vHead]);
             expect(
                 stateVariables[
-                    resolveComponentName("v")
+                    await resolvePathToNodeIdx("v")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([...v]);
             expect(
-                stateVariables[resolveComponentName("w")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("w")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([...wTail]);
             expect(
-                stateVariables[resolveComponentName("w")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("w")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([...wHead]);
             expect(
                 stateVariables[
-                    resolveComponentName("w")
+                    await resolvePathToNodeIdx("w")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([...w]);
         }
@@ -1942,7 +1952,7 @@ describe("Vector Tag Tests", function () {
         v = vHead.map((x, i) => x - vTail[i]);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v"),
+            componentIdx: await resolvePathToNodeIdx("v"),
             tailcoords: vTail,
         });
         await check_items();
@@ -1957,7 +1967,7 @@ describe("Vector Tag Tests", function () {
         wHead = w.map((x, i) => x + wTail[i]);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("u"),
+            componentIdx: await resolvePathToNodeIdx("u"),
             headcoords: uHead,
         });
         await check_items();
@@ -1969,7 +1979,7 @@ describe("Vector Tag Tests", function () {
         wTail = uTail;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("u"),
+            componentIdx: await resolvePathToNodeIdx("u"),
             tailcoords: uTail,
         });
         await check_items();
@@ -1981,7 +1991,7 @@ describe("Vector Tag Tests", function () {
         w = u.map((x, i) => x + v[i]);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("w"),
+            componentIdx: await resolvePathToNodeIdx("w"),
             tailcoords: wTail,
         });
         await check_items();
@@ -1993,7 +2003,7 @@ describe("Vector Tag Tests", function () {
         w = u.map((x, i) => x + v[i]);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("w"),
+            componentIdx: await resolvePathToNodeIdx("w"),
             headcoords: wHead,
         });
         await check_items();
@@ -2005,14 +2015,14 @@ describe("Vector Tag Tests", function () {
         w = u.map((x, i) => x + v[i]);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v"),
+            componentIdx: await resolvePathToNodeIdx("v"),
             headcoords: vHead,
         });
         await check_items();
     });
 
     it("copy coordinates off vectors", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <vector name="u" tail="(1,5)" head="(7,3)" />
@@ -2042,70 +2052,80 @@ describe("Vector Tag Tests", function () {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("u")].stateValues.tail.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("u")
+            ].stateValues.tail.map((v) => v.tree),
         ).eqls([...uTail]);
         expect(
-            stateVariables[resolveComponentName("u")].stateValues.head.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("u")
+            ].stateValues.head.map((v) => v.tree),
         ).eqls([...uHead]);
         expect(
             stateVariables[
-                resolveComponentName("u")
+                await resolvePathToNodeIdx("u")
             ].stateValues.displacement.map((v) => v.tree),
         ).eqls([...u]);
         expect(
-            stateVariables[resolveComponentName("v")].stateValues.tail.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("v")
+            ].stateValues.tail.map((v) => v.tree),
         ).eqls([...vTail]);
         expect(
-            stateVariables[resolveComponentName("v")].stateValues.head.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("v")
+            ].stateValues.head.map((v) => v.tree),
         ).eqls([...vHead]);
         expect(
             stateVariables[
-                resolveComponentName("v")
+                await resolvePathToNodeIdx("v")
             ].stateValues.displacement.map((v) => v.tree),
         ).eqls([...v]);
 
         expect(
-            stateVariables[resolveComponentName("ux")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("ux")].stateValues.value
+                .tree,
         ).eqls(u[0]);
         expect(
-            stateVariables[resolveComponentName("uy")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("uy")].stateValues.value
+                .tree,
         ).eqls(u[1]);
         expect(
-            stateVariables[resolveComponentName("ux1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("ux1")].stateValues.value
+                .tree,
         ).eqls(u[0]);
         expect(
-            stateVariables[resolveComponentName("ux2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("ux2")].stateValues.value
+                .tree,
         ).eqls(u[1]);
         expect(
-            stateVariables[resolveComponentName("vx")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vx")].stateValues.value
+                .tree,
         ).eqls(v[0]);
         expect(
-            stateVariables[resolveComponentName("vy")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vy")].stateValues.value
+                .tree,
         ).eqls(v[1]);
         expect(
-            stateVariables[resolveComponentName("vz")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vz")].stateValues.value
+                .tree,
         ).eqls(v[2]);
         expect(
-            stateVariables[resolveComponentName("vx1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vx1")].stateValues.value
+                .tree,
         ).eqls(v[0]);
         expect(
-            stateVariables[resolveComponentName("vx2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vx2")].stateValues.value
+                .tree,
         ).eqls(v[1]);
         expect(
-            stateVariables[resolveComponentName("vx3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("vx3")].stateValues.value
+                .tree,
         ).eqls(v[2]);
     });
 
     it("combining displacement components through copies", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <vector name="v1" tail="(1,2)" head="(3,5)" />
@@ -2135,66 +2155,66 @@ describe("Vector Tag Tests", function () {
             );
 
             expect(
-                stateVariables[resolveComponentName("v1")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v1")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([t1x, t1y]);
             expect(
-                stateVariables[resolveComponentName("v1")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v1")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([t1x + x, t1y + y]);
             expect(
                 stateVariables[
-                    resolveComponentName("v1")
+                    await resolvePathToNodeIdx("v1")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([x, y]);
 
             expect(
-                stateVariables[resolveComponentName("v2")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v2")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([t1x, t1y]);
             expect(
-                stateVariables[resolveComponentName("v2")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v2")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([t1x + x, t1y + y]);
             expect(
                 stateVariables[
-                    resolveComponentName("v2")
+                    await resolvePathToNodeIdx("v2")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([x, y]);
 
             expect(
-                stateVariables[resolveComponentName("v3")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v3")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([t3x, t3y]);
             expect(
-                stateVariables[resolveComponentName("v3")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v3")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([t3x + x, t3y + y]);
             expect(
                 stateVariables[
-                    resolveComponentName("v3")
+                    await resolvePathToNodeIdx("v3")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([x, y]);
 
             expect(
-                stateVariables[resolveComponentName("v4")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v4")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([t4x, t4y]);
             expect(
-                stateVariables[resolveComponentName("v4")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v4")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([t4x + y, t4y + x]);
             expect(
                 stateVariables[
-                    resolveComponentName("v4")
+                    await resolvePathToNodeIdx("v4")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([y, x]);
         }
@@ -2207,7 +2227,7 @@ describe("Vector Tag Tests", function () {
         y = hy - t1y;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v1"),
+            componentIdx: await resolvePathToNodeIdx("v1"),
             headcoords: [hx, hy],
         });
         await check_items();
@@ -2221,7 +2241,7 @@ describe("Vector Tag Tests", function () {
         t1y = ty;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v1"),
+            componentIdx: await resolvePathToNodeIdx("v1"),
             tailcoords: [tx, ty],
         });
         await check_items();
@@ -2233,7 +2253,7 @@ describe("Vector Tag Tests", function () {
         y = hy - t1y;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v2"),
+            componentIdx: await resolvePathToNodeIdx("v2"),
             headcoords: [hx, hy],
         });
         await check_items();
@@ -2247,7 +2267,7 @@ describe("Vector Tag Tests", function () {
         t1y = ty;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v2"),
+            componentIdx: await resolvePathToNodeIdx("v2"),
             tailcoords: [tx, ty],
         });
         await check_items();
@@ -2259,7 +2279,7 @@ describe("Vector Tag Tests", function () {
         y = hy - t3y;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v3"),
+            componentIdx: await resolvePathToNodeIdx("v3"),
             headcoords: [hx, hy],
         });
         await check_items();
@@ -2273,7 +2293,7 @@ describe("Vector Tag Tests", function () {
         t3y = ty;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v3"),
+            componentIdx: await resolvePathToNodeIdx("v3"),
             tailcoords: [tx, ty],
         });
         await check_items();
@@ -2284,7 +2304,7 @@ describe("Vector Tag Tests", function () {
         y = hx - t4x;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v4"),
+            componentIdx: await resolvePathToNodeIdx("v4"),
             headcoords: [hx, hy],
         });
         await check_items();
@@ -2298,14 +2318,14 @@ describe("Vector Tag Tests", function () {
         t4y = ty;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v4"),
+            componentIdx: await resolvePathToNodeIdx("v4"),
             tailcoords: [tx, ty],
         });
         await check_items();
     });
 
     it("combining displacement components through copies 2", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <vector name="v1" tail="(1,2)" head="(3,5)" />
@@ -2344,66 +2364,66 @@ describe("Vector Tag Tests", function () {
             );
 
             expect(
-                stateVariables[resolveComponentName("v1")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v1")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([t1x, t1y]);
             expect(
-                stateVariables[resolveComponentName("v1")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v1")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([t1x + x, t1y + y]);
             expect(
                 stateVariables[
-                    resolveComponentName("v1")
+                    await resolvePathToNodeIdx("v1")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([x, y]);
 
             expect(
-                stateVariables[resolveComponentName("v2")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v2")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([t1x, t1y]);
             expect(
-                stateVariables[resolveComponentName("v2")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v2")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([t1x + x, t1y + y]);
             expect(
                 stateVariables[
-                    resolveComponentName("v2")
+                    await resolvePathToNodeIdx("v2")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([x, y]);
 
             expect(
-                stateVariables[resolveComponentName("v3")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v3")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([t3x, t3y]);
             expect(
-                stateVariables[resolveComponentName("v3")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v3")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([t3x + x, t3y + y]);
             expect(
                 stateVariables[
-                    resolveComponentName("v3")
+                    await resolvePathToNodeIdx("v3")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([x, y]);
 
             expect(
-                stateVariables[resolveComponentName("v4")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v4")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([t4x, t4y]);
             expect(
-                stateVariables[resolveComponentName("v4")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v4")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([t4x + y, t4y + x]);
             expect(
                 stateVariables[
-                    resolveComponentName("v4")
+                    await resolvePathToNodeIdx("v4")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([y, x]);
         }
@@ -2415,7 +2435,7 @@ describe("Vector Tag Tests", function () {
         y = hy - t1y;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v1"),
+            componentIdx: await resolvePathToNodeIdx("v1"),
             headcoords: [hx, hy],
         });
         await check_items();
@@ -2429,7 +2449,7 @@ describe("Vector Tag Tests", function () {
         t1y = ty;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v1"),
+            componentIdx: await resolvePathToNodeIdx("v1"),
             tailcoords: [tx, ty],
         });
         await check_items();
@@ -2441,7 +2461,7 @@ describe("Vector Tag Tests", function () {
         y = hy - t1y;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v2"),
+            componentIdx: await resolvePathToNodeIdx("v2"),
             headcoords: [hx, hy],
         });
         await check_items();
@@ -2455,7 +2475,7 @@ describe("Vector Tag Tests", function () {
         t1y = ty;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v2"),
+            componentIdx: await resolvePathToNodeIdx("v2"),
             tailcoords: [tx, ty],
         });
         await check_items();
@@ -2467,7 +2487,7 @@ describe("Vector Tag Tests", function () {
         y = hy - t3y;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v3"),
+            componentIdx: await resolvePathToNodeIdx("v3"),
             headcoords: [hx, hy],
         });
         await check_items();
@@ -2481,7 +2501,7 @@ describe("Vector Tag Tests", function () {
         t3y = ty;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v3"),
+            componentIdx: await resolvePathToNodeIdx("v3"),
             tailcoords: [tx, ty],
         });
         await check_items();
@@ -2493,7 +2513,7 @@ describe("Vector Tag Tests", function () {
         y = hx - t4x;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v4"),
+            componentIdx: await resolvePathToNodeIdx("v4"),
             headcoords: [hx, hy],
         });
         await check_items();
@@ -2507,14 +2527,14 @@ describe("Vector Tag Tests", function () {
         t4y = ty;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v4"),
+            componentIdx: await resolvePathToNodeIdx("v4"),
             tailcoords: [tx, ty],
         });
         await check_items();
     });
 
     it("combining components of head and tail through copies", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="v" tail="(1,2)" head="(-2,3)" />
@@ -2539,32 +2559,32 @@ describe("Vector Tag Tests", function () {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("v")].stateValues.tail.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v")
+                ].stateValues.tail.map((v) => v.tree),
             ).eqls([tx, ty]);
             expect(
-                stateVariables[resolveComponentName("v")].stateValues.head.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v")
+                ].stateValues.head.map((v) => v.tree),
             ).eqls([hx, hy]);
             expect(
                 stateVariables[
-                    resolveComponentName("v")
+                    await resolvePathToNodeIdx("v")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([hx - tx, hy - ty]);
 
             expect(
-                stateVariables[resolveComponentName("vt")].stateValues.coords
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("vt")].stateValues
+                    .coords.tree,
             ).eqls(["vector", tx, ty]);
             expect(
-                stateVariables[resolveComponentName("vh")].stateValues.coords
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("vh")].stateValues
+                    .coords.tree,
             ).eqls(["vector", hx, hy]);
             expect(
-                stateVariables[resolveComponentName("c")].stateValues.coords
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                    .coords.tree,
             ).eqls(["vector", hx, ty]);
         }
 
@@ -2575,7 +2595,7 @@ describe("Vector Tag Tests", function () {
         hy = 7;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v"),
+            componentIdx: await resolvePathToNodeIdx("v"),
             headcoords: [hx, hy],
             tailcoords: [tx, ty],
         });
@@ -2586,7 +2606,7 @@ describe("Vector Tag Tests", function () {
         hy = 9;
         await movePoint({
             core,
-            componentIdx: resolveComponentName("vh"),
+            componentIdx: await resolvePathToNodeIdx("vh"),
             x: hx,
             y: hy,
         });
@@ -2597,7 +2617,7 @@ describe("Vector Tag Tests", function () {
         ty = 10;
         await movePoint({
             core,
-            componentIdx: resolveComponentName("vt"),
+            componentIdx: await resolvePathToNodeIdx("vt"),
             x: tx,
             y: ty,
         });
@@ -2608,7 +2628,7 @@ describe("Vector Tag Tests", function () {
         ty = 0;
         await movePoint({
             core,
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             x: hx,
             y: ty,
         });
@@ -2616,7 +2636,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("updates depending on vector definition", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <point name="tvt">(1,2)</point>
@@ -2734,165 +2754,165 @@ describe("Vector Tag Tests", function () {
                 false,
                 true,
             );
-            function check_vec_coords(name: string, coords: number[]) {
+            async function check_vec_coords(name: string, coords: number[]) {
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.coords.simplify().tree,
                 ).eqls(["vector", ...coords]);
             }
 
-            function check_vec_disp(name: string, disp: number[]) {
+            async function check_vec_disp(name: string, disp: number[]) {
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.displacement.map((x) => x.simplify().tree),
                 ).eqls(disp);
             }
 
-            check_vec_coords("tvt", tvt);
-            check_vec_coords("hvh", hvh);
-            check_vec_coords("dvd", dvd);
-            check_vec_coords("tvth", tvth);
-            check_vec_coords("hvth", hvth);
-            check_vec_coords("tvtd", tvtd);
-            check_vec_coords("dvtd", dvtd);
-            check_vec_coords("hvhd", hvhd);
-            check_vec_coords("dvhd", dvhd);
+            await check_vec_coords("tvt", tvt);
+            await check_vec_coords("hvh", hvh);
+            await check_vec_coords("dvd", dvd);
+            await check_vec_coords("tvth", tvth);
+            await check_vec_coords("hvth", hvth);
+            await check_vec_coords("tvtd", tvtd);
+            await check_vec_coords("dvtd", dvtd);
+            await check_vec_coords("hvhd", hvhd);
+            await check_vec_coords("dvhd", dvhd);
 
             check_vec_htd({
-                componentIdx: resolveComponentName("vt"),
+                componentIdx: await resolvePathToNodeIdx("vt"),
                 t: tvt,
                 h: hvt,
                 d: dvt,
                 stateVariables,
             });
             check_vec_htd({
-                componentIdx: resolveComponentName("vh"),
+                componentIdx: await resolvePathToNodeIdx("vh"),
                 t: tvh,
                 h: hvh,
                 d: dvh,
                 stateVariables,
             });
             check_vec_htd({
-                componentIdx: resolveComponentName("vd"),
+                componentIdx: await resolvePathToNodeIdx("vd"),
                 t: tvd,
                 h: hvd,
                 d: dvd,
                 stateVariables,
             });
             check_vec_htd({
-                componentIdx: resolveComponentName("vth"),
+                componentIdx: await resolvePathToNodeIdx("vth"),
                 t: tvth,
                 h: hvth,
                 d: dvth,
                 stateVariables,
             });
             check_vec_htd({
-                componentIdx: resolveComponentName("vtd"),
+                componentIdx: await resolvePathToNodeIdx("vtd"),
                 t: tvtd,
                 h: hvtd,
                 d: dvtd,
                 stateVariables,
             });
             check_vec_htd({
-                componentIdx: resolveComponentName("vhd"),
+                componentIdx: await resolvePathToNodeIdx("vhd"),
                 t: tvhd,
                 h: hvhd,
                 d: dvhd,
                 stateVariables,
             });
 
-            check_vec_coords("tfvt", tvt);
-            check_vec_coords("hfvt", hvt);
-            check_vec_disp("dfvt", dvt);
+            await check_vec_coords("tfvt", tvt);
+            await check_vec_coords("hfvt", hvt);
+            await check_vec_disp("dfvt", dvt);
 
-            check_vec_coords("tfvh", tvh);
-            check_vec_coords("hfvh", hvh);
-            check_vec_disp("dfvh", dvh);
+            await check_vec_coords("tfvh", tvh);
+            await check_vec_coords("hfvh", hvh);
+            await check_vec_disp("dfvh", dvh);
 
-            check_vec_coords("tfvd", tvd);
-            check_vec_coords("hfvd", hvd);
-            check_vec_disp("dfvd", dvd);
+            await check_vec_coords("tfvd", tvd);
+            await check_vec_coords("hfvd", hvd);
+            await check_vec_disp("dfvd", dvd);
 
-            check_vec_coords("tfvth", tvth);
-            check_vec_coords("hfvth", hvth);
-            check_vec_disp("dfvth", dvth);
+            await check_vec_coords("tfvth", tvth);
+            await check_vec_coords("hfvth", hvth);
+            await check_vec_disp("dfvth", dvth);
 
-            check_vec_coords("tfvtd", tvtd);
-            check_vec_coords("hfvtd", hvtd);
-            check_vec_disp("dfvtd", dvtd);
+            await check_vec_coords("tfvtd", tvtd);
+            await check_vec_coords("hfvtd", hvtd);
+            await check_vec_disp("dfvtd", dvtd);
 
-            check_vec_coords("tfvhd", tvhd);
-            check_vec_coords("hfvhd", hvhd);
-            check_vec_disp("dfvhd", dvhd);
+            await check_vec_coords("tfvhd", tvhd);
+            await check_vec_coords("hfvhd", hvhd);
+            await check_vec_disp("dfvhd", dvhd);
 
             check_vec_htd({
-                componentIdx: resolveComponentName("vt2"),
+                componentIdx: await resolvePathToNodeIdx("vt2"),
                 t: tvt,
                 h: hvt,
                 d: dvt,
                 stateVariables,
             });
             check_vec_htd({
-                componentIdx: resolveComponentName("vh2"),
+                componentIdx: await resolvePathToNodeIdx("vh2"),
                 t: tvh,
                 h: hvh,
                 d: dvh,
                 stateVariables,
             });
             check_vec_htd({
-                componentIdx: resolveComponentName("vd2"),
+                componentIdx: await resolvePathToNodeIdx("vd2"),
                 t: tvd,
                 h: hvd,
                 d: dvd,
                 stateVariables,
             });
             check_vec_htd({
-                componentIdx: resolveComponentName("vth2"),
+                componentIdx: await resolvePathToNodeIdx("vth2"),
                 t: tvth,
                 h: hvth,
                 d: dvth,
                 stateVariables,
             });
             check_vec_htd({
-                componentIdx: resolveComponentName("vtd2"),
+                componentIdx: await resolvePathToNodeIdx("vtd2"),
                 t: tvtd,
                 h: hvtd,
                 d: dvtd,
                 stateVariables,
             });
             check_vec_htd({
-                componentIdx: resolveComponentName("vhd2"),
+                componentIdx: await resolvePathToNodeIdx("vhd2"),
                 t: tvhd,
                 h: hvhd,
                 d: dvhd,
                 stateVariables,
             });
 
-            check_vec_coords("tfvt2", tvt);
-            check_vec_coords("hfvh2", hvh);
-            check_vec_disp("dfvh2", dvh);
+            await check_vec_coords("tfvt2", tvt);
+            await check_vec_coords("hfvh2", hvh);
+            await check_vec_disp("dfvh2", dvh);
 
-            check_vec_coords("tfvh2", tvh);
-            check_vec_coords("hfvh2", hvh);
-            check_vec_disp("dfvh2", dvh);
+            await check_vec_coords("tfvh2", tvh);
+            await check_vec_coords("hfvh2", hvh);
+            await check_vec_disp("dfvh2", dvh);
 
-            check_vec_coords("tfvd2", tvd);
-            check_vec_coords("hfvd2", hvd);
-            check_vec_disp("dfvd2", dvd);
+            await check_vec_coords("tfvd2", tvd);
+            await check_vec_coords("hfvd2", hvd);
+            await check_vec_disp("dfvd2", dvd);
 
-            check_vec_coords("tfvth2", tvth);
-            check_vec_coords("hfvth2", hvth);
-            check_vec_disp("dfvth2", dvth);
+            await check_vec_coords("tfvth2", tvth);
+            await check_vec_coords("hfvth2", hvth);
+            await check_vec_disp("dfvth2", dvth);
 
-            check_vec_coords("tfvtd2", tvtd);
-            check_vec_coords("hfvtd2", hvtd);
-            check_vec_disp("dfvtd2", dvtd);
+            await check_vec_coords("tfvtd2", tvtd);
+            await check_vec_coords("hfvtd2", hvtd);
+            await check_vec_disp("dfvtd2", dvtd);
 
-            check_vec_coords("tfvhd2", tvhd);
-            check_vec_coords("hfvhd2", hvhd);
-            check_vec_disp("dfvhd2", dvhd);
+            await check_vec_coords("tfvhd2", tvhd);
+            await check_vec_coords("hfvhd2", hvhd);
+            await check_vec_disp("dfvhd2", dvhd);
         }
 
         await check_items();
@@ -2907,32 +2927,32 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vt"),
+            componentIdx: await resolvePathToNodeIdx("vt"),
             tailcoords: tvt,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vh"),
+            componentIdx: await resolvePathToNodeIdx("vh"),
             tailcoords: tvh,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vd"),
+            componentIdx: await resolvePathToNodeIdx("vd"),
             tailcoords: tvd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vth"),
+            componentIdx: await resolvePathToNodeIdx("vth"),
             tailcoords: tvth,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vtd"),
+            componentIdx: await resolvePathToNodeIdx("vtd"),
             tailcoords: tvtd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vhd"),
+            componentIdx: await resolvePathToNodeIdx("vhd"),
             tailcoords: tvhd,
         });
 
@@ -2956,32 +2976,32 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vt"),
+            componentIdx: await resolvePathToNodeIdx("vt"),
             headcoords: hvt,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vh"),
+            componentIdx: await resolvePathToNodeIdx("vh"),
             headcoords: hvh,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vd"),
+            componentIdx: await resolvePathToNodeIdx("vd"),
             headcoords: hvd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vth"),
+            componentIdx: await resolvePathToNodeIdx("vth"),
             headcoords: hvth,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vtd"),
+            componentIdx: await resolvePathToNodeIdx("vtd"),
             headcoords: hvtd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vhd"),
+            componentIdx: await resolvePathToNodeIdx("vhd"),
             headcoords: hvhd,
         });
 
@@ -3002,19 +3022,19 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tvt"),
+            componentIdx: await resolvePathToNodeIdx("tvt"),
             x: tvt[0],
             y: tvt[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tvth"),
+            componentIdx: await resolvePathToNodeIdx("tvth"),
             x: tvth[0],
             y: tvth[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tvtd"),
+            componentIdx: await resolvePathToNodeIdx("tvtd"),
             x: tvtd[0],
             y: tvtd[1],
         });
@@ -3035,19 +3055,19 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hvh"),
+            componentIdx: await resolvePathToNodeIdx("hvh"),
             x: hvh[0],
             y: hvh[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hvth"),
+            componentIdx: await resolvePathToNodeIdx("hvth"),
             x: hvth[0],
             y: hvth[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hvhd"),
+            componentIdx: await resolvePathToNodeIdx("hvhd"),
             x: hvhd[0],
             y: hvhd[1],
         });
@@ -3068,19 +3088,19 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("dvd"),
+            componentIdx: await resolvePathToNodeIdx("dvd"),
             x: dvd[0],
             y: dvd[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("dvtd"),
+            componentIdx: await resolvePathToNodeIdx("dvtd"),
             x: dvtd[0],
             y: dvtd[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("dvhd"),
+            componentIdx: await resolvePathToNodeIdx("dvhd"),
             x: dvhd[0],
             y: dvhd[1],
         });
@@ -3104,37 +3124,37 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvt"),
+            componentIdx: await resolvePathToNodeIdx("tfvt"),
             x: tvt[0],
             y: tvt[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvh"),
+            componentIdx: await resolvePathToNodeIdx("tfvh"),
             x: tvh[0],
             y: tvh[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvd"),
+            componentIdx: await resolvePathToNodeIdx("tfvd"),
             x: tvd[0],
             y: tvd[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvth"),
+            componentIdx: await resolvePathToNodeIdx("tfvth"),
             x: tvth[0],
             y: tvth[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvtd"),
+            componentIdx: await resolvePathToNodeIdx("tfvtd"),
             x: tvtd[0],
             y: tvtd[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvhd"),
+            componentIdx: await resolvePathToNodeIdx("tfvhd"),
             x: tvhd[0],
             y: tvhd[1],
         });
@@ -3163,37 +3183,37 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvt"),
+            componentIdx: await resolvePathToNodeIdx("hfvt"),
             x: hvt[0],
             y: hvt[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvh"),
+            componentIdx: await resolvePathToNodeIdx("hfvh"),
             x: hvh[0],
             y: hvh[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvd"),
+            componentIdx: await resolvePathToNodeIdx("hfvd"),
             x: hvd[0],
             y: hvd[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvth"),
+            componentIdx: await resolvePathToNodeIdx("hfvth"),
             x: hvth[0],
             y: hvth[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvtd"),
+            componentIdx: await resolvePathToNodeIdx("hfvtd"),
             x: hvtd[0],
             y: hvtd[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvhd"),
+            componentIdx: await resolvePathToNodeIdx("hfvhd"),
             x: hvhd[0],
             y: hvhd[1],
         });
@@ -3220,32 +3240,32 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvt"),
+            componentIdx: await resolvePathToNodeIdx("dfvt"),
             headcoords: dvt,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvh"),
+            componentIdx: await resolvePathToNodeIdx("dfvh"),
             headcoords: dvh,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvd"),
+            componentIdx: await resolvePathToNodeIdx("dfvd"),
             headcoords: dvd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvth"),
+            componentIdx: await resolvePathToNodeIdx("dfvth"),
             headcoords: dvth,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvtd"),
+            componentIdx: await resolvePathToNodeIdx("dfvtd"),
             headcoords: dvtd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvhd"),
+            componentIdx: await resolvePathToNodeIdx("dfvhd"),
             headcoords: dvhd,
         });
 
@@ -3271,32 +3291,32 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vt2"),
+            componentIdx: await resolvePathToNodeIdx("vt2"),
             tailcoords: tvt,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vh2"),
+            componentIdx: await resolvePathToNodeIdx("vh2"),
             tailcoords: tvh,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vd2"),
+            componentIdx: await resolvePathToNodeIdx("vd2"),
             tailcoords: tvd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vth2"),
+            componentIdx: await resolvePathToNodeIdx("vth2"),
             tailcoords: tvth,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vtd2"),
+            componentIdx: await resolvePathToNodeIdx("vtd2"),
             tailcoords: tvtd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vhd2"),
+            componentIdx: await resolvePathToNodeIdx("vhd2"),
             tailcoords: tvhd,
         });
 
@@ -3320,32 +3340,32 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vt2"),
+            componentIdx: await resolvePathToNodeIdx("vt2"),
             headcoords: hvt,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vh2"),
+            componentIdx: await resolvePathToNodeIdx("vh2"),
             headcoords: hvh,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vd2"),
+            componentIdx: await resolvePathToNodeIdx("vd2"),
             headcoords: hvd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vth2"),
+            componentIdx: await resolvePathToNodeIdx("vth2"),
             headcoords: hvth,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vtd2"),
+            componentIdx: await resolvePathToNodeIdx("vtd2"),
             headcoords: hvtd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vhd2"),
+            componentIdx: await resolvePathToNodeIdx("vhd2"),
             headcoords: hvhd,
         });
 
@@ -3369,37 +3389,37 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvt2"),
+            componentIdx: await resolvePathToNodeIdx("tfvt2"),
             x: tvt[0],
             y: tvt[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvh2"),
+            componentIdx: await resolvePathToNodeIdx("tfvh2"),
             x: tvh[0],
             y: tvh[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvd2"),
+            componentIdx: await resolvePathToNodeIdx("tfvd2"),
             x: tvd[0],
             y: tvd[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvth2"),
+            componentIdx: await resolvePathToNodeIdx("tfvth2"),
             x: tvth[0],
             y: tvth[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvtd2"),
+            componentIdx: await resolvePathToNodeIdx("tfvtd2"),
             x: tvtd[0],
             y: tvtd[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tfvhd2"),
+            componentIdx: await resolvePathToNodeIdx("tfvhd2"),
             x: tvhd[0],
             y: tvhd[1],
         });
@@ -3427,37 +3447,37 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvt2"),
+            componentIdx: await resolvePathToNodeIdx("hfvt2"),
             x: hvt[0],
             y: hvt[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvh2"),
+            componentIdx: await resolvePathToNodeIdx("hfvh2"),
             x: hvh[0],
             y: hvh[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvd2"),
+            componentIdx: await resolvePathToNodeIdx("hfvd2"),
             x: hvd[0],
             y: hvd[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvth2"),
+            componentIdx: await resolvePathToNodeIdx("hfvth2"),
             x: hvth[0],
             y: hvth[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvtd2"),
+            componentIdx: await resolvePathToNodeIdx("hfvtd2"),
             x: hvtd[0],
             y: hvtd[1],
         });
         await movePoint({
             core,
-            componentIdx: resolveComponentName("hfvhd2"),
+            componentIdx: await resolvePathToNodeIdx("hfvhd2"),
             x: hvhd[0],
             y: hvhd[1],
         });
@@ -3484,32 +3504,32 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvt2"),
+            componentIdx: await resolvePathToNodeIdx("dfvt2"),
             headcoords: dvt,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvh2"),
+            componentIdx: await resolvePathToNodeIdx("dfvh2"),
             headcoords: dvh,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvd2"),
+            componentIdx: await resolvePathToNodeIdx("dfvd2"),
             headcoords: dvd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvth2"),
+            componentIdx: await resolvePathToNodeIdx("dfvth2"),
             headcoords: dvth,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvtd2"),
+            componentIdx: await resolvePathToNodeIdx("dfvtd2"),
             headcoords: dvtd,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("dfvhd2"),
+            componentIdx: await resolvePathToNodeIdx("dfvhd2"),
             headcoords: dvhd,
         });
 
@@ -3527,7 +3547,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector adapts to coords of displacement", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <math name="math1">$vector1</math>
 <graph>
@@ -3543,12 +3563,12 @@ describe("Vector Tag Tests", function () {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([dx, dy]);
             expect(
-                stateVariables[resolveComponentName("math1")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("math1")].stateValues
+                    .value.tree,
             ).eqls(["vector", dx, dy]);
         }
         await check_items({ dx: 2, dy: 3 });
@@ -3556,7 +3576,7 @@ describe("Vector Tag Tests", function () {
         // move vector head
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vector1"),
+            componentIdx: await resolvePathToNodeIdx("vector1"),
             headcoords: [9, 7],
         });
         await check_items({ dx: 8, dy: 5 });
@@ -3564,14 +3584,14 @@ describe("Vector Tag Tests", function () {
         // move vector tail
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vector1"),
+            componentIdx: await resolvePathToNodeIdx("vector1"),
             tailcoords: [-2, 6],
         });
         await check_items({ dx: 11, dy: 1 });
     });
 
     it("three vectors with mutual references", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <vector name="vector1" head="$vector2.head" tail="(1,0)" />
@@ -3601,32 +3621,32 @@ describe("Vector Tag Tests", function () {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.tail.map((v) => v.tree),
             ).eqls([x1, y1]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.head.map((v) => v.tree),
             ).eqls([x2, y2]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector2")
+                    await resolvePathToNodeIdx("vector2")
                 ].stateValues.tail.map((v) => v.tree),
             ).eqls([x3, y3]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector2")
+                    await resolvePathToNodeIdx("vector2")
                 ].stateValues.head.map((v) => v.tree),
             ).eqls([x2, y2]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector3")
+                    await resolvePathToNodeIdx("vector3")
                 ].stateValues.tail.map((v) => v.tree),
             ).eqls([x3, y3]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector3")
+                    await resolvePathToNodeIdx("vector3")
                 ].stateValues.head.map((v) => v.tree),
             ).eqls([x1, y1]);
         }
@@ -3636,7 +3656,7 @@ describe("Vector Tag Tests", function () {
         y2 = -3;
         await movePoint({
             core,
-            componentIdx: resolveComponentName("v1h"),
+            componentIdx: await resolvePathToNodeIdx("v1h"),
             x: x2,
             y: y2,
         });
@@ -3647,7 +3667,7 @@ describe("Vector Tag Tests", function () {
         y1 = -4;
         await movePoint({
             core,
-            componentIdx: resolveComponentName("v1t"),
+            componentIdx: await resolvePathToNodeIdx("v1t"),
             x: x1,
             y: y1,
         });
@@ -3658,7 +3678,7 @@ describe("Vector Tag Tests", function () {
         y3 = -8;
         await movePoint({
             core,
-            componentIdx: resolveComponentName("v2t"),
+            componentIdx: await resolvePathToNodeIdx("v2t"),
             x: x3,
             y: y3,
         });
@@ -3669,7 +3689,7 @@ describe("Vector Tag Tests", function () {
         y2 = 2;
         await movePoint({
             core,
-            componentIdx: resolveComponentName("v2h"),
+            componentIdx: await resolvePathToNodeIdx("v2h"),
             x: x2,
             y: y2,
         });
@@ -3680,7 +3700,7 @@ describe("Vector Tag Tests", function () {
         y1 = 8;
         await movePoint({
             core,
-            componentIdx: resolveComponentName("v3h"),
+            componentIdx: await resolvePathToNodeIdx("v3h"),
             x: x1,
             y: y1,
         });
@@ -3691,7 +3711,7 @@ describe("Vector Tag Tests", function () {
         y3 = -5;
         await movePoint({
             core,
-            componentIdx: resolveComponentName("v3t"),
+            componentIdx: await resolvePathToNodeIdx("v3t"),
             x: x3,
             y: y3,
         });
@@ -3700,7 +3720,7 @@ describe("Vector Tag Tests", function () {
 
     it("copy two components of vector", async () => {
         // checking bug where second component wasn't updating
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <vector name="vector1" tail="(3, $b)" head="($a,4)" />
   <math extend="$vector1.x" name="v1x" />
@@ -3723,26 +3743,26 @@ describe("Vector Tag Tests", function () {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.tail.map((v) => v.tree),
             ).eqls([3, b]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.head.map((v) => v.tree),
             ).eqls([a, 4]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([dx, dy]);
             expect(
-                stateVariables[resolveComponentName("v1x")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("v1x")].stateValues
+                    .value.tree,
             ).eq(dx);
             expect(
-                stateVariables[resolveComponentName("v1y")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("v1y")].stateValues
+                    .value.tree,
             ).eq(dy);
         }
         await check_items();
@@ -3753,12 +3773,12 @@ describe("Vector Tag Tests", function () {
         dx = a - 3;
         dy = 4 - b;
         await updateMathInputValue({
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             latex: `${a}`,
             core,
         });
         await updateMathInputValue({
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             latex: `${b}`,
             core,
         });
@@ -3766,7 +3786,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with displacement and tail, move just tail", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <vector name="vector1" displacement="(-8,1)" tail="(4,1)" />
@@ -3789,17 +3809,17 @@ describe("Vector Tag Tests", function () {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.tail.map((v) => v.tree),
             ).eqls([tailx, taily]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.head.map((v) => v.tree),
             ).eqls([headx, heady]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([displacementx, displacementy]);
         }
@@ -3812,14 +3832,14 @@ describe("Vector Tag Tests", function () {
         displacementy = heady - taily;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vector1"),
+            componentIdx: await resolvePathToNodeIdx("vector1"),
             tailcoords: [tailx, taily],
         });
         await check_items();
     });
 
     it("vector with displacement and head, move just head", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <vector name="vector1" displacement="(-8,1)" head="(-4,2)" />
@@ -3842,17 +3862,17 @@ describe("Vector Tag Tests", function () {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.tail.map((v) => v.tree),
             ).eqls([tailx, taily]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.head.map((v) => v.tree),
             ).eqls([headx, heady]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([displacementx, displacementy]);
         }
@@ -3866,14 +3886,14 @@ describe("Vector Tag Tests", function () {
         displacementy = heady - taily;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vector1"),
+            componentIdx: await resolvePathToNodeIdx("vector1"),
             headcoords: [headx, heady],
         });
         await check_items();
     });
 
     it("vector with displacement, move just tail", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" displacement="(-8,1)" />
@@ -3896,17 +3916,17 @@ describe("Vector Tag Tests", function () {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.tail.map((v) => v.tree),
             ).eqls([tailx, taily]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.head.map((v) => v.tree),
             ).eqls([headx, heady]);
             expect(
                 stateVariables[
-                    resolveComponentName("vector1")
+                    await resolvePathToNodeIdx("vector1")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls([displacementx, displacementy]);
         }
@@ -3918,14 +3938,14 @@ describe("Vector Tag Tests", function () {
         displacementy = heady - taily;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vector1"),
+            componentIdx: await resolvePathToNodeIdx("vector1"),
             tailcoords: [tailx, taily],
         });
         await check_items();
     });
 
     it("point inside vector overrides displacement", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <vector name="vector1" displacement="(9, 10)" ><point>(-4,2)</point></vector>
@@ -3944,11 +3964,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("vector inside vector overrides displacement", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
     <vector name="vector1" displacement="(9, 10)" ><vector>(-4,2)</vector></vector>
@@ -3966,11 +3986,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("point inside vector overrides xs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" xs="9 10" ><point>(-4,2)</point></vector>
@@ -3986,11 +4006,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("vector inside vector overrides xs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" xs="9 10" ><vector>(-4,2)</vector></vector>
@@ -4005,11 +4025,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("displacement overrides xs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" xs="9 10" displacement="(-4,2)" />
@@ -4024,11 +4044,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("point inside vector overrides x and y", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" x="9" y="10" ><point>(-4,2)</point></vector>
@@ -4043,11 +4063,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("vector inside vector overrides x and y", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" x="9" y="10" ><vector>(-4,2)</vector></vector>
@@ -4062,11 +4082,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("displacement overrides x and y", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" x="9" y="10" displacement="(-4,2)" />
@@ -4081,11 +4101,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("xs overrides x and y", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <vector name="vector1" x="9" y="10" xs="-4 2" />
@@ -4100,11 +4120,11 @@ describe("Vector Tag Tests", function () {
   `,
         });
 
-        await common_test_process({ core, resolveComponentName });
+        await common_test_process({ core, resolvePathToNodeIdx });
     });
 
     it("1D vector", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <vector name="vector1">1</vector>
   <point extend="$vector1.tail" name="t" />
@@ -4115,7 +4135,7 @@ describe("Vector Tag Tests", function () {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         check_vec_htd({
-            componentIdx: resolveComponentName("vector1"),
+            componentIdx: await resolvePathToNodeIdx("vector1"),
             h: [1],
             t: [0],
             d: [1],
@@ -4123,25 +4143,25 @@ describe("Vector Tag Tests", function () {
         });
 
         expect(
-            stateVariables[resolveComponentName("h")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("h")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([1]);
         expect(
-            stateVariables[resolveComponentName("t")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.xs.map(
                 (v) => v.tree,
             ),
         ).eqls([0]);
         expect(
             stateVariables[
-                resolveComponentName("d")
+                await resolvePathToNodeIdx("d")
             ].stateValues.displacement.map((v) => v.tree),
         ).eqls([1]);
     });
 
     it("mutual dependence among entire head, tail, displacement", async () => {
         // this could be made more interesting once have operations on vectors
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <vector name="v1" head="$(v1.tail)" tail="(3,4)" />
@@ -4179,7 +4199,7 @@ describe("Vector Tag Tests", function () {
                 (await core.returnAllStateVariables(false, true));
             const ZEROS = [0, 0];
             check_vec_htd({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 h: val,
                 t: val,
                 d: ZEROS,
@@ -4197,7 +4217,7 @@ describe("Vector Tag Tests", function () {
                 (await core.returnAllStateVariables(false, true));
             const ZEROS = [0, 0];
             check_vec_htd({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 h: val,
                 t: ZEROS,
                 d: val,
@@ -4214,7 +4234,7 @@ describe("Vector Tag Tests", function () {
                 stateVariables ||
                 (await core.returnAllStateVariables(false, true));
             check_vec_htd({
-                componentIdx: resolveComponentName(name),
+                componentIdx: await resolvePathToNodeIdx(name),
                 h: val.map((v) => 2 * v),
                 t: val,
                 d: val,
@@ -4234,13 +4254,13 @@ describe("Vector Tag Tests", function () {
         // move v1, head and tail should match
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v1"),
+            componentIdx: await resolvePathToNodeIdx("v1"),
             headcoords: [1, 2],
         });
         await check_matching_head_tail("v1", [1, 2]);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v1"),
+            componentIdx: await resolvePathToNodeIdx("v1"),
             tailcoords: [-4, 5],
         });
         await check_matching_head_tail("v1", [-4, 5]);
@@ -4248,13 +4268,13 @@ describe("Vector Tag Tests", function () {
         // move v3, head and tail should match
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v3"),
+            componentIdx: await resolvePathToNodeIdx("v3"),
             headcoords: [1, 2],
         });
         await check_matching_head_tail("v3", [1, 2]);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v3"),
+            componentIdx: await resolvePathToNodeIdx("v3"),
             tailcoords: [-4, 5],
         });
         await check_matching_head_tail("v3", [-4, 5]);
@@ -4262,13 +4282,13 @@ describe("Vector Tag Tests", function () {
         // move v2, head and displacement should match
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v2"),
+            componentIdx: await resolvePathToNodeIdx("v2"),
             headcoords: [1, 2],
         });
         await check_matching_head_disp("v2", [1, 2]);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v2"),
+            componentIdx: await resolvePathToNodeIdx("v2"),
             tailcoords: [5, 7],
         });
         await check_matching_head_disp("v2", [-4, -5]);
@@ -4276,13 +4296,13 @@ describe("Vector Tag Tests", function () {
         // move v5, head and displacement should match
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v5"),
+            componentIdx: await resolvePathToNodeIdx("v5"),
             headcoords: [1, 2],
         });
         await check_matching_head_disp("v5", [1, 2]);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v5"),
+            componentIdx: await resolvePathToNodeIdx("v5"),
             tailcoords: [5, 7],
         });
         await check_matching_head_disp("v5", [-4, -5]);
@@ -4292,13 +4312,13 @@ describe("Vector Tag Tests", function () {
         // Vector sets displacement to try to keep head in the same place
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v4"),
+            componentIdx: await resolvePathToNodeIdx("v4"),
             headcoords: [-1, 1],
         });
         await check_matching_tail_disp("v4", [-4, -3]);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v4"),
+            componentIdx: await resolvePathToNodeIdx("v4"),
             tailcoords: [-10, -2],
         });
         await check_matching_tail_disp("v4", [2, -4]);
@@ -4308,20 +4328,20 @@ describe("Vector Tag Tests", function () {
         // Vector sets displacement to try to keep head in the same place
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v6"),
+            componentIdx: await resolvePathToNodeIdx("v6"),
             headcoords: [-1, 1],
         });
         await check_matching_tail_disp("v6", [-4, -3]);
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v6"),
+            componentIdx: await resolvePathToNodeIdx("v6"),
             tailcoords: [-10, -2],
         });
         await check_matching_tail_disp("v6", [2, -4]);
     });
 
     it("vector with no arguments, copy and specify attributes", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g0">
     <vector name="v0" />
@@ -4388,17 +4408,17 @@ describe("Vector Tag Tests", function () {
                 for (let j = 0; j < 2; j++) {
                     expect(
                         stateVariables[
-                            resolveComponentName(`g${j}.v${i}`)
+                            await resolvePathToNodeIdx(`g${j}.v${i}`)
                         ].stateValues.tail.map((v) => v.tree),
                     ).eqls(tails[i]);
                     expect(
                         stateVariables[
-                            resolveComponentName(`g${j}.v${i}`)
+                            await resolvePathToNodeIdx(`g${j}.v${i}`)
                         ].stateValues.head.map((v) => v.tree),
                     ).eqls(heads[i]);
                     expect(
                         stateVariables[
-                            resolveComponentName(`g${j}.v${i}`)
+                            await resolvePathToNodeIdx(`g${j}.v${i}`)
                         ].stateValues.displacement.map((v) => v.tree),
                     ).eqls(displacements[i]);
                 }
@@ -4427,7 +4447,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.v0"),
+            componentIdx: await resolvePathToNodeIdx("g0.v0"),
             tailcoords: tails[0],
         });
         await check_items();
@@ -4451,7 +4471,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.v0"),
+            componentIdx: await resolvePathToNodeIdx("g1.v0"),
             headcoords: heads[0],
         });
         await check_items();
@@ -4467,7 +4487,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.v1"),
+            componentIdx: await resolvePathToNodeIdx("g0.v1"),
             headcoords: heads[1],
         });
         await check_items();
@@ -4490,7 +4510,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.v1"),
+            componentIdx: await resolvePathToNodeIdx("g1.v1"),
             tailcoords: tails[1],
         });
         await check_items();
@@ -4506,7 +4526,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.v2"),
+            componentIdx: await resolvePathToNodeIdx("g0.v2"),
             tailcoords: tails[2],
         });
         await check_items();
@@ -4522,7 +4542,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.v2"),
+            componentIdx: await resolvePathToNodeIdx("g1.v2"),
             headcoords: heads[2],
         });
         await check_items();
@@ -4545,7 +4565,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.v3"),
+            componentIdx: await resolvePathToNodeIdx("g0.v3"),
             headcoords: heads[3],
         });
         await check_items();
@@ -4573,7 +4593,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.v3"),
+            componentIdx: await resolvePathToNodeIdx("g1.v3"),
             tailcoords: tails[3],
         });
         await check_items();
@@ -4593,7 +4613,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.v4"),
+            componentIdx: await resolvePathToNodeIdx("g0.v4"),
             tailcoords: tails[4],
         });
         await check_items();
@@ -4609,7 +4629,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.v4"),
+            componentIdx: await resolvePathToNodeIdx("g1.v4"),
             headcoords: heads[4],
         });
         await check_items();
@@ -4632,7 +4652,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.v5"),
+            componentIdx: await resolvePathToNodeIdx("g0.v5"),
             headcoords: heads[5],
         });
         await check_items();
@@ -4661,7 +4681,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.v5"),
+            componentIdx: await resolvePathToNodeIdx("g1.v5"),
             tailcoords: tails[5],
         });
         await check_items();
@@ -4685,7 +4705,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.v6"),
+            componentIdx: await resolvePathToNodeIdx("g0.v6"),
             tailcoords: tails[6],
         });
         await check_items();
@@ -4709,14 +4729,14 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.v6"),
+            componentIdx: await resolvePathToNodeIdx("g1.v6"),
             headcoords: heads[6],
         });
         await check_items();
     });
 
     it("head/tail draggable without vector draggable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g0">
     <vector name="vdrag" head="(1,1)" />
@@ -4741,199 +4761,205 @@ describe("Vector Tag Tests", function () {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("g0.vdrag")].stateValues
-                    .draggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g0.vdrag")].stateValues
-                    .headDraggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g0.vdrag")].stateValues
-                    .tailDraggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g0.vnoheaddrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vdrag")]
                     .stateValues.draggable,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("g0.vnoheaddrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vdrag")]
                     .stateValues.headDraggable,
-            ).eq(false);
+            ).eq(true);
             expect(
-                stateVariables[resolveComponentName("g0.vnoheaddrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vdrag")]
                     .stateValues.tailDraggable,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("g0.vnotaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnoheaddrag")]
                     .stateValues.draggable,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("g0.vnotaildrag")]
-                    .stateValues.headDraggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g0.vnotaildrag")]
-                    .stateValues.tailDraggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g0.vnoheadtaildrag")]
-                    .stateValues.draggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g0.vnoheadtaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnoheaddrag")]
                     .stateValues.headDraggable,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g0.vnoheadtaildrag")]
-                    .stateValues.tailDraggable,
-            ).eq(false);
-
-            expect(
-                stateVariables[resolveComponentName("g0.vnodrag")].stateValues
-                    .draggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g0.vnodrag")].stateValues
-                    .headDraggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g0.vnodrag")].stateValues
-                    .tailDraggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g0.vnodragheaddrag")]
-                    .stateValues.draggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g0.vnodragheaddrag")]
-                    .stateValues.headDraggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g0.vnodragheaddrag")]
-                    .stateValues.tailDraggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g0.vnodragtaildrag")]
-                    .stateValues.draggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g0.vnodragtaildrag")]
-                    .stateValues.headDraggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g0.vnodragtaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnoheaddrag")]
                     .stateValues.tailDraggable,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("g0.vnodragheadtaildrag")]
-                    .stateValues.draggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g0.vnodragheadtaildrag")]
-                    .stateValues.headDraggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g0.vnodragheadtaildrag")]
-                    .stateValues.tailDraggable,
-            ).eq(true);
-
-            expect(
-                stateVariables[resolveComponentName("g1.vdrag")].stateValues
-                    .draggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g1.vdrag")].stateValues
-                    .headDraggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g1.vdrag")].stateValues
-                    .tailDraggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g1.vnoheaddrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnotaildrag")]
                     .stateValues.draggable,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("g1.vnoheaddrag")]
-                    .stateValues.headDraggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g1.vnoheaddrag")]
-                    .stateValues.tailDraggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g1.vnotaildrag")]
-                    .stateValues.draggable,
-            ).eq(true);
-            expect(
-                stateVariables[resolveComponentName("g1.vnotaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnotaildrag")]
                     .stateValues.headDraggable,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("g1.vnotaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnotaildrag")]
                     .stateValues.tailDraggable,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g1.vnoheadtaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnoheadtaildrag")]
                     .stateValues.draggable,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("g1.vnoheadtaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnoheadtaildrag")]
                     .stateValues.headDraggable,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g1.vnoheadtaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnoheadtaildrag")]
                     .stateValues.tailDraggable,
             ).eq(false);
 
             expect(
-                stateVariables[resolveComponentName("g1.vnodrag")].stateValues
-                    .draggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g1.vnodrag")].stateValues
-                    .headDraggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g1.vnodrag")].stateValues
-                    .tailDraggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g1.vnodragheaddrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnodrag")]
                     .stateValues.draggable,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g1.vnodragheaddrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnodrag")]
                     .stateValues.headDraggable,
-            ).eq(true);
+            ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g1.vnodragheaddrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnodrag")]
                     .stateValues.tailDraggable,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g1.vnodragtaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnodragheaddrag")]
                     .stateValues.draggable,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g1.vnodragtaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnodragheaddrag")]
                     .stateValues.headDraggable,
-            ).eq(false);
-            expect(
-                stateVariables[resolveComponentName("g1.vnodragtaildrag")]
-                    .stateValues.tailDraggable,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("g1.vnodragheadtaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnodragheaddrag")]
+                    .stateValues.tailDraggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g0.vnodragtaildrag")]
                     .stateValues.draggable,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g1.vnodragheadtaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g0.vnodragtaildrag")]
+                    .stateValues.headDraggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g0.vnodragtaildrag")]
+                    .stateValues.tailDraggable,
+            ).eq(true);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("g0.vnodragheadtaildrag")
+                ].stateValues.draggable,
+            ).eq(false);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("g0.vnodragheadtaildrag")
+                ].stateValues.headDraggable,
+            ).eq(true);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("g0.vnodragheadtaildrag")
+                ].stateValues.tailDraggable,
+            ).eq(true);
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vdrag")]
+                    .stateValues.draggable,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vdrag")]
                     .stateValues.headDraggable,
             ).eq(true);
             expect(
-                stateVariables[resolveComponentName("g1.vnodragheadtaildrag")]
+                stateVariables[await resolvePathToNodeIdx("g1.vdrag")]
                     .stateValues.tailDraggable,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnoheaddrag")]
+                    .stateValues.draggable,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnoheaddrag")]
+                    .stateValues.headDraggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnoheaddrag")]
+                    .stateValues.tailDraggable,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnotaildrag")]
+                    .stateValues.draggable,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnotaildrag")]
+                    .stateValues.headDraggable,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnotaildrag")]
+                    .stateValues.tailDraggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnoheadtaildrag")]
+                    .stateValues.draggable,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnoheadtaildrag")]
+                    .stateValues.headDraggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnoheadtaildrag")]
+                    .stateValues.tailDraggable,
+            ).eq(false);
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnodrag")]
+                    .stateValues.draggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnodrag")]
+                    .stateValues.headDraggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnodrag")]
+                    .stateValues.tailDraggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnodragheaddrag")]
+                    .stateValues.draggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnodragheaddrag")]
+                    .stateValues.headDraggable,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnodragheaddrag")]
+                    .stateValues.tailDraggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnodragtaildrag")]
+                    .stateValues.draggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnodragtaildrag")]
+                    .stateValues.headDraggable,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1.vnodragtaildrag")]
+                    .stateValues.tailDraggable,
+            ).eq(true);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("g1.vnodragheadtaildrag")
+                ].stateValues.draggable,
+            ).eq(false);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("g1.vnodragheadtaildrag")
+                ].stateValues.headDraggable,
+            ).eq(true);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("g1.vnodragheadtaildrag")
+                ].stateValues.tailDraggable,
             ).eq(true);
         }
 
@@ -4960,38 +4986,62 @@ describe("Vector Tag Tests", function () {
                 false,
                 true,
             );
-            function check(name, tail, head) {
+            async function check(name, tail, head) {
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.tail.map((v) => v.tree),
                 ).eqls(tail);
                 expect(
                     stateVariables[
-                        resolveComponentName(name)
+                        await resolvePathToNodeIdx(name)
                     ].stateValues.head.map((v) => v.tree),
                 ).eqls(head);
             }
-            check("g0.vdrag", vdrag_t, vdrag_h);
-            check("g0.vnoheaddrag", vnoheaddrag_t, vnoheaddrag_h);
-            check("g0.vnotaildrag", vnotaildrag_t, vnotaildrag_h);
-            check("g0.vnoheadtaildrag", vnoheadtaildrag_t, vnoheadtaildrag_h);
-            check("g0.vnodrag", vnodrag_t, vnodrag_h);
-            check("g0.vnodragheaddrag", vnodragheaddrag_t, vnodragheaddrag_h);
-            check("g0.vnodragtaildrag", vnodragtaildrag_t, vnodragtaildrag_h);
-            check(
+            await check("g0.vdrag", vdrag_t, vdrag_h);
+            await check("g0.vnoheaddrag", vnoheaddrag_t, vnoheaddrag_h);
+            await check("g0.vnotaildrag", vnotaildrag_t, vnotaildrag_h);
+            await check(
+                "g0.vnoheadtaildrag",
+                vnoheadtaildrag_t,
+                vnoheadtaildrag_h,
+            );
+            await check("g0.vnodrag", vnodrag_t, vnodrag_h);
+            await check(
+                "g0.vnodragheaddrag",
+                vnodragheaddrag_t,
+                vnodragheaddrag_h,
+            );
+            await check(
+                "g0.vnodragtaildrag",
+                vnodragtaildrag_t,
+                vnodragtaildrag_h,
+            );
+            await check(
                 "g0.vnodragheadtaildrag",
                 vnodragheadtaildrag_t,
                 vnodragheadtaildrag_h,
             );
-            check("g1.vdrag", vdrag_t, vdrag_h);
-            check("g1.vnoheaddrag", vnoheaddrag_t, vnoheaddrag_h);
-            check("g1.vnotaildrag", vnotaildrag_t, vnotaildrag_h);
-            check("g1.vnoheadtaildrag", vnoheadtaildrag_t, vnoheadtaildrag_h);
-            check("g1.vnodrag", vnodrag_t, vnodrag_h);
-            check("g1.vnodragheaddrag", vnodragheaddrag_t, vnodragheaddrag_h);
-            check("g1.vnodragtaildrag", vnodragtaildrag_t, vnodragtaildrag_h);
-            check(
+            await check("g1.vdrag", vdrag_t, vdrag_h);
+            await check("g1.vnoheaddrag", vnoheaddrag_t, vnoheaddrag_h);
+            await check("g1.vnotaildrag", vnotaildrag_t, vnotaildrag_h);
+            await check(
+                "g1.vnoheadtaildrag",
+                vnoheadtaildrag_t,
+                vnoheadtaildrag_h,
+            );
+            await check("g1.vnodrag", vnodrag_t, vnodrag_h);
+            await check(
+                "g1.vnodragheaddrag",
+                vnodragheaddrag_t,
+                vnodragheaddrag_h,
+            );
+            await check(
+                "g1.vnodragtaildrag",
+                vnodragtaildrag_t,
+                vnodragtaildrag_h,
+            );
+            await check(
                 "g1.vnodragheadtaildrag",
                 vnodragheadtaildrag_t,
                 vnodragheadtaildrag_h,
@@ -5003,48 +5053,48 @@ describe("Vector Tag Tests", function () {
         vdrag_h = [2, 1];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vdrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vdrag"),
             headcoords: vdrag_h,
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnoheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnoheaddrag"),
             headcoords: [2, 2],
         });
         vnotaildrag_h = [2, 3];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnotaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnotaildrag"),
             headcoords: vnotaildrag_h,
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnoheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnoheadtaildrag"),
             headcoords: [2, 4],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodrag"),
             headcoords: [2, 5],
         });
         vnodragheaddrag_h = [2, 6];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodragheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodragheaddrag"),
             headcoords: vnodragheaddrag_h,
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodragtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodragtaildrag"),
             headcoords: [2, 7],
         });
         vnodragheadtaildrag_h = [2, 8];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodragheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodragheadtaildrag"),
             headcoords: vnodragheadtaildrag_h,
         });
 
@@ -5054,49 +5104,49 @@ describe("Vector Tag Tests", function () {
         vdrag_t = [-1, -1];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vdrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vdrag"),
             tailcoords: vdrag_t,
         });
         vnoheaddrag_t = [-1, -2];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnoheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnoheaddrag"),
             tailcoords: vnoheaddrag_t,
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnotaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnotaildrag"),
             tailcoords: [-1, -3],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnoheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnoheadtaildrag"),
             tailcoords: [-1, -4],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodrag"),
             tailcoords: [-1, -5],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodragheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodragheaddrag"),
             tailcoords: [-1, -6],
         });
         vnodragtaildrag_t = [-1, -7];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodragtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodragtaildrag"),
             tailcoords: [-1, -7],
         });
         vnodragheadtaildrag_t = [-1, -8];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodragheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodragheadtaildrag"),
             tailcoords: vnodragheadtaildrag_t,
         });
 
@@ -5107,7 +5157,7 @@ describe("Vector Tag Tests", function () {
         vdrag_t = [-2, -2];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vdrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vdrag"),
             headcoords: vdrag_h,
             tailcoords: vdrag_t,
         });
@@ -5115,7 +5165,7 @@ describe("Vector Tag Tests", function () {
         vnoheaddrag_t = [-2, -2];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnoheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnoheaddrag"),
             headcoords: vnoheaddrag_h,
             tailcoords: vnoheaddrag_t,
         });
@@ -5123,7 +5173,7 @@ describe("Vector Tag Tests", function () {
         vnotaildrag_t = [-2, -3];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnotaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnotaildrag"),
             headcoords: vnotaildrag_h,
             tailcoords: vnotaildrag_t,
         });
@@ -5131,35 +5181,35 @@ describe("Vector Tag Tests", function () {
         vnoheadtaildrag_t = [-2, -4];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnoheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnoheadtaildrag"),
             headcoords: vnoheadtaildrag_h,
             tailcoords: vnoheadtaildrag_t,
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodrag"),
             headcoords: [3, 5],
             tailcoords: [-2, -5],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodragheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodragheaddrag"),
             headcoords: [3, 6],
             tailcoords: [-2, -6],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodragtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodragtaildrag"),
             headcoords: [3, 7],
             tailcoords: [-2, -7],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g0.vnodragheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g0.vnodragheadtaildrag"),
             headcoords: [3, 8],
             tailcoords: [-2, -8],
         });
@@ -5170,49 +5220,49 @@ describe("Vector Tag Tests", function () {
         vdrag_h = [4, 1];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vdrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vdrag"),
             headcoords: vdrag_h,
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnoheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnoheaddrag"),
             headcoords: [4, 2],
         });
         vnotaildrag_h = [4, 3];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnotaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnotaildrag"),
             headcoords: vnotaildrag_h,
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnoheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnoheadtaildrag"),
             headcoords: [4, 4],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodrag"),
             headcoords: [4, 5],
         });
         vnodragheaddrag_h = [4, 6];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodragheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodragheaddrag"),
             headcoords: vnodragheaddrag_h,
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodragtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodragtaildrag"),
             headcoords: [4, 7],
         });
         vnodragheadtaildrag_h = [4, 8];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodragheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodragheadtaildrag"),
             headcoords: vnodragheadtaildrag_h,
         });
 
@@ -5222,49 +5272,49 @@ describe("Vector Tag Tests", function () {
         vdrag_t = [-3, -1];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vdrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vdrag"),
             tailcoords: vdrag_t,
         });
         vnoheaddrag_t = [-3, -2];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnoheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnoheaddrag"),
             tailcoords: vnoheaddrag_t,
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnotaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnotaildrag"),
             tailcoords: [-3, -3],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnoheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnoheadtaildrag"),
             tailcoords: [-3, -4],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodrag"),
             tailcoords: [-3, -5],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodragheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodragheaddrag"),
             tailcoords: [-3, -6],
         });
         vnodragtaildrag_t = [-3, -7];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodragtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodragtaildrag"),
             tailcoords: vnodragtaildrag_t,
         });
         vnodragheadtaildrag_t = [-3, -8];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodragheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodragheadtaildrag"),
             tailcoords: vnodragheadtaildrag_t,
         });
 
@@ -5275,7 +5325,7 @@ describe("Vector Tag Tests", function () {
         vdrag_t = [-4, -1];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vdrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vdrag"),
             headcoords: vdrag_h,
             tailcoords: vdrag_t,
         });
@@ -5283,7 +5333,7 @@ describe("Vector Tag Tests", function () {
         vnoheaddrag_t = [-4, -2];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnoheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnoheaddrag"),
             headcoords: vnoheaddrag_h,
             tailcoords: vnoheaddrag_t,
         });
@@ -5291,7 +5341,7 @@ describe("Vector Tag Tests", function () {
         vnotaildrag_t = [-4, 3];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnotaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnotaildrag"),
             headcoords: vnotaildrag_h,
             tailcoords: vnotaildrag_t,
         });
@@ -5299,35 +5349,35 @@ describe("Vector Tag Tests", function () {
         vnoheadtaildrag_t = [-4, -4];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnoheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnoheadtaildrag"),
             headcoords: vnoheadtaildrag_h,
             tailcoords: vnoheadtaildrag_t,
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodrag"),
             headcoords: [5, 5],
             tailcoords: [-4, -5],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodragheaddrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodragheaddrag"),
             headcoords: [5, 6],
             tailcoords: [-4, -6],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodragtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodragtaildrag"),
             headcoords: [5, 7],
             tailcoords: [-4, -7],
         });
         // no change
         await moveVector({
             core,
-            componentIdx: resolveComponentName("g1.vnodragheadtaildrag"),
+            componentIdx: await resolvePathToNodeIdx("g1.vnodragheadtaildrag"),
             headcoords: [5, 8],
             tailcoords: [-4, -8],
         });
@@ -5336,7 +5386,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector from vector operations", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="m" fixed>(6,3)</math>
     <graph>
@@ -5359,12 +5409,12 @@ describe("Vector Tag Tests", function () {
             );
             expect(
                 stateVariables[
-                    resolveComponentName("v")
+                    await resolvePathToNodeIdx("v")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls(v);
             expect(
                 stateVariables[
-                    resolveComponentName("w")
+                    await resolvePathToNodeIdx("w")
                 ].stateValues.displacement.map((v) => v.tree),
             ).eqls(w);
         }
@@ -5375,7 +5425,7 @@ describe("Vector Tag Tests", function () {
         w = [2 * 6 - 3 * v[0], 2 * 3 - 3 * v[1]];
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v"),
+            componentIdx: await resolvePathToNodeIdx("v"),
             headcoords: v,
         });
         await check_items();
@@ -5385,14 +5435,14 @@ describe("Vector Tag Tests", function () {
         v = [(2 * 6 - w[0]) / 3, (2 * 3 - w[1]) / 3]; // v = (2m - w)/3
         await moveVector({
             core,
-            componentIdx: resolveComponentName("w"),
+            componentIdx: await resolvePathToNodeIdx("w"),
             headcoords: w,
         });
         await check_items();
     });
 
     it("vector magnitude", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <vector name="v" head="(5,4)" tail="(-2,1)" displayDigits="10" />
@@ -5411,8 +5461,8 @@ describe("Vector Tag Tests", function () {
         let len = Math.hypot(tly - hdy, tlx - hdx);
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("v")].stateValues.magnitude
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("v")].stateValues
+                .magnitude.tree,
         ).eq(len);
 
         // move point A
@@ -5421,39 +5471,39 @@ describe("Vector Tag Tests", function () {
         len = Math.hypot(tly - hdy, tlx - hdx);
         await movePoint({
             core,
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: tlx,
             y: tly,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("v")].stateValues.magnitude
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("v")].stateValues
+                .magnitude.tree,
         ).eq(len);
 
         // change bound math input
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mimagnitude"),
+            componentIdx: await resolvePathToNodeIdx("mimagnitude"),
             latex: "5 \\sqrt{2}",
             core,
         });
         len = 5 * Math.sqrt(2);
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("v")].stateValues.magnitude
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("v")].stateValues
+                .magnitude.tree,
         ).eq(len);
 
         // ignore requested negative magnitude
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mimagnitude"),
+            componentIdx: await resolvePathToNodeIdx("mimagnitude"),
             latex: "-3",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("v")].stateValues.magnitude
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("v")].stateValues
+                .magnitude.tree,
         ).eq(len);
 
         // move point B
@@ -5462,19 +5512,19 @@ describe("Vector Tag Tests", function () {
         len = Math.hypot(tly - hdy, tlx - hdx);
         await movePoint({
             core,
-            componentIdx: resolveComponentName("B"),
+            componentIdx: await resolvePathToNodeIdx("B"),
             x: hdx,
             y: hdy,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("v")].stateValues.magnitude
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("v")].stateValues
+                .magnitude.tree,
         ).eq(len);
     });
 
     it("change vector by binding to values", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <vector name="v" />
   <vector name="v2" extend="$v" />
@@ -5504,14 +5554,14 @@ describe("Vector Tag Tests", function () {
                 true,
             );
             check_vec_htd({
-                componentIdx: resolveComponentName("v"),
+                componentIdx: await resolvePathToNodeIdx("v"),
                 h,
                 t,
                 d,
                 stateVariables,
             });
             check_vec_htd({
-                componentIdx: resolveComponentName("v2"),
+                componentIdx: await resolvePathToNodeIdx("v2"),
                 h,
                 t,
                 d,
@@ -5524,7 +5574,7 @@ describe("Vector Tag Tests", function () {
         h = [6, 9];
         d = [6, 9];
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mivh"),
+            componentIdx: await resolvePathToNodeIdx("mivh"),
             latex: "\\langle 6,9 \\rangle",
             core,
         });
@@ -5535,7 +5585,7 @@ describe("Vector Tag Tests", function () {
         h[0] = t[0] + d[0];
         h[1] = t[1] + d[1];
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mivt"),
+            componentIdx: await resolvePathToNodeIdx("mivt"),
             latex: "\\langle -3,7 \\rangle",
             core,
         });
@@ -5546,7 +5596,7 @@ describe("Vector Tag Tests", function () {
         h[0] = t[0] + d[0];
         h[1] = t[1] + d[1];
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mivd"),
+            componentIdx: await resolvePathToNodeIdx("mivd"),
             latex: "\\langle -4,1 \\rangle",
             core,
         });
@@ -5554,7 +5604,7 @@ describe("Vector Tag Tests", function () {
 
         // cannot change dimnension through displacement
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mivd"),
+            componentIdx: await resolvePathToNodeIdx("mivd"),
             latex: "(9,8,7)",
             core,
         });
@@ -5565,7 +5615,7 @@ describe("Vector Tag Tests", function () {
 
         // cannot change dimnension through tail
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mivt"),
+            componentIdx: await resolvePathToNodeIdx("mivt"),
             latex: "(-5,-6,-7)",
             core,
         });
@@ -5576,7 +5626,7 @@ describe("Vector Tag Tests", function () {
 
         // cannot change dimnension through head
         await updateMathInputValue({
-            componentIdx: resolveComponentName("mivh"),
+            componentIdx: await resolvePathToNodeIdx("mivh"),
             latex: "(9,-9,7)",
             core,
         });
@@ -5587,7 +5637,7 @@ describe("Vector Tag Tests", function () {
 
         // cannot change dimnension through copied head
         await updateMathInputValue({
-            componentIdx: resolveComponentName("miv2h"),
+            componentIdx: await resolvePathToNodeIdx("miv2h"),
             latex: "(0,1,2,3)",
             core,
         });
@@ -5598,7 +5648,7 @@ describe("Vector Tag Tests", function () {
 
         // cannot change dimnension through copied tail
         await updateMathInputValue({
-            componentIdx: resolveComponentName("miv2t"),
+            componentIdx: await resolvePathToNodeIdx("miv2t"),
             latex: "\\langle 2, 4, 6, 8 \\rangle",
             core,
         });
@@ -5610,7 +5660,7 @@ describe("Vector Tag Tests", function () {
         // cannot change dimnension through copied displacement
         // Note: =4 as third component is intentional
         await updateMathInputValue({
-            componentIdx: resolveComponentName("miv2d"),
+            componentIdx: await resolvePathToNodeIdx("miv2d"),
             latex: "\\langle -8, -6, =4, -2 \\rangle",
             core,
         });
@@ -5621,7 +5671,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("display with angle brackets", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <booleanInput name="bi" />
 <p name="p1"><vector name="v1" >(1,2)</vector></p>
@@ -5663,43 +5713,55 @@ describe("Vector Tag Tests", function () {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("p1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .text,
             ).eqls(parens1);
             expect(
-                stateVariables[resolveComponentName("p2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
+                    .text,
             ).eqls(brackets2);
             expect(
-                stateVariables[resolveComponentName("p3")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p3")].stateValues
+                    .text,
             ).eqls(bi ? brackets3 : parens3);
 
             expect(
-                stateVariables[resolveComponentName("p1a")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p1a")].stateValues
+                    .text,
             ).eqls(brackets1);
             expect(
-                stateVariables[resolveComponentName("p2a")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p2a")].stateValues
+                    .text,
             ).eqls(parens2);
             expect(
-                stateVariables[resolveComponentName("p3a")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p3a")].stateValues
+                    .text,
             ).eqls(bi ? parens3 : brackets3);
 
             expect(
-                stateVariables[resolveComponentName("p1d")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p1d")].stateValues
+                    .text,
             ).eqls(parens1);
             expect(
-                stateVariables[resolveComponentName("p2d")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p2d")].stateValues
+                    .text,
             ).eqls(brackets2);
             expect(
-                stateVariables[resolveComponentName("p3d")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p3d")].stateValues
+                    .text,
             ).eqls(bi ? brackets3 : parens3);
 
             expect(
-                stateVariables[resolveComponentName("p1ad")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p1ad")].stateValues
+                    .text,
             ).eqls(brackets1);
             expect(
-                stateVariables[resolveComponentName("p2ad")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p2ad")].stateValues
+                    .text,
             ).eqls(parens2);
             expect(
-                stateVariables[resolveComponentName("p3ad")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p3ad")].stateValues
+                    .text,
             ).eqls(bi ? parens3 : brackets3);
         }
         await check_items();
@@ -5707,7 +5769,7 @@ describe("Vector Tag Tests", function () {
         // update boolean input
         bi = true;
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("bi"),
+            componentIdx: await resolvePathToNodeIdx("bi"),
             boolean: bi,
             core,
         });
@@ -5722,24 +5784,24 @@ describe("Vector Tag Tests", function () {
         y3 = 6;
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v1"),
+            componentIdx: await resolvePathToNodeIdx("v1"),
             headcoords: [x1, y1],
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v2"),
+            componentIdx: await resolvePathToNodeIdx("v2"),
             headcoords: [x2, y2],
         });
         await moveVector({
             core,
-            componentIdx: resolveComponentName("v3"),
+            componentIdx: await resolvePathToNodeIdx("v3"),
             headcoords: [x3, y3],
         });
         await check_items();
     });
 
     it("color vector text via style", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <styleDefinitions>
@@ -5775,41 +5837,41 @@ describe("Vector Tag Tests", function () {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
+                    .stateValues.value,
             ).toContain("black");
             expect(
-                stateVariables[resolveComponentName("tc_no_style")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("tc_no_style")]
+                    .stateValues.value,
             ).toContain("black");
             expect(
-                stateVariables[resolveComponentName("bc_no_style")].stateValues
-                    .value,
-            ).toContain("none");
-
-            expect(
-                stateVariables[resolveComponentName("tsd_fixed_style")]
-                    .stateValues.value,
-            ).toContain("green");
-            expect(
-                stateVariables[resolveComponentName("tc_fixed_style")]
-                    .stateValues.value,
-            ).toContain("green");
-            expect(
-                stateVariables[resolveComponentName("bc_fixed_style")]
+                stateVariables[await resolvePathToNodeIdx("bc_no_style")]
                     .stateValues.value,
             ).toContain("none");
 
             expect(
-                stateVariables[resolveComponentName("tsd_variable_style")]
+                stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                    .stateValues.value,
+            ).toContain("green");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                    .stateValues.value,
+            ).toContain("green");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                    .stateValues.value,
+            ).toContain("none");
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
                     .stateValues.value,
             ).toContain(variableTextStyleDescription);
             expect(
-                stateVariables[resolveComponentName("tc_variable_style")]
+                stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
                     .stateValues.value,
             ).toContain(variableTextColor);
             expect(
-                stateVariables[resolveComponentName("bc_variable_style")]
+                stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                     .stateValues.value,
             ).toContain(variableBackgroundColor);
         }
@@ -5820,7 +5882,7 @@ describe("Vector Tag Tests", function () {
         variableTextColor = "green";
         variableBackgroundColor = "none";
         await updateMathInputValue({
-            componentIdx: resolveComponentName("sn"),
+            componentIdx: await resolvePathToNodeIdx("sn"),
             latex: "2",
             core,
         });
@@ -5831,7 +5893,7 @@ describe("Vector Tag Tests", function () {
         variableTextColor = "red";
         variableBackgroundColor = "blue";
         await updateMathInputValue({
-            componentIdx: resolveComponentName("sn"),
+            componentIdx: await resolvePathToNodeIdx("sn"),
             latex: "3",
             core,
         });
@@ -5839,7 +5901,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with head and tail, tail constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <point name="P">(4,1)
@@ -5869,7 +5931,7 @@ describe("Vector Tag Tests", function () {
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -5889,7 +5951,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vector1"),
+            componentIdx: await resolvePathToNodeIdx("vector1"),
 
             tailcoords: [tailx, taily],
             headcoords: [headx, heady],
@@ -5905,7 +5967,7 @@ describe("Vector Tag Tests", function () {
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -5921,14 +5983,14 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("head"),
+            componentIdx: await resolvePathToNodeIdx("head"),
             x: headx,
             y: heady,
         });
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -5944,7 +6006,7 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tail"),
+            componentIdx: await resolvePathToNodeIdx("tail"),
             x: tailx,
             y: taily,
         });
@@ -5955,7 +6017,7 @@ describe("Vector Tag Tests", function () {
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -5980,7 +6042,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("displacement"),
+            componentIdx: await resolvePathToNodeIdx("displacement"),
 
             tailcoords: [displacementTailShiftx, displacementTailShifty],
             headcoords: [displacementheadx, displacementheady],
@@ -5988,7 +6050,7 @@ describe("Vector Tag Tests", function () {
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -5999,7 +6061,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("vector with head and tail, head constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
   <point name="P">(4,1)</point>
@@ -6029,7 +6091,7 @@ describe("Vector Tag Tests", function () {
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -6049,7 +6111,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("vector1"),
+            componentIdx: await resolvePathToNodeIdx("vector1"),
 
             tailcoords: [tailx, taily],
             headcoords: [headx, heady],
@@ -6065,7 +6127,7 @@ describe("Vector Tag Tests", function () {
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -6081,7 +6143,7 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("head"),
+            componentIdx: await resolvePathToNodeIdx("head"),
             x: headx,
             y: heady,
         });
@@ -6092,7 +6154,7 @@ describe("Vector Tag Tests", function () {
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -6108,14 +6170,14 @@ describe("Vector Tag Tests", function () {
 
         await movePoint({
             core,
-            componentIdx: resolveComponentName("tail"),
+            componentIdx: await resolvePathToNodeIdx("tail"),
             x: tailx,
             y: taily,
         });
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -6140,7 +6202,7 @@ describe("Vector Tag Tests", function () {
 
         await moveVector({
             core,
-            componentIdx: resolveComponentName("displacement"),
+            componentIdx: await resolvePathToNodeIdx("displacement"),
 
             tailcoords: [displacementTailShiftx, displacementTailShifty],
             headcoords: [displacementheadx, displacementheady],
@@ -6155,7 +6217,7 @@ describe("Vector Tag Tests", function () {
 
         await testVectorCopiedHTD({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             headx,
             heady,
             tailx,
@@ -6166,7 +6228,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("round vector", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <p name="p1v"><vector tail="(2.58106823,510.523950183)" head="(5.2164162,623.5234601)" name="v1"/></p>
 <p name="p1d"><vector extend="$v1.displacement" name="v1d" /></p>
@@ -6187,42 +6249,42 @@ describe("Vector Tag Tests", function () {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("p1v")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1v")].stateValues.text,
         ).eqls("( 2.64, 113 )");
         expect(
-            stateVariables[resolveComponentName("p1d")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1d")].stateValues.text,
         ).eqls("( 2.64, 113 )");
         expect(
-            stateVariables[resolveComponentName("p1t")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
         ).eqls("( 2.58, 510.52 )");
         expect(
-            stateVariables[resolveComponentName("p1h")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1h")].stateValues.text,
         ).eqls("( 5.22, 623.52 )");
 
         expect(
-            stateVariables[resolveComponentName("p2v")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p2v")].stateValues.text,
         ).eqls("( 2.63535, 113 )");
         expect(
-            stateVariables[resolveComponentName("p2d")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p2d")].stateValues.text,
         ).eqls("( 2.63535, 113 )");
         expect(
-            stateVariables[resolveComponentName("p2t")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p2t")].stateValues.text,
         ).eqls("( 2.58107, 510.524 )");
         expect(
-            stateVariables[resolveComponentName("p2h")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p2h")].stateValues.text,
         ).eqls("( 5.21642, 623.523 )");
 
         expect(
-            stateVariables[resolveComponentName("p3v")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p3v")].stateValues.text,
         ).eqls("( 3, 113 )");
         expect(
-            stateVariables[resolveComponentName("p3d")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p3d")].stateValues.text,
         ).eqls("( 3, 113 )");
         expect(
-            stateVariables[resolveComponentName("p3t")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p3t")].stateValues.text,
         ).eqls("( 3, 511 )");
         expect(
-            stateVariables[resolveComponentName("p3h")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p3h")].stateValues.text,
         ).eqls("( 5, 624 )");
     });
 
@@ -6281,7 +6343,7 @@ describe("Vector Tag Tests", function () {
     });
 
     it("handle bad head/tail", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <vector name="vector1" head="A" tail="B" />
@@ -6290,7 +6352,7 @@ describe("Vector Tag Tests", function () {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("vector1")]).not.eq(
+        expect(stateVariables[await resolvePathToNodeIdx("vector1")]).not.eq(
             undefined,
         );
     });
@@ -6314,7 +6376,7 @@ describe("Vector Tag Tests", function () {
     `;
 
         async function test_items(theme: "dark" | "light") {
-            const { core, resolveComponentName } = await createTestCore({
+            const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 theme,
             });
@@ -6329,16 +6391,16 @@ describe("Vector Tag Tests", function () {
             );
 
             expect(
-                stateVariables[resolveComponentName("ADescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("ADescription")]
+                    .stateValues.text,
             ).eq(`Vector A is thick ${AColor}.`);
             expect(
-                stateVariables[resolveComponentName("BDescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("BDescription")]
+                    .stateValues.text,
             ).eq(`B is a ${BShade} red vector.`);
             expect(
-                stateVariables[resolveComponentName("CDescription")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("CDescription")]
+                    .stateValues.text,
             ).eq(`C is a thin ${CColor} vector.`);
         }
 

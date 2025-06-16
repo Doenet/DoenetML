@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     movePoint,
     updateBooleanInputValue,
@@ -15,103 +15,110 @@ vi.mock("hyperformula");
 describe("Base component property tests", async () => {
     async function test_change_fixed_attribute(
         core: PublicDoenetMLCore,
-        resolveComponentName: (name: string, origin?: number) => number,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         start_fixed = false,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("pCoords")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pCoords")].stateValues
+                .text,
         ).eq("Coordinates of P: ( 0, 0 )");
 
         if (start_fixed) {
             expect(
-                stateVariables[resolveComponentName("pIsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pIsFixed")]
+                    .stateValues.text,
             ).eq("Is fixed? true");
 
             // point does not move
             await movePoint({
-                componentIdx: resolveComponentName("P"),
+                componentIdx: await resolvePathToNodeIdx("P"),
                 x: -10,
                 y: -0,
                 core,
             });
             stateVariables = await core.returnAllStateVariables(false, true);
             expect(
-                stateVariables[resolveComponentName("pCoords")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pCoords")]
+                    .stateValues.text,
             ).eq("Coordinates of P: ( 0, 0 )");
 
             // make point not fixed
             await updateValue({
-                componentIdx: resolveComponentName("makeNotFixed"),
+                componentIdx: await resolvePathToNodeIdx("makeNotFixed"),
                 core,
             });
             stateVariables = await core.returnAllStateVariables(false, true);
         }
 
         expect(
-            stateVariables[resolveComponentName("pIsFixed")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pIsFixed")].stateValues
+                .text,
         ).eq("Is fixed? false");
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 1,
             y: 2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pCoords")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pCoords")].stateValues
+                .text,
         ).eq("Coordinates of P: ( 1, 2 )");
 
         // have point fixed
         await updateValue({
-            componentIdx: resolveComponentName("makeFixed"),
+            componentIdx: await resolvePathToNodeIdx("makeFixed"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pIsFixed")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pIsFixed")].stateValues
+                .text,
         ).eq("Is fixed? true");
 
         // point does not move
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: 4,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pCoords")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pCoords")].stateValues
+                .text,
         ).eq("Coordinates of P: ( 1, 2 )");
 
         // have point not fixed
         await updateValue({
-            componentIdx: resolveComponentName("makeNotFixed"),
+            componentIdx: await resolvePathToNodeIdx("makeNotFixed"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pIsFixed")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pIsFixed")].stateValues
+                .text,
         ).eq("Is fixed? false");
 
         // point does moves
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 6,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pCoords")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pCoords")].stateValues
+                .text,
         ).eq("Coordinates of P: ( 5, 6 )");
     }
     it("change the fixed attribute even when fixed", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph><point name="P" /></graph>
   <p><updateValue type="boolean" target='$P.fixed' newValue="true" name="makeFixed"><label>Make fixed</label></updateValue></p>
@@ -122,11 +129,11 @@ describe("Base component property tests", async () => {
   `,
         });
 
-        await test_change_fixed_attribute(core, resolveComponentName);
+        await test_change_fixed_attribute(core, resolvePathToNodeIdx);
     });
 
     it("change the fixed attribute even when fixed, have attribute", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph><point name="P" fixed="false" /></graph>
   <p><updateValue type="boolean" target='$P.fixed' newValue="true" name="makeFixed"><label>Make fixed</label></updateValue></p>
@@ -137,11 +144,11 @@ describe("Base component property tests", async () => {
   `,
         });
 
-        await test_change_fixed_attribute(core, resolveComponentName);
+        await test_change_fixed_attribute(core, resolvePathToNodeIdx);
     });
 
     it("change the fixed attribute even when fixed, start out fixed", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph><point name="P" fixed /></graph>
   <p><updateValue type="boolean" target='$P.fixed' newValue="true" name="makeFixed"><label>Make fixed</label></updateValue></p>
@@ -152,11 +159,11 @@ describe("Base component property tests", async () => {
   `,
         });
 
-        await test_change_fixed_attribute(core, resolveComponentName, true);
+        await test_change_fixed_attribute(core, resolvePathToNodeIdx, true);
     });
 
     it("can override fixed of parent", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g">
     <point name="A" labelIsName>(1,2)</point>
@@ -205,33 +212,33 @@ describe("Base component property tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("pgIsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pgIsFixed")]
+                    .stateValues.text,
             ).eq(`Is g fixed? ${gFixed}`);
             expect(
-                stateVariables[resolveComponentName("pAIsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pAIsFixed")]
+                    .stateValues.text,
             ).eq(`Is A fixed? ${AFixed}`);
             expect(
-                stateVariables[resolveComponentName("pBIsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pBIsFixed")]
+                    .stateValues.text,
             ).eq(`Is B fixed? ${BFixed}`);
             expect(
-                stateVariables[resolveComponentName("pCIsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pCIsFixed")]
+                    .stateValues.text,
             ).eq(`Is C fixed? ${CFixed}`);
 
             expect(
-                stateVariables[resolveComponentName("pACoords")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pACoords")]
+                    .stateValues.text,
             ).eq(`Coordinates of A: ( ${A.join(", ")} )`);
             expect(
-                stateVariables[resolveComponentName("pBCoords")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pBCoords")]
+                    .stateValues.text,
             ).eq(`Coordinates of B: ( ${B.join(", ")} )`);
             expect(
-                stateVariables[resolveComponentName("pCCoords")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pCCoords")]
+                    .stateValues.text,
             ).eq(`Coordinates of C: ( ${C.join(", ")} )`);
         }
 
@@ -250,19 +257,19 @@ describe("Base component property tests", async () => {
         B = [-3, -4];
 
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: A[0],
             y: A[1],
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("C"),
+            componentIdx: await resolvePathToNodeIdx("C"),
             x: -5,
             y: -6,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("B"),
+            componentIdx: await resolvePathToNodeIdx("B"),
             x: B[0],
             y: B[1],
             core,
@@ -272,7 +279,7 @@ describe("Base component property tests", async () => {
         // A changes fixed with g
 
         await updateValue({
-            componentIdx: resolveComponentName("makegFixed"),
+            componentIdx: await resolvePathToNodeIdx("makegFixed"),
             core,
         });
         gFixed = true;
@@ -282,19 +289,19 @@ describe("Base component property tests", async () => {
         B = [8, 7];
 
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 10,
             y: 9,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("C"),
+            componentIdx: await resolvePathToNodeIdx("C"),
             x: 6,
             y: 5,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("B"),
+            componentIdx: await resolvePathToNodeIdx("B"),
             x: B[0],
             y: B[1],
             core,
@@ -304,15 +311,15 @@ describe("Base component property tests", async () => {
         // change fixed of points
 
         await updateValue({
-            componentIdx: resolveComponentName("makeANotFixed"),
+            componentIdx: await resolvePathToNodeIdx("makeANotFixed"),
             core,
         });
         await updateValue({
-            componentIdx: resolveComponentName("makeBFixed"),
+            componentIdx: await resolvePathToNodeIdx("makeBFixed"),
             core,
         });
         await updateValue({
-            componentIdx: resolveComponentName("makeCNotFixed"),
+            componentIdx: await resolvePathToNodeIdx("makeCNotFixed"),
             core,
         });
         AFixed = false;
@@ -323,19 +330,19 @@ describe("Base component property tests", async () => {
         A = [10, 9];
         C = [6, 5];
         await movePoint({
-            componentIdx: resolveComponentName("B"),
+            componentIdx: await resolvePathToNodeIdx("B"),
             x: 12,
             y: 11,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: A[0],
             y: A[1],
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("C"),
+            componentIdx: await resolvePathToNodeIdx("C"),
             x: C[0],
             y: C[1],
             core,
@@ -345,14 +352,14 @@ describe("Base component property tests", async () => {
         // changing fixed of g does not affect points
 
         await updateValue({
-            componentIdx: resolveComponentName("makegNotFixed"),
+            componentIdx: await resolvePathToNodeIdx("makegNotFixed"),
             core,
         });
         gFixed = false;
         await check_items({ gFixed, AFixed, BFixed, CFixed, A, B, C });
 
         await updateValue({
-            componentIdx: resolveComponentName("makegFixed"),
+            componentIdx: await resolvePathToNodeIdx("makegFixed"),
             core,
         });
         gFixed = true;
@@ -360,7 +367,7 @@ describe("Base component property tests", async () => {
     });
 
     it("fixed propagates to shadow even if essential", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph size="small">
     <point name="A" />
@@ -435,69 +442,69 @@ describe("Base component property tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("pAIsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pAIsFixed")]
+                    .stateValues.text,
             ).eq(`Is A fixed? ${AFixed}`);
             expect(
-                stateVariables[resolveComponentName("pBIsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pBIsFixed")]
+                    .stateValues.text,
             ).eq(`Is B fixed? ${BFixed}`);
             expect(
-                stateVariables[resolveComponentName("pCIsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pCIsFixed")]
+                    .stateValues.text,
             ).eq(`Is C fixed? ${CFixed}`);
             expect(
-                stateVariables[resolveComponentName("pDIsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pDIsFixed")]
+                    .stateValues.text,
             ).eq(`Is D fixed? ${DFixed}`);
             expect(
-                stateVariables[resolveComponentName("pA2IsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pA2IsFixed")]
+                    .stateValues.text,
             ).eq(`Is A2 fixed? ${AFixed}`);
             expect(
-                stateVariables[resolveComponentName("pB2IsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pB2IsFixed")]
+                    .stateValues.text,
             ).eq(`Is B2 fixed? ${BFixed}`);
             expect(
-                stateVariables[resolveComponentName("pC2IsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pC2IsFixed")]
+                    .stateValues.text,
             ).eq(`Is C2 fixed? ${CFixed}`);
             expect(
-                stateVariables[resolveComponentName("pD2IsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pD2IsFixed")]
+                    .stateValues.text,
             ).eq(`Is D2 fixed? ${DFixed}`);
             expect(
-                stateVariables[resolveComponentName("pA3IsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pA3IsFixed")]
+                    .stateValues.text,
             ).eq(`Is A3 fixed? false`);
             expect(
-                stateVariables[resolveComponentName("pB3IsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pB3IsFixed")]
+                    .stateValues.text,
             ).eq(`Is B3 fixed? false`);
             expect(
-                stateVariables[resolveComponentName("pC3IsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pC3IsFixed")]
+                    .stateValues.text,
             ).eq(`Is C3 fixed? false`);
             expect(
-                stateVariables[resolveComponentName("pD3IsFixed")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pD3IsFixed")]
+                    .stateValues.text,
             ).eq(`Is D3 fixed? false`);
 
             expect(
-                stateVariables[resolveComponentName("pACoords")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pACoords")]
+                    .stateValues.text,
             ).eq(`Coordinates of A: ( ${A.join(", ")} )`);
             expect(
-                stateVariables[resolveComponentName("pBCoords")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pBCoords")]
+                    .stateValues.text,
             ).eq(`Coordinates of B: ( ${B.join(", ")} )`);
             expect(
-                stateVariables[resolveComponentName("pCCoords")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pCCoords")]
+                    .stateValues.text,
             ).eq(`Coordinates of C: ( ${C.join(", ")} )`);
             expect(
-                stateVariables[resolveComponentName("pDCoords")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pDCoords")]
+                    .stateValues.text,
             ).eq(`Coordinates of D: ( ${D.join(", ")} )`);
         }
 
@@ -520,25 +527,25 @@ describe("Base component property tests", async () => {
         D = [-7, -8];
 
         await movePoint({
-            componentIdx: resolveComponentName("A2"),
+            componentIdx: await resolvePathToNodeIdx("A2"),
             x: A[0],
             y: A[1],
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("B2"),
+            componentIdx: await resolvePathToNodeIdx("B2"),
             x: B[0],
             y: B[1],
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("C2"),
+            componentIdx: await resolvePathToNodeIdx("C2"),
             x: -5,
             y: -6,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("D2"),
+            componentIdx: await resolvePathToNodeIdx("D2"),
             x: D[0],
             y: D[1],
             core,
@@ -552,25 +559,25 @@ describe("Base component property tests", async () => {
         D = [4, 3];
 
         await movePoint({
-            componentIdx: resolveComponentName("A3"),
+            componentIdx: await resolvePathToNodeIdx("A3"),
             x: A[0],
             y: A[1],
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("B3"),
+            componentIdx: await resolvePathToNodeIdx("B3"),
             x: B[0],
             y: B[1],
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("C3"),
+            componentIdx: await resolvePathToNodeIdx("C3"),
             x: 6,
             y: 5,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("D3"),
+            componentIdx: await resolvePathToNodeIdx("D3"),
             x: D[0],
             y: D[1],
             core,
@@ -585,22 +592,22 @@ describe("Base component property tests", async () => {
         DFixed = !DFixed;
         await updateBooleanInputValue({
             boolean: AFixed,
-            componentIdx: resolveComponentName("toggleAFixed"),
+            componentIdx: await resolvePathToNodeIdx("toggleAFixed"),
             core,
         });
         await updateBooleanInputValue({
             boolean: BFixed,
-            componentIdx: resolveComponentName("toggleBFixed"),
+            componentIdx: await resolvePathToNodeIdx("toggleBFixed"),
             core,
         });
         await updateBooleanInputValue({
             boolean: CFixed,
-            componentIdx: resolveComponentName("toggleCFixed"),
+            componentIdx: await resolvePathToNodeIdx("toggleCFixed"),
             core,
         });
         await updateBooleanInputValue({
             boolean: DFixed,
-            componentIdx: resolveComponentName("toggleDFixed"),
+            componentIdx: await resolvePathToNodeIdx("toggleDFixed"),
             core,
         });
 
@@ -608,25 +615,25 @@ describe("Base component property tests", async () => {
         C = [9, 8];
 
         await movePoint({
-            componentIdx: resolveComponentName("A2"),
+            componentIdx: await resolvePathToNodeIdx("A2"),
             x: 15,
             y: 14,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("B2"),
+            componentIdx: await resolvePathToNodeIdx("B2"),
             x: 13,
             y: 12,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("D2"),
+            componentIdx: await resolvePathToNodeIdx("D2"),
             x: 11,
             y: 10,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("C2"),
+            componentIdx: await resolvePathToNodeIdx("C2"),
             x: C[0],
             y: C[1],
             core,
@@ -636,25 +643,25 @@ describe("Base component property tests", async () => {
         C = [7, -8];
 
         await movePoint({
-            componentIdx: resolveComponentName("A3"),
+            componentIdx: await resolvePathToNodeIdx("A3"),
             x: 1,
             y: -2,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("B3"),
+            componentIdx: await resolvePathToNodeIdx("B3"),
             x: 3,
             y: -4,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("D3"),
+            componentIdx: await resolvePathToNodeIdx("D3"),
             x: 5,
             y: -6,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("C3"),
+            componentIdx: await resolvePathToNodeIdx("C3"),
             x: C[0],
             y: C[1],
             core,
@@ -662,7 +669,7 @@ describe("Base component property tests", async () => {
     });
 
     it("change disabled, inverse direction", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <textInput name="ti" prefill="a" />
   <p><updateValue type="boolean" target='$ti.disabled' newValue="true" name="makeDisabled"><label>Make disabled</label></updateValue></p>
@@ -679,11 +686,12 @@ describe("Base component property tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("pIsDisabled")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pIsDisabled")]
+                    .stateValues.text,
             ).eq(`Is disabled? ${disabled}`);
             expect(
-                stateVariables[resolveComponentName("pText")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pText")].stateValues
+                    .text,
             ).eq(`Text: ${text}`);
         }
 
@@ -691,14 +699,14 @@ describe("Base component property tests", async () => {
 
         await updateTextInputValue({
             text: "b",
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await check_items(false, "b");
 
         // disable input
         await updateValue({
-            componentIdx: resolveComponentName("makeDisabled"),
+            componentIdx: await resolvePathToNodeIdx("makeDisabled"),
             core,
         });
         await check_items(true, "b");
@@ -706,14 +714,14 @@ describe("Base component property tests", async () => {
         // can't change input
         await updateTextInputValue({
             text: "no",
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await check_items(true, "b");
 
         // enable input
         await updateValue({
-            componentIdx: resolveComponentName("makeNotDisabled"),
+            componentIdx: await resolvePathToNodeIdx("makeNotDisabled"),
             core,
         });
         await check_items(false, "b");
@@ -721,14 +729,14 @@ describe("Base component property tests", async () => {
         // can change input again
         await updateTextInputValue({
             text: "c",
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await check_items(false, "c");
     });
 
     it("can override disabled of parent", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <section name="s">
     <textInput name="ti1" prefill="a" />
@@ -777,32 +785,32 @@ describe("Base component property tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("pti1IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti1IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti1 disabled? ${ti1Disabled}`);
             expect(
-                stateVariables[resolveComponentName("pti2IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti2IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti2 disabled? ${ti2Disabled}`);
             expect(
-                stateVariables[resolveComponentName("pti3IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti3IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti3 disabled? ${ti3Disabled}`);
             expect(
-                stateVariables[resolveComponentName("psIsDisabled")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("psIsDisabled")]
+                    .stateValues.text,
             ).eq(`Is s disabled? ${sDisabled}`);
             expect(
-                stateVariables[resolveComponentName("pti1Text")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pti1Text")]
+                    .stateValues.text,
             ).eq(`Text: ${t1}`);
             expect(
-                stateVariables[resolveComponentName("pti2Text")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pti2Text")]
+                    .stateValues.text,
             ).eq(`Text: ${t2}`);
             expect(
-                stateVariables[resolveComponentName("pti3Text")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pti3Text")]
+                    .stateValues.text,
             ).eq(`Text: ${t3}`);
         }
 
@@ -827,7 +835,7 @@ describe("Base component property tests", async () => {
         t1 = "d";
         await updateTextInputValue({
             text: t1,
-            componentIdx: resolveComponentName("ti1"),
+            componentIdx: await resolvePathToNodeIdx("ti1"),
             core,
         });
         await check_items({
@@ -842,7 +850,7 @@ describe("Base component property tests", async () => {
         t3 = "e";
         await updateTextInputValue({
             text: t3,
-            componentIdx: resolveComponentName("ti3"),
+            componentIdx: await resolvePathToNodeIdx("ti3"),
             core,
         });
         await check_items({
@@ -859,7 +867,7 @@ describe("Base component property tests", async () => {
         sDisabled = true;
         ti1Disabled = true;
         await updateValue({
-            componentIdx: resolveComponentName("makeSDisabled"),
+            componentIdx: await resolvePathToNodeIdx("makeSDisabled"),
             core,
         });
         await check_items({
@@ -875,7 +883,7 @@ describe("Base component property tests", async () => {
         t3 = "f";
         await updateTextInputValue({
             text: t3,
-            componentIdx: resolveComponentName("ti3"),
+            componentIdx: await resolvePathToNodeIdx("ti3"),
             core,
         });
         await check_items({
@@ -893,15 +901,15 @@ describe("Base component property tests", async () => {
         ti2Disabled = false;
         ti3Disabled = true;
         await updateValue({
-            componentIdx: resolveComponentName("makeTi1NotDisabled"),
+            componentIdx: await resolvePathToNodeIdx("makeTi1NotDisabled"),
             core,
         });
         await updateValue({
-            componentIdx: resolveComponentName("makeTi2NotDisabled"),
+            componentIdx: await resolvePathToNodeIdx("makeTi2NotDisabled"),
             core,
         });
         await updateValue({
-            componentIdx: resolveComponentName("makeTi3Disabled"),
+            componentIdx: await resolvePathToNodeIdx("makeTi3Disabled"),
             core,
         });
         await check_items({
@@ -917,7 +925,7 @@ describe("Base component property tests", async () => {
         // changing fixed of s does not affect inputs
         sDisabled = false;
         await updateValue({
-            componentIdx: resolveComponentName("makeSNotDisabled"),
+            componentIdx: await resolvePathToNodeIdx("makeSNotDisabled"),
             core,
         });
         await check_items({
@@ -932,7 +940,7 @@ describe("Base component property tests", async () => {
 
         sDisabled = true;
         await updateValue({
-            componentIdx: resolveComponentName("makeSDisabled"),
+            componentIdx: await resolvePathToNodeIdx("makeSDisabled"),
             core,
         });
         await check_items({
@@ -947,7 +955,7 @@ describe("Base component property tests", async () => {
     });
 
     it("disabled propagates to shadow even if essential", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>
     <textInput name="ti1" prefill="a" />
@@ -1002,39 +1010,39 @@ describe("Base component property tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("pti1IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti1IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti1 disabled? ${ti1Disabled}`);
             expect(
-                stateVariables[resolveComponentName("pti2IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti2IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti2 disabled? ${ti2Disabled}`);
             expect(
-                stateVariables[resolveComponentName("pti3IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti3IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti3 disabled? ${ti3Disabled}`);
             expect(
-                stateVariables[resolveComponentName("pti12IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti12IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti12 disabled? ${ti1Disabled}`);
             expect(
-                stateVariables[resolveComponentName("pti22IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti22IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti22 disabled? ${ti2Disabled}`);
             expect(
-                stateVariables[resolveComponentName("pti32IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti32IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti32 disabled? ${ti3Disabled}`);
             expect(
-                stateVariables[resolveComponentName("pti13IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti13IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti13 disabled? false`);
             expect(
-                stateVariables[resolveComponentName("pti23IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti23IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti23 disabled? false`);
             expect(
-                stateVariables[resolveComponentName("pti33IsDisabled")]
+                stateVariables[await resolvePathToNodeIdx("pti33IsDisabled")]
                     .stateValues.text,
             ).eq(`Is ti33 disabled? false`);
         }
@@ -1051,24 +1059,24 @@ describe("Base component property tests", async () => {
         ti3Disabled = true;
         await updateBooleanInputValue({
             boolean: ti1Disabled,
-            componentIdx: resolveComponentName("toggleTi1Disabled"),
+            componentIdx: await resolvePathToNodeIdx("toggleTi1Disabled"),
             core,
         });
         await updateBooleanInputValue({
             boolean: ti2Disabled,
-            componentIdx: resolveComponentName("toggleTi2Disabled"),
+            componentIdx: await resolvePathToNodeIdx("toggleTi2Disabled"),
             core,
         });
         await updateBooleanInputValue({
             boolean: ti3Disabled,
-            componentIdx: resolveComponentName("toggleTi3Disabled"),
+            componentIdx: await resolvePathToNodeIdx("toggleTi3Disabled"),
             core,
         });
         await check_items({ ti1Disabled, ti2Disabled, ti3Disabled });
     });
 
     it("change hidden, inverse direction", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <textInput name="ti" prefill="a" />
   <p><updateValue type="boolean" target='$ti.hidden' newValue="true" name="makeHidden"><label>Make hidden</label></updateValue></p>
@@ -1085,11 +1093,12 @@ describe("Base component property tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("pIsHidden")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pIsHidden")]
+                    .stateValues.text,
             ).eq(`Is hidden? ${hidden}`);
             expect(
-                stateVariables[resolveComponentName("pText")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pText")].stateValues
+                    .text,
             ).eq(`Text: ${text}`);
         }
 
@@ -1097,35 +1106,35 @@ describe("Base component property tests", async () => {
 
         await updateTextInputValue({
             text: "b",
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await check_items(false, "b");
 
         // hide input
         await updateValue({
-            componentIdx: resolveComponentName("makeHidden"),
+            componentIdx: await resolvePathToNodeIdx("makeHidden"),
             core,
         });
         await check_items(true, "b");
 
         // show input
         await updateValue({
-            componentIdx: resolveComponentName("makeNotHidden"),
+            componentIdx: await resolvePathToNodeIdx("makeNotHidden"),
             core,
         });
         await check_items(false, "b");
 
         await updateTextInputValue({
             text: "c",
-            componentIdx: resolveComponentName("ti"),
+            componentIdx: await resolvePathToNodeIdx("ti"),
             core,
         });
         await check_items(false, "c");
     });
 
     it("accept permid attribute", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <section name="section1" permid="s">
       <title>Hello</title>
@@ -1138,11 +1147,11 @@ describe("Base component property tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "Hi",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Permids: s, p, pids",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("Hi");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Permids: s, p, pids");
     });
 });

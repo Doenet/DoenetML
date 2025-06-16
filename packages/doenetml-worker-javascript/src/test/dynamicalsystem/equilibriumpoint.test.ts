@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("equilibriumPoint Tag Tests", async () => {
     it("equilibriumPoint change stable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" newNamespace>
       <equilibriumPoint name="A" switchAble>(4,0)</equilibriumPoint>
@@ -46,28 +46,44 @@ describe("equilibriumPoint Tag Tests", async () => {
         const pointD = [-3, 0];
         let svs = await core.returnAllStateVariables(false, true);
         expect(
-            svs[resolveComponentName("g.A")].stateValues.xs.map((v) => v.tree),
+            svs[await resolvePathToNodeIdx("g.A")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
         ).eqls(pointA);
         expect(
-            svs[resolveComponentName("g.B")].stateValues.xs.map((v) => v.tree),
+            svs[await resolvePathToNodeIdx("g.B")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
         ).eqls(pointB);
         expect(
-            svs[resolveComponentName("g.C")].stateValues.xs.map((v) => v.tree),
+            svs[await resolvePathToNodeIdx("g.C")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
         ).eqls(pointC);
         expect(
-            svs[resolveComponentName("g.D")].stateValues.xs.map((v) => v.tree),
+            svs[await resolvePathToNodeIdx("g.D")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
         ).eqls(pointD);
         expect(
-            svs[resolveComponentName("g2.A")].stateValues.xs.map((v) => v.tree),
+            svs[await resolvePathToNodeIdx("g2.A")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
         ).eqls(pointA);
         expect(
-            svs[resolveComponentName("g2.B")].stateValues.xs.map((v) => v.tree),
+            svs[await resolvePathToNodeIdx("g2.B")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
         ).eqls(pointB);
         expect(
-            svs[resolveComponentName("g2.C")].stateValues.xs.map((v) => v.tree),
+            svs[await resolvePathToNodeIdx("g2.C")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
         ).eqls(pointC);
         expect(
-            svs[resolveComponentName("g2.D")].stateValues.xs.map((v) => v.tree),
+            svs[await resolvePathToNodeIdx("g2.D")].stateValues.xs.map(
+                (v) => v.tree,
+            ),
         ).eqls(pointD);
 
         let As = true;
@@ -80,52 +96,68 @@ describe("equilibriumPoint Tag Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("gAs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("gAs")].stateValues
+                    .value,
             ).eqls(As);
             expect(
-                stateVariables[resolveComponentName("gBs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("gBs")].stateValues
+                    .value,
             ).eqls(false);
             expect(
-                stateVariables[resolveComponentName("gCs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("gCs")].stateValues
+                    .value,
             ).eqls(Cs);
             expect(
-                stateVariables[resolveComponentName("gDs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("gDs")].stateValues
+                    .value,
             ).eqls(Ds);
             expect(
-                stateVariables[resolveComponentName("g2As")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("g2As")].stateValues
+                    .value,
             ).eqls(As);
             expect(
-                stateVariables[resolveComponentName("g2Bs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("g2Bs")].stateValues
+                    .value,
             ).eqls(false);
             expect(
-                stateVariables[resolveComponentName("g2Cs")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("g2Cs")].stateValues
+                    .value,
             ).eqls(Cs);
             expect(
-                stateVariables[resolveComponentName("g2Ds")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("g2Ds")].stateValues
+                    .value,
             ).eqls(Ds);
             expect(
-                stateVariables[resolveComponentName("g.A")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g.A")].stateValues
+                    .stable,
             ).eq(As);
             expect(
-                stateVariables[resolveComponentName("g.B")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g.B")].stateValues
+                    .stable,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g.C")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g.C")].stateValues
+                    .stable,
             ).eq(Cs);
             expect(
-                stateVariables[resolveComponentName("g.D")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g.D")].stateValues
+                    .stable,
             ).eq(Ds);
             expect(
-                stateVariables[resolveComponentName("g2.A")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues
+                    .stable,
             ).eq(As);
             expect(
-                stateVariables[resolveComponentName("g2.B")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g2.B")].stateValues
+                    .stable,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("g2.C")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g2.C")].stateValues
+                    .stable,
             ).eq(Cs);
             expect(
-                stateVariables[resolveComponentName("g2.D")].stateValues.stable,
+                stateVariables[await resolvePathToNodeIdx("g2.D")].stateValues
+                    .stable,
             ).eq(Ds);
         }
 
@@ -134,7 +166,7 @@ describe("equilibriumPoint Tag Tests", async () => {
         // switch C via boolean input
         Cs = !Cs;
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("b1"),
+            componentIdx: await resolvePathToNodeIdx("b1"),
             boolean: Cs,
             core,
         });
@@ -143,7 +175,7 @@ describe("equilibriumPoint Tag Tests", async () => {
         // switch D via boolean input
         Ds = !Ds;
         await updateBooleanInputValue({
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             boolean: Ds,
             core,
         });
@@ -152,7 +184,7 @@ describe("equilibriumPoint Tag Tests", async () => {
         // switch A via first action
         As = !As;
         await core.requestAction({
-            componentIdx: resolveComponentName("g.A"),
+            componentIdx: await resolvePathToNodeIdx("g.A"),
             actionName: "switchPoint",
             args: {},
         });
@@ -161,7 +193,7 @@ describe("equilibriumPoint Tag Tests", async () => {
         // switch A via second action
         As = !As;
         await core.requestAction({
-            componentIdx: resolveComponentName("g2.A"),
+            componentIdx: await resolvePathToNodeIdx("g2.A"),
             actionName: "switchPoint",
             args: {},
         });
@@ -169,7 +201,7 @@ describe("equilibriumPoint Tag Tests", async () => {
 
         // cannot switch B via action
         await core.requestAction({
-            componentIdx: resolveComponentName("g.B"),
+            componentIdx: await resolvePathToNodeIdx("g.B"),
             actionName: "switchPoint",
             args: {},
         });
@@ -177,7 +209,7 @@ describe("equilibriumPoint Tag Tests", async () => {
 
         // cannot switch C via second action
         await core.requestAction({
-            componentIdx: resolveComponentName("g2.C"),
+            componentIdx: await resolvePathToNodeIdx("g2.C"),
             actionName: "switchPoint",
             args: {},
         });
@@ -186,7 +218,7 @@ describe("equilibriumPoint Tag Tests", async () => {
         // switch D via second action
         Ds = !Ds;
         await core.requestAction({
-            componentIdx: resolveComponentName("g2.D"),
+            componentIdx: await resolvePathToNodeIdx("g2.D"),
             actionName: "switchPoint",
             args: {},
         });

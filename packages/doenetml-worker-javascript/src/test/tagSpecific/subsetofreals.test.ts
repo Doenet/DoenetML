@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import { updateMathInputValue, updateSelectedIndices } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -16,12 +16,12 @@ function createInterval(string: string) {
 describe("SubsetOfReals tag tests", async () => {
     async function test_display_as_interval({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         repeat = [],
         includeNe = false,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         repeat?: string[];
         includeNe?: boolean;
     }) {
@@ -56,22 +56,25 @@ describe("SubsetOfReals tag tests", async () => {
             if (typeof lim[0] === "string" || typeof lim[1] === "string") {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[resolveComponentName(`${pre}${ind}`)]
-                            .stateValues.value.tree,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${pre}${ind}`)
+                        ].stateValues.value.tree,
                     ).eq("\uff3f");
                 }
             } else if (lim[0] === -Infinity && lim[1] === Infinity) {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[resolveComponentName(`${pre}${ind}`)]
-                            .stateValues.value.tree,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${pre}${ind}`)
+                        ].stateValues.value.tree,
                     ).eq("R");
                 }
             } else if (lim[0] > lim[1]) {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[resolveComponentName(`${pre}${ind}`)]
-                            .stateValues.value.tree,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${pre}${ind}`)
+                        ].stateValues.value.tree,
                     ).eq("emptyset");
                 }
             } else if (lim[0] < lim[1]) {
@@ -85,8 +88,9 @@ describe("SubsetOfReals tag tests", async () => {
                         closed[1] = false;
                     }
                     expect(
-                        stateVariables[resolveComponentName(`${pre}${ind}`)]
-                            .stateValues.value.tree,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${pre}${ind}`)
+                        ].stateValues.value.tree,
                     ).eqls([
                         "interval",
                         ["tuple", ...lim],
@@ -98,13 +102,15 @@ describe("SubsetOfReals tag tests", async () => {
                 for (let pre of allPre) {
                     if (pre === "c") {
                         expect(
-                            stateVariables[resolveComponentName(`${pre}${ind}`)]
-                                .stateValues.value.tree,
+                            stateVariables[
+                                await resolvePathToNodeIdx(`${pre}${ind}`)
+                            ].stateValues.value.tree,
                         ).eqls(["set", lim[0]]);
                     } else {
                         expect(
-                            stateVariables[resolveComponentName(`${pre}${ind}`)]
-                                .stateValues.value.tree,
+                            stateVariables[
+                                await resolvePathToNodeIdx(`${pre}${ind}`)
+                            ].stateValues.value.tree,
                         ).eq("emptyset");
                     }
                 }
@@ -126,7 +132,7 @@ describe("SubsetOfReals tag tests", async () => {
 
                 if (Number.isFinite(num)) {
                     expect(
-                        stateVariables[resolveComponentName(`ne${ind}`)]
+                        stateVariables[await resolvePathToNodeIdx(`ne${ind}`)]
                             .stateValues.value.tree,
                     ).eqls([
                         "union",
@@ -135,7 +141,7 @@ describe("SubsetOfReals tag tests", async () => {
                     ]);
                 } else {
                     expect(
-                        stateVariables[resolveComponentName(`ne${ind}`)]
+                        stateVariables[await resolvePathToNodeIdx(`ne${ind}`)]
                             .stateValues.value.tree,
                     ).eq("R");
                 }
@@ -144,7 +150,7 @@ describe("SubsetOfReals tag tests", async () => {
     }
 
     it("single intervals", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="o1">(4,5)</subsetOfReals></p>
   <p><subsetOfReals name="o2">(5,4)</subsetOfReals></p>
@@ -188,12 +194,12 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_display_as_interval({ core, resolveComponentName });
+        await test_display_as_interval({ core, resolvePathToNodeIdx });
     });
 
     async function test_display_as_inequality(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
         variable: string = "x",
     ) {
         const limits = [
@@ -222,22 +228,25 @@ describe("SubsetOfReals tag tests", async () => {
             if (typeof lim[0] === "string" || typeof lim[1] === "string") {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[resolveComponentName(`${pre}${ind + 1}`)]
-                            .stateValues.value.tree,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${pre}${ind + 1}`)
+                        ].stateValues.value.tree,
                     ).eq("\uff3f");
                 }
             } else if (lim[0] === -Infinity && lim[1] === Infinity) {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[resolveComponentName(`${pre}${ind + 1}`)]
-                            .stateValues.value.tree,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${pre}${ind + 1}`)
+                        ].stateValues.value.tree,
                     ).eqls(["in", variable, "R"]);
                 }
             } else if (lim[0] > lim[1]) {
                 for (let pre of allPre) {
                     expect(
-                        stateVariables[resolveComponentName(`${pre}${ind + 1}`)]
-                            .stateValues.value.tree,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`${pre}${ind + 1}`)
+                        ].stateValues.value.tree,
                     ).eqls(["in", variable, "emptyset"]);
                 }
             } else if (lim[0] < lim[1]) {
@@ -247,20 +256,20 @@ describe("SubsetOfReals tag tests", async () => {
                         let op = strict[1] ? "<" : "le";
                         expect(
                             stateVariables[
-                                resolveComponentName(`${pre}${ind + 1}`)
+                                await resolvePathToNodeIdx(`${pre}${ind + 1}`)
                             ].stateValues.value.tree,
                         ).eqls([op, variable, lim[1]]);
                     } else if (lim[1] === Infinity) {
                         let op = strict[0] ? ">" : "ge";
                         expect(
                             stateVariables[
-                                resolveComponentName(`${pre}${ind + 1}`)
+                                await resolvePathToNodeIdx(`${pre}${ind + 1}`)
                             ].stateValues.value.tree,
                         ).eqls([op, variable, lim[0]]);
                     } else {
                         expect(
                             stateVariables[
-                                resolveComponentName(`${pre}${ind + 1}`)
+                                await resolvePathToNodeIdx(`${pre}${ind + 1}`)
                             ].stateValues.value.tree,
                         ).eqls([
                             "lts",
@@ -275,13 +284,13 @@ describe("SubsetOfReals tag tests", async () => {
                     if (pre === "c") {
                         expect(
                             stateVariables[
-                                resolveComponentName(`${pre}${ind + 1}`)
+                                await resolvePathToNodeIdx(`${pre}${ind + 1}`)
                             ].stateValues.value.tree,
                         ).eqls(["=", variable, lim[0]]);
                     } else {
                         expect(
                             stateVariables[
-                                resolveComponentName(`${pre}${ind + 1}`)
+                                await resolvePathToNodeIdx(`${pre}${ind + 1}`)
                             ].stateValues.value.tree,
                         ).eqls(["in", variable, "emptyset"]);
                     }
@@ -291,7 +300,7 @@ describe("SubsetOfReals tag tests", async () => {
     }
 
     it("single intervals, display as inequality", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals displayMode="inequalities" name="o1">(4,5)</subsetOfReals></p>
   <p><subsetOfReals displayMode="inequalities" name="o2">(5,4)</subsetOfReals></p>
@@ -335,11 +344,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_display_as_inequality(core, resolveComponentName);
+        await test_display_as_inequality(core, resolvePathToNodeIdx);
     });
 
     it("single intervals, display as inequality, change variable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals variable="v" displayMode="inequalities" name="o1">(4,5)</subsetOfReals></p>
   <p><subsetOfReals variable="v" displayMode="inequalities" name="o2">(5,4)</subsetOfReals></p>
@@ -383,11 +392,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_display_as_inequality(core, resolveComponentName, "v");
+        await test_display_as_inequality(core, resolvePathToNodeIdx, "v");
     });
 
     it("single inequality", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="o1">4 < x < 5</subsetOfReals></p>
   <p><subsetOfReals name="o2">5 < x < 4</subsetOfReals></p>
@@ -448,14 +457,14 @@ describe("SubsetOfReals tag tests", async () => {
 
         await test_display_as_interval({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             repeat: ["4", "6"],
             includeNe: true,
         });
     });
 
     it("single inequality, change variable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals variable="q" name="o1">4 < q < 5</subsetOfReals></p>
   <p><subsetOfReals variable="q" name="o2">5 < q < 4</subsetOfReals></p>
@@ -516,14 +525,14 @@ describe("SubsetOfReals tag tests", async () => {
 
         await test_display_as_interval({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             repeat: ["4", "6"],
             includeNe: true,
         });
     });
 
     it("single inequality, in set notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="o1">{q | 4 < q < 5}</subsetOfReals></p>
   <p><subsetOfReals name="o2">{q | 5 < q < 4}</subsetOfReals></p>
@@ -584,14 +593,14 @@ describe("SubsetOfReals tag tests", async () => {
 
         await test_display_as_interval({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             repeat: ["4", "6"],
             includeNe: true,
         });
     });
 
     it("single equality", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="e1">x=5</subsetOfReals></p>
   <p><subsetOfReals name="e2">x=infinity</subsetOfReals></p>
@@ -605,22 +614,26 @@ describe("SubsetOfReals tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("e1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("e1")].stateValues.value
+                .tree,
         ).eqls(["set", 5]);
         expect(
-            stateVariables[resolveComponentName("e2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("e2")].stateValues.value
+                .tree,
         ).eq("emptyset");
         expect(
-            stateVariables[resolveComponentName("e3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("e3")].stateValues.value
+                .tree,
         ).eq("emptyset");
         expect(
-            stateVariables[resolveComponentName("e4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("e4")].stateValues.value
+                .tree,
         ).eq("\uff3f");
     });
 
     async function test_union_interactions(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         const res = {
             u1: ["union", createInterval("(4,5)"), createInterval("(6,7)")],
@@ -665,14 +678,14 @@ describe("SubsetOfReals tag tests", async () => {
 
         for (let name in res) {
             expect(
-                stateVariables[resolveComponentName(name)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .value.tree,
             ).eqls(res[name]);
         }
     }
 
     it("union and intersections of intervals and singletons", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="u1">(4,5) union (6,7)</subsetOfReals></p>
   <p><subsetOfReals name="u2">(4,5) union (5,6)</subsetOfReals></p>
@@ -714,11 +727,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core, resolveComponentName);
+        await test_union_interactions(core, resolvePathToNodeIdx);
     });
 
     it("union and intersections of intervals and singletons, latex format", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals format="latex" name="u1">(4,5) \\cup (6,7)</subsetOfReals></p>
   <p><subsetOfReals format="latex" name="u2">(4,5) \\cup (5,6)</subsetOfReals></p>
@@ -760,11 +773,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core, resolveComponentName);
+        await test_union_interactions(core, resolvePathToNodeIdx);
     });
 
     it("x element of union and intersections of intervals and singletons", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="u1">x elementof (4,5) union (6,7)</subsetOfReals></p>
   <p><subsetOfReals name="u2">x elementof (4,5) union (5,6)</subsetOfReals></p>
@@ -806,11 +819,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core, resolveComponentName);
+        await test_union_interactions(core, resolvePathToNodeIdx);
     });
 
     it("union and intersections of intervals and singletons contains element x", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="u1">(4,5) union (6,7) containselement x</subsetOfReals></p>
   <p><subsetOfReals name="u2">(4,5) union (5,6) containselement x</subsetOfReals></p>
@@ -852,11 +865,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core, resolveComponentName);
+        await test_union_interactions(core, resolvePathToNodeIdx);
     });
 
     it("x in union and intersections of intervals and singletons, latex format", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals format="latex" name="u1">x \\in (4,5) \\cup (6,7)</subsetOfReals></p>
   <p><subsetOfReals format="latex" name="u2">x \\in (4,5) \\cup (5,6)</subsetOfReals></p>
@@ -898,11 +911,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core, resolveComponentName);
+        await test_union_interactions(core, resolvePathToNodeIdx);
     });
 
     it("union and intersections of intervals and singletons ni x, latex format", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals format="latex" name="u1">(4,5) \\cup (6,7) \\ni x</subsetOfReals></p>
   <p><subsetOfReals format="latex" name="u2">(4,5) \\cup (5,6) \\ni x</subsetOfReals></p>
@@ -944,11 +957,11 @@ describe("SubsetOfReals tag tests", async () => {
   `,
         });
 
-        await test_union_interactions(core, resolveComponentName);
+        await test_union_interactions(core, resolvePathToNodeIdx);
     });
 
     it("ands and ors with inequalities", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="o1">(4 < x < 5) or (6 < x < 7)</subsetOfReals></p>
   <p><subsetOfReals name="o2">(4 < x < 5) or (5 < x < 6)</subsetOfReals></p>
@@ -1036,14 +1049,14 @@ describe("SubsetOfReals tag tests", async () => {
 
         for (let name in res) {
             expect(
-                stateVariables[resolveComponentName(name)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .value.tree,
             ).eqls(res[name]);
         }
     });
 
     it("complements of intervals and singletons", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><subsetOfReals name="c1">(4,5)^c</subsetOfReals></p>
   <p><subsetOfReals name="c2">(4,5)^C</subsetOfReals></p>
@@ -1086,14 +1099,14 @@ describe("SubsetOfReals tag tests", async () => {
 
         for (let name in res) {
             expect(
-                stateVariables[resolveComponentName(name)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .value.tree,
             ).eqls(res[name]);
         }
     });
 
     it("dynamic subsets", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Variable: <mathInput name="variable" prefill="x" /></p>
   <p>Input: <mathInput name="input" prefill="x > 1" /></p>
@@ -1110,102 +1123,112 @@ describe("SubsetOfReals tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("result")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("result")].stateValues
+                .text,
         ).eq("( 1, ∞ )");
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("displayMode"),
+            componentIdx: await resolvePathToNodeIdx("displayMode"),
             selectedIndices: [2],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("result")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("result")].stateValues
+                .text,
         ).eq("x > 1");
 
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("variable"),
+            componentIdx: await resolvePathToNodeIdx("variable"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("result")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("result")].stateValues
+                .text,
         ).eq("＿");
 
         await updateMathInputValue({
             latex: "y>1",
-            componentIdx: resolveComponentName("input"),
+            componentIdx: await resolvePathToNodeIdx("input"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("result")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("result")].stateValues
+                .text,
         ).eq("y > 1");
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("displayMode"),
+            componentIdx: await resolvePathToNodeIdx("displayMode"),
             selectedIndices: [1],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("result")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("result")].stateValues
+                .text,
         ).eq("( 1, ∞ )");
 
         await updateMathInputValue({
             latex: "y \\ne 1",
-            componentIdx: resolveComponentName("input"),
+            componentIdx: await resolvePathToNodeIdx("input"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("result")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("result")].stateValues
+                .text,
         ).eq("( -∞, 1 ) ∪ ( 1, ∞ )");
 
         await updateMathInputValue({
             latex: "(y>1)\\land(y<3)",
-            componentIdx: resolveComponentName("input"),
+            componentIdx: await resolvePathToNodeIdx("input"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("result")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("result")].stateValues
+                .text,
         ).eq("( 1, 3 )");
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("displayMode"),
+            componentIdx: await resolvePathToNodeIdx("displayMode"),
             selectedIndices: [2],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("result")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("result")].stateValues
+                .text,
         ).eq("1 < y < 3");
 
         await updateMathInputValue({
             latex: "(y>1)\\land(y<3)\\lor(y>6)",
-            componentIdx: resolveComponentName("input"),
+            componentIdx: await resolvePathToNodeIdx("input"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("result")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("result")].stateValues
+                .text,
         ).eq("(1 < y < 3) or (y > 6)");
 
         await updateSelectedIndices({
-            componentIdx: resolveComponentName("displayMode"),
+            componentIdx: await resolvePathToNodeIdx("displayMode"),
             selectedIndices: [1],
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("result")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("result")].stateValues
+                .text,
         ).eq("( 1, 3 ) ∪ ( 6, ∞ )");
     });
 
     it("modifying copies of subsets", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Enter subset: <mathInput name="input0" prefill="(0,1)" /></p>
   <p>Subset 1: <subsetOfReals name="s1">$input0</subsetOfReals></p>
@@ -1243,14 +1266,14 @@ describe("SubsetOfReals tag tests", async () => {
             for (let i = 1; i <= 9; i++) {
                 expect(
                     cleanLatex(
-                        stateVariables[resolveComponentName(`s${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`s${i}`)]
                             .stateValues.latex,
                     ),
                 ).eq(str);
 
                 expect(
                     cleanLatex(
-                        stateVariables[resolveComponentName(`input${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`input${i}`)]
                             .stateValues.rawRendererValue,
                     ),
                 ).eq(str);
@@ -1258,8 +1281,8 @@ describe("SubsetOfReals tag tests", async () => {
 
             expect(
                 cleanLatex(
-                    stateVariables[resolveComponentName(`input0`)].stateValues
-                        .rawRendererValue,
+                    stateVariables[await resolvePathToNodeIdx(`input0`)]
+                        .stateValues.rawRendererValue,
                 ),
             ).eq(str0);
         }
@@ -1268,77 +1291,77 @@ describe("SubsetOfReals tag tests", async () => {
 
         await updateMathInputValue({
             latex: "x \\ge 3",
-            componentIdx: resolveComponentName("input0"),
+            componentIdx: await resolvePathToNodeIdx("input0"),
             core,
         });
         await check_items("[3,\\infty)", "x\\ge3");
 
         await updateMathInputValue({
             latex: "{q\\mid q=5}",
-            componentIdx: resolveComponentName("input1"),
+            componentIdx: await resolvePathToNodeIdx("input1"),
             core,
         });
         await check_items("\\{5\\}");
 
         await updateMathInputValue({
             latex: "[-\\infty, \\pi)",
-            componentIdx: resolveComponentName("input2"),
+            componentIdx: await resolvePathToNodeIdx("input2"),
             core,
         });
         await check_items("(-\\infty,3.141592654)");
 
         await updateMathInputValue({
             latex: "(-\\infty,\\infty)",
-            componentIdx: resolveComponentName("input3"),
+            componentIdx: await resolvePathToNodeIdx("input3"),
             core,
         });
         await check_items("R");
 
         await updateMathInputValue({
             latex: "x\\in \\emptyset",
-            componentIdx: resolveComponentName("input4"),
+            componentIdx: await resolvePathToNodeIdx("input4"),
             core,
         });
         await check_items("\\varnothing");
 
         await updateMathInputValue({
             latex: "x\\notin [9, \\infty)",
-            componentIdx: resolveComponentName("input5"),
+            componentIdx: await resolvePathToNodeIdx("input5"),
             core,
         });
         await check_items("(-\\infty,9)");
 
         await updateMathInputValue({
             latex: "{7}\\ni x",
-            componentIdx: resolveComponentName("input6"),
+            componentIdx: await resolvePathToNodeIdx("input6"),
             core,
         });
         await check_items("\\{7\\}");
 
         await updateMathInputValue({
             latex: "(-\\infty, -2) \\not\\ni x",
-            componentIdx: resolveComponentName("input7"),
+            componentIdx: await resolvePathToNodeIdx("input7"),
             core,
         });
         await check_items("[-2,\\infty)");
 
         await updateMathInputValue({
             latex: "\\{1\\}^c \\cap \\{v \\mid v \\ge 1 \\}",
-            componentIdx: resolveComponentName("input8"),
+            componentIdx: await resolvePathToNodeIdx("input8"),
             core,
         });
         await check_items("(1,\\infty)");
 
         await updateMathInputValue({
             latex: "x \\ne -6",
-            componentIdx: resolveComponentName("input9"),
+            componentIdx: await resolvePathToNodeIdx("input9"),
             core,
         });
         await check_items("(-\\infty,-6)\\cup(-6,\\infty)");
     });
 
     it("union of subset with numbers", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <number name="x1">-9</number>
   <number name="x2">-6</number>
@@ -1354,16 +1377,17 @@ describe("SubsetOfReals tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("S")].stateValues.text).eq(
-            "( -9, -6 ) ∪ ( -1, 8 )",
-        );
         expect(
-            stateVariables[resolveComponentName("Sclosed")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("S")].stateValues.text,
+        ).eq("( -9, -6 ) ∪ ( -1, 8 )");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Sclosed")].stateValues
+                .text,
         ).eq("[ -9, -6 ] ∪ [ -1, 8 ]");
     });
 
     it("point and interval properties", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <subsetOfReals name="empty">emptyset</subsetOfReals>
   <subsetOfReals name="interval">[-1,2)</subsetOfReals>
@@ -1402,86 +1426,92 @@ describe("SubsetOfReals tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("emptyPoints")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("emptyPoints")]
+                .stateValues.text,
         ).eq("empty points: ");
         expect(
-            stateVariables[resolveComponentName("emptyPointsClosed")]
+            stateVariables[await resolvePathToNodeIdx("emptyPointsClosed")]
                 .stateValues.text,
         ).eq("empty points closed: ");
         expect(
-            stateVariables[resolveComponentName("emptyIntervals")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("emptyIntervals")]
+                .stateValues.text,
         ).eq("empty intervals: ");
         expect(
-            stateVariables[resolveComponentName("emptyIsolated")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("emptyIsolated")]
+                .stateValues.text,
         ).eq("empty isolated points: ");
 
         expect(
-            stateVariables[resolveComponentName("intervalPoints")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("intervalPoints")]
+                .stateValues.text,
         ).eq("interval points: -1, 2");
         expect(
-            stateVariables[resolveComponentName("intervalPointsClosed")]
+            stateVariables[await resolvePathToNodeIdx("intervalPointsClosed")]
                 .stateValues.text,
         ).eq("interval points closed: true, false");
         expect(
-            stateVariables[resolveComponentName("intervalIntervals")]
+            stateVariables[await resolvePathToNodeIdx("intervalIntervals")]
                 .stateValues.text,
         ).eq("interval intervals: [ -1, 2 )");
         expect(
-            stateVariables[resolveComponentName("intervalIsolated")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("intervalIsolated")]
+                .stateValues.text,
         ).eq("interval isolated points: ");
 
         expect(
-            stateVariables[resolveComponentName("intervalSingletonPoints")]
-                .stateValues.text,
+            stateVariables[
+                await resolvePathToNodeIdx("intervalSingletonPoints")
+            ].stateValues.text,
         ).eq("intervalSingleton points: -5, -1, 2");
         expect(
             stateVariables[
-                resolveComponentName("intervalSingletonPointsClosed")
+                await resolvePathToNodeIdx("intervalSingletonPointsClosed")
             ].stateValues.text,
         ).eq("intervalSingleton points closed: true, false, true");
         expect(
-            stateVariables[resolveComponentName("intervalSingletonIntervals")]
-                .stateValues.text,
+            stateVariables[
+                await resolvePathToNodeIdx("intervalSingletonIntervals")
+            ].stateValues.text,
         ).eq("intervalSingleton intervals: ( -1, 2 ]");
         expect(
-            stateVariables[resolveComponentName("intervalSingletonIsolated")]
-                .stateValues.text,
+            stateVariables[
+                await resolvePathToNodeIdx("intervalSingletonIsolated")
+            ].stateValues.text,
         ).eq("intervalSingleton isolated points: -5");
 
         expect(
-            stateVariables[resolveComponentName("missPointPoints")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("missPointPoints")]
+                .stateValues.text,
         ).eq("missPoint points: 3");
         expect(
-            stateVariables[resolveComponentName("missPointPointsClosed")]
+            stateVariables[await resolvePathToNodeIdx("missPointPointsClosed")]
                 .stateValues.text,
         ).eq("missPoint points closed: false");
         expect(
-            stateVariables[resolveComponentName("missPointIntervals")]
+            stateVariables[await resolvePathToNodeIdx("missPointIntervals")]
                 .stateValues.text,
         ).eq("missPoint intervals: ( -∞, 3 ), ( 3, ∞ )");
         expect(
-            stateVariables[resolveComponentName("missPointIsolated")]
+            stateVariables[await resolvePathToNodeIdx("missPointIsolated")]
                 .stateValues.text,
         ).eq("missPoint isolated points: ");
 
         expect(
-            stateVariables[resolveComponentName("RPoints")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("RPoints")].stateValues
+                .text,
         ).eq("R points: ");
         expect(
-            stateVariables[resolveComponentName("RPointsClosed")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("RPointsClosed")]
+                .stateValues.text,
         ).eq("R points closed: ");
         expect(
-            stateVariables[resolveComponentName("RIntervals")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("RIntervals")].stateValues
+                .text,
         ).eq("R intervals: ( -∞, ∞ )");
         expect(
-            stateVariables[resolveComponentName("RIsolated")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("RIsolated")].stateValues
+                .text,
         ).eq("R isolated points: ");
     });
 });

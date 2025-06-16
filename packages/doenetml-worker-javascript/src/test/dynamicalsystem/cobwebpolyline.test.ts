@@ -13,7 +13,7 @@ vi.mock("hyperformula");
 
 describe("cobwebPolyline Tag Tests", async () => {
     it("logistic system", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <function name='f' hide='true' variables='x'>1/3*x*(3-x)+x</function>
   <number hide="true" name="numPoints">1</number>
@@ -88,25 +88,26 @@ describe("cobwebPolyline Tag Tests", async () => {
             );
             // check <answer> scores
             expect(
-                stateVariables[resolveComponentName("check_initial")]
+                stateVariables[await resolvePathToNodeIdx("check_initial")]
                     .stateValues.creditAchieved,
             ).eqls(initialValCredit);
             expect(
-                stateVariables[resolveComponentName("check_cobweb")].stateValues
-                    .creditAchieved,
+                stateVariables[await resolvePathToNodeIdx("check_cobweb")]
+                    .stateValues.creditAchieved,
             ).eqls(cobwebCredit);
             expect(
-                stateVariables[resolveComponentName("check_cobweb")].stateValues
-                    .justSubmitted,
+                stateVariables[await resolvePathToNodeIdx("check_cobweb")]
+                    .stateValues.justSubmitted,
             ).eqls(cobwebJustSubmitted);
             // check numPoints
             expect(
-                stateVariables[resolveComponentName("numPoints")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("numPoints")]
+                    .stateValues.value,
             ).eqls(currentVertices.length);
             // check math rows
             let mdChildren =
-                stateVariables[resolveComponentName("md1")].activeChildren;
+                stateVariables[await resolvePathToNodeIdx("md1")]
+                    .activeChildren;
             expect(mdChildren.length).eqls(latexResults.length);
             for (let i = 0; i < latexResults.length; i++) {
                 let childIdx = mdChildren[i].componentIdx;
@@ -123,7 +124,8 @@ describe("cobwebPolyline Tag Tests", async () => {
                 allSubmittedVertices = allSubmittedVertices.substring(2);
             }
             expect(
-                stateVariables[resolveComponentName("psr")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("psr")].stateValues
+                    .text,
             ).eqls(
                 `Submitted responses are the vertices of the polyline: ${allSubmittedVertices}`,
             );
@@ -137,7 +139,8 @@ describe("cobwebPolyline Tag Tests", async () => {
                 allCurrentVertices = allCurrentVertices.substring(2);
             }
             expect(
-                stateVariables[resolveComponentName("pcr")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pcr")].stateValues
+                    .text,
             ).eqls(
                 `Current responses are the vertices of the polyline: ${allCurrentVertices}`,
             );
@@ -151,8 +154,8 @@ describe("cobwebPolyline Tag Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("deleteline")].stateValues
-                    .hidden,
+                stateVariables[await resolvePathToNodeIdx("deleteline")]
+                    .stateValues.hidden,
             ).eqls(true);
         }
 
@@ -160,11 +163,11 @@ describe("cobwebPolyline Tag Tests", async () => {
         submittedVertices = [...currentVertices];
         cobwebJustSubmitted = true;
         await submitAnswer({
-            componentIdx: resolveComponentName("check_initial"),
+            componentIdx: await resolvePathToNodeIdx("check_initial"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -173,7 +176,7 @@ describe("cobwebPolyline Tag Tests", async () => {
         currentVertices[0] = "( 1, 0 )";
         latexResults[0] = "x_{ 0 } & = 1";
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 0: [1, 0] },
             core,
         });
@@ -182,7 +185,7 @@ describe("cobwebPolyline Tag Tests", async () => {
         // Click initial value submit
         initialValCredit = 1;
         await submitAnswer({
-            componentIdx: resolveComponentName("check_initial"),
+            componentIdx: await resolvePathToNodeIdx("check_initial"),
             core,
         });
         await check_items();
@@ -194,7 +197,7 @@ describe("cobwebPolyline Tag Tests", async () => {
         currentVertices.push(`( ${graphCenterX}, ${graphCenterY} )`);
         cobwebJustSubmitted = false;
         await updateValue({
-            componentIdx: resolveComponentName("addline"),
+            componentIdx: await resolvePathToNodeIdx("addline"),
             core,
         });
         await check_items();
@@ -205,12 +208,12 @@ describe("cobwebPolyline Tag Tests", async () => {
         submittedVertices = [...currentVertices];
         cobwebJustSubmitted = true;
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 1: [3, 4] },
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -220,7 +223,7 @@ describe("cobwebPolyline Tag Tests", async () => {
         currentVertices[1] = "( 1, 1 )";
         cobwebJustSubmitted = false;
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 1: [1, 1] },
             core,
         });
@@ -230,7 +233,7 @@ describe("cobwebPolyline Tag Tests", async () => {
         submittedVertices = [...currentVertices];
         cobwebJustSubmitted = true;
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -241,12 +244,12 @@ describe("cobwebPolyline Tag Tests", async () => {
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.2;
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 1: [1, 1.6] },
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -255,11 +258,11 @@ describe("cobwebPolyline Tag Tests", async () => {
         currentVertices.push(`( ${graphCenterX}, ${graphCenterY} )`);
         submittedVertices = [...currentVertices];
         await updateValue({
-            componentIdx: resolveComponentName("addline"),
+            componentIdx: await resolvePathToNodeIdx("addline"),
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -269,12 +272,12 @@ describe("cobwebPolyline Tag Tests", async () => {
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.4;
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 2: [1.6, 1.6] },
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -284,16 +287,16 @@ describe("cobwebPolyline Tag Tests", async () => {
         currentVertices.push(`( 1, 2 )`);
         submittedVertices = [...currentVertices];
         await updateValue({
-            componentIdx: resolveComponentName("addline"),
+            componentIdx: await resolvePathToNodeIdx("addline"),
             core,
         });
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 3: [1, 2] },
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -304,12 +307,12 @@ describe("cobwebPolyline Tag Tests", async () => {
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.6;
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 3: [1.6, 2.4] },
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -319,7 +322,7 @@ describe("cobwebPolyline Tag Tests", async () => {
         let removedVertex = currentVertices.pop()!;
         cobwebJustSubmitted = false;
         await updateValue({
-            componentIdx: resolveComponentName("deleteline"),
+            componentIdx: await resolvePathToNodeIdx("deleteline"),
             core,
         });
         await check_items();
@@ -329,14 +332,14 @@ describe("cobwebPolyline Tag Tests", async () => {
         cobwebCredit = 0.4;
         cobwebJustSubmitted = true;
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
 
         // Add fourth point back, should remember where it had been, submit
         await updateValue({
-            componentIdx: resolveComponentName("addline"),
+            componentIdx: await resolvePathToNodeIdx("addline"),
             core,
         });
         latexResults.push(removedLatex);
@@ -344,7 +347,7 @@ describe("cobwebPolyline Tag Tests", async () => {
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.6;
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -354,16 +357,16 @@ describe("cobwebPolyline Tag Tests", async () => {
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.8;
         await updateValue({
-            componentIdx: resolveComponentName("addline"),
+            componentIdx: await resolvePathToNodeIdx("addline"),
             core,
         });
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 4: [2.4, 2.4] },
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -373,16 +376,16 @@ describe("cobwebPolyline Tag Tests", async () => {
         currentVertices.push(`( -1, 3 )`);
         submittedVertices = [...currentVertices];
         await updateValue({
-            componentIdx: resolveComponentName("addline"),
+            componentIdx: await resolvePathToNodeIdx("addline"),
             core,
         });
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 5: [-1, 3] },
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -393,12 +396,12 @@ describe("cobwebPolyline Tag Tests", async () => {
         submittedVertices = [...currentVertices];
         cobwebCredit = 1;
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 5: [2.4, 3] },
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -408,16 +411,16 @@ describe("cobwebPolyline Tag Tests", async () => {
         submittedVertices = [...currentVertices];
         cobwebCredit = 5 / 6; // ~0.83
         await updateValue({
-            componentIdx: resolveComponentName("addline"),
+            componentIdx: await resolvePathToNodeIdx("addline"),
             core,
         });
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 6: [3, 1] },
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -427,12 +430,12 @@ describe("cobwebPolyline Tag Tests", async () => {
         submittedVertices = [...currentVertices];
         cobwebCredit = 1;
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 6: [3, 3] },
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
@@ -442,23 +445,23 @@ describe("cobwebPolyline Tag Tests", async () => {
         currentVertices[7] = "( 2.8829, 2.9954 )";
         submittedVertices = [...currentVertices];
         await updateValue({
-            componentIdx: resolveComponentName("addline"),
+            componentIdx: await resolvePathToNodeIdx("addline"),
             core,
         });
         await movePolyline({
-            componentIdx: resolveComponentName("graph1.cobweb"),
+            componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 7: [3, 3] },
             core,
         });
         await submitAnswer({
-            componentIdx: resolveComponentName("check_cobweb"),
+            componentIdx: await resolvePathToNodeIdx("check_cobweb"),
             core,
         });
         await check_items();
     });
 
     it("handle bad initial point, lock to solution", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup>
     <function name='f'>x^2</function>
@@ -472,7 +475,8 @@ describe("cobwebPolyline Tag Tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let vertices =
-            stateVariables[resolveComponentName("cobweb")].stateValues.vertices;
+            stateVariables[await resolvePathToNodeIdx("cobweb")].stateValues
+                .vertices;
         expect(vertices.length).eqls(100);
         expect(vertices[0].map((v) => v.tree)).eqls(["＿", 0]);
         for (let i = 1; i < 100; i++) {
@@ -480,13 +484,14 @@ describe("cobwebPolyline Tag Tests", async () => {
         }
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("x0"),
+            componentIdx: await resolvePathToNodeIdx("x0"),
             latex: "0.9",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         vertices =
-            stateVariables[resolveComponentName("cobweb")].stateValues.vertices;
+            stateVariables[await resolvePathToNodeIdx("cobweb")].stateValues
+                .vertices;
         expect(vertices.length).eqls(100);
         expect(vertices[0].map((v) => v.tree)).eqls([0.9, 0]);
         expect(vertices[1].map((v) => v.tree)).eqls([0.9, 0.81]);
@@ -494,13 +499,14 @@ describe("cobwebPolyline Tag Tests", async () => {
         expect(vertices[99].map((v) => v.tree)).eqls([0, 0]);
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("x0"),
+            componentIdx: await resolvePathToNodeIdx("x0"),
             latex: "(1.1,3)",
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         vertices =
-            stateVariables[resolveComponentName("cobweb")].stateValues.vertices;
+            stateVariables[await resolvePathToNodeIdx("cobweb")].stateValues
+                .vertices;
         expect(vertices.length).eqls(100);
         expect(vertices[0][0].tree).closeTo(1.1, 1e-14);
         expect(vertices[0][1].tree).closeTo(3, 1e-14);

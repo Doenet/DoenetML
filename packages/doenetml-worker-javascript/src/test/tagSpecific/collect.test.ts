@@ -26,7 +26,7 @@ function getReplacement(
 
 describe("Collect tag tests", async () => {
     it("collect points from graphs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <panel name="panel1">
     <graph>
@@ -80,7 +80,7 @@ describe("Collect tag tests", async () => {
             for (let i = 0; i < 5; i++) {
                 const thePoint = getReplacement(
                     stateVariables,
-                    resolveComponentName(`points`),
+                    await resolvePathToNodeIdx(`points`),
                     i,
                 );
 
@@ -89,7 +89,7 @@ describe("Collect tag tests", async () => {
 
                 const theCoords = getReplacement(
                     stateVariables,
-                    resolveComponentName(`coords`),
+                    await resolvePathToNodeIdx(`coords`),
                     i,
                 );
 
@@ -101,15 +101,15 @@ describe("Collect tag tests", async () => {
 
                 const theX = getReplacement(
                     stateVariables,
-                    resolveComponentName(`xs`),
+                    await resolvePathToNodeIdx(`xs`),
                     i,
                 );
 
                 expect(theX.stateValues.value.tree).eq(xs[i]);
             }
             expect(
-                stateVariables[resolveComponentName("mean")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mean")].stateValues
+                    .value.tree,
             ).eq(mean_y);
         }
 
@@ -127,7 +127,7 @@ describe("Collect tag tests", async () => {
         y1 = 6;
 
         await movePoint({
-            componentIdx: resolveComponentName("p1"),
+            componentIdx: await resolvePathToNodeIdx("p1"),
             x: x1,
             y: y1,
             core,
@@ -140,7 +140,7 @@ describe("Collect tag tests", async () => {
         y1 = 0;
 
         await movePoint({
-            componentIdx: resolveComponentName("p1a"),
+            componentIdx: await resolvePathToNodeIdx("p1a"),
             x: x1,
             y: y1,
             core,
@@ -153,7 +153,7 @@ describe("Collect tag tests", async () => {
         y2 = 8;
 
         await movePoint({
-            componentIdx: resolveComponentName("p2"),
+            componentIdx: await resolvePathToNodeIdx("p2"),
             x: x2,
             y: y2,
             core,
@@ -165,7 +165,7 @@ describe("Collect tag tests", async () => {
         y2 = -3;
 
         await movePoint({
-            componentIdx: resolveComponentName("p4"),
+            componentIdx: await resolvePathToNodeIdx("p4"),
             x: y2,
             y: x2,
             core,
@@ -177,7 +177,7 @@ describe("Collect tag tests", async () => {
         y3 = 9;
 
         await movePoint({
-            componentIdx: resolveComponentName("p3"),
+            componentIdx: await resolvePathToNodeIdx("p3"),
             x: x3,
             y: y3,
             core,
@@ -186,7 +186,7 @@ describe("Collect tag tests", async () => {
     });
 
     it("collect dynamic points from graphs", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="length" prefill="3"/>
     <mathInput name="mult" prefill="2"/>
@@ -228,486 +228,510 @@ describe("Collect tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(6);
 
         for (let i = 0; i < 3; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 4}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 4}]`)]
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 4}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 4}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(3 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(2 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 4}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 4}]`)]
+                    .stateValues.value.tree,
             ).eq(3 * x);
         }
 
         // increase number of points
         await updateMathInputValue({
             latex: "5",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(3 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(2 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
+                    .stateValues.value.tree,
             ).eq(3 * x);
         }
 
         // change multiple
         await updateMathInputValue({
             latex: "0.5",
-            componentIdx: resolveComponentName("mult"),
+            componentIdx: await resolvePathToNodeIdx("mult"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(0.75 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(0.5 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
+                    .stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
         // decrease number of points
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(2);
 
         for (let i = 0; i < 1; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 2}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 2}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(0.75 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(0.5 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 2}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 2}]`)]
+                    .stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
         // increase number of points back to 4
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(8);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(8);
 
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 5}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 5}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(0.75 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(0.5 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 5}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 5}]`)]
+                    .stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
         // increase number of points to 6
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(12);
 
         for (let i = 0; i < 6; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 7}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 7}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 7}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 7}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(0.75 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(0.5 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 7}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 7}]`)]
+                    .stateValues.value.tree,
             ).eq(0.75 * x);
         }
     });
 
     it("collect dynamic points from groups", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="length" prefill="3"/>
     <mathInput name="mult" prefill="2"/>
@@ -748,486 +772,510 @@ describe("Collect tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(6);
 
         for (let i = 0; i < 3; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 4}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 4}]`)]
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 4}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 4}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(3 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(2 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 4}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 4}]`)]
+                    .stateValues.value.tree,
             ).eq(3 * x);
         }
 
         // increase number of points
         await updateMathInputValue({
             latex: "5",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(3 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(2 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
+                    .stateValues.value.tree,
             ).eq(3 * x);
         }
 
         // change multiple
         await updateMathInputValue({
             latex: "0.5",
-            componentIdx: resolveComponentName("mult"),
+            componentIdx: await resolvePathToNodeIdx("mult"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(0.75 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(0.5 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
+                    .stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
         // decrease number of points
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(2);
 
         for (let i = 0; i < 1; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 2}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 2}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(0.75 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(0.5 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 2}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 2}]`)]
+                    .stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
         // increase number of points back to 4
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(8);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(8);
 
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 5}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 5}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(0.75 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(0.5 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 5}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 5}]`)]
+                    .stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
         // increase number of points to 6
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(12);
 
         for (let i = 0; i < 6; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 7}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 7}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 7}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 7}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(0.75 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(0.5 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 7}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 7}]`)]
+                    .stateValues.value.tree,
             ).eq(0.75 * x);
         }
     });
 
     it("maximum number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="length" prefill="5"/>
     <mathInput name="mult" prefill="2"/>
@@ -1269,570 +1317,598 @@ describe("Collect tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(2);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
-                    .stateValues.xs[0].tree,
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
             ).eq(2 * x);
         }
         for (let i = 0; i < 2; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
-                    .stateValues.xs[0].tree,
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
             ).eq(3 * x);
         }
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
         }
         for (let i = 0; i < 2; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(2 * x);
         }
 
         // increase maxnumber
         await updateMathInputValue({
             latex: "5",
-            componentIdx: resolveComponentName("maxnumber"),
+            componentIdx: await resolvePathToNodeIdx("maxnumber"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(5);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(2 * x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(3 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(2 * x);
-            //expect(stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues.value.tree).eq(3 * x);
+            //expect(stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)].stateValues.value.tree).eq(3 * x);
         }
 
         // increase maxnumber further
         await updateMathInputValue({
             latex: "10",
-            componentIdx: resolveComponentName("maxnumber"),
+            componentIdx: await resolvePathToNodeIdx("maxnumber"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(2 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(3 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(2 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(3 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(2 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
+                    .stateValues.value.tree,
             ).eq(3 * x);
         }
 
         // change multiple
         await updateMathInputValue({
             latex: "0.5",
-            componentIdx: resolveComponentName("mult"),
+            componentIdx: await resolvePathToNodeIdx("mult"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(10);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(10);
 
         for (let i = 0; i < 5; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 6}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 6}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(0.75 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(0.5 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 6}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
+                    .stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
         // decrease number of points
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(2);
 
         for (let i = 0; i < 1; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 2}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 2}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 2}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(0.75 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(0.5 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 2}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 2}]`)]
+                    .stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
         // increase number of points back to 4
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("length"),
+            componentIdx: await resolvePathToNodeIdx("length"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(8);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(8);
 
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.5 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
+            ).eq(x + 1);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
+            ).eq(0.75 * x);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 5}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 5}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
-                    .stateValues.xs[0].tree,
-            ).eq(x + 1);
-            expect(
-                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
-                    .stateValues.xs[1].tree,
-            ).eq(0.75 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
-            ).eq(0.5 * x);
-            expect(
-                stateVariables[resolveComponentName(`ys[${i + 5}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 5}]`)]
+                    .stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
         // decrease max number to 3
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("maxnumber"),
+            componentIdx: await resolvePathToNodeIdx("maxnumber"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("repeat1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
                 .numIterates,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("collect1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect1")].stateValues
                 .collectedComponents.length,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("repeat2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("repeat2")].stateValues
                 .numIterates,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("collect2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect2")].stateValues
                 .collectedComponents.length,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("collect3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("collect3")].stateValues
                 .collectedComponents.length,
         ).eq(3);
 
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
-                    .stateValues.xs[0].tree,
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`repeat1[${i + 1}].p`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat1[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
             ).eq(0.5 * x);
         }
         for (let i = 0; i < 3; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect1[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect1[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
-                    .stateValues.xs[0].tree,
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`repeat2[${i + 1}].p`)]
-                    .stateValues.xs[1].tree,
+                stateVariables[
+                    await resolvePathToNodeIdx(`repeat2[${i + 1}].p`)
+                ].stateValues.xs[1].tree,
             ).eq(0.75 * x);
         }
         for (let i = 0; i < 4; i++) {
             let x = i + 1;
 
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 1}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 1}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.5 * x);
         }
         for (let i = 0; i < 2; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 5}]`)]
                     .stateValues.xs[0].tree,
             ).eq(x + 1);
             expect(
-                stateVariables[resolveComponentName(`collect2[${i + 5}]`)]
+                stateVariables[await resolvePathToNodeIdx(`collect2[${i + 5}]`)]
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
         }
         for (let i = 0; i < 3; i++) {
             let x = i + 1;
             expect(
-                stateVariables[resolveComponentName(`ys[${i + 1}]`)].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
+                    .stateValues.value.tree,
             ).eq(0.5 * x);
         }
     });
 
     it("collect, extract, copy multiple ways", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>How many blanks? 
     <mathInput name="n" prefill="1" />
@@ -1883,7 +1959,7 @@ describe("Collect tag tests", async () => {
         ) {
             await updateMathInputValue({
                 latex: `${values.length}`,
-                componentIdx: resolveComponentName("n"),
+                componentIdx: await resolvePathToNodeIdx("n"),
                 core,
             });
 
@@ -1893,23 +1969,26 @@ describe("Collect tag tests", async () => {
             );
 
             const al3Children =
-                stateVariables[resolveComponentName("al3")].activeChildren;
+                stateVariables[await resolvePathToNodeIdx("al3")]
+                    .activeChildren;
 
             const p3bGrandchildren =
                 stateVariables[
-                    stateVariables[resolveComponentName("p_3b")]
+                    stateVariables[await resolvePathToNodeIdx("p_3b")]
                         .activeChildren[1].componentIdx
                 ].activeChildren;
             const p3dGrandchildren =
                 stateVariables[
-                    stateVariables[resolveComponentName("p_3d")]
+                    stateVariables[await resolvePathToNodeIdx("p_3d")]
                         .activeChildren[1].componentIdx
                 ].activeChildren;
 
             for (let [ind, val] of values.entries()) {
                 let mi_idx: number = -1;
                 if (mis_used === "orig") {
-                    mi_idx = resolveComponentName(`repeat1[${ind + 1}].mi`);
+                    mi_idx = await resolvePathToNodeIdx(
+                        `repeat1[${ind + 1}].mi`,
+                    );
                 } else if (mis_used == "a") {
                     mi_idx = al3Children[ind].componentIdx;
                 } else if (mis_used === "b") {
@@ -1930,28 +2009,35 @@ describe("Collect tag tests", async () => {
             const listText = values.join(", ");
 
             expect(
-                stateVariables[resolveComponentName("p_1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p_1")].stateValues
+                    .text,
             ).eq(`Inputs collected then, values extracted: \n  ${listText}`);
             expect(
-                stateVariables[resolveComponentName("p_1a")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p_1a")].stateValues
+                    .text,
             ).eq(`Copied: ${listText}`);
             expect(
-                stateVariables[resolveComponentName("p_1b")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p_1b")].stateValues
+                    .text,
             ).eq(`Copy asList: ${listText}`);
             expect(
-                stateVariables[resolveComponentName("p_1c")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p_1c")].stateValues
+                    .text,
             ).eq(`Copy copied: ${listText}`);
             expect(
-                stateVariables[resolveComponentName("p_1d")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p_1d")].stateValues
+                    .text,
             ).eq(`Copy asList containing copy: ${listText}`);
             expect(
-                stateVariables[resolveComponentName("p_1e")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p_1e")].stateValues
+                    .text,
             ).eq(`Copy copied asList: ${listText}`);
 
             for (let [ind, val] of values.entries()) {
                 expect(
-                    stateVariables[resolveComponentName(`col[${ind + 1}]`)]
-                        .stateValues.immediateValue.tree,
+                    stateVariables[
+                        await resolvePathToNodeIdx(`col[${ind + 1}]`)
+                    ].stateValues.immediateValue.tree,
                 ).eq(val);
                 expect(
                     stateVariables[al3Children[ind].componentIdx].stateValues
@@ -1982,7 +2068,7 @@ describe("Collect tag tests", async () => {
     // main point: no longer turn inputs into their value
     // even with copy a collection with a macro
     it("test macros by collecting inputs and others", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <section name="sec">
     <group name="group1">
@@ -2003,15 +2089,18 @@ describe("Collect tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let group1Replacements = stateVariables[
-            resolveComponentName("sec")
+            await resolvePathToNodeIdx("sec")
         ].activeChildren.slice(1, 14);
 
         let collect1Replacements =
-            stateVariables[resolveComponentName("pcollect1")].activeChildren;
+            stateVariables[await resolvePathToNodeIdx("pcollect1")]
+                .activeChildren;
         let collect2Replacements =
-            stateVariables[resolveComponentName("pcollect2")].activeChildren;
+            stateVariables[await resolvePathToNodeIdx("pcollect2")]
+                .activeChildren;
         let group2Replacements =
-            stateVariables[resolveComponentName("pgroup2")].activeChildren;
+            stateVariables[await resolvePathToNodeIdx("pgroup2")]
+                .activeChildren;
 
         expect(group1Replacements.length).eq(13);
         expect(collect1Replacements.length).eq(3);
@@ -2115,7 +2204,7 @@ describe("Collect tag tests", async () => {
     });
 
     it("collect does not ignore hide", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1">
       <text hide>secret</text>
@@ -2130,22 +2219,22 @@ describe("Collect tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("p1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
         ).contain("public");
         expect(
-            stateVariables[resolveComponentName("p1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
         ).not.contain("secret");
 
         expect(
-            stateVariables[resolveComponentName("p2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).contain("Hidden by default: public");
         expect(
-            stateVariables[resolveComponentName("p3")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
         ).contain("Force to reveal: secret, public");
     });
 
     it("collect keeps hidden children hidden", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <section name="sec">
       <p name="theP1">Hidden text: <text name="hidden" hide>secret</text></p>
@@ -2161,53 +2250,57 @@ describe("Collect tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("theP1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("theP1")].stateValues
+                .text,
         ).eq("Hidden text: ");
         expect(
-            stateVariables[resolveComponentName("theP2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("theP2")].stateValues
+                .text,
         ).eq("Hidden text: ");
         expect(
-            stateVariables[resolveComponentName("theP3")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("theP3")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("theP4")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("theP4")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, resolveComponentName("c1"), 0)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 0)
                 .stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, resolveComponentName("c1"), 1)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 1)
                 .stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, resolveComponentName("c1"), 2)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 2)
                 .stateValues.hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, resolveComponentName("c1"), 3)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 3)
                 .stateValues.hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, resolveComponentName("c2"), 0)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 0)
                 .stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, resolveComponentName("c2"), 1)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 1)
                 .stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, resolveComponentName("c2"), 2)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 2)
                 .stateValues.text,
         ).eq("Hidden paragraph with hidden text: ");
         expect(
-            getReplacement(stateVariables, resolveComponentName("c2"), 3)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 3)
                 .stateValues.text,
         ).eq("Hidden paragraph with hidden text: ");
     });
 
     it("collecting from within a hidden section", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <section hide name="sec">
       <p name="theP1">Hidden text: <text name="hidden" hide>secret</text></p>
@@ -2223,53 +2316,57 @@ describe("Collect tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("theP1")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("theP1")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("theP2")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("theP2")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("theP3")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("theP3")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            stateVariables[resolveComponentName("theP4")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("theP4")].stateValues
+                .hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, resolveComponentName("c1"), 0)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 0)
                 .stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, resolveComponentName("c1"), 1)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 1)
                 .stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, resolveComponentName("c1"), 2)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 2)
                 .stateValues.hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, resolveComponentName("c1"), 3)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 3)
                 .stateValues.hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, resolveComponentName("c2"), 0)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 0)
                 .stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, resolveComponentName("c2"), 1)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 1)
                 .stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, resolveComponentName("c2"), 2)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 2)
                 .stateValues.text,
         ).eq("Hidden paragraph with hidden text: ");
         expect(
-            getReplacement(stateVariables, resolveComponentName("c2"), 3)
+            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 3)
                 .stateValues.text,
         ).eq("Hidden paragraph with hidden text: ");
     });
 
     it("collects hide dynamically", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1">
       <repeatForSequence type="letters" from="a" length="$n" itemName="l">
@@ -2288,80 +2385,84 @@ describe("Collect tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
-            "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.text,
+        ).eq("collect 1: Hello, a! Hello, b! Hello, c! Hello, d! ");
 
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.text,
+        ).eq(
             "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! ",
         );
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("h1"),
+            componentIdx: await resolvePathToNodeIdx("h1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
-            "collect 1: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.text,
+        ).eq("collect 1: ");
 
         await updateMathInputValue({
             latex: "8",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
-            "collect 1: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.text,
+        ).eq("collect 1: ");
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("h1"),
+            componentIdx: await resolvePathToNodeIdx("h1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.text,
+        ).eq(
             "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! Hello, g! Hello, h! ",
         );
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
-            "collect 1: Hello, a! Hello, b! Hello, c! ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.text,
+        ).eq("collect 1: Hello, a! Hello, b! Hello, c! ");
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("h1"),
+            componentIdx: await resolvePathToNodeIdx("h1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("c1")].stateValues.text).eq(
-            "collect 1: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.text,
+        ).eq("collect 1: ");
     });
 
     it("asList", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p">We an <text>apple</text>, a <text>banana</text>, and a <text>cherry</text>.</p> 
 
@@ -2373,10 +2474,12 @@ describe("Collect tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pdefault")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pdefault")].stateValues
+                .text,
         ).eq("apple, banana, cherry");
         expect(
-            stateVariables[resolveComponentName("pnolist")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pnolist")].stateValues
+                .text,
         ).eq("applebananacherry");
     });
 
@@ -2422,7 +2525,7 @@ describe("Collect tag tests", async () => {
     });
 
     it("allChildrenOrdered consistent with dynamic collect and adapters", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput prefill="2" name='n' />
 
@@ -2448,18 +2551,19 @@ describe("Collect tag tests", async () => {
             let components: {} = core.core!.components!;
 
             let p1AllChildren: number[] = [];
-            p1AllChildren.push(resolveComponentName("A"));
+            p1AllChildren.push(await resolvePathToNodeIdx("A"));
             p1AllChildren.push(
-                components[resolveComponentName("A")].adapterUsed.componentIdx,
+                components[await resolvePathToNodeIdx("A")].adapterUsed
+                    .componentIdx,
             );
-            p1AllChildren.push(resolveComponentName("repeat1"));
+            p1AllChildren.push(await resolvePathToNodeIdx("repeat1"));
 
-            let map = stateVariables[resolveComponentName("repeat1")];
+            let map = stateVariables[await resolvePathToNodeIdx("repeat1")];
 
             let nActiveReps = map.replacements!.length;
             if (map.replacementsToWithhold) {
                 nActiveReps -=
-                    stateVariables[resolveComponentName("repeat1")]
+                    stateVariables[await resolvePathToNodeIdx("repeat1")]
                         .replacementsToWithhold || 0;
             }
             for (let template of map.replacements!.slice(0, nActiveReps)) {
@@ -2468,26 +2572,27 @@ describe("Collect tag tests", async () => {
                 p1AllChildren.push(point.componentIdx);
                 p1AllChildren.push(point.adapterUsed.componentIdx);
             }
-            p1AllChildren.push(resolveComponentName("B"));
+            p1AllChildren.push(await resolvePathToNodeIdx("B"));
             p1AllChildren.push(
-                components[resolveComponentName("B")].adapterUsed.componentIdx,
+                components[await resolvePathToNodeIdx("B")].adapterUsed
+                    .componentIdx,
             );
 
             expect(
                 components[
-                    resolveComponentName("p1")
+                    await resolvePathToNodeIdx("p1")
                 ].allChildrenOrdered.filter(
                     (cIdx) => components[cIdx].componentType !== "setup",
                 ),
             ).eqls(p1AllChildren);
 
             let p2AllChildren: number[] = [];
-            p2AllChildren.push(resolveComponentName("collect1"));
-            let collect = components[resolveComponentName("collect1")];
+            p2AllChildren.push(await resolvePathToNodeIdx("collect1"));
+            let collect = components[await resolvePathToNodeIdx("collect1")];
             nActiveReps = collect.replacements!.length;
             if (collect.replacementsToWithhold) {
                 nActiveReps -=
-                    stateVariables[resolveComponentName("collect1")]
+                    stateVariables[await resolvePathToNodeIdx("collect1")]
                         .replacementsToWithhold || 0;
             }
             for (let rep of collect.replacements!.slice(0, nActiveReps)) {
@@ -2496,7 +2601,7 @@ describe("Collect tag tests", async () => {
             }
 
             expect(
-                components[resolveComponentName("p2")].allChildrenOrdered,
+                components[await resolvePathToNodeIdx("p2")].allChildrenOrdered,
             ).eqls(p2AllChildren);
         }
 
@@ -2504,28 +2609,28 @@ describe("Collect tag tests", async () => {
 
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkAllChildren();
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkAllChildren();
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkAllChildren();
     });
 
     it("overwrite attributes using collect", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Collected points are fixed: <booleanInput name="fixed" /></p>
 
@@ -2550,26 +2655,31 @@ describe("Collect tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("fixed")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("fixed")].stateValues
+                    .value,
             ).eq(bool);
             expect(
-                stateVariables[resolveComponentName("A")].stateValues.fixed,
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .fixed,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("B")].stateValues.fixed,
+                stateVariables[await resolvePathToNodeIdx("B")].stateValues
+                    .fixed,
             ).eq(false);
             expect(
-                stateVariables[resolveComponentName("c.A")].stateValues.fixed,
-            ).eq(bool);
-            expect(
-                stateVariables[resolveComponentName("c.B")].stateValues.fixed,
-            ).eq(bool);
-            expect(
-                stateVariables[resolveComponentName("g3.c.A")].stateValues
+                stateVariables[await resolvePathToNodeIdx("c.A")].stateValues
                     .fixed,
             ).eq(bool);
             expect(
-                stateVariables[resolveComponentName("g3.c.B")].stateValues
+                stateVariables[await resolvePathToNodeIdx("c.B")].stateValues
+                    .fixed,
+            ).eq(bool);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g3.c.A")].stateValues
+                    .fixed,
+            ).eq(bool);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g3.c.B")].stateValues
                     .fixed,
             ).eq(bool);
         }
@@ -2578,21 +2688,21 @@ describe("Collect tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("fixed"),
+            componentIdx: await resolvePathToNodeIdx("fixed"),
             core,
         });
         await check_items(true);
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("fixed"),
+            componentIdx: await resolvePathToNodeIdx("fixed"),
             core,
         });
         await check_items(false);
     });
 
     it("collect from source that initially does not exist", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi" />
 
@@ -2609,7 +2719,7 @@ describe("Collect tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("bi"),
+            componentIdx: await resolvePathToNodeIdx("bi"),
             core,
         });
 
@@ -2617,12 +2727,12 @@ describe("Collect tag tests", async () => {
 
         expect(
             stateVariables[
-                resolveComponentName("collect[1]")
+                await resolvePathToNodeIdx("collect[1]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([1, 2]);
         expect(
             stateVariables[
-                resolveComponentName("collect[2]")
+                await resolvePathToNodeIdx("collect[2]")
             ].stateValues.xs.map((x) => x.tree),
         ).eqls([3, 4]);
     });

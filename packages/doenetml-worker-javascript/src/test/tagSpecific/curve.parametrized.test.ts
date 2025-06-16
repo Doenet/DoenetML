@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
@@ -10,7 +10,7 @@ vi.mock("hyperformula");
 describe("Parameterized curve tag tests", async () => {
     async function test_curve({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         parMin = -10,
         parMax = 10,
         variable = "x",
@@ -21,7 +21,7 @@ describe("Parameterized curve tag tests", async () => {
         f2 = (x) => 3 * x ** 5,
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         parMin?: number;
         parMax?: number;
         variable?: string;
@@ -34,9 +34,9 @@ describe("Parameterized curve tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         const cIdx = nameFromGraphChild
-            ? stateVariables[resolveComponentName("g")].activeChildren[0]
+            ? stateVariables[await resolvePathToNodeIdx("g")].activeChildren[0]
                   .componentIdx
-            : resolveComponentName(name);
+            : await resolvePathToNodeIdx(name);
 
         expect(stateVariables[cIdx].stateValues.curveType).eq(
             "parameterization",
@@ -66,7 +66,7 @@ describe("Parameterized curve tag tests", async () => {
     }
 
     it("sugar a parameterization in terms of x", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -76,11 +76,11 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        await test_curve({ core, resolveComponentName });
+        await test_curve({ core, resolvePathToNodeIdx });
     });
 
     it("sugar a parameterization in terms of x, with strings and macros", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -92,11 +92,11 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        await test_curve({ core, resolveComponentName });
+        await test_curve({ core, resolvePathToNodeIdx });
     });
 
     it("sugar a parameterization in terms of x, with strings and macros, label with math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -109,11 +109,11 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        await test_curve({ core, resolveComponentName, hasLabel: true });
+        await test_curve({ core, resolvePathToNodeIdx, hasLabel: true });
     });
 
     it("sugar a parameterization in terms of t", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c" variable="t">
@@ -123,11 +123,11 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        await test_curve({ core, resolveComponentName, variable: "t" });
+        await test_curve({ core, resolvePathToNodeIdx, variable: "t" });
     });
 
     it("sugar a parameterization in terms of t, with strings and macro", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c" variable="$var">
@@ -138,11 +138,11 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        await test_curve({ core, resolveComponentName, variable: "t" });
+        await test_curve({ core, resolvePathToNodeIdx, variable: "t" });
     });
 
     it("a parameterization, no sugar", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -153,11 +153,11 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        await test_curve({ core, resolveComponentName });
+        await test_curve({ core, resolvePathToNodeIdx });
     });
 
     it("a parameterization, from vector-valued function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -167,11 +167,11 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        await test_curve({ core, resolveComponentName });
+        await test_curve({ core, resolvePathToNodeIdx });
     });
 
     it("a parameterization, adapted from vector-valued function", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
     <function variables="q">(5q^3, 3q^5)</function>
@@ -181,13 +181,13 @@ describe("Parameterized curve tag tests", async () => {
 
         await test_curve({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             nameFromGraphChild: true,
         });
     });
 
     it("a parameterization, no sugar, label with math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c">
@@ -199,11 +199,11 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        await test_curve({ core, resolveComponentName, hasLabel: true });
+        await test_curve({ core, resolvePathToNodeIdx, hasLabel: true });
     });
 
     it("a parameterization, change par limits", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c" parMin="-1" parMax="0.5">
@@ -216,14 +216,14 @@ describe("Parameterized curve tag tests", async () => {
 
         await test_curve({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             parMin: -1,
             parMax: 0.5,
         });
     });
 
     it("a parameterization, extend and overwrite par limits", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <curve name="c1" parMin="-1" parMax="0.5">
@@ -239,14 +239,14 @@ describe("Parameterized curve tag tests", async () => {
 
         await test_curve({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "c1",
             parMin: -1,
             parMax: 0.5,
         });
         await test_curve({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             name: "c2",
             parMin: -4,
             parMax: 0,
@@ -254,7 +254,7 @@ describe("Parameterized curve tag tests", async () => {
     });
 
     it("a parameterization with dynamic parameter", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi" prefill="2"/>
     <graph>
@@ -268,19 +268,19 @@ describe("Parameterized curve tag tests", async () => {
 
         await test_curve({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             f1: (x) => 2 * x + 1,
             f2: (x) => x ** 3 - 2,
         });
 
         await updateMathInputValue({
             latex: "-3",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         await test_curve({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             f1: (x) => -3 * x + 1,
             f2: (x) => x ** 3 + 3,
         });
@@ -288,77 +288,99 @@ describe("Parameterized curve tag tests", async () => {
 
     async function test_constrain_to_curve(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let x =
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
         let y =
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo(7, 0.5);
         expect(y).closeTo(Math.sin(2 * Math.pow(x, 1 / 3)), 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -2,
             y: 10,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        x =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        y =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo(0.3, 0.1);
         expect(y).closeTo(Math.sin(2 * Math.pow(x, 1 / 3)), 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -10,
             y: 2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        x =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        y =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo(-8, 1e-3);
         expect(y).closeTo(Math.sin(-4), 1e-3);
 
         await updateMathInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("parMin"),
+            componentIdx: await resolvePathToNodeIdx("parMin"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        x =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        y =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo(-1, 1e-3);
         expect(y).closeTo(Math.sin(-2), 1e-3);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 10,
             y: 2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        x =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        y =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo(8, 1e-3);
         expect(y).closeTo(Math.sin(4), 1e-3);
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("parMax"),
+            componentIdx: await resolvePathToNodeIdx("parMax"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        x =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        y =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo(1, 1e-3);
         expect(y).closeTo(Math.sin(2), 1e-3);
     }
 
     it("constrain to parametrized curve", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="parMin" prefill="-2"/>
     <mathInput name="parMax" prefill="2"/>
@@ -378,11 +400,11 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        await test_constrain_to_curve(core, resolveComponentName);
+        await test_constrain_to_curve(core, resolvePathToNodeIdx);
     });
 
     it("constrain to parametrized curve, from vector-valued function in curve", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="parMin" prefill="-2"/>
     <mathInput name="parMax" prefill="2"/>
@@ -401,11 +423,11 @@ describe("Parameterized curve tag tests", async () => {
     `,
         });
 
-        await test_constrain_to_curve(core, resolveComponentName);
+        await test_constrain_to_curve(core, resolvePathToNodeIdx);
     });
 
     it("constrain to parametrized curve, from vector-valued function directly", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
     <function name="f" variables="s">(s^3,sin(2s))</function>
@@ -422,39 +444,49 @@ describe("Parameterized curve tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let x =
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
         let y =
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo(7, 0.5);
         expect(y).closeTo(Math.sin(2 * Math.pow(x, 1 / 3)), 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -2,
             y: 10,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        x =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        y =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo(0.3, 0.1);
         expect(y).closeTo(Math.sin(2 * Math.pow(x, 1 / 3)), 1e-5);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -10,
             y: 2,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        x =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        y =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo(-10, 0.1);
         expect(y).closeTo(Math.sin(-2 * Math.pow(-x, 1 / 3)), 1e-5);
     });
 
     it("constrain to parametrized curve, different scales from graph", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
       <function variables="t" name="f">100 cos(t)</function>
@@ -477,33 +509,43 @@ describe("Parameterized curve tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let x =
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
         let y =
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo(100 / Math.sqrt(2), 1e-4);
         expect(y).closeTo(0.1 / Math.sqrt(2), 1e-4);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -200,
             y: 0.8,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        x =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        y =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo(-100 / Math.sqrt(17), 1e-4);
         expect(y).closeTo((0.1 * 4) / Math.sqrt(17), 1e-4);
 
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: -2,
             y: -0.001,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        x = stateVariables[resolveComponentName("P")].stateValues.xs[0].tree;
-        y = stateVariables[resolveComponentName("P")].stateValues.xs[1].tree;
+        x =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree;
+        y =
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree;
         expect(x).closeTo((-100 * 2) / Math.sqrt(5), 1e-4);
         expect(y).closeTo(-0.1 / Math.sqrt(5), 1e-4);
     });

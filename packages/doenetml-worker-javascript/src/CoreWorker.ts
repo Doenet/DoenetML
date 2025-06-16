@@ -12,6 +12,7 @@ import {
     Resolver,
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
+import { resolvePathImmediatelyToNodeIdx } from "./utils/externalPathResolution";
 
 // Type signatures for callbacks
 export type UpdateRenderersCallback = (arg: {
@@ -78,7 +79,7 @@ export class PublicDoenetMLCore {
     resolvePath?: (
         resolver: Resolver,
         path: PathToCheck,
-        origin: 0,
+        origin: number,
         skip_parent_search: boolean,
     ) => RefResolution;
 
@@ -90,7 +91,7 @@ export class PublicDoenetMLCore {
         this.flags = flags;
     }
 
-    getResolver() {
+    getResolver(): Resolver {
         return this.core?.resolver;
     }
 
@@ -122,7 +123,7 @@ export class PublicDoenetMLCore {
         resolvePath: (
             resolver: Resolver,
             path: PathToCheck,
-            origin: 0,
+            origin: number,
             skip_parent_search: boolean,
         ) => RefResolution;
     }) {
@@ -443,5 +444,21 @@ export class PublicDoenetMLCore {
      */
     async saveImmediately() {
         await this.core?.saveImmediately();
+    }
+
+    /**
+     * Attempt to resolve `name` immediately by parsing `name` to a path
+     * and then forcibly resolving any composite components required to determine the ref resolution.
+     * If the path is resolved to a node index without any unresolved path left,
+     * then return the node index. Otherwise return -1.
+     *
+     * By default, the search for the path begins at the document root, node 0. Specify a node index for `origin`
+     * to change where the search begins.
+     *
+     * At present, this function is implemented only for string indices within the path.
+     * An error is thrown if the index of a path contains any references to other nodes.
+     */
+    async resolvePathImmediatelyToNodeIdx(name: string, origin = 0) {
+        return resolvePathImmediatelyToNodeIdx(name, this, origin);
     }
 }

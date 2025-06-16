@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { updateTextInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
@@ -10,170 +10,195 @@ vi.mock("hyperformula");
 describe("Label tests", async () => {
     async function test_labelIsName_preserved_shadowed_or_no_link(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("Plabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Plabel")].stateValues
+                .value,
         ).eq("P");
         expect(
-            stateVariables[resolveComponentName("Qlabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Qlabel")].stateValues
+                .value,
         ).eq("Q");
         expect(
-            stateVariables[resolveComponentName("Rlabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Rlabel")].stateValues
+                .value,
         ).eq("R");
         expect(
-            stateVariables[resolveComponentName("Slabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Slabel")].stateValues
+                .value,
         ).eq("S");
         expect(
-            stateVariables[resolveComponentName("g2Plabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2Plabel")].stateValues
+                .value,
         ).eq("P");
         expect(
-            stateVariables[resolveComponentName("g2Qlabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2Qlabel")].stateValues
+                .value,
         ).eq("Q");
         expect(
-            stateVariables[resolveComponentName("g2Rlabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2Rlabel")].stateValues
+                .value,
         ).eq("R");
         expect(
-            stateVariables[resolveComponentName("g2Slabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2Slabel")].stateValues
+                .value,
         ).eq("S");
         expect(
-            stateVariables[resolveComponentName("Q3label")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Q3label")].stateValues
+                .value,
         ).eq("Q");
         expect(
-            stateVariables[resolveComponentName("S3label")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("S3label")].stateValues
+                .value,
         ).eq("S");
         expect(
-            stateVariables[resolveComponentName("Q4label")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Q4label")].stateValues
+                .value,
         ).eq("Q");
         expect(
-            stateVariables[resolveComponentName("S4label")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("S4label")].stateValues
+                .value,
         ).eq("S");
         expect(
-            stateVariables[resolveComponentName("g5Plabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g5Plabel")].stateValues
+                .value,
         ).eq("P");
         expect(
-            stateVariables[resolveComponentName("g5Qlabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g5Qlabel")].stateValues
+                .value,
         ).eq("Q");
         expect(
-            stateVariables[resolveComponentName("g5Rlabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g5Rlabel")].stateValues
+                .value,
         ).eq("R");
         expect(
-            stateVariables[resolveComponentName("g5Slabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g5Slabel")].stateValues
+                .value,
         ).eq("S");
         expect(
-            stateVariables[resolveComponentName("g5Plabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g5Plabel")].stateValues
+                .value,
         ).eq("P");
         expect(
-            stateVariables[resolveComponentName("g6Qlabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g6Qlabel")].stateValues
+                .value,
         ).eq("Q");
         expect(
-            stateVariables[resolveComponentName("g6Slabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g6Slabel")].stateValues
+                .value,
         ).eq("S");
         expect(
-            stateVariables[resolveComponentName("g7Qlabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g7Qlabel")].stateValues
+                .value,
         ).eq("Q");
         expect(
-            stateVariables[resolveComponentName("g7Slabel")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g7Slabel")].stateValues
+                .value,
         ).eq("S");
 
         let P2Name =
-            stateVariables[resolveComponentName("g2")].activeChildren[0]
+            stateVariables[await resolvePathToNodeIdx("g2")].activeChildren[0]
                 .componentIdx;
         let Q2Name =
-            stateVariables[resolveComponentName("g2")].activeChildren[1]
+            stateVariables[await resolvePathToNodeIdx("g2")].activeChildren[1]
                 .componentIdx;
         let R2Name =
-            stateVariables[resolveComponentName("g2")].activeChildren[2]
+            stateVariables[await resolvePathToNodeIdx("g2")].activeChildren[2]
                 .componentIdx;
         let S2Name =
-            stateVariables[resolveComponentName("g2")].activeChildren[3]
+            stateVariables[await resolvePathToNodeIdx("g2")].activeChildren[3]
                 .componentIdx;
         let P3Name =
-            stateVariables[resolveComponentName("g3")].activeChildren[0]
+            stateVariables[await resolvePathToNodeIdx("g3")].activeChildren[0]
                 .componentIdx;
         let Q3Name =
-            stateVariables[resolveComponentName("g3")].activeChildren[1]
+            stateVariables[await resolvePathToNodeIdx("g3")].activeChildren[1]
                 .componentIdx;
         let R3Name =
-            stateVariables[resolveComponentName("g3")].activeChildren[2]
+            stateVariables[await resolvePathToNodeIdx("g3")].activeChildren[2]
                 .componentIdx;
         let S3Name =
-            stateVariables[resolveComponentName("g3")].activeChildren[3]
+            stateVariables[await resolvePathToNodeIdx("g3")].activeChildren[3]
                 .componentIdx;
         let P4Name =
-            stateVariables[resolveComponentName("g4")].activeChildren[0]
+            stateVariables[await resolvePathToNodeIdx("g4")].activeChildren[0]
                 .componentIdx;
         let Q4Name =
-            stateVariables[resolveComponentName("g4")].activeChildren[1]
+            stateVariables[await resolvePathToNodeIdx("g4")].activeChildren[1]
                 .componentIdx;
         let R4Name =
-            stateVariables[resolveComponentName("g4")].activeChildren[2]
+            stateVariables[await resolvePathToNodeIdx("g4")].activeChildren[2]
                 .componentIdx;
         let S4Name =
-            stateVariables[resolveComponentName("g4")].activeChildren[3]
+            stateVariables[await resolvePathToNodeIdx("g4")].activeChildren[3]
                 .componentIdx;
         let P5Name =
-            stateVariables[resolveComponentName("g5")].activeChildren[0]
+            stateVariables[await resolvePathToNodeIdx("g5")].activeChildren[0]
                 .componentIdx;
         let Q5Name =
-            stateVariables[resolveComponentName("g5")].activeChildren[1]
+            stateVariables[await resolvePathToNodeIdx("g5")].activeChildren[1]
                 .componentIdx;
         let R5Name =
-            stateVariables[resolveComponentName("g5")].activeChildren[2]
+            stateVariables[await resolvePathToNodeIdx("g5")].activeChildren[2]
                 .componentIdx;
         let S5Name =
-            stateVariables[resolveComponentName("g5")].activeChildren[3]
+            stateVariables[await resolvePathToNodeIdx("g5")].activeChildren[3]
                 .componentIdx;
         let P6Name =
-            stateVariables[resolveComponentName("g6")].activeChildren[0]
+            stateVariables[await resolvePathToNodeIdx("g6")].activeChildren[0]
                 .componentIdx;
         let Q6Name =
-            stateVariables[resolveComponentName("g6")].activeChildren[1]
+            stateVariables[await resolvePathToNodeIdx("g6")].activeChildren[1]
                 .componentIdx;
         let R6Name =
-            stateVariables[resolveComponentName("g6")].activeChildren[2]
+            stateVariables[await resolvePathToNodeIdx("g6")].activeChildren[2]
                 .componentIdx;
         let S6Name =
-            stateVariables[resolveComponentName("g6")].activeChildren[3]
+            stateVariables[await resolvePathToNodeIdx("g6")].activeChildren[3]
                 .componentIdx;
         let P7Name =
-            stateVariables[resolveComponentName("g7")].activeChildren[0]
+            stateVariables[await resolvePathToNodeIdx("g7")].activeChildren[0]
                 .componentIdx;
         let Q7Name =
-            stateVariables[resolveComponentName("g7")].activeChildren[1]
+            stateVariables[await resolvePathToNodeIdx("g7")].activeChildren[1]
                 .componentIdx;
         let R7Name =
-            stateVariables[resolveComponentName("g7")].activeChildren[2]
+            stateVariables[await resolvePathToNodeIdx("g7")].activeChildren[2]
                 .componentIdx;
         let S7Name =
-            stateVariables[resolveComponentName("g7")].activeChildren[3]
+            stateVariables[await resolvePathToNodeIdx("g7")].activeChildren[3]
                 .componentIdx;
 
-        expect(stateVariables[resolveComponentName("P")].stateValues.label).eq(
-            "P",
-        );
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.labelForGraph,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.label,
         ).eq("P");
-        expect(stateVariables[resolveComponentName("Q")].stateValues.label).eq(
-            "Q",
-        );
         expect(
-            stateVariables[resolveComponentName("Q")].stateValues.labelForGraph,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                .labelForGraph,
+        ).eq("P");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues.label,
         ).eq("Q");
-        expect(stateVariables[resolveComponentName("R")].stateValues.label).eq(
-            "R",
-        );
         expect(
-            stateVariables[resolveComponentName("R")].stateValues.labelForGraph,
+            stateVariables[await resolvePathToNodeIdx("Q")].stateValues
+                .labelForGraph,
+        ).eq("Q");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("R")].stateValues.label,
         ).eq("R");
-        expect(stateVariables[resolveComponentName("S")].stateValues.label).eq(
-            "S",
-        );
         expect(
-            stateVariables[resolveComponentName("S")].stateValues.labelForGraph,
+            stateVariables[await resolvePathToNodeIdx("R")].stateValues
+                .labelForGraph,
+        ).eq("R");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("S")].stateValues.label,
+        ).eq("S");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("S")].stateValues
+                .labelForGraph,
         ).eq("S");
         expect(stateVariables[P2Name].stateValues.label).eq("P");
         expect(stateVariables[P2Name].stateValues.labelForGraph).eq("P");
@@ -183,18 +208,18 @@ describe("Label tests", async () => {
         expect(stateVariables[R2Name].stateValues.labelForGraph).eq(`R`);
         expect(stateVariables[S2Name].stateValues.label).eq(`S`);
         expect(stateVariables[S2Name].stateValues.labelForGraph).eq(`S`);
-        expect(stateVariables[resolveComponentName("Q3")].stateValues.label).eq(
-            `Q`,
-        );
         expect(
-            stateVariables[resolveComponentName("Q3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Q3")].stateValues.label,
+        ).eq(`Q`);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Q3")].stateValues
                 .labelForGraph,
         ).eq(`Q`);
-        expect(stateVariables[resolveComponentName("S3")].stateValues.label).eq(
-            `S`,
-        );
         expect(
-            stateVariables[resolveComponentName("S3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("S3")].stateValues.label,
+        ).eq(`S`);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("S3")].stateValues
                 .labelForGraph,
         ).eq(`S`);
         expect(stateVariables[P3Name].stateValues.label).eq("P");
@@ -205,18 +230,18 @@ describe("Label tests", async () => {
         expect(stateVariables[R3Name].stateValues.labelForGraph).eq(`R`);
         expect(stateVariables[S3Name].stateValues.label).eq(`S`);
         expect(stateVariables[S3Name].stateValues.labelForGraph).eq(`S`);
-        expect(stateVariables[resolveComponentName("Q4")].stateValues.label).eq(
-            `Q`,
-        );
         expect(
-            stateVariables[resolveComponentName("Q4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Q4")].stateValues.label,
+        ).eq(`Q`);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Q4")].stateValues
                 .labelForGraph,
         ).eq(`Q`);
-        expect(stateVariables[resolveComponentName("S4")].stateValues.label).eq(
-            `S`,
-        );
         expect(
-            stateVariables[resolveComponentName("S4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("S4")].stateValues.label,
+        ).eq(`S`);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("S4")].stateValues
                 .labelForGraph,
         ).eq(`S`);
         expect(stateVariables[P4Name].stateValues.label).eq("P");
@@ -254,7 +279,7 @@ describe("Label tests", async () => {
     }
 
     it("labels from labelIsName are preserved when shadowed", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph name="g">
     <point name="P" labelIsName>(1,2)</point>
@@ -309,12 +334,12 @@ describe("Label tests", async () => {
 
         await test_labelIsName_preserved_shadowed_or_no_link(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     });
 
     it("labels from labelIsName are preserved when copy unlinked", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g">
   <point name="P" labelIsName>(1,2)</point>
@@ -369,12 +394,12 @@ describe("Label tests", async () => {
 
         await test_labelIsName_preserved_shadowed_or_no_link(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     });
 
     it("labelIsName in repeat", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup><sequence name="s" from="-2" to="2" /></setup>
   <graph name="g1">
@@ -426,40 +451,40 @@ describe("Label tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let g1ChildNames = stateVariables[
-            resolveComponentName("g1")
+            await resolvePathToNodeIdx("g1")
         ].activeChildren.map((x) => x.componentIdx);
         let g2ChildNames = stateVariables[
-            resolveComponentName("g2")
+            await resolvePathToNodeIdx("g2")
         ].activeChildren.map((x) => x.componentIdx);
         let g3ChildNames = stateVariables[
-            resolveComponentName("g3")
+            await resolvePathToNodeIdx("g3")
         ].activeChildren.map((x) => x.componentIdx);
         let g4ChildNames = stateVariables[
-            resolveComponentName("g4")
+            await resolvePathToNodeIdx("g4")
         ].activeChildren.map((x) => x.componentIdx);
         let g5ChildNames = stateVariables[
-            resolveComponentName("g5")
+            await resolvePathToNodeIdx("g5")
         ].activeChildren.map((x) => x.componentIdx);
         let g6ChildNames = stateVariables[
-            resolveComponentName("g6")
+            await resolvePathToNodeIdx("g6")
         ].activeChildren.map((x) => x.componentIdx);
         let g7ChildNames = stateVariables[
-            resolveComponentName("g7")
+            await resolvePathToNodeIdx("g7")
         ].activeChildren.map((x) => x.componentIdx);
         let g8ChildNames = stateVariables[
-            resolveComponentName("g8")
+            await resolvePathToNodeIdx("g8")
         ].activeChildren.map((x) => x.componentIdx);
         let g9ChildNames = stateVariables[
-            resolveComponentName("g9")
+            await resolvePathToNodeIdx("g9")
         ].activeChildren.map((x) => x.componentIdx);
         let g10ChildNames = stateVariables[
-            resolveComponentName("g10")
+            await resolvePathToNodeIdx("g10")
         ].activeChildren.map((x) => x.componentIdx);
         let g11ChildNames = stateVariables[
-            resolveComponentName("g11")
+            await resolvePathToNodeIdx("g11")
         ].activeChildren.map((x) => x.componentIdx);
         let g12ChildNames = stateVariables[
-            resolveComponentName("g12")
+            await resolvePathToNodeIdx("g12")
         ].activeChildren.map((x) => x.componentIdx);
 
         let gChildLabels = Array(5).fill("P");
@@ -528,7 +553,7 @@ describe("Label tests", async () => {
     });
 
     it("labelIsName converts case", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="the_first_point" labelIsName>(5,6)</point>
@@ -543,35 +568,35 @@ describe("Label tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("the_first_point")].stateValues
-                .label,
+            stateVariables[await resolvePathToNodeIdx("the_first_point")]
+                .stateValues.label,
         ).eq("the first point");
         expect(
-            stateVariables[resolveComponentName("the-second-point")].stateValues
-                .label,
+            stateVariables[await resolvePathToNodeIdx("the-second-point")]
+                .stateValues.label,
         ).eq("the second point");
         expect(
-            stateVariables[resolveComponentName("theThirdPoint")].stateValues
-                .label,
+            stateVariables[await resolvePathToNodeIdx("theThirdPoint")]
+                .stateValues.label,
         ).eq("the third point");
         expect(
-            stateVariables[resolveComponentName("TheFourthPoint")].stateValues
-                .label,
+            stateVariables[await resolvePathToNodeIdx("TheFourthPoint")]
+                .stateValues.label,
         ).eq("The Fourth Point");
         expect(
-            stateVariables[resolveComponentName("the-FIFTH_Point")].stateValues
-                .label,
+            stateVariables[await resolvePathToNodeIdx("the-FIFTH_Point")]
+                .stateValues.label,
         ).eq("the FIFTH Point");
         expect(
-            stateVariables[resolveComponentName("the_SiXiTH-Point")].stateValues
-                .label,
+            stateVariables[await resolvePathToNodeIdx("the_SiXiTH-Point")]
+                .stateValues.label,
         ).eq("the SiXiTH Point");
     });
 
     it("labelIsName and copies", async () => {
         // Note: we add groups just so that we can reference the children
         // inside the DoenetML
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="A" labelIsName />
@@ -604,41 +629,48 @@ describe("Label tests", async () => {
                 true,
             );
             const p4Name =
-                stateVariables[resolveComponentName("g4")].activeChildren[0]
-                    .componentIdx;
+                stateVariables[await resolvePathToNodeIdx("g4")]
+                    .activeChildren[0].componentIdx;
 
             expect(
-                stateVariables[resolveComponentName("lA")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lA")].stateValues
+                    .value,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("lB")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lB")].stateValues
+                    .value,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("lC")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lC")].stateValues
+                    .value,
             ).eq(lC);
             expect(
-                stateVariables[resolveComponentName("lp4")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lp4")].stateValues
+                    .value,
             ).eq(lA);
 
             expect(
-                stateVariables[resolveComponentName("A")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .label,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("A")].stateValues
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
                     .labelForGraph,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("B")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("B")].stateValues
+                    .label,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("B")].stateValues
+                stateVariables[await resolvePathToNodeIdx("B")].stateValues
                     .labelForGraph,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("C")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("C")].stateValues
+                    .label,
             ).eq(lC);
             expect(
-                stateVariables[resolveComponentName("C")].stateValues
+                stateVariables[await resolvePathToNodeIdx("C")].stateValues
                     .labelForGraph,
             ).eq(lC);
             expect(stateVariables[p4Name].stateValues.label).eq(lA);
@@ -652,14 +684,14 @@ describe("Label tests", async () => {
         lA = "F";
         await updateTextInputValue({
             text: lA,
-            componentIdx: resolveComponentName("tiA"),
+            componentIdx: await resolvePathToNodeIdx("tiA"),
             core,
         });
         await check_items({ lA, lC });
 
         lA = "G";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiB"),
+            componentIdx: await resolvePathToNodeIdx("tiB"),
             text: lA,
             core,
         });
@@ -667,7 +699,7 @@ describe("Label tests", async () => {
 
         lC = "I";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiC"),
+            componentIdx: await resolvePathToNodeIdx("tiC"),
             text: lC,
             core,
         });
@@ -675,7 +707,7 @@ describe("Label tests", async () => {
 
         lA = "K";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tip4"),
+            componentIdx: await resolvePathToNodeIdx("tip4"),
             text: lA,
             core,
         });
@@ -683,7 +715,7 @@ describe("Label tests", async () => {
     });
 
     it("copy and add labelIsName", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="A" />
@@ -707,23 +739,27 @@ describe("Label tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("lA")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lA")].stateValues
+                    .value,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("lB")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lB")].stateValues
+                    .value,
             ).eq(lB);
             expect(
-                stateVariables[resolveComponentName("A")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                    .label,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("A")].stateValues
+                stateVariables[await resolvePathToNodeIdx("A")].stateValues
                     .labelForGraph,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("B")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("B")].stateValues
+                    .label,
             ).eq(lB);
             expect(
-                stateVariables[resolveComponentName("B")].stateValues
+                stateVariables[await resolvePathToNodeIdx("B")].stateValues
                     .labelForGraph,
             ).eq(lB);
         }
@@ -735,14 +771,14 @@ describe("Label tests", async () => {
         lA = "F";
         await updateTextInputValue({
             text: lA,
-            componentIdx: resolveComponentName("tiA"),
+            componentIdx: await resolvePathToNodeIdx("tiA"),
             core,
         });
         await check_items({ lA, lB });
 
         lB = "G";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiB"),
+            componentIdx: await resolvePathToNodeIdx("tiB"),
             text: lB,
             core,
         });
@@ -777,7 +813,7 @@ describe("Label tests", async () => {
             `;
         }
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
 
@@ -839,43 +875,56 @@ describe("Label tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("lA")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lA")].stateValues
+                    .value,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("lB")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lB")].stateValues
+                    .value,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("lC")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lC")].stateValues
+                    .value,
             ).eq(lC);
             expect(
-                stateVariables[resolveComponentName("lD")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lD")].stateValues
+                    .value,
             ).eq(lD);
             expect(
-                stateVariables[resolveComponentName("lE")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lE")].stateValues
+                    .value,
             ).eq(lA);
             expect(
-                stateVariables[resolveComponentName("lF")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lF")].stateValues
+                    .value,
             ).eq(lF);
             expect(
-                stateVariables[resolveComponentName("lG")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lG")].stateValues
+                    .value,
             ).eq(lG);
             expect(
-                stateVariables[resolveComponentName("lH")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lH")].stateValues
+                    .value,
             ).eq(lC);
             expect(
-                stateVariables[resolveComponentName("lI")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lI")].stateValues
+                    .value,
             ).eq(lI);
             expect(
-                stateVariables[resolveComponentName("lJ")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lJ")].stateValues
+                    .value,
             ).eq(lJ);
             expect(
-                stateVariables[resolveComponentName("lK")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lK")].stateValues
+                    .value,
             ).eq(lD);
             expect(
-                stateVariables[resolveComponentName("lL")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lL")].stateValues
+                    .value,
             ).eq(lL);
             expect(
-                stateVariables[resolveComponentName("lM")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("lM")].stateValues
+                    .value,
             ).eq(lM);
         }
 
@@ -893,7 +942,7 @@ describe("Label tests", async () => {
 
         lA = "N";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiA"),
+            componentIdx: await resolvePathToNodeIdx("tiA"),
             text: lA,
             core,
         });
@@ -901,7 +950,7 @@ describe("Label tests", async () => {
 
         lA = "O";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiB"),
+            componentIdx: await resolvePathToNodeIdx("tiB"),
             text: lA,
             core,
         });
@@ -909,7 +958,7 @@ describe("Label tests", async () => {
 
         lC = "P";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiC"),
+            componentIdx: await resolvePathToNodeIdx("tiC"),
             text: lC,
             core,
         });
@@ -917,7 +966,7 @@ describe("Label tests", async () => {
 
         lD = "Q";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiD"),
+            componentIdx: await resolvePathToNodeIdx("tiD"),
             text: lD,
             core,
         });
@@ -925,7 +974,7 @@ describe("Label tests", async () => {
 
         lA = "R";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiE"),
+            componentIdx: await resolvePathToNodeIdx("tiE"),
             text: lA,
             core,
         });
@@ -933,7 +982,7 @@ describe("Label tests", async () => {
 
         lF = "S";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiF"),
+            componentIdx: await resolvePathToNodeIdx("tiF"),
             text: lF,
             core,
         });
@@ -941,7 +990,7 @@ describe("Label tests", async () => {
 
         lG = "T";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiG"),
+            componentIdx: await resolvePathToNodeIdx("tiG"),
             text: lG,
             core,
         });
@@ -949,7 +998,7 @@ describe("Label tests", async () => {
 
         lC = "U";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiH"),
+            componentIdx: await resolvePathToNodeIdx("tiH"),
             text: lC,
             core,
         });
@@ -957,7 +1006,7 @@ describe("Label tests", async () => {
 
         lI = "V";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiI"),
+            componentIdx: await resolvePathToNodeIdx("tiI"),
             text: lI,
             core,
         });
@@ -965,7 +1014,7 @@ describe("Label tests", async () => {
 
         lJ = "W";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiJ"),
+            componentIdx: await resolvePathToNodeIdx("tiJ"),
             text: lJ,
             core,
         });
@@ -973,7 +1022,7 @@ describe("Label tests", async () => {
 
         lD = "X";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiK"),
+            componentIdx: await resolvePathToNodeIdx("tiK"),
             text: lD,
             core,
         });
@@ -981,7 +1030,7 @@ describe("Label tests", async () => {
 
         lL = "Y";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiL"),
+            componentIdx: await resolvePathToNodeIdx("tiL"),
             text: lL,
             core,
         });
@@ -989,7 +1038,7 @@ describe("Label tests", async () => {
 
         lM = "Z";
         await updateTextInputValue({
-            componentIdx: resolveComponentName("tiM"),
+            componentIdx: await resolvePathToNodeIdx("tiM"),
             text: lM,
             core,
         });
@@ -1015,7 +1064,7 @@ describe("Label tests", async () => {
     });
 
     it("escape underscore and caret in labelForGraph except if math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="A" >
@@ -1049,46 +1098,52 @@ describe("Label tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("A")].stateValues.label).eq(
-            "x_1",
-        );
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.labelForGraph,
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.label,
+        ).eq("x_1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues
+                .labelForGraph,
         ).eq("x&UnderBar;1");
-        expect(stateVariables[resolveComponentName("B")].stateValues.label).eq(
-            "\\(x_1\\)",
-        );
         expect(
-            stateVariables[resolveComponentName("B")].stateValues.labelForGraph,
+            stateVariables[await resolvePathToNodeIdx("B")].stateValues.label,
         ).eq("\\(x_1\\)");
-        expect(stateVariables[resolveComponentName("C")].stateValues.label).eq(
-            "x^1",
-        );
         expect(
-            stateVariables[resolveComponentName("C")].stateValues.labelForGraph,
+            stateVariables[await resolvePathToNodeIdx("B")].stateValues
+                .labelForGraph,
+        ).eq("\\(x_1\\)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("C")].stateValues.label,
+        ).eq("x^1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("C")].stateValues
+                .labelForGraph,
         ).eq("x&Hat;1");
-        expect(stateVariables[resolveComponentName("D")].stateValues.label).eq(
-            "\\(x^1\\)",
-        );
         expect(
-            stateVariables[resolveComponentName("D")].stateValues.labelForGraph,
+            stateVariables[await resolvePathToNodeIdx("D")].stateValues.label,
         ).eq("\\(x^1\\)");
-        expect(stateVariables[resolveComponentName("E")].stateValues.label).eq(
-            "x^1 or \\(x^2\\) or x_3 or \\(x_4\\)",
-        );
         expect(
-            stateVariables[resolveComponentName("E")].stateValues.labelForGraph,
+            stateVariables[await resolvePathToNodeIdx("D")].stateValues
+                .labelForGraph,
+        ).eq("\\(x^1\\)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("E")].stateValues.label,
+        ).eq("x^1 or \\(x^2\\) or x_3 or \\(x_4\\)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("E")].stateValues
+                .labelForGraph,
         ).eq("x&Hat;1 or \\(x^2\\) or x&UnderBar;3 or \\(x_4\\)");
-        expect(stateVariables[resolveComponentName("F")].stateValues.label).eq(
-            "x_a^b or \\(x_c^d\\)",
-        );
         expect(
-            stateVariables[resolveComponentName("F")].stateValues.labelForGraph,
+            stateVariables[await resolvePathToNodeIdx("F")].stateValues.label,
+        ).eq("x_a^b or \\(x_c^d\\)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("F")].stateValues
+                .labelForGraph,
         ).eq("x&UnderBar;a&Hat;b or \\(x_c^d\\)");
     });
 
     it("props do not shadow label", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
         <line name="line" slope="1"><label>L</label></line>
@@ -1105,34 +1160,39 @@ describe("Label tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("line")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("line")].stateValues
+                .label,
         ).eq("L");
-        expect(stateVariables[resolveComponentName("l")].stateValues.label).eq(
-            "l",
-        );
-        expect(stateVariables[resolveComponentName("P1")].stateValues.label).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("P2")].stateValues.label).eq(
-            "",
-        );
         expect(
-            stateVariables[resolveComponentName("Ps34[1]")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.label,
+        ).eq("l");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues.label,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("Ps34[2]")].stateValues.label,
-        ).eq("");
-        expect(stateVariables[resolveComponentName("P5")].stateValues.label).eq(
-            "",
-        );
-        expect(stateVariables[resolveComponentName("P6")].stateValues.label).eq(
-            "",
-        );
-        expect(
-            stateVariables[resolveComponentName("Ps78[1]")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("P2")].stateValues.label,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("Ps78[2]")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("Ps34[1]")].stateValues
+                .label,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Ps34[2]")].stateValues
+                .label,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P5")].stateValues.label,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P6")].stateValues.label,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Ps78[1]")].stateValues
+                .label,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Ps78[2]")].stateValues
+                .label,
         ).eq("");
     });
 });

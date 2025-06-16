@@ -12,7 +12,7 @@ vi.mock("hyperformula");
 
 describe("Atom tests", async () => {
     it("information on atom", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <title>Information on atom</title>
 
@@ -54,97 +54,103 @@ describe("Atom tests", async () => {
             );
             const symbol = data["Symbol"];
             expect(
-                stateVariables[resolveComponentName("atom")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("atom")].stateValues
+                    .latex,
             ).eq(`\\text{${symbol}}`);
             expect(
-                stateVariables[resolveComponentName("atom")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("atom")].stateValues
+                    .text,
             ).eq(symbol);
             expect(
-                stateVariables[resolveComponentName("atom")].stateValues.math
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("atom")].stateValues
+                    .math.tree,
             ).eq(symbol);
 
             expect(
-                stateVariables[resolveComponentName("name")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("name")].stateValues
+                    .value,
             ).eq(data["Name"]);
             expect(
-                stateVariables[resolveComponentName("symbol")].stateValues
+                stateVariables[await resolvePathToNodeIdx("symbol")].stateValues
                     .value,
             ).eq(symbol);
             expect(
-                stateVariables[resolveComponentName("atomicNumber")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("atomicNumber")]
+                    .stateValues.value,
             ).eq(atomicNumber);
             expect(
-                stateVariables[resolveComponentName("group")].stateValues.value,
+                stateVariables[await resolvePathToNodeIdx("group")].stateValues
+                    .value,
             ).eqls(to_number(data["Group"]));
             expect(
-                stateVariables[resolveComponentName("groupName")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("groupName")]
+                    .stateValues.value,
             ).eq(data["Group Name"]);
             expect(
-                stateVariables[resolveComponentName("atomicMass")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("atomicMass")]
+                    .stateValues.value,
             ).eqls(to_number(data["Atomic Mass"]));
             expect(
-                stateVariables[resolveComponentName("phaseAtSTP")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("phaseAtSTP")]
+                    .stateValues.value,
             ).eq(data["Phase at STP"]);
             expect(
-                stateVariables[resolveComponentName("chargeOfCommonIon")]
+                stateVariables[await resolvePathToNodeIdx("chargeOfCommonIon")]
                     .stateValues.value,
             ).eqls(to_number(data["Charge of Common Ion"]));
             expect(
-                stateVariables[resolveComponentName("metalCategory")]
+                stateVariables[await resolvePathToNodeIdx("metalCategory")]
                     .stateValues.value,
             ).eq(data["Metal/Nonmetal/Metalloid"]);
             expect(
-                stateVariables[resolveComponentName("period")].stateValues
+                stateVariables[await resolvePathToNodeIdx("period")].stateValues
                     .value,
             ).eqls(to_number(data["Period"]));
             expect(
-                stateVariables[resolveComponentName("ionizationEnergy")]
+                stateVariables[await resolvePathToNodeIdx("ionizationEnergy")]
                     .stateValues.value,
             ).eqls(to_number(data["Ionization Energy"]));
             expect(
-                stateVariables[resolveComponentName("period")].stateValues
+                stateVariables[await resolvePathToNodeIdx("period")].stateValues
                     .value,
             ).eqls(to_number(data["Period"]));
             expect(
-                stateVariables[resolveComponentName("meltingPoint")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("meltingPoint")]
+                    .stateValues.value,
             ).eqls(to_number(data["Melting Point"]));
             expect(
-                stateVariables[resolveComponentName("boilingPoint")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("boilingPoint")]
+                    .stateValues.value,
             ).eqls(to_number(data["Boiling Point"]));
             expect(
-                stateVariables[resolveComponentName("atomicRadius")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("atomicRadius")]
+                    .stateValues.value,
             ).eqls(to_number(data["Atomic Radius"]));
             expect(
-                stateVariables[resolveComponentName("density")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("density")]
+                    .stateValues.value,
             ).eqls(to_number(data["Density"]));
             expect(
-                stateVariables[resolveComponentName("electronegativity")]
+                stateVariables[await resolvePathToNodeIdx("electronegativity")]
                     .stateValues.value,
             ).eqls(to_number(data["Electronegativity"]));
             let eConfig = data["Electron Configuration"];
             expect(
-                stateVariables[resolveComponentName("electronConfiguration")]
-                    .stateValues.value.tree,
+                stateVariables[
+                    await resolvePathToNodeIdx("electronConfiguration")
+                ].stateValues.value.tree,
             ).eqls(me.fromText(eConfig).tree);
             expect(
                 stateVariables[
-                    resolveComponentName("electronConfiguration")
+                    await resolvePathToNodeIdx("electronConfiguration")
                 ].stateValues.latex
                     .replaceAll(" ", "")
                     .replaceAll("~", " "),
             ).eq(eConfig.replaceAll(/\^(\d+)/g, "^{$1}"));
             expect(
-                stateVariables[resolveComponentName("electronConfiguration")]
-                    .stateValues.text,
+                stateVariables[
+                    await resolvePathToNodeIdx("electronConfiguration")
+                ].stateValues.text,
             ).eq(superSubscriptsToUnicode(eConfig));
         }
 
@@ -154,7 +160,7 @@ describe("Atom tests", async () => {
         aNum = 2;
         await updateMathInputValue({
             latex: `${aNum}`,
-            componentIdx: resolveComponentName("aNum"),
+            componentIdx: await resolvePathToNodeIdx("aNum"),
             core,
         });
         await check_atom(aNum);
@@ -162,7 +168,7 @@ describe("Atom tests", async () => {
         aNum = 12;
         await updateMathInputValue({
             latex: `${aNum}`,
-            componentIdx: resolveComponentName("aNum"),
+            componentIdx: await resolvePathToNodeIdx("aNum"),
             core,
         });
         await check_atom(aNum);
@@ -170,14 +176,14 @@ describe("Atom tests", async () => {
         aNum = 52;
         await updateMathInputValue({
             latex: `${aNum}`,
-            componentIdx: resolveComponentName("aNum"),
+            componentIdx: await resolvePathToNodeIdx("aNum"),
             core,
         });
         await check_atom(aNum);
     });
 
     it("sort atoms", async () => {
-        const { core, resolveComponentName } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Originals: <group name="original" asList>
     <atom symbol="C" />
@@ -193,14 +199,14 @@ describe("Atom tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("pAn")].stateValues.text).eq(
-            "Sort by atomic number: He, C, O, As",
-        );
-        expect(stateVariables[resolveComponentName("pAr")].stateValues.text).eq(
-            "Sort by atomic radius: He, O, C, As",
-        );
-        expect(stateVariables[resolveComponentName("pIe")].stateValues.text).eq(
-            "Sort by ionization energy: As, C, O, He",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pAn")].stateValues.text,
+        ).eq("Sort by atomic number: He, C, O, As");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pAr")].stateValues.text,
+        ).eq("Sort by atomic radius: He, O, C, As");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pIe")].stateValues.text,
+        ).eq("Sort by ionization energy: As, C, O, He");
     });
 });

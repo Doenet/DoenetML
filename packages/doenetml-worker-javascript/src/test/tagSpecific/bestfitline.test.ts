@@ -9,7 +9,7 @@ vi.mock("hyperformula");
 
 describe("BestFitLine tag tests", async () => {
     it("fit line to 4 points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <setup>
         <collect name="ps" componentType="point" from="$g" />
@@ -33,34 +33,36 @@ describe("BestFitLine tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let eqTree = me.fromText("y=-0.5x+4.5").simplify().tree;
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls(eqTree);
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls(eqTree);
 
         // move points
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: -5,
             y: -8,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: 3,
             y: 5,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P3"),
+            componentIdx: await resolvePathToNodeIdx("P3"),
             x: -5,
             y: -10,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P4"),
+            componentIdx: await resolvePathToNodeIdx("P4"),
             x: 3,
             y: 9,
             core,
@@ -69,15 +71,17 @@ describe("BestFitLine tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         eqTree = me.fromText("y=2x+1").simplify().tree;
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls(eqTree);
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls(eqTree);
     });
 
     it("no arguments", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       
       <graph name="g">
@@ -90,15 +94,17 @@ describe("BestFitLine tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls("＿");
     });
 
     it("fit line to 0 points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <setup>
         <collect name="ps" componentType="point" from="$g" />
@@ -114,15 +120,17 @@ describe("BestFitLine tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls("＿");
     });
 
     it("fit line to 1 point", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <setup>
         <collect name="ps" componentType="point" from="$g" />
@@ -139,15 +147,17 @@ describe("BestFitLine tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls(["=", "y", 4]);
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls(["=", "y", 4]);
 
         // move point
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: -5,
             y: -8,
             core,
@@ -155,15 +165,17 @@ describe("BestFitLine tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls(["=", "y", -8]);
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls(["=", "y", -8]);
     });
 
     it("fit line to 2 points, change variables", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <setup>
         <collect name="ps" componentType="point" from="$g" />
@@ -182,15 +194,17 @@ describe("BestFitLine tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let eqTree = me.fromText("z=0.5t+2.5").simplify().tree;
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls(eqTree);
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls(eqTree);
 
         // move points to be vertical
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: -5,
             y: -8,
             core,
@@ -199,15 +213,17 @@ describe("BestFitLine tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         eqTree = me.fromText("z=-4").tree;
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls(eqTree);
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls(eqTree);
 
         // move points
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: -4,
             y: -6,
             core,
@@ -215,15 +231,17 @@ describe("BestFitLine tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         eqTree = me.fromText("z=2t+2").simplify().tree;
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls(eqTree);
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls(eqTree);
     });
 
     it("fit line to points of different dimensions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <setup>
         <collect name="ps" componentType="point" from="$g" />
@@ -246,34 +264,36 @@ describe("BestFitLine tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let eqTree = me.fromText("y=-0.5x+4.5").simplify().tree;
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls(eqTree);
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls(eqTree);
 
         // move points
 
         await movePoint({
-            componentIdx: resolveComponentName("P1"),
+            componentIdx: await resolvePathToNodeIdx("P1"),
             x: -5,
             y: -8,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: 3,
             y: 5,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P3"),
+            componentIdx: await resolvePathToNodeIdx("P3"),
             x: -5,
             y: -10,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P4"),
+            componentIdx: await resolvePathToNodeIdx("P4"),
             x: 3,
             y: 9,
             core,
@@ -282,15 +302,17 @@ describe("BestFitLine tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         eqTree = me.fromText("y=2x+1").simplify().tree;
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls(eqTree);
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls(eqTree);
     });
 
     it("fit line to 4 points, ignore non-numerical points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <setup>
         <collect name="ps" componentType="point" from="$g" />
@@ -317,34 +339,36 @@ describe("BestFitLine tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let eqTree = me.fromText("y=-0.5x+4.5").simplify().tree;
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls(eqTree);
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls(eqTree);
 
         // move points
 
         await movePoint({
-            componentIdx: resolveComponentName("P2"),
+            componentIdx: await resolvePathToNodeIdx("P2"),
             x: -5,
             y: -8,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P4"),
+            componentIdx: await resolvePathToNodeIdx("P4"),
             x: 3,
             y: 5,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P6"),
+            componentIdx: await resolvePathToNodeIdx("P6"),
             x: -5,
             y: -10,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("P8"),
+            componentIdx: await resolvePathToNodeIdx("P8"),
             x: 3,
             y: 9,
             core,
@@ -353,15 +377,17 @@ describe("BestFitLine tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         eqTree = me.fromText("y=2x+1").simplify().tree;
         expect(
-            stateVariables[resolveComponentName("l")].stateValues.equation.tree,
+            stateVariables[await resolvePathToNodeIdx("l")].stateValues.equation
+                .tree,
         ).eqls(eqTree);
         expect(
-            stateVariables[resolveComponentName("eq")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.value
+                .tree,
         ).eqls(eqTree);
     });
 
     it("rounding", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <setup>
         <collect name="ps" componentType="point" from="$g" />
@@ -387,19 +413,20 @@ describe("BestFitLine tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("eq")].stateValues.text).eq(
-            "y = -0.519 x + 5.21",
-        );
         expect(
-            stateVariables[resolveComponentName("data")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("eq")].stateValues.text,
+        ).eq("y = -0.519 x + 5.21");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("data")].stateValues.text,
         ).eq(
             "data: ( 1.23, 2.35 ), ( 1.23, 6.79 ), ( 7.89, 3.46 ), ( 7.89, -1.23 )",
         );
-        expect(stateVariables[resolveComponentName("eq2")].stateValues.text).eq(
-            "y = -0.51922 x + 5.2084",
-        );
         expect(
-            stateVariables[resolveComponentName("data2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("eq2")].stateValues.text,
+        ).eq("y = -0.51922 x + 5.2084");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("data2")].stateValues
+                .text,
         ).eq(
             "data2: ( 1.2346, 2.3457 ), ( 1.2346, 6.7891 ), ( 7.8912, 3.4568 ), ( 7.8912, -1.2346 )",
         );

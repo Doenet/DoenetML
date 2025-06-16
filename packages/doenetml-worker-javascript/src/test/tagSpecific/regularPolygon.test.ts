@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     movePoint,
     movePolygon,
@@ -21,7 +21,7 @@ async function setupRegularPolygonScene({
         .map((attr) => `${attr} = "${attributes[attr]}"`)
         .join(" ");
 
-    let { core, resolveComponentName } = await createTestCore({
+    let { core, resolvePathToNodeIdx } = await createTestCore({
         doenetML:
             `
   <graph name="g1">
@@ -60,12 +60,12 @@ async function setupRegularPolygonScene({
   `,
     });
 
-    return { core, resolveComponentName };
+    return { core, resolvePathToNodeIdx };
 }
 
 async function runRegularPolygonTests({
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     center,
     vertex1,
     numVertices,
@@ -73,7 +73,7 @@ async function runRegularPolygonTests({
     abbreviated = false,
 }: {
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     center: number[];
     vertex1: number[];
     numVertices: number;
@@ -107,7 +107,7 @@ async function runRegularPolygonTests({
         inputs,
         { numVertices, vertex1, center },
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     );
 
     // move vertices individually
@@ -118,7 +118,7 @@ async function runRegularPolygonTests({
         let vertex = [index, index + 1];
 
         await movePolygon({
-            componentIdx: resolveComponentName(polygonName),
+            componentIdx: await resolvePathToNodeIdx(polygonName),
             pointCoords: { [index]: vertex },
             core,
         });
@@ -141,7 +141,7 @@ async function runRegularPolygonTests({
             inputs,
             { numVertices, vertex1, center },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     }
 
@@ -153,7 +153,7 @@ async function runRegularPolygonTests({
             dy = -2;
 
         let currentVertices = stateVariables[
-            resolveComponentName(polygonName)
+            await resolvePathToNodeIdx(polygonName)
         ].stateValues.vertices.map((v) => v.map((x) => x.tree));
         let pointCoords = {};
 
@@ -168,7 +168,7 @@ async function runRegularPolygonTests({
         center = [center[0] + dx, center[1] + dy];
 
         await movePolygon({
-            componentIdx: resolveComponentName(polygonName),
+            componentIdx: await resolvePathToNodeIdx(polygonName),
             pointCoords,
             core,
         });
@@ -176,7 +176,7 @@ async function runRegularPolygonTests({
             inputs,
             { numVertices, vertex1, center },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         // move center point
@@ -184,7 +184,7 @@ async function runRegularPolygonTests({
         center = [0, 0];
 
         await movePoint({
-            componentIdx: resolveComponentName(centerPointName),
+            componentIdx: await resolvePathToNodeIdx(centerPointName),
             x: center[0],
             y: center[1],
             core,
@@ -194,7 +194,7 @@ async function runRegularPolygonTests({
             inputs,
             { numVertices, vertex1, center },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         // move copied vertices
@@ -203,7 +203,7 @@ async function runRegularPolygonTests({
             let vertex = [index / 2 + 3, -1.5 * index];
 
             await movePoint({
-                componentIdx: resolveComponentName(allVertexNames[index]),
+                componentIdx: await resolvePathToNodeIdx(allVertexNames[index]),
                 x: vertex[0],
                 y: vertex[1],
                 core,
@@ -235,7 +235,7 @@ async function runRegularPolygonTests({
                     center,
                 },
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             );
         }
 
@@ -246,7 +246,7 @@ async function runRegularPolygonTests({
             let vertex = [-index - 1, 2 * index];
 
             await movePolygon({
-                componentIdx: resolveComponentName(polygonCopyName),
+                componentIdx: await resolvePathToNodeIdx(polygonCopyName),
                 pointCoords: { [index]: vertex },
                 core,
             });
@@ -273,7 +273,7 @@ async function runRegularPolygonTests({
                 inputs,
                 { numVertices, vertex1, center },
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             );
         }
     }
@@ -285,7 +285,7 @@ async function runRegularPolygonTests({
         dy = -4;
 
     let currentVertices = stateVariables[
-        resolveComponentName(polygonCopyName)
+        await resolvePathToNodeIdx(polygonCopyName)
     ].stateValues.vertices.map((v) => v.map((x) => x.tree));
     let pointCoords = {};
 
@@ -300,7 +300,7 @@ async function runRegularPolygonTests({
     center = [center[0] + dx, center[1] + dy];
 
     await movePolygon({
-        componentIdx: resolveComponentName(polygonCopyName),
+        componentIdx: await resolvePathToNodeIdx(polygonCopyName),
         pointCoords,
         core,
     });
@@ -308,7 +308,7 @@ async function runRegularPolygonTests({
         inputs,
         { numVertices, vertex1, center },
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     );
 
     if (!abbreviated) {
@@ -318,7 +318,7 @@ async function runRegularPolygonTests({
             let vertex = [-2 * index - 1, index + 4];
 
             await movePolygon({
-                componentIdx: resolveComponentName(polygonCopy2Name),
+                componentIdx: await resolvePathToNodeIdx(polygonCopy2Name),
                 pointCoords: { [index]: vertex },
                 core,
             });
@@ -345,7 +345,7 @@ async function runRegularPolygonTests({
                 inputs,
                 { numVertices, vertex1, center },
                 core,
-                resolveComponentName,
+                resolvePathToNodeIdx,
             );
         }
 
@@ -355,7 +355,7 @@ async function runRegularPolygonTests({
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let currentVertices = stateVariables[
-            resolveComponentName(polygonCopyName)
+            await resolvePathToNodeIdx(polygonCopyName)
         ].stateValues.vertices.map((v) => v.map((x) => x.tree));
         let pointCoords = {};
 
@@ -370,7 +370,7 @@ async function runRegularPolygonTests({
         center = [center[0] + dx, center[1] + dy];
 
         await movePolygon({
-            componentIdx: resolveComponentName(polygonCopy2Name),
+            componentIdx: await resolvePathToNodeIdx(polygonCopy2Name),
             pointCoords,
             core,
         });
@@ -378,21 +378,21 @@ async function runRegularPolygonTests({
             inputs,
             { numVertices, vertex1, center },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     }
 
     // Change circumradius
     stateVariables = await core.returnAllStateVariables(false, true);
     let oldCr =
-        stateVariables[resolveComponentName(polygonName)].stateValues
+        stateVariables[await resolvePathToNodeIdx(polygonName)].stateValues
             .circumradius;
 
     let circumradius = 1;
 
     await updateMathInputValue({
         latex: `${circumradius}`,
-        componentIdx: resolveComponentName("micr"),
+        componentIdx: await resolvePathToNodeIdx("micr"),
         core,
     });
 
@@ -405,7 +405,7 @@ async function runRegularPolygonTests({
         inputs,
         { numVertices, vertex1, center },
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     );
 
     if (!abbreviated) {
@@ -413,14 +413,14 @@ async function runRegularPolygonTests({
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let oldR =
-            stateVariables[resolveComponentName(polygonName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(polygonName)].stateValues
                 .circumradius;
 
         let radius = 3;
 
         await updateMathInputValue({
             latex: `${radius}`,
-            componentIdx: resolveComponentName("mir"),
+            componentIdx: await resolvePathToNodeIdx("mir"),
             core,
         });
 
@@ -433,20 +433,20 @@ async function runRegularPolygonTests({
             inputs,
             { numVertices, vertex1, center },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         // Change inradius
         stateVariables = await core.returnAllStateVariables(false, true);
         let oldIr =
-            stateVariables[resolveComponentName(polygonName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(polygonName)].stateValues
                 .inradius;
 
         let inradius = 5;
 
         await updateMathInputValue({
             latex: `${inradius}`,
-            componentIdx: resolveComponentName("miir"),
+            componentIdx: await resolvePathToNodeIdx("miir"),
             core,
         });
 
@@ -463,20 +463,20 @@ async function runRegularPolygonTests({
                 center,
             },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         // Change apothem
         stateVariables = await core.returnAllStateVariables(false, true);
         let oldAp =
-            stateVariables[resolveComponentName(polygonName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(polygonName)].stateValues
                 .inradius;
 
         let apothem = 4;
 
         await updateMathInputValue({
             latex: `${apothem}`,
-            componentIdx: resolveComponentName("miap"),
+            componentIdx: await resolvePathToNodeIdx("miap"),
             core,
         });
 
@@ -489,20 +489,20 @@ async function runRegularPolygonTests({
             inputs,
             { numVertices, vertex1, center },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         // Change sideLength
         stateVariables = await core.returnAllStateVariables(false, true);
         let oldSl =
-            stateVariables[resolveComponentName(polygonName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(polygonName)].stateValues
                 .sideLength;
 
         let sideLength = 2;
 
         await updateMathInputValue({
             latex: `${sideLength}`,
-            componentIdx: resolveComponentName("misl"),
+            componentIdx: await resolvePathToNodeIdx("misl"),
             core,
         });
 
@@ -515,20 +515,20 @@ async function runRegularPolygonTests({
             inputs,
             { numVertices, vertex1, center },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         // Change perimeter
         stateVariables = await core.returnAllStateVariables(false, true);
         oldSl =
-            stateVariables[resolveComponentName(polygonName)].stateValues
+            stateVariables[await resolvePathToNodeIdx(polygonName)].stateValues
                 .perimeter;
 
         let perimeter = 9;
 
         await updateMathInputValue({
             latex: `${perimeter}`,
-            componentIdx: resolveComponentName("mip"),
+            componentIdx: await resolvePathToNodeIdx("mip"),
             core,
         });
 
@@ -541,19 +541,20 @@ async function runRegularPolygonTests({
             inputs,
             { numVertices, vertex1, center },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
 
         // Change area
         stateVariables = await core.returnAllStateVariables(false, true);
         let oldAr =
-            stateVariables[resolveComponentName(polygonName)].stateValues.area;
+            stateVariables[await resolvePathToNodeIdx(polygonName)].stateValues
+                .area;
 
         let area = 13;
 
         await updateMathInputValue({
             latex: `${area}`,
-            componentIdx: resolveComponentName("miar"),
+            componentIdx: await resolvePathToNodeIdx("miar"),
             core,
         });
 
@@ -566,7 +567,7 @@ async function runRegularPolygonTests({
             inputs,
             { numVertices, vertex1, center },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     }
 
@@ -586,7 +587,7 @@ async function runRegularPolygonTests({
 
     await updateMathInputValue({
         latex: `${numVertices}`,
-        componentIdx: resolveComponentName("minv"),
+        componentIdx: await resolvePathToNodeIdx("minv"),
         core,
     });
 
@@ -596,7 +597,7 @@ async function runRegularPolygonTests({
         inputs,
         { numVertices, vertex1, center },
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     );
 
     if (!abbreviated) {
@@ -616,7 +617,7 @@ async function runRegularPolygonTests({
 
         await updateMathInputValue({
             latex: `${numVertices}`,
-            componentIdx: resolveComponentName("mins"),
+            componentIdx: await resolvePathToNodeIdx("mins"),
             core,
         });
 
@@ -630,7 +631,7 @@ async function runRegularPolygonTests({
                 center,
             },
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     }
 }
@@ -727,7 +728,7 @@ async function checkPolygonValues(
         vertex1,
     }: { numVertices: number; center: number[]; vertex1: number[] },
     core: PublicDoenetMLCore,
-    resolveComponentName: ResolveComponentName,
+    resolvePathToNodeIdx: ResolvePathToNodeIdx,
 ) {
     let vertexCoords = [vertex1];
 
@@ -758,7 +759,7 @@ async function checkPolygonValues(
     const stateVariables = await core.returnAllStateVariables(false, true);
 
     for (let polygonName of polygonNames) {
-        let polygon = stateVariables[resolveComponentName(polygonName)];
+        let polygon = stateVariables[await resolvePathToNodeIdx(polygonName)];
         for (let i = 0; i < numVertices; i++) {
             expect(polygon.stateValues.vertices[i][0].tree).closeTo(
                 vertexCoords[i][0],
@@ -801,7 +802,7 @@ async function checkPolygonValues(
 
     if (vertexNames) {
         for (let [i, vertexName] of vertexNames.entries()) {
-            let vertex = stateVariables[resolveComponentName(vertexName)];
+            let vertex = stateVariables[await resolvePathToNodeIdx(vertexName)];
             expect(vertex.stateValues.xs[0].tree).closeTo(
                 vertexCoords[i][0],
                 1e-13 * Math.abs(vertexCoords[i][0]) + 1e-13,
@@ -814,7 +815,8 @@ async function checkPolygonValues(
     }
 
     if (centerPointName) {
-        let centerPoint = stateVariables[resolveComponentName(centerPointName)];
+        let centerPoint =
+            stateVariables[await resolvePathToNodeIdx(centerPointName)];
         expect(centerPoint.stateValues.xs[0].tree).closeTo(
             center[0],
             1e-13 * Math.abs(center[0]) + 1e-13,
@@ -828,13 +830,13 @@ async function checkPolygonValues(
 
 describe("Regular Polygon  tag tests", async () => {
     it("regular polygon with no parameters (gives triangle)", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {},
         });
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [1, 0],
             center: [0, 0],
@@ -843,7 +845,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify area for square", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "4",
                 area: "100",
@@ -852,7 +854,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 4,
             vertex1: [Math.sqrt(2) * 5, 0],
             center: [0, 0],
@@ -861,7 +863,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify sidelength, center for pentagon", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numSides: "5",
                 sideLength: "2",
@@ -871,7 +873,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 5,
             vertex1: [4 + 2 / (2 * Math.sin(Math.PI / 5)), 2],
             center: [4, 2],
@@ -880,7 +882,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify inRadius, center for hexagon", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "6",
                 inRadius: "3",
@@ -890,7 +892,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 6,
             vertex1: [-2 + 3 / Math.cos(Math.PI / 6), 5],
             center: [-2, 5],
@@ -899,7 +901,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify apothem for heptagon", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numSides: "7",
                 apothem: "4",
@@ -908,7 +910,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 7,
             vertex1: [0 + 4 / Math.cos(Math.PI / 7), 0],
             center: [0, 0],
@@ -918,7 +920,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify perimeter, center for octagon", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "8",
                 perimeter: "20",
@@ -928,7 +930,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 8,
             vertex1: [-4 + 20 / 8 / (2 * Math.sin(Math.PI / 8)), 7],
             center: [-4, 7],
@@ -938,7 +940,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify circumradius, center for triangle", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numSides: "3",
                 circumradius: "6",
@@ -948,7 +950,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [-5 + 6, 8],
             center: [-5, 8],
@@ -957,7 +959,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify radius for square", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "4",
                 radius: "7",
@@ -967,7 +969,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 4,
             vertex1: [-6 + 7, -2],
             center: [-6, -2],
@@ -977,7 +979,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify center for pentagon", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "5",
                 center: "(-5,-3)",
@@ -986,7 +988,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 5,
             vertex1: [-5 + 1, -3],
             center: [-5, -3],
@@ -995,7 +997,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify one vertex for square", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "4",
                 vertices: "(2,-5)",
@@ -1004,7 +1006,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 4,
             vertex1: [2, -5],
             center: [1, -5],
@@ -1013,7 +1015,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify two vertices for pentagon", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "5",
                 vertices: "(2,-5) (5,1)",
@@ -1045,7 +1047,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices,
             vertex1,
             center,
@@ -1054,7 +1056,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify center and one vertex for triangle", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 vertices: "(2,-5)",
@@ -1064,7 +1066,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [2, -5],
             center: [-1, -3],
@@ -1073,7 +1075,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify center and two vertices for triangle, ignore second vertex", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 vertices: "(2,-5) (10,12)",
@@ -1083,7 +1085,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [2, -5],
             center: [-1, -3],
@@ -1093,7 +1095,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify center and vertex for triangle, ignore all size attributes", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 vertices: "(2,-5)",
@@ -1108,7 +1110,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [2, -5],
             center: [-1, -3],
@@ -1118,7 +1120,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify center and circumradius for triangle, ignore all other size attributes", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 center: "(-1,-3)",
@@ -1132,7 +1134,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [10, -3],
             center: [-1, -3],
@@ -1142,7 +1144,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify vertex and circumradius for triangle, ignore all other size attributes", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 vertices: "(2,-5)",
@@ -1156,7 +1158,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [2, -5],
             center: [-9, -5],
@@ -1166,7 +1168,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify two vertices for triangle, ingnore all size attributes", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 vertices: "(2,-5) (5,1)",
@@ -1203,7 +1205,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices,
             vertex1,
             center,
@@ -1213,7 +1215,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify circumradius for triangle, ignore all other size attributes", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 circumradius: "11",
@@ -1226,7 +1228,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [11, 0],
             center: [0, 0],
@@ -1236,7 +1238,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify radius for triangle, ignore all other size attributes", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 radius: "11",
@@ -1249,7 +1251,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [11, 0],
             center: [0, 0],
@@ -1259,7 +1261,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify inradius for triangle, ignore all other size attributes", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 inradius: "3",
@@ -1271,7 +1273,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [3 / Math.cos(Math.PI / 3), 0],
             center: [0, 0],
@@ -1281,7 +1283,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify center and apothem for triangle, ignore all other size attributes", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 center: "(-1,-3)",
@@ -1294,7 +1296,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [-1 + 3 / Math.cos(Math.PI / 3), -3],
             center: [-1, -3],
@@ -1304,7 +1306,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify sideLength for triangle, ignore all other size attributes", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 sideLength: "5",
@@ -1315,7 +1317,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [5 / (2 * Math.sin(Math.PI / 3)), 0],
             center: [0, 0],
@@ -1325,7 +1327,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify center and perimeter for triangle, ignore area", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 center: "(-1,-3)",
@@ -1336,7 +1338,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 3,
             vertex1: [-1 + 10 / (3 * 2 * Math.sin(Math.PI / 3)), -3],
             center: [-1, -3],
@@ -1346,7 +1348,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("specify numVertices, ignore numSides", async () => {
-        let { core, resolveComponentName } = await setupRegularPolygonScene({
+        let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "4",
                 numSides: "6",
@@ -1356,7 +1358,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         await runRegularPolygonTests({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             numVertices: 4,
             vertex1: [5, 1],
             center: [4, 1],
@@ -1366,7 +1368,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("draggable, vertices draggable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <regularPolygon vertices="(1,3) (5,7)" name="p" draggable="$draggable" verticesDraggable="$verticesDraggable" />
@@ -1388,16 +1390,17 @@ describe("Regular Polygon  tag tests", async () => {
             for (let ind in vertices) {
                 for (let dim = 0; dim < 2; dim++) {
                     expect(
-                        stateVariables[resolveComponentName("p")].stateValues
-                            .vertices[ind][dim].tree,
+                        stateVariables[await resolvePathToNodeIdx("p")]
+                            .stateValues.vertices[ind][dim].tree,
                     ).closeTo(vertices[ind][dim], 1e-13);
                 }
             }
             expect(
-                stateVariables[resolveComponentName("p")].stateValues.draggable,
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .draggable,
             ).eq(draggable);
             expect(
-                stateVariables[resolveComponentName("p")].stateValues
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
                     .verticesDraggable,
             ).eq(verticesDraggable);
         }
@@ -1413,7 +1416,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         // cannot move single vertex
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 0: [4, 7] },
             core,
         });
@@ -1421,7 +1424,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         // cannot move all vertices
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [4, 7],
                 [8, 10],
@@ -1435,14 +1438,14 @@ describe("Regular Polygon  tag tests", async () => {
         verticesDraggable = true;
         await updateBooleanInputValue({
             boolean: verticesDraggable,
-            componentIdx: resolveComponentName("verticesDraggable"),
+            componentIdx: await resolvePathToNodeIdx("verticesDraggable"),
             core,
         });
 
         // can move single vertex
         vertices = { 0: [4, 7] };
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: vertices,
             core,
         });
@@ -1450,7 +1453,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         // cannot move all vertices
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: [
                 [3, 8],
                 [8, 10],
@@ -1464,14 +1467,14 @@ describe("Regular Polygon  tag tests", async () => {
         draggable = true;
         await updateBooleanInputValue({
             boolean: draggable,
-            componentIdx: resolveComponentName("draggable"),
+            componentIdx: await resolvePathToNodeIdx("draggable"),
             core,
         });
 
         // can move single vertex
         vertices = { 1: [-3, 2] };
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: vertices,
             core,
         });
@@ -1480,7 +1483,7 @@ describe("Regular Polygon  tag tests", async () => {
         // can move all vertices
         let stateVariables = await core.returnAllStateVariables(false, true);
         vertices = stateVariables[
-            resolveComponentName("p")
+            await resolvePathToNodeIdx("p")
         ].stateValues.vertices.map((v) => v.map((x) => x.tree)) as number[][];
 
         let dx = 4;
@@ -1488,7 +1491,7 @@ describe("Regular Polygon  tag tests", async () => {
         vertices = vertices.map((vertex) => [vertex[0] + dx, vertex[1] + dy]);
 
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: vertices,
             core,
         });
@@ -1498,13 +1501,13 @@ describe("Regular Polygon  tag tests", async () => {
         verticesDraggable = false;
         await updateBooleanInputValue({
             boolean: verticesDraggable,
-            componentIdx: resolveComponentName("verticesDraggable"),
+            componentIdx: await resolvePathToNodeIdx("verticesDraggable"),
             core,
         });
 
         // cannot move single vertex
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: { 0: [9, 3] },
             core,
         });
@@ -1516,7 +1519,7 @@ describe("Regular Polygon  tag tests", async () => {
         vertices = vertices.map((vertex) => [vertex[0] + dx, vertex[1] + dy]);
 
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords: vertices,
             core,
         });
@@ -1524,7 +1527,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("two vertices, first vertex constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">(1,3)
@@ -1541,14 +1544,14 @@ describe("Regular Polygon  tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
             ),
         ).eqls([0, 4]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
             ),
@@ -1556,7 +1559,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         // move pentagon
         let numericalVertices =
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .numericalVertices;
 
         let dx = -7;
@@ -1565,7 +1568,7 @@ describe("Regular Polygon  tag tests", async () => {
         let pointCoords = numericalVertices.map((v) => [v[0] + dx, v[1] + dy]);
 
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords,
             core,
         });
@@ -1573,14 +1576,14 @@ describe("Regular Polygon  tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
             ),
         ).eqls([-6, 0]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
             ),
@@ -1588,7 +1591,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("two vertices, second vertex constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">(1,3)
@@ -1605,14 +1608,14 @@ describe("Regular Polygon  tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
             ),
         ).eqls([6, 5]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
             ),
@@ -1620,7 +1623,7 @@ describe("Regular Polygon  tag tests", async () => {
 
         // move pentagon
         let numericalVertices =
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .numericalVertices;
 
         let dx = -7;
@@ -1629,7 +1632,7 @@ describe("Regular Polygon  tag tests", async () => {
         let pointCoords = numericalVertices.map((v) => [v[0] + dx, v[1] + dy]);
 
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords,
             core,
         });
@@ -1637,14 +1640,14 @@ describe("Regular Polygon  tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13 + 0, // to convert -0 to 0
             ),
         ).eqls([0, 1]);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[1].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13 + 0, // to convert -0 to 0
             ),
@@ -1652,7 +1655,7 @@ describe("Regular Polygon  tag tests", async () => {
     });
 
     it("center and vertex, vertex constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">(1,3)
@@ -1669,21 +1672,21 @@ describe("Regular Polygon  tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
             ),
         ).eqls([0, 4]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.center.map(
-                (v) => Math.round(v.tree * 1e13) / 1e13,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("p")
+            ].stateValues.center.map((v) => Math.round(v.tree * 1e13) / 1e13),
         ).eqls([6, 5]);
 
         // move pentagon
 
         let numericalVertices =
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .numericalVertices;
 
         let dx = -7;
@@ -1692,7 +1695,7 @@ describe("Regular Polygon  tag tests", async () => {
         let pointCoords = numericalVertices.map((v) => [v[0] + dx, v[1] + dy]);
 
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords,
             core,
         });
@@ -1700,20 +1703,20 @@ describe("Regular Polygon  tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
             ),
         ).eqls([-6, 0]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.center.map(
-                (v) => Math.round(v.tree * 1e13) / 1e13,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("p")
+            ].stateValues.center.map((v) => Math.round(v.tree * 1e13) / 1e13),
         ).eqls([0, 1]);
     });
 
     it("center and vertex, center constrained to grid", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <point name="P">(1,3)</point>
@@ -1730,21 +1733,21 @@ describe("Regular Polygon  tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
             ),
         ).eqls([1, 3]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.center.map(
-                (v) => Math.round(v.tree * 1e13) / 1e13,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("p")
+            ].stateValues.center.map((v) => Math.round(v.tree * 1e13) / 1e13),
         ).eqls([6, 6]);
 
         // move pentagon
 
         let numericalVertices =
-            stateVariables[resolveComponentName("p")].stateValues
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .numericalVertices;
 
         let dx = -7;
@@ -1753,7 +1756,7 @@ describe("Regular Polygon  tag tests", async () => {
         let pointCoords = numericalVertices.map((v) => [v[0] + dx, v[1] + dy]);
 
         await movePolygon({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             pointCoords,
             core,
         });
@@ -1761,15 +1764,15 @@ describe("Regular Polygon  tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[
-                resolveComponentName("p")
+                await resolvePathToNodeIdx("p")
             ].stateValues.vertices[0].map(
                 (v) => Math.round(v.tree * 1e13) / 1e13,
             ),
         ).eqls([-5, -1]);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.center.map(
-                (v) => Math.round(v.tree * 1e13) / 1e13,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("p")
+            ].stateValues.center.map((v) => Math.round(v.tree * 1e13) / 1e13),
         ).eqls([0, 2]);
     });
 });

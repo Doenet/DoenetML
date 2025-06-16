@@ -35,7 +35,7 @@ async function closeSolution({
 
 describe("Solution tag tests", async () => {
     it("solution isn't created before opening", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <solution name="sol">
     <p name="solutionText">This is the text of the solution.</p>
@@ -43,22 +43,22 @@ describe("Solution tag tests", async () => {
   `,
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("solutionText")]).be
+        expect(stateVariables[await resolvePathToNodeIdx("solutionText")]).be
             .undefined;
 
         await revealSolution({
-            componentIdx: resolveComponentName("sol"),
+            componentIdx: await resolvePathToNodeIdx("sol"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solutionText")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("solutionText")]
+                .stateValues.text,
         ).eq("This is the text of the solution.");
     });
 
     it("Can open solution in read only mode", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <solution name="solution1">
         <title name="title">Hello</title>
@@ -71,29 +71,32 @@ describe("Solution tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("title")]).be.undefined;
-        expect(stateVariables[resolveComponentName("p")]).be.undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("title")]).be
+            .undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("p")]).be.undefined;
         expect(
-            stateVariables[resolveComponentName("ti")].stateValues.disabled,
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .disabled,
         ).eq(true);
 
         await revealSolution({
-            componentIdx: resolveComponentName("solution1"),
+            componentIdx: await resolvePathToNodeIdx("solution1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("title")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("title")].stateValues
+                .text,
         ).eq("Hello");
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Content",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Content");
     });
 
     it("empty solution", async () => {
         // an empty solution was creating an infinite loop
         // as the zero replacements were always treated as uninitialized
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <solution name="sol" />
   <boolean name="solOpen" extend="$sol.open" />
@@ -102,30 +105,33 @@ describe("Solution tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(false);
 
         await revealSolution({
-            componentIdx: resolveComponentName("sol"),
+            componentIdx: await resolvePathToNodeIdx("sol"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(true);
 
         await closeSolution({
-            componentIdx: resolveComponentName("sol"),
+            componentIdx: await resolvePathToNodeIdx("sol"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(false);
     });
 
     it("solution display mode = displayed", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <solution name="sol">
     <p name="p">The solution</p>
@@ -138,25 +144,27 @@ describe("Solution tag tests", async () => {
         // Solution starts out open
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "The solution",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("The solution");
 
         // The solution cannot be closed
         await closeSolution({
-            componentIdx: resolveComponentName("sol"),
+            componentIdx: await resolvePathToNodeIdx("sol"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(true);
     });
 
     it("solution display mode = none", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <solution name="sol">
     <p name="p">The solution</p>
@@ -169,26 +177,30 @@ describe("Solution tag tests", async () => {
         // Solution is hidden
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("sol")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("sol")].stateValues
+                .hidden,
         ).eq(true);
-        expect(stateVariables[resolveComponentName("p")]).be.undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("p")]).be.undefined;
 
         // The solution cannot be opened
         await revealSolution({
-            componentIdx: resolveComponentName("sol"),
+            componentIdx: await resolvePathToNodeIdx("sol"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(false);
         expect(
-            stateVariables[resolveComponentName("sol")].stateValues.hidden,
+            stateVariables[await resolvePathToNodeIdx("sol")].stateValues
+                .hidden,
         ).eq(true);
-        expect(stateVariables[resolveComponentName("p")]).be.undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("p")]).be.undefined;
     });
 
     it("request solution view, solution display mode = buttonRequirePermission", async () => {
@@ -204,7 +216,7 @@ describe("Solution tag tests", async () => {
   `;
 
         // first, we allow solution views
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             flags: { solutionDisplayMode: "buttonRequirePermission" },
             requestSolutionView: async () => {
@@ -215,36 +227,39 @@ describe("Solution tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(false);
-        expect(stateVariables[resolveComponentName("p")]).be.undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("p")]).be.undefined;
         expect(numRequests).eq(0);
 
         await revealSolution({
-            componentIdx: resolveComponentName("sol"),
+            componentIdx: await resolvePathToNodeIdx("sol"),
             core,
         });
         expect(numRequests).eq(1);
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(true);
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "The solution",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("The solution");
 
         await closeSolution({
-            componentIdx: resolveComponentName("sol"),
+            componentIdx: await resolvePathToNodeIdx("sol"),
             core,
         });
         expect(numRequests).eq(1);
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(false);
 
         // second, we do not allow solution views
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             flags: { solutionDisplayMode: "buttonRequirePermission" },
             requestSolutionView: async () => {
@@ -255,20 +270,22 @@ describe("Solution tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(false);
-        expect(stateVariables[resolveComponentName("p")]).be.undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("p")]).be.undefined;
         expect(numRequests).eq(1);
 
         await revealSolution({
-            componentIdx: resolveComponentName("sol"),
+            componentIdx: await resolvePathToNodeIdx("sol"),
             core,
         });
         expect(numRequests).eq(2);
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("solOpen")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("solOpen")].stateValues
+                .value,
         ).eq(false);
-        expect(stateVariables[resolveComponentName("p")]).be.undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("p")]).be.undefined;
     });
 });

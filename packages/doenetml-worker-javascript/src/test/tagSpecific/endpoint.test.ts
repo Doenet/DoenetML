@@ -8,7 +8,7 @@ vi.mock("hyperformula");
 
 describe("Endpoint tag tests", async () => {
     it("endpoint change open", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <endpoint name="A" open switchAble>(4,0)</endpoint>
@@ -38,73 +38,81 @@ describe("Endpoint tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("g.A")].stateValues.open,
+                stateVariables[await resolvePathToNodeIdx("g.A")].stateValues
+                    .open,
             ).eq(AOpen);
             expect(
-                stateVariables[resolveComponentName("g.B")].stateValues.open,
+                stateVariables[await resolvePathToNodeIdx("g.B")].stateValues
+                    .open,
             ).eq(BOpen);
             expect(
-                stateVariables[resolveComponentName("g.C")].stateValues.open,
+                stateVariables[await resolvePathToNodeIdx("g.C")].stateValues
+                    .open,
             ).eq(COpen);
             expect(
-                stateVariables[resolveComponentName("g.D")].stateValues.open,
+                stateVariables[await resolvePathToNodeIdx("g.D")].stateValues
+                    .open,
             ).eq(DOpen);
 
             expect(
-                stateVariables[resolveComponentName("g2.A")].stateValues.open,
+                stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues
+                    .open,
             ).eq(AOpen);
             expect(
-                stateVariables[resolveComponentName("g2.B")].stateValues.open,
+                stateVariables[await resolvePathToNodeIdx("g2.B")].stateValues
+                    .open,
             ).eq(BOpen);
             expect(
-                stateVariables[resolveComponentName("g2.C")].stateValues.open,
+                stateVariables[await resolvePathToNodeIdx("g2.C")].stateValues
+                    .open,
             ).eq(COpen);
             expect(
-                stateVariables[resolveComponentName("g2.D")].stateValues.open,
+                stateVariables[await resolvePathToNodeIdx("g2.D")].stateValues
+                    .open,
             ).eq(DOpen);
         }
 
         // check positions
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("g.A")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g.A")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([4, 0]);
         expect(
-            stateVariables[resolveComponentName("g.B")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g.B")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([7, 0]);
         expect(
-            stateVariables[resolveComponentName("g.C")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g.C")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([-9, 0]);
         expect(
-            stateVariables[resolveComponentName("g.D")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g.D")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([-3, 0]);
         expect(
-            stateVariables[resolveComponentName("g2.A")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g2.A")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([4, 0]);
         expect(
-            stateVariables[resolveComponentName("g2.B")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g2.B")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([7, 0]);
         expect(
-            stateVariables[resolveComponentName("g2.C")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g2.C")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([-9, 0]);
         expect(
-            stateVariables[resolveComponentName("g2.D")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("g2.D")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([-3, 0]);
 
         let AOpen = true;
@@ -118,7 +126,7 @@ describe("Endpoint tag tests", async () => {
         COpen = true;
         await updateBooleanInputValue({
             boolean: COpen,
-            componentIdx: resolveComponentName("b1"),
+            componentIdx: await resolvePathToNodeIdx("b1"),
             core,
         });
         await check_items(AOpen, BOpen, COpen, DOpen);
@@ -127,7 +135,7 @@ describe("Endpoint tag tests", async () => {
         DOpen = true;
         await updateBooleanInputValue({
             boolean: DOpen,
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         await check_items(AOpen, BOpen, COpen, DOpen);
@@ -135,7 +143,7 @@ describe("Endpoint tag tests", async () => {
         // switch A via first action
         await core.requestAction({
             actionName: "switchPoint",
-            componentIdx: resolveComponentName("g.A"),
+            componentIdx: await resolvePathToNodeIdx("g.A"),
             args: {},
         });
         AOpen = false;
@@ -144,7 +152,7 @@ describe("Endpoint tag tests", async () => {
         // switch A via second action
         await core.requestAction({
             actionName: "switchPoint",
-            componentIdx: resolveComponentName("g2.A"),
+            componentIdx: await resolvePathToNodeIdx("g2.A"),
             args: {},
         });
         AOpen = true;
@@ -153,7 +161,7 @@ describe("Endpoint tag tests", async () => {
         // cannot switch B via action
         await core.requestAction({
             actionName: "switchPoint",
-            componentIdx: resolveComponentName("g.B"),
+            componentIdx: await resolvePathToNodeIdx("g.B"),
             args: {},
         });
         await check_items(AOpen, BOpen, COpen, DOpen);
@@ -161,7 +169,7 @@ describe("Endpoint tag tests", async () => {
         // cannot switch C via second action
         await core.requestAction({
             actionName: "switchPoint",
-            componentIdx: resolveComponentName("g2.C"),
+            componentIdx: await resolvePathToNodeIdx("g2.C"),
             args: {},
         });
         await check_items(AOpen, BOpen, COpen, DOpen);
@@ -169,7 +177,7 @@ describe("Endpoint tag tests", async () => {
         // switch D via second action
         await core.requestAction({
             actionName: "switchPoint",
-            componentIdx: resolveComponentName("g2.D"),
+            componentIdx: await resolvePathToNodeIdx("g2.D"),
             args: {},
         });
         DOpen = false;

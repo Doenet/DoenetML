@@ -300,6 +300,19 @@ export function DocViewer({
                         args,
                     });
                 };
+
+            (window as any)["resolvePath" + postfixForWindowFunctions] =
+                async function (name: string, origin = 0) {
+                    if (coreWorker.current) {
+                        return await coreWorker.current.resolvePathJavascript(
+                            name,
+                            origin,
+                        );
+                    } else {
+                        console.error("No core worker present");
+                        return -1;
+                    }
+                };
         }
     }, [docId, coreWorker.current, prefixForIds]);
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
     moveMath,
@@ -16,7 +16,7 @@ vi.mock("hyperformula");
 
 describe("Displayed math tag tests", async () => {
     it("inline and display", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <m name="m">\\sin(x)</m>
     <me name="me">\\cos(x)</me>
@@ -25,27 +25,29 @@ describe("Displayed math tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.renderMode,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                .renderMode,
         ).eq("inline");
-        expect(stateVariables[resolveComponentName("m")].stateValues.latex).eq(
-            "\\sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.text).eq(
-            "sin(x)",
-        );
         expect(
-            stateVariables[resolveComponentName("me")].stateValues.renderMode,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.latex,
+        ).eq("\\sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me")].stateValues
+                .renderMode,
         ).eq("display");
-        expect(stateVariables[resolveComponentName("me")].stateValues.latex).eq(
-            "\\cos(x)",
-        );
-        expect(stateVariables[resolveComponentName("me")].stateValues.text).eq(
-            "cos(x)",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me")].stateValues.latex,
+        ).eq("\\cos(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me")].stateValues.text,
+        ).eq("cos(x)");
     });
 
     it("numbered equations", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <lorem generateParagraphs="2" />
     <men name="e1">\\sin(x)</men>
@@ -65,73 +67,82 @@ describe("Displayed math tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("e1")].stateValues.renderMode,
+            stateVariables[await resolvePathToNodeIdx("e1")].stateValues
+                .renderMode,
         ).eq("numbered");
         expect(
-            stateVariables[resolveComponentName("e1")].stateValues.equationTag,
+            stateVariables[await resolvePathToNodeIdx("e1")].stateValues
+                .equationTag,
         ).eq("1");
-        expect(stateVariables[resolveComponentName("e1")].stateValues.latex).eq(
-            "\\sin(x)",
-        );
-        expect(stateVariables[resolveComponentName("e1")].stateValues.text).eq(
-            "sin(x)",
-        );
         expect(
-            stateVariables[resolveComponentName("e2")].stateValues.renderMode,
+            stateVariables[await resolvePathToNodeIdx("e1")].stateValues.latex,
+        ).eq("\\sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e1")].stateValues.text,
+        ).eq("sin(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e2")].stateValues
+                .renderMode,
         ).eq("numbered");
         expect(
-            stateVariables[resolveComponentName("e2")].stateValues.equationTag,
+            stateVariables[await resolvePathToNodeIdx("e2")].stateValues
+                .equationTag,
         ).eq("2");
-        expect(stateVariables[resolveComponentName("e2")].stateValues.latex).eq(
-            "\\cos(x)",
-        );
-        expect(stateVariables[resolveComponentName("e2")].stateValues.text).eq(
-            "cos(x)",
-        );
         expect(
-            stateVariables[resolveComponentName("e3")].stateValues.renderMode,
+            stateVariables[await resolvePathToNodeIdx("e2")].stateValues.latex,
+        ).eq("\\cos(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e2")].stateValues.text,
+        ).eq("cos(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e3")].stateValues
+                .renderMode,
         ).eq("numbered");
         expect(
-            stateVariables[resolveComponentName("e3")].stateValues.equationTag,
+            stateVariables[await resolvePathToNodeIdx("e3")].stateValues
+                .equationTag,
         ).eq("3");
-        expect(stateVariables[resolveComponentName("e3")].stateValues.latex).eq(
-            "\\tan(x)",
-        );
-        expect(stateVariables[resolveComponentName("e3")].stateValues.text).eq(
-            "tan(x)",
-        );
-
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "We have equation (1), equation (2), and equation (3).",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e3")].stateValues.latex,
+        ).eq("\\tan(x)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e3")].stateValues.text,
+        ).eq("tan(x)");
 
         expect(
-            stateVariables[resolveComponentName("re1")].stateValues.linkText,
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("We have equation (1), equation (2), and equation (3).");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("re1")].stateValues
+                .linkText,
         ).eq("(1)");
         expect(
-            stateVariables[resolveComponentName("re2")].stateValues.linkText,
+            stateVariables[await resolvePathToNodeIdx("re2")].stateValues
+                .linkText,
         ).eq("(2)");
         expect(
-            stateVariables[resolveComponentName("re3")].stateValues.linkText,
+            stateVariables[await resolvePathToNodeIdx("re3")].stateValues
+                .linkText,
         ).eq("(3)");
 
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "From copying properties: 1, 2, and 3.",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("From copying properties: 1, 2, and 3.");
 
         expect(
-            stateVariables[resolveComponentName("te1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("te1")].stateValues.value,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("te2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("te2")].stateValues.value,
         ).eq("2");
         expect(
-            stateVariables[resolveComponentName("te3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("te3")].stateValues.value,
         ).eq("3");
     });
 
     it("dynamic numbered equations", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Number of equations 1: <mathInput prefill="2" name="m" /></p>
     <p>Number of equations 2: <mathInput prefill="1" name="n" /></p>
@@ -179,106 +190,114 @@ describe("Displayed math tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ).eq("x");
             expect(
-                stateVariables[resolveComponentName("x")].stateValues
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
                     .equationTag,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("px")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("px")].stateValues
+                    .text,
             ).eq(`x: ${counter}, equation (${counter})`);
             expect(
-                stateVariables[resolveComponentName("etx")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("etx")].stateValues
+                    .text,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("rx")].stateValues.linkText,
+                stateVariables[await resolvePathToNodeIdx("rx")].stateValues
+                    .linkText,
             ).eq(`(${counter})`);
 
             for (let i = 1; i <= m; i++) {
                 counter++;
 
                 expect(
-                    stateVariables[resolveComponentName(`rm[${i}].eq`)]
+                    stateVariables[await resolvePathToNodeIdx(`rm[${i}].eq`)]
                         .stateValues.latex,
                 ).eq(`${i} m`);
                 expect(
-                    stateVariables[resolveComponentName(`rm[${i}].eq`)]
+                    stateVariables[await resolvePathToNodeIdx(`rm[${i}].eq`)]
                         .stateValues.equationTag,
                 ).eq(`${counter}`);
 
                 if (i <= 6) {
                     expect(
-                        stateVariables[resolveComponentName(`pm${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`pm${i}`)]
                             .stateValues.text,
                     ).eq(`m${i}: ${counter}, equation (${counter})`);
                     expect(
-                        stateVariables[resolveComponentName(`etm${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`etm${i}`)]
                             .stateValues.text,
                     ).eq(`${counter}`);
                     expect(
-                        stateVariables[resolveComponentName(`rm${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`rm${i}`)]
                             .stateValues.linkText,
                     ).eq(`(${counter})`);
                 }
             }
             for (let i = m + 1; i <= 6; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`pm${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pm${i}`)]
+                        .stateValues.text,
                 ).eq(`m${i}: , equation ???`);
                 expect(
-                    stateVariables[resolveComponentName(`etm${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`etm${i}`)]
+                        .stateValues.text,
                 ).eq(``);
                 expect(
-                    stateVariables[resolveComponentName(`rm${i}`)].stateValues
-                        .linkText,
+                    stateVariables[await resolvePathToNodeIdx(`rm${i}`)]
+                        .stateValues.linkText,
                 ).eq(`???`);
             }
 
             counter++;
 
             expect(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ).eq("y");
             expect(
-                stateVariables[resolveComponentName("y")].stateValues
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
                     .equationTag,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("py")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("py")].stateValues
+                    .text,
             ).eq(`y: ${counter}, equation (${counter})`);
             expect(
-                stateVariables[resolveComponentName("ety")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("ety")].stateValues
+                    .text,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("ry")].stateValues.linkText,
+                stateVariables[await resolvePathToNodeIdx("ry")].stateValues
+                    .linkText,
             ).eq(`(${counter})`);
 
             for (let i = 1; i <= n; i++) {
                 counter++;
 
                 expect(
-                    stateVariables[resolveComponentName(`rn[${i}].eq`)]
+                    stateVariables[await resolvePathToNodeIdx(`rn[${i}].eq`)]
                         .stateValues.latex,
                 ).eq(`${i} n`);
                 expect(
-                    stateVariables[resolveComponentName(`rn[${i}].eq`)]
+                    stateVariables[await resolvePathToNodeIdx(`rn[${i}].eq`)]
                         .stateValues.equationTag,
                 ).eq(`${counter}`);
 
                 if (i <= 6) {
                     expect(
-                        stateVariables[resolveComponentName(`pn${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`pn${i}`)]
                             .stateValues.text,
                     ).eq(`n${i}: ${counter}, equation (${counter})`);
                     expect(
-                        stateVariables[resolveComponentName(`etn${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`etn${i}`)]
                             .stateValues.text,
                     ).eq(`${counter}`);
                     expect(
-                        stateVariables[resolveComponentName(`rn${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`rn${i}`)]
                             .stateValues.linkText,
                     ).eq(`(${counter})`);
                 }
@@ -286,36 +305,40 @@ describe("Displayed math tag tests", async () => {
 
             for (let i = n + 1; i <= 6; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`pn${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pn${i}`)]
+                        .stateValues.text,
                 ).eq(`n${i}: , equation ???`);
                 expect(
-                    stateVariables[resolveComponentName(`etn${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`etn${i}`)]
+                        .stateValues.text,
                 ).eq(``);
                 expect(
-                    stateVariables[resolveComponentName(`rn${i}`)].stateValues
-                        .linkText,
+                    stateVariables[await resolvePathToNodeIdx(`rn${i}`)]
+                        .stateValues.linkText,
                 ).eq(`???`);
             }
 
             counter++;
 
             expect(
-                stateVariables[resolveComponentName("z")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("z")].stateValues
+                    .latex,
             ).eq("z");
             expect(
-                stateVariables[resolveComponentName("z")].stateValues
+                stateVariables[await resolvePathToNodeIdx("z")].stateValues
                     .equationTag,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("pz")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pz")].stateValues
+                    .text,
             ).eq(`z: ${counter}, equation (${counter})`);
             expect(
-                stateVariables[resolveComponentName("etz")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("etz")].stateValues
+                    .text,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("rz")].stateValues.linkText,
+                stateVariables[await resolvePathToNodeIdx("rz")].stateValues
+                    .linkText,
             ).eq(`(${counter})`);
         }
 
@@ -326,7 +349,7 @@ describe("Displayed math tag tests", async () => {
         m = 4;
         await updateMathInputValue({
             latex: m.toString(),
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -334,7 +357,7 @@ describe("Displayed math tag tests", async () => {
         n = 2;
         await updateMathInputValue({
             latex: n.toString(),
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -342,7 +365,7 @@ describe("Displayed math tag tests", async () => {
         m = 0;
         await updateMathInputValue({
             latex: m.toString(),
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -350,7 +373,7 @@ describe("Displayed math tag tests", async () => {
         n = 6;
         await updateMathInputValue({
             latex: n.toString(),
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -358,7 +381,7 @@ describe("Displayed math tag tests", async () => {
         m = 3;
         await updateMathInputValue({
             latex: m.toString(),
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -366,14 +389,14 @@ describe("Displayed math tag tests", async () => {
         n = 1;
         await updateMathInputValue({
             latex: n.toString(),
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkEquationNumbering(m, n);
     });
 
     it("math inside", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <m name="m"><math simplify>x+x</math></m>
     <me name="me"><math simplify>y+y</math></me>
@@ -382,31 +405,32 @@ describe("Displayed math tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("m")].stateValues.latex).eq(
-            "2 x",
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.text).eq(
-            "2 x",
-        );
-        expect(stateVariables[resolveComponentName("me")].stateValues.latex).eq(
-            "2 y",
-        );
-        expect(stateVariables[resolveComponentName("me")].stateValues.text).eq(
-            "2 y",
-        );
         expect(
-            stateVariables[resolveComponentName("men")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.latex,
+        ).eq("2 x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.text,
+        ).eq("2 x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me")].stateValues.latex,
+        ).eq("2 y");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me")].stateValues.text,
+        ).eq("2 y");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("men")].stateValues.latex,
         ).eq("2 z");
-        expect(stateVariables[resolveComponentName("men")].stateValues.text).eq(
-            "2 z",
-        );
         expect(
-            stateVariables[resolveComponentName("men")].stateValues.equationTag,
+            stateVariables[await resolvePathToNodeIdx("men")].stateValues.text,
+        ).eq("2 z");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("men")].stateValues
+                .equationTag,
         ).eq("1");
     });
 
     it("number inside", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <m name="m1"><number>1</number></m>
     <me name="me1"><number>2+0i</number></me>
@@ -418,54 +442,56 @@ describe("Displayed math tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("m1")].stateValues.latex).eq(
-            "1",
-        );
-        expect(stateVariables[resolveComponentName("m1")].stateValues.text).eq(
-            "1",
-        );
         expect(
-            stateVariables[resolveComponentName("me1")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.latex,
+        ).eq("1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.text,
+        ).eq("1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me1")].stateValues.latex,
         ).eq("2");
-        expect(stateVariables[resolveComponentName("me1")].stateValues.text).eq(
-            "2",
-        );
         expect(
-            stateVariables[resolveComponentName("men1")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("me1")].stateValues.text,
+        ).eq("2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("men1")].stateValues
+                .latex,
         ).eq("3 + 4 i");
         expect(
-            stateVariables[resolveComponentName("men1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("men1")].stateValues.text,
         ).eq("3 + 4 i");
         expect(
-            stateVariables[resolveComponentName("men1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("men1")].stateValues
                 .equationTag,
         ).eq("1");
-        expect(stateVariables[resolveComponentName("m2")].stateValues.latex).eq(
-            "5 + i",
-        );
-        expect(stateVariables[resolveComponentName("m2")].stateValues.text).eq(
-            "5 + i",
-        );
         expect(
-            stateVariables[resolveComponentName("me2")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.latex,
+        ).eq("5 + i");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.text,
+        ).eq("5 + i");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me2")].stateValues.latex,
         ).eq("6 - i");
-        expect(stateVariables[resolveComponentName("me2")].stateValues.text).eq(
-            "6 - i",
-        );
         expect(
-            stateVariables[resolveComponentName("men2")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("me2")].stateValues.text,
+        ).eq("6 - i");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("men2")].stateValues
+                .latex,
         ).eq("-i");
         expect(
-            stateVariables[resolveComponentName("men2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("men2")].stateValues.text,
         ).eq("-i");
         expect(
-            stateVariables[resolveComponentName("men2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("men2")].stateValues
                 .equationTag,
         ).eq("2");
     });
 
     it("align equations", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <md name="md1">
       <mrow>q \\amp = \\sin(x)</mrow>
@@ -488,34 +514,36 @@ describe("Displayed math tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("md1")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("md1")].stateValues.latex,
         ).eq("\\notag q \\amp = \\sin(x)\\\\\\notag \\cos(x) \\amp = z");
-        expect(stateVariables[resolveComponentName("md1")].stateValues.text).eq(
-            "q = sin(x)\\\\\ncos(x) = z",
-        );
         expect(
-            stateVariables[resolveComponentName("mdn1")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("md1")].stateValues.text,
+        ).eq("q = sin(x)\\\\\ncos(x) = z");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mdn1")].stateValues
+                .latex,
         ).eq("\\tag{1}q \\amp = \\sin(x)\\\\\\tag{2}\\cos(x) \\amp = z");
         expect(
-            stateVariables[resolveComponentName("mdn1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("mdn1")].stateValues.text,
         ).eq("q = sin(x) (1)\\\\\ncos(x) = z (2)");
 
         expect(
-            stateVariables[resolveComponentName("md2")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("md2")].stateValues.latex,
         ).eq("\\tag{3}q \\amp = \\sin(x)\\\\\\tag{4}\\cos(x) \\amp = z");
-        expect(stateVariables[resolveComponentName("md2")].stateValues.text).eq(
-            "q = sin(x) (3)\\\\\ncos(x) = z (4)",
-        );
         expect(
-            stateVariables[resolveComponentName("mdn2")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("md2")].stateValues.text,
+        ).eq("q = sin(x) (3)\\\\\ncos(x) = z (4)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mdn2")].stateValues
+                .latex,
         ).eq("\\notag q \\amp = \\sin(x)\\\\\\notag \\cos(x) \\amp = z");
         expect(
-            stateVariables[resolveComponentName("mdn2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("mdn2")].stateValues.text,
         ).eq("q = sin(x)\\\\\ncos(x) = z");
     });
 
     it("dynamic numbered aligned equations", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Number of equations 1: <mathInput prefill="2" name="m" /></p>
     <p>Number of equations 2: <mathInput prefill="1" name="n" /></p>
@@ -566,106 +594,114 @@ describe("Displayed math tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ).eq("x");
             expect(
-                stateVariables[resolveComponentName("x")].stateValues
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
                     .equationTag,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("px")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("px")].stateValues
+                    .text,
             ).eq(`x: ${counter}, equation (${counter})`);
             expect(
-                stateVariables[resolveComponentName("etx")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("etx")].stateValues
+                    .text,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("rx")].stateValues.linkText,
+                stateVariables[await resolvePathToNodeIdx("rx")].stateValues
+                    .linkText,
             ).eq(`(${counter})`);
 
             for (let i = 1; i <= m; i++) {
                 counter++;
 
                 expect(
-                    stateVariables[resolveComponentName(`rm[${i}].eq`)]
+                    stateVariables[await resolvePathToNodeIdx(`rm[${i}].eq`)]
                         .stateValues.latex,
                 ).eq(`${i} m & = ${i + 10}`);
                 expect(
-                    stateVariables[resolveComponentName(`rm[${i}].eq`)]
+                    stateVariables[await resolvePathToNodeIdx(`rm[${i}].eq`)]
                         .stateValues.equationTag,
                 ).eq(`${counter}`);
 
                 if (i <= 6) {
                     expect(
-                        stateVariables[resolveComponentName(`pm${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`pm${i}`)]
                             .stateValues.text,
                     ).eq(`m${i}: ${counter}, equation (${counter})`);
                     expect(
-                        stateVariables[resolveComponentName(`etm${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`etm${i}`)]
                             .stateValues.text,
                     ).eq(`${counter}`);
                     expect(
-                        stateVariables[resolveComponentName(`rm${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`rm${i}`)]
                             .stateValues.linkText,
                     ).eq(`(${counter})`);
                 }
             }
             for (let i = m + 1; i <= 6; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`pm${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pm${i}`)]
+                        .stateValues.text,
                 ).eq(`m${i}: , equation ???`);
                 expect(
-                    stateVariables[resolveComponentName(`etm${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`etm${i}`)]
+                        .stateValues.text,
                 ).eq(``);
                 expect(
-                    stateVariables[resolveComponentName(`rm${i}`)].stateValues
-                        .linkText,
+                    stateVariables[await resolvePathToNodeIdx(`rm${i}`)]
+                        .stateValues.linkText,
                 ).eq(`???`);
             }
 
             counter++;
 
             expect(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ).eq("y");
             expect(
-                stateVariables[resolveComponentName("y")].stateValues
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
                     .equationTag,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("py")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("py")].stateValues
+                    .text,
             ).eq(`y: ${counter}, equation (${counter})`);
             expect(
-                stateVariables[resolveComponentName("ety")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("ety")].stateValues
+                    .text,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("ry")].stateValues.linkText,
+                stateVariables[await resolvePathToNodeIdx("ry")].stateValues
+                    .linkText,
             ).eq(`(${counter})`);
 
             for (let i = 1; i <= n; i++) {
                 counter++;
 
                 expect(
-                    stateVariables[resolveComponentName(`rn[${i}].eq`)]
+                    stateVariables[await resolvePathToNodeIdx(`rn[${i}].eq`)]
                         .stateValues.latex,
                 ).eq(`${i} n & = ${i + 10}`);
                 expect(
-                    stateVariables[resolveComponentName(`rn[${i}].eq`)]
+                    stateVariables[await resolvePathToNodeIdx(`rn[${i}].eq`)]
                         .stateValues.equationTag,
                 ).eq(`${counter}`);
 
                 if (i <= 6) {
                     expect(
-                        stateVariables[resolveComponentName(`pn${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`pn${i}`)]
                             .stateValues.text,
                     ).eq(`n${i}: ${counter}, equation (${counter})`);
                     expect(
-                        stateVariables[resolveComponentName(`etn${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`etn${i}`)]
                             .stateValues.text,
                     ).eq(`${counter}`);
                     expect(
-                        stateVariables[resolveComponentName(`rn${i}`)]
+                        stateVariables[await resolvePathToNodeIdx(`rn${i}`)]
                             .stateValues.linkText,
                     ).eq(`(${counter})`);
                 }
@@ -673,36 +709,40 @@ describe("Displayed math tag tests", async () => {
 
             for (let i = n + 1; i <= 6; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`pn${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pn${i}`)]
+                        .stateValues.text,
                 ).eq(`n${i}: , equation ???`);
                 expect(
-                    stateVariables[resolveComponentName(`etn${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`etn${i}`)]
+                        .stateValues.text,
                 ).eq(``);
                 expect(
-                    stateVariables[resolveComponentName(`rn${i}`)].stateValues
-                        .linkText,
+                    stateVariables[await resolvePathToNodeIdx(`rn${i}`)]
+                        .stateValues.linkText,
                 ).eq(`???`);
             }
 
             counter++;
 
             expect(
-                stateVariables[resolveComponentName("z")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("z")].stateValues
+                    .latex,
             ).eq("z");
             expect(
-                stateVariables[resolveComponentName("z")].stateValues
+                stateVariables[await resolvePathToNodeIdx("z")].stateValues
                     .equationTag,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("pz")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pz")].stateValues
+                    .text,
             ).eq(`z: ${counter}, equation (${counter})`);
             expect(
-                stateVariables[resolveComponentName("etz")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("etz")].stateValues
+                    .text,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("rz")].stateValues.linkText,
+                stateVariables[await resolvePathToNodeIdx("rz")].stateValues
+                    .linkText,
             ).eq(`(${counter})`);
         }
 
@@ -713,7 +753,7 @@ describe("Displayed math tag tests", async () => {
         m = 4;
         await updateMathInputValue({
             latex: m.toString(),
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -721,7 +761,7 @@ describe("Displayed math tag tests", async () => {
         n = 2;
         await updateMathInputValue({
             latex: n.toString(),
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -729,7 +769,7 @@ describe("Displayed math tag tests", async () => {
         m = 0;
         await updateMathInputValue({
             latex: m.toString(),
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -737,7 +777,7 @@ describe("Displayed math tag tests", async () => {
         n = 6;
         await updateMathInputValue({
             latex: n.toString(),
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -745,7 +785,7 @@ describe("Displayed math tag tests", async () => {
         m = 3;
         await updateMathInputValue({
             latex: m.toString(),
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -753,14 +793,14 @@ describe("Displayed math tag tests", async () => {
         n = 1;
         await updateMathInputValue({
             latex: n.toString(),
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkEquationNumbering(m, n);
     });
 
     it("dynamic numbered aligned equations, numbering swapped", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Number of equations 1: <mathInput prefill="2" name="m" /></p>
     <p>Number of equations 2: <mathInput prefill="1" name="n" /></p>
@@ -811,20 +851,24 @@ describe("Displayed math tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("x")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                    .latex,
             ).eq("x");
             expect(
-                stateVariables[resolveComponentName("x")].stateValues
+                stateVariables[await resolvePathToNodeIdx("x")].stateValues
                     .equationTag,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("px")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("px")].stateValues
+                    .text,
             ).eq(`x: ${counter}, equation (${counter})`);
             expect(
-                stateVariables[resolveComponentName("etx")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("etx")].stateValues
+                    .text,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("rx")].stateValues.linkText,
+                stateVariables[await resolvePathToNodeIdx("rx")].stateValues
+                    .linkText,
             ).eq(`(${counter})`);
 
             for (let i = 1; i <= m; i++) {
@@ -832,45 +876,50 @@ describe("Displayed math tag tests", async () => {
                     counter++;
 
                     expect(
-                        stateVariables[resolveComponentName(`rm[${i}].eq`)]
-                            .stateValues.latex,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`rm[${i}].eq`)
+                        ].stateValues.latex,
                     ).eq(`${i} m & = ${i + 10}`);
                     expect(
-                        stateVariables[resolveComponentName(`rm[${i}].eq`)]
-                            .stateValues.equationTag,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`rm[${i}].eq`)
+                        ].stateValues.equationTag,
                     ).eq(`${counter}`);
 
                     if (i <= 6) {
                         expect(
-                            stateVariables[resolveComponentName(`pm${i}`)]
+                            stateVariables[await resolvePathToNodeIdx(`pm${i}`)]
                                 .stateValues.text,
                         ).eq(`m${i}: ${counter}, equation (${counter})`);
                         expect(
-                            stateVariables[resolveComponentName(`etm${i}`)]
-                                .stateValues.text,
+                            stateVariables[
+                                await resolvePathToNodeIdx(`etm${i}`)
+                            ].stateValues.text,
                         ).eq(`${counter}`);
                         expect(
-                            stateVariables[resolveComponentName(`rm${i}`)]
+                            stateVariables[await resolvePathToNodeIdx(`rm${i}`)]
                                 .stateValues.linkText,
                         ).eq(`(${counter})`);
                     }
                 } else {
                     expect(
-                        stateVariables[resolveComponentName(`rm[${i}].eq`)]
-                            .stateValues.latex,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`rm[${i}].eq`)
+                        ].stateValues.latex,
                     ).eq(`${i} m & = ${i + 10}`);
 
                     if (i <= 6) {
                         expect(
-                            stateVariables[resolveComponentName(`pm${i}`)]
+                            stateVariables[await resolvePathToNodeIdx(`pm${i}`)]
                                 .stateValues.text,
                         ).eq(`m${i}: , equation ???`);
                         expect(
-                            stateVariables[resolveComponentName(`etm${i}`)]
-                                .stateValues.text,
+                            stateVariables[
+                                await resolvePathToNodeIdx(`etm${i}`)
+                            ].stateValues.text,
                         ).eq(``);
                         expect(
-                            stateVariables[resolveComponentName(`rm${i}`)]
+                            stateVariables[await resolvePathToNodeIdx(`rm${i}`)]
                                 .stateValues.linkText,
                         ).eq(`???`);
                     }
@@ -878,36 +927,40 @@ describe("Displayed math tag tests", async () => {
             }
             for (let i = m + 1; i <= 6; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`pm${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pm${i}`)]
+                        .stateValues.text,
                 ).eq(`m${i}: , equation ???`);
                 expect(
-                    stateVariables[resolveComponentName(`etm${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`etm${i}`)]
+                        .stateValues.text,
                 ).eq(``);
                 expect(
-                    stateVariables[resolveComponentName(`rm${i}`)].stateValues
-                        .linkText,
+                    stateVariables[await resolvePathToNodeIdx(`rm${i}`)]
+                        .stateValues.linkText,
                 ).eq(`???`);
             }
 
             counter++;
 
             expect(
-                stateVariables[resolveComponentName("y")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                    .latex,
             ).eq("y");
             expect(
-                stateVariables[resolveComponentName("y")].stateValues
+                stateVariables[await resolvePathToNodeIdx("y")].stateValues
                     .equationTag,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("py")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("py")].stateValues
+                    .text,
             ).eq(`y: ${counter}, equation (${counter})`);
             expect(
-                stateVariables[resolveComponentName("ety")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("ety")].stateValues
+                    .text,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("ry")].stateValues.linkText,
+                stateVariables[await resolvePathToNodeIdx("ry")].stateValues
+                    .linkText,
             ).eq(`(${counter})`);
 
             for (let i = 1; i <= n; i++) {
@@ -915,45 +968,50 @@ describe("Displayed math tag tests", async () => {
                     counter++;
 
                     expect(
-                        stateVariables[resolveComponentName(`rn[${i}].eq`)]
-                            .stateValues.latex,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`rn[${i}].eq`)
+                        ].stateValues.latex,
                     ).eq(`${i} n & = ${i + 10}`);
                     expect(
-                        stateVariables[resolveComponentName(`rn[${i}].eq`)]
-                            .stateValues.equationTag,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`rn[${i}].eq`)
+                        ].stateValues.equationTag,
                     ).eq(`${counter}`);
 
                     if (i <= 6) {
                         expect(
-                            stateVariables[resolveComponentName(`pn${i}`)]
+                            stateVariables[await resolvePathToNodeIdx(`pn${i}`)]
                                 .stateValues.text,
                         ).eq(`n${i}: ${counter}, equation (${counter})`);
                         expect(
-                            stateVariables[resolveComponentName(`etn${i}`)]
-                                .stateValues.text,
+                            stateVariables[
+                                await resolvePathToNodeIdx(`etn${i}`)
+                            ].stateValues.text,
                         ).eq(`${counter}`);
                         expect(
-                            stateVariables[resolveComponentName(`rn${i}`)]
+                            stateVariables[await resolvePathToNodeIdx(`rn${i}`)]
                                 .stateValues.linkText,
                         ).eq(`(${counter})`);
                     }
                 } else {
                     expect(
-                        stateVariables[resolveComponentName(`rn[${i}].eq`)]
-                            .stateValues.latex,
+                        stateVariables[
+                            await resolvePathToNodeIdx(`rn[${i}].eq`)
+                        ].stateValues.latex,
                     ).eq(`${i} n & = ${i + 10}`);
 
                     if (i <= 6) {
                         expect(
-                            stateVariables[resolveComponentName(`pn${i}`)]
+                            stateVariables[await resolvePathToNodeIdx(`pn${i}`)]
                                 .stateValues.text,
                         ).eq(`n${i}: , equation ???`);
                         expect(
-                            stateVariables[resolveComponentName(`etn${i}`)]
-                                .stateValues.text,
+                            stateVariables[
+                                await resolvePathToNodeIdx(`etn${i}`)
+                            ].stateValues.text,
                         ).eq(``);
                         expect(
-                            stateVariables[resolveComponentName(`rn${i}`)]
+                            stateVariables[await resolvePathToNodeIdx(`rn${i}`)]
                                 .stateValues.linkText,
                         ).eq(`???`);
                     }
@@ -962,36 +1020,40 @@ describe("Displayed math tag tests", async () => {
 
             for (let i = n + 1; i <= 6; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`pn${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pn${i}`)]
+                        .stateValues.text,
                 ).eq(`n${i}: , equation ???`);
                 expect(
-                    stateVariables[resolveComponentName(`etn${i}`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`etn${i}`)]
+                        .stateValues.text,
                 ).eq(``);
                 expect(
-                    stateVariables[resolveComponentName(`rn${i}`)].stateValues
-                        .linkText,
+                    stateVariables[await resolvePathToNodeIdx(`rn${i}`)]
+                        .stateValues.linkText,
                 ).eq(`???`);
             }
 
             counter++;
 
             expect(
-                stateVariables[resolveComponentName("z")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("z")].stateValues
+                    .latex,
             ).eq("z");
             expect(
-                stateVariables[resolveComponentName("z")].stateValues
+                stateVariables[await resolvePathToNodeIdx("z")].stateValues
                     .equationTag,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("pz")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pz")].stateValues
+                    .text,
             ).eq(`z: ${counter}, equation (${counter})`);
             expect(
-                stateVariables[resolveComponentName("etz")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("etz")].stateValues
+                    .text,
             ).eq(`${counter}`);
             expect(
-                stateVariables[resolveComponentName("rz")].stateValues.linkText,
+                stateVariables[await resolvePathToNodeIdx("rz")].stateValues
+                    .linkText,
             ).eq(`(${counter})`);
         }
 
@@ -1002,7 +1064,7 @@ describe("Displayed math tag tests", async () => {
         m = 4;
         await updateMathInputValue({
             latex: m.toString(),
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -1010,7 +1072,7 @@ describe("Displayed math tag tests", async () => {
         n = 2;
         await updateMathInputValue({
             latex: n.toString(),
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -1018,7 +1080,7 @@ describe("Displayed math tag tests", async () => {
         m = 0;
         await updateMathInputValue({
             latex: m.toString(),
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -1026,7 +1088,7 @@ describe("Displayed math tag tests", async () => {
         n = 6;
         await updateMathInputValue({
             latex: n.toString(),
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -1034,7 +1096,7 @@ describe("Displayed math tag tests", async () => {
         m = 3;
         await updateMathInputValue({
             latex: m.toString(),
-            componentIdx: resolveComponentName("m"),
+            componentIdx: await resolvePathToNodeIdx("m"),
             core,
         });
         await checkEquationNumbering(m, n);
@@ -1042,14 +1104,14 @@ describe("Displayed math tag tests", async () => {
         n = 1;
         await updateMathInputValue({
             latex: n.toString(),
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await checkEquationNumbering(m, n);
     });
 
     it("separate with spaces when concatenate children", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="b">beta</math>
     <math name="s">s</math>
@@ -1062,28 +1124,28 @@ describe("Displayed math tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("m")].stateValues.latex).eq(
-            "\\beta s",
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.text).eq(
-            "β s",
-        );
-        expect(stateVariables[resolveComponentName("me")].stateValues.latex).eq(
-            "\\beta s",
-        );
-        expect(stateVariables[resolveComponentName("me")].stateValues.text).eq(
-            "β s",
-        );
-        expect(stateVariables[resolveComponentName("md")].stateValues.latex).eq(
-            "\\notag \\beta s",
-        );
-        expect(stateVariables[resolveComponentName("md")].stateValues.text).eq(
-            "β s",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.latex,
+        ).eq("\\beta s");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.text,
+        ).eq("β s");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me")].stateValues.latex,
+        ).eq("\\beta s");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me")].stateValues.text,
+        ).eq("β s");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("md")].stateValues.latex,
+        ).eq("\\notag \\beta s");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("md")].stateValues.text,
+        ).eq("β s");
     });
 
     it("add commas to large integers", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><intcomma>25236501.35</intcomma></p>
     <p name="p2"><intcomma><math>25236501.35</math></intcomma></p>
@@ -1093,35 +1155,35 @@ describe("Displayed math tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "25,236,501.35",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "25,236,501.35",
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            "25, 236, 501.35",
-        );
-        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
-            "25, 236, 501.35",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("25,236,501.35");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("25,236,501.35");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("25, 236, 501.35");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq("25, 236, 501.35");
 
-        expect(stateVariables[resolveComponentName("m1")].stateValues.latex).eq(
-            "25,236,501.35",
-        );
-        expect(stateVariables[resolveComponentName("m1")].stateValues.text).eq(
-            "25, 236, 501.35",
-        );
-        expect(stateVariables[resolveComponentName("m2")].stateValues.latex).eq(
-            "25,236,501.35",
-        );
-        expect(stateVariables[resolveComponentName("m2")].stateValues.text).eq(
-            "25, 236, 501.35",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.latex,
+        ).eq("25,236,501.35");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.text,
+        ).eq("25, 236, 501.35");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.latex,
+        ).eq("25,236,501.35");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.text,
+        ).eq("25, 236, 501.35");
     });
 
     it("lists inside displayed math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <m name="m1">s = <asList name="al"><number>1</number><number>2</number><number>3</number></asList></m>
     <m name="m2">s = <sequence name="sl" from="1" to="3" /></m>
@@ -1143,70 +1205,70 @@ describe("Displayed math tag tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("m1")].stateValues.latex).eq(
-            "s = 1, 2, 3",
-        );
-        expect(stateVariables[resolveComponentName("m1")].stateValues.text).eq(
-            "s = 1, 2, 3",
-        );
-        expect(stateVariables[resolveComponentName("m2")].stateValues.latex).eq(
-            "s = 1, 2, 3",
-        );
-        expect(stateVariables[resolveComponentName("m2")].stateValues.text).eq(
-            "s = 1, 2, 3",
-        );
-        expect(stateVariables[resolveComponentName("m3")].stateValues.latex).eq(
-            "s = 1 2 3",
-        );
-        expect(stateVariables[resolveComponentName("m3")].stateValues.text).eq(
-            "s = 1 * 2 * 3",
-        );
-        expect(stateVariables[resolveComponentName("m4")].stateValues.latex).eq(
-            "s = 1, 2, 3",
-        );
-        expect(stateVariables[resolveComponentName("m4")].stateValues.text).eq(
-            "s = 1, 2, 3",
-        );
         expect(
-            stateVariables[resolveComponentName("me1")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.latex,
         ).eq("s = 1, 2, 3");
-        expect(stateVariables[resolveComponentName("me1")].stateValues.text).eq(
-            "s = 1, 2, 3",
-        );
         expect(
-            stateVariables[resolveComponentName("me2")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.text,
         ).eq("s = 1, 2, 3");
-        expect(stateVariables[resolveComponentName("me2")].stateValues.text).eq(
-            "s = 1, 2, 3",
-        );
         expect(
-            stateVariables[resolveComponentName("me3")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.latex,
+        ).eq("s = 1, 2, 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.text,
+        ).eq("s = 1, 2, 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.latex,
         ).eq("s = 1 2 3");
-        expect(stateVariables[resolveComponentName("me3")].stateValues.text).eq(
-            "s = 1 * 2 * 3",
-        );
         expect(
-            stateVariables[resolveComponentName("md1")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.text,
+        ).eq("s = 1 * 2 * 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.latex,
+        ).eq("s = 1, 2, 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m4")].stateValues.text,
+        ).eq("s = 1, 2, 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me1")].stateValues.latex,
+        ).eq("s = 1, 2, 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me1")].stateValues.text,
+        ).eq("s = 1, 2, 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me2")].stateValues.latex,
+        ).eq("s = 1, 2, 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me2")].stateValues.text,
+        ).eq("s = 1, 2, 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me3")].stateValues.latex,
+        ).eq("s = 1 2 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("me3")].stateValues.text,
+        ).eq("s = 1 * 2 * 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("md1")].stateValues.latex,
         ).eq("\\notag s \\amp= 1, 2, 3");
-        expect(stateVariables[resolveComponentName("md1")].stateValues.text).eq(
-            "s = 1, 2, 3",
-        );
         expect(
-            stateVariables[resolveComponentName("md2")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("md1")].stateValues.text,
+        ).eq("s = 1, 2, 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("md2")].stateValues.latex,
         ).eq("\\notag s \\amp= 1, 2, 3");
-        expect(stateVariables[resolveComponentName("md2")].stateValues.text).eq(
-            "s = 1, 2, 3",
-        );
         expect(
-            stateVariables[resolveComponentName("md3")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("md2")].stateValues.text,
+        ).eq("s = 1, 2, 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("md3")].stateValues.latex,
         ).eq("\\notag s \\amp= 1 2 3");
-        expect(stateVariables[resolveComponentName("md3")].stateValues.text).eq(
-            "s = 1 * 2 * 3",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("md3")].stateValues.text,
+        ).eq("s = 1 * 2 * 3");
     });
 
     it("change essential latex", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <m name="m" />
     <p><updateValue name="uv" target="$m.latex" type="text" newValue="\\frac{1}{2}" ><label>Change latex</label></updateValue></p>
@@ -1214,20 +1276,23 @@ describe("Displayed math tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("m")].stateValues.latex).eq(
-            "",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.latex,
+        ).eq("");
 
-        await updateValue({ componentIdx: resolveComponentName("uv"), core });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("m")].stateValues.latex).eq(
-            "\\frac{1}{2}",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.latex,
+        ).eq("\\frac{1}{2}");
     });
 
     it("subscripts and superscripts numbers to unicode text", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p name="p1"><m name="m1">2x_1y_{23}+z_{456}-a_{7+8-90}</m></p>
   <p name="p2"><m name="m2">2x^1y^{23}+z^{456}-a^{7+8-90}</m></p>
@@ -1247,24 +1312,24 @@ describe("Displayed math tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰",
-        );
-        expect(stateVariables[resolveComponentName("p3")].stateValues.text).eq(
-            "2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀",
-        );
-        expect(stateVariables[resolveComponentName("p4")].stateValues.text).eq(
-            "2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰",
-        );
-        expect(stateVariables[resolveComponentName("p5")].stateValues.text).eq(
-            "2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀\\\\\n2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰",
-        );
-        expect(stateVariables[resolveComponentName("p6")].stateValues.text).eq(
-            "2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀\\\\\n2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq("2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
+        ).eq("2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀\\\\\n2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p6")].stateValues.text,
+        ).eq("2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀\\\\\n2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰");
     });
 
     it("m in graph", async () => {
@@ -1279,7 +1344,7 @@ describe("Displayed math tag tests", async () => {
     });
 
     it("m in graph, handle bad anchor coordinates", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <graph >
               <m anchor="$anchorCoords1" name="math1">x^2</m>
@@ -1297,15 +1362,15 @@ describe("Displayed math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("math1anchor")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("math1anchor")]
+                    .stateValues.latex,
             ),
         ).eq("x");
 
         // give good anchor coords
         await updateMathInputValue({
             latex: "(6,7)",
-            componentIdx: resolveComponentName("anchorCoords1"),
+            componentIdx: await resolvePathToNodeIdx("anchorCoords1"),
             core,
         });
 
@@ -1313,15 +1378,15 @@ describe("Displayed math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("math1anchor")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("math1anchor")]
+                    .stateValues.latex,
             ),
         ).eq("(6,7)");
 
         // give bad anchor coords again
         await updateMathInputValue({
             latex: "q",
-            componentIdx: resolveComponentName("anchorCoords1"),
+            componentIdx: await resolvePathToNodeIdx("anchorCoords1"),
             core,
         });
 
@@ -1329,8 +1394,8 @@ describe("Displayed math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("math1anchor")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("math1anchor")]
+                    .stateValues.latex,
             ),
         ).eq("q");
     });
@@ -1365,143 +1430,143 @@ describe("Displayed math tag tests", async () => {
 
     async function test_color_via_style(
         core: PublicDoenetMLCore,
-        resolveComponentName: (name: string, origin?: number) => number,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
-        ).eq("black");
-        expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
-        ).eq("black");
-        expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
-        ).eq("none");
-
-        expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
-        ).eq("green");
-        expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
-        ).eq("green");
-        expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
-        ).eq("none");
-
-        expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
                 .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
                 .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
+        ).eq("none");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
+        ).eq("green");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
+        ).eq("green");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
+        ).eq("none");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
+                .stateValues.text,
+        ).eq("black");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
+                .stateValues.text,
+        ).eq("black");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("none");
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("sn"),
+            componentIdx: await resolvePathToNodeIdx("sn"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
                 .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
                 .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
         ).eq("none");
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("sn"),
+            componentIdx: await resolvePathToNodeIdx("sn"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("tsd_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tsd_variable_style")]
                 .stateValues.text,
         ).eq("red with a blue background");
         expect(
-            stateVariables[resolveComponentName("tc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("tc_variable_style")]
                 .stateValues.text,
         ).eq("red");
         expect(
-            stateVariables[resolveComponentName("bc_variable_style")]
+            stateVariables[await resolvePathToNodeIdx("bc_variable_style")]
                 .stateValues.text,
         ).eq("blue");
 
         expect(
-            stateVariables[resolveComponentName("tsd_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("tc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_no_style")]
+                .stateValues.text,
         ).eq("black");
         expect(
-            stateVariables[resolveComponentName("bc_no_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_no_style")]
+                .stateValues.text,
         ).eq("none");
 
         expect(
-            stateVariables[resolveComponentName("tsd_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tsd_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("tc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("tc_fixed_style")]
+                .stateValues.text,
         ).eq("green");
         expect(
-            stateVariables[resolveComponentName("bc_fixed_style")].stateValues
-                .text,
+            stateVariables[await resolvePathToNodeIdx("bc_fixed_style")]
+                .stateValues.text,
         ).eq("none");
     }
     it("color m via style", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <setup>
               <styleDefinitions>
@@ -1525,11 +1590,11 @@ describe("Displayed math tag tests", async () => {
             `,
         });
 
-        await test_color_via_style(core, resolveComponentName);
+        await test_color_via_style(core, resolvePathToNodeIdx);
     });
 
     it("color me via style", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <setup>
               <styleDefinitions>
@@ -1553,11 +1618,11 @@ describe("Displayed math tag tests", async () => {
             `,
         });
 
-        await test_color_via_style(core, resolveComponentName);
+        await test_color_via_style(core, resolvePathToNodeIdx);
     });
 
     it("color md via style", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <setup>
               <styleDefinitions>
@@ -1581,11 +1646,11 @@ describe("Displayed math tag tests", async () => {
             `,
         });
 
-        await test_color_via_style(core, resolveComponentName);
+        await test_color_via_style(core, resolvePathToNodeIdx);
     });
 
     it("math copied by plain macro, but not value, reflects style and anchor position", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <setup>
               <styleDefinitions>
@@ -1629,113 +1694,123 @@ describe("Displayed math tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.latex,
         ).eqls("x^2");
         expect(
-            stateVariables[resolveComponentName("m1a")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m1a")].stateValues.latex,
         ).eqls("x^2");
         expect(
-            stateVariables[resolveComponentName("m1b")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("m1b")].stateValues.value,
         ).eqls("x^2");
         expect(
-            stateVariables[resolveComponentName("m1c")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m1c")].stateValues.latex,
         ).eqls("x^2");
         expect(
-            stateVariables[resolveComponentName("m1d")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("m1d")].stateValues.value,
         ).eqls("x^2");
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.latex,
         ).eqls("x^3");
         expect(
-            stateVariables[resolveComponentName("m2a")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.latex,
         ).eqls("x^3");
         expect(
-            stateVariables[resolveComponentName("m2b")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.value,
         ).eqls("x^3");
         expect(
-            stateVariables[resolveComponentName("m2c")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("m2c")].stateValues.latex,
         ).eqls("x^3");
         expect(
-            stateVariables[resolveComponentName("m2d")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("m2d")].stateValues.value,
         ).eqls("x^3");
 
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("m1a")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m1a")].stateValues
+                .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("m1b")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m1b")].stateValues
+                .styleNumber,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("m1c")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m1c")].stateValues
+                .styleNumber,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("m1d")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m1d")].stateValues
+                .styleNumber,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                .styleNumber,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("m2a")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues
+                .styleNumber,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("m2b")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m2b")].stateValues
+                .styleNumber,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("m2c")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m2c")].stateValues
+                .styleNumber,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("m2d")].stateValues.styleNumber,
+            stateVariables[await resolvePathToNodeIdx("m2d")].stateValues
+                .styleNumber,
         ).eq(1);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(3,4)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("macoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("macoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("macoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("macoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(3,4)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mbcoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("mbcoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mbcoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("mbcoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
 
         // move first ms
         await moveMath({
-            componentIdx: resolveComponentName("m1"),
+            componentIdx: await resolvePathToNodeIdx("m1"),
             x: -2,
             y: 3,
             core,
         });
         await moveMath({
-            componentIdx: resolveComponentName("m2"),
+            componentIdx: await resolvePathToNodeIdx("m2"),
             x: 4,
             y: -5,
             core,
@@ -1744,50 +1819,50 @@ describe("Displayed math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(-2,3)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(4,-5)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("macoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("macoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(-2,3)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("macoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("macoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(4,-5)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mbcoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("mbcoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mbcoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("mbcoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
 
         // move second ms
         await moveMath({
-            componentIdx: resolveComponentName("m1a"),
+            componentIdx: await resolvePathToNodeIdx("m1a"),
             x: 7,
             y: 1,
             core,
         });
         await moveMath({
-            componentIdx: resolveComponentName("m2a"),
+            componentIdx: await resolvePathToNodeIdx("m2a"),
             x: -8,
             y: 2,
             core,
@@ -1796,50 +1871,50 @@ describe("Displayed math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("macoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("macoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("macoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("macoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mbcoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("mbcoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mbcoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("mbcoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(0,0)");
 
         // move third ms
         await moveText({
-            componentIdx: resolveComponentName("m1b"),
+            componentIdx: await resolvePathToNodeIdx("m1b"),
             x: -6,
             y: 3,
             core,
         });
         await moveText({
-            componentIdx: resolveComponentName("m2b"),
+            componentIdx: await resolvePathToNodeIdx("m2b"),
             x: -5,
             y: -4,
             core,
@@ -1848,38 +1923,38 @@ describe("Displayed math tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m1coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m1coords")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("m2coords")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("m2coords")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("macoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("macoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(7,1)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("macoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("macoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(-8,2)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mbcoords[1]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("mbcoords[1]")]
+                    .stateValues.latex,
             ),
         ).eq("(-6,3)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mbcoords[2]")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("mbcoords[2]")]
+                    .stateValues.latex,
             ),
         ).eq("(-5,-4)");
     });

@@ -25,7 +25,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         is_math?: boolean;
     }) {
         for (let i = 0; i < num_variants_to_test; i++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: i,
             });
@@ -36,7 +36,9 @@ describe("SamplePrimeNumbers tag tests", async () => {
             for (let idx = 0; idx < num_samples; idx++) {
                 let value =
                     stateVariables[
-                        resolveComponentName(`${componentName}[${idx + 1}]`)
+                        await resolvePathToNodeIdx(
+                            `${componentName}[${idx + 1}]`,
+                        )
                     ].stateValues.value;
                 expect(
                     is_math
@@ -49,7 +51,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
                 for (let idx1 = 0; idx1 < num_samples; idx1++) {
                     let val1 =
                         stateVariables[
-                            resolveComponentName(
+                            await resolvePathToNodeIdx(
                                 `${componentName}[${idx1 + 1}]`,
                             )
                         ].stateValues.value;
@@ -57,7 +59,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
                         if (idx2 !== idx1) {
                             let val2 =
                                 stateVariables[
-                                    resolveComponentName(
+                                    await resolvePathToNodeIdx(
                                         `${componentName}[${idx2 + 1}]`,
                                     )
                                 ].stateValues.value;
@@ -89,7 +91,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         is_math?: boolean;
     }) {
         for (let i = 0; i < num_variants_to_test; i++) {
-            let { core, resolveComponentName } = await createTestCore({
+            let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 requestedVariantIndex: i,
             });
@@ -101,7 +103,9 @@ describe("SamplePrimeNumbers tag tests", async () => {
             for (let idx = 0; idx < num_samples; idx++) {
                 values.push(
                     stateVariables[
-                        resolveComponentName(`${componentName}[${idx + 1}]`)
+                        await resolvePathToNodeIdx(
+                            `${componentName}[${idx + 1}]`,
+                        )
                     ].stateValues.value,
                 );
             }
@@ -150,14 +154,14 @@ describe("SamplePrimeNumbers tag tests", async () => {
     });
 
     it("sample fifty prime numbers between 10,000 and 100,0000", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<samplePrimeNumbers name="s" numSamples="50" minValue="10000" maxValue="100000" />`,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples = stateVariables[
-            resolveComponentName("s")
+            await resolvePathToNodeIdx("s")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
@@ -199,7 +203,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
     });
 
     it("sampled numbers do change dynamically", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput prefill="50" name="numSamples"/>
     <mathInput prefill="10" name="maxNum"/>
@@ -218,9 +222,9 @@ describe("SamplePrimeNumbers tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let sample1replacements =
-            stateVariables[resolveComponentName("sample1")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample1")].replacements!;
         let sample2replacements =
-            stateVariables[resolveComponentName("sample2")].replacements!;
+            stateVariables[await resolvePathToNodeIdx("sample2")].replacements!;
         expect(sample1replacements.length).eq(50);
         expect(sample2replacements.length).eq(180);
         let sample1numbers = sample1replacements.map(
@@ -242,27 +246,29 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // Get new samples when change number of samples
         await updateMathInputValue({
             latex: "70",
-            componentIdx: resolveComponentName("numSamples"),
+            componentIdx: await resolvePathToNodeIdx("numSamples"),
             core,
         });
         await updateMathInputValue({
             latex: "160",
-            componentIdx: resolveComponentName("numSamples2"),
+            componentIdx: await resolvePathToNodeIdx("numSamples2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersb = stateVariables[
-            resolveComponentName("sample1")
+            await resolvePathToNodeIdx("sample1")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let sample2numbersb = stateVariables[resolveComponentName("sample2")]
+        let sample2numbersb = stateVariables[
+            await resolvePathToNodeIdx("sample2")
+        ]
             .replacements!.slice(
                 0,
-                stateVariables[resolveComponentName("sample2")].replacements!
-                    .length -
-                    (stateVariables[resolveComponentName("sample2")]
+                stateVariables[await resolvePathToNodeIdx("sample2")]
+                    .replacements!.length -
+                    (stateVariables[await resolvePathToNodeIdx("sample2")]
                         .replacementsToWithhold ?? 0),
             )
             .map((x) => stateVariables[x.componentIdx].stateValues.value);
@@ -289,27 +295,29 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // Get new samples when change parameters
         await updateMathInputValue({
             latex: "20",
-            componentIdx: resolveComponentName("maxNum"),
+            componentIdx: await resolvePathToNodeIdx("maxNum"),
             core,
         });
         await updateMathInputValue({
             latex: "7, 19, 29, 37, 47, 2, 11, 23, 31, 41",
-            componentIdx: resolveComponentName("exclude"),
+            componentIdx: await resolvePathToNodeIdx("exclude"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let sample1numbersc = stateVariables[
-            resolveComponentName("sample1")
+            await resolvePathToNodeIdx("sample1")
         ].replacements!.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        let sample2numbersc = stateVariables[resolveComponentName("sample2")]
+        let sample2numbersc = stateVariables[
+            await resolvePathToNodeIdx("sample2")
+        ]
             .replacements!.slice(
                 0,
-                stateVariables[resolveComponentName("sample2")].replacements!
-                    .length -
-                    (stateVariables[resolveComponentName("sample2")]
+                stateVariables[await resolvePathToNodeIdx("sample2")]
+                    .replacements!.length -
+                    (stateVariables[await resolvePathToNodeIdx("sample2")]
                         .replacementsToWithhold ?? 0),
             )
             .map((x) => stateVariables[x.componentIdx].stateValues.value);
@@ -333,7 +341,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
     });
 
     it("sampled numbers don't resample in dynamic repeat", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     How many numbers do you want? <mathInput name="mi1" />
     <setup>
@@ -360,42 +368,54 @@ describe("SamplePrimeNumbers tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("p1")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p1")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p2")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p2")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p3")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p3")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p4")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p4")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p5")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p5")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[resolveComponentName("p6")].activeChildren.map(
+                stateVariables[
+                    await resolvePathToNodeIdx("p6")
+                ].activeChildren.map(
                     (child) =>
                         stateVariables[child.componentIdx].stateValues.value,
                 ),
@@ -410,21 +430,21 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // sample one variable
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         sampledNumbers.push(
-            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
-                .value,
+            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
+                .stateValues.value,
         );
         await check_sampled_numbers(sampledNumbers);
 
         // go back to nothing
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers([]);
@@ -432,7 +452,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // get same number back
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers(sampledNumbers);
@@ -440,20 +460,20 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // get two more samples
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         let n1 =
-            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
+                .stateValues.value;
         let n2 =
-            stateVariables[resolveComponentName("repeat1[2].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1]")]
+                .stateValues.value;
         let n3 =
-            stateVariables[resolveComponentName("repeat1[3].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1]")]
+                .stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         sampledNumbers.push(n2);
         sampledNumbers.push(n3);
@@ -462,7 +482,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // go back to nothing
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers([]);
@@ -470,7 +490,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // get first two numbers back
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers(sampledNumbers.slice(0, 2));
@@ -478,29 +498,29 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // get six total samples
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         n1 =
-            stateVariables[resolveComponentName("repeat1[1].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
+                .stateValues.value;
         n2 =
-            stateVariables[resolveComponentName("repeat1[2].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1]")]
+                .stateValues.value;
         n3 =
-            stateVariables[resolveComponentName("repeat1[3].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1]")]
+                .stateValues.value;
         let n4 =
-            stateVariables[resolveComponentName("repeat1[4].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[4].n[1]")]
+                .stateValues.value;
         let n5 =
-            stateVariables[resolveComponentName("repeat1[5].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[5].n[1]")]
+                .stateValues.value;
         let n6 =
-            stateVariables[resolveComponentName("repeat1[6].n[1]")].stateValues
-                .value;
+            stateVariables[await resolvePathToNodeIdx("repeat1[6].n[1]")]
+                .stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         expect(n2).eq(sampledNumbers[1]);
         expect(n3).eq(sampledNumbers[2]);
@@ -512,7 +532,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // go back to nothing
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers([]);
@@ -520,14 +540,14 @@ describe("SamplePrimeNumbers tag tests", async () => {
         // get all six back
         await updateMathInputValue({
             latex: "6",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await check_sampled_numbers(sampledNumbers);
     });
 
     it("asList", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><samplePrimeNumbers name="s" minValue="175" maxValue="205" numSamples="5" /></p>
     <p name="p2"><samplePrimeNumbers extend="$s" name="s2" asList="false" /></p>
@@ -539,30 +559,35 @@ describe("SamplePrimeNumbers tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         results.push(
-            stateVariables[resolveComponentName("s[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[2]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[2]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[3]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[3]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[4]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[4]")].stateValues
+                .value,
         );
         results.push(
-            stateVariables[resolveComponentName("s[5]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("s[5]")].stateValues
+                .value,
         );
 
         for (let num of results) {
             expect([179, 181, 191, 193, 197, 199].includes(num));
         }
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            results.join(", "),
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            results.join(""),
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq(results.join(", "));
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(results.join(""));
     });
 
     it("same numbers for given variant if variantDeterminesSeed", async () => {
@@ -574,7 +599,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
 
     `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             requestedVariantIndex: 1,
         });
@@ -582,7 +607,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples = stateVariables[
-            resolveComponentName("p1")
+            await resolvePathToNodeIdx("p1")
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
@@ -598,7 +623,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
             ).eq(true);
         }
 
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             requestedVariantIndex: 1,
         }));
@@ -606,14 +631,14 @@ describe("SamplePrimeNumbers tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         let samples2 = stateVariables[
-            resolveComponentName("p1")
+            await resolvePathToNodeIdx("p1")
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
         expect(samples2).eqls(samples);
 
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             requestedVariantIndex: 2,
         }));
@@ -621,7 +646,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         samples2 = stateVariables[
-            resolveComponentName("p1")
+            await resolvePathToNodeIdx("p1")
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
@@ -641,7 +666,7 @@ describe("SamplePrimeNumbers tag tests", async () => {
     });
 
     it(`resample prime numbers`, async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p><samplePrimeNumbers name="spn1" numSamples="2" maxValue="1000" />,
           <samplePrimeNumbers name="spn2" minValue="1000" maxValue="10000" />
@@ -660,57 +685,70 @@ describe("SamplePrimeNumbers tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        pn1 = stateVariables[resolveComponentName("spn1[1]")].stateValues.value;
-        pn2 = stateVariables[resolveComponentName("spn1[2]")].stateValues.value;
-        pn3 = stateVariables[resolveComponentName("spn2[1]")].stateValues.value;
+        pn1 =
+            stateVariables[await resolvePathToNodeIdx("spn1[1]")].stateValues
+                .value;
+        pn2 =
+            stateVariables[await resolvePathToNodeIdx("spn1[2]")].stateValues
+                .value;
+        pn3 =
+            stateVariables[await resolvePathToNodeIdx("spn2[1]")].stateValues
+                .value;
 
         expect(pn1).gt(1).lt(1000);
         expect(pn2).gt(1).lt(1000);
         expect(pn3).gt(1000).lt(10000);
 
         expect(
-            stateVariables[resolveComponentName("spn1[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("spn1[1]")].stateValues
+                .text,
         ).eq(pn1.toString());
 
         await callAction({
-            componentIdx: resolveComponentName("resamp1"),
+            componentIdx: await resolvePathToNodeIdx("resamp1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         pn1b =
-            stateVariables[resolveComponentName("spn1[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("spn1[1]")].stateValues
+                .value;
         pn2b =
-            stateVariables[resolveComponentName("spn1[2]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("spn1[2]")].stateValues
+                .value;
         pn3b =
-            stateVariables[resolveComponentName("spn2[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("spn2[1]")].stateValues
+                .value;
 
         expect(pn1b).gt(1).lt(1000);
         expect(pn2b).gt(1).lt(1000);
         expect(pn3b).gt(1000).lt(10000);
 
-        expect(pn1b).not.eq(pn1);
-        expect(pn2b).not.eq(pn2);
+        expect(pn1b !== pn1 || pn2b !== pn2).eq(true);
         expect(pn3b).eq(pn3);
 
         expect(
-            stateVariables[resolveComponentName("spn2[1]")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("spn2[1]")].stateValues
+                .text,
         ).eq(pn3.toString());
 
         await callAction({
-            componentIdx: resolveComponentName("resamp2"),
+            componentIdx: await resolvePathToNodeIdx("resamp2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         let pn1c =
-            stateVariables[resolveComponentName("spn1[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("spn1[1]")].stateValues
+                .value;
         let pn2c =
-            stateVariables[resolveComponentName("spn1[2]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("spn1[2]")].stateValues
+                .value;
         let pn3c =
-            stateVariables[resolveComponentName("spn2[1]")].stateValues.value;
+            stateVariables[await resolvePathToNodeIdx("spn2[1]")].stateValues
+                .value;
 
         expect(pn1c).gt(1).lt(1000);
         expect(pn2c).gt(1).lt(1000);

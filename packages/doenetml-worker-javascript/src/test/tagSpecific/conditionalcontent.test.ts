@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -16,7 +16,7 @@ describe("Conditional content tag tests", async () => {
 
     async function check_inline_sign_number(
         core: PublicDoenetMLCore,
-        resolveComponentName: (name: string, origin?: number) => number,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_text(description: string) {
             let stateVariables = await core.returnAllStateVariables(
@@ -25,7 +25,7 @@ describe("Conditional content tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("p")].stateValues.text
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues.text
                     .replace(/\s+/g, " ")
                     .trim(),
             ).eq(`You typed ${description}.`);
@@ -35,35 +35,35 @@ describe("Conditional content tag tests", async () => {
 
         await updateMathInputValue({
             latex: "10",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_text("a positive number");
 
         await updateMathInputValue({
             latex: "-5/9",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_text("a negative number");
 
         await updateMathInputValue({
             latex: "5-5",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_text("zero");
 
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_text("something else");
     }
 
     it("inline content containing sign of number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="n" />
 
@@ -84,11 +84,11 @@ describe("Conditional content tag tests", async () => {
   `,
         });
 
-        await check_inline_sign_number(core, resolveComponentName);
+        await check_inline_sign_number(core, resolvePathToNodeIdx);
     });
 
     it("inline content containing sign of number, use XML entities", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="n" />
 
@@ -109,11 +109,11 @@ describe("Conditional content tag tests", async () => {
   `,
         });
 
-        await check_inline_sign_number(core, resolveComponentName);
+        await check_inline_sign_number(core, resolvePathToNodeIdx);
     });
 
     it("block content containing sign of number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" />
 
@@ -146,13 +146,13 @@ describe("Conditional content tag tests", async () => {
 
             for (let i = 1; i <= 4; i++) {
                 expect(
-                    stateVariables[resolveComponentName(`section${i}`)]
+                    stateVariables[await resolvePathToNodeIdx(`section${i}`)]
                         .activeChildren.length,
                 ).eq(i === index ? 3 : 0);
             }
 
             let p =
-                stateVariables[resolveComponentName(`section${index}`)]
+                stateVariables[await resolvePathToNodeIdx(`section${index}`)]
                     .activeChildren[1].componentIdx;
 
             expect(
@@ -164,35 +164,35 @@ describe("Conditional content tag tests", async () => {
 
         await updateMathInputValue({
             latex: "10",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_text(1);
 
         await updateMathInputValue({
             latex: "-5/9",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_text(2);
 
         await updateMathInputValue({
             latex: "5-5",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_text(3);
 
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_text(4);
     });
 
     it("include blank string between tags", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup>
     <text name="animal">fox</text><text name="verb">jumps</text>
@@ -207,25 +207,25 @@ describe("Conditional content tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("");
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "The fox jumps.",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("The fox jumps.");
     });
 
     it("reference names of children, including an extended conditional content", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" />
     <p name="p1"><conditionalContent name="cc" condition="$n > 0">
@@ -254,22 +254,28 @@ describe("Conditional content tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("p1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .text,
             ).contain(names.join(" "));
             expect(
-                stateVariables[resolveComponentName("pa")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pa")].stateValues
+                    .text,
             ).eq(names[0] || "");
             expect(
-                stateVariables[resolveComponentName("pb")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pb")].stateValues
+                    .text,
             ).eq(names[2] || "");
             expect(
-                stateVariables[resolveComponentName("p2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
+                    .text,
             ).contain(names.join(" "));
             expect(
-                stateVariables[resolveComponentName("pa2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pa2")].stateValues
+                    .text,
             ).eq(names[0] || "");
             expect(
-                stateVariables[resolveComponentName("pb2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pb2")].stateValues
+                    .text,
             ).eq(names[2] || "");
         }
 
@@ -278,7 +284,7 @@ describe("Conditional content tag tests", async () => {
         // enter 1
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_text(["dog", "mouse", "cat"]);
@@ -286,14 +292,14 @@ describe("Conditional content tag tests", async () => {
         // enter 0
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_text([]);
     });
 
     it("correctly withhold replacements when shadowing", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Hide greeting:
     <booleanInput name="hide" />
@@ -311,59 +317,59 @@ describe("Conditional content tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Greeting is hidden: false. Greeting: Hello!",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Greeting is hidden: false. Greeting: Hello!");
 
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("");
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("hide"),
+            componentIdx: await resolvePathToNodeIdx("hide"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Greeting is hidden: true. Greeting: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Greeting is hidden: true. Greeting: ");
 
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("");
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("show_copy"),
+            componentIdx: await resolvePathToNodeIdx("show_copy"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Greeting is hidden: true. Greeting: ",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Greeting is hidden: true. Greeting: ");
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("hide"),
+            componentIdx: await resolvePathToNodeIdx("hide"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("p")].stateValues.text).eq(
-            "Greeting is hidden: false. Greeting: Hello!",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Greeting is hidden: false. Greeting: Hello!",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("Greeting is hidden: false. Greeting: Hello!");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Greeting is hidden: false. Greeting: Hello!");
     });
 
     // tests with cases or else
 
     it("case/else with single text, copies", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" />
     <p name="pa">a: <conditionalContent name="cc">
@@ -393,26 +399,33 @@ describe("Conditional content tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("pa")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pa")].stateValues
+                    .text,
             ).eq(`a: ${name}`);
             expect(
-                stateVariables[resolveComponentName("pa1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pa1")].stateValues
+                    .text,
             ).eq(`a1: ${name}`);
             expect(
-                stateVariables[resolveComponentName("pa2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pa2")].stateValues
+                    .text,
             ).eq(`value of a1: ${name}`);
             expect(
-                stateVariables[resolveComponentName("pb")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pb")].stateValues
+                    .text,
             ).eq(`b: ${name}`);
             expect(
-                stateVariables[resolveComponentName("pb1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pb1")].stateValues
+                    .text,
             ).eq(`b1: ${name}`);
             expect(
-                stateVariables[resolveComponentName("pb2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pb2")].stateValues
+                    .text,
             ).eq(`value of b1: ${name}`);
 
             expect(
-                stateVariables[resolveComponentName("b1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("b1")].stateValues
+                    .text,
             ).eq(`${name}`);
         }
 
@@ -421,7 +434,7 @@ describe("Conditional content tag tests", async () => {
         // enter 1
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             latex: "1",
             core,
         });
@@ -430,7 +443,7 @@ describe("Conditional content tag tests", async () => {
         // enter 10
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             latex: "10",
             core,
         });
@@ -439,7 +452,7 @@ describe("Conditional content tag tests", async () => {
         // enter -1
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             latex: "-1",
             core,
         });
@@ -448,7 +461,7 @@ describe("Conditional content tag tests", async () => {
         // enter x
 
         await updateMathInputValue({
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             latex: "x",
             core,
         });
@@ -457,7 +470,7 @@ describe("Conditional content tag tests", async () => {
 
     async function check_test_math_optional(
         core: PublicDoenetMLCore,
-        resolveComponentName: (name: string, origin?: number) => number,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_items(text: string, math: any, optional?: string) {
             let stateVariables = await core.returnAllStateVariables(
@@ -466,98 +479,111 @@ describe("Conditional content tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName(`cc.a`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`cc.a`)].stateValues
+                    .text,
             ).eq(text);
             expect(
-                stateVariables[resolveComponentName(`a1`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`a1`)].stateValues
+                    .text,
             ).eq(text);
             expect(
-                stateVariables[resolveComponentName(`cc2.a`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`cc2.a`)].stateValues
+                    .text,
             ).eq(text);
             expect(
-                stateVariables[resolveComponentName(`pa2`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`pa2`)].stateValues
+                    .text,
             ).eq(text);
             expect(
-                stateVariables[resolveComponentName(`cc3.a`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`cc3.a`)].stateValues
+                    .text,
             ).eq(text);
             expect(
-                stateVariables[resolveComponentName(`pa3`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`pa3`)].stateValues
+                    .text,
             ).eq(text);
 
             expect(
-                stateVariables[resolveComponentName(`cc.b`)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(`cc.b`)].stateValues
+                    .value.tree,
             ).eqls(math);
             expect(
-                stateVariables[resolveComponentName(`b1`)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(`b1`)].stateValues
+                    .value.tree,
             ).eqls(math);
             expect(
-                stateVariables[resolveComponentName(`cc2.b`)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(`cc2.b`)].stateValues
+                    .value.tree,
             ).eqls(math);
             expect(
-                stateVariables[resolveComponentName(`pb2`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`pb2`)].stateValues
+                    .text,
             ).eqls(math);
             expect(
-                stateVariables[resolveComponentName(`cc3.b`)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(`cc3.b`)].stateValues
+                    .value.tree,
             ).eqls(math);
             expect(
-                stateVariables[resolveComponentName(`pb3`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`pb3`)].stateValues
+                    .text,
             ).eqls(math);
 
             if (optional) {
                 expect(
-                    stateVariables[resolveComponentName(`cc.c`)].stateValues
+                    stateVariables[await resolvePathToNodeIdx(`cc.c`)]
+                        .stateValues.text,
+                ).eq(optional);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`c1`)].stateValues
                         .text,
                 ).eq(optional);
                 expect(
-                    stateVariables[resolveComponentName(`c1`)].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx(`cc2.c`)]
+                        .stateValues.text,
                 ).eq(optional);
                 expect(
-                    stateVariables[resolveComponentName(`cc2.c`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pc2`)]
+                        .stateValues.text,
                 ).eq(optional);
                 expect(
-                    stateVariables[resolveComponentName(`pc2`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`cc3.c`)]
+                        .stateValues.text,
                 ).eq(optional);
                 expect(
-                    stateVariables[resolveComponentName(`cc3.c`)].stateValues
-                        .text,
-                ).eq(optional);
-                expect(
-                    stateVariables[resolveComponentName(`pc3`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pc3`)]
+                        .stateValues.text,
                 ).eq(optional);
             } else {
-                expect(stateVariables[resolveComponentName(`cc.c`)]).eq(
+                expect(stateVariables[await resolvePathToNodeIdx(`cc.c`)]).eq(
                     undefined,
                 );
 
                 expect(
-                    stateVariables[resolveComponentName(`c1`)].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx(`c1`)].stateValues
+                        .text,
                 ).eq("");
-                expect(stateVariables[resolveComponentName(`cc2.c`)]).eq(
+                expect(stateVariables[await resolvePathToNodeIdx(`cc2.c`)]).eq(
                     undefined,
                 );
                 expect(
-                    stateVariables[resolveComponentName(`pc2`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pc2`)]
+                        .stateValues.text,
                 ).eq("");
-                expect(stateVariables[resolveComponentName(`cc3.c`)]).eq(
+                expect(stateVariables[await resolvePathToNodeIdx(`cc3.c`)]).eq(
                     undefined,
                 );
                 expect(
-                    stateVariables[resolveComponentName(`pc3`)].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx(`pc3`)]
+                        .stateValues.text,
                 ).eq("");
             }
 
-            expect(stateVariables[resolveComponentName(`cc3.d`)]).eq(undefined);
+            expect(stateVariables[await resolvePathToNodeIdx(`cc3.d`)]).eq(
+                undefined,
+            );
             expect(
-                stateVariables[resolveComponentName(`pd2`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`pd2`)].stateValues
+                    .text,
             ).eq("");
         }
 
@@ -566,7 +592,7 @@ describe("Conditional content tag tests", async () => {
         // enter 1
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("cat", "y");
@@ -574,7 +600,7 @@ describe("Conditional content tag tests", async () => {
         // enter 10
         await updateMathInputValue({
             latex: "10",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("mouse", "z");
@@ -582,7 +608,7 @@ describe("Conditional content tag tests", async () => {
         // enter -1
         await updateMathInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("dog", "x", "optional text!");
@@ -590,14 +616,14 @@ describe("Conditional content tag tests", async () => {
         // enter x
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("mouse", "z");
     }
 
     it("case/else with text, math, and optional", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" />
     <p>original: <conditionalContent name="cc">
@@ -630,17 +656,17 @@ describe("Conditional content tag tests", async () => {
     `,
         });
 
-        await check_test_math_optional(core, resolveComponentName);
+        await check_test_math_optional(core, resolvePathToNodeIdx);
     });
 
     async function check_internal_external({
         core,
         skipSingletons = false,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     }: {
         core: PublicDoenetMLCore;
         skipSingletons?: boolean;
-        resolveComponentName: (name: string, origin?: number) => number;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
     }) {
         async function check_items({
             animal,
@@ -663,74 +689,76 @@ describe("Conditional content tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName(`cc.animal`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`cc.animal`)]
+                    .stateValues.text,
             ).eq(animal);
             expect(
-                stateVariables[resolveComponentName(`cc.plant`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`cc.plant`)]
+                    .stateValues.text,
             ).eq(plant);
             expect(
-                stateVariables[resolveComponentName(`cc.p`)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(`cc.p`)].stateValues
+                    .value.tree,
             ).eqls(p);
 
             expect(
-                stateVariables[resolveComponentName(`animal`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`animal`)].stateValues
+                    .text,
             ).eq(animal);
             expect(
-                stateVariables[resolveComponentName(`plant`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`plant`)].stateValues
+                    .text,
             ).eq(plant);
             expect(
-                stateVariables[resolveComponentName(`p`)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(`p`)].stateValues
+                    .value.tree,
             ).eqls(p);
 
             if (!skipSingletons) {
                 expect(
-                    stateVariables[resolveComponentName(`xx`)].stateValues.value
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx(`xx`)].stateValues
+                        .value.tree,
                 ).eqls(x);
                 expect(
-                    stateVariables[resolveComponentName(`aa`)].stateValues.value
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx(`aa`)].stateValues
+                        .value.tree,
                 ).eqls(a);
             }
 
             expect(
-                stateVariables[resolveComponentName(`cc2.animal`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`cc2.animal`)]
+                    .stateValues.text,
             ).eq(animal);
             expect(
-                stateVariables[resolveComponentName(`cc2.plant`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`cc2.plant`)]
+                    .stateValues.text,
             ).eq(plant);
             expect(
-                stateVariables[resolveComponentName(`cc2.p`)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(`cc2.p`)].stateValues
+                    .value.tree,
             ).eqls(p);
 
             expect(
-                stateVariables[resolveComponentName(`animalCopy`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`animalCopy`)]
+                    .stateValues.text,
             ).eq(animal);
             expect(
-                stateVariables[resolveComponentName(`plantCopy`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`plantCopy`)]
+                    .stateValues.text,
             ).eq(plant);
             expect(
-                stateVariables[resolveComponentName(`pCopy`)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(`pCopy`)].stateValues
+                    .value.tree,
             ).eqls(p);
 
             if (!skipSingletons) {
                 expect(
-                    stateVariables[resolveComponentName(`xxCopy`)].stateValues
-                        .value.tree,
+                    stateVariables[await resolvePathToNodeIdx(`xxCopy`)]
+                        .stateValues.value.tree,
                 ).eqls(x);
                 expect(
-                    stateVariables[resolveComponentName(`aaCopy`)].stateValues
-                        .value.tree,
+                    stateVariables[await resolvePathToNodeIdx(`aaCopy`)]
+                        .stateValues.value.tree,
                 ).eqls(a);
             }
         }
@@ -746,7 +774,7 @@ describe("Conditional content tag tests", async () => {
         // enter 1
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
@@ -761,7 +789,7 @@ describe("Conditional content tag tests", async () => {
         // enter -1
         await updateMathInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
@@ -776,7 +804,7 @@ describe("Conditional content tag tests", async () => {
         // enter 10
         await updateMathInputValue({
             latex: "10",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
@@ -790,7 +818,7 @@ describe("Conditional content tag tests", async () => {
     }
 
     it("references to internal and external components", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <text name="x1">dog</text>
     <text name="x2">cat</text>
@@ -838,18 +866,18 @@ describe("Conditional content tag tests", async () => {
         await check_internal_external({
             core,
             skipSingletons: true,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     async function check_dynamic_refs({
         core,
         inputName,
-        resolveComponentName,
+        resolvePathToNodeIdx,
     }: {
         core: PublicDoenetMLCore;
         inputName: string;
-        resolveComponentName: (name: string, origin?: number) => number;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
     }) {
         async function check_items({
             question,
@@ -866,29 +894,29 @@ describe("Conditional content tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName(`cc.question`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`cc.question`)]
+                    .stateValues.text,
             ).eq(question);
             expect(
-                stateVariables[resolveComponentName(`cc.comeback`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`cc.comeback`)]
+                    .stateValues.text,
             ).eq(comeback);
             expect(
-                stateVariables[resolveComponentName(`pResponse`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`pResponse`)]
+                    .stateValues.text,
             ).eq(`The response: ${response}`);
 
             expect(
-                stateVariables[resolveComponentName(`cc2.question`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`cc2.question`)]
+                    .stateValues.text,
             ).eq(question);
             expect(
-                stateVariables[resolveComponentName(`cc2.comeback`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`cc2.comeback`)]
+                    .stateValues.text,
             ).eq(comeback);
             expect(
-                stateVariables[resolveComponentName(`pResponse2`)].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx(`pResponse2`)]
+                    .stateValues.text,
             ).eq(`The response one more time: ${response}`);
         }
 
@@ -900,7 +928,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateTextInputValue({
             text: "Fred",
-            componentIdx: resolveComponentName(inputName),
+            componentIdx: await resolvePathToNodeIdx(inputName),
             core,
         });
         await check_items({
@@ -911,7 +939,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateMathInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items({
@@ -922,7 +950,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateTextInputValue({
             text: "dogs",
-            componentIdx: resolveComponentName(inputName),
+            componentIdx: await resolvePathToNodeIdx(inputName),
             core,
         });
         await check_items({
@@ -933,7 +961,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items({
@@ -944,7 +972,7 @@ describe("Conditional content tag tests", async () => {
 
         await updateTextInputValue({
             text: "Goodbye",
-            componentIdx: resolveComponentName(inputName),
+            componentIdx: await resolvePathToNodeIdx(inputName),
             core,
         });
         await check_items({
@@ -955,7 +983,7 @@ describe("Conditional content tag tests", async () => {
     }
 
     it("dynamic internal references", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" prefill="1" />
     <conditionalContent name="cc">
@@ -984,12 +1012,12 @@ describe("Conditional content tag tests", async () => {
         await check_dynamic_refs({
             core,
             inputName: "cc.response",
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     it("copy case", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" />
 
@@ -1019,16 +1047,20 @@ describe("Conditional content tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName(`p1`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`p1`)].stateValues
+                    .text,
             ).eq(item1);
             expect(
-                stateVariables[resolveComponentName(`p3`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`p3`)].stateValues
+                    .text,
             ).eq(item1);
             expect(
-                stateVariables[resolveComponentName(`p2`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`p2`)].stateValues
+                    .text,
             ).eq(item2);
             expect(
-                stateVariables[resolveComponentName(`p4`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`p4`)].stateValues
+                    .text,
             ).eq(item2);
         }
 
@@ -1037,7 +1069,7 @@ describe("Conditional content tag tests", async () => {
         // enter 1
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("positive", "positive");
@@ -1045,7 +1077,7 @@ describe("Conditional content tag tests", async () => {
         // enter -1
         await updateMathInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("non-positive", "negative");
@@ -1053,14 +1085,14 @@ describe("Conditional content tag tests", async () => {
         // enter 0
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("non-positive", "neither");
     });
 
     it("copy else", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" />
 
@@ -1089,16 +1121,20 @@ describe("Conditional content tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName(`p1`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`p1`)].stateValues
+                    .text,
             ).eq(item1);
             expect(
-                stateVariables[resolveComponentName(`p3`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`p3`)].stateValues
+                    .text,
             ).eq(item1);
             expect(
-                stateVariables[resolveComponentName(`p2`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`p2`)].stateValues
+                    .text,
             ).eq(item2);
             expect(
-                stateVariables[resolveComponentName(`p4`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`p4`)].stateValues
+                    .text,
             ).eq(item2);
         }
 
@@ -1107,7 +1143,7 @@ describe("Conditional content tag tests", async () => {
         // enter 1
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("hello", "oops");
@@ -1115,7 +1151,7 @@ describe("Conditional content tag tests", async () => {
         // enter -1
         await updateMathInputValue({
             latex: "-1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("bye", "hello");
@@ -1123,14 +1159,14 @@ describe("Conditional content tag tests", async () => {
         // enter 0
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("bye", "bye");
     });
 
     it("conditional contents hide dynamically", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name='h1' prefill="false" >
       <label>Hide first conditionalContent</label>
@@ -1161,16 +1197,20 @@ describe("Conditional content tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName(`pa`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`pa`)].stateValues
+                    .text,
             ).eq(`a: ${hidden.includes("a") ? "" : item}`);
             expect(
-                stateVariables[resolveComponentName(`pa1`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`pa1`)].stateValues
+                    .text,
             ).eq(`a1: ${item}`);
             expect(
-                stateVariables[resolveComponentName(`pb`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`pb`)].stateValues
+                    .text,
             ).eq(`b: ${hidden.includes("b") ? "" : item}`);
             expect(
-                stateVariables[resolveComponentName(`pb1`)].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx(`pb1`)].stateValues
+                    .text,
             ).eq(`b1: ${item}`);
         }
 
@@ -1179,19 +1219,19 @@ describe("Conditional content tag tests", async () => {
         // enter 1
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("cat", ["b"]);
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("h1"),
+            componentIdx: await resolvePathToNodeIdx("h1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("h2"),
+            componentIdx: await resolvePathToNodeIdx("h2"),
             core,
         });
         await check_items("cat", ["a"]);
@@ -1199,19 +1239,19 @@ describe("Conditional content tag tests", async () => {
         // enter -3
         await updateMathInputValue({
             latex: "-3",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("dog", ["a"]);
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("h1"),
+            componentIdx: await resolvePathToNodeIdx("h1"),
             core,
         });
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("h2"),
+            componentIdx: await resolvePathToNodeIdx("h2"),
             core,
         });
 
@@ -1219,7 +1259,7 @@ describe("Conditional content tag tests", async () => {
     });
 
     it("string and blank strings in case and else", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup>
     <text name="animal1">fox</text><text name="verb1">jumps</text>
@@ -1251,40 +1291,50 @@ describe("Conditional content tag tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("pa")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pa")].stateValues
+                    .text,
             ).eq(`a: The ${animal} ${verb}.`);
             expect(
-                stateVariables[resolveComponentName("pa1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pa1")].stateValues
+                    .text,
             ).eq(`a1: The ${animal} ${verb}.`);
             expect(
-                stateVariables[resolveComponentName("pPieces")].stateValues
-                    .text,
+                stateVariables[await resolvePathToNodeIdx("pPieces")]
+                    .stateValues.text,
             ).eq(`pieces: The ${animal} ${verb}.`);
 
             expect(
-                stateVariables[resolveComponentName("pb1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pb1")].stateValues
+                    .text,
             ).eq("b1: ");
             expect(
-                stateVariables[resolveComponentName("pc1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pc1")].stateValues
+                    .text,
             ).eq(`c1: ${animal}`);
             expect(
-                stateVariables[resolveComponentName("pd1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pd1")].stateValues
+                    .text,
             ).eq(`d1: ${verb}`);
             expect(
-                stateVariables[resolveComponentName("pe1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("pe1")].stateValues
+                    .text,
             ).eq("e1: ");
 
             expect(
-                stateVariables[resolveComponentName("b1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("b1")].stateValues
+                    .text,
             ).eq("");
             expect(
-                stateVariables[resolveComponentName("c1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("c1")].stateValues
+                    .text,
             ).eq(animal);
             expect(
-                stateVariables[resolveComponentName("d1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("d1")].stateValues
+                    .text,
             ).eq(verb);
             expect(
-                stateVariables[resolveComponentName("e1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("e1")].stateValues
+                    .text,
             ).eq("");
         }
 
@@ -1293,7 +1343,7 @@ describe("Conditional content tag tests", async () => {
         // enter 1
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("fox", "jumps");
@@ -1301,14 +1351,14 @@ describe("Conditional content tag tests", async () => {
         // enter 0
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items("elephant", "trumpets");
     });
 
     it("copy with invalid source gets expanded", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <section name="s">
   <mathInput name="n" />
@@ -1323,16 +1373,18 @@ describe("Conditional content tag tests", async () => {
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[resolveComponentName("s")].activeChildren).eqls([
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].activeChildren,
+        ).eqls([
             "\n  ",
             {
-                componentIdx: resolveComponentName("n"),
+                componentIdx: await resolvePathToNodeIdx("n"),
                 componentType: "mathInput",
             },
             "\n  before\n  ",
@@ -1342,7 +1394,7 @@ describe("Conditional content tag tests", async () => {
     });
 
     it("use original names if no assignNames", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="n" />
 
@@ -1375,96 +1427,98 @@ describe("Conditional content tag tests", async () => {
 
             if (num_winners > 0) {
                 expect(
-                    stateVariables[resolveComponentName("cc1.winner1")]
+                    stateVariables[await resolvePathToNodeIdx("cc1.winner1")]
                         .stateValues.text,
                 ).eq("first winner");
                 expect(
-                    stateVariables[resolveComponentName("cc1.p1")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("cc1.p1")]
+                        .stateValues.text,
                 ).eq("We have a first winner!");
             } else {
                 expect(
-                    stateVariables[resolveComponentName("cc1.winner1")] ===
-                        undefined ||
-                        stateVariables[resolveComponentName("cc1.winner1")]
-                            .stateValues.isInactiveCompositeReplacement,
+                    stateVariables[
+                        await resolvePathToNodeIdx("cc1.winner1")
+                    ] === undefined ||
+                        stateVariables[
+                            await resolvePathToNodeIdx("cc1.winner1")
+                        ].stateValues.isInactiveCompositeReplacement,
                 ).eq(true);
                 expect(
-                    stateVariables[resolveComponentName("cc1.p1")] ===
+                    stateVariables[await resolvePathToNodeIdx("cc1.p1")] ===
                         undefined ||
-                        stateVariables[resolveComponentName("cc1.p1")]
+                        stateVariables[await resolvePathToNodeIdx("cc1.p1")]
                             .stateValues.isInactiveCompositeReplacement,
                 ).eq(true);
             }
 
             if (num_winners === 1) {
                 expect(
-                    stateVariables[resolveComponentName("cc2.winner1b")]
+                    stateVariables[await resolvePathToNodeIdx("cc2.winner1b")]
                         .stateValues.text,
                 ).eq("first winner");
                 expect(
-                    stateVariables[resolveComponentName("cc2.p2")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("cc2.p2")]
+                        .stateValues.text,
                 ).eq("Just emphasizing that we have that first winner!");
             } else {
-                expect(stateVariables[resolveComponentName("cc2.winner1b")]).eq(
-                    undefined,
-                );
-                expect(stateVariables[resolveComponentName("cc2.p2")]).eq(
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("cc2.winner1b")],
+                ).eq(undefined);
+                expect(stateVariables[await resolvePathToNodeIdx("cc2.p2")]).eq(
                     undefined,
                 );
             }
 
             if (num_winners === 2) {
                 expect(
-                    stateVariables[resolveComponentName("cc2.winner2")]
+                    stateVariables[await resolvePathToNodeIdx("cc2.winner2")]
                         .stateValues.text,
                 ).eq("second winner");
                 expect(
-                    stateVariables[resolveComponentName("cc2.p3")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("cc2.p3")]
+                        .stateValues.text,
                 ).eq("We have a second winner!");
             } else {
-                expect(stateVariables[resolveComponentName("cc2.winner2")]).eq(
-                    undefined,
-                );
-                expect(stateVariables[resolveComponentName("cc2.p3")]).eq(
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("cc2.winner2")],
+                ).eq(undefined);
+                expect(stateVariables[await resolvePathToNodeIdx("cc2.p3")]).eq(
                     undefined,
                 );
             }
 
             if (num_winners > 2) {
                 expect(
-                    stateVariables[resolveComponentName("cc2.winner3")]
+                    stateVariables[await resolvePathToNodeIdx("cc2.winner3")]
                         .stateValues.text,
                 ).eq("third winner");
                 expect(
-                    stateVariables[resolveComponentName("cc2.p4")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("cc2.p4")]
+                        .stateValues.text,
                 ).eq("We have a third winner!");
             } else {
-                expect(stateVariables[resolveComponentName("cc2.winner3")]).eq(
-                    undefined,
-                );
-                expect(stateVariables[resolveComponentName("cc2.p4")]).eq(
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("cc2.winner3")],
+                ).eq(undefined);
+                expect(stateVariables[await resolvePathToNodeIdx("cc2.p4")]).eq(
                     undefined,
                 );
             }
 
             if (num_winners === 0) {
                 expect(
-                    stateVariables[resolveComponentName("cc2.winner0")]
+                    stateVariables[await resolvePathToNodeIdx("cc2.winner0")]
                         .stateValues.text,
                 ).eq("no winner");
                 expect(
-                    stateVariables[resolveComponentName("cc2.p5")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("cc2.p5")]
+                        .stateValues.text,
                 ).eq("We have no winner.");
             } else {
-                expect(stateVariables[resolveComponentName("cc2.winner0")]).eq(
-                    undefined,
-                );
-                expect(stateVariables[resolveComponentName("cc2.p5")]).eq(
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("cc2.winner0")],
+                ).eq(undefined);
+                expect(stateVariables[await resolvePathToNodeIdx("cc2.p5")]).eq(
                     undefined,
                 );
             }
@@ -1474,35 +1528,35 @@ describe("Conditional content tag tests", async () => {
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items(1);
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items(2);
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items(3);
 
         await updateMathInputValue({
             latex: "x",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items(0);
     });
 
     it("primitive replacements removed from text when conditional content is hidden", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <booleanInput name="h">true</booleanInput>
 
@@ -1523,10 +1577,12 @@ describe("Conditional content tag tests", async () => {
                 : "We have apples, bananas, and mangos.";
 
             expect(
-                stateVariables[resolveComponentName("p")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
             ).eq(phrase);
             expect(
-                stateVariables[resolveComponentName("text")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("text")].stateValues
+                    .text,
             ).eq(phrase);
         }
 
@@ -1534,14 +1590,14 @@ describe("Conditional content tag tests", async () => {
 
         await updateBooleanInputValue({
             boolean: false,
-            componentIdx: resolveComponentName("h"),
+            componentIdx: await resolvePathToNodeIdx("h"),
             core,
         });
         await check_items(false);
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("h"),
+            componentIdx: await resolvePathToNodeIdx("h"),
             core,
         });
         await check_items(true);

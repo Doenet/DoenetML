@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
@@ -17,7 +17,7 @@ describe("EigenDecomposition Tag Tests", async () => {
     }
 
     it("2x2 matrices", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>A = <math name="A" format="latex">
       \\begin{pmatrix}
@@ -64,136 +64,150 @@ describe("EigenDecomposition Tag Tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pAevs")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pAevs")].stateValues
+                .text,
         ).eqls("Eigenvalues of A: -1, 3");
         expect(
-            stateVariables[resolveComponentName("Aev1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aev1")].stateValues
+                .value,
         ).eqls(-1);
         expect(
-            stateVariables[resolveComponentName("Aev2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aev2")].stateValues
+                .value,
         ).eqls(3);
 
         expect(
-            stateVariables[resolveComponentName("pBevs")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pBevs")].stateValues
+                .text,
         ).eqls("Eigenvalues of B: 1 + 2 i, 1 - 2 i");
         expect(
-            stateVariables[resolveComponentName("Bev1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Bev1")].stateValues.text,
         ).eqls("1 + 2 i");
         expect(
-            stateVariables[resolveComponentName("Bev2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Bev2")].stateValues.text,
         ).eqls("1 - 2 i");
 
         expect(
-            stateVariables[resolveComponentName("Ad")].stateValues.eigenvalues,
+            stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
+                .eigenvalues,
         ).eqls([-1, 3]);
         expect(
-            stateVariables[resolveComponentName("Aev1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aev1")].stateValues
+                .value,
         ).eq(-1);
         expect(
-            stateVariables[resolveComponentName("Aevsa[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aevsa[1]")].stateValues
+                .value,
         ).eq(-1);
         expect(
-            stateVariables[resolveComponentName("Aev2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aev2")].stateValues
+                .value,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("Aevsa[2]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aevsa[2]")].stateValues
+                .value,
         ).eq(3);
 
         expect(
-            stateVariables[resolveComponentName("Ad")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
                 .eigenvectors[0][1] /
-                stateVariables[resolveComponentName("Ad")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
                     .eigenvectors[0][0],
         ).closeTo(-1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Ad")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
                 .eigenvectors[1][1] /
-                stateVariables[resolveComponentName("Ad")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
                     .eigenvectors[1][0],
         ).closeTo(1, 1e-14);
 
         expect(
-            stateVariables[resolveComponentName("Aevec1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Aevec1")].stateValues
                 .displacement[1] /
-                stateVariables[resolveComponentName("Aevec1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Aevec1")].stateValues
                     .displacement[0],
         ).closeTo(-1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Aevecsa[1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Aevecsa[1]")].stateValues
                 .displacement[1] /
-                stateVariables[resolveComponentName("Aevecsa[1]")].stateValues
-                    .displacement[0],
+                stateVariables[await resolvePathToNodeIdx("Aevecsa[1]")]
+                    .stateValues.displacement[0],
         ).closeTo(-1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Aevec2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Aevec2")].stateValues
                 .displacement[1] /
-                stateVariables[resolveComponentName("Aevec2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Aevec2")].stateValues
                     .displacement[0],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Aevecsa[2]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Aevecsa[2]")].stateValues
                 .displacement[1] /
-                stateVariables[resolveComponentName("Aevecsa[2]")].stateValues
-                    .displacement[0],
+                stateVariables[await resolvePathToNodeIdx("Aevecsa[2]")]
+                    .stateValues.displacement[0],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Aevec1y")].stateValues.value /
-                stateVariables[resolveComponentName("Aevec1x")].stateValues
-                    .value,
+            stateVariables[await resolvePathToNodeIdx("Aevec1y")].stateValues
+                .value /
+                stateVariables[await resolvePathToNodeIdx("Aevec1x")]
+                    .stateValues.value,
         ).closeTo(-1, 1e-14);
 
         expect(
-            stateVariables[resolveComponentName("Bd")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                 .eigenvalues[0].re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bd")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                 .eigenvalues[0].im,
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bd")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                 .eigenvalues[1].re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bd")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                 .eigenvalues[1].im,
         ).closeTo(-2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bev1")].stateValues.value.re,
-        ).closeTo(1, 1e-14);
-        expect(
-            stateVariables[resolveComponentName("Bev1")].stateValues.value.im,
-        ).closeTo(2, 1e-14);
-        expect(
-            stateVariables[resolveComponentName("Bevsa[1]")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("Bev1")].stateValues.value
                 .re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bevsa[1]")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("Bev1")].stateValues.value
                 .im,
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bev2")].stateValues.value.re,
+            stateVariables[await resolvePathToNodeIdx("Bevsa[1]")].stateValues
+                .value.re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bev2")].stateValues.value.im,
+            stateVariables[await resolvePathToNodeIdx("Bevsa[1]")].stateValues
+                .value.im,
+        ).closeTo(2, 1e-14);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Bev2")].stateValues.value
+                .re,
+        ).closeTo(1, 1e-14);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Bev2")].stateValues.value
+                .im,
         ).closeTo(-2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bevsa[2]")].stateValues.value
-                .re,
+            stateVariables[await resolvePathToNodeIdx("Bevsa[2]")].stateValues
+                .value.re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bevsa[2]")].stateValues.value
-                .im,
+            stateVariables[await resolvePathToNodeIdx("Bevsa[2]")].stateValues
+                .value.im,
         ).closeTo(-2, 1e-14);
 
         let ratio = me.math.divide(
             reviveComplex(
-                stateVariables[resolveComponentName("Bd")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[0][1],
             ),
             reviveComplex(
-                stateVariables[resolveComponentName("Bd")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[0][0],
             ),
         );
@@ -201,11 +215,11 @@ describe("EigenDecomposition Tag Tests", async () => {
         expect(ratio.im).closeTo(1, 1e-14);
         ratio = me.math.divide(
             reviveComplex(
-                stateVariables[resolveComponentName("Bd")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[1][1],
             ),
             reviveComplex(
-                stateVariables[resolveComponentName("Bd")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[1][0],
             ),
         );
@@ -215,30 +229,13 @@ describe("EigenDecomposition Tag Tests", async () => {
         ratio = me.math.divide(
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevec1")].stateValues
-                        .displacement[1],
-                )
-                .evaluate_to_constant(),
-            me
-                .fromAst(
-                    stateVariables[resolveComponentName("Bevec1")].stateValues
-                        .displacement[0],
-                )
-                .evaluate_to_constant(),
-        );
-        expect(ratio.re).closeTo(0, 1e-14);
-        expect(ratio.im).closeTo(1, 1e-14);
-
-        ratio = me.math.divide(
-            me
-                .fromAst(
-                    stateVariables[resolveComponentName("Bevecsa[1]")]
+                    stateVariables[await resolvePathToNodeIdx("Bevec1")]
                         .stateValues.displacement[1],
                 )
                 .evaluate_to_constant(),
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevecsa[1]")]
+                    stateVariables[await resolvePathToNodeIdx("Bevec1")]
                         .stateValues.displacement[0],
                 )
                 .evaluate_to_constant(),
@@ -249,14 +246,31 @@ describe("EigenDecomposition Tag Tests", async () => {
         ratio = me.math.divide(
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevec2")].stateValues
-                        .displacement[1],
+                    stateVariables[await resolvePathToNodeIdx("Bevecsa[1]")]
+                        .stateValues.displacement[1],
                 )
                 .evaluate_to_constant(),
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevec2")].stateValues
-                        .displacement[0],
+                    stateVariables[await resolvePathToNodeIdx("Bevecsa[1]")]
+                        .stateValues.displacement[0],
+                )
+                .evaluate_to_constant(),
+        );
+        expect(ratio.re).closeTo(0, 1e-14);
+        expect(ratio.im).closeTo(1, 1e-14);
+
+        ratio = me.math.divide(
+            me
+                .fromAst(
+                    stateVariables[await resolvePathToNodeIdx("Bevec2")]
+                        .stateValues.displacement[1],
+                )
+                .evaluate_to_constant(),
+            me
+                .fromAst(
+                    stateVariables[await resolvePathToNodeIdx("Bevec2")]
+                        .stateValues.displacement[0],
                 )
                 .evaluate_to_constant(),
         );
@@ -266,13 +280,13 @@ describe("EigenDecomposition Tag Tests", async () => {
         ratio = me.math.divide(
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevecsa[2]")]
+                    stateVariables[await resolvePathToNodeIdx("Bevecsa[2]")]
                         .stateValues.displacement[1],
                 )
                 .evaluate_to_constant(),
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevecsa[2]")]
+                    stateVariables[await resolvePathToNodeIdx("Bevecsa[2]")]
                         .stateValues.displacement[0],
                 )
                 .evaluate_to_constant(),
@@ -282,12 +296,12 @@ describe("EigenDecomposition Tag Tests", async () => {
 
         ratio = me.math.divide(
             reviveComplex(
-                stateVariables[resolveComponentName("Bevec1y")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("Bevec1y")]
+                    .stateValues.value,
             ),
             reviveComplex(
-                stateVariables[resolveComponentName("Bevec1x")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("Bevec1x")]
+                    .stateValues.value,
             ),
         );
         expect(ratio.re).closeTo(0, 1e-14);
@@ -295,7 +309,7 @@ describe("EigenDecomposition Tag Tests", async () => {
     });
 
     it("2x2 matrices, fractions", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>A = <math name="A" format="latex">
       \\begin{pmatrix}
@@ -341,136 +355,150 @@ describe("EigenDecomposition Tag Tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pAevs")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pAevs")].stateValues
+                .text,
         ).eqls("Eigenvalues of A: -1, 3");
         expect(
-            stateVariables[resolveComponentName("Aev1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aev1")].stateValues
+                .value,
         ).eqls(-1);
         expect(
-            stateVariables[resolveComponentName("Aev2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aev2")].stateValues
+                .value,
         ).eqls(3);
 
         expect(
-            stateVariables[resolveComponentName("pBevs")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pBevs")].stateValues
+                .text,
         ).eqls("Eigenvalues of B: 1 + 2 i, 1 - 2 i");
         expect(
-            stateVariables[resolveComponentName("Bev1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Bev1")].stateValues.text,
         ).eqls("1 + 2 i");
         expect(
-            stateVariables[resolveComponentName("Bev2")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("Bev2")].stateValues.text,
         ).eqls("1 - 2 i");
 
         expect(
-            stateVariables[resolveComponentName("Ad")].stateValues.eigenvalues,
+            stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
+                .eigenvalues,
         ).eqls([-1, 3]);
         expect(
-            stateVariables[resolveComponentName("Aev1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aev1")].stateValues
+                .value,
         ).eq(-1);
         expect(
-            stateVariables[resolveComponentName("Aevsa[1]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aevsa[1]")].stateValues
+                .value,
         ).eq(-1);
         expect(
-            stateVariables[resolveComponentName("Aev2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aev2")].stateValues
+                .value,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("Aevsa[2]")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("Aevsa[2]")].stateValues
+                .value,
         ).eq(3);
 
         expect(
-            stateVariables[resolveComponentName("Ad")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
                 .eigenvectors[0][1] /
-                stateVariables[resolveComponentName("Ad")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
                     .eigenvectors[0][0],
         ).closeTo(-1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Ad")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
                 .eigenvectors[1][1] /
-                stateVariables[resolveComponentName("Ad")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
                     .eigenvectors[1][0],
         ).closeTo(1, 1e-14);
 
         expect(
-            stateVariables[resolveComponentName("Aevec1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Aevec1")].stateValues
                 .displacement[1] /
-                stateVariables[resolveComponentName("Aevec1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Aevec1")].stateValues
                     .displacement[0],
         ).closeTo(-1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Aevecsa[1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Aevecsa[1]")].stateValues
                 .displacement[1] /
-                stateVariables[resolveComponentName("Aevecsa[1]")].stateValues
-                    .displacement[0],
+                stateVariables[await resolvePathToNodeIdx("Aevecsa[1]")]
+                    .stateValues.displacement[0],
         ).closeTo(-1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Aevec2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Aevec2")].stateValues
                 .displacement[1] /
-                stateVariables[resolveComponentName("Aevec2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Aevec2")].stateValues
                     .displacement[0],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Aevecsa[2]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Aevecsa[2]")].stateValues
                 .displacement[1] /
-                stateVariables[resolveComponentName("Aevecsa[2]")].stateValues
-                    .displacement[0],
+                stateVariables[await resolvePathToNodeIdx("Aevecsa[2]")]
+                    .stateValues.displacement[0],
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Aevec1y")].stateValues.value /
-                stateVariables[resolveComponentName("Aevec1x")].stateValues
-                    .value,
+            stateVariables[await resolvePathToNodeIdx("Aevec1y")].stateValues
+                .value /
+                stateVariables[await resolvePathToNodeIdx("Aevec1x")]
+                    .stateValues.value,
         ).closeTo(-1, 1e-14);
 
         expect(
-            stateVariables[resolveComponentName("Bd")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                 .eigenvalues[0].re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bd")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                 .eigenvalues[0].im,
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bd")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                 .eigenvalues[1].re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bd")].stateValues
+            stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                 .eigenvalues[1].im,
         ).closeTo(-2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bev1")].stateValues.value.re,
-        ).closeTo(1, 1e-14);
-        expect(
-            stateVariables[resolveComponentName("Bev1")].stateValues.value.im,
-        ).closeTo(2, 1e-14);
-        expect(
-            stateVariables[resolveComponentName("Bevsa[1]")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("Bev1")].stateValues.value
                 .re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bevsa[1]")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("Bev1")].stateValues.value
                 .im,
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bev2")].stateValues.value.re,
+            stateVariables[await resolvePathToNodeIdx("Bevsa[1]")].stateValues
+                .value.re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bev2")].stateValues.value.im,
+            stateVariables[await resolvePathToNodeIdx("Bevsa[1]")].stateValues
+                .value.im,
+        ).closeTo(2, 1e-14);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Bev2")].stateValues.value
+                .re,
+        ).closeTo(1, 1e-14);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Bev2")].stateValues.value
+                .im,
         ).closeTo(-2, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bevsa[2]")].stateValues.value
-                .re,
+            stateVariables[await resolvePathToNodeIdx("Bevsa[2]")].stateValues
+                .value.re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[resolveComponentName("Bevsa[2]")].stateValues.value
-                .im,
+            stateVariables[await resolvePathToNodeIdx("Bevsa[2]")].stateValues
+                .value.im,
         ).closeTo(-2, 1e-14);
 
         let ratio = me.math.divide(
             reviveComplex(
-                stateVariables[resolveComponentName("Bd")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[0][1],
             ),
             reviveComplex(
-                stateVariables[resolveComponentName("Bd")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[0][0],
             ),
         );
@@ -478,11 +506,11 @@ describe("EigenDecomposition Tag Tests", async () => {
         expect(ratio.im).closeTo(1, 1e-14);
         ratio = me.math.divide(
             reviveComplex(
-                stateVariables[resolveComponentName("Bd")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[1][1],
             ),
             reviveComplex(
-                stateVariables[resolveComponentName("Bd")].stateValues
+                stateVariables[await resolvePathToNodeIdx("Bd")].stateValues
                     .eigenvectors[1][0],
             ),
         );
@@ -492,30 +520,13 @@ describe("EigenDecomposition Tag Tests", async () => {
         ratio = me.math.divide(
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevec1")].stateValues
-                        .displacement[1],
-                )
-                .evaluate_to_constant(),
-            me
-                .fromAst(
-                    stateVariables[resolveComponentName("Bevec1")].stateValues
-                        .displacement[0],
-                )
-                .evaluate_to_constant(),
-        );
-        expect(ratio.re).closeTo(0, 1e-14);
-        expect(ratio.im).closeTo(1, 1e-14);
-
-        ratio = me.math.divide(
-            me
-                .fromAst(
-                    stateVariables[resolveComponentName("Bevecsa[1]")]
+                    stateVariables[await resolvePathToNodeIdx("Bevec1")]
                         .stateValues.displacement[1],
                 )
                 .evaluate_to_constant(),
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevecsa[1]")]
+                    stateVariables[await resolvePathToNodeIdx("Bevec1")]
                         .stateValues.displacement[0],
                 )
                 .evaluate_to_constant(),
@@ -526,14 +537,31 @@ describe("EigenDecomposition Tag Tests", async () => {
         ratio = me.math.divide(
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevec2")].stateValues
-                        .displacement[1],
+                    stateVariables[await resolvePathToNodeIdx("Bevecsa[1]")]
+                        .stateValues.displacement[1],
                 )
                 .evaluate_to_constant(),
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevec2")].stateValues
-                        .displacement[0],
+                    stateVariables[await resolvePathToNodeIdx("Bevecsa[1]")]
+                        .stateValues.displacement[0],
+                )
+                .evaluate_to_constant(),
+        );
+        expect(ratio.re).closeTo(0, 1e-14);
+        expect(ratio.im).closeTo(1, 1e-14);
+
+        ratio = me.math.divide(
+            me
+                .fromAst(
+                    stateVariables[await resolvePathToNodeIdx("Bevec2")]
+                        .stateValues.displacement[1],
+                )
+                .evaluate_to_constant(),
+            me
+                .fromAst(
+                    stateVariables[await resolvePathToNodeIdx("Bevec2")]
+                        .stateValues.displacement[0],
                 )
                 .evaluate_to_constant(),
         );
@@ -543,13 +571,13 @@ describe("EigenDecomposition Tag Tests", async () => {
         ratio = me.math.divide(
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevecsa[2]")]
+                    stateVariables[await resolvePathToNodeIdx("Bevecsa[2]")]
                         .stateValues.displacement[1],
                 )
                 .evaluate_to_constant(),
             me
                 .fromAst(
-                    stateVariables[resolveComponentName("Bevecsa[2]")]
+                    stateVariables[await resolvePathToNodeIdx("Bevecsa[2]")]
                         .stateValues.displacement[0],
                 )
                 .evaluate_to_constant(),
@@ -559,12 +587,12 @@ describe("EigenDecomposition Tag Tests", async () => {
 
         ratio = me.math.divide(
             reviveComplex(
-                stateVariables[resolveComponentName("Bevec1y")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("Bevec1y")]
+                    .stateValues.value,
             ),
             reviveComplex(
-                stateVariables[resolveComponentName("Bevec1x")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("Bevec1x")]
+                    .stateValues.value,
             ),
         );
         expect(ratio.re).closeTo(0, 1e-14);
@@ -572,7 +600,7 @@ describe("EigenDecomposition Tag Tests", async () => {
     });
 
     it("3x3 matrices with real eigenvectors", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <matrix name="A">
     <row>1 2 3</row>
@@ -585,9 +613,10 @@ describe("EigenDecomposition Tag Tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const eigvals =
-            stateVariables[resolveComponentName("eig")].stateValues.eigenvalues;
+            stateVariables[await resolvePathToNodeIdx("eig")].stateValues
+                .eigenvalues;
         const eigvecs =
-            stateVariables[resolveComponentName("eig")].stateValues
+            stateVariables[await resolvePathToNodeIdx("eig")].stateValues
                 .eigenvectors;
         expect(eigvals[0]).closeTo(0, 1e-14);
         const ev0x = 1;
@@ -615,16 +644,16 @@ describe("EigenDecomposition Tag Tests", async () => {
         evecs,
         evals,
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         decompositionName,
     }: {
         evecs: any[][];
         evals: any[];
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         decompositionName: string;
     }) {
-        const decompositionIdx = resolveComponentName(decompositionName);
+        const decompositionIdx = await resolvePathToNodeIdx(decompositionName);
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const actualEvals =
@@ -655,7 +684,7 @@ describe("EigenDecomposition Tag Tests", async () => {
     }
 
     it("3x3 matrix, center and spirals", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             
 <number name="a11">-9</number>
@@ -726,7 +755,7 @@ describe("EigenDecomposition Tag Tests", async () => {
             evecs,
             evals,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             decompositionName: "Ad_center",
         });
 
@@ -763,7 +792,7 @@ describe("EigenDecomposition Tag Tests", async () => {
             evecs,
             evals,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             decompositionName: "Ad_stable",
         });
 
@@ -797,7 +826,7 @@ describe("EigenDecomposition Tag Tests", async () => {
             evecs,
             evals,
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             decompositionName: "Ad_unstable",
         });
     });

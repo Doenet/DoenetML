@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import {
     callAction,
@@ -22,12 +22,12 @@ function isUndefinedOrInactive(comp) {
 
 async function test_no_overwritten_attributes({
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
     parentPrefix,
     addParentPrefixToInitialGraph = false,
 }: {
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
     parentPrefix: string;
     addParentPrefixToInitialGraph?: boolean;
 }) {
@@ -36,212 +36,253 @@ async function test_no_overwritten_attributes({
     const stateVariables = await core.returnAllStateVariables(false, true);
     expect(
         stateVariables[
-            resolveComponentName(`${parentPrefix}.${graphNamePostfix}`)
+            await resolvePathToNodeIdx(`${parentPrefix}${graphNamePostfix}`)
         ].stateValues.xmax,
     ).eq(5);
     expect(
         stateVariables[
-            resolveComponentName(`${parentPrefix}.A`)
+            await resolvePathToNodeIdx(`${parentPrefix}.A`)
         ].stateValues.xs.map((v) => v.tree),
     ).eqls([1, 2]);
     expect(
-        stateVariables[resolveComponentName(`${parentPrefix}.A`)].stateValues
-            .styleNumber,
+        stateVariables[await resolvePathToNodeIdx(`${parentPrefix}.A`)]
+            .stateValues.styleNumber,
     ).eq(2);
     expect(
-        stateVariables[resolveComponentName(`${parentPrefix}.A`)].stateValues
-            .label,
+        stateVariables[await resolvePathToNodeIdx(`${parentPrefix}.A`)]
+            .stateValues.label,
     ).eq("A");
     expect(
-        stateVariables[resolveComponentName(`${parentPrefix}.A`)].stateValues
-            .labelPosition,
+        stateVariables[await resolvePathToNodeIdx(`${parentPrefix}.A`)]
+            .stateValues.labelPosition,
     ).eq("upperleft");
 
     expect(
         stateVariables[
-            resolveComponentName(`${parentPrefix}2${graphNamePostfix}`)
+            await resolvePathToNodeIdx(`${parentPrefix}2${graphNamePostfix}`)
         ].stateValues.xmax,
     ).eq(5);
     expect(
         stateVariables[
-            resolveComponentName(`${parentPrefix}2.A`)
+            await resolvePathToNodeIdx(`${parentPrefix}2.A`)
         ].stateValues.xs.map((v) => v.tree),
     ).eqls([1, 2]);
     expect(
-        stateVariables[resolveComponentName(`${parentPrefix}2.A`)].stateValues
-            .styleNumber,
+        stateVariables[await resolvePathToNodeIdx(`${parentPrefix}2.A`)]
+            .stateValues.styleNumber,
     ).eq(2);
     expect(
-        stateVariables[resolveComponentName(`${parentPrefix}2.A`)].stateValues
-            .label,
+        stateVariables[await resolvePathToNodeIdx(`${parentPrefix}2.A`)]
+            .stateValues.label,
     ).eq("A");
     expect(
-        stateVariables[resolveComponentName(`${parentPrefix}2.A`)].stateValues
-            .labelPosition,
+        stateVariables[await resolvePathToNodeIdx(`${parentPrefix}2.A`)]
+            .stateValues.labelPosition,
     ).eq("upperleft");
 
     expect(
         stateVariables[
-            resolveComponentName(`${parentPrefix}3${graphNamePostfix}`)
+            await resolvePathToNodeIdx(`${parentPrefix}3${graphNamePostfix}`)
         ].stateValues.xmax,
     ).eq(5);
     expect(
         stateVariables[
-            resolveComponentName(`${parentPrefix}3.A`)
+            await resolvePathToNodeIdx(`${parentPrefix}3.A`)
         ].stateValues.xs.map((v) => v.tree),
     ).eqls([1, 2]);
     expect(
-        stateVariables[resolveComponentName(`${parentPrefix}3.A`)].stateValues
-            .styleNumber,
+        stateVariables[await resolvePathToNodeIdx(`${parentPrefix}3.A`)]
+            .stateValues.styleNumber,
     ).eq(2);
     expect(
-        stateVariables[resolveComponentName(`${parentPrefix}3.A`)].stateValues
-            .label,
+        stateVariables[await resolvePathToNodeIdx(`${parentPrefix}3.A`)]
+            .stateValues.label,
     ).eq("A");
     expect(
-        stateVariables[resolveComponentName(`${parentPrefix}3.A`)].stateValues
-            .labelPosition,
+        stateVariables[await resolvePathToNodeIdx(`${parentPrefix}3.A`)]
+            .stateValues.labelPosition,
     ).eq("upperleft");
 }
 
 async function test_linked_copy_overwrites_attributes({
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
 }: {
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
 }) {
     let stateVariables = await core.returnAllStateVariables(false, true);
-    expect(stateVariables[resolveComponentName("g")].stateValues.xmin).eq(-10);
-    expect(stateVariables[resolveComponentName("g")].stateValues.xmax).eq(5);
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmin).eq(
+        -10,
+    );
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmax).eq(
+        5,
+    );
     expect(
-        stateVariables[resolveComponentName("g.A")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g.A")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([1, 2]);
     expect(
-        stateVariables[resolveComponentName("g.A")].stateValues.styleNumber,
+        stateVariables[await resolvePathToNodeIdx("g.A")].stateValues
+            .styleNumber,
     ).eq(2);
     expect(
-        stateVariables[resolveComponentName("g.B")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g.B")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([3, 4]);
     expect(
-        stateVariables[resolveComponentName("g.B")].stateValues.styleNumber,
+        stateVariables[await resolvePathToNodeIdx("g.B")].stateValues
+            .styleNumber,
     ).eq(1);
 
-    expect(stateVariables[resolveComponentName("g2")].stateValues.xmin).eq(-3);
-    expect(stateVariables[resolveComponentName("g2")].stateValues.xmax).eq(7);
     expect(
-        stateVariables[resolveComponentName("g2.A")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmin,
+    ).eq(-3);
+    expect(
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmax,
+    ).eq(7);
+    expect(
+        stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([1, 2]);
     expect(
-        stateVariables[resolveComponentName("g2.A")].stateValues.styleNumber,
+        stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues
+            .styleNumber,
     ).eq(2);
     expect(
-        stateVariables[resolveComponentName("g2.B")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g2.B")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([3, 4]);
     expect(
-        stateVariables[resolveComponentName("g2.B")].stateValues.styleNumber,
+        stateVariables[await resolvePathToNodeIdx("g2.B")].stateValues
+            .styleNumber,
     ).eq(3);
 
-    expect(stateVariables[resolveComponentName("g3")].stateValues.xmin).eq(-3);
-    expect(stateVariables[resolveComponentName("g3")].stateValues.xmax).eq(7);
     expect(
-        stateVariables[resolveComponentName("g3.A")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmin,
+    ).eq(-3);
+    expect(
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmax,
+    ).eq(7);
+    expect(
+        stateVariables[await resolvePathToNodeIdx("g3.A")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([1, 2]);
     expect(
-        stateVariables[resolveComponentName("g3.A")].stateValues.styleNumber,
+        stateVariables[await resolvePathToNodeIdx("g3.A")].stateValues
+            .styleNumber,
     ).eq(2);
     expect(
-        stateVariables[resolveComponentName("g3.B")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g3.B")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([3, 4]);
     expect(
-        stateVariables[resolveComponentName("g3.B")].stateValues.styleNumber,
+        stateVariables[await resolvePathToNodeIdx("g3.B")].stateValues
+            .styleNumber,
     ).eq(3);
 }
 
 async function test_unlinked_copy_overwrites_attributes({
     core,
-    resolveComponentName,
+    resolvePathToNodeIdx,
 }: {
     core: PublicDoenetMLCore;
-    resolveComponentName: ResolveComponentName;
+    resolvePathToNodeIdx: ResolvePathToNodeIdx;
 }) {
     // TODO: overwriting attributes of unlinked copy of linked copy isn't working as we'd like.
     let stateVariables = await core.returnAllStateVariables(false, true);
-    expect(stateVariables[resolveComponentName("g")].stateValues.xmin).eq(-10);
-    expect(stateVariables[resolveComponentName("g")].stateValues.xmax).eq(5);
-    expect(stateVariables[resolveComponentName("g")].stateValues.ymax).eq(10);
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmin).eq(
+        -10,
+    );
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmax).eq(
+        5,
+    );
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.ymax).eq(
+        10,
+    );
     expect(
-        stateVariables[resolveComponentName("g.A")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g.A")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([1, 2]);
     expect(
-        stateVariables[resolveComponentName("g.A")].stateValues.styleNumber,
+        stateVariables[await resolvePathToNodeIdx("g.A")].stateValues
+            .styleNumber,
     ).eqls(2);
     expect(
-        stateVariables[resolveComponentName("g.B")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g.B")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([3, 4]);
     expect(
-        stateVariables[resolveComponentName("g.B")].stateValues.styleNumber,
+        stateVariables[await resolvePathToNodeIdx("g.B")].stateValues
+            .styleNumber,
     ).eqls(1);
 
-    expect(stateVariables[resolveComponentName("g2")].stateValues.xmax).eq(5);
-    expect(stateVariables[resolveComponentName("g2")].stateValues.xmin).eq(-3);
-    expect(stateVariables[resolveComponentName("g2")].stateValues.ymax).eq(10);
     expect(
-        stateVariables[resolveComponentName("g2.A")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmax,
+    ).eq(5);
+    expect(
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmin,
+    ).eq(-3);
+    expect(
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.ymax,
+    ).eq(10);
+    expect(
+        stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([1, 2]);
     expect(
-        stateVariables[resolveComponentName("g2.A")].stateValues.styleNumber,
+        stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues
+            .styleNumber,
     ).eqls(2);
     expect(
-        stateVariables[resolveComponentName("g2.B")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g2.B")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([3, 4]);
     expect(
-        stateVariables[resolveComponentName("g2.B")].stateValues.styleNumber,
+        stateVariables[await resolvePathToNodeIdx("g2.B")].stateValues
+            .styleNumber,
     ).eqls(1);
 
-    expect(stateVariables[resolveComponentName("g3")].stateValues.xmax).eq(7);
-    expect(stateVariables[resolveComponentName("g3")].stateValues.xmin).eq(-5);
-    expect(stateVariables[resolveComponentName("g3")].stateValues.ymax).eq(8);
     expect(
-        stateVariables[resolveComponentName("g3.A")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmax,
+    ).eq(7);
+    expect(
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmin,
+    ).eq(-5);
+    expect(
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.ymax,
+    ).eq(8);
+    expect(
+        stateVariables[await resolvePathToNodeIdx("g3.A")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([1, 2]);
     expect(
-        stateVariables[resolveComponentName("g3.A")].stateValues.styleNumber,
+        stateVariables[await resolvePathToNodeIdx("g3.A")].stateValues
+            .styleNumber,
     ).eqls(2);
     expect(
-        stateVariables[resolveComponentName("g3.B")].stateValues.xs.map(
+        stateVariables[await resolvePathToNodeIdx("g3.B")].stateValues.xs.map(
             (v) => v.tree,
         ),
     ).eqls([3, 4]);
     // TODO: uncomment when fix the behavior so this passes
-    // expect(stateVariables[resolveComponentName("g3.B")].stateValues.styleNumber).eqls(4);
+    // expect(stateVariables[await resolvePathToNodeIdx("g3.B")].stateValues.styleNumber).eqls(4);
 }
 
 describe("Unlinked Copying Tests", async () => {
     it("copy no link, base test", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Simplify of original: <textInput name="s1" prefill="full" /></p>
     <p>Simplify of copies: <textInput name="s2" prefill="none" /></p>
@@ -271,24 +312,24 @@ describe("Unlinked Copying Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("m")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .value.tree,
             ).eqls(m);
             expect(
-                stateVariables[resolveComponentName("m2")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .value.tree,
             ).eqls(m2);
             expect(
-                stateVariables[resolveComponentName("m3")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .value.tree,
             ).eqls(m3);
         }
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let copy1Name =
-            stateVariables[resolveComponentName("m2")].replacementOf!;
+            stateVariables[await resolvePathToNodeIdx("m2")].replacementOf!;
         let copy2Name =
-            stateVariables[resolveComponentName("m3")].replacementOf!;
+            stateVariables[await resolvePathToNodeIdx("m3")].replacementOf!;
         expect(stateVariables[copy1Name].stateValues.link).eq(false);
         expect(stateVariables[copy2Name].stateValues.link).eq(true);
 
@@ -297,7 +338,7 @@ describe("Unlinked Copying Tests", async () => {
         // simplify copies
         await updateTextInputValue({
             text: "full",
-            componentIdx: resolveComponentName("s2"),
+            componentIdx: await resolvePathToNodeIdx("s2"),
             core,
         });
         await check_maths(["*", 2, "x"], ["*", 2, "x"], ["*", 2, "x"]);
@@ -305,14 +346,14 @@ describe("Unlinked Copying Tests", async () => {
         // stop simplifying original
         await updateTextInputValue({
             text: "none",
-            componentIdx: resolveComponentName("s1"),
+            componentIdx: await resolvePathToNodeIdx("s1"),
             core,
         });
         await check_maths(["+", "x", "x"], ["*", 2, "x"], ["*", 2, "x"]);
 
         // double original
         await updateValue({
-            componentIdx: resolveComponentName("doubleOriginal"),
+            componentIdx: await resolvePathToNodeIdx("doubleOriginal"),
             core,
         });
         await check_maths(
@@ -323,7 +364,7 @@ describe("Unlinked Copying Tests", async () => {
 
         // double copy1
         await updateValue({
-            componentIdx: resolveComponentName("doubleCopy1"),
+            componentIdx: await resolvePathToNodeIdx("doubleCopy1"),
             core,
         });
         await check_maths(
@@ -334,7 +375,7 @@ describe("Unlinked Copying Tests", async () => {
 
         // double copy2
         await updateValue({
-            componentIdx: resolveComponentName("doubleCopy2"),
+            componentIdx: await resolvePathToNodeIdx("doubleCopy2"),
             core,
         });
         await check_maths(["*", 2, 4, "x"], ["*", 4, "x"], ["*", 8, "x"]);
@@ -342,7 +383,7 @@ describe("Unlinked Copying Tests", async () => {
         // stop simplifying copies
         await updateTextInputValue({
             text: "none",
-            componentIdx: resolveComponentName("s2"),
+            componentIdx: await resolvePathToNodeIdx("s2"),
             core,
         });
         await check_maths(["*", 2, 4, "x"], ["*", 2, 2, "x"], ["*", 2, 4, "x"]);
@@ -350,7 +391,7 @@ describe("Unlinked Copying Tests", async () => {
 
     async function test_copy_points_lines_no_link(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_items({
             A,
@@ -371,78 +412,78 @@ describe("Unlinked Copying Tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("A")].stateValues.xs.map(
-                    (x) => x.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("A")
+                ].stateValues.xs.map((x) => x.tree),
             ).eqls(A);
             expect(
-                stateVariables[resolveComponentName("B")].stateValues.xs.map(
-                    (x) => x.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("B")
+                ].stateValues.xs.map((x) => x.tree),
             ).eqls(B);
             expect(
                 stateVariables[
-                    resolveComponentName("l")
+                    await resolvePathToNodeIdx("l")
                 ].stateValues.point1.map((x) => x.tree),
             ).eqls(A);
             expect(
                 stateVariables[
-                    resolveComponentName("l")
+                    await resolvePathToNodeIdx("l")
                 ].stateValues.point2.map((x) => x.tree),
             ).eqls(B);
             expect(
-                stateVariables[resolveComponentName("A2")].stateValues.xs.map(
-                    (x) => x.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("A2")
+                ].stateValues.xs.map((x) => x.tree),
             ).eqls(A2);
             expect(
                 stateVariables[
-                    resolveComponentName("l2")
+                    await resolvePathToNodeIdx("l2")
                 ].stateValues.point1.map((x) => x.tree),
             ).eqls(l2A);
             expect(
                 stateVariables[
-                    resolveComponentName("l2")
+                    await resolvePathToNodeIdx("l2")
                 ].stateValues.point2.map((x) => x.tree),
             ).eqls(l2B);
             expect(
-                stateVariables[resolveComponentName("A3")].stateValues.xs.map(
-                    (x) => x.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("A3")
+                ].stateValues.xs.map((x) => x.tree),
             ).eqls(A3);
             expect(
-                stateVariables[resolveComponentName("A4")].stateValues.xs.map(
-                    (x) => x.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("A4")
+                ].stateValues.xs.map((x) => x.tree),
             ).eqls(A4);
             expect(
-                stateVariables[resolveComponentName("B4")].stateValues.xs.map(
-                    (x) => x.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("B4")
+                ].stateValues.xs.map((x) => x.tree),
             ).eqls(B4);
             expect(
                 stateVariables[
-                    resolveComponentName("gnolink.A")
+                    await resolvePathToNodeIdx("gnolink.A")
                 ].stateValues.xs.map((x) => x.tree),
             ).eqls(gA);
             expect(
                 stateVariables[
-                    resolveComponentName("gnolink.B")
+                    await resolvePathToNodeIdx("gnolink.B")
                 ].stateValues.xs.map((x) => x.tree),
             ).eqls(gB);
             expect(
                 stateVariables[
-                    resolveComponentName("gnolink.l")
+                    await resolvePathToNodeIdx("gnolink.l")
                 ].stateValues.point1.map((x) => x.tree),
             ).eqls(gA);
             expect(
                 stateVariables[
-                    resolveComponentName("gnolink.l")
+                    await resolvePathToNodeIdx("gnolink.l")
                 ].stateValues.point2.map((x) => x.tree),
             ).eqls(gB);
             expect(
-                stateVariables[resolveComponentName("Ax")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("Ax")].stateValues
+                    .value.tree,
             ).eqls(Ax);
         }
 
@@ -461,17 +502,18 @@ describe("Unlinked Copying Tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         let copyForA2 =
-            stateVariables[resolveComponentName("A2")].replacementOf!;
+            stateVariables[await resolvePathToNodeIdx("A2")].replacementOf!;
         let copyForl2 =
-            stateVariables[resolveComponentName("l2")].replacementOf!;
+            stateVariables[await resolvePathToNodeIdx("l2")].replacementOf!;
         let copyForA3 =
-            stateVariables[resolveComponentName("A3")].replacementOf!;
+            stateVariables[await resolvePathToNodeIdx("A3")].replacementOf!;
         let copyForA4B4 =
-            stateVariables[resolveComponentName("A4")].replacementOf!;
+            stateVariables[await resolvePathToNodeIdx("A4")].replacementOf!;
         let copyForgnolink =
-            stateVariables[resolveComponentName("gnolink")].replacementOf!;
+            stateVariables[await resolvePathToNodeIdx("gnolink")]
+                .replacementOf!;
         let copyForAx =
-            stateVariables[resolveComponentName("Ax")].replacementOf!;
+            stateVariables[await resolvePathToNodeIdx("Ax")].replacementOf!;
         expect(stateVariables[copyForA2].stateValues.link).eq(false);
         expect(stateVariables[copyForl2].stateValues.link).eq(false);
         expect(stateVariables[copyForA3].stateValues.link).eq(false);
@@ -484,7 +526,7 @@ describe("Unlinked Copying Tests", async () => {
         // move A
         A = [-9, -3];
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: A[0],
             y: A[1],
             core,
@@ -494,7 +536,7 @@ describe("Unlinked Copying Tests", async () => {
         // move B
         B = [-2, 6];
         await movePoint({
-            componentIdx: resolveComponentName("B"),
+            componentIdx: await resolvePathToNodeIdx("B"),
             x: B[0],
             y: B[1],
             core,
@@ -506,7 +548,7 @@ describe("Unlinked Copying Tests", async () => {
         B = [8, 0];
 
         await moveLine({
-            componentIdx: resolveComponentName("l"),
+            componentIdx: await resolvePathToNodeIdx("l"),
             point1coords: A,
             point2coords: B,
             core,
@@ -516,7 +558,7 @@ describe("Unlinked Copying Tests", async () => {
         // move A2
         A2 = [5, 4];
         await movePoint({
-            componentIdx: resolveComponentName("A2"),
+            componentIdx: await resolvePathToNodeIdx("A2"),
             x: A2[0],
             y: A2[1],
             core,
@@ -527,7 +569,7 @@ describe("Unlinked Copying Tests", async () => {
         l2A = [-5, 9];
         l2B = [-4, -1];
         await moveLine({
-            componentIdx: resolveComponentName("l2"),
+            componentIdx: await resolvePathToNodeIdx("l2"),
             point1coords: l2A,
             point2coords: l2B,
             core,
@@ -537,7 +579,7 @@ describe("Unlinked Copying Tests", async () => {
         // move A3
         A3 = [6, -3];
         await movePoint({
-            componentIdx: resolveComponentName("A3"),
+            componentIdx: await resolvePathToNodeIdx("A3"),
             x: A3[0],
             y: A3[1],
             core,
@@ -547,7 +589,7 @@ describe("Unlinked Copying Tests", async () => {
         // move A4
         A4 = [-2, 7];
         await movePoint({
-            componentIdx: resolveComponentName("A4"),
+            componentIdx: await resolvePathToNodeIdx("A4"),
             x: A4[0],
             y: A4[1],
             core,
@@ -557,7 +599,7 @@ describe("Unlinked Copying Tests", async () => {
         // move B4
         B4 = [-9, -8];
         await movePoint({
-            componentIdx: resolveComponentName("B4"),
+            componentIdx: await resolvePathToNodeIdx("B4"),
             x: B4[0],
             y: B4[1],
             core,
@@ -567,7 +609,7 @@ describe("Unlinked Copying Tests", async () => {
         // move A5
         gA = [-10, -9];
         await movePoint({
-            componentIdx: resolveComponentName("gnolink.A"),
+            componentIdx: await resolvePathToNodeIdx("gnolink.A"),
             x: gA[0],
             y: gA[1],
             core,
@@ -577,7 +619,7 @@ describe("Unlinked Copying Tests", async () => {
         // move B5
         gB = [-8, -7];
         await movePoint({
-            componentIdx: resolveComponentName("gnolink.B"),
+            componentIdx: await resolvePathToNodeIdx("gnolink.B"),
             x: gB[0],
             y: gB[1],
             core,
@@ -588,7 +630,7 @@ describe("Unlinked Copying Tests", async () => {
         gA = [6, 5];
         gB = [4, -3];
         await moveLine({
-            componentIdx: resolveComponentName("gnolink.l"),
+            componentIdx: await resolvePathToNodeIdx("gnolink.l"),
             point1coords: gA,
             point2coords: gB,
             core,
@@ -597,7 +639,7 @@ describe("Unlinked Copying Tests", async () => {
     }
 
     it("copy points and lines with no link dot notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <point name="A">(1,2)</point>
@@ -640,11 +682,11 @@ describe("Unlinked Copying Tests", async () => {
     `,
         });
 
-        await test_copy_points_lines_no_link(core, resolveComponentName);
+        await test_copy_points_lines_no_link(core, resolvePathToNodeIdx);
     });
 
     it("copy string with no link", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1">Hello</p>
     <p copy="$p1" name="p2" />
@@ -652,18 +694,18 @@ describe("Unlinked Copying Tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "Hello",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "Hello",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("Hello");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Hello");
     });
 
     // This was causing a duplicate component name error, which can't happen anymore.
     // But, we're just keeping the test around anyway since we have it.
     it("copy group inside with no link", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><group name="g"><text name="m">hello</text> <text extend="$m" name="q" /></group></p>
     <p name="p2"><group copy="$g" /></p>
@@ -671,19 +713,19 @@ describe("Unlinked Copying Tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "hello hello",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "hello hello",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("hello hello");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("hello hello");
     });
 
     // When unlinked copy was set not to `useReplacement` (in _copy component),
     // then this test would fail as `$g2[1]` would refer the the whole sequence
     // and `$g2[2]` would have no replacements
     it("copy group of sequence has same indexing as the original group", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <sequence name="s" length="2" />
         <group name="g1">$s</group>
@@ -695,17 +737,17 @@ describe("Unlinked Copying Tests", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("p1")].stateValues.text).eq(
-            "g11: 1, g12: 2",
-        );
-        expect(stateVariables[resolveComponentName("p2")].stateValues.text).eq(
-            "g21: 1, g22: 2",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("g11: 1, g12: 2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("g21: 1, g22: 2");
     });
 
     async function test_copy_group_copies_no_link(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -727,14 +769,14 @@ describe("Unlinked Copying Tests", async () => {
 
         for (let name of names) {
             expect(
-                stateVariables[resolveComponentName(name)].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .value.tree,
             ).eqls(["+", "x", "x"]);
         }
     }
 
     it("copy group with copies with no link", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <group>
       <p><math name="twox">x+x</math></p>
@@ -760,12 +802,12 @@ describe("Unlinked Copying Tests", async () => {
     `,
         });
 
-        await test_copy_group_copies_no_link(core, resolveComponentName);
+        await test_copy_group_copies_no_link(core, resolvePathToNodeIdx);
     });
 
     async function test_copy_group_overwrite_attributes_no_link(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_items(
             simplify1: "full" | "none",
@@ -783,42 +825,42 @@ describe("Unlinked Copying Tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("twox")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("twox")].stateValues
+                    .value.tree,
             ).eqls(twoNone);
             expect(
-                stateVariables[resolveComponentName("twoxa")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("twoxa")].stateValues
+                    .value.tree,
             ).eqls(simplify1 === "full" ? twoSimp : twoNone);
             expect(
-                stateVariables[resolveComponentName("threex")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("threex")].stateValues
+                    .value.tree,
             ).eqls(simplify1 === "full" ? threeSimp : threeNone);
 
             expect(
-                stateVariables[resolveComponentName("g2.twox")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("g2.twox")]
+                    .stateValues.value.tree,
             ).eqls(twoNone);
             expect(
-                stateVariables[resolveComponentName("g2.twoxa")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("g2.twoxa")]
+                    .stateValues.value.tree,
             ).eqls(simplify2 === "full" ? twoSimp : twoNone);
             expect(
-                stateVariables[resolveComponentName("g2.threex")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("g2.threex")]
+                    .stateValues.value.tree,
             ).eqls(simplify2 === "full" ? threeSimp : threeNone);
 
             expect(
-                stateVariables[resolveComponentName("g3.twox")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("g3.twox")]
+                    .stateValues.value.tree,
             ).eqls(twoNone);
             expect(
-                stateVariables[resolveComponentName("g3.twoxa")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("g3.twoxa")]
+                    .stateValues.value.tree,
             ).eqls(simplify3 === "full" ? twoSimp : twoNone);
             expect(
-                stateVariables[resolveComponentName("g3.threex")].stateValues
-                    .value.tree,
+                stateVariables[await resolvePathToNodeIdx("g3.threex")]
+                    .stateValues.value.tree,
             ).eqls(simplify3 === "full" ? threeSimp : threeNone);
         }
 
@@ -832,7 +874,7 @@ describe("Unlinked Copying Tests", async () => {
         simplify1 = "none";
         await updateTextInputValue({
             text: simplify1,
-            componentIdx: resolveComponentName("sim"),
+            componentIdx: await resolvePathToNodeIdx("sim"),
             core,
         });
 
@@ -842,7 +884,7 @@ describe("Unlinked Copying Tests", async () => {
         simplify2 = "none";
         await updateTextInputValue({
             text: simplify1,
-            componentIdx: resolveComponentName("g2.sim"),
+            componentIdx: await resolvePathToNodeIdx("g2.sim"),
             core,
         });
         await check_items(simplify1, simplify2, simplify3);
@@ -851,14 +893,14 @@ describe("Unlinked Copying Tests", async () => {
         simplify3 = "none";
         await updateTextInputValue({
             text: simplify1,
-            componentIdx: resolveComponentName("g3.sim"),
+            componentIdx: await resolvePathToNodeIdx("g3.sim"),
             core,
         });
         await check_items(simplify1, simplify2, simplify3);
     }
 
     it("copy group with copy overwriting attribute, no link", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <group name="g">
       <textInput name="sim" prefill="full" />
@@ -876,12 +918,12 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_copy_group_overwrite_attributes_no_link(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     });
 
     it("copy group, no link, with function adapted to curve", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <text name="text1">a</text>
     <group name='g'>
@@ -898,13 +940,14 @@ describe("Unlinked Copying Tests", async () => {
         // just testing that page loads, i.e., that bug is removed so that don't get error
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("text1")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("text1")].stateValues
+                .text,
         ).eq("a");
     });
 
     async function test_no_link_outside_component_from_attribute(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_items(text1: string, text2: string) {
             const stateVariables = await core.returnAllStateVariables(
@@ -912,24 +955,28 @@ describe("Unlinked Copying Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("g.w")].stateValues.text,
-            ).eq(text1);
-            expect(
-                stateVariables[resolveComponentName("g.Plabel")].stateValues
+                stateVariables[await resolvePathToNodeIdx("g.w")].stateValues
                     .text,
             ).eq(text1);
             expect(
-                stateVariables[resolveComponentName("g.P")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("g.Plabel")]
+                    .stateValues.text,
             ).eq(text1);
             expect(
-                stateVariables[resolveComponentName("g2.w")].stateValues.text,
-            ).eq(text2);
+                stateVariables[await resolvePathToNodeIdx("g.P")].stateValues
+                    .label,
+            ).eq(text1);
             expect(
-                stateVariables[resolveComponentName("g2.Plabel")].stateValues
+                stateVariables[await resolvePathToNodeIdx("g2.w")].stateValues
                     .text,
             ).eq(text2);
             expect(
-                stateVariables[resolveComponentName("g2.P")].stateValues.label,
+                stateVariables[await resolvePathToNodeIdx("g2.Plabel")]
+                    .stateValues.text,
+            ).eq(text2);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g2.P")].stateValues
+                    .label,
             ).eq(text2);
         }
 
@@ -937,7 +984,7 @@ describe("Unlinked Copying Tests", async () => {
 
         await updateTextInputValue({
             text: "hi",
-            componentIdx: resolveComponentName("external"),
+            componentIdx: await resolvePathToNodeIdx("external"),
             core,
         });
 
@@ -945,7 +992,7 @@ describe("Unlinked Copying Tests", async () => {
     }
 
     it("copy group, no link, copy to outside component from attribute", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <textInput name="external" prefill="bye" />
 
@@ -964,13 +1011,13 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_no_link_outside_component_from_attribute(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     });
 
     async function test_no_link_copy_internal_copy_source_alias(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_items(text1: string, text2: string) {
             const stateVariables = await core.returnAllStateVariables(
@@ -978,28 +1025,28 @@ describe("Unlinked Copying Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("g.a[1].w")].stateValues
-                    .text,
-            ).eq(text1);
-            expect(
-                stateVariables[resolveComponentName("g.a[1].Plabel")]
+                stateVariables[await resolvePathToNodeIdx("g.a[1].w")]
                     .stateValues.text,
             ).eq(text1);
             expect(
-                stateVariables[resolveComponentName("g.a[1].P")].stateValues
-                    .label,
+                stateVariables[await resolvePathToNodeIdx("g.a[1].Plabel")]
+                    .stateValues.text,
             ).eq(text1);
             expect(
-                stateVariables[resolveComponentName("g2.a[1].w")].stateValues
-                    .text,
-            ).eq(text2);
+                stateVariables[await resolvePathToNodeIdx("g.a[1].P")]
+                    .stateValues.label,
+            ).eq(text1);
             expect(
-                stateVariables[resolveComponentName("g2.a[1].Plabel")]
+                stateVariables[await resolvePathToNodeIdx("g2.a[1].w")]
                     .stateValues.text,
             ).eq(text2);
             expect(
-                stateVariables[resolveComponentName("g2.a[1].P")].stateValues
-                    .label,
+                stateVariables[await resolvePathToNodeIdx("g2.a[1].Plabel")]
+                    .stateValues.text,
+            ).eq(text2);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g2.a[1].P")]
+                    .stateValues.label,
             ).eq(text2);
         }
 
@@ -1007,12 +1054,12 @@ describe("Unlinked Copying Tests", async () => {
 
         await updateTextInputValue({
             text: "one",
-            componentIdx: resolveComponentName("g.ti"),
+            componentIdx: await resolvePathToNodeIdx("g.ti"),
             core,
         });
         await updateTextInputValue({
             text: "two",
-            componentIdx: resolveComponentName("g2.ti"),
+            componentIdx: await resolvePathToNodeIdx("g2.ti"),
             core,
         });
 
@@ -1020,7 +1067,7 @@ describe("Unlinked Copying Tests", async () => {
     }
 
     it("copy group, no link, internal copy to source alias is linked, with copySource", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <group name="g">
       <textInput name="ti" prefill="hello" />
@@ -1040,43 +1087,49 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_no_link_copy_internal_copy_source_alias(
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         );
     });
 
     async function test_no_link_external_absolute_source(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[resolveComponentName("n")].stateValues.value).eq(
-            2,
-        );
-        expect(stateVariables[resolveComponentName("m")].stateValues.value).eq(
-            4,
-        );
         expect(
-            stateVariables[resolveComponentName("g.m1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("g.m2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g.m1")].stateValues
+                .value,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("g2.m1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g.m2")].stateValues
+                .value,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("g2.m2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2.m1")].stateValues
+                .value,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("g3.m1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2.m2")].stateValues
+                .value,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("g3.m2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g3.m1")].stateValues
+                .value,
+        ).eq(4);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3.m2")].stateValues
+                .value,
         ).eq(4);
     }
 
     it("copy no link containing external copies use absolute source", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <number name="n">2</number>
     <number name="m">2$n</number>
@@ -1091,12 +1144,12 @@ describe("Unlinked Copying Tests", async () => {
     `,
         });
 
-        await test_no_link_external_absolute_source(core, resolveComponentName);
+        await test_no_link_external_absolute_source(core, resolvePathToNodeIdx);
     });
 
     async function test_dynamic_map_no_link_alias(
         core: PublicDoenetMLCore,
-        resolveComponentName: ResolveComponentName,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
         async function check_items(
             n1: number,
@@ -1110,230 +1163,295 @@ describe("Unlinked Copying Tests", async () => {
             );
             if (n1 >= 1) {
                 expect(
-                    stateVariables[resolveComponentName("section1.r[1][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section1.r[1][1]")
+                    ].stateValues.text,
                 ).eq("i=1, v=11");
                 expect(
-                    stateVariables[resolveComponentName("section4.r[1][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section4.r[1][1]")
+                    ].stateValues.text,
                 ).eq("i=1, v=11");
                 expect(
-                    stateVariables[resolveComponentName("section5.r[1][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section5.r[1][1]")
+                    ].stateValues.text,
                 ).eq("i=1, v=11");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section1.r[1][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section1.r[1][1]")
+                    ],
                 );
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section4.r[1][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section4.r[1][1]")
+                    ],
                 );
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section5.r[1][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section5.r[1][1]")
+                    ],
                 );
             }
             if (n1 >= 2) {
                 expect(
-                    stateVariables[resolveComponentName("section1.r[2][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section1.r[2][1]")
+                    ].stateValues.text,
                 ).eq("i=2, v=12");
                 expect(
-                    stateVariables[resolveComponentName("section4.r[2][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section4.r[2][1]")
+                    ].stateValues.text,
                 ).eq("i=2, v=12");
                 expect(
-                    stateVariables[resolveComponentName("section5.r[2][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section5.r[2][1]")
+                    ].stateValues.text,
                 ).eq("i=2, v=12");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section1.r[2][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section1.r[2][1]")
+                    ],
                 );
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section4.r[2][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section4.r[2][1]")
+                    ],
                 );
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section5.r[2][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section5.r[2][1]")
+                    ],
                 );
             }
             if (n1 >= 3) {
                 expect(
-                    stateVariables[resolveComponentName("section1.r[3][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section1.r[3][1]")
+                    ].stateValues.text,
                 ).eq("i=3, v=13");
                 expect(
-                    stateVariables[resolveComponentName("section4.r[3][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section4.r[3][1]")
+                    ].stateValues.text,
                 ).eq("i=3, v=13");
                 expect(
-                    stateVariables[resolveComponentName("section5.r[3][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section5.r[3][1]")
+                    ].stateValues.text,
                 ).eq("i=3, v=13");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section1.r[3][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section1.r[3][1]")
+                    ],
                 );
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section4.r[3][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section4.r[3][1]")
+                    ],
                 );
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section5.r[3][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section5.r[3][1]")
+                    ],
                 );
             }
             if (n1 >= 4) {
                 expect(
-                    stateVariables[resolveComponentName("section1.r[4][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section1.r[4][1]")
+                    ].stateValues.text,
                 ).eq("i=4, v=14");
                 expect(
-                    stateVariables[resolveComponentName("section4.r[4][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section4.r[4][1]")
+                    ].stateValues.text,
                 ).eq("i=4, v=14");
                 expect(
-                    stateVariables[resolveComponentName("section5.r[4][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section5.r[4][1]")
+                    ].stateValues.text,
                 ).eq("i=4, v=14");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section1.r[4][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section1.r[4][1]")
+                    ],
                 );
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section4.r[4][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section4.r[4][1]")
+                    ],
                 );
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section5.r[4][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section5.r[4][1]")
+                    ],
                 );
             }
 
             if (n2 >= 1) {
                 expect(
-                    stateVariables[resolveComponentName("section2.r[1][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[1][1]")
+                    ].stateValues.text,
                 ).eq("i=1, v=11");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section2.r[1][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[1][1]")
+                    ],
                 );
             }
             if (n2 >= 2) {
                 expect(
-                    stateVariables[resolveComponentName("section2.r[2][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[2][1]")
+                    ].stateValues.text,
                 ).eq("i=2, v=12");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section2.r[2][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[2][1]")
+                    ],
                 );
             }
             if (n2 >= 3) {
                 expect(
-                    stateVariables[resolveComponentName("section2.r[3][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[3][1]")
+                    ].stateValues.text,
                 ).eq("i=3, v=13");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section2.r[3][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[3][1]")
+                    ],
                 );
             }
             if (n2 >= 4) {
                 expect(
-                    stateVariables[resolveComponentName("section2.r[4][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[4][1]")
+                    ].stateValues.text,
                 ).eq("i=4, v=14");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section2.r[4][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[4][1]")
+                    ],
                 );
             }
 
             if (n4 >= 1) {
                 expect(
-                    stateVariables[resolveComponentName("section3.r[1][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section3.r[1][1]")
+                    ].stateValues.text,
                 ).eq("i=1, v=11");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section3.r[1][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section3.r[1][1]")
+                    ],
                 );
             }
             if (n4 >= 2) {
                 expect(
-                    stateVariables[resolveComponentName("section3.r[2][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section3.r[2][1]")
+                    ].stateValues.text,
                 ).eq("i=2, v=12");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section3.r[2][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section3.r[2][1]")
+                    ],
                 );
             }
             if (n4 >= 3) {
                 expect(
-                    stateVariables[resolveComponentName("section3.r[3][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section3.r[3][1]")
+                    ].stateValues.text,
                 ).eq("i=3, v=13");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section3.r[3][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section3.r[3][1]")
+                    ],
                 );
             }
             if (n4 >= 4) {
                 expect(
-                    stateVariables[resolveComponentName("section3.r[4][1]")]
-                        .stateValues.text,
+                    stateVariables[
+                        await resolvePathToNodeIdx("section3.r[4][1]")
+                    ].stateValues.text,
                 ).eq("i=4, v=14");
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("section3.r[4][1]")],
+                    stateVariables[
+                        await resolvePathToNodeIdx("section3.r[4][1]")
+                    ],
                 );
             }
         }
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("section1")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("section1")].stateValues
+                .title,
         ).eq("Section 1");
         expect(
-            stateVariables[resolveComponentName("section2")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("section2")].stateValues
+                .title,
         ).eq("Section 2");
         expect(
-            stateVariables[resolveComponentName("section3")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("section3")].stateValues
+                .title,
         ).eq("Section 3");
         expect(
-            stateVariables[resolveComponentName("section4")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("section4")].stateValues
+                .title,
         ).eq("Section 4");
         expect(
-            stateVariables[resolveComponentName("section5")].stateValues.title,
+            stateVariables[await resolvePathToNodeIdx("section5")].stateValues
+                .title,
         ).eq("Section 5");
 
         await check_items(2, 2, 2, 2);
 
         await updateValue({
-            componentIdx: resolveComponentName("section1.addP"),
+            componentIdx: await resolvePathToNodeIdx("section1.addP"),
             core,
         });
         await check_items(3, 2, 2, 2);
 
         await updateValue({
-            componentIdx: resolveComponentName("section5.removeP"),
+            componentIdx: await resolvePathToNodeIdx("section5.removeP"),
             core,
         });
         await check_items(2, 2, 2, 2);
 
         await updateValue({
-            componentIdx: resolveComponentName("section3.addP"),
+            componentIdx: await resolvePathToNodeIdx("section3.addP"),
             core,
         });
         await check_items(2, 2, 2, 3);
 
         await updateValue({
-            componentIdx: resolveComponentName("section3.removeP"),
+            componentIdx: await resolvePathToNodeIdx("section3.removeP"),
             core,
         });
         await check_items(2, 2, 2, 2);
     }
 
     it("copy dynamic repeat no link, check aliases", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <section name="section1">
       <setup>
@@ -1368,11 +1486,11 @@ describe("Unlinked Copying Tests", async () => {
     `,
         });
 
-        await test_dynamic_map_no_link_alias(core, resolveComponentName);
+        await test_dynamic_map_no_link_alias(core, resolvePathToNodeIdx);
     });
 
     it("copy dynamic repeatForSequence no link, check aliases", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <section name="section1">
       <setup>
@@ -1406,11 +1524,11 @@ describe("Unlinked Copying Tests", async () => {
     `,
         });
 
-        await test_dynamic_map_no_link_alias(core, resolveComponentName);
+        await test_dynamic_map_no_link_alias(core, resolvePathToNodeIdx);
     });
 
     it("copy repeat item with no link", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Number of iterations: <mathInput name="n" /></p>
 
@@ -1455,67 +1573,67 @@ describe("Unlinked Copying Tests", async () => {
             if (A) {
                 expect(
                     stateVariables[
-                        resolveComponentName("r[1].A")
+                        await resolvePathToNodeIdx("r[1].A")
                     ].stateValues.xs.map((x) => x.tree),
                 ).eqls(A);
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("r[1].A")],
+                    stateVariables[await resolvePathToNodeIdx("r[1].A")],
                 );
             }
             if (B) {
                 expect(
                     stateVariables[
-                        resolveComponentName("r[1].B")
+                        await resolvePathToNodeIdx("r[1].B")
                     ].stateValues.xs.map((x) => x.tree),
                 ).eqls(B);
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("r[1].B")],
+                    stateVariables[await resolvePathToNodeIdx("r[1].B")],
                 );
             }
             if (C) {
                 expect(
                     stateVariables[
-                        resolveComponentName("r[1].C")
+                        await resolvePathToNodeIdx("r[1].C")
                     ].stateValues.xs.map((x) => x.tree),
                 ).eqls(C);
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("r[1].C")],
+                    stateVariables[await resolvePathToNodeIdx("r[1].C")],
                 );
             }
             if (D) {
                 expect(
                     stateVariables[
-                        resolveComponentName("r[2].A")
+                        await resolvePathToNodeIdx("r[2].A")
                     ].stateValues.xs.map((x) => x.tree),
                 ).eqls(D);
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("r[2].A")],
+                    stateVariables[await resolvePathToNodeIdx("r[2].A")],
                 );
             }
             if (E) {
                 expect(
                     stateVariables[
-                        resolveComponentName("r[2].B")
+                        await resolvePathToNodeIdx("r[2].B")
                     ].stateValues.xs.map((x) => x.tree),
                 ).eqls(E);
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("r[2].B")],
+                    stateVariables[await resolvePathToNodeIdx("r[2].B")],
                 );
             }
             if (F) {
                 expect(
                     stateVariables[
-                        resolveComponentName("r[2].C")
+                        await resolvePathToNodeIdx("r[2].C")
                     ].stateValues.xs.map((x) => x.tree),
                 ).eqls(F);
             } else {
                 isUndefinedOrInactive(
-                    stateVariables[resolveComponentName("r[2].C")],
+                    stateVariables[await resolvePathToNodeIdx("r[2].C")],
                 );
             }
         }
@@ -1524,25 +1642,25 @@ describe("Unlinked Copying Tests", async () => {
 
         await updateMathInputValue({
             latex: "1",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items([1, 2], [3, 4], [5, 6]);
 
         await movePoint({
-            componentIdx: resolveComponentName("r[1].A"),
+            componentIdx: await resolvePathToNodeIdx("r[1].A"),
             x: 9,
             y: 0,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("r[1].B"),
+            componentIdx: await resolvePathToNodeIdx("r[1].B"),
             x: 1,
             y: 8,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("r[1].C"),
+            componentIdx: await resolvePathToNodeIdx("r[1].C"),
             x: 7,
             y: 2,
             core,
@@ -1552,26 +1670,26 @@ describe("Unlinked Copying Tests", async () => {
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
         await check_items([9, 0], [1, 8], [7, 2], [2, 3], [4, 5], [6, 7]);
 
         await movePoint({
-            componentIdx: resolveComponentName("r[2].A"),
+            componentIdx: await resolvePathToNodeIdx("r[2].A"),
             x: 0,
             y: 10,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("r[2].B"),
+            componentIdx: await resolvePathToNodeIdx("r[2].B"),
             x: 9,
             y: 1,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("r[2].C"),
+            componentIdx: await resolvePathToNodeIdx("r[2].C"),
             x: 2,
             y: 8,
             core,
@@ -1581,14 +1699,14 @@ describe("Unlinked Copying Tests", async () => {
 
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
         await check_items();
 
         await updateMathInputValue({
             latex: "2",
-            componentIdx: resolveComponentName("n"),
+            componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
 
@@ -1596,7 +1714,7 @@ describe("Unlinked Copying Tests", async () => {
     });
 
     it("copy no-link of a copy prop", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="x">x</math>
     <math extend="$x.value" name="xval" />
@@ -1610,55 +1728,61 @@ describe("Unlinked Copying Tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("xval")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("xvalnl")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
                 .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("xval")].stateValues.value
+                .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("xvalnl")].stateValues
+                .value.tree,
         ).eq("x");
 
         await updateMathInputValue({
             latex: "y",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
-        ).eq("y");
-        expect(
-            stateVariables[resolveComponentName("xval")].stateValues.value.tree,
-        ).eq("y");
-        expect(
-            stateVariables[resolveComponentName("xvalnl")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
                 .tree,
+        ).eq("y");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("xval")].stateValues.value
+                .tree,
+        ).eq("y");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("xvalnl")].stateValues
+                .value.tree,
         ).eq("x");
 
         await updateMathInputValue({
             latex: "z",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
-        ).eq("y");
-        expect(
-            stateVariables[resolveComponentName("xval")].stateValues.value.tree,
-        ).eq("y");
-        expect(
-            stateVariables[resolveComponentName("xvalnl")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
                 .tree,
+        ).eq("y");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("xval")].stateValues.value
+                .tree,
+        ).eq("y");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("xvalnl")].stateValues
+                .value.tree,
         ).eq("z");
     });
 
     it("copy no-link of a copy prop 2", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <triangle name="t"/>
@@ -1695,24 +1819,24 @@ describe("Unlinked Copying Tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("v1")].stateValues.xs.map(
-                    (x) => x.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v1")
+                ].stateValues.xs.map((x) => x.tree),
             ).eqls(v1);
             expect(
-                stateVariables[resolveComponentName("v1nl")].stateValues.xs.map(
-                    (x) => x.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v1nl")
+                ].stateValues.xs.map((x) => x.tree),
             ).eqls(v1nl);
             expect(
-                stateVariables[resolveComponentName("v2nl")].stateValues.xs.map(
-                    (x) => x.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v2nl")
+                ].stateValues.xs.map((x) => x.tree),
             ).eqls(v2nl);
             expect(
-                stateVariables[resolveComponentName("v3nl")].stateValues.xs.map(
-                    (x) => x.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("v3nl")
+                ].stateValues.xs.map((x) => x.tree),
             ).eqls(v3nl);
         }
 
@@ -1726,7 +1850,7 @@ describe("Unlinked Copying Tests", async () => {
         // Move v1
         v1 = [2, 3];
         await movePoint({
-            componentIdx: resolveComponentName("v1"),
+            componentIdx: await resolvePathToNodeIdx("v1"),
             x: v1[0],
             y: v1[1],
             core,
@@ -1736,7 +1860,7 @@ describe("Unlinked Copying Tests", async () => {
         // Move v1nl
         v1nl = [3, 4];
         await movePoint({
-            componentIdx: resolveComponentName("v1nl"),
+            componentIdx: await resolvePathToNodeIdx("v1nl"),
             x: v1nl[0],
             y: v1nl[1],
             core,
@@ -1746,7 +1870,7 @@ describe("Unlinked Copying Tests", async () => {
         // Move v2nl
         v2nl = [4, 5];
         await movePoint({
-            componentIdx: resolveComponentName("v2nl"),
+            componentIdx: await resolvePathToNodeIdx("v2nl"),
             x: v2nl[0],
             y: v2nl[1],
             core,
@@ -1756,7 +1880,7 @@ describe("Unlinked Copying Tests", async () => {
         // Move v3nl
         v3nl = [5, 6];
         await movePoint({
-            componentIdx: resolveComponentName("v3nl"),
+            componentIdx: await resolvePathToNodeIdx("v3nl"),
             x: v3nl[0],
             y: v3nl[1],
             core,
@@ -1770,7 +1894,7 @@ describe("Unlinked Copying Tests", async () => {
         // Then, when subsequently creating an unlinked copy of that linked extend,
         // there are no children or attributes to copy.
         // Instead, the unlinked copy needs to copy the state variables values directly
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g" xmax="5">
     <point name="A" styleNumber="2" labelIsName labelPosition="upperLeft">(1,2)</point>
@@ -1782,13 +1906,13 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_no_overwritten_attributes({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             parentPrefix: "g",
         });
     });
 
     it("unlinked copy of linked copy copies state variables from uncopied children and attributes, group inside", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g" xmax="5">
     <group>
@@ -1802,13 +1926,13 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_no_overwritten_attributes({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             parentPrefix: "g",
         });
     });
 
     it("unlinked copy of linked copy copies state variables from uncopied children and attributes, group outside", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <group name="gr">
         <graph name="g" xmax="5">
@@ -1822,14 +1946,14 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_no_overwritten_attributes({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             parentPrefix: "gr",
             addParentPrefixToInitialGraph: true,
         });
     });
 
     it("unlinked copy of linked copy, overwrite attributes of linked copy", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g" xmax="5">
     <point name="A" styleNumber="2">(1,2)</point>
@@ -1842,12 +1966,12 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_linked_copy_overwrites_attributes({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     it("unlinked copy of linked copy, overwrite attributes of linked copy, group inside", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" xmax="5">
         <group>
@@ -1862,13 +1986,13 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_linked_copy_overwrites_attributes({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     // TODO: overwriting attributes of unlinked copy of linked copy isn't working as we'd like.
     it("unlinked copy of linked copy, overwrite attributes of unlinked copy", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" xmax="5">
         <point name="A" styleNumber="2">(1,2)</point>
@@ -1881,12 +2005,12 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_unlinked_copy_overwrites_attributes({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     it("unlinked copy of linked copy, overwrite attributes of unlinked copy, group inside", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" xmax="5">
         <group>
@@ -1901,19 +2025,19 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_unlinked_copy_overwrites_attributes({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
         });
     });
 
     async function test_snapshot({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         snapshotType,
         point_p_initialVal = [0, 0],
         point_q_initialVal = [0, 0],
     }: {
         core: PublicDoenetMLCore;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         snapshotType: "updateValue" | "callAction";
         point_p_initialVal?: number[];
         point_q_initialVal?: number[];
@@ -1930,18 +2054,19 @@ describe("Unlinked Copying Tests", async () => {
             );
 
             expect(
-                stateVariables[resolveComponentName("P")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("P")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls(p);
             expect(
-                stateVariables[resolveComponentName("Q")].stateValues.xs.map(
-                    (v) => v.tree,
-                ),
+                stateVariables[
+                    await resolvePathToNodeIdx("Q")
+                ].stateValues.xs.map((v) => v.tree),
             ).eqls(q);
 
             let graph2Children =
-                stateVariables[resolveComponentName("graph2")].activeChildren;
+                stateVariables[await resolvePathToNodeIdx("graph2")]
+                    .activeChildren;
 
             if (Number.isNaN(p2[0])) {
                 // Unlinked copied content does not exist yet
@@ -1963,13 +2088,13 @@ describe("Unlinked Copying Tests", async () => {
         p = [-1, 7];
         q = [5, 3];
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: p[0],
             y: p[1],
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("Q"),
+            componentIdx: await resolvePathToNodeIdx("Q"),
             x: q[0],
             y: q[1],
             core,
@@ -1982,12 +2107,12 @@ describe("Unlinked Copying Tests", async () => {
         q2 = q;
         if (snapshotType === "updateValue") {
             await updateValue({
-                componentIdx: resolveComponentName("takeSnapshot"),
+                componentIdx: await resolvePathToNodeIdx("takeSnapshot"),
                 core,
             });
         } else {
             await callAction({
-                componentIdx: resolveComponentName("takeSnapshot"),
+                componentIdx: await resolvePathToNodeIdx("takeSnapshot"),
                 core,
             });
         }
@@ -1997,13 +2122,13 @@ describe("Unlinked Copying Tests", async () => {
         p = [2, -9];
         q = [1, 8];
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: p[0],
             y: p[1],
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("Q"),
+            componentIdx: await resolvePathToNodeIdx("Q"),
             x: q[0],
             y: q[1],
             core,
@@ -2012,7 +2137,7 @@ describe("Unlinked Copying Tests", async () => {
     }
 
     it("create snapshot of group with conditionalContent", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
         <group name="gr">
@@ -2036,13 +2161,13 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_snapshot({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             snapshotType: "updateValue",
         });
     });
 
     it("create snapshot of group with callAction", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
         <group name="gr">
@@ -2063,13 +2188,13 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_snapshot({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             snapshotType: "callAction",
         });
     });
 
     it("create snapshot of repeat with conditionalContent", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
         <setup><sequence name="s" length="2" /></setup>
@@ -2097,7 +2222,7 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_snapshot({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             snapshotType: "updateValue",
             point_p_initialVal: [1, 1],
             point_q_initialVal: [1, 2],
@@ -2105,7 +2230,7 @@ describe("Unlinked Copying Tests", async () => {
     });
 
     it("create snapshot of repeat with callAction", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
         <repeatForSequence name="mp" length="2" itemName="i">
@@ -2130,7 +2255,7 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_snapshot({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             snapshotType: "callAction",
             point_p_initialVal: [1, 1],
             point_q_initialVal: [1, 2],
@@ -2138,7 +2263,7 @@ describe("Unlinked Copying Tests", async () => {
     });
 
     it("create snapshot of repeat in a group with conditionalContent", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
         <group name="gr">
@@ -2168,7 +2293,7 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_snapshot({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             snapshotType: "updateValue",
             point_p_initialVal: [1, 1],
             point_q_initialVal: [1, 2],
@@ -2176,7 +2301,7 @@ describe("Unlinked Copying Tests", async () => {
     });
 
     it("create snapshot of repeat in a group with callAction", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
         <group name="gr">
@@ -2204,7 +2329,7 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_snapshot({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             snapshotType: "callAction",
             point_p_initialVal: [1, 1],
             point_q_initialVal: [1, 2],
@@ -2212,7 +2337,7 @@ describe("Unlinked Copying Tests", async () => {
     });
 
     it("create snapshot of repeat with conditionalContent", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
         <repeatForSequence name="mp" length="2" itemName="i">
@@ -2242,7 +2367,7 @@ describe("Unlinked Copying Tests", async () => {
 
         await test_snapshot({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             snapshotType: "updateValue",
             point_p_initialVal: [1, 1],
             point_q_initialVal: [1, 2],
@@ -2250,7 +2375,7 @@ describe("Unlinked Copying Tests", async () => {
     });
 
     it("unlinked copy inside a repeat with source and index depending on itemName and indexName", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
       <setup>
@@ -2267,25 +2392,25 @@ describe("Unlinked Copying Tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("r[1].P")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("r[1].P")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([4, 2]);
         expect(
-            stateVariables[resolveComponentName("r[2].P")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("r[2].P")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([5, 3]);
 
         // can move points
         await movePoint({
-            componentIdx: resolveComponentName("r[1].P"),
+            componentIdx: await resolvePathToNodeIdx("r[1].P"),
             x: 10,
             y: 9,
             core,
         });
         await movePoint({
-            componentIdx: resolveComponentName("r[2].P"),
+            componentIdx: await resolvePathToNodeIdx("r[2].P"),
             x: 8,
             y: 7,
             core,
@@ -2294,14 +2419,14 @@ describe("Unlinked Copying Tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("r[1].P")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("r[1].P")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([10, 9]);
         expect(
-            stateVariables[resolveComponentName("r[2].P")].stateValues.xs.map(
-                (v) => v.tree,
-            ),
+            stateVariables[
+                await resolvePathToNodeIdx("r[2].P")
+            ].stateValues.xs.map((v) => v.tree),
         ).eqls([8, 7]);
     });
 });

@@ -19,7 +19,7 @@ describe("MathInput tag tests", async () => {
         // A fairly involved test
         // to check for bugs that have shown up after multiple manipulations
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput prefill='x+1' name="mi1" />
     <mathInput extend="$mi1" name="mi1a"  />
@@ -30,614 +30,647 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).to.eq("\uFF3F");
 
         // Type 2 in first mathInput
         await updateMathInputImmediateValue({
             latex: "x+12",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+12");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+12");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).to.eq("\uFF3F");
 
         // Changing to 3 in first mathInput
         await updateMathInputImmediateValue({
             latex: "x+1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x+13",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+13");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+13");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 13]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 13]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).to.eq("\uFF3F");
 
         // Update value (e.g., by pressing Enter) in first mathInput
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+13");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+13");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 13]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 13]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 13]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 13]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).to.eq("\uFF3F");
 
         // Erasing 13 and typing y second mathInput
         await updateMathInputImmediateValue({
             latex: "x+1",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x+",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x+y",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 13]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 13]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).to.eq("\uFF3F");
 
         // Update value (e.g., by changing focus) of second mathInput
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).to.eq("\uFF3F");
 
         // Typing pq in third mathInput
         await updateMathInputImmediateValue({
             latex: "p",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "pq",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("pq");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "p", "q"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).to.eq("\uFF3F");
 
         // update value (e.g., update value) in mathInput 3
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("pq");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "p", "q"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["*", "p", "q"]);
 
         // type abc in mathInput 2
         await updateMathInputImmediateValue({
             latex: "",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "a",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "ab",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "abc",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abc");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abc");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("pq");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "p", "q"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["*", "p", "q"]);
 
         // update value (e.g., blur) mathInput 2
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abc");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abc");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("pq");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "p", "q"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["*", "p", "q"]);
 
         // delete and reenter abc in mathInput 1
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
 
         await updateMathInputImmediateValue({
             latex: "a",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "ab",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "abc",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abc");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abc");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("pq");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "p", "q"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["*", "p", "q"]);
 
         // type u/v in mathInput 3
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "u",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "u/",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "u/v",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
 
@@ -645,54 +678,57 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abc");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abc");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("u/v");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["/", "u", "v"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["*", "p", "q"]);
 
         // blue mathInput 2 and type d in mathInput 1
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
 
         await updateMathInputImmediateValue({
             latex: "abcd",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
@@ -700,48 +736,51 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abcd");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abcd");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("u/v");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c", "d"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c", "d"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["/", "u", "v"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["/", "u", "v"]);
 
         // Update value (e.g., blur) first mathInput
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
@@ -749,50 +788,53 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abcd");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("abcd");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("u/v");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c", "d"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b", "c", "d"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["/", "u", "v"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c", "d"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c", "d"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["/", "u", "v"]);
 
         // Clearing second mathInput
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
 
@@ -800,49 +842,52 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("u/v");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["/", "u", "v"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c", "d"]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b", "c", "d"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["/", "u", "v"]);
 
         // update value (e.g., by blurring) of second mathInput
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
 
@@ -850,42 +895,45 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("u/v");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["/", "u", "v"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).to.eq("\uFF3F");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["/", "u", "v"]);
     });
 
@@ -895,7 +943,7 @@ describe("MathInput tag tests", async () => {
     <mathInput extend="$mi1" name="mi1a"  />
     `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
 
@@ -903,268 +951,282 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls("＿");
 
         // Type x~ in first mathInput
         await updateMathInputImmediateValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "x~",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x~");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x~");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls("＿");
 
         // Delete ~ and add -y in copied mathInput
         await updateMathInputImmediateValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x-",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x-y",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls("＿");
 
         // update value (e.g., blur)
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", "y"]]);
 
         // Add & in copied mathInput
         await updateMathInputImmediateValue({
             latex: "x-y@",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y@");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y@");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", "y"]]);
 
         // Delete @ and add *z in first mathInput
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
 
         await updateMathInputImmediateValue({
             latex: "x-y",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x-y*",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x-y*z",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y*z");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y*z");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls("＿");
 
         // Update value (e.g., update value)
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y*z");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y*z");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
     });
 
@@ -1174,7 +1236,7 @@ describe("MathInput tag tests", async () => {
     <mathInput extend="$mi1" name="mi1a"  />
     `;
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
 
@@ -1182,253 +1244,267 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls("＿");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls("＿");
 
         // Type x- in first mathInput
         await updateMathInputImmediateValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "x-",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls("x-");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls("x-");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls("x-");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls("x-");
 
         // Add y in copied mathInput
         await updateMathInputImmediateValue({
             latex: "x-y",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls("x-");
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls("x-");
 
         // update value (e.g., blur)
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", "y"]]);
 
         // Add * in copied mathInput
         await updateMathInputImmediateValue({
             latex: "x-y*",
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y*");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y*");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", ["*", "y", "＿"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", ["*", "y", "＿"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", "y"]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", "y"]]);
 
         // Add z in first mathInput
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1a"),
+            componentIdx: await resolvePathToNodeIdx("mi1a"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x-y*z",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y*z");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y*z");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", ["*", "y", "＿"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", ["*", "y", "＿"]]]);
 
         // Update value (e.g., update value)
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y*z");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x-y*z");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
         expect(
-            stateVariables[resolveComponentName("mi1a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues.value
+                .tree,
         ).eqls(["+", "x", ["-", ["*", "y", "z"]]]);
     });
 
     it("downstream from mathInput", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original math: <math>1+2x</math></p>
     <p>MathInput based on math: <mathInput bindValueTo="$_math1" name="mi1" /></p>
@@ -1440,164 +1516,172 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2x");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["+", 1, ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
 
         // type new values
         await updateMathInputImmediateValue({
             latex: "",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "xy",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["+", 1, ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "x", "y"]);
 
         // update value
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "x", "y"]);
 
         // enter new values in referenced
         await updateMathInputValue({
             latex: "qr",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("qr");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("qr");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["*", "q", "r"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["*", "q", "r"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "q", "r"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "q", "r"]);
     });
 
     it("downstream from mathInput, prefill ignored", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original math: <math>1+2x</math></p>
     <p>MathInput based on math: <mathInput prefill="x^2/9" bindValueTo="$_math1" name="mi1" /></p>
@@ -1610,38 +1694,40 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2x");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["+", 1, ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
     });
 
     it("downstream from mathInput, normal downstream rules apply", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original math: <math simplify>1+<math>3x</math></math></p>
     <p>MathInput based on math: <mathInput bindValueTo="$_math1" name="mi1" /></p>
@@ -1653,129 +1739,135 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("3x+1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("3x+1");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", ["*", 3, "x"], 1]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eqls(["+", ["*", 3, "x"], 1]);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eqls(["+", ["*", 3, "x"], 1]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eqls(["+", ["*", 3, "x"], 1]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["+", ["*", 3, "x"], 1]);
         expect(
-            stateVariables[resolveComponentName("_math2")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
+        ).eqls(["+", ["*", 3, "x"], 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["+", ["*", 3, "x"], 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["+", ["*", 3, "x"], 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 3, "x"], 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math2")].stateValues
+                .value.tree,
         ).eqls(["*", 3, "x"]);
 
         // type new values
         await updateMathInputValue({
             latex: "xy",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("_math2")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math2")].stateValues
+                .value.tree,
         ).eqls(["+", ["*", "x", "y"], -1]);
 
         // enter new values in reffed
         await updateMathInputValue({
             latex: "qr",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("qr");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("qr");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["*", "q", "r"]);
         expect(
-            stateVariables[resolveComponentName("_math2")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math2")].stateValues
+                .value.tree,
         ).eqls(["+", ["*", "q", "r"], -1]);
     });
 
     it("downstream from mathInput via child", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original math: <math>1+2x</math></p>
     <p>MathInput based on math: <mathInput name="mi1" >$_math1</mathInput></p>
@@ -1787,164 +1879,172 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2x");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["+", 1, ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
 
         // type new values
         await updateMathInputImmediateValue({
             latex: "",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "xy",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["+", 1, ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "x", "y"]);
 
         // update value
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "x", "y"]);
 
         // enter new values in referenced
         await updateMathInputValue({
             latex: "qr",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("qr");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("qr");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["*", "q", "r"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["*", "q", "r"]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "q", "r"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "q", "r"]);
     });
 
     it("downstream from mathInput via child, prefill ignored", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original math: <math>1+2x</math></p>
     <p>MathInput based on math: <mathInput prefill="x^2/9" name="mi1" >$_math1</mathInput></p>
@@ -1957,38 +2057,40 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2x");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["+", 1, ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", 1, ["*", 2, "x"]]);
     });
 
     it("combination children including string", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original math: <math>x</math></p>
     <p>MathInput based on math and strings: <mathInput name="mi1" >2$_math1+1</mathInput></p>
@@ -2000,51 +2102,53 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("2x+1");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "x"], 1]);
         expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", ["*", 2, "x"], 1]);
 
         // type in new values
         await updateMathInputValue({
             latex: "2y+1",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("2y+1");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "y"], 1]);
         expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls("y");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", ["*", 2, "y"], 1]);
     });
 
     it("child overrides bindValueTo", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original math: <math>x</math></p>
     <p>MathInput with child and bindValueTo: <mathInput name="mi1" bindValueTo="$_math1">y</mathInput></p>
@@ -2056,51 +2160,53 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("y");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls("y");
         expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls("y");
 
         // type in new values
         await updateMathInputValue({
             latex: "2z",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("2z");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "z"]);
         expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", 2, "z"]);
     });
 
     it("downstream from mathInput via child, normal downstream rules apply", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original math: <math simplify>1+<math>3x</math></math></p>
     <p>MathInput based on math: <mathInput name="mi1" >$_math1</mathInput></p>
@@ -2112,129 +2218,135 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("3x+1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("3x+1");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", ["*", 3, "x"], 1]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eqls(["+", ["*", 3, "x"], 1]);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eqls(["+", ["*", 3, "x"], 1]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eqls(["+", ["*", 3, "x"], 1]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["+", ["*", 3, "x"], 1]);
         expect(
-            stateVariables[resolveComponentName("_math2")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
+        ).eqls(["+", ["*", 3, "x"], 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["+", ["*", 3, "x"], 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["+", ["*", 3, "x"], 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
+        ).eqls(["+", ["*", 3, "x"], 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math2")].stateValues
+                .value.tree,
         ).eqls(["*", 3, "x"]);
 
         // type new values
         await updateMathInputValue({
             latex: "xy",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("_math2")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math2")].stateValues
+                .value.tree,
         ).eqls(["+", ["*", "x", "y"], -1]);
 
         // enter new values in reffed
         await updateMathInputValue({
             latex: "qr",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("qr");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("qr");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
         ).eqls(["*", "q", "r"]);
         expect(
-            stateVariables[resolveComponentName("_math2")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math2")].stateValues
+                .value.tree,
         ).eqls(["+", ["*", "q", "r"], -1]);
     });
 
     it("values revert if bind to value that is not updatable", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original math: <math>1+<math>2x</math><math>z</math></math></p>
     <p>MathInput based on math: <mathInput bindValueTo="$_math1" name="mi1" /></p>
@@ -2247,199 +2359,209 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2xz");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2xz");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["+", 1, ["*", 2, "x", "z"]]);
 
         // type new values
         await updateMathInputImmediateValue({
             latex: "xy",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("xy");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "x", "y"]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "x", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["+", 1, ["*", 2, "x", "z"]]);
 
         // value revert when updateValue (e.g., update value)
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2xz");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2xz");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["+", 1, ["*", 2, "x", "z"]]);
 
         // type new values in copy
 
         await updateMathInputImmediateValue({
             latex: "qr",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("qr");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("qr");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eqls(["*", "q", "r"]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["*", "q", "r"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["+", 1, ["*", 2, "x", "z"]]);
 
         // values revert when update value (e.g., blur)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2xz");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("1+2xz");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["+", 1, ["*", 2, "x", "z"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eqls(["+", 1, ["*", 2, "x", "z"]]);
     });
 
     it("values revert if bind to fixed value", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original math: <math fixed>x</math></p>
     <p>MathInput based on math: <mathInput bindValueTo="$_math1" name="mi1" /></p>
@@ -2451,194 +2573,204 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eq("x");
 
         // type new values
         await updateMathInputImmediateValue({
             latex: "y",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("y");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("y");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq("y");
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq("y");
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq("y");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq("y");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eq("x");
 
         // value revert when update value (e.g., press enter)
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eq("x");
 
         // type new values in copy
         await updateMathInputImmediateValue({
             latex: "z",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("z");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("z");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq("z");
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq("z");
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq("z");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq("z");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eq("x");
 
         // values revert when update value (e.g., blur)
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq("x");
-        expect(
-            stateVariables[resolveComponentName("_math1")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
                 .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("_math1")].stateValues
+                .value.tree,
         ).eq("x");
     });
 
     it("mathInput based on value of mathInput", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original mathInput: <mathInput name="mi1" prefill="x+1"/></p>
     <p>mathInput based on mathInput: <mathInput bindValueTo="$mi1" name="mi2" /></p>
@@ -2649,174 +2781,184 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+1");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
 
         // type 2 in first mathInput
         await updateMathInputImmediateValue({
             latex: "x+12",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+12");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+1");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
 
         // update value (e.g., press enter)
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+12");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+12");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 12]);
 
         // type 3 in second mathInput
         await updateMathInputImmediateValue({
             latex: "x+123",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+12");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+123");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 123]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 12]);
 
         // update value (e.g., blur)
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+123");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+123");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 123]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 123]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 123]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 123]);
     });
 
     it("mathInput based on immediate value of mathInput", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Original mathInput: <mathInput name="mi1" prefill="x+1"/></p>
     <p>mathInput based on mathInput: <mathInput bindValueTo="$mi1.immediateValue" name="mi2" /></p>
@@ -2827,174 +2969,184 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+1");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+1");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
 
         // type 2 in first mathInput
         await updateMathInputImmediateValue({
             latex: "x+12",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+12");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+12");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 1]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 12]);
 
         // update value (e.g., press enter)
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+12");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+12");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 12]);
 
         // type 3 in second mathInput
         await updateMathInputImmediateValue({
             latex: "x+123",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+12");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+123");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 12]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 123]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 12]);
 
         // update value (e.g., blur)
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+123");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("x+123");
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 123]);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 123]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "x", 123]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["+", "x", 123]);
     });
 
     it("accurately reduce vector length", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <text>Enter vector</text>
     <mathInput name="a"/>
@@ -3007,40 +3159,42 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("");
 
         await updateMathInputValue({
             latex: "(1,2,3)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("(1,2,3)");
 
         await updateMathInputValue({
             latex: "(2,3)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("(2,3)");
     });
 
     it("function symbols", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>f, g: <mathInput name="a"/></p>
     <p><math extend="$a.value" name="a2" /></p>
@@ -3053,119 +3207,137 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls("\uff3f");
 
         await updateMathInputValue({
             latex: "f(x)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputValue({
             latex: "f(x)",
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "f", "x"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "f", "x"]);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls(["*", "f", "x"]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls(["*", "f", "x"]);
 
         await updateMathInputValue({
             latex: "g(f)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputValue({
             latex: "g(f)",
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "g", "f"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "g", "f"]);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls(["*", "g", "f"]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls(["*", "g", "f"]);
 
         await updateMathInputValue({
             latex: "h(q)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputValue({
             latex: "h(q)",
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", "h", "q"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", "h", "q"]);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls(["apply", "h", "q"]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls(["apply", "h", "q"]);
 
         await updateMathInputValue({
             latex: "q(z)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputValue({
             latex: "q(z)",
-            componentIdx: resolveComponentName("b"),
+            componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", "q", "z"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", "q", "z"]);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls(["apply", "q", "z"]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls(["apply", "q", "z"]);
     });
 
     it("display digits", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <text>a</text>
     <p>a: <mathInput name="a" displayDigits="5" prefill="sin(2x)"/></p>
@@ -3186,139 +3358,159 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b5")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b6")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
-                .valueForDisplay.tree,
-        ).eqls(["apply", "sin", ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("a4")].stateValues.value.tree,
-        ).eqls(["apply", "sin", ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("a4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a4")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a5")].stateValues.value
+                .tree,
+        ).eqls(["apply", "sin", ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                .valueForDisplay.tree,
+        ).eqls(["apply", "sin", ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b5")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b5")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b6")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b6")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
 
         await updateMathInputImmediateValue({
             latex: "\\sin(345.15389319x)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
 
@@ -3326,224 +3518,252 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(345.15389319x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15389319x)");
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "2.047529344518e^{0.0000073013048309y}",
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(345.15x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15389319x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15389319x)");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("2.047529344518e^{0.0000073013048309y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("2.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b5")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b6")].stateValues
+                    .latex,
             ),
         ).eq("2.047529344518e^{0.0000073013048309y}");
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("2.047529345e^{0.000007301304831y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("2.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("2.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("2.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b5")].stateValues
+                    .latex,
             ),
         ).eq("2.047529344518e^{0.0000073013048309y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b6")].stateValues
+                    .latex,
             ),
         ).eq("2.047529344518e^{0.0000073013048309y}");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a4")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a5")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a5")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 2.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 2.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 2.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b5")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b5")].stateValues
                 .valueForDisplay.tree,
         ).eqls([
             "*",
@@ -3551,14 +3771,15 @@ describe("MathInput tag tests", async () => {
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b6")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b6")].stateValues
                 .valueForDisplay.tree,
         ).eqls([
             "*",
@@ -3568,7 +3789,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\sin(345.14x)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
 
@@ -3576,69 +3797,78 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(345.14x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.14x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15389319x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.14x)");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a4")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a5")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a5")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
 
@@ -3646,151 +3876,170 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(345.14x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.14x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.14x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.14x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.14x)");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a4")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a5")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a5")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
 
         await updateMathInputImmediateValue({
             latex: "6.05e^{0.0000073y}",
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("2.047529345e^{0.000007301304831y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("6.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("2.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("6.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b5")].stateValues
+                    .latex,
             ),
         ).eq("2.047529344518e^{0.0000073013048309y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b6")].stateValues
+                    .latex,
             ),
         ).eq("6.05e^{0.0000073y}");
 
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 2.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 2.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value
+                .tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b5")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b5")].stateValues
                 .valueForDisplay.tree,
         ).eqls([
             "*",
@@ -3798,93 +4047,105 @@ describe("MathInput tag tests", async () => {
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b6")].stateValues.value
+                .tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b6")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("6.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("6.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("6.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("6.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b5")].stateValues
+                    .latex,
             ),
         ).eq("6.05e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b6")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b6")].stateValues
+                    .latex,
             ),
         ).eq("6.05e^{0.0000073y}");
 
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value
+                .tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value
+                .tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b5")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b5")].stateValues.value
+                .tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b5")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b5")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b6")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b6")].stateValues.value
+                .tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b6")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b6")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.05, ["^", "e", ["*", 0.0000073, "y"]]]);
     });
 
     it("display decimals", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>a: <mathInput name="a" displayDecimals="2" prefill="sin(2x)"/></p>
     <p>a2: <math extend="$a.value" name="a2" /></p>
@@ -3901,91 +4162,103 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
 
         await updateMathInputImmediateValue({
             latex: "\\sin(345.15389319x)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
 
@@ -3993,164 +4266,181 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(345.15389319x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15x)");
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "2.047529344518e^{0.0000073013048309y}",
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(345.15x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15x)");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("2.047529344518e^{0.0000073013048309y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("2.04752934e^{0.0000073y}");
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("2.047529345e^{0.000007301304831y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("2.04752934e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("2.04752934e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("2.04752934e^{0.0000073y}");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15, "x"]]);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 2.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 2.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 2.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
 
         await updateMathInputImmediateValue({
             latex: "\\sin(345.14x)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
 
@@ -4158,45 +4448,50 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(345.14x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.15x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.14x)");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.15389319, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.15, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
 
@@ -4204,165 +4499,184 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(345.14x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.14x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(345.14x)");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 345.14, "x"]]);
 
         await updateMathInputImmediateValue({
             latex: "6.04752934e^{0.0000073y}",
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("2.047529345e^{0.000007301304831y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("6.04752934e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("2.04752934e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("6.04752934e^{0.0000073y}");
 
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 2.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             2.047529344518,
             ["^", "e", ["*", 0.0000073013048309, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 2.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value
+                .tree,
         ).eqls(["*", 6.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("6.04752934e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("6.04752934e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("6.04752934e^{0.0000073y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("6.04752934e^{0.0000073y}");
 
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls(["*", 6.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls(["*", 6.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value
+                .tree,
         ).eqls(["*", 6.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value
+                .tree,
         ).eqls(["*", 6.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.04752934, ["^", "e", ["*", 0.0000073, "y"]]]);
     });
 
     it("display small as zero", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <text>a</text>
     <p>a: <mathInput name="a" displayDigits="5" prefill="sin(2x)"/></p>
@@ -4388,408 +4702,456 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("c")].stateValues
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("c2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("c3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("c3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(2x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("d2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("d3")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("d4")].stateValues
+                    .latex,
             ),
         ).eq("10e^{3y}");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
-                .valueForDisplay.tree,
-        ).eqls(["apply", "sin", ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
-        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
-        expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
-        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
-        expect(
-            stateVariables[resolveComponentName("b2")].stateValues
-                .valueForDisplay.tree,
-        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
-        expect(
-            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
-        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
-        expect(
-            stateVariables[resolveComponentName("b3")].stateValues
-                .valueForDisplay.tree,
-        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
-        expect(
-            stateVariables[resolveComponentName("b4")].stateValues.value.tree,
-        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
-        expect(
-            stateVariables[resolveComponentName("b4")].stateValues
-                .valueForDisplay.tree,
-        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
-        expect(
-            stateVariables[resolveComponentName("c")].stateValues.value.tree,
-        ).eqls(["apply", "sin", ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("c2")].stateValues.value.tree,
-        ).eqls(["apply", "sin", ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("c2")].stateValues
-                .valueForDisplay.tree,
-        ).eqls(["apply", "sin", ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("c3")].stateValues.value.tree,
-        ).eqls(["apply", "sin", ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("c3")].stateValues
-                .valueForDisplay.tree,
-        ).eqls(["apply", "sin", ["*", 2, "x"]]);
-        expect(
-            stateVariables[resolveComponentName("d")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value
+                .tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                .valueForDisplay.tree,
+        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues.value
+                .tree,
+        ).eqls(["apply", "sin", ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .valueForDisplay.tree,
+        ).eqls(["apply", "sin", ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.value
+                .tree,
+        ).eqls(["apply", "sin", ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues
+                .valueForDisplay.tree,
+        ).eqls(["apply", "sin", ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues.value
+                .tree,
+        ).eqls(["apply", "sin", ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues
+                .valueForDisplay.tree,
+        ).eqls(["apply", "sin", ["*", 2, "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d")].stateValues.value
+                .tree,
+        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues.value
+                .tree,
+        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues
+                .valueForDisplay.tree,
+        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d3")].stateValues.value
+                .tree,
+        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d3")].stateValues
+                .valueForDisplay.tree,
+        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d4")].stateValues.value
+                .tree,
+        ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 10, ["^", "e", ["*", 3, "y"]]]);
 
         await updateMathInputValue({
             latex: "\\sin(0.000000000000000472946384739473x)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputValue({
             latex: "0.0000000000000934720357236e^{0.0000000000000073013048309y}",
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         await updateMathInputValue({
             latex: "\\sin(0.000000000000000472946384739473x)",
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             core,
         });
         await updateMathInputValue({
             latex: "0.0000000000000934720357236e^{0.0000000000000073013048309y}",
-            componentIdx: resolveComponentName("d2"),
+            componentIdx: await resolvePathToNodeIdx("d2"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(4.7295\\cdot10^{-16}x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(4.7295\\cdot10^{-16}x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(4.7295\\cdot10^{-16}x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("9.347203572\\cdot10^{-14}e^{7.301304831\\cdot10^{-15}y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("9.35\\cdot10^{-14}e^{7.3\\cdot10^{-15}y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("9.35\\cdot10^{-14}e^{7.3\\cdot10^{-15}y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("9.35\\cdot10^{-14}e^{7.3\\cdot10^{-15}y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("c")].stateValues
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(0x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("c2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(0x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("c3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("c3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(0x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                    .latex,
             ),
         ).eq("9.347203572\\cdot10^{-14}e^{7.301304831\\cdot10^{-15}y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("d2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("9.35\\cdot10^{-14}e^{0y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("d3")].stateValues
+                    .latex,
             ),
         ).eq("9.35\\cdot10^{-14}e^{0y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("d4")].stateValues
+                    .latex,
             ),
         ).eq("9.35\\cdot10^{-14}e^{0y}");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 4.72946384739473e-16, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 4.7295e-16, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 4.72946384739473e-16, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 4.7295e-16, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 4.72946384739473e-16, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 4.7295e-16, "x"]]);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             9.34720357236e-14,
             ["^", "e", ["*", 7.3013048309e-15, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             9.34720357236e-14,
             ["^", "e", ["*", 7.3013048309e-15, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 9.35e-14, ["^", "e", ["*", 7.3e-15, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             9.34720357236e-14,
             ["^", "e", ["*", 7.3013048309e-15, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 9.35e-14, ["^", "e", ["*", 7.3e-15, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             9.34720357236e-14,
             ["^", "e", ["*", 7.3013048309e-15, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 9.35e-14, ["^", "e", ["*", 7.3e-15, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("c")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 4.72946384739473e-16, "x"]]);
         expect(
-            stateVariables[resolveComponentName("c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 0, "x"]]);
         expect(
-            stateVariables[resolveComponentName("c2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 4.72946384739473e-16, "x"]]);
         expect(
-            stateVariables[resolveComponentName("c2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 0, "x"]]);
         expect(
-            stateVariables[resolveComponentName("c3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 4.72946384739473e-16, "x"]]);
         expect(
-            stateVariables[resolveComponentName("c3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 0, "x"]]);
         expect(
-            stateVariables[resolveComponentName("d")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("d")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             9.34720357236e-14,
             ["^", "e", ["*", 7.3013048309e-15, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("d2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             9.34720357236e-14,
             ["^", "e", ["*", 7.3013048309e-15, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("d2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 9.35e-14, ["^", "e", ["*", 0, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("d3")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             9.34720357236e-14,
             ["^", "e", ["*", 7.3013048309e-15, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("d3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 9.35e-14, ["^", "e", ["*", 0, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("d4")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             9.34720357236e-14,
             ["^", "e", ["*", 7.3013048309e-15, "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("d4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 9.35e-14, ["^", "e", ["*", 0, "y"]]]);
 
         await updateMathInputValue({
             latex: "\\sin(5.7295\\cdot10^{-16}x)",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputValue({
             latex: "8.35\\cdot10^{-14}e^{7.3\\cdot10^{-15}y}",
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         await updateMathInputValue({
             latex: "\\sin(30x)",
-            componentIdx: resolveComponentName("c"),
+            componentIdx: await resolvePathToNodeIdx("c"),
             core,
         });
         await updateMathInputValue({
             latex: "6.35\\cdot10^{-14}e^{0y}",
-            componentIdx: resolveComponentName("d2"),
+            componentIdx: await resolvePathToNodeIdx("d2"),
             core,
         });
 
@@ -4797,102 +5159,116 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(5.7295\\cdot10^{-16}x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(5.7295\\cdot10^{-16}x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(5.7295\\cdot10^{-16}x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .latex,
             ),
         ).eq("8.35\\cdot10^{-14}e^{7.3\\cdot10^{-15}y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("8.35\\cdot10^{-14}e^{7.3\\cdot10^{-15}y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b3")].stateValues
+                    .latex,
             ),
         ).eq("8.35\\cdot10^{-14}e^{7.3\\cdot10^{-15}y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("b4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("b4")].stateValues
+                    .latex,
             ),
         ).eq("8.35\\cdot10^{-14}e^{7.3\\cdot10^{-15}y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("c")].stateValues
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\sin(30x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("c2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("c2")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(30x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("c3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("c3")].stateValues
+                    .latex,
             ),
         ).eq("\\sin(30x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                    .latex,
             ),
         ).eq("6.35\\cdot10^{-14}e^{0y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("d2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("6.35\\cdot10^{-14}e^{0y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("d3")].stateValues
+                    .latex,
             ),
         ).eq("6.35\\cdot10^{-14}e^{0y}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("d4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("d4")].stateValues
+                    .latex,
             ),
         ).eq("6.35\\cdot10^{-14}e^{0y}");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 5.7295, ["^", 10, -16], "x"]]);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
-                .valueForDisplay.tree,
-        ).eqls(["apply", "sin", ["*", 5.7295, ["^", 10, -16], "x"]]);
-        expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
-        ).eqls(["apply", "sin", ["*", 5.7295, ["^", 10, -16], "x"]]);
-        expect(
-            stateVariables[resolveComponentName("a2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 5.7295, ["^", 10, -16], "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 5.7295, ["^", 10, -16], "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 5.7295, ["^", 10, -16], "x"]]);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
+        ).eqls(["apply", "sin", ["*", 5.7295, ["^", 10, -16], "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                .valueForDisplay.tree,
+        ).eqls(["apply", "sin", ["*", 5.7295, ["^", 10, -16], "x"]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             8.35,
@@ -4900,7 +5276,8 @@ describe("MathInput tag tests", async () => {
             ["^", "e", ["*", 7.3, ["^", 10, -15], "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             8.35,
@@ -4908,7 +5285,7 @@ describe("MathInput tag tests", async () => {
             ["^", "e", ["*", 7.3, ["^", 10, -15], "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eqls([
             "*",
@@ -4917,7 +5294,8 @@ describe("MathInput tag tests", async () => {
             ["^", "e", ["*", 7.3, ["^", 10, -15], "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             8.35,
@@ -4925,7 +5303,7 @@ describe("MathInput tag tests", async () => {
             ["^", "e", ["*", 7.3, ["^", 10, -15], "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues
                 .valueForDisplay.tree,
         ).eqls([
             "*",
@@ -4934,7 +5312,8 @@ describe("MathInput tag tests", async () => {
             ["^", "e", ["*", 7.3, ["^", 10, -15], "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value
+                .tree,
         ).eqls([
             "*",
             8.35,
@@ -4942,7 +5321,7 @@ describe("MathInput tag tests", async () => {
             ["^", "e", ["*", 7.3, ["^", 10, -15], "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("b4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues
                 .valueForDisplay.tree,
         ).eqls([
             "*",
@@ -4951,54 +5330,61 @@ describe("MathInput tag tests", async () => {
             ["^", "e", ["*", 7.3, ["^", 10, -15], "y"]],
         ]);
         expect(
-            stateVariables[resolveComponentName("c")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 30, "x"]]);
         expect(
-            stateVariables[resolveComponentName("c")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 30, "x"]]);
         expect(
-            stateVariables[resolveComponentName("c2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 30, "x"]]);
         expect(
-            stateVariables[resolveComponentName("c2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 30, "x"]]);
         expect(
-            stateVariables[resolveComponentName("c3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues.value
+                .tree,
         ).eqls(["apply", "sin", ["*", 30, "x"]]);
         expect(
-            stateVariables[resolveComponentName("c3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["apply", "sin", ["*", 30, "x"]]);
         expect(
-            stateVariables[resolveComponentName("d")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("d")].stateValues.value
+                .tree,
         ).eqls(["*", 6.35, ["^", 10, -14], ["^", "e", ["*", 0, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues.value
+                .tree,
         ).eqls(["*", 6.35, ["^", 10, -14], ["^", "e", ["*", 0, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d2")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.35, ["^", 10, -14], ["^", "e", ["*", 0, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("d3")].stateValues.value
+                .tree,
         ).eqls(["*", 6.35, ["^", 10, -14], ["^", "e", ["*", 0, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d3")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.35, ["^", 10, -14], ["^", "e", ["*", 0, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d4")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("d4")].stateValues.value
+                .tree,
         ).eqls(["*", 6.35, ["^", 10, -14], ["^", "e", ["*", 0, "y"]]]);
         expect(
-            stateVariables[resolveComponentName("d4")].stateValues
+            stateVariables[await resolvePathToNodeIdx("d4")].stateValues
                 .valueForDisplay.tree,
         ).eqls(["*", 6.35, ["^", 10, -14], ["^", "e", ["*", 0, "y"]]]);
     });
 
     it("propagate larger default display digits", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>a: <mathInput name="a" prefill="123.4567891234"/></p>
     <p>a2: <math extend="$a.value" name="a2" /></p>
@@ -5012,67 +5398,75 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("123.4567891");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("123.4567891");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("123.4567891");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                    .latex,
             ),
         ).eq("123.46");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                    .latex,
             ),
         ).eq("123.46");
 
         await updateMathInputValue({
             latex: "98765.4321876",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("98765.43219");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("98765.43219");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("98765.43219");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                    .latex,
             ),
         ).eq("98765.43");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                    .latex,
             ),
         ).eq("98765.43");
     });
 
     it("propagate false default display small as zero", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>a: <mathInput name="a" prefill="123.4567891234"/></p>
     <p>a2: <math extend="$a.value" name="a2" /></p>
@@ -5086,68 +5480,76 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("123.4567891");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("123.4567891");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("123.4567891");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                    .latex,
             ),
         ).eq("123.4567891");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                    .latex,
             ),
         ).eq("123.4567891");
 
         await updateMathInputValue({
             latex: "0.00000000000000004736286523434185",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("4.736286523\\cdot10^{-17}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("4.736286523\\cdot10^{-17}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("4.736286523\\cdot10^{-17}");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a4")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                    .latex,
             ),
         ).eq("0");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a5")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                    .latex,
             ),
         ).eq("0");
     });
 
     it("display digits, change from downstream", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>a: <mathInput name="a" displayDigits="5" prefill="3"/></p>
 
@@ -5162,75 +5564,85 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[0]
+                .tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues
                 .valueForDisplay.tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[1]
+                .tree,
         ).eq(5);
 
         await updateMathInputValue({
             latex: "2.4295639461593",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputValue({
             latex: "9.3935596792746",
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(2.4295639461593);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eq(2.4296);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[0]
+                .tree,
         ).eq(2.4295639461593);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(9.3935596792746);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues
                 .valueForDisplay.tree,
         ).eq(9.393559679);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eq(9.3935596792746);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eq(9.39);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[1]
+                .tree,
         ).eq(9.3935596792746);
 
         await movePoint({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             x: 7.936497798143,
             y: 2.142218345836,
             core,
@@ -5238,36 +5650,41 @@ describe("MathInput tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(7.936497798143);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eq(7.9365);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[0]
+                .tree,
         ).eq(7.936497798143);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(2.142218345836);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues
                 .valueForDisplay.tree,
         ).eq(2.142218346);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eq(2.142218345836);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eq(2.14);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[1]
+                .tree,
         ).eq(2.142218345836);
     });
 
     it("display decimals, change from downstream", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>a: <mathInput name="a" displayDecimals="4" prefill="3"/></p>
 
@@ -5282,75 +5699,85 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[0]
+                .tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues
                 .valueForDisplay.tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[1]
+                .tree,
         ).eq(5);
 
         await updateMathInputValue({
             latex: "2.4295639461593",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         await updateMathInputValue({
             latex: "9.3935596792746",
-            componentIdx: resolveComponentName("b2"),
+            componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(2.4295639461593);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eq(2.4296);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[0]
+                .tree,
         ).eq(2.4295639461593);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(9.3935596792746);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues
                 .valueForDisplay.tree,
         ).eq(9.393559679);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eq(9.3935596792746);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eq(9.39);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[1]
+                .tree,
         ).eq(9.3935596792746);
 
         await movePoint({
-            componentIdx: resolveComponentName("p"),
+            componentIdx: await resolvePathToNodeIdx("p"),
             x: 7.936497798143,
             y: 2.142218345836,
             core,
@@ -5359,36 +5786,41 @@ describe("MathInput tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(7.936497798143);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
                 .valueForDisplay.tree,
         ).eq(7.9365);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[0]
+                .tree,
         ).eq(7.936497798143);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(2.142218345836);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues
                 .valueForDisplay.tree,
         ).eq(2.142218346);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value
+                .tree,
         ).eq(2.142218345836);
         expect(
-            stateVariables[resolveComponentName("b2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues
                 .valueForDisplay.tree,
         ).eq(2.14);
         expect(
-            stateVariables[resolveComponentName("p")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.xs[1]
+                .tree,
         ).eq(2.142218345836);
     });
 
     it("substitute unicode", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>a: <mathInput name="a" /></p>
     <p>a2: <math extend="$a.value" name="a2" /></p>
@@ -5399,502 +5831,573 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eq("\uff3f");
 
         // unicode α U+03B1
         await updateMathInputValue({
             latex: "α",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("α");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\alpha");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\alpha");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls("alpha");
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls("alpha");
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls("alpha");
 
         // latex \\alpha\\beta
         await updateMathInputValue({
             latex: "\\alpha\\beta",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\alpha\\beta");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\alpha\\beta");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\alpha\\beta");
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", "alpha", "beta"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", "alpha", "beta"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", "alpha", "beta"]);
 
         // unicode − U+2212 is subtraction
 
         await updateMathInputValue({
             latex: "y\u2212z",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("y\u2212z");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("y-z");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("y-z");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["+", "y", ["-", "z"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["+", "y", ["-", "z"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["+", "y", ["-", "z"]]);
 
         // normal minus
 
         await updateMathInputValue({
             latex: "a-b",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("a-b");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("a-b");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("a-b");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["+", "a", ["-", "b"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["+", "a", ["-", "b"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["+", "a", ["-", "b"]]);
 
         // unicode ⋅ U+22C5 is multiplication
 
         await updateMathInputValue({
             latex: "y\u22C5z",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("y\u22C5z");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("yz");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("yz");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", "y", "z"]);
 
         // normal *
 
         await updateMathInputValue({
             latex: "a*b",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("a*b");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("ab");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("ab");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", "a", "b"]);
 
         // unicode · U+00B7 becomes multiplication
 
         await updateMathInputValue({
             latex: "y\u00B7z",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("y\u00B7z");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("yz");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("yz");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", "y", "z"]);
 
         // unicode × U+00D7 becomes multiplication
 
         await updateMathInputValue({
             latex: "u\u00D7v",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("u\u00D7v");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("uv");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("uv");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", "u", "v"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", "u", "v"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", "u", "v"]);
 
         // unicode ∪ U+222A becomes union
 
         await updateMathInputValue({
             latex: "A\u222AB",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("A\u222AB");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("A\\cupB");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("A\\cupB");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["union", "A", "B"]);
 
         // unicode ∩ U+2229 becomes intersect
 
         await updateMathInputValue({
             latex: "A\u2229B",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("A\u2229B");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("A\\capB");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("A\\capB");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["intersect", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["intersect", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["intersect", "A", "B"]);
 
         // unicode ∞ U+221E becomes infinity
 
         await updateMathInputValue({
             latex: "\u221E",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\u221E");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\infty");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\infty");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(Infinity);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eq(Infinity);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eq(Infinity);
 
         // unicode µ U+00B5 becomes mu
 
         await updateMathInputValue({
             latex: "\u00B5",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\u00B5");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\mu");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\mu");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq("mu");
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eq("mu");
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eq("mu");
 
         // unicode μ U+03BC becomes mu
 
         await updateMathInputValue({
             latex: "\u03BC",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\u03BC");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("\\mu");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("\\mu");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq("mu");
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eq("mu");
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eq("mu");
 
         // unicode ′ U+2032 becomes apostrophe
 
         await updateMathInputValue({
             latex: "f\u2032",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a")].stateValues
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
                     .rawRendererValue,
             ),
         ).eq("f\u2032");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .latex,
             ),
         ).eq("f'");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                    .latex,
             ),
         ).eq("f'");
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["prime", "f"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["prime", "f"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["prime", "f"]);
     });
 
     it("exponent with numbers", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>a: <mathInput name="a" /></p>
     <p>a2: <math extend="$a.value" name="a2" /></p>
@@ -5906,150 +6409,174 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("a2")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                    .value.tree,
             ),
         ).eq("\uff3f");
 
         await updateMathInputValue({
             latex: "3^25",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", ["^", 3, 2], 5]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", ["^", 3, 2], 5]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(45);
 
         await updateMathInputValue({
             latex: "3^{25}",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["^", 3, 25]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["^", 3, 25]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(847288609443);
 
         await updateMathInputValue({
             latex: "3^{2x}",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["^", 3, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["^", 3, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["^", 3, ["*", 2, "x"]]);
 
         await updateMathInputValue({
             latex: "3^2x",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", ["^", 3, 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", ["^", 3, 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", 9, "x"]);
 
         await updateMathInputValue({
             latex: "3^{x2}",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["^", 3, "x2"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["^", 3, "x2"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["^", 3, "x2"]);
 
         await updateMathInputValue({
             latex: "3^x2",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", ["^", 3, "x"], 2]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", ["^", 3, "x"], 2]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["^", 3, "x"]]);
 
         await updateMathInputValue({
             latex: "f^32",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", ["^", "f", 3], 2]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", ["^", "f", 3], 2]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["^", "f", 3]]);
 
         await updateMathInputValue({
             latex: "x^32",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", ["^", "x", 3], 2]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", ["^", "x", 3], 2]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["^", "x", 3]]);
     });
 
     it("subscript with numbers", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>a: <mathInput name="a" /></p>
     <p>a2: <math extend="$a.value" name="a2" /></p>
@@ -6059,148 +6586,173 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls("\uff3f");
 
         await updateMathInputValue({
             latex: "3_25",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", 3, 2], 5]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", 3, 2], 5]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", 5, ["_", 3, 2]]);
 
         await updateMathInputValue({
             latex: "3_{25}",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["_", 3, 25]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["_", 3, 25]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["_", 3, 25]);
 
         await updateMathInputValue({
             latex: "3_{2x}",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["_", 3, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["_", 3, ["*", 2, "x"]]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["_", 3, ["*", 2, "x"]]);
 
         await updateMathInputValue({
             latex: "3_2x",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", 3, 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", 3, 2], "x"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", "x", ["_", 3, 2]]);
 
         await updateMathInputValue({
             latex: "3_{x2}",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["_", 3, "x2"]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["_", 3, "x2"]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["_", 3, "x2"]);
 
         await updateMathInputValue({
             latex: "3_x2",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", 3, "x"], 2]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", 3, "x"], 2]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", 3, "x"]]);
 
         await updateMathInputValue({
             latex: "f_32",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "f", 3], 2]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "f", 3], 2]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", "f", 3]]);
 
         await updateMathInputValue({
             latex: "x_32",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "x", 3], 2]);
         expect(
-            stateVariables[resolveComponentName("a2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues.value
+                .tree,
         ).eqls(["*", ["_", "x", 3], 2]);
         expect(
-            stateVariables[resolveComponentName("a3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues.value
+                .tree,
         ).eqls(["*", 2, ["_", "x", 3]]);
     });
 
     it("rawValue is updated", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
       <point x="1" y="2" name="A">
@@ -6223,52 +6775,54 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([1, 2]);
         expect(
-            stateVariables[resolveComponentName("B")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("B")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([1, 3]);
 
         await updateMathInputValue({
             latex: "-7.4",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eq("-7");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eq(-7);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eq(-7);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([-7, 2]);
         expect(
-            stateVariables[resolveComponentName("B")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("B")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([-7, 3]);
@@ -6276,7 +6830,7 @@ describe("MathInput tag tests", async () => {
         // move point A
 
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: 3.9,
             y: -8.4,
             core,
@@ -6285,23 +6839,24 @@ describe("MathInput tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eq("4");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eq(4);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([4, -8]);
         expect(
-            stateVariables[resolveComponentName("B")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("B")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([4, 3]);
@@ -6309,7 +6864,7 @@ describe("MathInput tag tests", async () => {
         // move point B
 
         await movePoint({
-            componentIdx: resolveComponentName("B"),
+            componentIdx: await resolvePathToNodeIdx("B"),
             x: 5.1,
             y: 1.3,
             core,
@@ -6317,30 +6872,31 @@ describe("MathInput tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eq("5");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("A")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([5, -8]);
         expect(
-            stateVariables[resolveComponentName("B")].stateValues.xs.map(
+            stateVariables[await resolvePathToNodeIdx("B")].stateValues.xs.map(
                 (x) => x.tree,
             ),
         ).eqls([5, 1.3]);
     });
 
     it("chain update off mathInput", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi" />
 
@@ -6352,108 +6908,117 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq("x");
 
         await updateMathInputImmediateValue({
             latex: "y",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eq("y");
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq("x");
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eq("x");
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq("x");
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eq("x");
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "x"]);
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         await updateMathInputImmediateValue({
             latex: "y",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eq("y");
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "x"]);
 
         await updateMathInputImmediateValue({
             latex: "y+x",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", "y", "x"]);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eqls(["*", 2, "x"]);
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["+", "y", "x"]);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 3, "x"], "y"]);
     });
 
     it("split symbols in mathInput", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mins" splitSymbols="false" />
     <mathInput name="mis" />
@@ -6466,87 +7031,100 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mns")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mns")].stateValues.value
+                .tree,
         ).eq("\uff3f");
 
         await updateMathInputValue({
             latex: "xy",
-            componentIdx: resolveComponentName("mins"),
+            componentIdx: await resolvePathToNodeIdx("mins"),
             core,
         });
         await updateMathInputValue({
             latex: "xy",
-            componentIdx: resolveComponentName("mis"),
+            componentIdx: await resolvePathToNodeIdx("mis"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mins")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mins")].stateValues.value
+                .tree,
         ).eqls("xy");
         expect(
-            stateVariables[resolveComponentName("mis")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mis")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("mns")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mns")].stateValues.value
+                .tree,
         ).eqls("xy");
         expect(
-            stateVariables[resolveComponentName("ms")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("ms")].stateValues.value
+                .tree,
         ).eqls(["*", "x", "y"]);
 
         await updateMathInputValue({
             latex: "xy0",
-            componentIdx: resolveComponentName("mins"),
+            componentIdx: await resolvePathToNodeIdx("mins"),
             core,
         });
         await updateMathInputValue({
             latex: "xy0",
-            componentIdx: resolveComponentName("mis"),
+            componentIdx: await resolvePathToNodeIdx("mis"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mins")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mins")].stateValues.value
+                .tree,
         ).eqls("xy0");
         expect(
-            stateVariables[resolveComponentName("mis")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mis")].stateValues.value
+                .tree,
         ).eqls("xy0");
         expect(
-            stateVariables[resolveComponentName("mns")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mns")].stateValues.value
+                .tree,
         ).eqls("xy0");
         expect(
-            stateVariables[resolveComponentName("ms")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("ms")].stateValues.value
+                .tree,
         ).eqls("xy0");
 
         await updateMathInputValue({
             latex: "xy_{uv}",
-            componentIdx: resolveComponentName("mins"),
+            componentIdx: await resolvePathToNodeIdx("mins"),
             core,
         });
         await updateMathInputValue({
             latex: "xy_{uv}",
-            componentIdx: resolveComponentName("mis"),
+            componentIdx: await resolvePathToNodeIdx("mis"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mins")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mins")].stateValues.value
+                .tree,
         ).eqls(["_", "xy", "uv"]);
         expect(
-            stateVariables[resolveComponentName("mis")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mis")].stateValues.value
+                .tree,
         ).eqls(["*", "x", ["_", "y", ["*", "u", "v"]]]);
         expect(
-            stateVariables[resolveComponentName("mns")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mns")].stateValues.value
+                .tree,
         ).eqls(["_", "xy", "uv"]);
         expect(
-            stateVariables[resolveComponentName("ms")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("ms")].stateValues.value
+                .tree,
         ).eqls(["*", "x", ["_", "y", ["*", "u", "v"]]]);
     });
 
     it("normalize begin/end ldots in mathInput", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi" />
 
@@ -6556,139 +7134,156 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eq("\uff3f");
 
         // use periods, no commas
 
         await updateMathInputValue({
             latex: "...x,y,z...",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "x", "y", "z", ["ldots"]]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "x", "y", "z", ["ldots"]]);
 
         // add spaces in between some periods
 
         await updateMathInputValue({
             latex: "\\ .\\ .\\ .x,y,a..\\ .\\ ",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "x", "y", "a", ["ldots"]]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "x", "y", "a", ["ldots"]]);
 
         // add commas after first set of periods
 
         await updateMathInputValue({
             latex: "\\ .\\ .\\ .,b,y,a..\\ .\\ ",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "b", "y", "a", ["ldots"]]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "b", "y", "a", ["ldots"]]);
 
         // add commas before second set of periods
 
         await updateMathInputValue({
             latex: "\\ .\\ .\\ .,b,y,c,..\\ .\\ ",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "b", "y", "c", ["ldots"]]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "b", "y", "c", ["ldots"]]);
 
         // change second set of periods to ldots
 
         await updateMathInputValue({
             latex: "\\ .\\ .\\ .,b,y,d,\\ldots\\ ",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "b", "y", "d", ["ldots"]]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "b", "y", "d", ["ldots"]]);
 
         // change first set of periods to ldots
 
         await updateMathInputValue({
             latex: "\\ \\ldots\\ ,e,y,d,\\ldots\\ ",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "e", "y", "d", ["ldots"]]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "e", "y", "d", ["ldots"]]);
 
         // remove first comma
 
         await updateMathInputValue({
             latex: "\\ \\ldots\\ f,y,d,\\ldots\\ ",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "f", "y", "d", ["ldots"]]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "f", "y", "d", ["ldots"]]);
 
         // remove last comma
 
         await updateMathInputValue({
             latex: "\\ \\ldots\\ f,y,g\\ldots\\ ",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "f", "y", "g", ["ldots"]]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["list", ["ldots"], "f", "y", "g", ["ldots"]]);
     });
 
     it("mathInput eliminates multicharacter symbols", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="varWithNum">x2</math>
     <math name="noSplit" splitSymbols="false">xyz</math>
@@ -6701,70 +7296,70 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("varWithNum")].stateValues.value
-                .tree,
-        ).eq("x2");
-        expect(
-            stateVariables[resolveComponentName("varWithNum2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varWithNum")].stateValues
                 .value.tree,
         ).eq("x2");
         expect(
-            stateVariables[resolveComponentName("varWithNum3")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("varWithNum2")]
+                .stateValues.value.tree,
         ).eq("x2");
         expect(
-            stateVariables[resolveComponentName("noSplit")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varWithNum3")]
+                .stateValues.value.tree,
+        ).eq("x2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("noSplit")].stateValues
+                .value.tree,
         ).eq("xyz");
         expect(
-            stateVariables[resolveComponentName("noSplit2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("noSplit2")].stateValues
+                .value.tree,
         ).eq("xyz");
         expect(
-            stateVariables[resolveComponentName("noSplit3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("noSplit3")].stateValues
+                .value.tree,
         ).eq("xyz");
 
         await updateMathInputValue({
             latex: "xu9j",
-            componentIdx: resolveComponentName("varWithNum2"),
+            componentIdx: await resolvePathToNodeIdx("varWithNum2"),
             core,
         });
         await updateMathInputValue({
             latex: "xyuv",
-            componentIdx: resolveComponentName("noSplit2"),
+            componentIdx: await resolvePathToNodeIdx("noSplit2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("varWithNum")].stateValues.value
-                .tree,
-        ).eq("xu9j");
-        expect(
-            stateVariables[resolveComponentName("varWithNum2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("varWithNum")].stateValues
                 .value.tree,
         ).eq("xu9j");
         expect(
-            stateVariables[resolveComponentName("varWithNum3")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("varWithNum2")]
+                .stateValues.value.tree,
         ).eq("xu9j");
         expect(
-            stateVariables[resolveComponentName("noSplit")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("varWithNum3")]
+                .stateValues.value.tree,
+        ).eq("xu9j");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("noSplit")].stateValues
+                .value.tree,
         ).eq("xyuv");
         expect(
-            stateVariables[resolveComponentName("noSplit2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("noSplit2")].stateValues
+                .value.tree,
         ).eq("xyuv");
         expect(
-            stateVariables[resolveComponentName("noSplit3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("noSplit3")].stateValues
+                .value.tree,
         ).eq("xyuv");
     });
 
     it("mathInput prefills 1", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>
     <math format="latex" name="unionLatex">A \\cup B</math>
@@ -6794,65 +7389,65 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("union1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union1")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union2")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union3")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union4")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union4")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union5")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union5")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union6")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union6")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union7")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union7")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union1m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union1m")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union2m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union2m")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union3m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union3m")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union4m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union4m")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union5m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union5m")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union6m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union6m")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("union7m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("union7m")].stateValues
+                .value.tree,
         ).eqls(["union", "A", "B"]);
     });
 
     it("mathInput prefills 2", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>
     <math splitSymbols="false" name="noSplit">xy</math>
@@ -6883,182 +7478,182 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("splits1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits1")].stateValues
+                .value.tree,
         ).eqls("xy");
         expect(
-            stateVariables[resolveComponentName("splits2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits2")].stateValues
+                .value.tree,
         ).eqls("xy");
         expect(
-            stateVariables[resolveComponentName("splits3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits3")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y"]);
         // TODO: do we care that this doesn't work anymore
         // expect(
-        //     stateVariables[resolveComponentName("splits4")].stateValues.value
+        //     stateVariables[await resolvePathToNodeIdx("splits4")].stateValues.value
         //         .tree,
         // ).eqls("xy");
         expect(
-            stateVariables[resolveComponentName("splits5")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits5")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("splits6")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits6")].stateValues
+                .value.tree,
         ).eqls("xy");
         expect(
-            stateVariables[resolveComponentName("splits7")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits7")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("splits8")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits8")].stateValues
+                .value.tree,
         ).eqls("xy");
         expect(
-            stateVariables[resolveComponentName("splits1m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits1m")].stateValues
+                .value.tree,
         ).eqls("xy");
         expect(
-            stateVariables[resolveComponentName("splits2m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits2m")].stateValues
+                .value.tree,
         ).eqls("xy");
         expect(
-            stateVariables[resolveComponentName("splits3m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits3m")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y"]);
         // TODO: do we care that this doesn't work anymore
         // expect(
-        //     stateVariables[resolveComponentName("splits4m")].stateValues.value
+        //     stateVariables[await resolvePathToNodeIdx("splits4m")].stateValues.value
         //         .tree,
         // ).eqls("xy");
         expect(
-            stateVariables[resolveComponentName("splits5m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits5m")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("splits6m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits6m")].stateValues
+                .value.tree,
         ).eqls("xy");
         expect(
-            stateVariables[resolveComponentName("splits7m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits7m")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y"]);
         expect(
-            stateVariables[resolveComponentName("splits8m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits8m")].stateValues
+                .value.tree,
         ).eqls("xy");
 
         await updateMathInputValue({
             latex: "xyz",
-            componentIdx: resolveComponentName("splits1"),
+            componentIdx: await resolvePathToNodeIdx("splits1"),
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentIdx: resolveComponentName("splits2"),
+            componentIdx: await resolvePathToNodeIdx("splits2"),
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentIdx: resolveComponentName("splits3"),
+            componentIdx: await resolvePathToNodeIdx("splits3"),
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentIdx: resolveComponentName("splits4"),
+            componentIdx: await resolvePathToNodeIdx("splits4"),
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentIdx: resolveComponentName("splits5"),
+            componentIdx: await resolvePathToNodeIdx("splits5"),
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentIdx: resolveComponentName("splits6"),
+            componentIdx: await resolvePathToNodeIdx("splits6"),
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentIdx: resolveComponentName("splits7"),
+            componentIdx: await resolvePathToNodeIdx("splits7"),
             core,
         });
         await updateMathInputValue({
             latex: "xyz",
-            componentIdx: resolveComponentName("splits8"),
+            componentIdx: await resolvePathToNodeIdx("splits8"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("splits1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits1")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("splits2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits2")].stateValues
+                .value.tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("splits3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits3")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("splits4")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits4")].stateValues
+                .value.tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("splits5")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits5")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("splits6")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits6")].stateValues
+                .value.tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("splits7")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits7")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("splits8")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits8")].stateValues
+                .value.tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("splits1m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits1m")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("splits2m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits2m")].stateValues
+                .value.tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("splits3m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits3m")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("splits4m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits4m")].stateValues
+                .value.tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("splits5m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits5m")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("splits6m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits6m")].stateValues
+                .value.tree,
         ).eqls("xyz");
         expect(
-            stateVariables[resolveComponentName("splits7m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits7m")].stateValues
+                .value.tree,
         ).eqls(["*", "x", "y", "z"]);
         expect(
-            stateVariables[resolveComponentName("splits8m")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("splits8m")].stateValues
+                .value.tree,
         ).eqls("xyz");
     });
 
     it("mathInput prefills 3", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>
     <math functionSymbols="h" name="hFunction">h(x)</math>
@@ -7091,379 +7686,379 @@ describe("MathInput tag tests", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction1")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction1")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction2")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction2")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction3")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction3")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("hx");
         // TODO: do we care that this doesn't work anymore?
         // expect(
         //     cleanLatex(
-        //         stateVariables[resolveComponentName("hFunction4")].stateValues
+        //         stateVariables[await resolvePathToNodeIdx("hFunction4")].stateValues
         //             .rawRendererValue,
         //     ),
         // ).eq("h(x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction5")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction5")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("hx");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction6")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction6")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction7")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction7")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction8")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction8")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(x)");
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction1m")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("hFunction1m")]
+                    .stateValues.latex,
             ),
         ).eq("h(x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction2m")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("hFunction2m")]
+                    .stateValues.latex,
             ),
         ).eq("h(x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction3m")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("hFunction3m")]
+                    .stateValues.latex,
             ),
         ).eq("hx");
         // TODO: do we care that this doesn't work anymore?
         // expect(
         //     cleanLatex(
-        //         stateVariables[resolveComponentName("hFunction4m")].stateValues
+        //         stateVariables[await resolvePathToNodeIdx("hFunction4m")].stateValues
         //             .latex,
         //     ),
         // ).eq("h(x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction5m")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("hFunction5m")]
+                    .stateValues.latex,
             ),
         ).eq("hx");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction6m")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("hFunction6m")]
+                    .stateValues.latex,
             ),
         ).eq("h(x)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction7m")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("hFunction7m")]
+                    .stateValues.latex,
             ),
         ).eq("hx");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction8m")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("hFunction8m")]
+                    .stateValues.latex,
             ),
         ).eq("h(x)");
 
         expect(
-            stateVariables[resolveComponentName("hFunction1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction1")].stateValues
+                .value.tree,
         ).eqls(["apply", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction2")].stateValues
+                .value.tree,
         ).eqls(["apply", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction3")].stateValues
+                .value.tree,
         ).eqls(["*", "h", "x"]);
         // TODO: do we care that this doesn't work anymore?
         // expect(
-        //     stateVariables[resolveComponentName("hFunction4")].stateValues.value
+        //     stateVariables[await resolvePathToNodeIdx("hFunction4")].stateValues.value
         //         .tree,
         // ).eqls(["apply", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction5")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction5")].stateValues
+                .value.tree,
         ).eqls(["*", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction6")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction6")].stateValues
+                .value.tree,
         ).eqls(["apply", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction7")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction7")].stateValues
+                .value.tree,
         ).eqls(["*", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction8")].stateValues.value
-                .tree,
-        ).eqls(["apply", "h", "x"]);
-        expect(
-            stateVariables[resolveComponentName("hFunction1m")].stateValues
+            stateVariables[await resolvePathToNodeIdx("hFunction8")].stateValues
                 .value.tree,
         ).eqls(["apply", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction2m")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction1m")]
+                .stateValues.value.tree,
         ).eqls(["apply", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction3m")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction2m")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "h", "x"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hFunction3m")]
+                .stateValues.value.tree,
         ).eqls(["*", "h", "x"]);
         // TODO: do we care that this doesn't work anymore?
         // expect(
-        //     stateVariables[resolveComponentName("hFunction4m")].stateValues
+        //     stateVariables[await resolvePathToNodeIdx("hFunction4m")].stateValues
         //         .value.tree,
         // ).eqls(["apply", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction5m")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction5m")]
+                .stateValues.value.tree,
         ).eqls(["*", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction6m")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction6m")]
+                .stateValues.value.tree,
         ).eqls(["apply", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction7m")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction7m")]
+                .stateValues.value.tree,
         ).eqls(["*", "h", "x"]);
         expect(
-            stateVariables[resolveComponentName("hFunction8m")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction8m")]
+                .stateValues.value.tree,
         ).eqls(["apply", "h", "x"]);
 
         await updateMathInputValue({
             latex: "h(y)",
-            componentIdx: resolveComponentName("hFunction1"),
+            componentIdx: await resolvePathToNodeIdx("hFunction1"),
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentIdx: resolveComponentName("hFunction2"),
+            componentIdx: await resolvePathToNodeIdx("hFunction2"),
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentIdx: resolveComponentName("hFunction3"),
+            componentIdx: await resolvePathToNodeIdx("hFunction3"),
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentIdx: resolveComponentName("hFunction4"),
+            componentIdx: await resolvePathToNodeIdx("hFunction4"),
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentIdx: resolveComponentName("hFunction5"),
+            componentIdx: await resolvePathToNodeIdx("hFunction5"),
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentIdx: resolveComponentName("hFunction6"),
+            componentIdx: await resolvePathToNodeIdx("hFunction6"),
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentIdx: resolveComponentName("hFunction7"),
+            componentIdx: await resolvePathToNodeIdx("hFunction7"),
             core,
         });
         await updateMathInputValue({
             latex: "h(y)",
-            componentIdx: resolveComponentName("hFunction8"),
+            componentIdx: await resolvePathToNodeIdx("hFunction8"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction1")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction1")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction2")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction2")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction3")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction3")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction4")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction4")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction5")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction5")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction6")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction6")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction7")].stateValues
-                    .rawRendererValue,
+                stateVariables[await resolvePathToNodeIdx("hFunction7")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(y)");
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("hFunction8")].stateValues
-                    .rawRendererValue,
-            ),
-        ).eq("h(y)");
-
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("hFunction1m")].stateValues
-                    .latex,
-            ),
-        ).eq("hy");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("hFunction2m")].stateValues
-                    .latex,
-            ),
-        ).eq("h(y)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("hFunction3m")].stateValues
-                    .latex,
-            ),
-        ).eq("hy");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("hFunction4m")].stateValues
-                    .latex,
-            ),
-        ).eq("h(y)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("hFunction5m")].stateValues
-                    .latex,
-            ),
-        ).eq("hy");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("hFunction6m")].stateValues
-                    .latex,
-            ),
-        ).eq("h(y)");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("hFunction7m")].stateValues
-                    .latex,
-            ),
-        ).eq("hy");
-        expect(
-            cleanLatex(
-                stateVariables[resolveComponentName("hFunction8m")].stateValues
-                    .latex,
+                stateVariables[await resolvePathToNodeIdx("hFunction8")]
+                    .stateValues.rawRendererValue,
             ),
         ).eq("h(y)");
 
         expect(
-            stateVariables[resolveComponentName("hFunction1")].stateValues.value
-                .tree,
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("hFunction1m")]
+                    .stateValues.latex,
+            ),
+        ).eq("hy");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("hFunction2m")]
+                    .stateValues.latex,
+            ),
+        ).eq("h(y)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("hFunction3m")]
+                    .stateValues.latex,
+            ),
+        ).eq("hy");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("hFunction4m")]
+                    .stateValues.latex,
+            ),
+        ).eq("h(y)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("hFunction5m")]
+                    .stateValues.latex,
+            ),
+        ).eq("hy");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("hFunction6m")]
+                    .stateValues.latex,
+            ),
+        ).eq("h(y)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("hFunction7m")]
+                    .stateValues.latex,
+            ),
+        ).eq("hy");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("hFunction8m")]
+                    .stateValues.latex,
+            ),
+        ).eq("h(y)");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hFunction1")].stateValues
+                .value.tree,
         ).eqls(["*", "h", "y"]);
         expect(
-            stateVariables[resolveComponentName("hFunction2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction2")].stateValues
+                .value.tree,
         ).eqls(["apply", "h", "y"]);
         expect(
-            stateVariables[resolveComponentName("hFunction3")].stateValues.value
-                .tree,
-        ).eqls(["*", "h", "y"]);
-        expect(
-            stateVariables[resolveComponentName("hFunction4")].stateValues.value
-                .tree,
-        ).eqls(["apply", "h", "y"]);
-        expect(
-            stateVariables[resolveComponentName("hFunction5")].stateValues.value
-                .tree,
-        ).eqls(["*", "h", "y"]);
-        expect(
-            stateVariables[resolveComponentName("hFunction6")].stateValues.value
-                .tree,
-        ).eqls(["apply", "h", "y"]);
-        expect(
-            stateVariables[resolveComponentName("hFunction7")].stateValues.value
-                .tree,
-        ).eqls(["*", "h", "y"]);
-        expect(
-            stateVariables[resolveComponentName("hFunction8")].stateValues.value
-                .tree,
-        ).eqls(["apply", "h", "y"]);
-        expect(
-            stateVariables[resolveComponentName("hFunction1m")].stateValues
+            stateVariables[await resolvePathToNodeIdx("hFunction3")].stateValues
                 .value.tree,
         ).eqls(["*", "h", "y"]);
         expect(
-            stateVariables[resolveComponentName("hFunction2m")].stateValues
+            stateVariables[await resolvePathToNodeIdx("hFunction4")].stateValues
                 .value.tree,
         ).eqls(["apply", "h", "y"]);
         expect(
-            stateVariables[resolveComponentName("hFunction3m")].stateValues
+            stateVariables[await resolvePathToNodeIdx("hFunction5")].stateValues
                 .value.tree,
         ).eqls(["*", "h", "y"]);
         expect(
-            stateVariables[resolveComponentName("hFunction4m")].stateValues
+            stateVariables[await resolvePathToNodeIdx("hFunction6")].stateValues
                 .value.tree,
         ).eqls(["apply", "h", "y"]);
         expect(
-            stateVariables[resolveComponentName("hFunction5m")].stateValues
+            stateVariables[await resolvePathToNodeIdx("hFunction7")].stateValues
                 .value.tree,
         ).eqls(["*", "h", "y"]);
         expect(
-            stateVariables[resolveComponentName("hFunction6m")].stateValues
+            stateVariables[await resolvePathToNodeIdx("hFunction8")].stateValues
                 .value.tree,
         ).eqls(["apply", "h", "y"]);
         expect(
-            stateVariables[resolveComponentName("hFunction7m")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction1m")]
+                .stateValues.value.tree,
         ).eqls(["*", "h", "y"]);
         expect(
-            stateVariables[resolveComponentName("hFunction8m")].stateValues
-                .value.tree,
+            stateVariables[await resolvePathToNodeIdx("hFunction2m")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "h", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hFunction3m")]
+                .stateValues.value.tree,
+        ).eqls(["*", "h", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hFunction4m")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "h", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hFunction5m")]
+                .stateValues.value.tree,
+        ).eqls(["*", "h", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hFunction6m")]
+                .stateValues.value.tree,
+        ).eqls(["apply", "h", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hFunction7m")]
+                .stateValues.value.tree,
+        ).eqls(["*", "h", "y"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("hFunction8m")]
+                .stateValues.value.tree,
         ).eqls(["apply", "h", "y"]);
     });
 
     it("prefillFromLatex", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Prefill with m: <m>\\frac{a}{b} \\int_a^b \\hat{f}(x) dx</m></p>
     <p>Result: <mathInput prefillLatex="$_m1" name="input1" /></p>
@@ -7485,20 +8080,20 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("input1")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("input1")].stateValues
+                .value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[resolveComponentName("input1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input1")].stateValues
                 .immediateValue.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[resolveComponentName("input1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input1")].stateValues
                 .rawRendererValue,
         ).eq("\\frac{a}{b} \\int_a^b \\hat{f}(x) dx");
         expect(
-            stateVariables[resolveComponentName("input2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("input2")].stateValues
+                .value.tree,
         ).eqls([
             "*",
             "h",
@@ -7515,7 +8110,7 @@ describe("MathInput tag tests", async () => {
             "b",
         ]);
         expect(
-            stateVariables[resolveComponentName("input2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input2")].stateValues
                 .immediateValue.tree,
         ).eqls([
             "*",
@@ -7533,137 +8128,141 @@ describe("MathInput tag tests", async () => {
             "b",
         ]);
         expect(
-            stateVariables[resolveComponentName("input2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input2")].stateValues
                 .rawRendererValue,
         ).eq("hello\\ there (a)(b)");
         expect(
-            stateVariables[resolveComponentName("input3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("input3")].stateValues
+                .value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[resolveComponentName("input3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input3")].stateValues
                 .immediateValue.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[resolveComponentName("input3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input3")].stateValues
                 .rawRendererValue,
         ).eq("\\text{hello there} (a)(b)");
 
         await updateMathInputValue({
             latex: "\\frac{a}{b} \\int_a^b f(x) dx",
-            componentIdx: resolveComponentName("input1"),
+            componentIdx: await resolvePathToNodeIdx("input1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("iv1")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("iv1")].stateValues
+                    .latex,
             ),
         ).eq("\\frac{a}{b}\\int_{a}^{b}f(x)dx");
-        expect(stateVariables[resolveComponentName("pr1")].stateValues.text).eq(
-            "Raw value: \\frac{a}{b} \\int_a^b f(x) dx",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pr1")].stateValues.text,
+        ).eq("Raw value: \\frac{a}{b} \\int_a^b f(x) dx");
 
         // expect(stateVariables['/input1'].stateValues.value.tree).eqls(["*", ["/", "a", "b"], "a", ["apply", "f", "x"], "d", "x"])
         // expect(stateVariables['/input1'].stateValues.immediateValue.tree).eqls(["*", ["/", "a", "b"], "a", ["apply", "f", "x"], "d", "x"])
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("input1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("input1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("\\frac{a}{b}\\int_a^bf(x)dx");
 
         await updateMathInputValue({
             latex: "hello(a)(b)",
-            componentIdx: resolveComponentName("input2"),
+            componentIdx: await resolvePathToNodeIdx("input2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("iv2")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("iv2")].stateValues
+                    .latex,
             ),
         ).eq("helloab");
-        expect(stateVariables[resolveComponentName("pr2")].stateValues.text).eq(
-            "Raw value: hello(a)(b)",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pr2")].stateValues.text,
+        ).eq("Raw value: hello(a)(b)");
 
         expect(
-            stateVariables[resolveComponentName("input2")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("input2")].stateValues
+                .value.tree,
         ).eqls(["*", "h", "e", "l", "l", "o", "a", "b"]);
         expect(
-            stateVariables[resolveComponentName("input2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input2")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "h", "e", "l", "l", "o", "a", "b"]);
         expect(
-            stateVariables[resolveComponentName("input2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input2")].stateValues
                 .rawRendererValue,
         ).eq("hello(a)(b)");
 
         await updateMathInputValue({
             latex: "\\text{h}(a)(b)",
-            componentIdx: resolveComponentName("input3"),
+            componentIdx: await resolvePathToNodeIdx("input3"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("iv3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("iv3")].stateValues
+                    .latex,
             ),
         ).eq("\uff3f");
-        expect(stateVariables[resolveComponentName("pr3")].stateValues.text).eq(
-            "Raw value: \\text{h}(a)(b)",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pr3")].stateValues.text,
+        ).eq("Raw value: \\text{h}(a)(b)");
 
         expect(
-            stateVariables[resolveComponentName("input3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("input3")].stateValues
+                .value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[resolveComponentName("input3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input3")].stateValues
                 .immediateValue.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[resolveComponentName("input3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input3")].stateValues
                 .rawRendererValue,
         ).eq("\\text{h}(a)(b)");
 
         await updateMathInputValue({
             latex: "(a)(b)",
-            componentIdx: resolveComponentName("input3"),
+            componentIdx: await resolvePathToNodeIdx("input3"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("iv3")].stateValues.latex,
+                stateVariables[await resolvePathToNodeIdx("iv3")].stateValues
+                    .latex,
             ),
         ).eq("ab");
-        expect(stateVariables[resolveComponentName("pr3")].stateValues.text).eq(
-            "Raw value: (a)(b)",
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pr3")].stateValues.text,
+        ).eq("Raw value: (a)(b)");
 
         expect(
-            stateVariables[resolveComponentName("input3")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("input3")].stateValues
+                .value.tree,
         ).eqls(["*", "a", "b"]);
         expect(
-            stateVariables[resolveComponentName("input3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input3")].stateValues
                 .immediateValue.tree,
         ).eqls(["*", "a", "b"]);
         expect(
-            stateVariables[resolveComponentName("input3")].stateValues
+            stateVariables[await resolvePathToNodeIdx("input3")].stateValues
                 .rawRendererValue,
         ).eq("(a)(b)");
     });
 
     it("convert and/or into logicals", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi" />
 
@@ -7673,73 +8272,82 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eq("\uff3f");
 
         // equalities with or
 
         await updateMathInputValue({
             latex: "x=1 or u=x",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["or", ["=", "x", 1], ["=", "u", "x"]]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["or", ["=", "x", 1], ["=", "u", "x"]]);
 
         // inequalities with and
         await updateMathInputValue({
             latex: "x>3 and x \\le 5",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["and", [">", "x", 3], ["le", "x", 5]]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["and", [">", "x", 3], ["le", "x", 5]]);
 
         // don't convert if not word
         await updateMathInputValue({
             latex: "AandBorC",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["*", "A", "a", "n", "d", "B", "o", "r", "C"]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["*", "A", "a", "n", "d", "B", "o", "r", "C"]);
 
         // add parens or spaces
         await updateMathInputValue({
             latex: "(A)and B or(C)",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["or", ["and", "A", "B"], "C"]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["or", ["and", "A", "B"], "C"]);
     });
 
     it("union from U", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="ufu" />
     <mathInput name="mi" unionFromU="$ufu" />
@@ -7750,81 +8358,90 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eq("\uff3f");
 
         // A U C without unionFromU
 
         await updateMathInputValue({
             latex: "A U C",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["*", "A", "U", "C"]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["*", "A", "U", "C"]);
 
         // activate unionFromU and modify text
 
         await updateBooleanInputValue({
             boolean: true,
-            componentIdx: resolveComponentName("ufu"),
+            componentIdx: await resolvePathToNodeIdx("ufu"),
             core,
         });
         await updateMathInputValue({
             latex: "A U B",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["union", "A", "B"]);
 
         // no substitution without spaces
 
         await updateMathInputValue({
             latex: "A UB",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["*", "A", "U", "B"]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["*", "A", "U", "B"]);
 
         // add parens
 
         await updateMathInputValue({
             latex: "A U(B)",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["union", "A", "B"]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["union", "A", "B"]);
     });
 
     it("mathInput can merge coordinates", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="coords" prefill="(1,2)" />
   <graph>
@@ -7838,42 +8455,42 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("coords")].stateValues
+                stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                     .rawRendererValue,
             ),
         ).eq("(1,2)");
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("x1"),
+            componentIdx: await resolvePathToNodeIdx("x1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("coords")].stateValues
+                stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                     .rawRendererValue,
             ),
         ).eq("(3,2)");
 
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("x2"),
+            componentIdx: await resolvePathToNodeIdx("x2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("coords")].stateValues
+                stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                     .rawRendererValue,
             ),
         ).eq("(3,4)");
     });
 
     it("mathInput can merge coordinates, immediateValue", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="coords" prefill="(1,2)" />
   <graph>
@@ -7887,42 +8504,42 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("coords")].stateValues
+                stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                     .rawRendererValue,
             ),
         ).eq("(1,2)");
 
         await updateMathInputValue({
             latex: "3",
-            componentIdx: resolveComponentName("x1"),
+            componentIdx: await resolvePathToNodeIdx("x1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("coords")].stateValues
+                stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                     .rawRendererValue,
             ),
         ).eq("(3,2)");
 
         await updateMathInputValue({
             latex: "4",
-            componentIdx: resolveComponentName("x2"),
+            componentIdx: await resolvePathToNodeIdx("x2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("coords")].stateValues
+                stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                     .rawRendererValue,
             ),
         ).eq("(3,4)");
     });
 
     it("change prefill", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><mathInput name="mi" prefill="(1,2)" /></p>
   <p>Value: <math extend="$mi.value" name="m" /></p>
@@ -7933,99 +8550,119 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pf")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("pf")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 2]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 2]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 2]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.prefill.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.prefill
+                .tree,
         ).eqls(["tuple", 1, 2]);
         expect(
-            stateVariables[resolveComponentName("mipf")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mipf")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 2]);
 
         // change prefill
 
         await updateMathInputValue({
             latex: "(1,5)",
-            componentIdx: resolveComponentName("mipf"),
+            componentIdx: await resolvePathToNodeIdx("mipf"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("pf")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("pf")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 5]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 5]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 5]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.prefill.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.prefill
+                .tree,
         ).eqls(["tuple", 1, 5]);
         expect(
-            stateVariables[resolveComponentName("mipf")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mipf")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 5]);
 
         // change value
 
         await updateMathInputValue({
             latex: "(1,9)",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("pf")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("pf")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 5]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 9]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 9]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.prefill.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.prefill
+                .tree,
         ).eqls(["tuple", 1, 5]);
         expect(
-            stateVariables[resolveComponentName("mipf")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mipf")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 5]);
 
         // change prefill again
 
         await updateMathInputValue({
             latex: "(1,7)",
-            componentIdx: resolveComponentName("mipf"),
+            componentIdx: await resolvePathToNodeIdx("mipf"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("pf")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("pf")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 7]);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 9]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 9]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.prefill.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.prefill
+                .tree,
         ).eqls(["tuple", 1, 7]);
         expect(
-            stateVariables[resolveComponentName("mipf")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mipf")].stateValues.value
+                .tree,
         ).eqls(["tuple", 1, 7]);
     });
 
     it("mathInput with number child", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><mathInput name="mi" ><number /></mathInput></p>
   <p>Value: <math extend="$mi.value" name="mv" /></p>
@@ -8035,20 +8672,23 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(NaN);
 
@@ -8056,52 +8696,58 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "5",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("5");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(5);
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("5");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(5);
 
@@ -8109,116 +8755,128 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\pi",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls("pi");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("\\pi");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("pi");
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(3.141592654);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(3.141592654);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("3.141592654");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(Math.PI);
 
         // type x
         await updateMathInputImmediateValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(3.141592654);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("x");
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(NaN);
 
@@ -8226,66 +8884,72 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "2/3",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(["/", 2, 3]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("2/3");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(["/", 2, 3]);
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(2 / 3);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(0.6666666667);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(2 / 3);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(0.6666666667);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("0.6666666667");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(2 / 3);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(2 / 3);
     });
 
     it("mathInput with number child, do not hide NaN", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><mathInput name="mi" hideNaN="false"><number /></mathInput></p>
   <p>Value: <math extend="$mi.value" name="mv" /></p>
@@ -8295,20 +8959,23 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("NaN");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(NaN);
 
@@ -8316,52 +8983,58 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "5",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("5");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(5);
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("5");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(5);
 
@@ -8369,116 +9042,128 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\pi",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls("pi");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("\\pi");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("pi");
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(3.141592654);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(3.141592654);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("3.141592654");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(Math.PI);
 
         // type x
         await updateMathInputImmediateValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(3.141592654);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("x");
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("NaN");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(NaN);
 
@@ -8486,66 +9171,72 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "2/3",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(["/", 2, 3]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("2/3");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(["/", 2, 3]);
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(2 / 3);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(0.6666666667);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(2 / 3);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(0.6666666667);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("0.6666666667");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(2 / 3);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(2 / 3);
     });
 
     it("mathInput with number child, value on NaN", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><mathInput name="mi"><number valueOnNaN='0' /></mathInput></p>
   <p>Value: <math extend="$mi.value" name="mv" /></p>
@@ -8555,20 +9246,23 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(0);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(0);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("0");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(0);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(0);
 
@@ -8576,52 +9270,58 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "5",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(0);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("5");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(0);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(5);
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("5");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(5);
 
@@ -8629,116 +9329,128 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\pi",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls("pi");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("\\pi");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("pi");
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(3.141592654);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(3.141592654);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("3.141592654");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(Math.PI);
 
         // type x
         await updateMathInputImmediateValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(3.141592654);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(Math.PI);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("x");
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(0);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(0);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("0");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(0);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(0);
 
@@ -8746,66 +9458,72 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "2/3",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(0);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(["/", 2, 3]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("2/3");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(0);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(["/", 2, 3]);
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(2 / 3);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(0.6666666667);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(2 / 3);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues
                 .valueForDisplay.tree,
         ).eqls(0.6666666667);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("0.6666666667");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(2 / 3);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(2 / 3);
     });
 
     it("mathInput with number child, force positive integer", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><mathInput name="mi">
     <clampNumber lowerValue="1" upperValue="Infinity"><integer/></clampNumber>
@@ -8817,20 +9535,23 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(NaN);
 
@@ -8838,52 +9559,58 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "5",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("5");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(5);
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("5");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(5);
 
@@ -8891,104 +9618,116 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "\\pi",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls("pi");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("\\pi");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(5);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("pi");
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(3);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(3);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("3");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(3);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(3);
 
         // type x
         await updateMathInputImmediateValue({
             latex: "x",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(3);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("x");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(3);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("x");
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(NaN);
 
@@ -8996,58 +9735,64 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: "2/3",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(["/", 2, 3]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("2/3");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(NaN);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(["/", 2, 3]);
 
         // update value (e.g., hit enter)
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value
+                .tree,
         ).eqls(1);
         expect(
-            stateVariables[resolveComponentName("miv")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("miv")].stateValues.value
+                .tree,
         ).eqls(1);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("1");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(1);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(1);
     });
 
     it("copy raw renderer value, handle incomplete math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="mi" />
   <text name="rv" extend="$mi.rawRendererValue" />
@@ -9056,166 +9801,173 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("");
 
         // enter value that parses to math
         await updateMathInputValue({
             latex: "a",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls("a");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("a");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("a");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("a");
 
         // enter value that is incomplete in math
 
         await updateMathInputValue({
             latex: "a^{ }",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["^", "a", "\uff3f"]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(["^", "a", "\uff3f"]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("a^{ }");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("a^{ }");
 
         // still have incomplete math
 
         await updateMathInputValue({
             latex: "a^{bc+}",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["^", "a", ["+", ["*", "b", "c"], "\uff3f"]]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(["^", "a", ["+", ["*", "b", "c"], "\uff3f"]]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("a^{bc+}");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("a^{bc+}");
 
         // complete to valid math
 
         await updateMathInputValue({
             latex: "a^{bc+d}",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["^", "a", ["+", ["*", "b", "c"], "d"]]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(["^", "a", ["+", ["*", "b", "c"], "d"]]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("a^{bc+d}");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("a^{bc+d}");
 
         // incomplete math again
 
         await updateMathInputValue({
             latex: "a^{bc+d}-",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["+", ["^", "a", ["+", ["*", "b", "c"], "d"]], ["-", "\uff3f"]]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", ["^", "a", ["+", ["*", "b", "c"], "d"]], ["-", "\uff3f"]]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("a^{bc+d}-");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("a^{bc+d}-");
 
         // complete to valid math again
 
         await updateMathInputValue({
             latex: "a^{bc+d}-e",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["+", ["^", "a", ["+", ["*", "b", "c"], "d"]], ["-", "e"]]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", ["^", "a", ["+", ["*", "b", "c"], "d"]], ["-", "e"]]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("a^{bc+d}-e");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("a^{bc+d}-e");
     });
 
     it("copy raw renderer value, handle invalid math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="mi" />
   <text name="rv" extend="$mi.rawRendererValue" />
@@ -9224,118 +9976,123 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("");
 
         // enter value that parses to math
         await updateMathInputValue({
             latex: "a",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls("a");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("a");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("a");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("a");
 
         // enter value that is error in math
 
         await updateMathInputValue({
             latex: "a@",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("a@");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("a@");
 
         // still have error in math
 
         await updateMathInputValue({
             latex: "ab+@",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("ab+@");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("ab+@");
 
         // make valid math
 
         await updateMathInputValue({
             latex: "ab+c",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", "a", "b"], "c"]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .immediateValue.tree,
         ).eqls(["+", ["*", "a", "b"], "c"]);
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .rawRendererValue,
         ).eqls("ab+c");
         expect(
-            stateVariables[resolveComponentName("rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("rv")].stateValues.value,
         ).eqls("ab+c");
     });
 
     it("parse scientific notation", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><mathInput name="mi1" prefill="5E+1" /> <math name="m1" extend="$mi1" /></p>
   <p><mathInput name="mi2" prefill="5E+1" parseScientificNotation /> <math name="m2" extend="$mi2" /></p>
@@ -9346,72 +10103,80 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("5E+1");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 5, "E"], 1]);
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 5, "E"], 1]);
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("5E+1");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(50);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(50);
 
         await updateMathInputValue({
             latex: "2x-3E+2",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi1")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                     .rawRendererValue,
             ),
         ).eq("2x-3E+2");
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "x"], ["-", ["*", 3, "E"]], 2]);
         expect(
-            stateVariables[resolveComponentName("m1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "x"], ["-", ["*", 3, "E"]], 2]);
 
         await updateMathInputValue({
             latex: "2x-3E+2",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
             cleanLatex(
-                stateVariables[resolveComponentName("mi2")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                     .rawRendererValue,
             ),
         ).eq("2x-3E+2");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "x"], -300]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["+", ["*", 2, "x"], -300]);
     });
 
     it("remove strings", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi1" removeStrings="," />
     <mathInput name="mi2" removeStrings="$ %" />
@@ -9422,126 +10187,141 @@ describe("MathInput tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi3")].stateValues.value
+                .tree,
         ).eqls("\uff3f");
 
         await updateMathInputValue({
             latex: "12,345",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "12,345",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await updateMathInputValue({
             latex: "12,345",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eq(12345);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["list", 12, 345]);
         expect(
-            stateVariables[resolveComponentName("mi3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi3")].stateValues.value
+                .tree,
         ).eq(12345);
 
         await updateMathInputValue({
             latex: "\\$45.23",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "\\$45.23",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await updateMathInputValue({
             latex: "\\$45.23",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["unit", "$", 45.23]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eq(45.23);
         expect(
-            stateVariables[resolveComponentName("mi3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi3")].stateValues.value
+                .tree,
         ).eq(45.23);
 
         await updateMathInputValue({
             latex: "78\\%",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "78\\%",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await updateMathInputValue({
             latex: "78\\%",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["unit", 78, "%"]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eq(78);
         expect(
-            stateVariables[resolveComponentName("mi3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi3")].stateValues.value
+                .tree,
         ).eq(78);
 
         await updateMathInputValue({
             latex: "\\$34,000\\%dx",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         await updateMathInputValue({
             latex: "\\$34,000\\%dx",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         await updateMathInputValue({
             latex: "\\$34,000\\%dx",
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eqls(["unit", "$", ["*", ["unit", 34000, "%"], "d", "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eqls(["list", 34, ["*", 0, "d", "x"]]);
         expect(
-            stateVariables[resolveComponentName("mi3")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi3")].stateValues.value
+                .tree,
         ).eq(34000);
     });
 
     it("mathInput updates not messed up with invalid child logic containing a composite", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <ol>
         <math name="m">x</math> $m
@@ -9552,21 +10332,24 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eqls("x");
 
         await updateMathInputValue({
             latex: "\\sqrt{4}",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("mi")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
         ).eqls(["apply", "sqrt", 4]);
         expect(
-            stateVariables[resolveComponentName("m2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
         ).eqls(["apply", "sqrt", 4]);
     });
 
@@ -9610,92 +10393,92 @@ describe("MathInput tag tests", async () => {
                 true,
             );
             expect(
-                stateVariables[resolveComponentName("mi1")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                    .value.tree,
             ).eq(mi1);
             expect(
-                stateVariables[resolveComponentName("mi2")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                    .value.tree,
             ).eq(mi2);
             expect(
-                stateVariables[resolveComponentName("mi3")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi3")].stateValues
+                    .value.tree,
             ).eq(mi3);
             expect(
-                stateVariables[resolveComponentName("mi4")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi4")].stateValues
+                    .value.tree,
             ).eq(mi4);
 
             expect(
-                stateVariables[resolveComponentName("mi1a")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi1a")].stateValues
+                    .value.tree,
             ).eq(mi1);
             expect(
-                stateVariables[resolveComponentName("mi2a")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi2a")].stateValues
+                    .value.tree,
             ).eq(mi2);
             expect(
-                stateVariables[resolveComponentName("mi3a")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi3a")].stateValues
+                    .value.tree,
             ).eq(mi3);
             expect(
-                stateVariables[resolveComponentName("mi4a")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi4a")].stateValues
+                    .value.tree,
             ).eq(mi4);
 
             expect(
-                stateVariables[resolveComponentName("mi1iva")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi1iva")].stateValues
+                    .value.tree,
             ).eq(mi1iv);
             expect(
-                stateVariables[resolveComponentName("mi2iva")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi2iva")].stateValues
+                    .value.tree,
             ).eq(mi2iv);
             expect(
-                stateVariables[resolveComponentName("mi3iva")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi3iva")].stateValues
+                    .value.tree,
             ).eq(mi3iv);
             expect(
-                stateVariables[resolveComponentName("mi4iva")].stateValues.value
-                    .tree,
+                stateVariables[await resolvePathToNodeIdx("mi4iva")].stateValues
+                    .value.tree,
             ).eq(mi4iv);
 
             expect(
-                stateVariables[resolveComponentName("mi1changed")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("mi1changed")]
+                    .stateValues.value,
             ).eq(mi1changed);
             expect(
-                stateVariables[resolveComponentName("mi2changed")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("mi2changed")]
+                    .stateValues.value,
             ).eq(mi2changed);
             expect(
-                stateVariables[resolveComponentName("mi3changed")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("mi3changed")]
+                    .stateValues.value,
             ).eq(mi3changed);
             expect(
-                stateVariables[resolveComponentName("mi4changed")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("mi4changed")]
+                    .stateValues.value,
             ).eq(mi4changed);
 
             expect(
-                stateVariables[resolveComponentName("mi1ivchanged")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("mi1ivchanged")]
+                    .stateValues.value,
             ).eq(mi1ivchanged);
             expect(
-                stateVariables[resolveComponentName("mi2ivchanged")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("mi2ivchanged")]
+                    .stateValues.value,
             ).eq(mi2ivchanged);
             expect(
-                stateVariables[resolveComponentName("mi3ivchanged")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("mi3ivchanged")]
+                    .stateValues.value,
             ).eq(mi3ivchanged);
             expect(
-                stateVariables[resolveComponentName("mi4ivchanged")].stateValues
-                    .value,
+                stateVariables[await resolvePathToNodeIdx("mi4ivchanged")]
+                    .stateValues.value,
             ).eq(mi4ivchanged);
         }
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
 
@@ -9728,7 +10511,7 @@ describe("MathInput tag tests", async () => {
         mi1ivchanged = true;
         await updateMathInputImmediateValue({
             latex: mi1iv,
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
@@ -9743,7 +10526,7 @@ describe("MathInput tag tests", async () => {
         mi1 = mi3 = mi3iv = mi1iv;
         mi1changed = true;
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
 
@@ -9759,7 +10542,7 @@ describe("MathInput tag tests", async () => {
         mi2ivchanged = true;
         await updateMathInputImmediateValue({
             latex: mi2iv,
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
 
@@ -9774,7 +10557,7 @@ describe("MathInput tag tests", async () => {
         mi2 = mi2iv;
         mi2changed = true;
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
 
@@ -9790,7 +10573,7 @@ describe("MathInput tag tests", async () => {
         mi3ivchanged = true;
         await updateMathInputImmediateValue({
             latex: mi3iv,
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             core,
         });
 
@@ -9806,7 +10589,7 @@ describe("MathInput tag tests", async () => {
         mi3changed = true;
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             core,
         });
 
@@ -9822,7 +10605,7 @@ describe("MathInput tag tests", async () => {
         mi4ivchanged = true;
         await updateMathInputImmediateValue({
             latex: mi4iv,
-            componentIdx: resolveComponentName("mi4"),
+            componentIdx: await resolvePathToNodeIdx("mi4"),
             core,
         });
 
@@ -9837,7 +10620,7 @@ describe("MathInput tag tests", async () => {
         mi2 = mi2iv = mi4 = mi4iv;
         mi4changed = true;
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi4"),
+            componentIdx: await resolvePathToNodeIdx("mi4"),
             core,
         });
 
@@ -9850,7 +10633,7 @@ describe("MathInput tag tests", async () => {
 
         // reload
 
-        ({ core, resolveComponentName } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         }));
 
@@ -9883,7 +10666,7 @@ describe("MathInput tag tests", async () => {
         mi3ivchanged = true;
         await updateMathInputImmediateValue({
             latex: mi3iv,
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             core,
         });
         await check_items(
@@ -9900,7 +10683,7 @@ describe("MathInput tag tests", async () => {
         mi3changed = true;
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi3"),
+            componentIdx: await resolvePathToNodeIdx("mi3"),
             core,
         });
         await check_items(
@@ -9916,7 +10699,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputImmediateValue({
             latex: mi4iv,
-            componentIdx: resolveComponentName("mi4"),
+            componentIdx: await resolvePathToNodeIdx("mi4"),
             core,
         });
         await check_items(
@@ -9932,7 +10715,7 @@ describe("MathInput tag tests", async () => {
         mi2ivchanged = true;
         mi4changed = true;
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi4"),
+            componentIdx: await resolvePathToNodeIdx("mi4"),
             core,
         });
         await check_items(
@@ -9944,7 +10727,7 @@ describe("MathInput tag tests", async () => {
     });
 
     it("math input with label", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><mathInput name="mi1" ><label>Type something</label></mathInput></p>
     <p><mathInput name="mi2"><label>Hello <math>a/b</math></label></mathInput></p>
@@ -9954,17 +10737,17 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.label,
         ).eq("Type something");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.label,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.label,
         ).eq("Hello \\(\\frac{a}{b}\\)");
     });
 
     it("bound to fixed math", async () => {
         // Verify that fixed bug
         // where deleting the mathInput contents wasn't restored on enter
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <math name="m" fixed>1</math>
     <p><mathInput name="mi1">$m</mathInput>
@@ -9980,412 +10763,475 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1rv")].stateValues
+                .value,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi2rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2rv")].stateValues
+                .value,
         ).eq("1");
 
         // Delete contents from mathInput 1
         await updateMathInputImmediateValue({
             latex: "",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi1v")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1iv")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                .value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi1rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi1rv")].stateValues
+                .value,
         ).eq("");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi2rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2rv")].stateValues
+                .value,
         ).eq("1");
 
         // Contents of mathInput 1 restored on enter
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1rv")].stateValues
+                .value,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi2rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2rv")].stateValues
+                .value,
         ).eq("1");
 
         // Add contents to mathInput 1
 
         await updateMathInputImmediateValue({
             latex: "12",
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
                 .immediateValue.tree,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("mi1v")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1iv")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                .value.tree,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("mi1rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi1rv")].stateValues
+                .value,
         ).eq("12");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi2rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2rv")].stateValues
+                .value,
         ).eq("1");
 
         // Contents of mathInput 1 restored on enter
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi1"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1rv")].stateValues
+                .value,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi2rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2rv")].stateValues
+                .value,
         ).eq("1");
 
         // Delete contents from mathInput 2
 
         await updateMathInputImmediateValue({
             latex: "",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1rv")].stateValues
+                .value,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi2v")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi2iv")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                .value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[resolveComponentName("mi2rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi2rv")].stateValues
+                .value,
         ).eq("");
 
         // Contents of mathInput 2 restored on enter
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1rv")].stateValues
+                .value,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi2rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2rv")].stateValues
+                .value,
         ).eq("1");
 
         // Add contents to mathInput 2
 
         await updateMathInputImmediateValue({
             latex: "12",
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1rv")].stateValues
+                .value,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
                 .immediateValue.tree,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("mi2v")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi2iv")].stateValues.value
-                .tree,
+            stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                .value.tree,
         ).eq(12);
         expect(
-            stateVariables[resolveComponentName("mi2rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi2rv")].stateValues
+                .value,
         ).eq("12");
 
         // Contents of mathInput 2 restored on enter
 
         await updateMathInputValueToImmediateValue({
-            componentIdx: resolveComponentName("mi2"),
+            componentIdx: await resolvePathToNodeIdx("mi2"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[resolveComponentName("m")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi1iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi1rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1rv")].stateValues
+                .value,
         ).eq("1");
         expect(
-            stateVariables[resolveComponentName("mi2")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2")].stateValues
-                .immediateValue.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2v")].stateValues.value.tree,
-        ).eq(1);
-        expect(
-            stateVariables[resolveComponentName("mi2iv")].stateValues.value
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
                 .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("mi2rv")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues.value
+                .tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                .value.tree,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2rv")].stateValues
+                .value,
         ).eq("1");
     });
 
@@ -10393,7 +11239,7 @@ describe("MathInput tag tests", async () => {
         // two mathInputs specifying the x and y coordinate of a single point
         // demonstrates two-way data binding
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="x" prefill="1"/>
     <mathInput name="y" prefill="2"/>
@@ -10405,63 +11251,75 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("y")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("y")].stateValues.value
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(1);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(2);
 
         // Enter -3 for x
         await updateMathInputValue({
             latex: "-3",
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("y")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("y")].stateValues.value
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(2);
 
         // Enter -4 for y
         await updateMathInputValue({
             latex: "-4",
-            componentIdx: resolveComponentName("y"),
+            componentIdx: await resolvePathToNodeIdx("y"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("y")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("y")].stateValues.value
+                .tree,
         ).eq(-4);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(-4);
 
         // move point to (5,-6)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: -6,
             core,
@@ -10469,16 +11327,20 @@ describe("MathInput tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("y")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("y")].stateValues.value
+                .tree,
         ).eq(-6);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(-6);
     });
 
@@ -10487,7 +11349,7 @@ describe("MathInput tag tests", async () => {
         // therefore, cannot invert from x-coordinate to mathInput
         // so that cannot change x-coordinate directly by dragging point
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="x" prefill="3"/>
     <mathInput name="y" prefill="2"/>
@@ -10499,42 +11361,50 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq(3);
         expect(
-            stateVariables[resolveComponentName("y")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("y")].stateValues.value
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(9);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(2);
 
         // Enter -1.2 for x
         await updateMathInputValue({
             latex: "-1.2",
-            componentIdx: resolveComponentName("x"),
+            componentIdx: await resolvePathToNodeIdx("x"),
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq(-1.2);
         expect(
-            stateVariables[resolveComponentName("y")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("y")].stateValues.value
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(1.44);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(2);
 
         // try to move point to (5,6), only y changes
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 6,
             core,
@@ -10542,16 +11412,20 @@ describe("MathInput tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("x")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues.value
+                .tree,
         ).eq(-1.2);
         expect(
-            stateVariables[resolveComponentName("y")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("y")].stateValues.value
+                .tree,
         ).eq(6);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(1.44);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(6);
     });
 
@@ -10561,7 +11435,7 @@ describe("MathInput tag tests", async () => {
         // the transformation is non-invertible
         // and cannot directly change the x-coordinate of point by dragging
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="a" prefill="-3"/>
     <mathInput name="b" prefill="2"/>
@@ -10573,57 +11447,69 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(-6);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(-7);
 
         // Enter -1.5 for a
         await updateMathInputValue({
             latex: "-1.5",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(-1.5);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(-7);
 
         // try to move point to (5,6), only y changes
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 6,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(-1.5);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(6);
     });
 
@@ -10633,7 +11519,7 @@ describe("MathInput tag tests", async () => {
         // we leave that factor constant when changing the x-coordinate by dragging
         // and modify the other factor to match the new x-coordinate
 
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="a" prefill="-3"/>
     <mathInput name="b" prefill="2"/>
@@ -10645,62 +11531,74 @@ describe("MathInput tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(-6);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(-7);
 
         // Enter -1.5 for a
         await updateMathInputValue({
             latex: "-1.5",
-            componentIdx: resolveComponentName("a"),
+            componentIdx: await resolvePathToNodeIdx("a"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eq(-1.5);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(-3);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(-7);
 
         // try to move point to (5,6)
         await movePoint({
-            componentIdx: resolveComponentName("P"),
+            componentIdx: await resolvePathToNodeIdx("P"),
             x: 5,
             y: 6,
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("a")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
         ).eqls(["/", 5, 2]);
         expect(
-            stateVariables[resolveComponentName("b")].stateValues.value.tree,
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value
+                .tree,
         ).eq(2);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[0].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[0]
+                .tree,
         ).eq(5);
         expect(
-            stateVariables[resolveComponentName("P")].stateValues.xs[1].tree,
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs[1]
+                .tree,
         ).eq(6);
     });
 
     it("vector and matrix components", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Value: <mathInput name="mi" /></p>
     <p>Index: <mathInput name="i" prefill="1" /></p>
@@ -10772,232 +11670,257 @@ describe("MathInput tag tests", async () => {
             }
 
             expect(
-                stateVariables[resolveComponentName("p1")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .text,
             ).eq(`Number of dimensions: ${numDimensions}`);
             expect(
-                stateVariables[resolveComponentName("mi")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                     .numDimensions,
             ).eq(numDimensions);
 
             expect(
-                stateVariables[resolveComponentName("p2")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
+                    .text,
             ).eq(`x: ${x1}`);
             expect(
-                stateVariables[resolveComponentName("p5")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p5")].stateValues
+                    .text,
             ).eq(`x1: ${x1}`);
             expect(
-                stateVariables[resolveComponentName("mi")].stateValues.x1.tree,
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues.x1
+                    .tree,
             ).eqls(x1.tree);
 
             if (x2) {
                 expect(
-                    stateVariables[resolveComponentName("p3")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("p3")].stateValues
+                        .text,
                 ).eq(`y: ${x2}`);
                 expect(
-                    stateVariables[resolveComponentName("p6")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("p6")].stateValues
+                        .text,
                 ).eq(`x2: ${x2}`);
                 expect(
-                    stateVariables[resolveComponentName("mi")].stateValues.x2
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                        .x2.tree,
                 ).eqls(x2.tree);
             } else {
                 expect(
-                    stateVariables[resolveComponentName("p3")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("p3")].stateValues
+                        .text,
                 ).eq(`y: `);
                 expect(
-                    stateVariables[resolveComponentName("p6")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("p6")].stateValues
+                        .text,
                 ).eq(`x2: `);
                 expect(
-                    stateVariables[resolveComponentName("mi")].stateValues.x2,
+                    stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                        .x2,
                 ).eq(undefined);
             }
 
             if (x3) {
                 expect(
-                    stateVariables[resolveComponentName("p4")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("p4")].stateValues
+                        .text,
                 ).eq(`z: ${x3}`);
                 expect(
-                    stateVariables[resolveComponentName("p7")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("p7")].stateValues
+                        .text,
                 ).eq(`x3: ${x3}`);
                 expect(
-                    stateVariables[resolveComponentName("mi")].stateValues.x3
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                        .x3.tree,
                 ).eqls(x3.tree);
             } else {
                 expect(
-                    stateVariables[resolveComponentName("p4")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("p4")].stateValues
+                        .text,
                 ).eq(`z: `);
                 expect(
-                    stateVariables[resolveComponentName("p7")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("p7")].stateValues
+                        .text,
                 ).eq(`x3: `);
                 expect(
-                    stateVariables[resolveComponentName("mi")].stateValues.x3,
+                    stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                        .x3,
                 ).eq(undefined);
             }
 
             if (x4) {
                 expect(
-                    stateVariables[resolveComponentName("p8")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("p8")].stateValues
+                        .text,
                 ).eq(`x4: ${x4}`);
                 expect(
-                    stateVariables[resolveComponentName("mi")].stateValues.x4
-                        .tree,
+                    stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                        .x4.tree,
                 ).eqls(x4.tree);
             } else {
                 expect(
-                    stateVariables[resolveComponentName("p8")].stateValues.text,
+                    stateVariables[await resolvePathToNodeIdx("p8")].stateValues
+                        .text,
                 ).eq(`x4: `);
                 expect(
-                    stateVariables[resolveComponentName("mi")].stateValues.x4,
+                    stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                        .x4,
                 ).eq(undefined);
             }
 
             expect(
-                stateVariables[resolveComponentName("p9")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p9")].stateValues
+                    .text,
             ).eq(`v: ${asVec}`);
             if (numDimensions === 1) {
                 expect(
                     stateVariables[
-                        resolveComponentName("mi")
+                        await resolvePathToNodeIdx("mi")
                     ].stateValues.vector.map((v) => v.tree),
                 ).eqls([math.tree]);
             } else {
                 expect(
                     stateVariables[
-                        resolveComponentName("mi")
+                        await resolvePathToNodeIdx("mi")
                     ].stateValues.vector.map((v) => v.tree),
                 ).eqls(math.tree.slice(1));
             }
 
             if (i === 1) {
                 expect(
-                    stateVariables[resolveComponentName("p10")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p10")]
+                        .stateValues.text,
                 ).eq(`v[${i}]: ${x1}`);
             } else if (i <= numDimensions) {
                 expect(
-                    stateVariables[resolveComponentName("p10")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p10")]
+                        .stateValues.text,
                 ).eq(`v[${i}]: ${math.get_component(i - 1)}`);
             } else {
                 expect(
-                    stateVariables[resolveComponentName("p10")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p10")]
+                        .stateValues.text,
                 ).eq(`v[${i}]: `);
             }
 
             expect(
-                stateVariables[resolveComponentName("p11")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p11")].stateValues
+                    .text,
             ).eq(`Matrix size: ${numDimensions}, 1`);
             expect(
-                stateVariables[resolveComponentName("mi")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                     .matrixSize,
             ).eqls([numDimensions, 1]);
             expect(
-                stateVariables[resolveComponentName("p12")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p12")].stateValues
+                    .text,
             ).eq(`Number of rows: ${numDimensions}`);
             expect(
-                stateVariables[resolveComponentName("mi")].stateValues.numRows,
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                    .numRows,
             ).eq(numDimensions);
             expect(
-                stateVariables[resolveComponentName("p13")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p13")].stateValues
+                    .text,
             ).eq(`Number of columns: 1`);
             expect(
-                stateVariables[resolveComponentName("mi")].stateValues
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                     .numColumns,
             ).eq(1);
             if (numDimensions === 1) {
                 expect(
-                    stateVariables[resolveComponentName("p14")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p14")]
+                        .stateValues.text,
                 ).eq(`Matrix: [ [ ${math} ] ]`);
                 expect(
                     stateVariables[
-                        resolveComponentName("mi")
+                        await resolvePathToNodeIdx("mi")
                     ].stateValues.matrix.map((v) => v.map((x) => x.tree)),
                 ).eqls([[math.tree]]);
             } else {
                 expect(
-                    stateVariables[resolveComponentName("p14")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p14")]
+                        .stateValues.text,
                 ).eq(
                     `Matrix: [ ${[...Array(numDimensions).keys()].map((i) => `[ ${math.get_component(i)} ]`).join(", ")} ]`,
                 );
                 expect(
                     stateVariables[
-                        resolveComponentName("mi")
+                        await resolvePathToNodeIdx("mi")
                     ].stateValues.matrix.map((v) => v.map((x) => x.tree)),
                 ).eqls(math.tree.slice(1).map((v) => [v]));
             }
 
             if (i === 1) {
                 expect(
-                    stateVariables[resolveComponentName("p15")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p15")]
+                        .stateValues.text,
                 ).eq(`Matrix[${i}]: [ [ ${x1} ] ]`);
             } else if (i <= numDimensions) {
                 expect(
-                    stateVariables[resolveComponentName("p15")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p15")]
+                        .stateValues.text,
                 ).eq(`Matrix[${i}]: [ [ ${math.get_component(i - 1)} ] ]`);
             } else {
                 expect(
-                    stateVariables[resolveComponentName("p15")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p15")]
+                        .stateValues.text,
                 ).eq(`Matrix[${i}]: `);
             }
 
             if (i === 1) {
                 expect(
-                    stateVariables[resolveComponentName("p16")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p16")]
+                        .stateValues.text,
                 ).eq(`Matrix[${i}][1]: ${x1}`);
             } else if (i <= numDimensions) {
                 expect(
-                    stateVariables[resolveComponentName("p16")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p16")]
+                        .stateValues.text,
                 ).eq(`Matrix[${i}][1]: ${math.get_component(i - 1)}`);
             } else {
                 expect(
-                    stateVariables[resolveComponentName("p16")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p16")]
+                        .stateValues.text,
                 ).eq(`Matrix[${i}][1]: `);
             }
 
             expect(
-                stateVariables[resolveComponentName("p17")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p17")].stateValues
+                    .text,
             ).eq(`Number of list items: ${numDimensions}`);
 
             expect(
-                stateVariables[resolveComponentName("p18")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p18")].stateValues
+                    .text,
             ).eq(`List: ${asList}`);
             if (numDimensions === 1) {
                 expect(
                     stateVariables[
-                        resolveComponentName("mi")
+                        await resolvePathToNodeIdx("mi")
                     ].stateValues.list.map((v) => v.tree),
                 ).eqls([math.tree]);
             } else {
                 expect(
                     stateVariables[
-                        resolveComponentName("mi")
+                        await resolvePathToNodeIdx("mi")
                     ].stateValues.list.map((v) => v.tree),
                 ).eqls(math.tree.slice(1));
             }
 
             expect(
-                stateVariables[resolveComponentName("p19")].stateValues.text,
+                stateVariables[await resolvePathToNodeIdx("p19")].stateValues
+                    .text,
             ).eq(`Math list from list: ${asList}`);
             if (numDimensions === 1) {
                 expect(
                     stateVariables[
-                        resolveComponentName("ml")
+                        await resolvePathToNodeIdx("ml")
                     ].stateValues.maths.map((v) => v.tree),
                 ).eqls([math.tree]);
             } else {
                 expect(
                     stateVariables[
-                        resolveComponentName("ml")
+                        await resolvePathToNodeIdx("ml")
                     ].stateValues.maths.map((v) => v.tree),
                 ).eqls(math.tree.slice(1));
             }
@@ -11006,11 +11929,11 @@ describe("MathInput tag tests", async () => {
                 let num = math.evaluate_to_constant();
 
                 expect(
-                    stateVariables[resolveComponentName("p20")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p20")]
+                        .stateValues.text,
                 ).eq(`Number list from list: ${num}`);
                 expect(
-                    stateVariables[resolveComponentName("nl")].stateValues
+                    stateVariables[await resolvePathToNodeIdx("nl")].stateValues
                         .numbers,
                 ).eqls([num]);
             } else {
@@ -11019,12 +11942,12 @@ describe("MathInput tag tests", async () => {
                     .map((v) => me.fromAst(v).evaluate_to_constant());
 
                 expect(
-                    stateVariables[resolveComponentName("p20")].stateValues
-                        .text,
+                    stateVariables[await resolvePathToNodeIdx("p20")]
+                        .stateValues.text,
                 ).eq(`Number list from list: ${nums.join(", ")}`);
 
                 expect(
-                    stateVariables[resolveComponentName("nl")].stateValues
+                    stateVariables[await resolvePathToNodeIdx("nl")].stateValues
                         .numbers,
                 ).eqls(nums);
             }
@@ -11036,7 +11959,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "(1,2)",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         math = me.fromAst(["vector", 1, 2]);
@@ -11045,7 +11968,7 @@ describe("MathInput tag tests", async () => {
         i = 2;
         await updateMathInputValue({
             latex: i.toString(),
-            componentIdx: resolveComponentName("i"),
+            componentIdx: await resolvePathToNodeIdx("i"),
             core,
         });
         await check_items(math, i);
@@ -11053,14 +11976,14 @@ describe("MathInput tag tests", async () => {
         i = 3;
         await updateMathInputValue({
             latex: i.toString(),
-            componentIdx: resolveComponentName("i"),
+            componentIdx: await resolvePathToNodeIdx("i"),
             core,
         });
         await check_items(math, i);
 
         await updateMathInputValue({
             latex: "(a,b,c)",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         math = me.fromAst(["vector", "a", "b", "c"]);
@@ -11069,7 +11992,7 @@ describe("MathInput tag tests", async () => {
         i = 4;
         await updateMathInputValue({
             latex: i.toString(),
-            componentIdx: resolveComponentName("i"),
+            componentIdx: await resolvePathToNodeIdx("i"),
             core,
         });
         await check_items(math, i);
@@ -11077,14 +12000,14 @@ describe("MathInput tag tests", async () => {
         i = 2;
         await updateMathInputValue({
             latex: i.toString(),
-            componentIdx: resolveComponentName("i"),
+            componentIdx: await resolvePathToNodeIdx("i"),
             core,
         });
         await check_items(math, i);
 
         await updateMathInputValue({
             latex: "xyz",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         math = me.fromAst(["*", "x", "y", "z"]);
@@ -11093,14 +12016,14 @@ describe("MathInput tag tests", async () => {
         i = 1;
         await updateMathInputValue({
             latex: i.toString(),
-            componentIdx: resolveComponentName("i"),
+            componentIdx: await resolvePathToNodeIdx("i"),
             core,
         });
         await check_items(math, i);
 
         await updateMathInputValue({
             latex: "p,q",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         math = me.fromAst(["list", "p", "q"]);
@@ -11108,7 +12031,7 @@ describe("MathInput tag tests", async () => {
 
         await updateMathInputValue({
             latex: "5,4,3",
-            componentIdx: resolveComponentName("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
         math = me.fromAst(["list", 5, 4, 3]);

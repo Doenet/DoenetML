@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolveComponentName } from "../utils/test-core";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -9,13 +9,13 @@ vi.mock("hyperformula");
 describe("Sort tag tests", async () => {
     async function test_sort({
         core,
-        resolveComponentName,
+        resolvePathToNodeIdx,
         sorted_result,
         pName = "pList",
         replacements_all_of_type,
     }: {
         core;
-        resolveComponentName: ResolveComponentName;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
         sorted_result: string[];
         pName?: string;
         replacements_all_of_type?: string;
@@ -23,13 +23,13 @@ describe("Sort tag tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         const pText = sorted_result.join(", ");
-        expect(stateVariables[resolveComponentName(pName)].stateValues.text).eq(
-            pText,
-        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx(pName)].stateValues.text,
+        ).eq(pText);
 
         if (replacements_all_of_type) {
             let replacementTypes = stateVariables[
-                resolveComponentName(pName)
+                await resolvePathToNodeIdx(pName)
             ].activeChildren.map(
                 (child) => stateVariables[child.componentIdx].componentType,
             );
@@ -41,7 +41,7 @@ describe("Sort tag tests", async () => {
     }
 
     it("sort numbers and math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort>
         <number>3</number>
@@ -72,11 +72,11 @@ describe("Sort tag tests", async () => {
             "10",
         ];
 
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
     });
 
     it("sort dynamic maths", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Values to sort: 
   <mathInput name="m1" prefill="sqrt(2)" />
@@ -95,51 +95,51 @@ describe("Sort tag tests", async () => {
 
         let sorted_result = ["-∞", "-π", "5/6", "sqrt(2)", "70", "∞"];
 
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
         // change first value
         await updateMathInputValue({
             latex: "-5",
-            componentIdx: resolveComponentName("m1"),
+            componentIdx: await resolvePathToNodeIdx("m1"),
             core,
         });
 
         sorted_result = ["-∞", "-5", "-π", "5/6", "70", "∞"];
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
         // change second value
         await updateMathInputValue({
             latex: "e^5",
-            componentIdx: resolveComponentName("m2"),
+            componentIdx: await resolvePathToNodeIdx("m2"),
             core,
         });
 
         sorted_result = ["-∞", "-5", "-π", "70", "e⁵", "∞"];
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
         // change third value
         await updateMathInputValue({
             latex: "-100",
-            componentIdx: resolveComponentName("m3"),
+            componentIdx: await resolvePathToNodeIdx("m3"),
             core,
         });
 
         sorted_result = ["-∞", "-100", "-5", "-π", "70", "e⁵"];
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
         // change fourth value
         await updateMathInputValue({
             latex: "0",
-            componentIdx: resolveComponentName("m4"),
+            componentIdx: await resolvePathToNodeIdx("m4"),
             core,
         });
 
         sorted_result = ["-100", "-5", "-π", "0", "70", "e⁵"];
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
     });
 
     it("sort nested lists of numbers and math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p name="pList"><sort>
     <numberList displayDigits="5">
@@ -184,11 +184,11 @@ describe("Sort tag tests", async () => {
             "10",
         ];
 
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
     });
 
     it("sort points", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="A">(0,1)</point>
     <point name="B">(-2,1)</point>
@@ -208,10 +208,10 @@ describe("Sort tag tests", async () => {
             "( 7, 1 )",
         ];
 
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
         await movePoint({
-            componentIdx: resolveComponentName("A"),
+            componentIdx: await resolvePathToNodeIdx("A"),
             x: -8,
             y: 9,
             core,
@@ -225,10 +225,10 @@ describe("Sort tag tests", async () => {
             "( 7, 1 )",
         ];
 
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
         await movePoint({
-            componentIdx: resolveComponentName("B"),
+            componentIdx: await resolvePathToNodeIdx("B"),
             x: 8,
             y: -3,
             core,
@@ -242,10 +242,10 @@ describe("Sort tag tests", async () => {
             "( 8, -3 )",
         ];
 
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
         await movePoint({
-            componentIdx: resolveComponentName("C"),
+            componentIdx: await resolvePathToNodeIdx("C"),
             x: 4,
             y: 5,
             core,
@@ -259,10 +259,10 @@ describe("Sort tag tests", async () => {
             "( 8, -3 )",
         ];
 
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
         await movePoint({
-            componentIdx: resolveComponentName("D"),
+            componentIdx: await resolvePathToNodeIdx("D"),
             x: -9,
             y: 0,
             core,
@@ -276,10 +276,10 @@ describe("Sort tag tests", async () => {
             "( 8, -3 )",
         ];
 
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
         await movePoint({
-            componentIdx: resolveComponentName("E"),
+            componentIdx: await resolvePathToNodeIdx("E"),
             x: -2,
             y: -1,
             core,
@@ -293,11 +293,11 @@ describe("Sort tag tests", async () => {
             "( 8, -3 )",
         ];
 
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
     });
 
     it("sort points by component", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="A">(0,5)</point>
     <point name="B">(-2,6)</point>
@@ -322,14 +322,14 @@ describe("Sort tag tests", async () => {
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c1,
             pName: "pDefault",
         });
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c1,
             pName: "pC1",
         });
@@ -344,7 +344,7 @@ describe("Sort tag tests", async () => {
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c2,
             pName: "pC2",
         });
@@ -358,14 +358,14 @@ describe("Sort tag tests", async () => {
         ];
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: unsorted_results,
             pName: "pC3",
         });
     });
 
     it("sort vectors", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <vector name="A" displacement="(0,5)" tail="(5,2)" />
     <vector name="B" displacement="(-2,6)" tail="(3,7)" />
@@ -401,25 +401,25 @@ describe("Sort tag tests", async () => {
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c1d,
             pName: "pDefault",
         });
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c1d,
             pName: "pD",
         });
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c1d,
             pName: "pC1Default",
         });
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c1d,
             pName: "pC1D",
         });
@@ -434,13 +434,13 @@ describe("Sort tag tests", async () => {
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c2d,
             pName: "pC2Default",
         });
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c2d,
             pName: "pC2D",
         });
@@ -455,13 +455,13 @@ describe("Sort tag tests", async () => {
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c1t,
             pName: "pT",
         });
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c1t,
             pName: "pC1T",
         });
@@ -476,7 +476,7 @@ describe("Sort tag tests", async () => {
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: sorted_result_c2t,
             pName: "pC2T",
         });
@@ -490,26 +490,26 @@ describe("Sort tag tests", async () => {
         ];
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: unsorted_results,
             pName: "pC3Default",
         });
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: unsorted_results,
             pName: "pC3D",
         });
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result: unsorted_results,
             pName: "pC3T",
         });
     });
 
     it("sort by prop", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 
 
@@ -532,11 +532,11 @@ describe("Sort tag tests", async () => {
             "( s, t, u, v )",
         ];
 
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
         await updateMathInputValue({
             latex: "(a,b,c,d)",
-            componentIdx: resolveComponentName("cs"),
+            componentIdx: await resolvePathToNodeIdx("cs"),
             core,
         });
 
@@ -547,11 +547,11 @@ describe("Sort tag tests", async () => {
             "( s, t, u, v )",
             "( a, b, c, d )",
         ];
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
         await updateMathInputValue({
             latex: "(3,4,5)",
-            componentIdx: resolveComponentName("cs"),
+            componentIdx: await resolvePathToNodeIdx("cs"),
             core,
         });
 
@@ -562,11 +562,11 @@ describe("Sort tag tests", async () => {
             "( 3, 4, 5 )",
             "( s, t, u, v )",
         ];
-        await test_sort({ core, resolveComponentName, sorted_result });
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result });
     });
 
     it("sort texts", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort>
         <text>banana</text>
@@ -599,14 +599,14 @@ describe("Sort tag tests", async () => {
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result,
             replacements_all_of_type: "text",
         });
     });
 
     it("sort texts, numbers, maths", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort>
         <text>b</text>
@@ -639,13 +639,13 @@ describe("Sort tag tests", async () => {
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result,
         });
     });
 
     it("sort sugar type math", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort type="math">
     z b a x y c 
@@ -657,14 +657,14 @@ describe("Sort tag tests", async () => {
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result,
             replacements_all_of_type: "math",
         });
     });
 
     it("sort sugar type number", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort type="number">
         101 542 817 527 51 234 801
@@ -676,14 +676,14 @@ describe("Sort tag tests", async () => {
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result,
             replacements_all_of_type: "number",
         });
     });
 
     it("sort sugar type text", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort type="text">
         orange
@@ -699,14 +699,14 @@ describe("Sort tag tests", async () => {
 
         await test_sort({
             core,
-            resolveComponentName,
+            resolvePathToNodeIdx,
             sorted_result,
             replacements_all_of_type: "text",
         });
     });
 
     it("asList", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p name="pList"><sort name="sh" type="math">
     z b a x y c 
@@ -719,15 +719,17 @@ describe("Sort tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[resolveComponentName("pList")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pList")].stateValues
+                .text,
         ).eq(sorted_result.join(", "));
         expect(
-            stateVariables[resolveComponentName("pNoList")].stateValues.text,
+            stateVariables[await resolvePathToNodeIdx("pNoList")].stateValues
+                .text,
         ).eq(sorted_result.join(""));
     });
 
     it("by name and index", async () => {
-        let { core, resolveComponentName } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <sort name="xs">
     <math>y</math>
@@ -757,14 +759,15 @@ describe("Sort tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(
-            [...Array(12).keys()]
-                .map(
-                    (v) =>
-                        stateVariables[resolveComponentName(`xs[${v + 1}]`)]
-                            .stateValues.value.tree,
-                )
-                .sort(),
-        ).eqls(sorted_result.sort());
+        const result: any[] = [];
+
+        for (let i = 0; i < 12; i++) {
+            result.push(
+                stateVariables[await resolvePathToNodeIdx(`xs[${i + 1}]`)]
+                    .stateValues.value.tree,
+            );
+        }
+
+        expect(result.sort()).eqls(sorted_result.sort());
     });
 });
