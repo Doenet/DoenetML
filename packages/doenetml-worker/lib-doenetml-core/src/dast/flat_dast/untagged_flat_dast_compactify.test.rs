@@ -249,6 +249,15 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
               "tiv": { "Unique": 5 }
             },
             {},
+          ],
+          "index_resolutions": [
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
           ]
         })
     );
@@ -405,6 +414,15 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
               "tiv": { "Unique": 5 }
             },
             {},
+          ],
+          "index_resolutions": [
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
           ]
         })
     );
@@ -503,6 +521,12 @@ fn compactify_adjusts_refs_to_document() {
             {},
             {},
             {},
+          ],
+          "index_resolutions": [
+            [],
+            [],
+            [],
+            [],
           ]
         })
     );

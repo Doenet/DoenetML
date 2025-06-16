@@ -13,7 +13,7 @@ use doenetml_core::{
     core::core::Core,
     dast::{
         flat_dast::{FlatFragment, FlatNode, FlatPathPart, FlatRoot, Index, NormalizedRoot},
-        ref_resolve::{RefResolution, ResolutionError, Resolver},
+        ref_resolve::{AsIndexResolutions, RefResolution, ResolutionError, Resolver},
         DastRoot, FlatDastElementUpdate, FlatDastRoot,
     },
 };
@@ -121,8 +121,12 @@ impl PublicDoenetMLCore {
         })
     }
 
-    pub fn add_nodes_to_resolver(mut resolver: Resolver, flat_fragment: FlatFragment) -> Resolver {
-        Core::add_nodes_to_resolver(&flat_fragment, &mut resolver);
+    pub fn add_nodes_to_resolver(
+        mut resolver: Resolver,
+        flat_fragment: FlatFragment,
+        as_index_resolutions: Option<AsIndexResolutions>,
+    ) -> Resolver {
+        Core::add_nodes_to_resolver(&flat_fragment, &mut resolver, as_index_resolutions);
 
         resolver
     }
