@@ -28,7 +28,10 @@ export default defineConfig({
         rollupOptions: {
             // This is needed for building the `v06-to-v07` converter.
             // We don't want to add a build dep on `@doenet/doenetml-worker-javascript` just for this.
-            external: ["@doenet/doenetml-worker-javascript"],
+            external: [
+                "@doenet/doenetml-worker-javascript",
+                "lib-doenetml-worker",
+            ],
         },
     },
 });
