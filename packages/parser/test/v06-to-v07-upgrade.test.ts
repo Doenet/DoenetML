@@ -15,7 +15,7 @@ describe("v06 to v07 update", () => {
     let source: string;
     let correctSource: string;
 
-    it("ensures $ before `target`, `triggerWith`, etc.", () => {
+    it("ensures $ before `target`, `triggerWith`, etc.", async () => {
         const NEEDS_TRANSFORMING = [
             ["target", "t"],
             ["triggerWith", "tw"],
@@ -34,77 +34,181 @@ describe("v06 to v07 update", () => {
             ([attr, name]) => `<doenet ${attr}="$${name}" />`,
         ).join("")}</document>`;
 
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
 
         // Make sure if there are already dollar signs, they are not added again
-        expect(toXml(updateSyntaxFromV06toV07(correctSource))).toEqual(
+        expect(toXml(await updateSyntaxFromV06toV07(correctSource))).toEqual(
             correctSource,
         );
     });
 
-    it("removes newNamespace attribute", () => {
+    it("removes newNamespace attribute", async () => {
         source = `<graph name="g" newNamespace><point name="p" /></graph>`;
         correctSource = `<graph name="g"><point name="p" /></graph>`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
     });
 
-    it("macro path slashes get turned into dots", () => {
+    it("macro path slashes get turned into dots", async () => {
         source = `$(foo/bar[3][4][$(b/c).d].baz)`;
         correctSource = `$foo.bar[3][4][$b.c.d].baz`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
     });
 
-    it("corrects capitalization in element names", () => {
+    it("macro path slashes get turned into dots in attributes", async () => {
+        source = `<p foo="$(foo/bar[3][4][$(b/c).d].baz)" />`;
+        correctSource = `<p foo="$foo.bar[3][4][$b.c.d].baz" />`;
+        expect(
+            toXml(
+                await updateSyntaxFromV06toV07(source, {
+                    doNotUpgradeAttributeSyntax: true,
+                    doNotUpgradeCopyTags: true,
+                }),
+            ),
+        ).toEqual(correctSource);
+    });
+
+    it("attributes aren't lost when turning slashes get turned into dots", async () => {
+        source = `$foo.bar{baz="abc"}`;
+        correctSource = `$foo.bar{baz="abc"}`;
+        expect(
+            toXml(
+                await updateSyntaxFromV06toV07(source, {
+                    doNotUpgradeCopyTags: true,
+                    doNotUpgradeAttributeSyntax: true,
+                }),
+            ),
+        ).toEqual(correctSource);
+    });
+
+    it("corrects capitalization in element names", async () => {
         source = `<pOiNt />`;
         correctSource = `<point />`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
     });
 
-    it("copySource gets converted to extend or copy", () => {
+    it("copySource gets converted to extend or copy", async () => {
         source = `<point copySource="P" name="P2" />`;
         correctSource = `<point extend="$P" name="P2" />`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
 
         source = `<point CopySource="P" name="P2" />`;
         correctSource = `<point extend="$P" name="P2" />`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
 
         source = `<point copySource="P" name="P2" link="true" />`;
         correctSource = `<point extend="$P" name="P2" />`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
 
         source = `<point copySource="P" name="P2" link="false" />`;
         correctSource = `<point copy="$P" name="P2" />`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
     });
 
-    it("copySource gets converted in the presence of assignNames", () => {
+    it("copySource gets converted in the presence of assignNames", async () => {
         source = `<math copySource="P.x" assignNames="x" />`;
         correctSource = `<math extend="$P.x" name="x" />`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
 
         source = `<math copySource="P" copyProp="x" assignNames="x" />`;
         correctSource = `<math extend="$P.x" name="x" />`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
     });
 
-    it("collect gets converted to its new format", () => {
+    it("collect gets converted to its new format", async () => {
         source = `<collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" />`;
         correctSource = `<collect componentType="point" name="points" from="$panel" />`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
 
         // References to the old `assignNames` get updated
         source = `<collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" /> $q1 $q4`;
         correctSource = `<collect componentType="point" name="points" from="$panel" /> $points[1] $points[4]`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
 
         // References to the old `assignNames` get updated
         source = `<p name="p"><collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" /></p> $p.q1 $q4`;
         correctSource = `<p name="p"><collect componentType="point" name="points" from="$panel" /></p> $p.points[1] $points[4]`;
-        expect(toXml(updateSyntaxFromV06toV07(source))).toEqual(correctSource);
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
     });
 
-    it("can reparse attributes", () => {
+    it("can resolve the referent of a copy tag", async () => {
+        source = `<math name="m">5</math><copy source="m" name="k" />$k`;
+        correctSource = `<math name="m">5</math><math extend="$m" name="k" />$k`;
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
+    });
+
+    it("can convert macros with attributes into copy tags", async () => {
+        source = `$x{foo="bar"}`;
+        correctSource = `<copy foo="bar" source="$x" />`;
+        expect(
+            toXml(
+                await updateSyntaxFromV06toV07(source, {
+                    doNotUpgradeCopyTags: true,
+                }),
+            ),
+        ).toEqual(correctSource);
+
+        source = `$x[2].y{foo="bar"}`;
+        correctSource = `<copy foo="bar" source="$x[2].y" />`;
+        expect(
+            toXml(
+                await updateSyntaxFromV06toV07(source, {
+                    doNotUpgradeCopyTags: true,
+                }),
+            ),
+        ).toEqual(correctSource);
+    });
+
+    it("can convert macros with attributes that are in attributes into copy tags", async () => {
+        source = `<point x="$x{foo='bar'}" />`;
+        correctSource = `<setup><copy source="$x" foo="bar" name="ref1" /></setup><point x="$ref1" />`;
+        expect(
+            toXml(
+                await updateSyntaxFromV06toV07(source, {
+                    doNotUpgradeCopyTags: true,
+                }),
+            ),
+        ).toEqual(correctSource);
+
+        source = `<point x="$x.y{foo='bar'}" />`;
+        correctSource = `<setup><copy source="$x.y" foo="bar" name="ref1" /></setup><point x="$ref1" />`;
+        expect(
+            toXml(
+                await updateSyntaxFromV06toV07(source, {
+                    doNotUpgradeCopyTags: true,
+                }),
+            ),
+        ).toEqual(correctSource);
+    });
+
+    it("can reparse attributes", async () => {
         expect(toXml(reparseAttribute("t"))).toEqual("t");
         expect(toXml(reparseAttribute("$t"))).toEqual("$t");
     });

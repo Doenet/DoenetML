@@ -13,13 +13,6 @@ import { isDastElement } from "../types-util";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { toXml } from "../dast-to-xml/dast-util-to-xml";
 import { reparseAttribute } from "./reparse-attribute";
-import { Path } from "../macros/types";
-
-/**
- * A list of attributes that we assume are capitalized correctly during processing.
- * If any of these attributes are found in the DAST, they will be normalized to the
- * capitalization used in this list.
- */
 
 /**
  * Upgrade the `<collect>` element to the new syntax.

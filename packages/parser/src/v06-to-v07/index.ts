@@ -18,6 +18,13 @@ import {
 import { upgradeCollectElement } from "./upgrade-collect-element";
 import { upgradePathSlashesToDots } from "./slash-to-dot";
 import { lezerToDastV6 } from "..";
+import { upgradeCopySyntax } from "./upgrade-copy-syntax";
+import { upgradeAttributeSyntax } from "./upgrade-attribute-syntax";
+
+export type Options = {
+    doNotUpgradeCopyTags?: boolean;
+    doNotUpgradeAttributeSyntax?: boolean;
+};
 
 /**
  * Auto-updates syntax from DoenetML v0.6 to v0.7. This includes removing `namespace` attributes,
@@ -25,7 +32,10 @@ import { lezerToDastV6 } from "..";
  *
  * See https://github.com/Doenet/DoenetML/issues/474
  */
-export function updateSyntaxFromV06toV07_root(dast: DastRootV6) {
+export async function updateSyntaxFromV06toV07_root(
+    dast: DastRootV6,
+    options: Options,
+) {
     let processor = unified()
         .use(upgradePathSlashesToDots)
         .use(correctElementCapitalization)
@@ -34,8 +44,14 @@ export function updateSyntaxFromV06toV07_root(dast: DastRootV6) {
         .use(ensureDollarBeforeNamesOnSpecificAttributes)
         .use(copySourceToExtendOrCopy)
         .use(upgradeCollectElement);
+    if (!options.doNotUpgradeAttributeSyntax) {
+        processor = processor.use(upgradeAttributeSyntax);
+    }
+    if (!options.doNotUpgradeCopyTags) {
+        processor = processor.use(upgradeCopySyntax);
+    }
 
-    return processor.runSync(dast);
+    return await processor.run(dast);
 }
 
 /**
@@ -44,9 +60,9 @@ export function updateSyntaxFromV06toV07_root(dast: DastRootV6) {
  *
  * See https://github.com/Doenet/DoenetML/issues/474
  */
-export function updateSyntaxFromV06toV07(dastStr: string) {
+export function updateSyntaxFromV06toV07(dastStr: string, options?: Options) {
     const parsed = lezerToDastV6(dastStr);
-    return updateSyntaxFromV06toV07_root(parsed);
+    return updateSyntaxFromV06toV07_root(parsed, options || {});
 }
 
 /**

@@ -1,4 +1,4 @@
-import { Plugin, unified } from "unified";
+import { Plugin } from "unified";
 import {
     DastFunctionMacro,
     DastFunctionMacroV6,
@@ -10,16 +10,6 @@ import {
 } from "../types";
 import { visit } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
-import { renameAttrInPlace } from "./rename-attr-in-place";
-import { toXml } from "../dast-to-xml/dast-util-to-xml";
-import { reparseAttribute } from "./reparse-attribute";
-import { Path } from "../macros/types";
-
-/**
- * A list of attributes that we assume are capitalized correctly during processing.
- * If any of these attributes are found in the DAST, they will be normalized to the
- * capitalization used in this list.
- */
 
 /**
  * Upgrade namespace path syntax.
@@ -41,25 +31,37 @@ export const upgradePathSlashesToDots: Plugin<
             tree,
             // @ts-ignore
             (node: DastNodesV6, info) => {
-                if (
-                    (node.type !== "macro" && node.type !== "function") ||
-                    node.version !== "0.6"
-                ) {
-                    return;
+                // We need to search both usually-traversed children and the contents of attributes
+                // for macros that need to be upgraded.
+                const macros: (DastMacroV6 | DastFunctionMacroV6)[] = [];
+                if (isV06MacroOrFunctionMacro(node)) {
+                    macros.push(node);
                 }
-                const macro =
-                    node.type === "macro"
-                        ? v06MacroToV07Macro(node)
-                        : v06FunctionMacroToV07FunctionMacro(node);
-                // We mutate in place. Clear the node of its old properties
-                // and splice in the new values.
-                Object.keys(node).forEach((key) => {
-                    // @ts-ignore
-                    delete node[key];
-                });
-                Object.assign(node, macro);
+                if (isDastElement(node)) {
+                    for (const attr of Object.values(node.attributes)) {
+                        for (const child of attr.children) {
+                            if (isV06MacroOrFunctionMacro(child)) {
+                                macros.push(child);
+                            }
+                        }
+                    }
+                }
+                for (const node of macros) {
+                    const macro =
+                        node.type === "macro"
+                            ? v06MacroToV07Macro(node)
+                            : v06FunctionMacroToV07FunctionMacro(node);
+                    // We mutate in place. Clear the node of its old properties
+                    // and splice in the new values.
+                    Object.keys(node).forEach((key) => {
+                        // @ts-ignore
+                        delete node[key];
+                    });
+                    Object.assign(node, macro);
+                }
             },
         );
+        // Macros can also appear in attributes
     };
 };
 
@@ -73,9 +75,30 @@ function v06MacroToV07Macro(macro: DastMacroV6): DastMacro {
     const { accessedProp, version, attributes, ...rest } = macro;
     return {
         ...rest,
-        attributes: v06AttributeToV07Attribute(attributes),
+        attributes: v06AttributeToV07Attribute(mergeAttributes(macro)),
         path,
     };
+}
+
+function mergeAttributes(macro: DastMacroV6): DastMacroV6["attributes"] {
+    const ret: DastMacroV6["attributes"] = [];
+    // The types might be lying to us...
+    const attrs: DastMacroV6["attributes"] = Array.isArray(macro.attributes)
+        ? macro.attributes
+        : Object.values(macro.attributes);
+    ret.push(...attrs);
+    let curr = macro.accessedProp;
+    while (curr) {
+        const currAttrs: DastMacroV6["attributes"] = Array.isArray(
+            curr.attributes,
+        )
+            ? curr.attributes
+            : Object.values(curr.attributes);
+        ret.push(...currAttrs);
+        curr = curr.accessedProp;
+    }
+
+    return ret;
 }
 
 /**
@@ -102,6 +125,8 @@ function v06AttributeToV07Attribute(
     attrs: DastMacroV6["attributes"],
 ): DastMacro["attributes"] {
     const ret: DastMacro["attributes"] = {};
+    // The types might be lying to us...
+    attrs = Array.isArray(attrs) ? attrs : Object.values(attrs);
     for (const attr of attrs) {
         const children: DastMacro["attributes"][string]["children"] =
             attr.children.map((c) => {
@@ -115,7 +140,7 @@ function v06AttributeToV07Attribute(
             });
         ret[attr.name] = {
             ...attr,
-            children: [],
+            children,
         };
     }
     return ret;
@@ -135,4 +160,13 @@ function flattenedAccessedProps(macro: DastMacroV6): DastMacro["path"] {
     }
 
     return path;
+}
+
+function isV06MacroOrFunctionMacro(
+    node: any,
+): node is DastMacroV6 | DastFunctionMacroV6 {
+    return (
+        (node.type === "macro" || node.type === "function") &&
+        node.version === "0.6"
+    );
 }
