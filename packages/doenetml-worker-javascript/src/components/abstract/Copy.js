@@ -55,12 +55,6 @@ export default class Copy extends CompositeComponent {
             defaultValue: null,
             public: true,
         };
-        attributes.sourceAttributesToIgnore = {
-            createPrimitiveOfType: "stringArray",
-            createStateVariable: "sourceAttributesToIgnore",
-            defaultValue: ["isResponse"],
-            public: true,
-        };
         attributes.link = {
             createPrimitiveOfType: "boolean",
         };
@@ -1600,9 +1594,6 @@ export default class Copy extends CompositeComponent {
         // if creating copy directly from the target component,
         // create a serialized copy of the entire component
 
-        let sourceAttributesToIgnore =
-            await component.stateValues.sourceAttributesToIgnore;
-
         // If we are copying without linking a source that is shadowing another source,
         // then the attributes and children of the source may not be sufficient
         // to determine its state variables (as values linked from its source may be used).
@@ -1622,7 +1613,6 @@ export default class Copy extends CompositeComponent {
                     copyAll: !link,
                     componentSourceAttributesToIgnore: ["labelIsName"],
                     copyVariants: !link,
-                    primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
                     copyPrimaryEssential,
                     copyEssentialState,
                     errorIfEncounterComponent: [component.componentIdx],

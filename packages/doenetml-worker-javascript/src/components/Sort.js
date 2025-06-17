@@ -402,9 +402,7 @@ export default class Sort extends CompositeComponent {
             if (replacementSource) {
                 componentsCopied.push(replacementSource.componentIdx);
 
-                const serializedComponent = await replacementSource.serialize({
-                    primitiveSourceAttributesToIgnore: ["isResponse"],
-                });
+                const serializedComponent = await replacementSource.serialize();
 
                 const res = createNewComponentIndices(
                     [serializedComponent],
