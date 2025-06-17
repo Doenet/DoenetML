@@ -108,8 +108,8 @@ impl ResolutionAlgorithm {
     }
 }
 
-/// Instructions that nodes being added to the resolver should also be added as index resolutions
-/// of `parent_idx`, replacing them using `replace_mode`.
+/// An enum specifying whether or not nodes that are being added to the resolver should also be added as index resolutions
+/// of the flat fragment parent, and if so, which existing indices they should replace.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
@@ -199,7 +199,9 @@ impl Resolver {
     /// ```
     ///
     /// Arguments:
-    /// - `flat_fragment`: a `FlatFragment` containing the new descendants added to `flat_fragment.parent_idx`.
+    /// - `flat_fragment`: a `FlatFragment` containing the new descendants added to `flat_fragment.parent_idx`
+    /// - `index_resolution`: used to optionally specify that the children of the `flat_fragment` should also
+    ///   be added as indices of the `flat_fragment` parent.
     pub fn add_nodes(&mut self, flat_fragment: &FlatFragment, index_resolution: IndexResolution) {
         let prev_num_nodes = self.node_parent.len();
         let new_num_nodes = flat_fragment.len() + 1;
