@@ -114,12 +114,15 @@ impl ResolutionAlgorithm {
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub enum IndexResolution {
+    /// Do not modify the `index_resolutions` field of the flat fragment parent
     None,
+    /// Replace the `index_resolutions` field of the flat fragment parent with references to its children
     ReplaceAll,
+    /// Splice references to the fragment parent's children into its `index_resolutions` field, replacing the specified range of indices
     ReplaceRange(Range<Index>),
 }
 
-const CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS: &[&str] = &["group"];
+const CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS: [&str; 1] = ["group"];
 const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -188,7 +191,7 @@ impl Resolver {
 
         resolver.add_implicit_index_resolutions(
             &FlatRootOrFragment::Root(flat_root),
-            CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
+            &CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
         );
 
         resolver
@@ -267,7 +270,7 @@ impl Resolver {
 
         self.add_implicit_index_resolutions(
             &FlatRootOrFragment::Fragment(flat_fragment),
-            CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
+            &CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
         );
 
         // If the new nodes are also index resolutions for the parent,
@@ -289,7 +292,7 @@ impl Resolver {
     fn add_implicit_index_resolutions(
         &mut self,
         flat_root_or_fragment: &FlatRootOrFragment,
-        children_are_index_resolutions: &'static [&str],
+        children_are_index_resolutions: &[&str],
     ) {
         for element in flat_root_or_fragment
             .nodes_iter()
