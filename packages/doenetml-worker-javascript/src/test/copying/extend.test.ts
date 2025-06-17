@@ -1079,9 +1079,6 @@ describe("Extend tests", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
         ).eq("Force to reveal: secret");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
-        ).eq("Force to reveal 2: secret");
     }
 
     it("copy does not ignore hide by default, with copySource", async () => {
@@ -1091,7 +1088,6 @@ describe("Extend tests", async () => {
     <p name="p2">Hidden by default: <text extend="$hidden" /></p>
     <p name="p3">Hidden by default 2: $hidden</p>
     <p name="p4">Force to reveal: <text extend="$hidden" hide="false" /></p>
-    <p name="p5">Force to reveal 2: <text extend="$hidden" sourceAttributesToIgnore="hide" /></p>
 
     `,
         });
@@ -1136,18 +1132,6 @@ describe("Extend tests", async () => {
                 .text,
         ).eq("Revealed 2: secret");
         expect(
-            stateVariables[await resolvePathToNodeIdx("theP3")].stateValues
-                .text,
-        ).eq("Hidden text: secret");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("pReveal3")].stateValues
-                .text,
-        ).eq("Revealed 3: secret");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("pReveal3A")].stateValues
-                .text,
-        ).eq("Revealed 3A: secret");
-        expect(
             stateVariables[await resolvePathToNodeIdx("theP4")].stateValues
                 .text,
         ).eq("Hidden text: ");
@@ -1176,9 +1160,6 @@ describe("Extend tests", async () => {
     <p name="pHidden2">Hidden 2: <text extend="$theP2.hidden" /></p>
     <p name="pHidden2A">Hidden 2A: $theP2.hidden</p>
     <p name="pReveal2">Revealed 2: <text extend="$theP2.hidden" hide="false" /></p>
-    <p extend="$theP" sourceAttributesToIgnore="hide" name="theP3" />
-    <p name="pReveal3">Revealed 3: <text extend="$theP3.hidden" /></p>
-    <p name="pReveal3A">Revealed 3A: $theP3.hidden</p>
     <p extend="$theP" name="theP4" hide="false" />
     <p name="pHidden4">Hidden 4: <text extend="$theP4.hidden" /></p>
     <p name="pHidden4A">Hidden 4A: $theP4.hidden</p>
@@ -2362,40 +2343,6 @@ describe("Extend tests", async () => {
         });
 
         await test_copy_prop_component_index(core, resolvePathToNodeIdx, true);
-    });
-
-    it("source attributes to ignore", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <p name="p1" fixed isResponse>The text: <text name="hidden_text" hide fixed isResponse>secret</text></p>
-
-    <p>Text stays hidden by default:</p>
-    <p extend="$p1" name="p2" />
-    <p name="p4">Check attributes: $p2.hidden $p2.isResponse $p2.hidden_text.hidden $p2.hidden_text.isResponse</p>
-
-    <p>Now all is revealed:</p>
-    <p extend="$p1" name="p5" sourceAttributesToIgnore="hide" />
-    <p name="p7">Check attributes: $p5.hidden $p5.isResponse $p5.hidden_text.hidden $p5.hidden_text.isResponse</p>
-
-    `,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("The text: ");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
-        ).eq("The text: ");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
-        ).eq("Check attributes: false false true false");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
-        ).eq("The text: secret");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("p7")].stateValues.text,
-        ).eq("Check attributes: false true false true");
     });
 
     it("fixed and fixLocation are propagated from shadow source, even with prop", async () => {
