@@ -113,15 +113,8 @@ impl ResolutionAlgorithm {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-pub struct AsIndexResolutions {
-    pub parent_idx: Index,
-    pub replace_mode: ReplaceMode,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-pub enum ReplaceMode {
+pub enum IndexResolution {
+    None,
     ReplaceAll,
     ReplaceRange(Range<Index>),
 }
@@ -207,11 +200,7 @@ impl Resolver {
     ///
     /// Arguments:
     /// - `flat_fragment`: a `FlatFragment` containing the new descendants added to `flat_fragment.parent_idx`.
-    pub fn add_nodes(
-        &mut self,
-        flat_fragment: &FlatFragment,
-        as_index_resolutions: Option<AsIndexResolutions>,
-    ) {
+    pub fn add_nodes(&mut self, flat_fragment: &FlatFragment, index_resolution: IndexResolution) {
         let prev_num_nodes = self.node_parent.len();
         let new_num_nodes = flat_fragment.len() + 1;
 
@@ -265,14 +254,19 @@ impl Resolver {
             CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
         );
 
-        // If the new nodes are index resolutions for a given parent,
+        // If the new nodes are also index resolutions for the parent,
         // add them to `index_resolutions`
-        if let Some(as_index_resolutions) = as_index_resolutions {
-            self.replace_index_resolutions(
-                as_index_resolutions.parent_idx,
-                &flat_fragment.children,
-                as_index_resolutions.replace_mode,
-            );
+        match index_resolution {
+            IndexResolution::None => {}
+            IndexResolution::ReplaceAll | IndexResolution::ReplaceRange(_) => {
+                if let Some(parent_idx) = flat_fragment.parent_idx {
+                    self.replace_index_resolutions(
+                        parent_idx,
+                        &flat_fragment.children,
+                        index_resolution,
+                    );
+                }
+            }
         }
     }
 
@@ -296,7 +290,11 @@ impl Resolver {
                 _ => None,
             })
         {
-            self.replace_index_resolutions(element.idx, &element.children, ReplaceMode::ReplaceAll);
+            self.replace_index_resolutions(
+                element.idx,
+                &element.children,
+                IndexResolution::ReplaceAll,
+            );
         }
     }
 
@@ -306,7 +304,7 @@ impl Resolver {
         &mut self,
         parent_idx: Index,
         components: &[UntaggedContent],
-        mode: ReplaceMode,
+        index_resolution: IndexResolution,
     ) {
         let new_resolutions: Vec<Option<usize>> = components
             .iter()
@@ -324,13 +322,14 @@ impl Resolver {
             })
             .collect();
 
-        match mode {
-            ReplaceMode::ReplaceAll => {
+        match index_resolution {
+            IndexResolution::ReplaceAll => {
                 self.index_resolutions[parent_idx + 1] = new_resolutions;
             }
-            ReplaceMode::ReplaceRange(range) => {
+            IndexResolution::ReplaceRange(range) => {
                 self.index_resolutions[parent_idx + 1].splice(range, new_resolutions);
             }
+            IndexResolution::None => {}
         }
     }
 

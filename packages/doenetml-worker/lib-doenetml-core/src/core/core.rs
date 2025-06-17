@@ -3,7 +3,7 @@
 use crate::dast::{
     flat_dast::{FlatFragment, FlatNode, FlatRoot, NormalizedRoot},
     ref_expand::Expander,
-    ref_resolve::{AsIndexResolutions, Resolver},
+    ref_resolve::{IndexResolution, Resolver},
     DastRoot, FlatDastRoot,
 };
 
@@ -58,9 +58,9 @@ impl Core {
     pub fn add_nodes_to_resolver(
         flat_fragment: &FlatFragment,
         resolver: &mut Resolver,
-        as_index_resolutions: Option<AsIndexResolutions>,
+        index_resolution: IndexResolution,
     ) {
-        resolver.add_nodes(flat_fragment, as_index_resolutions);
+        resolver.add_nodes(flat_fragment, index_resolution);
     }
 
     pub fn delete_nodes_from_resolver(nodes: &[FlatNode], resolver: &mut Resolver) {

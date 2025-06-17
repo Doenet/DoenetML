@@ -533,7 +533,7 @@ fn add_nodes() {
     let g_idx = f_idx + 2;
 
     let mut resolver = Resolver::from_flat_root(&flat_root);
-    resolver.add_nodes(&flat_fragment, None);
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
 
     // Since `z` and `w` were added to parent with name `y`, they cannot be found directly from `a`
     let referent = resolver.resolve(make_path(["z"]), a_idx, false);
@@ -601,7 +601,7 @@ fn add_nodes_does_not_make_previous_resolution_ambiguous() {
     let e_idx = d_idx + 2;
 
     let mut resolver = Resolver::from_flat_root(&flat_root);
-    resolver.add_nodes(&flat_fragment, None);
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
 
     // searching for `x.y` finds the original component `b`. The addition of `c` to `a` did not make that ambiguous.
     let referent = resolver.resolve(make_path(["x", "y"]), d_idx, false);
@@ -653,13 +653,7 @@ fn add_nodes_with_index_resolutions() {
     let c_idx = f_idx + 4;
 
     let mut resolver = Resolver::from_flat_root(&flat_root);
-    resolver.add_nodes(
-        &flat_fragment,
-        Some(AsIndexResolutions {
-            parent_idx: s_idx,
-            replace_mode: ReplaceMode::ReplaceAll,
-        }),
-    );
+    resolver.add_nodes(&flat_fragment, IndexResolution::ReplaceAll);
 
     println!("{:#?}", resolver);
 
@@ -773,7 +767,7 @@ fn delete_nodes() {
     let g_idx = f_idx + 2;
 
     let mut resolver = Resolver::from_flat_root(&flat_root);
-    resolver.add_nodes(&flat_fragment, None);
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
 
     // Prefacing the added components with the fragment parent `y` allows them to be found as `y.z` and `y.w`.
     let referent = resolver.resolve(make_path(["y", "z"]), a_idx, false);
