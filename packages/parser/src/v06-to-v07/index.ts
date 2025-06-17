@@ -60,9 +60,12 @@ export async function updateSyntaxFromV06toV07_root(
  *
  * See https://github.com/Doenet/DoenetML/issues/474
  */
-export function updateSyntaxFromV06toV07(dastStr: string, options?: Options) {
+export async function updateSyntaxFromV06toV07(
+    dastStr: string,
+    options?: Options,
+) {
     const parsed = lezerToDastV6(dastStr);
-    return updateSyntaxFromV06toV07_root(parsed, options || {});
+    return await updateSyntaxFromV06toV07_root(parsed, options || {});
 }
 
 /**
