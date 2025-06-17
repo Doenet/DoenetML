@@ -167,7 +167,6 @@ export const upgradeAttributeSyntax: Plugin<[], DastRoot, DastRoot> = () => {
                 },
             ];
         }
-        console.log("CREATED", toXml(setupTag));
         let documentElement = tree.children.find(
             (n) => isDastElement(n) && n.name === "document",
         ) as DastElement | DastRoot | undefined;

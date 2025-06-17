@@ -164,6 +164,20 @@ describe("v06 to v07 update", () => {
         );
     });
 
+    it("can resolve the referent of a copy tag (advanced)", async () => {
+        source = `<point name="m" /><copy source="m.x" name="k" />$k`;
+        correctSource = `<point name="m" /><math extend="$m.x" name="k" />$k`;
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
+
+        source = `<polygon name="m" /><copy source="m.vertices[0]" name="k" />$k`;
+        correctSource = `<polygon name="m" /><point extend="$m.vertices[0]" name="k" />$k`;
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
+    });
+
     it("can convert macros with attributes into copy tags", async () => {
         source = `$x{foo="bar"}`;
         correctSource = `<copy foo="bar" source="$x" />`;
@@ -206,6 +220,14 @@ describe("v06 to v07 update", () => {
                 }),
             ),
         ).toEqual(correctSource);
+    });
+
+    it("can convert macros with attributes that are in attributes into copy tags (realistic examples)", async () => {
+        source = `<math name="a">5</math><point x="$a{foo='bar'}" />`;
+        correctSource = `<setup><math extend="$a" foo="bar" name="ref1" /></setup><math name="a">5</math><point x="$ref1" />`;
+        expect(toXml(await updateSyntaxFromV06toV07(source))).toEqual(
+            correctSource,
+        );
     });
 
     it("can reparse attributes", async () => {

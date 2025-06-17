@@ -5,11 +5,10 @@ import init, {
     PublicDoenetMLCore as PublicDoenetMLCoreRust,
     DastRoot as DastRootInCore,
 } from "lib-doenetml-worker";
-import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
-import util from "util";
+import { normalizeDocumentDast } from "../../dast-normalize/normalize-dast";
 import { PublicDoenetMLCore } from "@doenet/doenetml-worker-javascript";
-import { DastRoot } from "../types";
-import { toXml } from "../dast-to-xml/dast-util-to-xml";
+import { DastRoot } from "../../types";
+import { toXml } from "../../dast-to-xml/dast-util-to-xml";
 
 type DoenetMLFlags = {
     showCorrectness: boolean;
@@ -51,7 +50,7 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
     const wasmBuffer = fs.readFileSync(
         path.resolve(
             __dirname,
-            "../../../doenetml-worker/lib-js-wasm-binding/pkg/lib_doenetml_worker_bg.wasm",
+            "../../../../doenetml-worker/lib-js-wasm-binding/pkg/lib_doenetml_worker_bg.wasm",
         ),
     );
 
