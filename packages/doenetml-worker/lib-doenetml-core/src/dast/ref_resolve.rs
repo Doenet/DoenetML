@@ -126,7 +126,8 @@ pub enum ReplaceMode {
     ReplaceRange(Range<Index>),
 }
 
-const CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS: [&str; 1] = ["group"];
+const CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS: &[&str] = &["group"];
+const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
 
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
 /// upon construction. If the underlying `FlatRoot` changes, a new `Resolver` should be
@@ -157,8 +158,6 @@ pub struct Resolver {
     index_resolutions: Vec<Vec<Option<Index>>>,
 }
 
-const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
-
 impl Resolver {
     pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
         let mut resolver = Resolver {
@@ -184,7 +183,10 @@ impl Resolver {
                 .collect(),
         };
 
-        resolver.add_implicit_index_resolutions(&FlatRootOrFragment::Root(flat_root));
+        resolver.add_implicit_index_resolutions(
+            &FlatRootOrFragment::Root(flat_root),
+            CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
+        );
 
         resolver
     }
@@ -258,7 +260,10 @@ impl Resolver {
             }
         }
 
-        self.add_implicit_index_resolutions(&FlatRootOrFragment::Fragment(flat_fragment));
+        self.add_implicit_index_resolutions(
+            &FlatRootOrFragment::Fragment(flat_fragment),
+            CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
+        );
 
         // If the new nodes are index resolutions for a given parent,
         // add them to `index_resolutions`
@@ -273,12 +278,16 @@ impl Resolver {
 
     /// Find any elements in `flat_root_or_fragment` that are marked `CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS`
     /// and add index resolutions so that their children will resolve as their indices
-    fn add_implicit_index_resolutions(&mut self, flat_root_or_fragment: &FlatRootOrFragment) {
+    fn add_implicit_index_resolutions(
+        &mut self,
+        flat_root_or_fragment: &FlatRootOrFragment,
+        children_are_index_resolutions: &'static [&str],
+    ) {
         for element in flat_root_or_fragment
             .nodes_iter()
             .filter_map(|node| match node {
                 FlatNode::Element(element) => {
-                    if CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS.contains(&element.name.as_str()) {
+                    if children_are_index_resolutions.contains(&element.name.as_str()) {
                         Some(element)
                     } else {
                         None
@@ -453,7 +462,7 @@ impl Resolver {
         }
 
         while let Some(part) = path.next() {
-            if part.name != "" {
+            if !part.name.is_empty() {
                 let mut matched_part_name = false;
 
                 if self.resolution_algorithm[current_idx + 1] == ResolutionAlgorithm::SearchChildren
