@@ -72,6 +72,7 @@ pub struct RefResolution {
     pub node_idx: Index,
     pub unresolved_path: Option<Vec<FlatPathPart>>,
     pub original_path: Vec<FlatPathPart>,
+    pub parents_with_changeable_children: Vec<Index>,
 }
 
 /// Status of a pointer referring to children of an element.
@@ -122,6 +123,16 @@ pub enum IndexResolution {
     ReplaceRange(Range<Index>),
 }
 
+/// The possibilities for the parent of a node in the resolver
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub enum NodeParent {
+    None,
+    FlatRoot,
+    Node(Index),
+}
+
 const CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS: [&str; 1] = ["group"];
 const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
 
@@ -129,11 +140,11 @@ const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct NodeResolverData {
-    /// The index of the parent of the node shifted by `1` so that
-    /// - `None` corresponds to no parent
-    /// - `Some(0)` corresponds to the parent being the flat root (which isn't a node)
-    /// - `Some(i+1)` corresponds to the parent being node `i`.
-    node_parent: Option<Index>,
+    /// The parent of the node. Options are:
+    /// - `NodeParent:None` corresponds to no parent
+    /// - `NodeParent:FlatRoot` corresponds to the parent being the flat root (which isn't a node)
+    /// - `NodeParent:Node(i)` corresponds to the parent being node `i`.
+    node_parent: NodeParent,
     resolution_algorithm: ResolutionAlgorithm,
     /// Map of all the names that are accessible (as descendants) from the node
     name_map: HashMap<String, Ref>,
@@ -144,6 +155,7 @@ pub struct NodeResolverData {
     /// Note: `index_resolutions[i] = None` indicates that `$node_reference[i+1]` would resolve to a text node,
     /// which is not a valid ref resolution.
     index_resolutions: Vec<Option<Index>>,
+    has_changeable_children: bool,
 }
 
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
@@ -171,18 +183,23 @@ impl Resolver {
             .map(|idx_plus_1| {
                 if idx_plus_1 == 0 {
                     NodeResolverData {
-                        node_parent: None,
+                        node_parent: NodeParent::None,
                         resolution_algorithm: ResolutionAlgorithm::SearchChildren,
                         name_map: mem::take(&mut name_map[0]),
                         index_resolutions: Vec::new(),
+                        has_changeable_children: false,
                     }
                 } else {
                     let node = &flat_root.nodes[idx_plus_1 - 1];
                     NodeResolverData {
-                        node_parent: node.parent().map(|idx| idx + 1).or(Some(0)),
+                        node_parent: node
+                            .parent()
+                            .map(|idx| NodeParent::Node(idx))
+                            .unwrap_or(NodeParent::FlatRoot),
                         resolution_algorithm: ResolutionAlgorithm::lookup_by_flat_node(node),
                         name_map: mem::take(&mut name_map[idx_plus_1]),
                         index_resolutions: Vec::new(),
+                        has_changeable_children: false,
                     }
                 }
             })
@@ -219,19 +236,21 @@ impl Resolver {
         let prev_num_nodes = self.node_resolver_data.len();
         let new_num_nodes = flat_fragment.len() + 1;
 
-        let parent_idx = flat_fragment
-            .parent_idx
-            .expect("add_nodes should be called with a flat fragment that has a parent.");
+        let parent_node = match flat_fragment.parent_idx {
+            Some(idx) => NodeParent::Node(idx),
+            None => NodeParent::None,
+        };
 
         // add placeholders for missing nodes as well as new nodes to be added
         if new_num_nodes > prev_num_nodes {
             let padding = new_num_nodes - prev_num_nodes;
             self.node_resolver_data.extend(iter::repeat_n(
                 NodeResolverData {
-                    node_parent: None,
+                    node_parent: NodeParent::None,
                     resolution_algorithm: ResolutionAlgorithm::SearchChildren,
                     name_map: HashMap::new(),
                     index_resolutions: Vec::new(),
+                    has_changeable_children: false,
                 },
                 padding,
             ));
@@ -239,23 +258,16 @@ impl Resolver {
 
         // Add parents and stop_propagation for new nodes
         for node in flat_fragment.nodes.iter() {
-            self.node_resolver_data[node.idx() + 1].node_parent = node.parent().map(|idx| idx + 1);
+            self.node_resolver_data[node.idx() + 1].node_parent = node
+                .parent()
+                .map(|idx| NodeParent::Node(idx))
+                .unwrap_or(parent_node);
             self.node_resolver_data[node.idx() + 1].resolution_algorithm =
                 ResolutionAlgorithm::lookup_by_flat_node(node);
         }
 
         let mut subtree_name_map =
             Self::build_name_map(&FlatRootOrFragment::Fragment(flat_fragment));
-
-        // We will add items to the resolver for parent only if the parent does not already have items with that name,
-        // i.e., the resolver will continue to resolve to descendants of parent as before,
-        // and now will fall back to new items if there wasn't already a ref resolution.
-        let parent_map = &mut self.node_resolver_data[parent_idx + 1].name_map;
-        let new_parent_map = mem::take(&mut subtree_name_map[parent_idx + 1]);
-
-        for (key, ref_) in new_parent_map.into_iter() {
-            parent_map.entry(key).or_insert(ref_);
-        }
 
         // Add new items to `name_map`.
         // If a node was already in the `name_map`, its value is replaced.
@@ -268,23 +280,38 @@ impl Resolver {
             }
         }
 
+        if let Some(parent_idx) = flat_fragment.parent_idx {
+            // We will add items to the resolver for parent only if the parent does not already have items with that name,
+            // i.e., the resolver will continue to resolve to descendants of parent as before,
+            // and now will fall back to new items if there wasn't already a ref resolution.
+            let parent_map = &mut self.node_resolver_data[parent_idx + 1].name_map;
+            let new_parent_map = mem::take(&mut subtree_name_map[parent_idx + 1]);
+
+            for (key, ref_) in new_parent_map.into_iter() {
+                parent_map.entry(key).or_insert(ref_);
+            }
+
+            // mark the fragment parent as potentially having children that change
+            self.node_resolver_data[parent_idx + 1].has_changeable_children = true;
+
+            // If the new nodes are also index resolutions for the parent,
+            // add them to `index_resolutions`
+            match index_resolution {
+                IndexResolution::None => {}
+                IndexResolution::ReplaceAll | IndexResolution::ReplaceRange(_) => {
+                    self.replace_index_resolutions(
+                        parent_idx,
+                        &flat_fragment.children,
+                        index_resolution,
+                    );
+                }
+            }
+        }
+
         self.add_implicit_index_resolutions(
             &FlatRootOrFragment::Fragment(flat_fragment),
             &CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
         );
-
-        // If the new nodes are also index resolutions for the parent,
-        // add them to `index_resolutions`
-        match index_resolution {
-            IndexResolution::None => {}
-            IndexResolution::ReplaceAll | IndexResolution::ReplaceRange(_) => {
-                self.replace_index_resolutions(
-                    parent_idx,
-                    &flat_fragment.children,
-                    index_resolution,
-                );
-            }
-        }
     }
 
     /// Find any elements in `flat_root_or_fragment` that are marked `CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS`
@@ -364,9 +391,14 @@ impl Resolver {
         }) {
             let mut prev_parent_idx_plus_1 = node_idx + 1;
 
-            while let Some(parent_idx_plus_1) =
-                self.node_resolver_data[prev_parent_idx_plus_1].node_parent
-            {
+            loop {
+                let parent_idx_plus_1 =
+                    match self.node_resolver_data[prev_parent_idx_plus_1].node_parent {
+                        NodeParent::None => break,
+                        NodeParent::FlatRoot => 0,
+                        NodeParent::Node(idx) => idx + 1,
+                    };
+
                 prev_parent_idx_plus_1 = parent_idx_plus_1;
 
                 let name_map = &mut self.node_resolver_data[parent_idx_plus_1].name_map;
@@ -407,7 +439,7 @@ impl Resolver {
         // and clear their `index_resolutions`
         for node in nodes.iter() {
             if node.idx() + 1 < self.node_resolver_data.len() {
-                self.node_resolver_data[node.idx() + 1].node_parent = None;
+                self.node_resolver_data[node.idx() + 1].node_parent = NodeParent::None;
                 self.node_resolver_data[node.idx() + 1]
                     .index_resolutions
                     .clear();
@@ -454,6 +486,8 @@ impl Resolver {
 
         let mut path = path.iter();
 
+        let mut parents_with_changeable_children = Vec::new();
+
         // Note: `remaining_path` is declared outside the following `if` statement
         // as it needs to live as long as the `path` iterator does.
         let remaining_path: Vec<FlatPathPart>;
@@ -493,6 +527,9 @@ impl Resolver {
                         matched_part_name = true;
                         match referent {
                             Ref::Unique(idx) => {
+                                if node_data.has_changeable_children {
+                                    parents_with_changeable_children.push(current_idx)
+                                }
                                 current_idx = *idx;
                                 node_data = &self.node_resolver_data[current_idx + 1];
                             }
@@ -513,13 +550,13 @@ impl Resolver {
                         node_idx: current_idx,
                         unresolved_path: Some(remaining_path),
                         original_path,
+                        parents_with_changeable_children,
                     });
                 }
             }
 
             for (index_idx, index) in part.index.iter().enumerate() {
                 if index.value.len() == 1 {
-                    println!("Found index value of length 1: {:#?}", index);
                     match &index.value[0] {
                         UntaggedContent::Text(index_str) => match index_str.parse::<usize>() {
                             Ok(index_num) => {
@@ -533,6 +570,9 @@ impl Resolver {
                                 {
                                     match node_match {
                                         Some(new_node_idx) => {
+                                            if node_data.has_changeable_children {
+                                                parents_with_changeable_children.push(current_idx)
+                                            }
                                             current_idx = *new_node_idx;
                                             node_data = &self.node_resolver_data[current_idx + 1];
 
@@ -569,10 +609,12 @@ impl Resolver {
                 })
                 .chain(path.cloned())
                 .collect();
+
                 return Ok(RefResolution {
                     node_idx: current_idx,
                     unresolved_path: Some(remaining_path),
                     original_path,
+                    parents_with_changeable_children,
                 });
             }
         }
@@ -582,6 +624,7 @@ impl Resolver {
             node_idx: current_idx,
             unresolved_path: None,
             original_path,
+            parents_with_changeable_children,
         })
     }
 
@@ -592,7 +635,7 @@ impl Resolver {
 
         // if passed in a node without a parent, then search from that node itself
         // TODO: don't duplicate code with case where have parent, below
-        if node_data.node_parent.is_none() {
+        if matches!(node_data.node_parent, NodeParent::None) {
             if let Some(resolved) = node_data.name_map.get(name) {
                 match resolved {
                     Ref::Unique(idx) => {
@@ -607,7 +650,13 @@ impl Resolver {
             return Err(ResolutionError::NoReferent);
         }
 
-        while let Some(parent_plus_1) = node_data.node_parent {
+        loop {
+            let parent_plus_1 = match node_data.node_parent {
+                NodeParent::None => break,
+                NodeParent::FlatRoot => 0,
+                NodeParent::Node(idx) => idx + 1,
+            };
+
             if let Some(resolved) = self.node_resolver_data[parent_plus_1].name_map.get(name) {
                 match resolved {
                     Ref::Unique(idx) => {
@@ -634,11 +683,9 @@ impl Resolver {
         // If we were given a flat root, then include root itself (with index 0),
         // else, for a flat fragment, include the fragment parent, where add one to the index
         let base_parent_idx_plus_1 = match flat_root_or_fragment {
-            FlatRootOrFragment::Root(_) => 0,
+            FlatRootOrFragment::Root(_) => Some(0),
             FlatRootOrFragment::Fragment(flat_fragment) => {
-                flat_fragment.parent_idx.expect(
-                    "build_name_map should be called with a flat fragment that has a parent.",
-                ) + 1
+                flat_fragment.parent_idx.map(|idx| idx + 1)
             }
         };
 
@@ -657,12 +704,17 @@ impl Resolver {
             let name = name.unwrap();
 
             // Iterate through all ancestors of element,
-            // including the fragment parent, if it exists
-            for parent_idx_plus_1 in flat_root_or_fragment
+            // including the base parent, if it exists
+
+            let mut parents = flat_root_or_fragment
                 .parent_iter(element.idx)
                 .map(|parent| parent.idx + 1)
-                .chain(iter::once(base_parent_idx_plus_1))
-            {
+                .collect::<Vec<_>>();
+            if let Some(idx) = base_parent_idx_plus_1 {
+                parents.push(idx);
+            }
+
+            for parent_idx_plus_1 in parents {
                 descendant_names[parent_idx_plus_1]
                     .get_mut(&name)
                     .map(|x| {
@@ -684,7 +736,7 @@ impl Resolver {
 
                 // Stop if we've reached a parent that isn't the base parent
                 // and is a type where we don't search children
-                if parent_idx_plus_1 != base_parent_idx_plus_1 && parent_idx_plus_1 > 0 {
+                if Some(parent_idx_plus_1) != base_parent_idx_plus_1 && parent_idx_plus_1 > 0 {
                     match ResolutionAlgorithm::lookup_by_flat_node(
                         flat_root_or_fragment.get_node(parent_idx_plus_1 - 1),
                     ) {
@@ -733,23 +785,22 @@ impl Resolver {
 
                 if idx_plus_1 == 0 {
                     NodeResolverData {
-                        node_parent: None,
+                        node_parent: NodeParent::None,
                         resolution_algorithm: ResolutionAlgorithm::SearchChildren,
                         name_map,
                         index_resolutions,
+                        has_changeable_children: false,
                     }
                 } else {
                     NodeResolverData {
-                        node_parent: node_data.node_parent.map(|par_idx_plus_1| {
-                            if par_idx_plus_1 == 0 {
-                                par_idx_plus_1
-                            } else {
-                                old_to_new_indices[par_idx_plus_1 - 1] + 1
-                            }
-                        }),
+                        node_parent: match node_data.node_parent {
+                            NodeParent::None | NodeParent::FlatRoot => node_data.node_parent,
+                            NodeParent::Node(idx) => NodeParent::Node(old_to_new_indices[idx]),
+                        },
                         resolution_algorithm: node_data.resolution_algorithm,
                         name_map,
                         index_resolutions,
+                        has_changeable_children: node_data.has_changeable_children,
                     }
                 }
             })

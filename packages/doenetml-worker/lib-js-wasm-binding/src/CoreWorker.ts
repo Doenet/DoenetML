@@ -15,6 +15,7 @@ import type {
     Resolver,
     PathToCheck,
     FlatFragment,
+    IndexResolution,
 } from "lib-doenetml-worker";
 import type { DastRoot } from "@doenet/parser";
 import {
@@ -413,10 +414,15 @@ export class CoreWorker {
         }
     }
 
-    addNodesToResolver(resolver: Resolver, flatFragment: FlatFragment) {
+    addNodesToResolver(
+        resolver: Resolver,
+        flatFragment: FlatFragment,
+        indexResolution: IndexResolution,
+    ) {
         let add_nodes_result = PublicDoenetMLCore.add_nodes_to_resolver(
             resolver,
             flatFragment,
+            indexResolution,
         );
         return add_nodes_result;
     }

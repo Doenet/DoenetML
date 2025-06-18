@@ -369,6 +369,8 @@ pub struct FlatFragment {
     pub nodes: Vec<FlatNode>,
     /// The index of the fragment's parent (e.g., from a `FlatRoot`)
     pub parent_idx: Option<Index>,
+    /// If `true`, it signals that the fragment's children might be changed dynamically
+    pub has_changeable_children: bool,
     /// A map of the a node's index into its index in the array `nodes`
     idx_map: HashMap<usize, usize>,
 }
@@ -381,6 +383,7 @@ impl FlatFragment {
         dast: &DastRoot,
         idx_to_id_shift: usize,
         parent_idx: Option<Index>,
+        has_changeable_children: bool,
     ) -> Self {
         // TODO: this function is unused. If we use it, it needs tests.
 
@@ -445,6 +448,7 @@ impl FlatFragment {
             nodes: flat_root.nodes,
             parent_idx,
             idx_map,
+            has_changeable_children,
         }
     }
 
