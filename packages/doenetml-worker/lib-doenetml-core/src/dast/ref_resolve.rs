@@ -69,10 +69,14 @@ pub fn format_error_message(err: ResolutionError, path: &[FlatPathPart]) -> Stri
 #[cfg_attr(feature = "web", tsify(into_wasm_abi))]
 #[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct RefResolution {
+    /// The final index of the node reached when resolving
     pub node_idx: Index,
+    /// The indices of all nodes involved in resolving
+    pub nodes_in_resolved_path: Vec<Index>,
+    /// The path after `node_idx` that remains unresolved
     pub unresolved_path: Option<Vec<FlatPathPart>>,
+    /// The original path that was resolved with origin `nodes_in_resolved_path[0]`
     pub original_path: Vec<FlatPathPart>,
-    pub parents_with_changeable_children: Vec<Index>,
 }
 
 /// Status of a pointer referring to children of an element.
@@ -155,7 +159,6 @@ pub struct NodeResolverData {
     /// Note: `index_resolutions[i] = None` indicates that `$node_reference[i+1]` would resolve to a text node,
     /// which is not a valid ref resolution.
     index_resolutions: Vec<Option<Index>>,
-    has_changeable_children: bool,
 }
 
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
@@ -187,7 +190,6 @@ impl Resolver {
                         resolution_algorithm: ResolutionAlgorithm::SearchChildren,
                         name_map: mem::take(&mut name_map[0]),
                         index_resolutions: Vec::new(),
-                        has_changeable_children: false,
                     }
                 } else {
                     let node = &flat_root.nodes[idx_plus_1 - 1];
@@ -199,7 +201,6 @@ impl Resolver {
                         resolution_algorithm: ResolutionAlgorithm::lookup_by_flat_node(node),
                         name_map: mem::take(&mut name_map[idx_plus_1]),
                         index_resolutions: Vec::new(),
-                        has_changeable_children: false,
                     }
                 }
             })
@@ -250,7 +251,6 @@ impl Resolver {
                     resolution_algorithm: ResolutionAlgorithm::SearchChildren,
                     name_map: HashMap::new(),
                     index_resolutions: Vec::new(),
-                    has_changeable_children: false,
                 },
                 padding,
             ));
@@ -290,9 +290,6 @@ impl Resolver {
             for (key, ref_) in new_parent_map.into_iter() {
                 parent_map.entry(key).or_insert(ref_);
             }
-
-            // mark the fragment parent as potentially having children that change
-            self.node_resolver_data[parent_idx + 1].has_changeable_children = true;
 
             // If the new nodes are also index resolutions for the parent,
             // add them to `index_resolutions`
@@ -486,7 +483,8 @@ impl Resolver {
 
         let mut path = path.iter();
 
-        let mut parents_with_changeable_children = Vec::new();
+        // A list of all the nodes involved in resolving
+        let mut nodes_in_resolved_path = vec![origin];
 
         // Note: `remaining_path` is declared outside the following `if` statement
         // as it needs to live as long as the `path` iterator does.
@@ -495,6 +493,9 @@ impl Resolver {
         if !skip_parent_search {
             let first_path_part = path.next().ok_or(ResolutionError::NoReferent)?;
             current_idx = self.search_parents(&first_path_part.name, current_idx)?;
+            if current_idx != origin {
+                nodes_in_resolved_path.push(current_idx);
+            }
             // If we made it here, the first entry in `path` has a valid referent.
             // If this entry also has an index, we add the index back to the beginning of the path
             // so that it will be address first, below. This would
@@ -527,10 +528,10 @@ impl Resolver {
                         matched_part_name = true;
                         match referent {
                             Ref::Unique(idx) => {
-                                if node_data.has_changeable_children {
-                                    parents_with_changeable_children.push(current_idx)
-                                }
                                 current_idx = *idx;
+                                if !nodes_in_resolved_path.contains(&current_idx) {
+                                    nodes_in_resolved_path.push(current_idx);
+                                }
                                 node_data = &self.node_resolver_data[current_idx + 1];
                             }
                             Ref::Ambiguous(_) => {
@@ -550,7 +551,7 @@ impl Resolver {
                         node_idx: current_idx,
                         unresolved_path: Some(remaining_path),
                         original_path,
-                        parents_with_changeable_children,
+                        nodes_in_resolved_path,
                     });
                 }
             }
@@ -570,10 +571,10 @@ impl Resolver {
                                 {
                                     match node_match {
                                         Some(new_node_idx) => {
-                                            if node_data.has_changeable_children {
-                                                parents_with_changeable_children.push(current_idx)
-                                            }
                                             current_idx = *new_node_idx;
+                                            if !nodes_in_resolved_path.contains(&current_idx) {
+                                                nodes_in_resolved_path.push(current_idx);
+                                            }
                                             node_data = &self.node_resolver_data[current_idx + 1];
 
                                             // since we found a match, we continue to the next index, if it exists
@@ -614,7 +615,7 @@ impl Resolver {
                     node_idx: current_idx,
                     unresolved_path: Some(remaining_path),
                     original_path,
-                    parents_with_changeable_children,
+                    nodes_in_resolved_path,
                 });
             }
         }
@@ -624,7 +625,7 @@ impl Resolver {
             node_idx: current_idx,
             unresolved_path: None,
             original_path,
-            parents_with_changeable_children,
+            nodes_in_resolved_path,
         })
     }
 
@@ -789,7 +790,6 @@ impl Resolver {
                         resolution_algorithm: ResolutionAlgorithm::SearchChildren,
                         name_map,
                         index_resolutions,
-                        has_changeable_children: false,
                     }
                 } else {
                     NodeResolverData {
@@ -800,7 +800,6 @@ impl Resolver {
                         resolution_algorithm: node_data.resolution_algorithm,
                         name_map,
                         index_resolutions,
-                        has_changeable_children: node_data.has_changeable_children,
                     }
                 }
             })

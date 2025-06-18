@@ -70,7 +70,7 @@ fn can_create_normalized_dast_after_expanding_refs() {
                     "nodeIdx": 2,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "f", "index": [] }],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [3, 2],
                   }
                 }
               },
@@ -86,7 +86,7 @@ fn can_create_normalized_dast_after_expanding_refs() {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [4, 1],
                   }
                 }
               },
@@ -117,7 +117,7 @@ fn can_create_normalized_dast_after_expanding_refs() {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [6, 1],
                   }
                 }
               },

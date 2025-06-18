@@ -148,7 +148,7 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "t", "index": [] }],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [2, 1],
                   }
                 }
               },
@@ -203,7 +203,7 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                       { "type": "flatPathPart", "name": "ti", "index": [] },
                       { "type": "flatPathPart", "name": "immediateValue", "index": [] },
                     ],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [5, 3],
                   }
                 }
               }
@@ -225,7 +225,6 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                 "tiv": { "Unique": 5 }
               },
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": "FlatRoot",
@@ -236,28 +235,24 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                 "tiv": { "Unique": 5 }
               },
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 0 },
               "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 0 },
               "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 0 },
               "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 0 },
@@ -266,14 +261,12 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
                 "tiv": { "Unique": 5 }
               },
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 4 },
               "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
           ]
         })
@@ -330,7 +323,7 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "t", "index": [] }],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [2, 1],
                   }
                 }
               },
@@ -385,7 +378,7 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
                       { "type": "flatPathPart", "name": "ti", "index": [] },
                       { "type": "flatPathPart", "name": "immediateValue", "index": [] },
                     ],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [5, 3],
                   }
                 }
               }
@@ -407,7 +400,6 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
                 "tiv": { "Unique": 5 }
               },
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": "FlatRoot",
@@ -418,28 +410,24 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
                 "tiv": { "Unique": 5 }
               },
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 0 },
               "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 0 },
               "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 0 },
               "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 0 },
@@ -448,14 +436,12 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
                 "tiv": { "Unique": 5 }
               },
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 4 },
               "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
           ]
         })
@@ -507,7 +493,7 @@ fn compactify_adjusts_refs_to_document() {
                         { "type": "flatPathPart", "name": "doc", "index": [] },
                         { "type": "flatPathPart", "name": "creditAchieved", "index": [] }
                       ],
-                      "parentsWithChangeableChildren": [],
+                      "nodesInResolvedPath": [1, 0],
                   }
                 }
               },
@@ -526,7 +512,7 @@ fn compactify_adjusts_refs_to_document() {
                         { "type": "flatPathPart", "name": "doc", "index": [] },
                         { "type": "flatPathPart", "name": "creditAchieved", "index": [] }
                       ],
-                      "parentsWithChangeableChildren": [],
+                      "nodesInResolvedPath": [2, 0],
                   }
                 }
               },
@@ -547,28 +533,24 @@ fn compactify_adjusts_refs_to_document() {
                 "doc": { "Unique": 0 },
               },
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": "FlatRoot",
               "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 0 },
               "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
             {
               "node_parent": { "Node": 0 },
               "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
-              "has_changeable_children": false,
             },
           ]
         })
@@ -648,7 +630,7 @@ fn compactify_preserves_refs_in_path_parts() {
                       }
                     ],
                     "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [{ "value": [4] }] }],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [3, 2],
                   }
                 }
               },
@@ -664,7 +646,7 @@ fn compactify_preserves_refs_in_path_parts() {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [4, 1],
                   }
                 }
               }
@@ -738,7 +720,7 @@ fn compactify_shifts_refs_in_path_parts() {
                     "nodeIdx": 2,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [3, 2],
                   }
                 }
               },
@@ -764,7 +746,7 @@ fn compactify_shifts_refs_in_path_parts() {
                       }
                     ],
                     "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [{ "value" : [5]}] }],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [4, 2],
                   }
                 }
               },
@@ -780,7 +762,7 @@ fn compactify_shifts_refs_in_path_parts() {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }],
-                    "parentsWithChangeableChildren": [],
+                    "nodesInResolvedPath": [5, 1],
                   }
                 }
               }

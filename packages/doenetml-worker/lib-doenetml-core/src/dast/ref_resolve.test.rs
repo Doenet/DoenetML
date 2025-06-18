@@ -56,7 +56,7 @@ fn can_resolve_names() {
             node_idx: b_idx,
             unresolved_path: None,
             original_path: make_path(["y"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
 
@@ -67,7 +67,7 @@ fn can_resolve_names() {
             node_idx: c_idx,
             unresolved_path: None,
             original_path: make_path(["y", "z"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
 
@@ -83,7 +83,7 @@ fn can_resolve_names() {
                 position: None
             }]),
             original_path: make_path(["y", "z", "w"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
 }
@@ -124,7 +124,7 @@ fn resolution_stops_at_path_index_with_no_index_resolutions() {
             node_idx: c_idx,
             unresolved_path: None,
             original_path: path,
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
 
@@ -164,7 +164,7 @@ fn resolution_stops_at_path_index_with_no_index_resolutions() {
                 }
             ]),
             original_path: path,
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
 }
@@ -231,7 +231,7 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
             node_idx: c_idx,
             unresolved_path: None,
             original_path: path,
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![a_idx, g_idx, c_idx]
         })
     );
 
@@ -255,7 +255,7 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
             node_idx: d_idx,
             unresolved_path: None,
             original_path: path,
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![a_idx, g_idx, d_idx]
         })
     );
 
@@ -280,7 +280,7 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
             node_idx: f_idx,
             unresolved_path: None,
             original_path: path,
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![a_idx, g_idx, d_idx, f_idx]
         })
     );
 
@@ -310,7 +310,7 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
             node_idx: e_idx,
             unresolved_path: None,
             original_path: path,
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![a_idx, g_idx, c_idx, e_idx]
         })
     );
 
@@ -347,7 +347,7 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
             node_idx: g_idx,
             unresolved_path: Some(unresolved_path),
             original_path: path,
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![a_idx, g_idx]
         })
     );
 }
@@ -363,6 +363,7 @@ fn resolution_matches_largest_possible_when_index_present() {
         <d name="y" />"#,
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
+    let b_idx = find(&flat_root, "b").unwrap();
     let c_idx = find(&flat_root, "c").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
@@ -396,7 +397,7 @@ fn resolution_matches_largest_possible_when_index_present() {
                 position: None
             },]),
             original_path: path,
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
 }
@@ -440,7 +441,7 @@ fn resolve_with_skip_parent_match() {
             node_idx: c_idx,
             unresolved_path: Some(make_path(["y"])),
             original_path: make_path(["y"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![c_idx]
         })
     );
 
@@ -453,7 +454,7 @@ fn resolve_with_skip_parent_match() {
             node_idx: b_idx,
             unresolved_path: None,
             original_path: make_path(["y"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
 
@@ -466,7 +467,7 @@ fn resolve_with_skip_parent_match() {
             node_idx: b_idx,
             unresolved_path: None,
             original_path: make_path(["y"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![a_idx, b_idx]
         })
     );
 
@@ -507,7 +508,7 @@ fn elements_with_dont_search_children() {
             node_idx: option_idx,
             unresolved_path: Some(make_path(["z"])),
             original_path: make_path(["y", "z"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![a_idx, option_idx]
         })
     );
 
@@ -519,7 +520,7 @@ fn elements_with_dont_search_children() {
             node_idx: d_idx,
             unresolved_path: None,
             original_path: make_path(["q"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![c_idx, d_idx]
         })
     );
 }
@@ -543,7 +544,6 @@ fn add_nodes() {
         </c>"#,
         f_idx + 1,
         Some(b_idx),
-        true,
     );
 
     let c_idx = f_idx + 1;
@@ -566,7 +566,7 @@ fn add_nodes() {
             node_idx: c_idx,
             unresolved_path: None,
             original_path: make_path(["y", "z"]),
-            parents_with_changeable_children: vec![b_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx, c_idx]
         })
     );
     let referent = resolver.resolve(make_path(["y", "w"]), a_idx, false);
@@ -576,7 +576,7 @@ fn add_nodes() {
             node_idx: g_idx,
             unresolved_path: None,
             original_path: make_path(["y", "w"]),
-            parents_with_changeable_children: vec![b_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx, g_idx]
         })
     );
 
@@ -588,7 +588,7 @@ fn add_nodes() {
             node_idx: b_idx,
             unresolved_path: None,
             original_path: make_path(["y"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
     let referent = resolver.resolve(make_path(["q"]), g_idx, false);
@@ -598,7 +598,7 @@ fn add_nodes() {
             node_idx: f_idx,
             unresolved_path: None,
             original_path: make_path(["q"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![g_idx, f_idx]
         })
     );
 }
@@ -616,12 +616,8 @@ fn add_nodes_does_not_make_previous_resolution_ambiguous() {
     let b_idx = find(&flat_root, "b").unwrap();
     let d_idx = find(&flat_root, "d").unwrap();
 
-    let flat_fragment = flat_fragment_from_str(
-        r#"<c name="y" />"<e name="z" />"#,
-        d_idx + 1,
-        Some(a_idx),
-        true,
-    );
+    let flat_fragment =
+        flat_fragment_from_str(r#"<c name="y" />"<e name="z" />"#, d_idx + 1, Some(a_idx));
 
     let e_idx = d_idx + 2;
 
@@ -636,7 +632,7 @@ fn add_nodes_does_not_make_previous_resolution_ambiguous() {
             node_idx: b_idx,
             unresolved_path: None,
             original_path: make_path(["x", "y"]),
-            parents_with_changeable_children: vec![a_idx]
+            nodes_in_resolved_path: vec![d_idx, a_idx, b_idx]
         })
     );
 
@@ -648,7 +644,7 @@ fn add_nodes_does_not_make_previous_resolution_ambiguous() {
             node_idx: e_idx,
             unresolved_path: None,
             original_path: make_path(["x", "z"]),
-            parents_with_changeable_children: vec![a_idx]
+            nodes_in_resolved_path: vec![d_idx, a_idx, e_idx]
         })
     );
 }
@@ -672,7 +668,6 @@ fn add_nodes_with_index_resolutions() {
     <group><c name="z" /></group>"#,
         f_idx + 1,
         Some(s_idx),
-        true,
     );
 
     let g1_idx = f_idx + 1;
@@ -705,7 +700,7 @@ fn add_nodes_with_index_resolutions() {
             node_idx: b_idx,
             unresolved_path: None,
             original_path: path,
-            parents_with_changeable_children: vec![s_idx]
+            nodes_in_resolved_path: vec![a_idx, s_idx, g1_idx, b_idx]
         })
     );
 
@@ -730,7 +725,7 @@ fn add_nodes_with_index_resolutions() {
             node_idx: c_idx,
             unresolved_path: None,
             original_path: path,
-            parents_with_changeable_children: vec![s_idx]
+            nodes_in_resolved_path: vec![a_idx, s_idx, g2_idx, c_idx]
         })
     );
 
@@ -746,7 +741,7 @@ fn add_nodes_with_index_resolutions() {
             node_idx: g2_idx,
             unresolved_path: None,
             original_path: path,
-            parents_with_changeable_children: vec![s_idx]
+            nodes_in_resolved_path: vec![a_idx, s_idx, g2_idx]
         })
     );
 
@@ -767,7 +762,7 @@ fn add_nodes_with_index_resolutions() {
             node_idx: g1_idx,
             unresolved_path: None,
             original_path: path,
-            parents_with_changeable_children: vec![s_idx]
+            nodes_in_resolved_path: vec![a_idx, s_idx, g1_idx]
         })
     );
 }
@@ -790,7 +785,6 @@ fn add_nodes_with_no_parent() {
         </c>"#,
         f_idx + 1,
         None,
-        true,
     );
 
     let c_idx = f_idx + 1;
@@ -813,7 +807,7 @@ fn add_nodes_with_no_parent() {
             node_idx: g_idx,
             unresolved_path: None,
             original_path: make_path(["w"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![c_idx, g_idx]
         })
     );
 
@@ -844,7 +838,6 @@ fn delete_nodes() {
         </c>"#,
         f_idx + 1,
         Some(b_idx),
-        true,
     );
 
     let c_idx = f_idx + 1;
@@ -861,7 +854,7 @@ fn delete_nodes() {
             node_idx: c_idx,
             unresolved_path: None,
             original_path: make_path(["y", "z"]),
-            parents_with_changeable_children: vec![b_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx, c_idx]
         })
     );
 
@@ -872,7 +865,7 @@ fn delete_nodes() {
             node_idx: g_idx,
             unresolved_path: None,
             original_path: make_path(["y", "w"]),
-            parents_with_changeable_children: vec![b_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx, g_idx]
         })
     );
 
@@ -885,7 +878,7 @@ fn delete_nodes() {
             node_idx: c_idx,
             unresolved_path: None,
             original_path: make_path(["y", "z"]),
-            parents_with_changeable_children: vec![b_idx]
+            nodes_in_resolved_path: vec![a_idx, b_idx, c_idx]
         })
     );
 
@@ -896,7 +889,7 @@ fn delete_nodes() {
             node_idx: b_idx,
             unresolved_path: Some(make_path(["w"])),
             original_path: make_path(["y", "w"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![a_idx, b_idx]
         })
     );
 
@@ -910,7 +903,7 @@ fn delete_nodes() {
             node_idx: b_idx,
             unresolved_path: Some(make_path(["z"])),
             original_path: make_path(["y", "z"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![a_idx, b_idx]
         })
     );
     let referent = resolver.resolve(make_path(["y", "w"]), a_idx, false);
@@ -920,7 +913,7 @@ fn delete_nodes() {
             node_idx: b_idx,
             unresolved_path: Some(make_path(["w"])),
             original_path: make_path(["y", "w"]),
-            parents_with_changeable_children: vec![]
+            nodes_in_resolved_path: vec![a_idx, b_idx]
         })
     );
 }
@@ -975,7 +968,6 @@ mod test_helpers {
         str: &str,
         idx_to_id_shift: usize,
         parent_idx: Option<usize>,
-        has_changeable_children: bool,
     ) -> FlatFragment {
         let mut sub_tree_with_document = dast_root_no_position(str);
 
@@ -988,11 +980,6 @@ mod test_helpers {
             _ => unreachable!(),
         };
 
-        FlatFragment::from_dast_with_id_shift(
-            &sub_tree,
-            idx_to_id_shift,
-            parent_idx,
-            has_changeable_children,
-        )
+        FlatFragment::from_dast_with_id_shift(&sub_tree, idx_to_id_shift, parent_idx)
     }
 }

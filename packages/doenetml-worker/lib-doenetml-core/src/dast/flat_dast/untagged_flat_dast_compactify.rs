@@ -109,7 +109,7 @@ impl FlatNode {
                         });
                     });
                     resolution
-                        .parents_with_changeable_children
+                        .nodes_in_resolved_path
                         .iter_mut()
                         .for_each(|idx| *idx = ref_index_map[*idx]);
                 }
