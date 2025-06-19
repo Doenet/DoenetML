@@ -397,12 +397,12 @@ export default class Core {
         if (Object.keys(this.unmatchedChildren).length > 0) {
             for (const componentIdxStr in this.unmatchedChildren) {
                 let parent = this._components[componentIdxStr];
-                this.errorWarnings.warnings.push({
+                this.addErrorWarning({
+                    type: "warning",
                     message: this.unmatchedChildren[componentIdxStr].message,
                     level: 1,
                     position: parent.position,
                 });
-                this.newErrorWarning = true;
             }
         }
 
@@ -468,6 +468,26 @@ export default class Core {
         return { errorWarnings: this.errorWarnings };
     }
 
+    addErrorWarning({ type, message, position, level }) {
+        if (type === "warning") {
+            this.errorWarnings.warnings.push({
+                type,
+                message,
+                position,
+                level,
+            });
+        } else if (type === "error") {
+            this.errorWarnings.errors.push({
+                type,
+                message,
+                position,
+            });
+        } else {
+            throw Error("Invalid error or warning: type not specified");
+        }
+        this.newErrorWarning = true;
+    }
+
     async addComponents({
         serializedComponents,
         parentIdx,
@@ -485,11 +505,11 @@ export default class Core {
         if (!initialAdd) {
             parent = this._components[parentIdx];
             if (!parent) {
-                this.errorWarnings.warnings.push({
+                this.addErrorWarning({
+                    type: "warning",
                     message: `Cannot add children to parent ${parentIdx} as ${parentIdx} does not exist`,
                     level: 1,
                 });
-                this.newErrorWarning = true;
                 return [];
             }
 
@@ -1671,9 +1691,8 @@ export default class Core {
 
         if (serializedComponent.componentType === "_error") {
             lastErrorMessage = serializedComponent.state.message;
-            this.newErrorWarning = true;
 
-            this.errorWarnings.errors.push({
+            this.addErrorWarning({
                 type: "error",
                 message: serializedComponent.state.message,
                 position: serializedComponent.position,
@@ -2765,13 +2784,17 @@ export default class Core {
         assignDoenetMLRange(errors, position);
         assignDoenetMLRange(warnings, position);
 
-        if (errors.length > 0) {
-            this.errorWarnings.errors.push(...errors);
-            this.newErrorWarning = true;
+        for (const error of errors) {
+            this.addErrorWarning({
+                ...error,
+                type: "error",
+            });
         }
-        if (warnings.length > 0) {
-            this.errorWarnings.warnings.push(...warnings);
-            this.newErrorWarning = true;
+        for (const warning of warnings) {
+            this.addErrorWarning({
+                ...warning,
+                type: "warning",
+            });
         }
     }
 
@@ -3026,7 +3049,8 @@ export default class Core {
                         position: compositeMediatingTheShadow.position,
                     },
                 ];
-                this.errorWarnings.errors.push({
+                this.addErrorWarning({
+                    type: "error",
                     message,
                     position: compositeMediatingTheShadow.position,
                 });
@@ -3094,16 +3118,19 @@ export default class Core {
                 },
             );
 
-            if (verificationResult.errors.length > 0) {
-                this.errorWarnings.errors.push(...verificationResult.errors);
-                this.newErrorWarning = true;
+            for (const error of verificationResult.errors) {
+                this.addErrorWarning({
+                    ...error,
+                    type: "error",
+                });
             }
-            if (verificationResult.warnings.length > 0) {
-                this.errorWarnings.warnings.push(
-                    ...verificationResult.warnings,
-                );
-                this.newErrorWarning = true;
+            for (const warning of verificationResult.warnings) {
+                this.addErrorWarning({
+                    ...warning,
+                    type: "warning",
+                });
             }
+
             newNComponents = verificationResult.nComponents;
 
             serializedReplacements = verificationResult.replacements;
@@ -6774,23 +6801,23 @@ export default class Core {
                     varName,
                 );
             } else {
-                this.errorWarnings.warnings.push({
+                this.addErrorWarning({
+                    type: "warning",
                     message: `Cannot get propIndex from ${varName} of ${component.componentIdx} as it is not an array or array entry state variable`,
                     level: 1,
                     position: component.position,
                 });
-                this.newErrorWarning = true;
                 newName = varName;
             }
             if (newName) {
                 newVarNames.push(newName);
             } else {
-                this.errorWarnings.warnings.push({
+                this.addErrorWarning({
+                    type: "warning",
                     message: `Cannot get propIndex from ${varName} of ${component.componentIdx}`,
                     level: 1,
                     position: component.position,
                 });
-                this.newErrorWarning = true;
                 newVarNames.push(varName);
             }
         }
@@ -7672,13 +7699,14 @@ export default class Core {
             }
         }
 
-        if (result.sendWarnings && result.sendWarnings.length > 0) {
+        if (result.sendWarnings) {
             for (let warning of result.sendWarnings) {
-                warning.position = component.position;
-                this.errorWarnings.warnings.push(warning);
+                this.addErrorWarning({
+                    type: "warning",
+                    position: component.position,
+                    ...warning,
+                });
             }
-
-            this.newErrorWarning = true;
         }
 
         for (let varName in receivedValue) {
@@ -10038,8 +10066,8 @@ export default class Core {
     async setErrorReplacements({ composite, message }) {
         // display error for replacements and set composite to error state
 
-        this.newErrorWarning = true;
-        this.errorWarnings.errors.push({
+        this.addErrorWarning({
+            type: "error",
             message,
             position: composite.position,
         });
@@ -10807,12 +10835,12 @@ export default class Core {
         }
 
         if (component) {
-            this.errorWarnings.warnings.push({
+            this.addErrorWarning({
+                type: "warning",
                 message: `Cannot run action ${actionName} on component ${componentIdx}`,
                 level: 1,
                 position: component.position,
             });
-            this.newErrorWarning = true;
         }
 
         return {};
@@ -10996,9 +11024,13 @@ export default class Core {
         skipRendererUpdate = false,
         sourceInformation = {},
     }) {
-        if (warnings && warnings.length > 0) {
-            this.errorWarnings.warnings.push(...warnings);
-            this.newErrorWarning = true;
+        if (warnings) {
+            for (let warning of warnings) {
+                this.addErrorWarning({
+                    type: "warning",
+                    ...warning,
+                });
+            }
         }
 
         if (this.flags.readOnly && !overrideReadOnly) {
@@ -11081,11 +11113,11 @@ export default class Core {
                         if (component) {
                             componentsToDelete.push(component);
                         } else {
-                            this.errorWarnings.warnings.push({
+                            this.addErrorWarning({
+                                type: "warning",
                                 message: `Cannot delete ${componentIdx} as it doesn't exist.`,
                                 level: 2,
                             });
-                            this.newErrorWarning = true;
                         }
                     }
 
@@ -11697,22 +11729,22 @@ export default class Core {
                         }
                     }
 
-                    this.errorWarnings.warnings.push({
+                    this.addErrorWarning({
+                        type: "warning",
                         message: `can't update state variable ${vName} of component ${cIdx}, as it doesn't exist.`,
                         level: 2,
                         position: this._components[cIdx].position,
                     });
-                    this.newErrorWarning = true;
                     continue;
                 }
 
                 if (!compStateObj.hasEssential) {
-                    this.errorWarnings.warnings.push({
+                    this.addErrorWarning({
+                        type: "warning",
                         message: `can't update state variable ${vName} of component ${cIdx}, as it does not have an essential state variable.`,
                         level: 2,
                         position: this._components[cIdx].position,
                     });
-                    this.newErrorWarning = true;
                     continue;
                 }
 
@@ -11803,12 +11835,12 @@ export default class Core {
                     // don't have array
 
                     if (!compStateObj.hasEssential) {
-                        this.errorWarnings.warnings.push({
+                        this.addErrorWarning({
+                            type: "warning",
                             message: `can't update state variable ${vName} of component ${cIdx}, as it does not have an essential state variable.`,
                             level: 2,
                             position: this._components[cIdx].position,
                         });
-                        this.newErrorWarning = true;
                         continue;
                     }
 
@@ -12004,12 +12036,12 @@ export default class Core {
                         varName2,
                     )
                 ) {
-                    this.errorWarnings.warnings.push({
+                    this.addErrorWarning({
+                        type: "warning",
                         message: `Can't invert ${varName2} at the same time as ${stateVariable}, as not an additional state variable defined`,
                         level: 2,
                         position: component.position,
                     });
-                    this.newErrorWarning = true;
                     continue;
                 }
                 // Note: don't check if varName2 is an array
@@ -12020,12 +12052,12 @@ export default class Core {
         }
 
         if (!stateVarObj.inverseDefinition) {
-            this.errorWarnings.warnings.push({
+            this.addErrorWarning({
+                type: "warning",
                 message: `Cannot change state variable ${stateVariable} of ${component.componentIdx} as it doesn't have an inverse definition`,
                 level: 2,
                 position: component.position,
             });
-            this.newErrorWarning = true;
             return;
         }
 
@@ -12034,12 +12066,12 @@ export default class Core {
             !stateVarObj.ignoreFixed &&
             (await component.stateValues.fixed)
         ) {
-            this.errorWarnings.warnings.push({
+            this.addErrorWarning({
+                type: "warning",
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixed is true.`,
                 level: 2,
                 position: component.position,
             });
-            this.newErrorWarning = true;
             return;
         }
 
@@ -12048,12 +12080,12 @@ export default class Core {
             stateVarObj.isLocation &&
             (await component.stateValues.fixLocation)
         ) {
-            this.errorWarnings.warnings.push({
+            this.addErrorWarning({
+                type: "warning",
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation is true.`,
                 level: 2,
                 position: component.position,
             });
-            this.newErrorWarning = true;
             return;
         }
 
@@ -12063,12 +12095,12 @@ export default class Core {
                 (await component.stateValues.modifyIndirectly) !== false
             )
         ) {
-            this.errorWarnings.warnings.push({
+            this.addErrorWarning({
+                type: "warning",
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because modifyIndirectly is false.`,
                 level: 2,
                 position: component.position,
             });
-            this.newErrorWarning = true;
             return;
         }
 
@@ -12076,16 +12108,14 @@ export default class Core {
             inverseDefinitionArgs,
         );
 
-        if (
-            inverseResult.sendWarnings &&
-            inverseResult.sendWarnings.length > 0
-        ) {
+        if (inverseResult.sendWarnings) {
             for (let warning of inverseResult.sendWarnings) {
-                warning.position = component.position;
-                this.errorWarnings.warnings.push(warning);
+                this.addErrorWarning({
+                    type: "warning",
+                    position: component.position,
+                    ...warning,
+                });
             }
-
-            this.newErrorWarning = true;
         }
 
         if (!inverseResult.success) {
@@ -12403,12 +12433,12 @@ export default class Core {
                             !stateVarObj.ignoreFixed &&
                             (await baseComponent.stateValues.fixed)
                         ) {
-                            this.errorWarnings.warnings.push({
+                            this.addErrorWarning({
+                                type: "warning",
                                 message: `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixed is true.`,
                                 level: 2,
                                 position: baseComponent.position,
                             });
-                            this.newErrorWarning = true;
                             return;
                         }
 
@@ -12418,12 +12448,12 @@ export default class Core {
                             !stateVarObj.isLocation &&
                             (await baseComponent.stateValues.fixLocation)
                         ) {
-                            this.errorWarnings.warnings.push({
+                            this.addErrorWarning({
+                                type: "warning",
                                 message: `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixLocation is true.`,
                                 level: 2,
                                 position: baseComponent.position,
                             });
-                            this.newErrorWarning = true;
                             return;
                         }
                     }
@@ -12642,13 +12672,13 @@ export default class Core {
                                     dep2.downstreamComponentIndices.length === 1
                                 )
                             ) {
-                                this.errorWarnings.warnings.push({
+                                this.addErrorWarning({
+                                    type: "warning",
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it isn't a state variable`,
                                     level: 2,
                                     position:
                                         this.components[dComponentIdx].position,
                                 });
-                                this.newErrorWarning = true;
                                 continue;
                             }
 
@@ -12662,13 +12692,13 @@ export default class Core {
                                     varName2,
                                 )
                             ) {
-                                this.errorWarnings.warnings.push({
+                                this.addErrorWarning({
+                                    type: "warning",
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it doesn't correspond to additional state variable defined of ${dependencyName}'s state variable`,
                                     level: 2,
                                     position:
                                         this.components[dComponentIdx].position,
                                 });
-                                this.newErrorWarning = true;
                                 continue;
                             }
                             if (!inst.additionalStateVariableValues) {
