@@ -717,3 +717,91 @@ fn compactify_shifts_refs_in_path_parts() {
         )
     );
 }
+
+#[test]
+fn compactify_index_in_extend() {
+    let dast_root =
+        dast_root_no_position(r#"<number name="n"/><math name="m"/><math extend="$m[$n]" />"#);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+    flat_root.compactify(None);
+
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+          {
+            "type": "flatRoot",
+            "children": [0],
+            "nodes": [
+              {
+                "type": "element",
+                "name": "document",
+                "children": [1, 2, 3],
+                "attributes": [],
+                "idx": 0
+              },
+              {
+                "type": "element",
+                "name": "number",
+                "parent": 0,
+                "children": [],
+                "attributes": [
+                  {
+                    "type": "attribute",
+                    "name": "name",
+                    "parent": 1,
+                    "children": ["n"]
+                  }
+                ],
+                "idx": 1
+              },
+              {
+                "type": "element",
+                "name": "math",
+                "parent": 0,
+                "children": [],
+                "attributes": [
+                  {
+                    "type": "attribute",
+                    "name": "name",
+                    "parent": 2,
+                    "children": ["m"]
+                  }
+                ],
+                "idx": 2,
+              },
+              {
+                "type": "element",
+                "name": "math",
+                "parent": 0,
+                "children": [],
+                "attributes": [],
+                "idx": 3,
+                "extending": {
+                  "ExtendAttribute": {
+                    "nodeIdx": 2,
+                    "unresolvedPath": [{ "type": "flatPathPart", "name": "", "index": [{ "value": [4] }] }],
+                    "originalPath": [{ "type": "flatPathPart", "name": "m", "index": [{ "value": [4] }] }],
+                  }
+                }
+              },
+              {
+                "type": "element",
+                "name": "number",
+                "parent": 3,
+                "children": [],
+                "attributes": [],
+                "idx": 4,
+                "extending": {
+                  "Ref": {
+                    "nodeIdx": 1,
+                    "unresolvedPath": null,
+                    "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }],
+                  }
+                }
+              },
+            ]
+          }
+        )
+    );
+}
