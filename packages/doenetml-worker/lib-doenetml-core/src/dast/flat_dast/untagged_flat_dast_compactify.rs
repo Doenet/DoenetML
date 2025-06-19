@@ -204,12 +204,10 @@ impl FlatRoot {
                         parent = self.nodes[parent.unwrap()].parent();
                     }
                     // if a removed element doesn't have a parent, set it to the document root
-                    parent.unwrap_or_default()
+                    old_to_new_indices_prelim[parent.unwrap_or_default()]
                 }
             })
             .collect::<Vec<_>>();
-
-        self.nodes.retain(|node| is_referenced[node.idx()]);
 
         self.nodes.retain(|node| is_referenced[node.idx()]);
 
