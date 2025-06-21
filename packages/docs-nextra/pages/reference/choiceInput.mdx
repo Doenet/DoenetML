@@ -1,0 +1,415 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <choiceInput>{:dn}`
+
+` <choiceInput>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types) 
+component that defines a block of code for multiple choice questions.
+It serves as a container element for the individual 
+` <choice>{:dn}` components that are nested within.
+
+## Attributes and Properties 
+ <AttrDisplay name='choiceInput'/> 
+ <PropDisplay name='choiceInput'/>
+
+
+---
+
+### Example: ` <choiceInput>{:dn}` for survey question
+
+
+```doenet-example
+<choiceInput>
+  <choice>Agree</choice>
+  <choice>Neutral</choice>
+  <choice>Disagree</choice>
+</choiceInput>
+```
+
+
+
+A ` <choiceInput>{:dn}` is used to collect user responses that do not require validation.
+
+
+
+---
+
+### Example: ` <choiceInput>{:dn}` in ` <answer>{:dn}`
+
+
+```doenet-example
+<answer>
+  <choiceInput>
+    <choice credit="1">This is correct.</choice>
+    <choice credit="0.5">This is partially correct.</choice>
+    <choice>This is all the way wrong.</choice>
+  </choiceInput>
+</answer> 
+```
+
+
+
+A ` <choiceInput>{:dn}` can be nested within an ` <answer>{:dn}` to 
+collect user responses with validation.
+
+
+
+---
+
+### Example: ` <choiceInput>{:dn}` as a menu
+
+
+```doenet-editor-horiz
+<choiceInput name="menu" inline>
+  <choice>Line</choice>
+  <choice>Rectangle</choice>
+  <choice>Circle</choice>
+</choiceInput>
+
+<graph size="small">
+
+<conditionalContent>
+  <case condition="$menu.selectedIndices=1">
+    <line>y = 2x + 1</line>
+  </case>
+  <case condition="$menu.selectedIndices=2">
+    <rectangle width="3" height="5"/>
+  </case>
+  <case condition="$menu.selectedIndices=3">
+    <circle radius="4"/>
+  </case>
+</conditionalContent>
+
+</graph>
+```
+
+
+
+A ` <choiceInput>{:dn}` can be used in combination 
+with ` <conditionalContent>{:dn}` to create a simple menu.
+
+
+
+---
+
+### Attribute Example: selectMultiple
+
+
+```doenet-example
+<choiceInput selectMultiple>
+    <choice>Red</choice>
+    <choice>Purple</choice>
+    <choice>Blue</choice>
+    <choice>Yellow</choice>
+  </choiceInput>
+```
+
+
+
+The `selectMultiple` allows users to select multiple ` <choice>{:dn}` 
+components in a ` <choiceInput>{:dn}`. 
+
+
+
+---
+
+### Attribute Example: matchPartial
+
+
+```doenet-example
+<p>What colors combine to make green?</p>
+  <answer>
+  <choiceInput selectMultiple matchPartial>
+    <choice>Red</choice>
+    <choice>Purple</choice>
+    <choice credit="1">Blue</choice>
+    <choice credit="1">Yellow</choice>
+  </choiceInput>
+  </answer>
+```
+
+
+
+If an ` <answer>{:dn}` requires more than one ` <choice>{:dn}` selection 
+for full credit, the `matchPartial` attribute can be used to 
+assign partial credit if one or more of the total number of correct 
+choices are selected within a ` <choiceInput>{:dn}`.
+
+
+
+---
+
+### Attribute Example: inline
+
+
+```doenet-example
+<choiceInput inline>
+  <choice>A</choice>
+  <choice>B</choice>
+  <choice>C</choice>
+</choiceInput>
+```
+
+The `inline` attribute provides a pull-down menu for ` <choice>{:dn}` 
+selection rather than the default radio buttons.
+
+
+---
+
+### Attribute Example: shuffleOrder
+
+
+```doenet-example
+<choiceInput shuffleOrder>
+  <choice>A</choice>
+  <choice>B</choice>
+  <choice>C</choice>
+  <choice>D</choice>
+  <choice>E</choice>
+</choiceInput>
+```
+
+With the `shuffleOrder` attribute, the sequenceing of the choices is 
+different for each page variant.
+
+---
+
+### Attribute Example: preselectChoice
+
+
+```doenet-example
+<choiceInput preselectChoice="2">
+  <choice>A</choice>
+  <choice>B</choice>
+  <choice>C</choice>
+</choiceInput>
+```
+
+The `preselectChoice` attributes takes the index of the choice to preselect.
+
+---
+
+### Attribute Example: bindValueTo
+
+
+```doenet-example
+<slider name="m" from="1" to="4"/>
+<choiceInput bindValueTo="$m">
+  <choice>1</choice>
+  <choice>2</choice>
+  <choice>3</choice>
+  <choice>4</choice>
+</choiceInput>
+```
+
+The ` <bindValueTo>{:dn}` takes a named component as input. The 
+value of the ` <choiceInput>{:dn}` then becomes linked to that component's value.
+
+---
+
+### Attribute Example: submitLabel
+
+
+```doenet-example
+Guess my age: <answer>
+<choiceInput submitLabel="Enter guess">
+  <choice>0 - 10 years</choice>
+  <choice>10 - 20 years</choice>
+  <choice credit="1">20 - 200 years</choice>
+</choiceInput>
+</answer>      
+```
+
+The `submitLabel` attribute can be used to create a custom label for the "Check Work" button.
+
+---
+
+### Attribute Example: submitLabelNoCorrectness
+
+
+```doenet-example
+<p>What's the magic number?</p>
+<answer showCorrectness="false">
+<choiceInput submitLabelNoCorrectness="Guess Magic Number">
+  <choice><m>\pi</m></choice>
+  <choice>100</choice>
+  <choice credit="1">42</choice>
+</choiceInput>
+</answer> 
+```
+
+
+
+The `submitLabelNoCorrectness` attribute modifies the standard 
+"Submit Response" button label for answers where it is not desired to show correctness.
+
+
+
+---
+
+### Property Example: numChoices
+
+
+```doenet-editor-horiz
+<choiceInput name="question1">
+  <choice>A</choice>
+  <choice>B</choice>
+  <choice>C</choice>
+</choiceInput>
+
+<p><c>numChoices</c> = 
+  $question1.numChoices
+</p>
+```
+
+
+
+The `numChoices` property returns the number of nested ` <choice>{:dn}` 
+children in the named ` <choiceInput>{:dn}`.
+
+
+
+---
+
+### Property Example: choiceTexts
+
+
+```doenet-editor-horiz
+<choiceInput name="question1">
+  <choice>A</choice>
+  <choice>B</choice>
+  <choice>C</choice>
+</choiceInput>
+
+<p><c>choiceTexts</c> = 
+  $question1.choiceTexts
+</p>
+
+<p><c>choiceTexts[2]</c> = 
+  $question1.choiceTexts[2]
+</p>
+```
+
+
+
+The `choiceTexts` property renders the texts contained in the ` <choiceInput>{:dn}` in an array.
+
+
+
+---
+
+### Property Example: choiceMaths
+
+
+```doenet-editor-horiz
+<choiceInput name="question1">
+  <choice><math>x^2</math></choice>
+  <choice><math>2x</math></choice>
+  <choice><math>sqrt(x)</math></choice>
+</choiceInput>
+
+<p><c>choiceMaths</c> = 
+  $question1.choiceMaths
+</p>
+
+<p><c>choiceMaths[2]</c> = 
+  $question1.choiceMaths[2]
+</p>
+```
+
+
+
+The `choiceMaths` property renders the maths contained in the ` <choiceInput>{:dn}` in an array.
+
+
+
+---
+
+### Property Example: selectedIndices
+
+
+```doenet-editor-horiz
+<p>Choose 2:</p>
+<choiceInput name="question1" selectMultiple>
+  <choice><math>x^2</math></choice>
+  <choice><math>2x</math></choice>
+  <choice><math>sqrt(x)</math></choice>
+</choiceInput>
+
+<p><c>selectedIndices</c> = 
+  $question1.selectedIndices
+</p>
+
+<p><c>selectedIndices[2]</c> = 
+  $question1.selectedIndices[2]
+</p>
+```
+
+
+
+The `selectedIndices` property renders an array of the indices of all choices selected by the user.
+
+
+
+---
+
+### Property Example: selectedValues
+
+
+```doenet-editor-horiz
+<p>Choose 2:</p>
+<choiceInput name="question1" selectMultiple>
+  <choice>A</choice>
+  <choice>B</choice>
+  <choice>C</choice>
+</choiceInput>
+
+<p><c>selectedValues</c> = 
+  $question1.selectedValues
+</p>
+
+<p><c>selectedValues[2]</c> = 
+  $question1.selectedValues[2]
+</p>
+```
+
+
+
+The `selectedValues` property renders an array of the values contained 
+in all of the choices selected by the user.
+
+
+
+---
+
+### Property Example: feedbacks
+
+
+```doenet-editor-horiz
+<p>Choose 2:</p>
+
+<answer numAwardsCredited="2" matchPartial>
+<choiceInput name="question1" selectMultiple>
+  <choice feedbackText="A is a bad choice">
+    A
+  </choice>
+  <choice feedbackText="B is a good choice" credit="1">
+    B
+  </choice>
+  <choice feedbackText="C is a good choice" credit="1">
+    C
+  </choice>
+</choiceInput>
+</answer>
+
+<p><c>feedbacks</c> = 
+  $question1.feedbacks
+</p>
+```
+
+The `feedbacks` property should be copied in the document at the 
+location where feedback should appear based on the specified interactions.
+
+

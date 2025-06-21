@@ -1,0 +1,139 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <award>{:dn}`
+
+## Property Examples
+
+
+The following examples illustrate use of the ` <award>{:dn}` tag properties.  
+
+---
+
+### Property Example: Attributes as Properties
+```doenet-editor-horiz
+Enter <m>x + y</m>: 
+<answer>
+  <award name="aw" symbolicEquality simplifyOnCompare feedbackText="correct!">x + y</award>
+</answer>
+<p><c>credit</c> = $aw.credit</p>
+<p><c>matchPartial</c> = $aw.matchPartial</p>
+<p><c>symbolicEquality</c> = $aw.symbolicEquality</p>
+<p><c>simplifyOnCompare</c> = $aw.simplifyOnCompare</p>
+<p><c>expandOnCompare</c> = $aw.expandOnCompare</p>
+<p><c>unorderedCompare</c> = $aw.unorderedCompare</p>
+<p><c>matchByExactPositions</c> = $aw.matchByExactPositions</p>
+<p><c>allowedErrorInNumbers</c> = $aw.allowedErrorInNumbers</p>
+<p><c>allowedErrorIsAbsolute</c> = $aw.allowedErrorIsAbsolute</p>
+<p><c>numSignErrorsMatched</c> = $aw.numSignErrorsMatched</p>
+<p><c>numPeriodicSetMatchesRequired</c> = $aw.numPeriodicSetMatchesRequired</p>
+<p><c>caseInsensitiveMatch</c> = $aw.caseInsensitiveMatch</p>
+<p><c>matchBlanks</c> = $aw.matchBlanks</p>
+<p><c>feedbackText</c> = $aw.feedbackText</p>
+```
+
+The `<award>{:dn}` attributes listed above are also accessible as properties.
+
+---
+
+### Property Example: creditAchieved
+```doenet-example
+      <p>Enter a number larger than 1.  (Partial credit for number larger than 0.)
+        <answer>
+          <mathInput name="input" />
+          <award name="aw1"><when>$input > 1</when></award>
+          <award credit="0.5" name="aw2"><when>$input > 0</when></award>
+        </answer>
+      </p>
+
+      <p>Credit achieved from first award: $aw1.creditAchieved</p>
+      <p>Credit achieved from second award: $aw2.creditAchieved</p>
+```
+
+
+
+The `creditAchieved` property of the named ` <award>{:dn}` renders the credit that award could earn.
+
+
+
+---
+
+### Property Example: fractionSatisfied
+
+
+```doenet-example
+      <p>Enter a number larger than 1.  (Partial credit for number larger than 0.)
+        <answer>
+          <mathInput name="input" />
+          <award name="aw1"><when>$input > 1</when></award>
+          <award credit="0.5" name="aw2"><when>$input > 0</when></award>
+        </answer>
+      </p>
+      <p>Fraction satisified for first award: $aw1.fractionSatisfied</p>
+      <p>Fraction satisified for second award: $aw2.fractionSatisfied</p>
+```
+
+
+
+The `fractionSatisfied` property of the named ` <award>{:dn}` ignores the `credit` 
+attribute of the award indicates the fraction of its conditions are satisified.
+
+
+
+---
+
+### Property Example: awarded
+
+
+```doenet-example
+      <p><em>For the following question, first enter <m>\frac{4}{8}</m> and then <m>\frac{1}{2}</m>.</em></p>
+      <p>Question: Simplify <m>\frac{8}{16}</m>
+      <answer symbolicEquality>
+        <award name="right">1/2</award>
+        <award name="notFully" credit="0">4/8</award>
+      </answer>
+      </p>
+
+      <feedback condition="$right.awarded">You got it!</feedback>
+      <feedback condition="$notFully">Simplify further.</feedback>
+```
+
+
+
+The `awarded` property of an ` <award>{:dn}` is true when the answer is submitted and 
+the award was used to determine the credit achieved for the answer.  
+Typically (unless the answer attribute `numAwardsCredited` was specified), at 
+most a single `` <award>{:dn}`` will be awarded -- the matched award with the largest credit.
+
+
+A common use for `awarded` is to base feedback on particular answers.  It's so 
+common that we allow a shortcut to just use the name of award in a 
+macro (see the use of `$notFully` in this example).
+
+
+
+---
+
+### Property Example: feedbacks
+```doenet-example
+    <p>The correct answer is <m>x</m> but <m>y</m> is close.</p>
+    <answer name="ans">
+      <award name="aw1" feedbackText="good job!">x</award>
+      <award name="aw2" credit="0.5" feedbackText="Not quite">y</award>
+    </answer>
+
+    <p>Feedbacks from first award:</p>
+    $aw1.feedbacks
+
+    <p>Feedbacks from second award:</p>
+    $aw2.feedbacks
+```
+
+
+
+The `feedbacks` property renders any feedback that is defined within 
+the ` <answer>{:dn}` itself.  To specify more customized feedback, use a ` <feedback>{:dn}` tag.
+
+

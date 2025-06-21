@@ -1,0 +1,140 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <evaluate/>{:dn}`
+
+` <evaluate>{:dn}` renders the result of a [` <function>{:dn}`](function.mdx) evaluated at a specified `input` parameter or parameters.
+
+## Attributes and Properties 
+ <AttrDisplay name='evaluate'/> 
+ <PropDisplay name='evaluate'/>
+
+
+---
+
+### Example: ` <evaluate>{:dn}` a function at a user-input
+
+
+```doenet-editor-horiz
+<p><m>f(x) = </m> <function name="f">x^2 + 1</function></p>
+<p>Enter an input value: <mathInput name="xUser"/></p>
+<p><m>f($xUser) = </m>
+  <evaluate function="$f" input="$xUser"/></p>      
+```
+
+
+
+The two requried attributes for the ` <evaluate>{:dn}` component are `function` and `input`.
+
+
+
+---
+
+### Example: ` <evaluate>{:dn}`  - the shortcut
+
+
+```doenet-editor-horiz
+<p><m>f(x) = </m> <function name="f">x^2 + 1</function></p>
+<p>Enter an input value: <mathInput name="xUser"/></p>
+<p><m>f($xUser) = </m>
+  <evaluate function="$f" input="$xUser"/></p> 
+<p><m>f($xUser) = </m>
+  $$f($xUser)</p>
+```
+
+
+
+The shortcut macro for the evaluate component is `$&dollar;function(input)`.
+
+
+
+---
+
+### Example: function
+
+
+```doenet-editor-horiz
+<function name="g">sin(x)</function>
+<p><m>g(\frac{\pi}{3})</m> = <evaluate function="$g" input="pi/3"/></p>     
+```
+
+
+
+The `function` attribute specifies a target function to evaluate.
+
+
+
+---
+
+### Example: input
+
+
+```doenet-editor-horiz
+<function name="h">e^x</function>
+<p><m>h(y)</m> = <evaluate function="$h" input="y"/></p>  
+```
+
+
+
+The `input` attribute specifies an input at which to evaluate the function.
+
+
+
+---
+
+### Example: forceNumeric
+
+
+```doenet-editor-horiz
+<function name="g">sin(x)</function>
+<p><m>g(\frac{\pi}{3})</m> = <evaluate function="$g" input="pi/3" forceNumeric/></p> 
+```
+
+
+
+The `forceNumeric` attribute forces a numerical evaluation of the function.
+
+
+
+---
+
+### Example: forceSymbolic *
+
+
+```doenet-editor-horiz
+```
+
+
+
+
+
+
+
+---
+
+### Example: unordered *
+
+
+```doenet-editor-horiz
+```
+
+
+
+
+
+
+
+---
+
+### Example: formula *
+
+
+```doenet-editor-horiz
+```
+
+
+
+
+

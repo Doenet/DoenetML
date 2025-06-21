@@ -1,0 +1,74 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <customAttribute>{:dn}`
+
+` <customAttribute>{:dn}` is used within a ` <module>{:dn}` to specify additional doenetML attributes that can be specified unique to that ` <module>{:dn}`.
+
+## Attributes and Properties 
+ <AttrDisplay name='customAttribute'/> 
+ <PropDisplay name='customAttribute'/>
+
+
+---
+
+### Example: A circle-drawing module with a ` <customAttribute>{:dn}`
+
+
+```doenet-editor-horiz
+<module name="drawCircle">
+
+  <customAttribute attribute="diameter" 
+    componentType="math" defaultValue="2" 
+    assignNames="d"/>
+
+  <circle radius="$d/2"/>
+</module>
+<graph size="small">
+  <copy source="drawCircle"/>
+  <copy source="drawCircle" diameter="6"/>
+</graph>
+```
+
+
+
+A ` <customAttribute>{:dn}` is used within a circle-drawing ` <module>{:dn}` to define an attribute which specifies the diameter of a ` <circle>{:dn}`.
+
+
+
+---
+
+### Example: A random point-generating ` <module>{:dn}` with ` <customAttribute>{:dn}`
+
+
+```doenet-editor-horiz
+<module name="randomPoints">
+
+  <customAttribute attribute="numPoints"
+    componentType="number" defaultValue="3"
+    assignNames="numPoints"/>
+
+<map name="pointMap">
+  <template>
+    <point>
+    (<sampleRandomNumbers from="-9" to="9"/>,
+    <sampleRandomNumbers from="-9" to="9"/>)</point>
+  </template>
+  <sources><sequence from="1" to="$numPoints"/></sources>
+</map>
+</module>
+<graph size="small">
+  <copy source="randomPoints"/>
+</graph>
+<graph size="small">
+  <copy source="randomPoints" numPoints="10" />
+</graph>
+```
+
+
+
+A ` <customAttribute>{:dn}` is used within a random point-generating ` <module>{:dn}` to define an attribute which specifies the number of random points to generate.
+
+

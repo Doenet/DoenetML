@@ -1,0 +1,164 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <booleanInput>{:dn}`
+
+
+` <booleanInput>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
+component that renders a checkbox. If the box is checked by the user, Doenet 
+stores the boolean value `true` in the named ` <booleanInput>{:dn}`.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='booleanInput'/> 
+ <PropDisplay name='booleanInput'/>
+
+
+---
+
+### Example: ` <booleanInput>{:dn}` survey question
+```doenet-example
+<p>Click the box if you like chocolate: 
+  <booleanInput name="likesChocolate"/>
+</p>
+
+<p>The user likes chocolate: <alert>$likesChocolate</alert></p>
+```
+
+A `<booleanInput>{:dn}` component renders a checkbox whose value is 
+stored as `true` if the box is checked.
+
+---
+
+### Example: ` <booleanInput>{:dn}` to show/hide graph elements
+```doenet-example
+<graph grid="$showGrid" name="g">
+  <circle radius="5" center="(1,2)" hide="$hideCircle"/>
+
+  <booleanInput name="showGrid" anchor="(-7,7)">
+    <label>Show grid</label>
+  </booleanInput>
+
+  <booleanInput name="hideCircle" anchor="(-7,5)">
+    <label>Hide circle</label>
+  </booleanInput>
+</graph>
+```
+
+The ` <booleanInput>{:dn}` component can be used to provide user-control over the 
+values of attributes that accept a boolean, such as the `<graph>{:dn}` attribute grid, 
+and the general attribute hide available to all rendered components.
+
+
+---
+
+### Example: ` <booleanInput>{:dn}` with a label
+```doenet-example
+<booleanInput name="answeredYes">
+  <label>Check for yes</label>
+</booleanInput>
+
+<p>The user answered yes: <alert>$answeredYes</alert></p>
+```
+
+A `<label>{:dn}` child can be nested within a ` <booleanInput>{:dn}` to create a label.
+
+---
+
+### Attribute Example: prefill
+```doenet-example
+<p><booleanInput/></p>
+<p><booleanInput prefill="true"/></p>
+```
+
+The ` <booleanInput>{:dn}` component is false initially by default. 
+Use the `prefill` attribute set to true to reverse this behavior.
+
+---
+
+### Attribute Example: asToggleButton
+```doenet-editor-horiz
+<p>
+<booleanInput name="bool1">
+  <label>Check for yes</label>
+</booleanInput>
+  $bool1
+</p>
+
+<p>
+<booleanInput name="bool2" asToggleButton >
+  <label>Click for true</label>
+</booleanInput>
+  $bool2
+</p>
+```
+
+The `asToggleButton` attribute changes the default rendering format 
+from a checkbox to a toggle button.
+
+
+---
+
+### Attribute Example: labelIsName
+```doenet-example
+<booleanInput name="CheckMe" labelIsName/>
+```
+
+The `labelIsName` attribute can be used as a shortcut to adding a `<label>{:dn}` child.
+
+---
+
+### Attribute Example: bindValueTo
+```doenet-editor-horiz
+<booleanInput bindValueTo="$onBoolean" name="lightOn"/>
+<p hide="!$lightOn">ON</p>
+<p hide="$lightOn">OFF</p>
+
+Type ON if you want the light on, 
+(anything else will turn it off!)
+<textInput name="textOn"/>
+
+<boolean hide name="onBoolean">
+  $textOn = ON
+</boolean> 
+```
+
+A `<booleanInput>{:dn}` is used to simulate a light switch using the `bindValueTo` attribute. 
+The behavior of the `<booleanInput>{:dn}` checkbox is tied to the `<boolean>{:dn}`that is named 
+`onBoolean` within the `bindValueTo` specification. When the user's `<textInput/>{:dn}` has value ON, 
+the condition inside the `<boolean>{:dn}` becomes true, which in turn causes the `<booleanInput>{:dn}` to 
+take on the value true, and the checkbox, or "lightbulb" becomes checked.
+
+---
+
+### Property Example: value
+```doenet-example
+<booleanInput name="bi"/>
+<p><c>value</c> = $bi.value</p>
+```
+
+The value property of a named `<booleanInput>{:dn}` returns its value of true or false.
+
+---
+
+### Property Example: text
+```doenet-example
+<booleanInput name="bi"/>
+<p><c>text</c> = $bi.text</p>
+```
+
+The text property of a named `<booleanInput>{:dn}` returns the text value of true or false.
+
+---
+
+### Property Example: Attributes as properties
+```doenet-editor-horiz
+<booleanInput name="CheckMe" prefill="true" asToggleButton labelIsName/>
+<p><c>prefill</c> = $CheckMe.prefill</p>
+<p><c>asToggleButton</c> = $CheckMe.asToggleButton</p>
+<p><c>labelIsName</c> = $CheckMe.labelIsName</p>
+<p><c>label</c> = $CheckMe.label</p>
+```
+
+The above listed attributes of a `<booleanInput>{:dn}` are also available as properties.

@@ -1,0 +1,133 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <attractTo>{:dn}`
+
+` <attractTo>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) component that 
+is used to within a ` <point>{:dn}` to attract it to a specified reference component. This component must be
+nested within a [` <constraints>{:dn}`](constraints.mdx) block. 
+
+## Attributes and Properties 
+ <AttrDisplay name='attractTo'/> 
+ <PropDisplay name='attractTo'/>
+
+
+---
+
+### Example: Attract a ` <point>{:dn}` to a ` <circle>{:dn}`
+```doenet-editor-horiz
+<p>Move the point towards the circle.</p>
+  <graph size="small">
+    <circle name="circ" radius="7"/>
+    <point name="P" styleNumber="2">
+      <constraints>
+        <attractTo>$circ</attractTo>
+      </constraints>
+    </point>
+  </graph>
+```
+
+A `<point>{:dn}` is attracted to a named `<circle>{:dn}` with a default threshold of attraction of 
+$2 \%$ of the graph axes.
+
+
+---
+
+### Example: Attract a ` <point>{:dn}` to an ` <intersection>{:dn}`
+```doenet-editor-horiz  
+<p>Move the point to the intersection.</p>
+  <graph size="small">
+    <line name="line1">y = 3/2 x - 5</line>
+    <line name="line2">y = -1/2 x + 4</line>
+    <intersection name="ip" hide>$line1 $line2</intersection>
+    <point name="P" styleNumber="2" isResponse>
+      (-6, -6)
+      <constraints>
+        <attractTo>$ip</attractTo>
+      </constraints>
+    </point>
+  </graph>
+
+  <answer submitLabel="Check Point">
+    <award>
+      <when>$P = $ip</when>
+    </award>
+  </answer>
+```
+
+A `<point>{:dn}` is attracted to a named `<intersection>{:dn}` with a default threshold of attraction of 
+$2 \%$ of the graph axes.
+
+
+
+---
+
+### Example: Attract a ` <point>{:dn}` to a ` <function>{:dn}` maximum
+```doenet-editor-horiz
+   
+<p>Move the point to the maximum of the function.</p>
+  <graph size="small">
+    <function name="f">-x^2 + 3</function>
+    <point name="max" hide>$f.maxima</point>
+    <point name="P" styleNumber="2" isResponse>
+      (-6, -6)
+      <constraints>
+        <attractTo>$f</attractTo>
+        <attractTo>$max</attractTo>
+      </constraints>
+    </point>
+  </graph>
+
+  <answer submitLabel="Check Point">
+    <award>
+      <when>$P = $max</when>
+    </award>
+  </answer>
+
+```
+
+A `<point>{:dn}` is attracted to a named `<function>{:dn}` and a named `<point>{:dn}` at the 
+function's maximum with a default threshold of attraction of $2 \%$
+of the graph axes.
+
+
+
+
+---
+
+### Attribute Example: threshold
+```doenet-editor-horiz
+<p>Enter attraction threshold: <mathInput name="x" prefill="0"/>.</p>
+  <graph size="small">
+    <circle name="circ" radius="7"/>
+    <point name="P" styleNumber="2">
+      <constraints>
+        <attractTo threshold="$x">$circ</attractTo>
+      </constraints>
+    </point>
+  </graph>
+```
+
+The `threshold` attribute allows customization of the the threshold of attraction.
+
+
+---
+
+### Property Example: threshold
+```doenet-editor-horiz
+<graph size="small" >
+  <line name="ground">y = 0</line>
+  <point name="P" styleNumber="2">
+    (0,5)
+    <constraints>
+      <attractTo name="attractToGround" threshold="2">$ground</attractTo>
+    </constraints>
+  </point>
+</graph>
+
+<p><c>threshold</c> = $attractToGround.threshold</p>
+```
+
+The `threshold` property renders the threshold value of the named `<attractTo>{:dn}`.

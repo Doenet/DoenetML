@@ -1,0 +1,310 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <cell>{:dn}`
+
+
+` <cell>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component. It is the smallest element of a ` <tabular>{:dn}` block of text or 
+data inside a ` <table>{:dn}`.
+
+## Attributes and Properties 
+ <AttrDisplay name='cell'/> 
+ <PropDisplay name='cell'/>
+
+
+---
+
+### Example: ` <cell>{:dn}` inside a ` <table>{:dn}`
+
+
+```doenet-editor-horiz
+ <table>
+    <tabular top="minor">
+      <row>
+        <cell>A</cell>
+        <cell>B</cell>
+        <cell>C</cell>
+      </row>
+      <row>
+        <cell>🟣</cell>
+        <cell>🔴</cell>
+        <cell>🟢</cell>
+      </row>
+    </tabular>
+  </table> 
+```
+
+
+
+Each ` <cell>{:dn}` component defines a single entry in the ` <table>{:dn}`.
+
+
+
+---
+
+### Attribute Example: colSpan
+
+
+```doenet-editor-horiz
+<table>
+    <tabular top="minor" bottom="minor" left="minor" right="minor">
+      <row>
+        <cell>A</cell>
+        <cell>B</cell>
+        <cell>C</cell>
+      </row>
+      <row>
+        <cell colSpan="2">🟣</cell>
+        <cell>🟢</cell>
+      </row>
+      <row>
+        <cell>1</cell>
+        <cell colSpan="2">2</cell>
+      </row>
+    </tabular>
+  </table> 
+```
+
+
+
+The `colSpan` attribute allows a single ` <cell>{:dn}` to span across 
+multiple columns. This attribute can also be used across all rows to create 
+visually wider "columns" within a table.
+
+
+
+---
+
+### Attribute Example: hAlign
+
+
+```doenet-editor-horiz
+ <table><title><attr>hAlign</attr> examples</title>
+    <tabular top="minor" bottom="minor" left="minor" right="minor">
+      <row>
+        <cell>left</cell>
+        <cell>center</cell>
+        <cell>justify</cell>
+        <cell>right</cell>
+      </row>
+      <row>
+        <cell hAlign="left">🟣</cell>
+        <cell hAlign="center">🔴</cell>
+        <cell hAlign="justify">🟢</cell>
+        <cell hAlign="right">🔵</cell>
+      </row>
+    </tabular>
+  </table>    
+```
+
+
+
+The `hAlign` attribute governs the horizontal alignment of 
+content within the ` <cell>{:dn}`. The default horizontal alignment is `left`.
+
+
+
+---
+
+### Attribute Example: bottom
+
+
+```doenet-editor-horiz
+<table><title><attr>bottom</attr> examples</title>
+    <tabular top="minor">
+      <row>
+        <cell>minor line</cell>
+        <cell>major line</cell>
+        <cell>none</cell>
+      </row>
+      <row>
+        <cell bottom="minor">🟣</cell>
+        <cell bottom="major">🔴</cell>
+        <cell>🟢</cell>
+      </row>
+    </tabular>
+  </table>    
+```
+
+
+
+The `bottom` attribute specifies a bounding line at the bottom of the ` <cell>{:dn}`.
+
+
+
+---
+
+### Attribute Example: right
+
+
+```doenet-editor-horiz
+<table><title><attr>right</attr> examples</title>
+    <tabular top="minor">
+      <row>
+        <cell>minor line</cell>
+        <cell>major line</cell>
+        <cell>none</cell>
+      </row>
+      <row>
+        <cell right="minor">🟣</cell>
+        <cell right="major">🔴</cell>
+        <cell>🟢</cell>
+      </row>
+    </tabular>
+  </table>      
+```
+
+
+
+The `right` attribute specifies a bounding line at the right edge of the ` <cell>{:dn}`.
+
+
+
+---
+
+### Attribute Example: prefill
+
+
+```doenet-editor-horiz
+  <table><title><attr>prefill</attr> examples</title>
+    <tabular top="minor">
+      <row>
+        <cell prefill="A"/>
+        <cell prefill="B"/>
+        <cell prefill="C"/>
+      </row>
+    </tabular>
+  </table>      
+```
+
+
+
+The `prefill` attribute provides another way to specify content within the cell.
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+  <table>
+    <tabular top="minor">
+      <row>
+        <cell name="c1" bottom="major" hAlign="center"><math>pi/4</math></cell>
+        <cell name="c2" right="minor" prefill="A"/>
+      </row>
+    </tabular>
+  </table> 
+  <p>First cell, <c>colSpan</c> = $c1.colSpan</p>
+  <p>First cell, <c>hAlign</c> = $c1.hAlign</p>
+  <p>First cell, <c>bottom</c> = $c1.bottom</p>
+  <p>Second cell, <c>right</c> = $c2.right</p>
+  <p>Second cell, <c>prefill</c> = $c2.prefill</p>
+```
+
+
+
+All of the attributes available to the ` <cell>{:dn}` component can also be accessed as properties.
+
+
+
+---
+
+### Property Example: inHeader
+
+
+```doenet-editor-horiz
+  <table>
+    <tabular>
+      <row header>
+        <cell name="c1">A</cell>
+        <cell>B</cell>
+      </row>
+      <row>
+        <cell name="c3">🟣</cell>
+        <cell>🔴</cell>
+      </row>
+    </tabular>
+  </table>
+  <p>Top row cell, <c>inHeader</c> = $c1.inHeader</p>
+  <p>Bottom row cell, <c>inHeader</c> = $c3.inHeader</p>      
+```
+
+
+
+The `inHeader` property returns the boolean value corresponding to 
+whether the ` <cell>{:dn}` occurs within a header ` <row>{:dn}`.
+
+
+
+---
+
+### Property Example: text
+
+
+```doenet-example
+  <table>
+    <tabular top="minor">
+      <row>
+        <cell name="c1">A</cell>
+        <cell>B</cell>
+      </row>
+    </tabular>
+  </table> 
+  <p>First cell, <c>text</c> = $c1.text</p>      
+```
+
+
+
+The `text` property returns the text value stored within the ` <cell>{:dn}`.
+
+
+
+---
+
+### Property Example: math
+
+
+```doenet-example
+  <table>
+    <tabular top="minor">
+      <row>
+        <cell name="c1"><math>pi/4</math></cell>
+        <cell><math>3/5 x</math></cell>
+      </row>
+    </tabular>
+  </table> 
+  <p>First cell, <c>math</c> = $c1.math</p> 
+```
+
+
+
+The `math` property returns the math value stored within the ` <cell>{:dn}`.
+
+
+
+---
+
+### Property Example: number
+
+
+```doenet-example
+  <table>
+    <tabular top="minor">
+      <row>
+        <cell name="c1"><math>pi/4</math></cell>
+        <cell><math>3/5</math></cell>
+      </row>
+    </tabular>
+  </table> 
+  <p>First cell, <c>number</c> = $c1.number</p> 
+```
+
+
+
+The `number` property returns the numerical value stored within the ` <cell>{:dn}`.
+

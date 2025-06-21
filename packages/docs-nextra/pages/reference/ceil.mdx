@@ -1,0 +1,41 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <ceil>{:dn}`
+
+
+
+
+` <ceil>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
+component that renders the result of the $\text{ceiling}$ function applied to the enclosed math.  
+The $\text{ceiling}$ function returns the least integer greater than or equal to a given rational number.
+
+## Attributes and Properties 
+ <AttrDisplay name='ceil'/> 
+ <PropDisplay name='ceil'/>
+
+---
+
+### Example: ` <ceil>{:dn}` applied to a math expression
+
+```doenet-example
+<m>\lceil 4.2 \rceil = <ceil>4.2</ceil></m>
+```
+
+A `<ceil>{:dn}` component returns the result of the 
+ceiling function evaluated at the enclosed math.
+
+---
+
+### Example: ` <ceil>{:dn}` applied to a math input
+
+```doenet-editor-horiz
+<p>Compute the <m>\text{ceiling}</m> of <mathInput name="n"/></p>
+<p><m>\lceil $n \rceil = <ceil>$n</ceil></m></p>
+```
+
+A ` <ceil>{:dn}` component returns the result of the 
+ceiling function evaluated at a user-specified value.

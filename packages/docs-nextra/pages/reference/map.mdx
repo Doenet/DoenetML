@@ -1,0 +1,213 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <map>{:dn}`
+
+## Disclaimer: 
+The ` <map>{:dn}` component is part of version 0.7 but has been updated to the ` <repeat>{:dn}` component with
+version 0.7. This article is included for reference purposes only. For the 
+latest information, please refer to the [repeat component documentation](repeat.mdx).
+
+---
+
+
+` <map>{:dn}` is a paragraph markup function that generates multiple components based on a template and a set of sources. It is particularly useful for creating lists or arrays of components that follow a specific pattern.
+` <map>{:dn}` takes a list of [` <sources>{:dn}`](sources.mdx) and applies a [` <template>{:dn}`](template.mdx) to each source in turn.
+
+## Attributes and Properties 
+ <AttrDisplay name='map'/> 
+ <PropDisplay name='map'/>
+
+---
+
+### Example: ` <map>{:dn}` a set of points within a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <map>
+    <template>
+      <point>(5 cos($i), 5 sin($i))</point>
+    </template>
+    <sources alias="i">
+      <sequence from="0" to="2pi" step="pi/8"/>
+    </sources>
+  </map>
+</graph>      
+```
+
+
+
+A ` <map>{:dn}` can be used to generate multiple graphical elements at once when placed within a ` <graph>{:dn}`.
+
+
+
+---
+
+### Example: ` <map>{:dn}` a user-specified number of inputs
+
+
+```doenet-editor-horiz
+<p>How many answers do you have? <mathInput name="n"/></p>
+<map>
+  <template><mathInput/></template>
+  <sources><sequence from="1" to="$n"/></sources>
+</map>
+```
+
+
+
+A ` <map>{:dn}` can be used to generate a user-specified number of ` <mathInput>{:dn}` components.
+
+
+
+---
+
+### Example: Accessing a single mapping
+
+
+```doenet-editor-horiz
+<p>Enter a number: <mathInput name="n"/></p>
+<asList>
+  <map name="inputMap">
+    <template><math>2^$i</math></template>
+    <sources alias="i">
+      <sequence from="1" to="$n"/>
+    </sources>
+  </map>
+</asList>
+<p>The first element is: 
+  <c>inputMap[1]</c> = $inputMap[1]</p>
+<p>The last element is: 
+  <c>inputMap[n]</c> = $inputMap[$n]</p>
+```
+
+
+
+A ` <map>{:dn}` generates an array. Individual entries can be accessed using array notation.
+
+
+
+---
+
+### Example: ` <map>{:dn}` a list of ` <text>{:dn}` elements
+
+
+```doenet-editor-horiz
+<p>Say hello to a list of plants:
+  <map>
+    <template><p>Hello, $plant!</p></template>
+    <sources alias="plant">
+      <text>tree</text>
+      <text>flower</text>
+      <text>cactus</text>
+    </sources>
+  </map>
+</p>     
+```
+
+
+
+A ` <map>{:dn}` can be used with non-mathematical components as well.
+
+
+
+---
+
+### Example: assignNames
+
+
+```doenet-editor-horiz
+<p>How many answer do you have (answer 1-4)? <mathInput name="n"/></p>
+<map assignNames="mi1 mi2 mi3 mi4">
+  <template><mathInput/></template>
+  <sources><sequence from="1" to="$n"/></sources>
+</map>
+```
+
+
+
+The `assignNames` attribute allows you to specify names for components generated with a ` <map>{:dn}`.
+
+
+
+---
+
+### Example: assignNamesSkip *
+
+
+```doenet-editor-horiz
+```
+
+
+
+
+
+
+
+---
+
+### Example: behavior="combination"
+
+
+```doenet-editor-horiz
+<p><m>x</m> values: 
+  <asList><sequence name="xS"/></asList></p>
+<p><m>y</m> values: 
+  <asList><sequence name="yS" from="2" to="20" step="2"/></asList></p>
+<p><m>x + y = </m></p>
+<map name="combinationMap">
+  <template>
+    <p><math>$x+$y</math> = <math simplify="true">$x + $y</math></p>
+  </template>
+  <sources alias="x">$xS</sources>
+  <sources alias="y">$yS</sources>
+</map>
+```
+
+
+
+The default behavior for mapping with multiple sources is `behavior="combination"`. This maps each element of one source with each element of every other source. To modify the default behavior, see the example on `behavior="parallel"`. 
+
+
+
+---
+
+### Example: behavior="parallel"
+
+
+```doenet-editor-horiz
+<p><m>x</m> values: 
+  <asList><sequence name="xS"/></asList></p>
+<p><m>y</m> values: 
+  <asList><sequence name="yS" from="2" to="20" step="2"/></asList></p>
+<p><m>x + y = </m></p>
+<map behavior="parallel" name="parallelMap">
+  <template>
+    <p><math>$x+$y</math> = <math simplify="true">$x + $y</math></p>
+  </template>
+  <sources alias="x">$xS</sources>
+  <sources alias="y">$yS</sources>
+</map>
+```
+
+
+
+With `behavior="parallel"`, the $i^{th}$ element of the first source is grouped with the $i^{th}$ element of the second source when generating the output of the ` <map>{:dn}`. This differs from the default mapping behavior; for a description of the default behavior see the example on `behavior="combination"`.
+
+
+
+---
+
+### Example: isResponse *
+
+
+```doenet-editor-horiz
+```
+
+
+
+. 
+

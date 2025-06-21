@@ -1,0 +1,48 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <median>{:dn}`
+
+` <median>{:dn}` is a Math Operator component which renders the median of the enclosed values.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='median'/> 
+ <PropDisplay name='median'/>
+
+---
+
+### Example: ` <median>{:dn}` of a sugared list of numbers
+
+
+```doenet-editor-horiz
+<p><m>\mathbb{A} = \{1, 2, 3, -1\}</m></p>
+<p>The median of <m>\mathbb{A}= <median>1 2 3 -1</median></m></p>
+```
+
+
+
+Numbers are listed directly within opening and closing tags of the ` <median>{:dn}` component. The [` <m>{:dn}`](m.mdx) component is used for mathematical desplay.
+
+
+
+---
+
+### Example: ` <median>{:dn}` of named <tage>mathInput</tage>s
+
+
+```doenet-editor-horiz
+<p>Choose three numbers: </p>
+<p><m>x = </m> <mathInput name="x"/></p>
+<p><m>y = </m> <mathInput name="y"/></p> 
+<p><m>z = </m> <mathInput name="z"/></p>
+<p>  
+The median of your three numbers <m>\{$x, $y, $z\}</m> is:  <number><median>$x $y $z</median></number>
+</p>
+```
+
+
+
+In this example, three <ref uri="doenet:activityId=_p_qPrnY-jhcqqrG2LcodH">` <mathInput/>{:dn}`</ref>s are referenced using the `$name` notation within the ` <median>{:dn}` component.
+

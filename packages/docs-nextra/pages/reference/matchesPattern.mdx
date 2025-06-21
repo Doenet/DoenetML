@@ -1,0 +1,42 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <matchesPattern>{:dn}`
+
+` <matchesPattern>{:dn}` returns the boolean value of `true` or `false` depending on whether the enclosed math (often a referenced ` <mathInput/>{:dn}`) conforms to the specified `pattern` template.
+
+## Attributes and Properties 
+ <AttrDisplay name='matchesPattern'/> 
+ <PropDisplay name='matchesPattern'/>
+
+---
+
+### Example: basic use
+
+
+```doenet-editor-horiz
+<p>Enter an equation in slope-intercept form: <mathInput name="mi"/></p>
+<p>Format correct: </p>
+<matchesPattern pattern="y = ()x + ()" >
+  $mi
+</matchesPattern>   
+```
+
+
+
+The ` <matchesPattern>{:dn}` component is used to check that the user has supplied an equation in the requested format. The `pattern` attribute is required. If used without additional attributes as shown above, a rather strict comparison occurs. In order to evaluate to `true`, the entered expression must:
+
+
+* have a $y$ on the left side, and an $x$ on the other, and no other variables can be present
+* have at least one constant term on the right-hand side
+* the $x$ value must have a numerical coefficient (even if it is $1$)
+* switching the order of terms on the right-hand side is acceptable
+
+
+
+
+
+These requirements may be relaxed, if desired, by applying additional attributes to ` <matchesPattern>{:dn}`, or by including multiple accepted patterns within answer evaluation.
+

@@ -1,0 +1,155 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <samplePrimeNumbers/>{:dn}`
+
+The ` <samplePrimeNumbers/>{:dn}` component generates random prime numbers from a specified range of values.
+
+## Attributes and Properties 
+ <AttrDisplay name='samplePrimeNumbers'/> 
+ <PropDisplay name='samplePrimeNumbers'/>
+
+---
+
+### Example: Default <tage>samplePrimeNumbers</tage>
+
+
+```doenet-editor-horiz
+
+<samplePrimeNumbers name="sample" />
+
+<p>Prime selected = $sample</p>
+```
+
+
+
+Without any attributes specified, the default sampling range is $[2, 97]$. In this example, there are two ways to view different samples: selecting another variant, or refreshing the page.
+
+
+
+---
+
+### Example: Using a re-sampling button
+
+
+```doenet-editor-horiz
+<p><samplePrimeNumbers name="randomNumber"/></p>
+<callAction actionName="resample" target="randomNumber">
+  <label>Get a New Prime</label>
+</callAction>
+```
+
+
+
+Without any attributes specified, the default sampling range is $[2, 97]$. The ` <callAction>{:dn}` button can be used to resample the value.
+
+
+
+---
+
+### Example: numSamples
+
+
+```doenet-editor-horiz
+<p>
+  <asList>
+    <samplePrimeNumbers numSamples="4" name="randomNumbers"/>
+  </asList>
+</p>
+<callAction actionName="resample" target="randomNumbers" >
+  <label>Get New Primes</label>
+</callAction>
+```
+
+
+
+The ` <samplePrimeNumbers/>{:dn}` component is used with the `numSamples` attribute to select multiple random values in the default interval $[2,97]$. The component is nested within an [` <asList>{:dn}`](asList.mdx) component for greater clarity when rendering.
+
+
+
+---
+
+### Example: assignNames
+
+
+```doenet-editor-horiz
+
+<samplePrimeNumbers assignNames="a b c" numSamples="3"/>
+<samplePrimeNumbers name="d"/>
+
+<p>a = $a</p>
+<p>b = $b</p>
+<p>c = $c</p>
+<p>d = $d</p>
+```
+
+
+
+The `assignNames` attribute is used to specify unique identifiers for each sample where one more than one sample is required. If only one sample is required, the `name` of the sample itself assumes the sampled value.
+
+
+
+---
+
+### Example: minValue, maxValue
+
+
+```doenet-editor-horiz
+<p>
+<asList>
+  <samplePrimeNumbers name="x" minValue="5" maxValue="25" numSamples="5" />
+</asList>
+</p>
+<callAction actionName="resample" target="x">
+  <label>Get New Primes</label>
+</callAction>
+```
+
+
+
+The ` <samplePrimeNumbers/>{:dn}` component is used with the `minValue` and the `maxValue` attributes to modify the default selection interval. Note that the interval endpoints provided do no need to be primes.
+
+
+
+---
+
+### Example: exclude
+
+
+```doenet-editor-horiz
+<p>
+  <asList>
+    <samplePrimeNumbers name="x" minValue="2" maxValue="10" numSamples="10" exclude="3"/>
+  </asList>
+</p>
+<callAction actionName="resample" target="x">
+  <label>New Primes</label>
+</callAction>
+```
+
+
+
+Values can be excluded from the sampled range using the `exclude` attribute.
+
+
+
+---
+
+### Example: variantDeterminesSeed *
+
+
+```doenet-editor-horiz
+```
+
+
+
+---
+
+### Example: assignNamesSkip *
+
+
+```doenet-editor-horiz
+```
+

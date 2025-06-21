@@ -1,0 +1,186 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <selectPrimeNumbers/>{:dn}`
+
+
+` <selectPrimeNumbers/>{:dn}` selects a prime number at random from a specified range. Selections generate unique variants of the document.
+
+## Attributes and Properties 
+ <AttrDisplay name='selectPrimeNumbers'/> 
+ <PropDisplay name='selectPrimeNumbers'/>
+
+---
+
+### Example: Default <tage>selectPrimeNumbers</tage>
+
+
+```doenet-editor-horiz
+<selectPrimeNumbers/>
+<selectPrimeNumbers/>
+<selectPrimeNumbers/>
+```
+
+
+
+The default ` <selectPrimeNumbers/>{:dn}` has a sequence range from $2$ to $97$.
+
+
+
+---
+
+### Example: Generate and name multiple selections
+
+
+```doenet-editor-horiz
+
+  <selectPrimeNumbers assignNames="x1 x2 x3" minValue="2" maxValue="50" numToSelect="3"/>
+
+<me>x_1 = $x1</me>
+<me>x_2 = $x2</me>
+<me>x_3 = $x3</me>  
+```
+
+
+
+Three numbers that are selected between $2$ and $50$ are assigned to the named variables `x1`, `x2`, and `x3`.
+
+
+
+---
+
+### Example: numToSelect
+
+
+```doenet-editor-horiz
+<asList>
+  <selectPrimeNumbers minValue="2" maxValue="50" numToSelect="5"/>
+</asList>
+```
+
+
+
+The `numToSelect` attribute allows for selection of multiple values within the range of a single ` <selectPrimeNumbers/>{:dn}` component. Multiple selections are made without replacement.
+
+
+
+---
+
+### Example: sortResults
+
+
+```doenet-editor-horiz
+<asList>
+  <selectPrimeNumbers sortResults minValue="2" maxValue="50" numToSelect="5"/>
+</asList>
+```
+
+
+
+The `sortResults` attribute sorts the selected results in increasing order.
+
+
+
+---
+
+### Example: assignNames
+
+
+```doenet-editor-horiz
+<asList>
+  <selectPrimeNumbers assignNames="a b" minValue="2" maxValue="50" numToSelect="2"/>
+</asList>
+<p>a = $a</p>
+<p>b = $b</p>
+```
+
+
+
+The `assignNames` attribute takes a list of text values (which must meet DoenetML naming conventions) for assigning names to individual selections.
+
+
+
+---
+
+### Example: minValue, maxValue
+
+
+```doenet-editor-horiz
+<asList>
+  <selectPrimeNumbers minValue="10" maxValue="30" numToSelect="4"/>
+</asList>
+```
+
+
+
+The `minValue` and `maxValue` attributes specify the endpoints of the selction interval. These endpoints are not required to be prime numbers.
+
+
+
+---
+
+### Example: exclude
+
+
+```doenet-editor-horiz
+<asList>
+  <selectPrimeNumbers minValue="2" maxValue="10" exclude="3" numToSelect="3"/>
+</asList>
+```
+
+
+
+The `exclude` attribute specifies values to exclude in the selection. Doenet will throw an error if sufficient primes are not available in the selection interval without replacement. (To see this, change the `numToSelect` attribute to $4$ in the example above.) If repetitions are allowed, the `withReplacement` attribute can also be used.
+
+
+
+---
+
+### Example: assignNamesSkip *
+
+
+```doenet-editor-horiz
+```
+
+
+
+. 
+
+
+
+---
+
+### Example: withReplacement
+
+
+```doenet-editor-horiz
+<asList>
+  <selectPrimeNumbers minValue="2" maxValue="13" withReplacement numToSelect="10"/>
+</asList>
+```
+
+
+
+If selection with replacement is the desired behavior, use the `withReplacement` attribute.
+
+
+
+---
+
+### Example: excludeCombinations
+
+
+```doenet-editor-horiz
+<p>
+  <asList>
+  <selectPrimeNumbers assignNames="a b" exclude="0" numToSelect="2"  minValue="3" maxValue="7" excludecombinations="(3 7) (7 3)" />
+  </asList>
+</p>
+```
+
+
+
+The `excludeCombinations` attribute can be used to exclude undesired combinations of prime numbers. Scroll through the page variants to observe this restriction in action.
+

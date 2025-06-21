@@ -1,0 +1,192 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <option>{:dn}`
+
+
+` <option>{:dn}` defines a selection element within a [` <select>{:dn}`](select.mdx) block. If only [` <math>{:dn}`](math.mdx) type components are to be selected, the ` <option>{:dn}` component can be excluded and selection items can simply be listed with a space between list items. However, if multiple types or complex selections are required, the ` <option>{:dn}` component is necessary.
+
+
+When varying component types are used as options, such as a [` <text>{:dn}`](text.mdx), [` <function>{:dn}`](function.mdx), or [` <number>{:dn}`](number.mdx), these tags are nested within the ` <option>{:dn}` tag.
+
+## Attributes and Properties 
+ <AttrDisplay name='option'/> 
+ <PropDisplay name='option'/>
+
+---
+
+### Example: ` <option>{:dn}` type math
+
+
+```doenet-editor-horiz
+
+<select name="x">
+  <option><math>y</math></option>
+  <option><math>z</math></option>
+  <option><math>t</math></option>
+</select>
+
+<p>The selected variable is: $x</p>
+<p><math simplify>$x + $x</math></p>
+```
+
+
+
+Three options for a variable name are nested within a ` <select>{:dn}`. The type of each ` <option>{:dn}` must be specified.
+
+
+
+---
+
+### Example: ` <option>{:dn}` type text
+
+
+```doenet-editor-horiz
+
+<select name="plant">
+  <option><text>oak tree</text></option>
+  <option><text>sunflower</text></option>
+  <option><text>rose</text></option>
+</select>
+
+<p>The selected plant is: $plant</p>
+```
+
+
+
+Three options for a variable name are nested within a ` <select>{:dn}`. The type of each ` <option>{:dn}` must be specified.
+
+
+
+---
+
+### Example: ` <option>{:dn}` type vector
+
+
+```doenet-editor-horiz
+
+<select name="force1">
+  <option><vector>(-4,3)</vector></option>
+  <option><vector>(3,7)</vector></option>
+  <option><vector>(8,-1)</vector></option>
+</select>
+
+<p>The selected vector is: $force1</p>
+<graph size="small">
+  $force1
+</graph>
+```
+
+
+
+Three options for a variable name are nested within a ` <select>{:dn}`. The type of each ` <option>{:dn}` must be specified.
+
+
+
+---
+
+### Example: Multiple ` <option>{:dn}` types within a ` <select>{:dn}`
+
+
+```doenet-editor-horiz
+<select numToSelect="4" assignNames="a b c d" hide>
+  <option><number>2</number></option>
+  <option><text>pikachu</text></option>
+  <option><math>sqrt(81)</math></option>
+  <option><boolean>1 + 1 = 3</boolean></option>
+</select>
+<p>Selection a is $a</p>
+<p>Selection b is $b</p>
+<p>Selection c is $c</p>
+<p>Selection d is $d</p>
+<p>Click page variants to see other randomized values assigned.</p>  
+```
+
+
+
+In the sample code below, the ` <option>{:dn}` component is used to define multiple component types as choices within a [` <select>{:dn}`](select.mdx) block.
+
+
+
+---
+
+### Example: Assigning names to ` <option>{:dn}`s with multiple elements
+
+
+```doenet-editor-horiz
+<select numToSelect="3" assignNames="(x1 y1) (x2 y2) (x3 y3)">
+  <option>
+    <number>1</number>
+    <number>2</number>
+  </option>
+  <option>
+    <number>3</number>
+    <number>4</number>
+  </option>
+  <option>
+    <number>5</number>
+    <number>6</number>
+  </option>
+  <option>
+    <number>7</number>
+    <number>8</number>
+  </option>
+</select>
+<p><m>(x1, y1) = ($x1, $y1)</m></p>
+<p><m>(x2, y2) = ($x2, $y2)</m></p>
+<p><m>(x3, y3) = ($x3, $y3)</m></p>
+<p>Click page variants to see other randomized values assigned.</p>  
+```
+
+
+
+Names are assigned to children of the ` <option>{:dn}` component, which are grandchildren of the [` <select>{:dn}`](select.mdx) component. First, a random ` <option>{:dn}` is selected from the list of ` <option>{:dn}`s within the ` <select>{:dn}` block. Then, the specified names (in this example, `(x1 y1)` for instance) in each pair enclosed within parentheses of the `assignNames` attribute of the ` <select>{:dn}` are assigned to each item nested within the ` <option>{:dn}` component <em>in order</em>. (So, in this example, 2 will always follow 1, 4 will always follow 3, etc.) Any number of grouped values may be enclosed in parenthese and assigned "grouped" names in this fashion.
+
+
+
+---
+
+### Example: selectForVariantNames
+
+
+```doenet-editor-horiz
+<p>See description below.</p>      
+```
+
+
+
+
+To view this example a separate page must be created. Please visit the example <ref uri="https://www.doenet.org/portfolioeditor/_q22OsGriNisp2WmEfrdhS/_gdevsw5Xykx62RE8U8s74">here</ref>
+
+
+
+---
+
+### Example: selectWeight
+
+
+```doenet-editor-horiz
+<select numToSelect="10" assignNames="n1 n2 n3 n4 n5 n6 n7 n8 n9 n10" withReplacement="true" hide>
+  <option selectWeight="2"><text>red</text></option>
+  <option selectWeight="1"><text>green</text></option>
+  <option selectWeight="1"><text>yellow</text></option>
+</select>
+<p>Selection n1 is $n1</p>
+<p>Selection n2 is $n2</p>
+<p>Selection n3 is $n3</p>
+<p>Selection n4 is $n4</p>
+<p>Selection n5 is $n5</p>
+<p>Selection n6 is $n6</p>
+<p>Selection n7 is $n7</p>
+<p>Selection n8 is $n8</p>
+<p>Selection n9 is $n9</p>
+<p>Selection n10 is $n10</p>
+<p>Click page variants to see other randomized values assigned.</p>      
+```
+
+
+
+In this example, the ` <option>{:dn}` component is used with the `selectWeight` attribute. This attribute takes any numerical value and defaults to 1. In the case below, the `red` option is twice as likely to be selected during recursive selections (note that the ` <select>{:dn}` component has attribute specification `withReplacement="true"`) as the `green` or `yellow` options.
+

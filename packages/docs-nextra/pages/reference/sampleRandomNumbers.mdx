@@ -1,0 +1,263 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+## Attributes and Properties 
+ <AttrDisplay name='sampleRandomNumbers'/> 
+ <PropDisplay name='sampleRandomNumbers'/>
+
+# ` <sampleRandomNumbers>{:dn}`
+
+
+The ` <sampleRandomNumbers/>{:dn}` component generates random numbers from a specified range of values or within a normal distribution around a specified mean. It differs from the <ref uri="doenet:activityId=_HFhH7id_K4u5E1OiZTTby">` <selectRandomNumbers/>{:dn}`</ref> component in that the values can be altered within the document by resampling or changing one or more of the component's attributes. The primary application of the ` <sampleRandomNumbers/>{:dn}` component is for use in simulations involving random numbers.
+
+
+---
+
+### Example: Default <tage>sampleRandomNumbers</tage>
+
+
+```doenet-editor-horiz
+
+<sampleRandomNumbers name="sample" />
+
+<p>Number selected = $sample</p>
+```
+
+
+
+Without any attributes specified, the default sampling `type` is `uniform`, and the default interval is $[0, 1)$. In this example, there are two ways to view different samples: selecting another variant, or refreshing the page.
+
+
+
+---
+
+### Example: Using a re-sampling button
+
+
+```doenet-editor-horiz
+<p><sampleRandomNumbers name="randomNumber"/></p>
+<callAction actionName="resample" target="randomNumber">
+  <label>Get a New Number</label>
+</callAction>
+```
+
+
+
+Without any attributes specified, the default sampling `type` is `uniform`, and the default interval is $[0, 1)$. The ` <callAction>{:dn}` button can be used to resample the value.
+
+
+
+---
+
+### Example: numSamples
+
+
+```doenet-editor-horiz
+<p>
+  <asList>
+    <sampleRandomNumbers numSamples="4" name="randomNumbers"/>
+  </asList>
+</p>
+<callAction actionName="resample" target="randomNumbers" >
+  <label>Get New Numbers</label>
+</callAction>
+```
+
+
+
+The ` <sampleRandomNumbers/>{:dn}` component is used with the `numSamples` attribute to select multiple random values in the default interval $[0,1)$. The default `type` is `uniform`. The component is nested within an [` <asList>{:dn}`](asList.mdx) component for greater clarity when rendering.
+
+
+
+---
+
+### Example: assignNames
+
+
+```doenet-editor-horiz
+
+<sampleRandomNumbers assignNames="a b c" numSamples="3"/>
+<sampleRandomNumbers name="d"/>
+
+<p>a = $a</p>
+<p>b = $b</p>
+<p>c = $c</p>
+<p>d = $d</p>
+```
+
+
+
+The `assignNames` attribute is used to specify unique identifiers for each sample where one more than one sample is required. If only one sample is required, the `name` of the sample itself assumes the sampled value.
+
+
+
+---
+
+### Example: from, to
+
+
+```doenet-editor-horiz
+<p>
+<asList>
+  <sampleRandomNumbers name="x" from="-5" to="5" numSamples="5" />
+</asList>
+</p>
+<callAction actionName="resample" target="x">
+  <label>Get New Numbers</label>
+</callAction>
+```
+
+
+
+The ` <sampleRandomNumbers/>{:dn}` component is used with the `from` and the `to` attributes to modify the default selection interval. The default `type` is `uniform`.
+
+
+
+---
+
+### Example: type = "discreteUniform"
+
+
+```doenet-editor-horiz
+<p><asList>
+    <sampleRandomNumbers name="x" type="discreteUniform" from="0" to="10" numSamples="5"/>
+</asList></p>
+<callAction actionName="resample" target="x">
+  <label>Get New Numbers</label>
+</callAction>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component is specified as `discreteUniform`. The `discreteUniform` selection generates values from an evenly spaced range defined by the attributes `to`, `from`, and `step`. If left unspecified, the default `step` is 1.
+
+
+
+---
+
+### Example: exclude
+
+
+```doenet-editor-horiz
+
+  <sampleRandomNumbers name="x" assignNames="a b c" type="discreteUniform" from="-4" to="4" numSamples="3" exclude="0"/>
+
+<p><math simplify="numberspreserveorder">$a x^2 + $b x + $c</math></p>
+<callAction actionName="resample" target="x">
+  <label>New Coefficients</label>
+</callAction>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component is specified as `discreteUniform`. Values can be excluded from the specified range used with this type using the `exclude` attribute.
+
+
+
+---
+
+### Example: step
+
+
+```doenet-editor-horiz
+<p>
+  <asList>
+    <sampleRandomNumbers name="x" type="discreteUniform" from="0" to="20" numSamples="5" step="2"/>
+  </asList>
+</p>
+<callAction actionName="resample" target="x">
+  <label>Get New Numbers</label>
+</callAction>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component is specified as `discreteUniform`. The `discreteUniform` selection generates values from an evenly spaced range defined by the attributes `to`, `from`, and `step`. If left unspecified, the default `step` is 1.
+
+
+
+---
+
+### Example: type = "gaussian"
+
+
+```doenet-editor-horiz
+<p>
+  <asList>
+    <sampleRandomNumbers name="x" type="gaussian" numSamples="10" displayDigits="4"/>
+  </asList>
+</p>
+<callAction actionName="resample" target="x">
+  <label>Get New Numbers</label>
+</callAction>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component is specified as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). Alternatively, the `mean` as well as the `variance` or the `standardDeviation` attributes may be defined.
+
+
+
+---
+
+### Example: gaussian with mean and variance
+
+
+```doenet-editor-horiz
+<p>With <attr>mean</attr> and <attr>variance</attr> attribute:
+  <asList>
+    <sampleRandomNumbers name="x" type="gaussian" mean="10" variance="2" numSamples="10" displayDigits="4"/>
+  </asList>
+</p>
+<callAction actionName="resample" target="x">
+  <label>Get New Numbers</label>
+</callAction>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component is specified as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In this example, the `mean` and the `variance` are defined with attributes.
+
+
+
+---
+
+### Example: gaussian with mean and standardDeviation
+
+
+```doenet-editor-horiz
+<p>With <attr>mean</attr> and <attr>standardDeviation</attr> attribute:
+  <asList>
+    <sampleRandomNumbers name="x" type="gaussian" mean="10" standardDeviation="2" numSamples="10" displayDigits="4"/>
+  </asList>
+</p>
+<callAction actionName="resample" target="x">
+  <label>Get New Numbers</label>
+</callAction>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component is specified as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In this example, the `mean` and the `standardDeviation` are defined with attributes.
+
+
+
+---
+
+### Example: variantDeterminesSeed *
+
+
+```doenet-editor-horiz
+```
+
+
+
+---
+
+### Example: assignNamesSkip *
+
+
+```doenet-editor-horiz
+```
+

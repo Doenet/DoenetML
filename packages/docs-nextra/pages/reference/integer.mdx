@@ -1,0 +1,46 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <integer>{:dn}`
+
+
+` <integer>{:dn}` renders the nearest integer to the input number.
+
+## Attributes and Properties 
+ <AttrDisplay name='integer'/> 
+ <PropDisplay name='integer'/>
+
+---
+
+### Example: ` <integer>{:dn}` of sugared number
+
+
+```doenet-editor-horiz
+<integer>2.3</integer>
+```
+
+
+
+` <integer>{:dn}` renders the enclosed number rounded to the nearest integer value.
+
+
+
+---
+
+### Example: ` <integer>{:dn}` of user-input
+
+
+```doenet-editor-horiz
+<p>Enter a number with a decimal or fractional part:
+  <mathInput name="userN"/></p>
+<p>Your number, rounded to the nearest integer is: <integer>$userN</integer></p>
+```
+
+
+
+The named ` <mathInput/>{:dn}` is rounded by the ` <integer>{:dn}` component to the nearest integer value.
+
+

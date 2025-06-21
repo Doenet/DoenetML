@@ -1,0 +1,51 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <mdn>{:dn}`
+
+
+The ` <mdn>{:dn}` component renders a block of     numbered, aligned display mathematics when used in combination with the ` <<ref uri="doenet:activityId=_IDfY5djdaYLObbEv5yWrT">mrow</ref>>{:dn}` component.
+
+## Attributes and Properties 
+ <AttrDisplay name='mdn'/> 
+ <PropDisplay name='mdn'/>
+ 
+---
+
+### Example: ` <mdn>{:dn}` with Latex input
+
+
+```doenet-editor-horiz
+      <mdn>
+        <mrow>\sin(x) + 2 \amp = 3</mrow>
+        <mrow>\frac{y}{2}-3 \amp = 2</mrow>
+        <mrow number="false">8z \amp = 32</mrow>
+      </mdn>   
+```
+
+
+
+In the sample code above, the ` <mdn>{:dn}` component is used with nested [` <mrow>{:dn}`](mrow.mdx) components to create aligned, numbered equations.  Equations align vertically where the text `\amp` is entered in the ` <mrow>{:dn}`. Note that the numbering of an individual ` <mrow>{:dn}` within an ` <mdn>{:dn}` can be suppressed by setting the `number` attribute of the ` <mrow>{:dn}` to `false`.
+
+
+
+---
+
+### Example: ` <mdn>{:dn}` with DoenetML mathematical content
+
+
+```doenet-editor-horiz
+      <mdn>
+        <mrow><math>(x^2 y^3)/(y x^(-1))</math> \amp = yx</mrow>
+        <mrow>x \amp = <math>(y^2 y)/(x^2)</math></mrow>
+        <mrow><math>(x^(-2))/(y^(-3))</math> \amp = <math>(x^3)/(x^2)</math></mrow>
+        <mrow><math>(y^2 x)/(x^(-1) y)</math> \amp = x^2</mrow>
+      </mdn>
+```
+
+
+
+In the sample code above, the equations within the ` <mdn>{:dn}` block are entered as expressions within a [` <math>{:dn}`](math.mdx) component, and vertically aligned with the text marker `\amp` within individual [` <mrow>{:dn}`](mrow.mdx)s.
+

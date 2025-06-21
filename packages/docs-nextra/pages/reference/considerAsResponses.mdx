@@ -1,0 +1,78 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <considerAsResponses>{:dn}`
+
+## Attributes and Properties 
+ <AttrDisplay name='considerAsResponses'/> 
+ <PropDisplay name='considerAsResponses'/>
+
+
+---
+
+### Example: ` <considerAsResponses>{:dn}` for graphical component
+
+
+```doenet-editor-horiz
+    <p>Move point to first quadrant</p>
+    <graph size="small">
+      <point name="p">(-3.9,4.5)</point>
+    </graph>
+    <answer name="ans1">
+      <award>
+        <when>$p.x > 0 and 
+        $p.y > 0
+      </when>
+      </award>
+      <considerAsResponses>$p</considerAsResponses>
+    </answer>
+    <p>Submitted response for answer: $ans1.submittedResponse</p>
+```
+
+
+
+The ` <considerAsResponses>{:dn}` component designates which graphical element Doenet should store as a response for the named ` <answer>{:dn}`.
+
+
+
+---
+
+### Example: ` <considerAsResponses>{:dn}` for multiple component types
+
+
+```doenet-editor-horiz
+<p>Place the point where it's <m>x</m>-coordinate is twice its <m>y</m>-coordinate. Then, enter the coordinates below.</p>
+<graph size="small" grid>
+  <point name="p">
+    <constraints>
+      <constrainToGrid/>
+    </constraints>
+  </point>
+</graph>
+<p><m>P = \bigg( </m><mathinput name="userX" /> , 
+  <mathinput name="userY" /><m> \bigg)</m></p>
+<answer name="ans">
+  <award>
+    <when>
+      $userX = $p.x and 
+      $userY = $p.y and 
+      $userX = 2 $userY
+    </when>
+  </award>
+  <considerAsResponses>
+    $userX $userY $p
+  </considerAsResponses>
+</answer>
+<p>Submitted responses: <asList>$ans.submittedResponses</asList></p>
+```
+
+
+
+The ` <considerAsResponses>{:dn}` component can take a list of different components and component types to store as submitted responses.
+
+
+
+<description>` <considerAsResponses>{:dn}` is nested within an ` <answer>{:dn}` to indicate which external doenetML components are considered responses for data collection.</description>

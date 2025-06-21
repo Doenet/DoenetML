@@ -1,0 +1,185 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <sequence>{:dn}`
+
+` <sequence>{:dn}` defines a sequence of numerical values.  It can be nested within an [` <asList>{:dn}`](asList.mdx) which renders a comma-delimited display of the sequence.
+
+## Attributes and Properties 
+ <AttrDisplay name='sequence'/> 
+ <PropDisplay name='sequence'/>
+
+---
+
+### Example: Default ` <sequence>{:dn}`
+
+
+```doenet-editor-horiz
+<asList>
+  <sequence/>
+</asList>
+```
+
+
+
+The default ` <sequence>{:dn}` lists values from $1$ to $10$ with `step` size $1$.
+
+
+
+---
+
+### Example: Using a ` <sequence>{:dn}` within a ` <map>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <map>
+    <template><point>($i, $i)</point></template>
+    <sources alias="i">
+      <sequence from="-8" to="8" step="2"/>
+    </sources>
+  </map>
+</graph>
+```
+
+
+
+A ` <sequence>{:dn}` can be used to define the ` <sources>{:dn}` of a ` <map>{:dn}`.
+
+
+
+---
+
+### Example: ` <sequence>{:dn}` that excludes another ` <sequence>{:dn}`
+
+
+```doenet-editor-horiz
+
+  <sequence name="sequenceToExclude" from="1" step="2" to="11"/>
+  <sequence name="combinedSequence" from="0" to="20" exclude="$sequenceToExclude"/>
+
+<asList>$combinedSequence</asList>
+```
+
+
+
+In this example, two sequences are defined within the [` <setup>{:dn}`](setup.mdx) block and named.  The first ` <sequence/>{:dn}`, `$sequenceToExclude`, consists of odd numbers between 1 and 11.  This is then removed from the second ` <sequence/>{:dn}`, `$combinedSequence`. The excluded sequence is referenced by name within the `exclude` attribute.
+
+
+
+---
+
+### Example: the sum of a ` <sequence>{:dn}`
+
+
+```doenet-editor-horiz
+<sum>
+  <sequence from="1" to="4"/>
+</sum>
+```
+
+
+
+In the sample code below, the sum of all values in a sequence is obtained by nesting the ` <sequence/>{:dn}` in a [` <sum>{:dn}`](sum.mdx) component. This technique works for multiple sequence as well.
+
+
+
+---
+
+### Example: from, to
+
+
+```doenet-editor-horiz
+<asList>
+  <sequence name="count" from="0" to="5"/>
+</asList>      
+```
+
+
+
+Use the `from` and `to` attributes to specify the endpoints of the ` <sequence>{:dn}`.
+
+
+
+---
+
+### Example: step
+
+
+```doenet-editor-horiz
+<asList>
+  <sequence name="count" from="0" to="3" step="0.5"/>
+</asList>
+```
+
+
+
+Use the `step` attribute to specify the stepping increment for the ` <sequence>{:dn}`
+
+
+
+---
+
+### Example: length
+
+
+```doenet-editor-horiz
+<asList>
+  <sequence name="count" from="0" step="0.5" length="5"/>
+</asList>
+```
+
+
+
+Use the `length` attribute to specify the number of terms in the ` <sequence>{:dn}`.
+
+
+
+---
+
+### Example: exclude
+
+
+```doenet-editor-horiz
+<asList>
+  <sequence name="count" from="0" to="5" exclude="3"/>
+</asList>
+```
+
+
+
+The `exclude` attribute excludes terms from the ` <sequence>{:dn}`.
+
+
+
+---
+
+### Example: type
+
+
+```doenet-editor-horiz
+<asList>
+  <sequence from="c" step="2" length="9" type="letters"/>
+</asList>
+```
+
+
+
+The `type` attribute takes as an input either `number` or `letters`, and defaults to `number`.
+
+
+
+---
+
+### Example: 
+
+
+```doenet-editor-horiz
+```
+
+
+
+. 
+

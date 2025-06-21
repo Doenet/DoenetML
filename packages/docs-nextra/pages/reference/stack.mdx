@@ -1,0 +1,40 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <stack>{:dn}`
+
+
+The ` <stack>{:dn}` component groups content vertically. Used with ` <sideBySide>{:dn}`, it is a Sectional Component for organizing elements on a page.
+
+## Attributes and Properties 
+ <AttrDisplay name='stack'/> 
+ <PropDisplay name='stack'/>
+
+---
+
+### Example: ` <stack>{:dn}` in a ` <sideBySide>{:dn}`
+
+
+```doenet-editor-horiz
+<sideBySide>
+  <stack>
+    <math>x + y</math>
+    <p><lorem generateWords="10"/></p>
+  </stack>
+  <stack>
+    <graph/>
+    <ul>
+      <li>1</li>
+      <li>2</li>
+      <li>3</li>
+    </ul>
+  </stack>
+</sideBySide>
+```
+
+
+
+The ` <stack>{:dn}` component serves as a vertical container element for a ` <sideBySide>{:dn}`.
+

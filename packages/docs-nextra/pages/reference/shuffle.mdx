@@ -1,0 +1,84 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <shuffle>{:dn}`
+
+
+` <shuffle>{:dn}` re-orders a list of referenced components and creates document variants based on the different possible orders.
+
+## Attributes and Properties 
+ <AttrDisplay name='shuffle'/> 
+ <PropDisplay name='shuffle'/>
+
+---
+
+### Example: Shuffle a list of numbers
+
+
+```doenet-editor-horiz
+
+  <number name="a">1</number>
+  <number name="b">2</number>
+  <number name="c">3</number>
+  <number name="d">4</number>
+
+<asList>
+  <shuffle>$a $b $c $d</shuffle>
+</asList> 
+```
+
+
+
+Four ` <number>{:dn}` components are defined and then re-ordered (which in turn creates document variants) using the ` <shuffle>{:dn}` component.
+
+
+Click the variants tab to see other variants of the document.
+
+
+
+---
+
+### Example: Shuffle an ordered list
+
+
+```doenet-editor-horiz
+<ol>
+  <shuffle>
+    <li>apple</li>
+    <li>banana</li>
+    <li>kiwi</li>
+    <li>plum</li>
+  </shuffle>
+</ol>
+```
+
+
+
+Four ` <li>{:dn}` (list item) components are defined within an ` <ol>{:dn}` (ordered list) and then re-ordered using the ` <shuffle>{:dn}` component.
+
+
+Click the variants tab to see other variants of the document.
+
+
+
+---
+
+### Example: Shuffle a ` <textList>{:dn}`
+
+
+```doenet-editor-horiz
+
+  <textList name="animal">chicken duck goose cow</textList>
+
+<p>Hello, <asList><shuffle>$animal</shuffle></asList>!</p>
+```
+
+
+
+A named ` <textList>{:dn}` is defined within a ` <setup>{:dn}` block, then re-ordered using the ` <shuffle>{:dn}` component.
+
+
+Click the variants tab to see other variants of the document.
+

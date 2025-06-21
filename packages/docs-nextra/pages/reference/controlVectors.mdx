@@ -1,0 +1,246 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <controlVectors>{:dn}`
+
+` <controlVectors>{:dn}` specify the direction(s) of the bezier curve handles at each through point within a ` <curve>{:dn}` component.
+
+## Attributes and Properties 
+ <AttrDisplay name='controlVectors'/> 
+ <PropDisplay name='controlVectors'/>
+
+
+---
+
+### Example: ` <controlVectors>{:dn}` with sugared vectors
+
+
+```doenet-editor-horiz
+<p>Click the curve once to reveal the through points, and click each individual through point to reveal its bezier control handles.</p>
+<graph size="small">
+  <curve through="(1,2) (3,4) (-5,6) (2,-4)">
+    <bezierControls>
+      <controlVectors>(3,1)</controlVectors>
+      <controlVectors>(-1,5)</controlVectors>
+      <controlVectors>(5,3)</controlVectors>
+      <controlVectors>(0,-5)</controlVectors>
+    </bezierControls>
+  </curve>
+</graph>
+```
+
+
+
+At each through point in the rendered ` <curve>{:dn}`, the directions for the bezier curve handles are specified by sugared vectors enclosed by the ` <controlVectors>{:dn}` component. Handles are symmetric by default, and only one ` <controlVector>{:dn}` is needed in this case to specify the orientation of the curve at each point.
+
+
+
+---
+
+### Example: ` <controlVectors>{:dn}` with ` <vector>{:dn}` children
+
+
+```doenet-editor-horiz
+<p>Click the curve once to reveal the through points, and click each individual through point to reveal its bezier control handles.</p>
+<graph size="small">
+  <curve through="(7,1) (1,7) (-6,2) (0,-1)">
+    <bezierControls>
+      <controlVectors>
+        <vector xs="5 0"/>
+      </controlVectors>
+      <controlVectors>
+        <vector xs="4 -2"/>
+      </controlVectors>
+      <controlVectors>
+        <vector xs="4 1"/>
+      </controlVectors>
+      <controlVectors>
+        <vector xs="-5 -7"/>
+      </controlVectors>
+    </bezierControls>
+  </curve>
+</graph>
+```
+
+
+
+At each through point in the rendered ` <curve>{:dn}`, the directions for the bezier curve handles are specified by ` <vector>{:dn}` children of the ` <controlVectors>{:dn}` component. Handles are symmetric by default, and only one ` <controlVector>{:dn}` is needed in this case to specify the orientation of the curve at each point.
+
+
+
+---
+
+### Example: direction="symmetric"
+
+
+```doenet-editor-horiz
+<graph size="small">
+<point coords="$curve1.throughPoints[1]" styleNumber="4"/>
+<curve name="curve1" through="(-5,0) (0,5) (5,0)" extrapolateForward extrapolateBackward>
+  <bezierControls>
+    <controlVectors direction="symmetric">
+      (-2,2)</controlVectors>
+    <controlVectors direction="none"/>
+    <controlVectors>(-2,2)</controlVectors>
+  </bezierControls>
+</curve>
+</graph>
+```
+
+
+
+The `direction` attribute can be used to specify the orientation of the ` <controlVector>{:dn}`. The default condition is `symmetric`; thus the control vectors corresponding to the first and last through points have matching symmetry behavior.
+
+
+
+---
+
+### Example: direction="previous"
+
+
+```doenet-editor-horiz
+<graph size="small">
+<point coords="$curve1.throughPoints[2]" styleNumber="4"/>
+<curve name="curve1" through="(-5,0) (0,5) (5,0)" extrapolateForward extrapolateBackward>
+  <bezierControls>
+    <controlVectors direction="none"/>
+    <controlVectors direction="previous">
+      (-1,-4)</controlVectors>
+    <controlVectors>(-4,-1)</controlVectors>
+  </bezierControls>
+</curve>
+</graph>
+```
+
+
+
+The `direction` attribute can be used to specify the orientation of the ` <controlVector>{:dn}`. When `direction="previous"`, a control handle will be available pointing towards the previous through point.
+
+
+
+---
+
+### Example: direction="next"
+
+
+```doenet-editor-horiz
+<graph size="small">
+<point coords="$curve1.throughPoints[2]" styleNumber="4"/>
+<curve name="curve1" through="(-5,0) (0,5) (5,0)" extrapolateForward extrapolateBackward>
+  <bezierControls>
+    <controlVectors direction="none"/>
+    <controlVectors direction="next">
+      (4,-1)</controlVectors>
+    <controlVectors>(-4,-1)</controlVectors>
+  </bezierControls>
+</curve>
+</graph>
+```
+
+
+
+The `direction` attribute can be used to specify the orientation of the ` <controlVector>{:dn}`. When `direction="next"`, a control handle will be available pointing towards the next through point.
+
+
+
+---
+
+### Example: direction="both"
+
+
+```doenet-editor-horiz
+<graph size="small">
+<point coords="$curve1.throughPoints[2]" styleNumber="4"/>
+<curve name="curve1" through="(-5,0) (0,5) (5,0)" extrapolateForward extrapolateBackward>
+  <bezierControls>
+    <controlVectors direction="none"/>
+    <controlVectors direction="both">
+      (4,-1)</controlVectors>
+    <controlVectors>(-4,-1)</controlVectors>
+  </bezierControls>
+</curve>
+</graph>
+```
+
+
+
+The `direction` attribute can be used to specify the orientation of the ` <controlVector>{:dn}`. When `direction="both"`, a control handle will be available pointing in two specified directions - the first direction towards the previous through point and the second direction towards the next through point.
+
+
+
+---
+
+### Example: direction="none"
+
+
+```doenet-editor-horiz
+<graph size="small">
+<point coords="$curve1.throughPoints[2]" styleNumber="4"/>
+<curve name="curve1" through="(-5,0) (0,5) (5,0)" extrapolateForward extrapolateBackward>
+  <bezierControls>
+    <controlVectors>
+      (-2,2)</controlVectors>
+    <controlVectors direction="none"/>
+    <controlVectors>(-2,2)</controlVectors>
+  </bezierControls>
+</curve>
+</graph>
+```
+
+
+
+The `direction` attribute can be used to specify the orientation of the ` <controlVector>{:dn}`. When `direction="none"`, no control handle will be available at that through point.
+
+
+
+---
+
+### Example: pointNumber
+
+
+```doenet-editor-horiz
+<graph size="small">
+<point coords="$curve1.throughPoints[3]" styleNumber="4"/>
+<curve name="curve1" through="(-5,0) (0,5) (5,0)" extrapolateForward extrapolateBackward>
+  <bezierControls>
+    <controlVectors pointNumber="3">
+      (-2,2)</controlVectors>
+  </bezierControls>
+</curve>
+</graph>
+```
+
+
+
+The `pointNumber` attribute specifies which through point the ` <controlVector>{:dn}` is associated with.
+
+
+
+---
+
+### Example: direction
+
+
+```doenet-editor-horiz
+<graph size="small">
+<point coords="$curve1.throughPoints[2]" styleNumber="4"/>
+<curve name="curve1" through="(-5,0) (0,5) (5,0)" extrapolateForward extrapolateBackward>
+  <bezierControls>
+    <controlVectors name="cv1" direction="none"/>
+    <controlVectors name="cv2" direction="next">
+      (4,-1)</controlVectors>
+    <controlVectors name="cv3">(-4,-1)</controlVectors>
+  </bezierControls>
+</curve>
+</graph>
+<p><c>direction</c> for control vectors 1, 2, and 3 = 
+  $cv1.direction, $cv2.direction, $cv3.direction</p>
+```
+
+
+
+The `direction` of a ` <controlVectors>{:dn}` component can also be accessed as a `property`.
+
+

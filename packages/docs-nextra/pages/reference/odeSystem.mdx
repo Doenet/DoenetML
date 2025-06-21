@@ -1,0 +1,621 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <odeSystem>{:dn}`
+
+
+` <odeSystem>{:dn}` computes a numerical solution to a system of ordinary differential equations. The following are required attributes: `variables` and `initialConditions`. The opening ` <odeSystem>{:dn}` tag defines a block in which to enter one or more ` <rightHandSide>{:dn}` children, representing the successive RHS's of the equations defining the system.
+
+## Attributes and Properties 
+ <AttrDisplay name='odeSystem'/> 
+ <PropDisplay name='odeSystem'/>
+---
+
+### Example: Single ODE system with user-input
+
+
+```doenet-editor-horiz
+<p>Enter independent variable = <mathinput name="ivar" prefill="t"/></p>
+<p>Enter dependent variable = <mathinput name="dvar" prefill="x"/></p>
+<p>Enter initial condition, <m>$dvar(0) = </m> <mathInput name="ic" prefill="1"/></p>
+<p>Enter the equation's right-hand side, <m>\frac{d $dvar}{d $ivar} = </m> <mathInput name="rhs" prefill="$dvar"/></p>
+<odeSystem name="ode" initialconditions="$ic" independentvariable="$ivar" variables="$dvar">
+  <rightHandSide>$rhs</rightHandSide>
+</odeSystem>
+<number name="zeroFixed" fixed hide>0</number>
+<number name="xPointNonNeg" hide><max>0 $zeroFixed</max></number>
+<graph>
+  <function copySource="ode.numericalSolution" name="f"/>
+  <point name="p" styleNumber="2" showCoordsWhenDragging="false">($xPointNonNeg, $$f($xPointNonNeg))
+    <label><m>($ivar, $dvar($ivar)) = $p.coords</m></label>
+  </point>
+</graph>
+```
+
+
+
+The required attributes as well as the ` <rightHandSide>{:dn}` child of the ` <odeSystem>{:dn}` component for a single differential equation are retrieved from user input. A ` <function>{:dn}` is then defined by accessing the `numericalSolution` property of the named ` <odeSystem>{:dn}` component. The solution can be graphed and evaluated in this manner using typical function evaluation techniques (i.e. by using either the `$&dollar;functionName(input)` evaluation macro or the ` <evaluate>{:dn}` component.) 
+
+
+
+---
+
+### Example: A spring-mass ODE system problem with validation
+
+
+```doenet-editor-horiz
+<p>A ball weighing <mathInput name="wt" prefill="128"/> is suspended from a spring. The spring, with constant <m>k = </m><mathInput name="k" prefill="64"/> <m>\frac{\text{lb}}{\text{ft}}</m> stretches <mathInput name="s1" prefill="2"/> feet from its initial, unweighted length. The ball is then placed in motion by compressing the spring <mathInput name="s2" prefill="-0.5" /> feet <em>upwards</em> from equilibrium, and then released.</p>
+<p>Find the vertical position of the ball at time <m>t = </m> <mathInput name="t" prefill="pi/12"/> seconds.<footnote>Adapted from: Bronson, R. (1988). Chapter 11. In 2500 solved problems in differential equations (p. 255). McGraw-Hill. </footnote></p>
+
+  <math name="m">$wt/32</math>
+  <math name="kOverM" simplify>$k/$m</math>
+
+<odesystem name="springMass" hideInitialCondition variables="x v" initialConditions="$s2 0">
+  <rightHandSide>v</rightHandSide>
+  <rightHandSide>-$kOverM x</rightHandSide>
+</odesystem>
+<p><m>x($t) = </m> <answer>$$(springMass.numericalSolution[1])($t)</answer></p>
+<solution>$$(springMass.numericalSolution[1])($t) <m>\text{ft}</m></solution>
+```
+
+
+
+A linear spring-mass system is modeled as a ` <odeSystem>{:dn}` with two ` <rightHandSide>{:dn}` children. 
+The problem is customizable via math inputs embedded in the problem statement. Note that, given the numerical 
+nature of the solution process for the ` <odeSystem>{:dn}` component, an error allowance must be provided 
+in the ` <answer>{:dn}` component using the `allowedErrorInNumbers` attribute.
+
+
+
+---
+
+### Example: A simple pendulum ODE System
+
+
+```doenet-editor-horiz
+<p>Let <m>\frac{g}{l} = 20</m> for a given pendulum. Then,
+<odesystem name="pendulum" hideInitialCondition variables="theta omega" initialConditions="1 1" maxIterations="10000"> 
+  <rightHandSide>omega</rightHandSide>
+  <rightHandSide>-20 sin(theta)</rightHandSide> 
+</odesystem></p>
+
+  <function copySource="pendulum.numericalsolution1" name="thetaFn"/>
+  <function copySource="pendulum.numericalsolution2" name="omegaFn" />
+
+<p>Explore the state of the pendulum</p>
+<slider name="t" from="0" to="10" step="0.1"><label>t</label></slider>
+<p><m>\theta($t) = 
+<wrapnumberperiodic name="theta" lowervalue="-pi" uppervalue="pi">
+  $$thetaFn($t)
+</wrapnumberperiodic>
+</m></p>
+<p><m>\omega($t) = <math name="omega">$$omegaFn($t)</math></m></p>
+```
+
+
+
+This example illustrates the use of ` <odeSystem>{:dn}` for a second-order nonlinear differential equation arising 
+from the motion of a simple pendulum without damping where , 
+
+```doenet
+<me>\frac{d^2 \theta}{d t^2} + \frac{g}{l} \sin(\theta) = 0</me>
+```
+
+where $\theta$ is the angle of the pendulum, $g$ is the acceleration due to gravity, and $l$ is the length of the pendulum.
+```
+
+
+Making the substitution $\frac{d^2 \theta}{d t^2} = \frac{d \omega}{d t}$ results in a first-order system of two equations,
+<md>
+<mrow>\frac{d \theta}{d t} &= \omega</mrow>
+<mrow>\frac{d \omega}{d t}  &= - \frac{g}{l} \sin(\theta).</mrow>
+</md>
+
+
+
+The right-hand side of these two equations are entered into the ` <odeSystem>{:dn}` component as ` <rightHandSide>{:dn}` children. 
+The order of the children should match the order of the independent variables listed in the `variables` attribute 
+of the ` <odeSystem>{:dn}` component definition. In this example, we have `variables="theta omega"`, so the right-hand 
+side equation for $\frac{d \theta}{d t}$ is listed as the first child, and the right-hand side for $\frac{d \omega}{d t}$ is 
+listed as the second child.
+
+
+
+---
+
+### Example: Animated simple pendulum - simulation
+
+
+```doenet-editor-horiz
+<odesystem name="pendulum" hideInitialCondition variables="theta omega" initialConditions="1 1" maxIterations="10000">
+  <rightHandSide>omega</rightHandSide>
+  <rightHandSide>-20 sin(theta)</rightHandSide>
+</odesystem>
+
+  <function copySource="pendulum.numericalsolution1" name="thetaFn"/>
+  <function copySource="pendulum.numericalsolution2" name="omegaFn" />
+
+<p>State of the pendulum</p>
+<p>t = <number name="t">0</number></p>
+<p><m>\theta($t) = 
+<wrapnumberperiodic name="theta" lowervalue="-pi" uppervalue="pi">
+  $$thetaFn($t)
+</wrapnumberperiodic>
+</m></p>
+<p><m>\omega($t) = <math name="omega">$$omegaFn($t)</math></m></p>
+<p>Scroll down to view the animated simulation.</p>
+<animatefromsequence hide target="t" from="0" step="0.1" to="10" animationInterval="100" name="animate" />
+<callAction actionName="startAnimation" target="animate"  ><label>Start animation</label></callAction>
+<callAction actionName="stopAnimation" target="animate"  ><label>Stop animation</label></callAction>
+<p>Simulation</p>
+  <graph displayXaxis="false" displayYaxis="false" xmin="-1" xmax="1" ymin="-1" ymax="1" fixAxes>
+    <point name="mid" fixed="true" styleNumber="4">(0,0)</point>
+    <point name="end" fixed x="0.5 sin($theta)" y="-0.5 cos($theta)" hide />
+    <linesegment endpoints="$mid $end" fixed styleNumber="4"/>
+    <circle radius="0.08" center="$end" filled styleNumber="4" />
+    <angle radius="0.25" through="$end $mid (0,-1)">
+      <label><m>\theta=$theta</m></label>
+    </angle>  
+</graph>
+```
+
+
+
+Refer to the previous example for the setup of the ` <odeSystem>{:dn}` component for this problem. In this example, the time parameter defined by the ` <number>{:dn}` `t` is animated with the ` <animateFromSequence/>{:dn}` component, which in turn animates $\theta(t)$. The simulated pendulum illustrates the angle.
+
+
+
+---
+
+### Example: Animated simple pendulum - phase plane
+
+
+```doenet-editor-horiz
+<odesystem name="pendulum" hideInitialCondition variables="theta omega" initialConditions="$IC.x $IC.y" maxIterations="10000">
+  <rightHandSide>omega</rightHandSide>
+  <rightHandSide>-20 sin(theta)</rightHandSide>
+</odesystem>
+
+  <function copySource="pendulum.numericalsolution1" name="thetaFn"/>
+  <function copySource="pendulum.numericalsolution2" name="omegaFn" />
+
+<p>State of the pendulum</p>
+<p>t = <number name="t">0</number></p>
+<p><m>\theta($t) = 
+<wrapnumberperiodic name="theta" lowervalue="-pi" uppervalue="pi">
+  $$thetaFn($t)
+</wrapnumberperiodic>
+</m></p>
+<p><m>\omega($t) = <math name="omega">$$omegaFn($t)</math></m></p>
+<p>Scroll down to view the animated phase plane.</p>
+<animatefromsequence hide target="t" from="0" step="0.1" to="10" animationInterval="100" name="animate" />
+<callAction actionName="startAnimation" target="animate"  ><label>Start animation</label></callAction>
+<callAction actionName="stopAnimation" target="animate"  ><label>Stop animation</label></callAction>
+<p>Phase plane</p>
+<graph xmax="pi" xmin="-pi" fixAxes>
+  <xlabel><m>\theta</m></xlabel>
+  <ylabel><m>\omega</m></ylabel>
+  <point name="IC" layer="1" coords="(1,1)" labelPosition="top" styleNumber="3" showCoordsWhenDragging="false">
+    <label><m>(\theta(0),\omega(0))</m></label>
+    <constraints>
+      <constrainToGraph buffer="0"/>
+    </constraints>
+  </point>
+  <curve parmax="10">
+    <wrapfunctionperiodic lowervalue="-pi" uppervalue="pi">
+      $thetaFn
+    </wrapfunctionperiodic>
+    $omegaFn
+  </curve>
+  <point x="$theta" y="$$omegaFn($t)" styleNumber="2" draggable="false" labelPosition="top">
+    <label><m>(\theta($t), \omega($t))</m></label>
+  </point>
+</graph>
+```
+
+
+
+Refer to the example titled "A simple pendulum ODE system" for the setup of the ` <odeSystem>{:dn}` component for this problem. In this example, the time parameter defined by the ` <number>{:dn}` `t` is animated with the ` <animateFromSequence/>{:dn}` component, which in turn animates $\theta(t)$ and $\omega(t)$. The nullcline of the phase plane is then graphed as a parametric ` <curve>{:dn}` with the horizontal coordinate given by the numerical solution for $\theta(t)$ and the vertical coordinate given by the numerical solution for $\omega(t)$.
+
+
+
+---
+
+### Example: Animated simple pendulum - angle v. time
+
+
+```doenet-editor-horiz
+<odesystem name="pendulum" hideInitialCondition variables="theta omega" initialConditions="$ic_t_theta.y 1" maxIterations="10000">
+  <rightHandSide>omega</rightHandSide>
+  <rightHandSide>-20 sin(theta)</rightHandSide>
+</odesystem>
+
+  <function copySource="pendulum.numericalSolution[1]" name="thetaFn"/>
+  <function copySource="pendulum.numericalSolution[2]" name="omegaFn" />
+
+<p>State of the pendulum</p>
+<p>t = <number name="t">0</number></p>
+<p><m>\theta($t) = 
+<wrapnumberperiodic name="theta" lowervalue="-pi" uppervalue="pi">
+  $$thetaFn($t)
+</wrapnumberperiodic>
+</m></p>
+<p><m>\omega($t) = <math name="omega">$$omegaFn($t)</math></m></p>
+<p>Scroll down to view the animated <m>\theta\;\; v.\;\;t</m> graph.</p>
+<animatefromsequence hide target="t" from="0" step="0.1" to="10" animationInterval="100" name="animate" />
+<callAction actionName="startAnimation" target="animate"  ><label>Start animation</label></callAction>
+<callAction actionName="stopAnimation" target="animate"  ><label>Stop animation</label></callAction>
+
+  <number name="zeroFixed" fixed hide>0</number>
+  <number name="dv" fixed>1</number>
+
+<p>Angle versus time</p>
+<graph xmin="-1.1" xmax="10" ymin="-pi" ymax="pi"  fixAxes>
+  <xlabel><m>t</m></xlabel>
+  <ylabel><m>\theta</m></ylabel>
+  <curve>
+    <wrapfunctionperiodic lowervalue="-pi" uppervalue="pi">
+      $thetaFn
+    </wrapfunctionperiodic>
+  </curve>
+  <point name="ic_t_theta" layer="1" x="$zeroFixed" y="1" styleNumber="6" labelPosition="upperleft">
+    <label><m>\theta(0)</m></label>
+  </point>
+  <point x="$t" y="$theta" styleNumber="2" layer="2" labelPosition="upperLeft">
+    <label><m>\theta($t)</m></label>
+    <constraints>
+      <constrainTo>
+        <regionHalfPlane />
+      </constrainTo>
+    </constraints>
+  </point>
+</graph>
+```
+
+
+
+A point moving along the $\theta \;\;v.\;\; t$ function corresponding to the pendulum's motion from the previous example is rendered on a ` <graph>{:dn}` by animating the time parameter defined by the ` <number>{:dn}` `t`.
+
+
+
+---
+
+### Example: independentVariable
+
+
+```doenet-editor-horiz
+<odesystem name="ode" independentVariable="x" variables="y" initialConditions="0">
+  <rightHandSide>
+    x^2 - (1/6)x^3
+  </rightHandSide>
+</odesystem>
+```
+
+
+
+The default independent variable is $t$. To employ a different independent variable, use the `independentVariable` attribute.
+
+
+
+---
+
+### Example: initialIndependentVariableValue
+
+
+```doenet-editor-horiz
+<p><m>t_0 = </m> <mathinput name="t0" prefill="0"/></p>
+<p><m>t_f = </m> <mathinput name="tf" prefill="10"/></p>
+<odesystem name="ode" initialconditions="1" initialIndependentVariableValue="$t0" variables="x">
+  <rightHandSide>2t+3</rightHandSide>
+</odesystem>
+<p>We started with 
+<m>x($ode.initialIndependentVariableValue) = 1</m></p>
+<p>We end with
+<m>x($tf) = $$(ode.numericalSolution)($tf)</m></p>     
+```
+
+
+
+The default initial value for the independent variable is $0$. To employ a different initial value, use the `initialIndependentVariableValue` attribute.
+
+
+
+---
+
+### Example: chunkSize
+
+
+```doenet-editor-horiz
+<p>To successfully integrate to <m>t=20</m> with a tolerance of 0.000001, you must either decrease <attr>chunksize</attr> or increase <attr>maxIterations</attr>.</p>
+<p>t = <mathinput name="t" prefill="10"/></p>
+<p>tolerance = 
+  <mathinput name="tol" parseScientificNotation prefill="1E-6"/>
+  <em>(default = <m>0.000001</m>)</em>
+</p>
+<p>maxIterations = <mathinput name="maxIter" prefill="1000"/>
+  <em>(default = <m>1000</m>)</em>
+</p>
+<p>chunkSize = <slider name="chunkSize" initialValue="10" from="1" to="100"/> 
+  <em>(default = <m>10</m>)</em>
+</p>
+<odesystem name="ode" initialConditions="1" maxIterations="$maxIter" tolerance="$tol" chunkSize="$chunkSize">
+  <righthandside>x</righthandside>
+</odesystem>
+<function name="f" copySource="ode.numericalSolution[1]" displayDecimals="8" hide/>
+<p><m>f($t) = <number name="apxNum">$$f($t)</number></m></p>
+<p>Exact answer: <m>e^{$t} = <number name="exactNum" displayDecimals="8" styleNumber="2" >e^($t)</number></m></p>
+<p>Absolute tolerance <m> = \pm <number displayDecimals="8">$tol $exactNum</number></m></p>
+<p>Error <m> = <number displayDecimals="8">$exactNum - $apxNum</number></m></p>
+<p>Check if tolerance achieved: 
+  <answer allowedErrorInNumbers="$tol">
+    <when>$apxNum = $exactNum</when>
+  </answer>
+</p>
+```
+
+
+
+The solution to an ODE is calculated numerically in batches of the size given by the `chunkSize` attribute, which defaults to $10$.  Each chunk is an interval where the independent variable changes by `chunkSize`.  For each chunk, the numerical algorithm will use as many iterations as needed (up to the maximum number of iterations determined by the `maxIterations` attribute) to a achieve an error tolerance determined by the `tolerance` attribute.  If this tolerance is not achieved, the evaluation of numerical solutions returns `NaN`.  The algorithm may be able to integrate to larger values of the independent variable by increasing `maxIterations` or decreasing `chunkSize` (or by increasing `tolerance`).
+
+
+
+---
+
+### Example: tolerance
+
+
+```doenet-editor-horiz
+<p>To successfully integrate to <m>t=20</m>, you must decrease the tolerance below 0.000001 (alternatively, decrease <attr>chunksize</attr> or increase <attr>maxIterations</attr>).</p>
+<p>t = <mathinput name="t" prefill="10"/></p>
+<p>tolerance = 
+  <mathinput name="tol" parseScientificNotation prefill="1E-6"/>
+  <em>(default = <m>0.000001</m>)</em>
+</p>
+<p>maxIterations = <mathinput name="maxIter" prefill="1000"/>
+  <em>(default = <m>1000</m>)</em>
+</p>
+<p>chunkSize = <mathinput name="chunkSize" prefill="10"/>
+  <em>(default = <m>10</m>)</em>
+</p>
+<odesystem name="ode" initialConditions="1" maxIterations="$maxIter" tolerance="$tol" chunkSize="$chunkSize">
+  <righthandside>x</righthandside>
+</odesystem>
+<function name="f" copySource="ode.numericalSolution[1]" displayDecimals="8" hide/>
+<p><m>f($t) = <number name="apxNum" renderAsMath>$$f($t)</number></m></p>
+<p>Exact answer: <m>e^{$t} = <number name="exactNum" displayDecimals="8" renderAsMath styleNumber="2" >e^($t)</number></m></p>
+<p>Absolute tolerance <m> = \pm <number displayDecimals="8">$tol $exactNum</number></m></p>
+<p>Error <m> = <number displayDecimals="8">$exactNum - $apxNum</number></m></p>
+<p>Check if tolerance achieved: 
+  <answer allowedErrorInNumbers="$tol">
+    <when>$apxNum = e^($t)</when>
+  </answer>
+</p>
+```
+
+
+
+The `tolerance` attribute may be adjusted to obtain convergence of solutions if the default tolerance of $10^{-6}$ is inadequate. (For example, try evaluating $f(20)$ in the example above.) The tolerance is the acceptable relative local error for the solution.
+
+
+If solutions do not converge for the specified combination of solution parameters, including the `tolerance` attribute, the evaluation of numerical solutions returns `NaN`.
+
+
+
+---
+
+### Example: maxIterations
+
+
+```doenet-editor-horiz
+<p>To successfully integrate to <m>t=20</m> with a tolerance of 0.000001, you must either decrease <attr>chunksize</attr> or increase <attr>maxIterations</attr>.</p>
+<p>t = <mathinput name="t" prefill="10"/></p>
+<p>tolerance = 
+  <mathinput name="tol" parseScientificNotation prefill="1E-6"/>
+  <em>(default = <m>0.000001</m>)</em>
+</p>
+<p>maxIterations = <mathinput name="maxIter" prefill="1000"/>
+  <em>(default = <m>1000</m>)</em>
+</p>
+<p>chunkSize = <mathinput name="chunkSize" prefill="10"/>
+  <em>(default = <m>10</m>)</em>
+</p>
+<odesystem name="ode" initialConditions="1" maxIterations="$maxIter" tolerance="$tol" chunkSize="$chunkSize">
+  <righthandside>x</righthandside>
+</odesystem>
+<function name="f" copySource="ode.numericalSolution[1]" displayDecimals="8" hide/>
+<p><m>f($t) = <number name="apxNum" renderAsMath>$$f($t)</number></m></p>
+<p>Exact answer: <m>e^{$t} = <number name="exactNum" displayDecimals="8" renderAsMath styleNumber="2" >e^($t)</number></m></p>
+<p>Absolute tolerance <m> = \pm <number displayDecimals="8">$tol $exactNum</number></m></p>
+<p>Error <m> = <number displayDecimals="8">$exactNum - $apxNum</number></m></p>
+<p>Check if tolerance achieved: 
+  <answer allowedErrorInNumbers="$tol">
+    <when>$apxNum = e^($t)</when>
+  </answer>
+</p>
+```
+
+
+
+The `maxIterations` attribute may be adjusted to obtain convergence of solutions if the default number of iterations ($1000$) is inadequate for the desired tolerance. (For example, try evaluating $f(20)$ in the example above.) 
+
+
+If solutions do not converge for the specified combination of solution parameters, including the `maxIterations` attribute, the evaluation of numerical solutions returns `NaN`.
+
+
+The `maxIterations` attribute is the maximum number of iterations the solution algorithm will attempt to achieve the prescribed `tolerance` for each batch of the size given by `chunkSize`.  For this reason, one can also decrease `chunkSize` to help achieve the required `tolerance`.
+
+
+
+---
+
+### Example: hideInitialCondition
+
+
+```doenet-editor-horiz
+<odesystem name="ode" initialconditions="1"  hideInitialCondition="$hic" initialIndependentVariableValue="0" variables="x">
+  <rightHandSide>2t+3</rightHandSide>
+</odesystem>
+<p>Given <m>x(10) = $$ode.numericalSolution[1](10)</m>,</p>
+<p><m>x(0) = </m> 
+  <answer>$ode.initialConditions</answer>
+</p>
+<booleaninput name="hic" prefill="true"><label>Hide initial condition</label></booleaninput>
+```
+
+
+
+Use the `hideInitialCondition` attribute to suppress rendering of the required initial condition specification below the differential equations.
+
+
+
+---
+
+### Example: initialConditions
+
+
+```doenet-editor-horiz
+<p>Enter initial conditions:</p>
+<p><m>x(0) = </m> <mathInput name="ic1" prefill="0"/></p>
+<p><m>y(0) = </m> <mathInput name="ic2" prefill="1"/></p>
+<odesystem name="ode" initialconditions="$ic1 $ic2"  variables="x y">
+  <rightHandSide>2x - 5y - sin(2t)</rightHandSide>
+  <rightHandSide>x - 2y + t</rightHandSide>
+</odesystem>   
+<p><m>t = </m> <mathInput name="t"/></p>
+<p><m>x($t) = $$ode.numericalSolution[1]($t)</m></p>
+<p><m>y($t) = $$ode.numericalSolution[2]($t)</m></p>
+```
+
+
+
+The `initialConditions` attribute is required for the ` <odeSystem>{:dn}` component. Initial conditions for each dependent variable should be listed in the attribute in the same order that the associated equations appear as ` <rightHandSide>{:dn}` children in the ` <odeSystem>{:dn}` block.
+
+
+
+---
+
+### Example: variables
+
+
+```doenet-editor-horiz
+<number name="g" hide>9.8</number>
+<odeSystem name="ode" variables="x v" initialConditions="0 0">
+  <rightHandSide>v</rightHandSide>
+  <rightHandSide>$g/5 (x/2 + 1)</rightHandSide>
+</odeSystem>
+<p><m>t = </m> <mathInput name="t"/></p>
+<p><m>x($t) = $$ode.numericalSolution[1]($t)</m></p>
+<p><m>v($t) = $$ode.numericalSolution[2]($t)</m></p>
+```
+
+
+
+The `variables` attribute is required for the ` <odeSystem>{:dn}` component. Each dependent variable should be listed in the `variables` attribute in the same order that the associated equations appear as ` <rightHandSide>{:dn}` children in the ` <odeSystem>{:dn}` block.
+
+
+
+---
+
+### Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<odesystem name="pendulum" hideInitialCondition variables="theta omega" initialConditions="1 1" maxIterations="10000"> 
+  <rightHandSide>omega</rightHandSide>
+  <rightHandSide>-20 sin(theta)</rightHandSide> 
+</odesystem>
+<p><c>independentVariable</c> = $pendulum.independentVariable</p>
+<p><c>initialIndependentVariableValue</c> = $pendulum.initialIndependentVariableValue</p>
+<p><c>chunkSize</c> = $pendulum.chunkSize</p>
+<p><c>tolerance</c> = $pendulum.tolerance</p>
+<p><c>maxIterations</c> = $pendulum.maxIterations</p>
+<p><c>hideInitialCondition</c> = $pendulum.hideInitialCondition</p>
+<p><c>initialConditions</c> = $pendulum.initialConditions</p>
+<p><c>variables</c> = <asList>$pendulum.variables</asList></p>
+```
+
+
+
+The attributes listed in the example above are also available as properties.
+
+
+
+---
+
+### Example: rhss
+
+
+```doenet-editor-horiz
+<number name="g" hide>9.8</number>
+<odeSystem name="ode" variables="x v" initialConditions="0 0" hideInitialCondition>
+  <rightHandSide>v</rightHandSide>
+  <rightHandSide>$g/5 (x/2 + 1)</rightHandSide>
+</odeSystem>
+<p><c>rhss</c> = 
+  <asList>$ode.rhss</asList></p>
+<p><c>rhss[1]</c> = $ode.rhss[1]</p>
+<p><c>rhss[2]</c> = $ode.rhss[2]</p>      
+```
+
+
+
+The `rhss` property stores/renders the right-hand side children of the ` <odeSystem>{:dn}` in an array.
+
+
+
+---
+
+### Example: latex
+
+
+```doenet-editor-horiz
+<number name="g" hide>9.8</number>
+<odeSystem name="ode" variables="x v" initialConditions="0 0">
+  <rightHandSide>v</rightHandSide>
+  <rightHandSide>$g/5 (x/2 + 1)</rightHandSide>
+</odeSystem>
+<p><c>latex</c> = $ode.latex</p>
+```
+
+
+
+The `latex` property stores/renders the LaTeX of the ` <odeSystem>{:dn}`.
+
+
+
+---
+
+### Example: numericalSolutions
+
+
+```doenet-editor-horiz
+<number name="g" hide>9.8</number>
+<odeSystem name="ode" variables="x v" initialConditions="0 0">
+  <rightHandSide>v</rightHandSide>
+  <rightHandSide>$g/5 (x/2 + 1)</rightHandSide>
+</odeSystem>
+<p><m>t = </m> <mathInput name="t"/></p>
+<p>Accessing numerical solutions, method 1:</p>
+<p><m>x($t) = $$ode.numericalSolution[1]($t)</m></p>
+<p><m>v($t) = $$ode.numericalSolution[2]($t)</m></p>
+<p>Accessing numerical solutions, method 2:</p>
+
+  <function name="position" copySource="ode.numericalSolution[1]"/>
+  <function name="velocity" copySource="ode.numericalSolution[2]"/>
+
+<p><m>x($t) = $$position($t)</m></p>
+<p><m>v($t) = $$velocity($t)</m></p>
+<p>An alternative way to evaluate:</p>
+<p><m>x($t) = <evaluate function="$position" input="$t"/></m></p>
+<p><m>v($t) = <evaluate function="$velocity" input="$t"/></m></p>
+```
+
+
+
+The `numericalSolutions` property is an array of functions corresponding 
+to numerical solutions for each dependent variable in the system. To access the 
+computed solutions of the system, use function evaluation with `$odeSystemName.numericalSolutions[i]` for 
+the $i^{th}$ function, or define new functions referencing the `numericalSolution[i]` property with the `copySource` attribute.
+

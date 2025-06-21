@@ -1,0 +1,216 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <choice>{:dn}`
+
+` <choice>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
+component that defines an individual choice when nested 
+within an [` <answer>{:dn}`](answer.mdx) block for multiple choice questions.
+
+## Attributes and Properties 
+ <AttrDisplay name='choice'/> 
+ <PropDisplay name='choice'/>
+
+
+---
+
+### Example: ` <choice>{:dn}` inside a ` <choiceInput>{:dn}` block
+
+
+```doenet-example
+  <choiceInput>
+    <choice>A</choice>
+    <choice>B</choice>
+    <choice>C</choice>
+  </choiceInput>     
+```
+
+
+
+The ` <choice>{:dn}` components can be nested inside a ` <choiceInput>{:dn}` block.
+
+
+
+---
+
+### Example: ` <choice>{:dn}` inside an ` <answer>{:dn}`
+
+
+```doenet-example
+ <answer>
+    <choice>A</choice>
+    <choice>B</choice>
+    <choice credit="1">C</choice>
+  </answer>    
+```
+
+
+
+The ` <choice>{:dn}` components can be nested inside an ` <answer>{:dn}` for 
+validation. Use the `credit` attribute to assign the correct ` <choice>{:dn}`.
+
+
+
+---
+
+### Attribute Example: credit
+
+
+```doenet-editor-horiz
+ <p>Which of the following animals is a carnivore?</p>
+  <answer>
+    <choice>rabbit</choice>
+    <choice credit="0.5">human</choice>
+    <choice credit="1">lion</choice>
+  </answer>
+```
+
+
+
+Use the `credit` attribute to assign the correct ` <choice>{:dn}` in 
+an ` <answer>{:dn}`. Partial credit may also be assigned with the `credit` attribute.
+
+
+
+---
+
+### Attribute Example: feedbackText
+
+
+```doenet-example
+<p>Which number is greater than 4?</p>
+  <answer name="ans">
+    <choice feedbackText="4 is equal to 4">4</choice>
+    <choice feedbackText="2 is less than 4">2</choice>
+    <choice credit="1" feedbackText="Great job!">6</choice>
+  </answer>
+  $ans.feedbacks
+```
+
+
+
+Use the `feedbackText` attribute  to directly define short feedback 
+corresponding to individual ` <choice>{:dn}` selections within the ` <choice>{:dn}` definition. 
+To render the feedback to the student, copy the `feedbacks` property of the named ` <answer>{:dn}`.
+
+
+
+---
+
+### Attribute Example: preSelect
+
+
+```doenet-example
+ <answer>
+    <choice preSelect credit="1">True</choice>
+    <choice>False</choice>
+  </answer>
+```
+
+
+
+The `preSelect` attribute causes the ` <choice>{:dn}` to appear 
+selected when the page is rendered.
+
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<answer>
+    <choice credit="1" feedbackText="A is correct">A</choice>
+    <choice>B</choice>
+  </answer>
+  <p>First choice, <c>credit</c> = $_choice1.credit</p>
+  <p>First choice, <c>feedbackText</c> = $_choice1.feedbackText</p>    
+```
+
+
+
+The `credit` and `feedbackText` attributes of a ` <choice>{:dn}` 
+are accessible as properties.
+
+
+
+---
+
+### Property Example: text
+
+
+```doenet-example
+<answer>
+    <choice name="c1" credit="1">True</choice>
+    <choice>False</choice>
+  </answer>
+  <p>First choice, <c>text</c> = $c1.text</p>
+```
+
+
+
+The `text` property renders the text contained in the ` <choice>{:dn}`.
+
+
+
+---
+
+### Property Example: math
+
+
+```doenet-example
+<answer>
+  <choice name="c1" credit="1" ><math>pi/2</math></choice>
+  <choice><math>pi</math></choice>
+</answer>
+<p>First choice, <c>math</c> = $c1.math</p>
+```
+
+
+
+The `math` property renders the math contained in the ` <choice>{:dn}`.
+
+
+
+---
+
+### Property Example: selected
+
+
+```doenet-example
+ <answer>
+    <choice name="c1" credit="1">A</choice>
+    <choice>B</choice>
+  </answer>
+  <p>First choice, <c>selected</c> = $c1.selected</p>      
+```
+
+
+
+The `selected` property renders the boolean value corresponding to whether 
+a choice is currently selected.
+
+
+
+---
+
+### Property Example: submitted
+
+
+```doenet-editor-horiz
+<answer>
+  <choice name="c1" credit="1">A</choice>
+  <choice>B</choice>
+</answer>
+<p>First choice, <c>submitted</c> = $c1.submitted</p>
+```
+
+
+
+The `submitted` property renders the boolean value corresponding to 
+whether a choice has been submitted as a response.
+
+

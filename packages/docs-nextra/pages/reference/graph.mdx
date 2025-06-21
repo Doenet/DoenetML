@@ -1,0 +1,539 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <graph>{:dn}`
+
+` <graph>{:dn}` renders a 2D cartesian graph.
+
+## Attributes and Properties 
+ <AttrDisplay name='graph'/> 
+ <PropDisplay name='graph'/>
+
+---
+
+### Example: Default ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<graph>
+  <point/>
+  <line>y=x</line>
+</graph>
+```
+
+
+
+Here a default ` <graph>{:dn}` is illustrated without any additional attributes.
+
+
+
+---
+
+### Example: ` <graph>{:dn}` with default grid
+
+
+```doenet-editor-horiz
+<graph grid>
+  <point/>
+  <line>y=x</line>
+</graph>
+```
+
+
+
+A ` <graph>{:dn}` with a default grid is illustrated. As you zoom in and out of the graph the size of the grid adapts to the view. To zoom, use the (+) and (-) buttons at the bottom of the graph.
+
+
+
+---
+
+### Example: Invisible ` <graph>{:dn}` with shapes
+
+
+```doenet-editor-horiz
+<graph displayXAxis="false" displayYAxis="false" showNavigation="false" showBorder="false">
+  <regularPolygon nSides="5" sideLength="4" center="(0,4)" filled/>
+  <circle center="(-4,-4)" radius="3" styleNumber="2" filled/>
+  <rectangle center="(4,-4)" width="5" height="3" styleNumber="3" filled/>
+</graph>
+```
+
+
+
+A ` <graph>{:dn}` without border, axes, or navigation buttons appears invisible.
+
+
+
+---
+
+### Example: ` <graph>{:dn}` with axis labels
+
+
+```doenet-editor-horiz
+<graph xmin="-3" ymin="-3">
+  <xLabel>time</xLabel>
+  <yLabel>distance</yLabel>
+  <lineSegment endpoints="(0,0) (12,6)"/>
+</graph>
+```
+
+
+
+Axis labels are specified using the ` <xLabel>{:dn}` and ` <yLabel>{:dn}` components as children of the ` <graph>{:dn}`.
+
+
+
+---
+
+### Example: ` <graph>{:dn}` with legend
+
+
+```doenet-editor-horiz
+<graph>
+  <point styleNumber="2"/>
+  <point coords="(3,3)"/>
+  <line styleNumber="3">y = 1/2 x - 2</line>
+  <legend>
+    <label>Red point</label>
+    <label>Blue point</label>
+    <label>Orange line</label>
+  </legend>
+</graph>
+```
+
+
+
+Legends are constructed by adding a ` <legend>{:dn}` child to the ` <graph>{:dn}` component. See ` <legend>{:dn}` for more examples.
+
+
+
+---
+
+### Example: Components that can be placed on a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Basic math with a <tage>textInput</tage>:
+  <math name="m1">2 $ti</math> = $m1{simplify}</p>
+<graph>
+  <number anchor="(5,-5)" name="t">0</number>
+  <image anchor="(-5,-3)" source='doenet:cid=bafkreifp2vbffgblocyvziejmp7hihzsx4dfkz6x4fayarcnfbb27pygaa' description='a cute cartoon squirrel' asfilename='squirrel-clipart-md.png' size="small" mimeType='image/png' rotate="$t"/>
+  <text anchor="(-5,5)">
+    Type some basic math below
+  </text>
+  <textInput anchor="(-5,3)" name="ti"/>
+  <math anchor="(5,3)">x^2 + y^2</math>
+  <booleanInput anchor="(5,5)">
+    <label>Check the box</label>
+  </booleanInput>
+  <callAction anchor="(5,-3)" name="toggle" actionName="toggleAnimation" target="squirrelRotation">
+    <label>Start/Stop Squirrel</label>
+  </callAction>
+</graph>
+<animateFromSequence name="squirrelRotation" target="t" from="0" to="2pi" step="pi/16" animationInterval="50" animationMode="oscillate" animationOn="false"/>
+```
+
+
+
+Many different components can be placed on a ` <graph>{:dn}`. If the `anchor` attribute is included, the rendered object is centered at the point specified. Otherwise, the component is centered at $(0,0)$. 
+
+
+Note that ` <mathInput/>{:dn}` components cannot be placed on a ` <graph>{:dn}` at this time. Instead, a ` <textInput/>{:dn}` can be included, and basic math expressions can be performed for math entered into a ` <textInput/>{:dn}`.
+
+
+
+---
+
+### Example: xmin, xmax, ymin, ymax
+
+
+```doenet-editor-horiz
+<graph name="g" xmin="-1" xmax="1" ymin="-2" ymax="2" size="small">
+  <point/>
+  <line>y=x</line>
+</graph>
+<graph copySource="g" identicalAxisScales/>
+```
+
+
+
+Use the `xmin`, `xmax`, `ymin` and `ymax` attributes to adjust the extents of the axis scales. Note that the relative proportions of the axes will automatically adjust to keep the ` <graph>{:dn}` square unless the `identicalAxisScales` attribute is also specified, as illustrated in the second graph
+
+
+
+---
+
+### Example: width
+
+
+```doenet-editor-horiz
+<graph name="g" width="80px">
+  <point/>
+  <line>y=x</line>
+</graph>
+<graph copySource="g" size="tiny"/>
+```
+
+
+
+The `width` attribute specifies the absolute width of the graph. Doenet determines the `size` category that corresponds to that width and sizes the graph accordingly.
+
+
+
+---
+
+### Example: size
+
+
+```doenet-editor-horiz
+<graph name="g" size="small">
+  <point/>
+  <line>y=x</line>
+</graph>
+<graph copySource="g" size="tiny"/>
+```
+
+
+
+The `size` attribute specifies one of 5 size categories for the ` <graph>{:dn}`: `tiny`, `small`, `medium`, `large`, or `full`.
+
+
+
+---
+
+### Example: aspectRatio
+
+
+```doenet-editor-horiz
+<graph name="g" aspectRatio="2/1">
+  <point/>
+  <line>y=x</line>
+</graph>
+<graph copySource="g" aspectRatio="1/2"/>
+```
+
+
+
+The `aspectRatio` attribute allows for customization of the graph's default proportions.
+
+
+
+---
+
+### Example: displayMode
+
+
+```doenet-editor-horiz
+<graph name="g" displayMode="inline" size="tiny">
+  <point/>
+  <line>y=x</line>
+</graph>
+<graph copySource="g" displayMode="block" size="tiny"/>
+```
+
+
+
+The `displayMode` attribute affects how the ` <graph>{:dn}` is positioned on screen. The default mode is "block", which renders the graph centered on screen. The available modes are `inline`, and `block`. 
+
+
+
+---
+
+### Example: horizontalAlign
+
+
+```doenet-editor-horiz
+<p>A left graph</p>  
+<graph name="g" displayMode="block" horizontalAlign="left" size="tiny">
+  <point/>
+  <line>y=x</line>
+</graph>
+<p>A centered graph (default)</p>
+<graph copySource="g" horizontalAlign="center"/>
+<p>A right graph </p>
+<graph copySource="g" horizontalAlign="right"/>
+```
+
+
+
+The `horizontalAlign` attribute specifies the horizontal position on-screen for the default block-mode style graph. Valid values are `left`, `center`, and `right`, with a default of `center`.
+
+
+
+---
+
+### Example: identicalAxisScales
+
+
+```doenet-editor-horiz
+<p>Without <attr>identicalAxisScales</attr></p> 
+<graph name="g" xmin="-5" xmax="5" grid="1 1" size="small">
+  <point/>
+  <line>y=x</line>
+</graph>
+<p>With <attr>identicalAxisScales</attr></p> 
+<graph copySource="g" identicalAxisScales/>
+```
+
+
+
+When the `identicalAxisScales` attribute is used, the overall proportions of the ` <graph>{:dn}` will be proportional to the range of the $x$ and $y$ axes, and the grid will be perfectly square.
+
+
+
+---
+
+### Example: displayXAxis, displayYAxis
+
+
+```doenet-editor-horiz
+<graph name="g" displayXAxis="false" displayYAxis="false" size="small">
+  <point/>
+  <line>y=x</line>
+</graph>
+```
+
+
+
+Use the `displayXAxis` and `displayYAxis` attributes to set rendering of the axes to `true` or `false`.
+
+
+
+---
+
+### Example: displayXAxisTickLabels, displayYAxisTickLabels
+
+
+```doenet-editor-horiz
+<graph name="g" displayXAxisTickLabels="false" displayYAxisTickLabels="false" size="small">
+  <point/>
+  <line>y=x</line>
+</graph>
+```
+
+
+
+Use the `displayXAxisTickLabels` and `displayYAxisTickLabels` attributes to set rendering of the axes tick labels to `true` or `false`.
+
+
+
+---
+
+### Example: xLabelPosition, yLabelPosition
+
+
+```doenet-editor-horiz
+<graph name="g" xLabelPosition="left" yLabelPosition="bottom" showNavigation="false">
+  <xlabel><m>x</m></xlabel>
+  <ylabel><m>y</m></ylabel>
+  <point/>
+  <line>y=x</line>
+</graph>
+```
+
+
+
+Use the `xLabelPosition` attribute to choose between a `left` position and a `right` position for the $x$-axis label. The default position is `right`. 
+
+
+Use the `yLabelPosition` attribute to choose between a `top` position and a `bottom` position for the $y$-axis label. The default position is `top`. 
+
+
+
+---
+
+### Example: yLabelAlignment
+
+
+```doenet-editor-horiz
+<graph name="g" yLabelAlignment="right"  showNavigation="false">
+  <ylabel><m>y</m></ylabel>
+  <xlabel><m>x</m></xlabel>
+  <point/>
+  <line>y=x</line>
+</graph>
+```
+
+
+
+Use the `yLabelAlignment` attribute to choose between a `left` alignment and a `right` alignment for the $y$-axis label. The default position is `left`, which means the label appears to the left of the vertical axis.
+
+
+
+---
+
+### Example: xTickScaleFactor, yTickScaleFactor
+
+
+```doenet-editor-horiz
+<graph  xTickScaleFactor="pi">
+  <function>sin(x)</function>
+</graph>
+<graph yTickScaleFactor="pi">
+  <function>1/x</function>
+</graph>
+```
+
+
+
+The `xTickScaleFactor` and `yTickScaleFactor` attributes apply a numerical multiplier to the $x$-axis and the $y$-axis, respectively.
+
+
+
+---
+
+### Example: showNavigation
+
+
+```doenet-editor-horiz
+<graph name="g" showNavigation="false" size="small">
+  <point/>
+  <line>y=x</line>
+</graph>
+<graph copySource="g" showNavigation="true"/>
+```
+
+
+
+The `showNavigation` attribute controls whether the default zooming and panning controls at the bottom of the ` <graph>{:dn}` are visible.
+
+
+
+---
+
+### Example: fixAxes
+
+
+```doenet-editor-horiz
+<graph name="g" fixAxes="true" size="small">
+  <point/>
+  <line>y=x</line>
+</graph>
+<graph copySource="g" fixAxes="false" link="false"/>
+```
+
+
+
+If the `fixAxes` attribute is set to `true`, the user cannot zoom in and out of the ` <graph>{:dn}`. The navigation buttons at the base of the graph will also not appear. By default, `fixAxes` is set to `false`.
+
+
+
+---
+
+### Example: grid
+
+
+```doenet-editor-horiz
+<p>Graph 1: If you zoom in and out below, the grid adapts to the scale.</p>
+<graph name="g" grid  size="small">
+  <point/>
+  <line>y=x</line>
+</graph>
+<p>Graph 2: If you zoom in and out below, the grid remains constant.</p>
+<graph copySource="g" grid="1 1"/>
+<p>Graph 3: If you zoom in and out below, the grid remains constant.</p>
+<graph copySource="g" grid="5 1"/>
+<p>Graph 4: If you zoom in and out below, the grid adapts.</p>
+<graph copySource="g" grid="dense"/>
+```
+
+
+
+The `grid` attribute specifies the spacing of the gridlines. Valid values are `none`, `medium`, `dense`, and `a b` (where a is the x-axis spacing and b is the y-axis spacing).
+
+
+The default ` <graph>{:dn}` does not show a grid; however, if only `grid` is specified, then a default medium grid is shown.
+
+
+Unless the `grid="a b"` specification is used, all grid spacings adapt to the scale of the graph.
+
+
+
+---
+
+### Example: showBorder
+
+
+```doenet-editor-horiz
+<graph displayXAxis="false" displayYAxis="false" showNavigation="false" showBorder="false">
+  <regularPolygon nSides="5" sideLength="4" center="(0,4)" filled/>
+  <circle center="(-4,-4)" radius="3" styleNumber="2" filled/>
+  <rectangle center="(4,-4)" width="5" height="3" styleNumber="3" filled/>
+</graph>
+```
+
+
+
+The `showBorder` attribute can be set to `false` to suppress rendering of the default border.
+
+
+
+---
+
+### Example: Attributes as properties 1
+
+
+```doenet-editor-horiz
+<graph name="g" size="small">
+  <regularPolygon nSides="5" sideLength="4" filled/>
+</graph>
+<p><c>xmin, xmax</c> = $g.xmin, $g.xmax</p>
+<p><c>ymin, ymax</c> = $g.ymin, $g.ymax</p>
+<p><c>displayMode</c> = $g.displayMode</p>
+<p><c>horizontalAlign</c> = $g.horizontalAlign</p>
+<p><c>identicalAxisScales</c> = $g.identicalAxisScales</p>
+<p><c>displayXAxis, displayYAxis</c> = $g.displayXAxis, $g.displayYAxis</p>
+<p><c>displayXAxisTickLabels, displayYAxisTickLabels</c> = $g.displayXAxisTickLabels, $g.displayYAxisTickLabels</p>
+```
+
+
+
+The above listed ` <graph>{:dn}` attributes are also accessible as properties.
+
+
+
+---
+
+### Example: Attributes as properties 2
+
+
+```doenet-editor-horiz
+<graph name="g" size="small">
+  <regularPolygon nSides="5" sideLength="4" filled/>
+</graph>
+<p><c>xLabelPosition, xLabelPosition</c> = $g.xLabelPosition, $g.xLabelPosition</p>
+<p><c>yLabelAlignment</c> = $g.yLabelAlignment</p>
+<p><c>fixAxes</c> = $g.fixAxes</p>
+<p><c>showNavigation</c> = $g.showNavigation</p>
+<p><c>showBorder</c> = $g.showBorder</p>
+<p><c>size</c> = $g.size</p>
+<p><c>width</c> = $g.width</p>
+<p><c>grid</c> = $g.grid</p>
+```
+
+
+
+The above listed ` <graph>{:dn}` attributes are also accessible as properties.
+
+
+
+---
+
+### Example: xScale, yScale
+
+
+```doenet-editor-horiz
+<graph name="g" size="small">
+  <regularPolygon nSides="5" sideLength="4" filled/>
+</graph>
+<p><c>xScale, yScale</c> = $g.xScale, $g.yScale</p>
+```
+
+
+
+The `xScale` and `yScale` properties return the current extents of the graph axes and adapt to the zooming of the graph.
+
+

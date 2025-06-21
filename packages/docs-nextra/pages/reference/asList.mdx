@@ -1,0 +1,35 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <asList>{:dn}`
+
+**Disclaimer:** *This component is deprecated. Using ` <asList>{:dn}` is no longer required, as commas are
+automatically added between items in a sequence or repeat. However, using it will not 
+cause an error.*
+
+---
+
+` <asList>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types) component
+that renders a formatted list when it surrounds ` <sequence/>{:dn}`
+or a `<repeat>{:dn}`. It does not need to be nested within a `<p>` tag. 
+
+## Attributes and Properties 
+ The ` <asList>{:dn}` component does not have any attributes.
+ <PropDisplay name='asList'/>
+
+---
+
+### Example: ` <asList>{:dn}` with a ` <sequence>{:dn}`
+
+
+```doenet-example
+<p><sequence from="1" to="10"/></p>
+<p><asList><sequence from="1" to="10"/></asList></p>
+```
+
+
+In the latest versions of doenetML, the `<asList>{:dn}` component is no longer necessary, 
+as commas are automatically added between items in a sequence or repeat. 

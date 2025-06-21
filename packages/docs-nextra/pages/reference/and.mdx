@@ -1,21 +1,24 @@
-import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
-# `<and>`
+import { AttrDisplay, PropDisplay } from "../../components"
 
-## What it does
-`<and>` functions as the boolean operator `and` or `&`, and checks to see whether all enclosed `<boolean>` references are `true`.
 
-## Attributes and Properties
+
+# ` <and>{:dn}`
+
+
+` <and>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types) component
+which checks to see whether all enclosed ` <boolean>{:dn}` references are `true`.
+
+## Attributes and Properties 
 The `<and>` component has no attributes or properties.
 
-## Example list
-1. [`<and>` in a `<boolean>`](#boolean-ex)
-2. [`<and>` in an `<award>`](#award-ex)
-3. [An alternative to `<and>`](#alternative-ex)
+
+---
 
 <a id="boolean-ex"></a>
 ### Example: `<and>` in a `<boolean>`
-```doenet {10}
+```doenet-editor-horiz
 <p>Enter a number between 5 and 10, excluding 7:
   <mathInput name="n"/></p>
       
@@ -29,11 +32,14 @@ The `<and>` component has no attributes or properties.
   </boolean></p>
 ```
 
-The `<and>` component functions as the boolean operator `and` or `&`, and checks to see whether all enclosed `<boolean>` references are `true`. Test code [here](#test-code).
+The `<and>` component functions as the boolean operator `and` or `&`, and checks to see 
+whether all enclosed `<boolean>` references are `true`. 
+
+---
 
 <a id="award-ex"></a>
 ### Example: `<and>` in an `<award>`
-```doenet {18}
+```doenet-editor-horiz
 <p>Move the point to the intersection of the circle and the line in the 
 first quadrant. (Scroll down to check work.)</p>
       
@@ -64,12 +70,14 @@ first quadrant. (Scroll down to check work.)</p>
   $p.x > 0 and $p.y > 0</boolean>
 ```
 
-An `<and>` component is used to construct a compound boolean from three referenced `<boolean>` components within an `<award>`. Test code [here](#test-code).
+An `<and>` component is used to construct a compound boolean from three referenced `<boolean>` components 
+within an `<award>`.
 
+---
 
 <a id="alternative-ex"></a>
 ### Example: An alternative to `<and>`
-```doenet {9}
+```doenet-editor-horiz
 <p>Enter a number between 5 and 10, excluding 7:
   <mathInput name="n"/></p>
       
@@ -81,10 +89,10 @@ An `<and>` component is used to construct a compound boolean from three referenc
   <boolean>$check1 and $check2 and $check3</boolean>
 </p>
 ```
-The word `and` may be typed directly within any component that takes a boolean expression, such as an `<award>`, a `<when>`, or a `<boolean>`. The text syntax *must* be used within a boolean expression inside an attribute's specification (since components such as `<and>` are not permissible in attribute specification). Compare the syntax in the example above with that in [this example](#boolean-ex). Test code [here](#test-code).
 
-<a id="test-code"></a>
-### Test Code
-```doenet-editor
+The word `and` may be typed directly within any component that takes a boolean 
+expression, such as an `<award>`, a `<when>`, or a `<boolean>`. The text syntax *must* be used within a 
+boolean expression inside an attribute's specification (since components such as `<and>` are not 
+permissible in attribute specification). Compare the syntax in the example above 
+with that in [the example with `<and>` in a `<boolean>`](#boolean-ex). 
 
-```
