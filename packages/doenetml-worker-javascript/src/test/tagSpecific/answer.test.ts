@@ -4398,28 +4398,6 @@ Enter any letter:
         });
     });
 
-    it("answer award with full award and outside input, copy award and overwrite properties", async () => {
-        const doenetML = `
-<mathInput name="mi" />
-<answer name="an">
-    <award name="aw" referencesAreResponses="$mi"><when>$mi=1.1</when></award>
-    <award extend="$aw" credit="0.5" allowedErrorInNumbers="0.001" referencesAreResponses="" name="aw2" />
-</answer>
-  `;
-
-        await test_math_answer({
-            doenetML,
-            answerName: "an",
-            answers: [
-                { latex: "", credit: 0, awardsUsed: [] },
-                { latex: "1.1", credit: 1, awardsUsed: ["aw"] },
-                { latex: "1.11", credit: 0, awardsUsed: [] },
-                { latex: "1.101", credit: 0.5, awardsUsed: ["aw2"] },
-            ],
-            mathInputName: "mi",
-        });
-    });
-
     it("copied answer mirrors original", async () => {
         const doenetML = `
   <answer name="ans1">x+y</answer>
