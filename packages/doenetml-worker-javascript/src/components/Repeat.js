@@ -22,6 +22,11 @@ export default class Repeat extends CompositeComponent {
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
+    // Since we add components with names into the `for` attribute
+    // (which cannot be done with DoenetML)
+    // we need to add the `for` attribute to the resolver
+    static addAttributeToResolver = "for";
+
     static keepChildrenSerialized({ serializedComponent }) {
         if (serializedComponent.children === undefined) {
             return [];
@@ -827,13 +832,14 @@ async function addAndLinkAliasComponents(
             extending: {
                 Ref: {
                     nodeIdx: sourcesComponentIdx,
-                    originalPath: null,
+                    originalPath: [
+                        { name: "", index: [{ value: [`${iter + 1}`] }] },
+                    ],
                     unresolvedPath: [
-                        // get through the first copy that will be in the attribute
-                        // { name: "", index: [{ value: [`1`] }] },
                         // get the item from the sources
                         { name: "", index: [{ value: [`${iter + 1}`] }] },
                     ],
+                    nodesInResolvedPath: [sourcesComponentIdx],
                 },
             },
         });
@@ -906,12 +912,20 @@ export function remapExtendIndices(components, extendIdxMapping) {
                 );
             }
 
-            if (refResolution.originalPath) {
-                newRefResolution.originalPath = remapExtendIndicesInPath(
-                    refResolution.originalPath,
-                    extendIdxMapping,
-                );
-            }
+            newRefResolution.originalPath = remapExtendIndicesInPath(
+                refResolution.originalPath,
+                extendIdxMapping,
+            );
+
+            newRefResolution.nodesInResolvedPath =
+                refResolution.nodesInResolvedPath.map((idx) => {
+                    const remapIdx = extendIdxMapping[idx];
+                    if (remapIdx != undefined) {
+                        return remapIdx;
+                    } else {
+                        return idx;
+                    }
+                });
 
             newComponent.extending = addSource(newRefResolution, extending);
         }

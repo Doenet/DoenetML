@@ -475,12 +475,16 @@ export default class Label extends InlineComponent {
             definition({ dependencyValues }) {
                 let forObjectComponentIdx;
 
-                if (
-                    dependencyValues.forObject?.length === 1 &&
-                    dependencyValues.forObject[0].unresolvedPath == null
-                ) {
-                    forObjectComponentIdx =
-                        dependencyValues.forObject[0].componentIdx;
+                if (dependencyValues.forObject?.length === 1) {
+                    if (dependencyValues.forObject[0].unresolvedPath === null) {
+                        forObjectComponentIdx =
+                            dependencyValues.forObject[0].componentIdx;
+                    } else {
+                        // if there was a `forObject` attribute but it didn't match  an object,
+                        // then set `forObjectComponentIdx` to `-1`
+                        // so that this label will not be used in a legend
+                        forObjectComponentIdx = -1;
+                    }
                 } else {
                     forObjectComponentIdx = null;
                 }

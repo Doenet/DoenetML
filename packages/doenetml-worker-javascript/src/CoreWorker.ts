@@ -10,6 +10,7 @@ import {
     NodeList,
     RefResolution,
     Resolver,
+    IndexResolution,
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
 import { resolvePathImmediatelyToNodeIdx } from "./utils/externalPathResolution";
@@ -71,6 +72,7 @@ export class PublicDoenetMLCore {
     addNodesToResolver?: (
         resolver: Resolver,
         flat_fragment: FlatFragment,
+        index_resolution: IndexResolution,
     ) => Resolver;
     deleteNodesFromResolver?: (
         resolver: Resolver,
@@ -115,6 +117,7 @@ export class PublicDoenetMLCore {
         addNodesToResolver: (
             resolver: Resolver,
             flat_fragment: FlatFragment,
+            index_resolution: IndexResolution,
         ) => Resolver;
         deleteNodesFromResolver?: (
             resolver: Resolver,

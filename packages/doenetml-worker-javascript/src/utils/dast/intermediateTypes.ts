@@ -52,6 +52,7 @@ export type UnflattenedRefResolution = {
     nodeIdx: number;
     unresolvedPath: UnflattenedPathPart[] | null;
     originalPath: UnflattenedPathPart[];
+    nodesInResolvedPath: number[];
 };
 
 export interface UnflattenedPathPart {

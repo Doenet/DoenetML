@@ -65,10 +65,6 @@ export function convertRefsToCopies({
         const extending = newComponent.extending;
 
         const refResolution = unwrapSource(extending);
-        const unresolvedPath =
-            refResolution.unresolvedPath === null
-                ? null
-                : [...refResolution.unresolvedPath];
 
         if (
             newComponent.componentType === "evaluate" &&
@@ -80,6 +76,8 @@ export function convertRefsToCopies({
                 evaluateComponent: newComponent,
                 refResolution,
                 nComponents,
+                componentInfoObjects,
+                allNodes,
             });
 
             nComponents = evalResult.nComponents;
@@ -152,99 +150,96 @@ export function convertRefsToCopies({
 
         newComponent.componentType = "_copy";
 
-        if (unresolvedPath === null) {
-            // a copy with no props
-            if (wrappingComponent) {
-                wrappingComponent.children.unshift(newComponent);
-                newComponents.push(wrappingComponent);
-            } else {
-                newComponent.attributes = outerAttributes;
-                newComponents.push(newComponent);
-            }
-            continue;
-        }
+        const convertPath = (path_part: UnflattenedPathPart) => {
+            const new_index: UnflattenedIndex[] = path_part.index.map(
+                (index) => {
+                    const res = convertRefsToCopies({
+                        serializedComponents: index.value,
+                        nComponents,
+                        componentInfoObjects,
+                        allNodes,
+                    });
+                    nComponents = res.nComponents;
 
-        // For all the indices in the unresolved path,
+                    if (res.components.length === 1) {
+                        // if have a single component that can be turned into an integer
+                        // set the value to that component
+                        const comp = res.components[0];
+
+                        if (typeof comp === "string") {
+                            return {
+                                value: [comp],
+                                position: index.position,
+                            };
+                        } else if (
+                            comp.componentType === "number" ||
+                            comp.componentType === "integer"
+                        ) {
+                            // round value
+                            comp.componentType = "integer";
+                            return {
+                                value: [comp],
+                                position: index.position,
+                            };
+                        } else if (
+                            comp.componentType === "_copy" &&
+                            !comp.attributes.createComponentOfType
+                        ) {
+                            comp.attributes.createComponentOfType = {
+                                name: "createComponentOfType",
+                                children: ["integer"],
+                            };
+                            return {
+                                value: [comp],
+                                position: index.position,
+                            };
+                        }
+                    }
+
+                    // otherwise, wrap the components in an integer component
+                    return {
+                        value: [
+                            {
+                                type: "unflattened",
+                                componentType: "integer",
+                                componentIdx: nComponents++,
+                                attributes: {},
+                                doenetAttributes: {},
+                                children: res.components,
+                                state: {},
+                                position: index.position,
+                            },
+                        ],
+                        position: index.position,
+                    };
+                },
+            );
+
+            return {
+                index: new_index,
+                name: path_part.name,
+                position: path_part.position,
+            };
+        };
+
+        // For all the indices in the original and unresolved path,
         // convert any references to copies
         // and make sure that each index piece is a single integer component
         // or a single string
-        const converted_unresolvedPath: UnflattenedPathPart[] =
-            unresolvedPath.map((path_part) => {
-                const new_index: UnflattenedIndex[] = path_part.index.map(
-                    (index) => {
-                        const res = convertRefsToCopies({
-                            serializedComponents: index.value,
-                            nComponents,
-                            componentInfoObjects,
-                            allNodes,
-                        });
-                        nComponents = res.nComponents;
+        const converted_originalPath: UnflattenedPathPart[] =
+            refResolution.originalPath.map(convertPath);
 
-                        if (res.components.length === 1) {
-                            // if have a single component that can be turned into an integer
-                            // set the value to that component
-                            const comp = res.components[0];
+        refResolution.originalPath = converted_originalPath;
 
-                            if (typeof comp === "string") {
-                                return {
-                                    value: [comp],
-                                    position: index.position,
-                                };
-                            } else if (
-                                comp.componentType === "number" ||
-                                comp.componentType === "integer"
-                            ) {
-                                // round value
-                                comp.componentType = "integer";
-                                return {
-                                    value: [comp],
-                                    position: index.position,
-                                };
-                            } else if (
-                                comp.componentType === "_copy" &&
-                                !comp.attributes.createComponentOfType
-                            ) {
-                                comp.attributes.createComponentOfType = {
-                                    name: "createComponentOfType",
-                                    children: ["integer"],
-                                };
-                                return {
-                                    value: [comp],
-                                    position: index.position,
-                                };
-                            }
-                        }
+        if (refResolution.unresolvedPath) {
+            const converted_unresolvedPath: UnflattenedPathPart[] =
+                refResolution.unresolvedPath.map(convertPath);
 
-                        // otherwise, wrap the components in an integer component
-                        return {
-                            value: [
-                                {
-                                    type: "unflattened",
-                                    componentType: "integer",
-                                    componentIdx: nComponents++,
-                                    attributes: {},
-                                    doenetAttributes: {},
-                                    children: res.components,
-                                    state: {},
-                                    position: index.position,
-                                },
-                            ],
-                            position: index.position,
-                        };
-                    },
-                );
-
-                return {
-                    index: new_index,
-                    name: path_part.name,
-                    position: path_part.position,
-                };
-            });
-
-        refResolution.unresolvedPath = converted_unresolvedPath;
+            refResolution.unresolvedPath = converted_unresolvedPath;
+        }
 
         if (wrappingComponent) {
-            wrappingComponent.children.splice(0, 0, newComponent);
+            wrappingComponent.children.unshift(newComponent);
             newComponents.push(wrappingComponent);
         } else {
             newComponent.attributes = {
@@ -266,26 +261,39 @@ function convertEvaluate({
     evaluateComponent,
     refResolution,
     nComponents,
+    componentInfoObjects,
+    allNodes,
 }: {
     evaluateComponent: UnflattenedComponent;
     refResolution: UnflattenedRefResolution;
     nComponents: number;
+    componentInfoObjects: ComponentInfoObjects;
+    allNodes: NormalizedNode[];
 }) {
     // The function to evaluate is an attribute
-    evaluateComponent.attributes.function = {
-        name: "function",
-        children: [
+
+    let res = convertRefsToCopies({
+        serializedComponents: [
             {
                 type: "unflattened",
-                componentType: "_copy",
+                componentType: "function",
                 componentIdx: nComponents++,
                 children: [],
                 attributes: {},
-                doenetAttributes: { extendIdx: refResolution.nodeIdx },
+                doenetAttributes: {},
                 state: {},
                 extending: evaluateComponent.extending,
             },
         ],
+        nComponents,
+        componentInfoObjects,
+        allNodes,
+    });
+    nComponents = res.nComponents;
+
+    evaluateComponent.attributes.function = {
+        name: "function",
+        children: res.components,
     };
 
     // Note: we don't delete the `extending` attribute of the `<evaluate>` even though it isn't directly used,

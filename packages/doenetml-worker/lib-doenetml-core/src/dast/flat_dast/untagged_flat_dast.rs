@@ -114,6 +114,14 @@ impl Source<RefResolution> {
             Source::Ref(m) => m,
         }
     }
+
+    pub fn set_initial_node_index(&mut self, idx: Index) {
+        match self {
+            Source::ExtendAttribute(a) => a.nodes_in_resolved_path[0] = idx,
+            Source::CopyAttribute(a) => a.nodes_in_resolved_path[0] = idx,
+            Source::Ref(m) => m.nodes_in_resolved_path[0] = idx,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

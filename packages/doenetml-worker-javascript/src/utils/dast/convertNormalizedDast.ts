@@ -130,6 +130,7 @@ export async function normalizedDastToSerializedComponents(
                                         nodeIdx: -1,
                                         unresolvedPath: null,
                                         originalPath: [],
+                                        nodesInResolvedPath: [],
                                     },
                                 },
                                 state: {},
@@ -180,6 +181,7 @@ export async function normalizedDastToSerializedComponents(
             nodeIdx: refResolution.nodeIdx,
             unresolvedPath,
             originalPath,
+            nodesInResolvedPath: [...refResolution.nodesInResolvedPath],
         };
 
         return addSource(unflattenedRefResolution, extending);
@@ -242,7 +244,7 @@ export async function normalizedDastToSerializedComponents(
 
     // console.log(
     //     "after create copies",
-    //     convertToCopyResult.components,
+    //     JSON.parse(JSON.stringify(convertToCopyResult.components)),
     //     nComponents,
     // );
 
@@ -479,6 +481,7 @@ function expandUnflattenedRefResolution({
         nodeIdx: unflattenedRefResolution.nodeIdx,
         unresolvedPath,
         originalPath,
+        nodesInResolvedPath: [...unflattenedRefResolution.nodesInResolvedPath],
     };
 
     return {
@@ -936,12 +939,7 @@ function createInitialComponentFromAttribute({
         state: {},
     };
 
-    component.children = attribute.children.map((child) => {
-        if (typeof child === "object") {
-            child.componentIdx = nComponents++;
-        }
-        return child;
-    });
+    component.children = [...attribute.children];
 
     return { component, nComponents };
 }
@@ -1077,11 +1075,20 @@ export function convertUnresolvedAttributesForComponentType({
                     componentInfoObjects,
                     nComponents,
                 });
+
                 newAttributes[attrName] = res.attribute;
                 errors.push(...res.errors);
                 nComponents = res.nComponents;
 
                 if (newAttributes[attrName].type === "component") {
+                    // give the children of the component new component indices
+                    for (const child of newAttributes[attrName].component
+                        .children) {
+                        if (typeof child === "object") {
+                            child.componentIdx = nComponents++;
+                        }
+                    }
+
                     let serializedComponents = [
                         newAttributes[attrName].component,
                     ];

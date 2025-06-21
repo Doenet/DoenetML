@@ -55,6 +55,7 @@ export type SerializedRefResolution = {
     nodeIdx: number;
     unresolvedPath: SerializedRefResolutionPathPart[] | null;
     originalPath: SerializedRefResolutionPathPart[];
+    nodesInResolvedPath: number[];
 };
 
 export interface SerializedRefResolutionPathPart {

@@ -48,7 +48,8 @@ fn refs_get_expanded_to_their_referents() {
                       "Ref": {
                         "nodeIdx": 1,
                         "unresolvedPath": null,
-                        "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
+                        "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }],
+                        "nodesInResolvedPath": [2, 1],
                       }
                     }
                   }
@@ -134,7 +135,8 @@ fn leftover_path_parts_are_kept() {
                         "originalPath": [
                           { "type": "flatPathPart", "name": "p", "index": [] },
                           { "type": "flatPathPart", "name": "x", "index": [] }
-                        ]
+                        ],
+                        "nodesInResolvedPath": [2, 1],
                       }
                     }
                   }
@@ -213,7 +215,8 @@ fn references_expanded_in_leftover_path_parts() {
                         "originalPath": [
                           { "type": "flatPathPart", "name": "p", "index": [] },
                           { "type": "flatPathPart", "name": "x", "index": [{ "value": [4] }] }
-                        ]
+                        ],
+                        "nodesInResolvedPath": [3, 1],
                       }
                     }
                   },
@@ -237,7 +240,8 @@ fn references_expanded_in_leftover_path_parts() {
                         "originalPath": [
                           { "type": "flatPathPart", "name": "p", "index": [] },
                           { "type": "flatPathPart", "name": "y", "index": [{ "value": [5] }] }
-                        ]
+                        ],
+                        "nodesInResolvedPath": [4, 1],
                       }
                     }
                   },
@@ -252,7 +256,8 @@ fn references_expanded_in_leftover_path_parts() {
                       "Ref": {
                         "nodeIdx": 2,
                         "unresolvedPath": null,
-                        "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }]
+                        "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }],
+                        "nodesInResolvedPath": [5, 2],
                       }
                     }
                   }
@@ -308,7 +313,8 @@ fn refs_in_attributes_are_expanded() {
                       "Ref": {
                         "nodeIdx": 1,
                         "unresolvedPath": null,
-                        "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
+                        "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }],
+                        "nodesInResolvedPath": [3, 1],
                       }
                     },
                   }
@@ -367,7 +373,8 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
                   "ExtendAttribute": {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
-                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }],
+                    "nodesInResolvedPath": [2, 1],
                   }
                 }
               },
@@ -384,7 +391,8 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
                   "Ref": {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
-                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }],
+                    "nodesInResolvedPath": [3, 1],
                   }
                 }
               }
@@ -432,7 +440,8 @@ fn can_expand_a_copy_attribute_to_a_node_ref() {
                   "CopyAttribute": {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
-                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }],
+                    "nodesInResolvedPath": [2, 1],
                   }
                 }
               },
@@ -449,7 +458,8 @@ fn can_expand_a_copy_attribute_to_a_node_ref() {
                   "Ref": {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
-                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }]
+                    "originalPath": [{ "type": "flatPathPart", "name": "p", "index": [] }],
+                    "nodesInResolvedPath": [3, 1],
                   }
                 }
               }
@@ -508,7 +518,8 @@ fn initial_ref_skips_option_children() {
                       "Ref": {
                         "nodeIdx": 1,
                         "unresolvedPath": null,
-                        "originalPath": [{ "type": "flatPathPart", "name": "n1", "index": [] }]
+                        "originalPath": [{ "type": "flatPathPart", "name": "n1", "index": [] }],
+                        "nodesInResolvedPath": [2, 1],
                       }
                     }
                   },
@@ -534,7 +545,8 @@ fn initial_ref_skips_option_children() {
                         "originalPath": [
                           { "type": "flatPathPart", "name": "o", "index": [] },
                           { "type": "flatPathPart", "name": "n2", "index": [] }
-                        ]
+                        ],
+                        "nodesInResolvedPath": [4, 5],
                       }
                     }
                   },
@@ -579,7 +591,8 @@ fn initial_ref_skips_option_children() {
                       "Ref": {
                         "nodeIdx": 1,
                         "unresolvedPath": null,
-                        "originalPath": [{ "type": "flatPathPart", "name": "n1", "index": [] }]
+                        "originalPath": [{ "type": "flatPathPart", "name": "n1", "index": [] }],
+                        "nodesInResolvedPath": [7, 1],
                       }
                     }
                   },
@@ -594,7 +607,8 @@ fn initial_ref_skips_option_children() {
                       "Ref": {
                         "nodeIdx": 6,
                         "unresolvedPath": null,
-                        "originalPath": [{ "type": "flatPathPart", "name": "n2", "index": [] }]
+                        "originalPath": [{ "type": "flatPathPart", "name": "n2", "index": [] }],
+                        "nodesInResolvedPath": [8, 6],
                       }
                     }
                   },

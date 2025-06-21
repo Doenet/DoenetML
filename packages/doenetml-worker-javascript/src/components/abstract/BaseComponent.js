@@ -1425,11 +1425,16 @@ export default class BaseComponent {
             serializedComponent.extending = {
                 Ref: {
                     nodeIdx: this.refResolution.nodeIdx,
-                    unresolvedPath: await this.serializePath(
+                    unresolvedPath: deepClone(
                         this.refResolution.unresolvedPath,
+                    ),
+                    originalPath: await this.serializePath(
+                        this.refResolution.originalPath,
                         parametersForChildren,
                     ),
-                    originalPath: deepClone(this.refResolution.originalPath),
+                    nodesInResolvedPath: deepClone(
+                        this.refResolution.nodesInResolvedPath,
+                    ),
                 },
             };
         }
@@ -1684,7 +1689,7 @@ export default class BaseComponent {
         }
 
         if (adapterComponentType === undefined) {
-            // if didn't override componentType, use createComponentType from state variable
+            // if didn't override componentType, use createComponentOfType from state variable
 
             let stateVarInfo = publicStateVariableInfo[this.componentType];
 
