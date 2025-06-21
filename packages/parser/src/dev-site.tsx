@@ -6,7 +6,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { CodeMirror } from "@doenet/codemirror";
-import { parse } from "./parser";
 import JsonView from "react18-json-view";
 import "react18-json-view/src/style.css";
 import { filterPositionInfo } from "./dast-to-xml/utils";

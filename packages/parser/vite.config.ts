@@ -21,8 +21,17 @@ export default defineConfig({
         lib: {
             entry: {
                 index: "./src/index.ts",
+                [`v06-to-v07`]: "./src/v06-to-v07/index.ts",
             },
             formats: ["es"],
+        },
+        rollupOptions: {
+            // This is needed for building the `v06-to-v07` converter.
+            // We don't want to add a build dep on `@doenet/doenetml-worker-javascript` just for this.
+            external: [
+                "@doenet/doenetml-worker-javascript",
+                "lib-doenetml-worker",
+            ],
         },
     },
 });

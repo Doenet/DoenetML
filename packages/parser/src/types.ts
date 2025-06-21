@@ -419,6 +419,7 @@ export type DastFunctionMacro = Omit<_FunctionMacro, "input" | "path"> & {
 // Old-style macro support
 //
 export type DastMacroV6 = Omit<_MacroV6, "attributes" | "path"> & {
+    version: "0.6";
     attributes: DastAttributeV6[];
     accessedProp: DastMacroV6 | null;
     path: DastMacroPathPartV6[];

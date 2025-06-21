@@ -20,7 +20,14 @@ import { macroToString as macroToStringV6 } from "../macros-v6/macro-to-string";
  * Serialize a xast tree to XML.
  */
 export function toXml(
-    tree?: DastNodes[] | DastNodes | DastNodesV6[] | DastNodesV6 | null,
+    tree?:
+        | DastNodes[]
+        | DastNodes
+        | DastNodesV6[]
+        | DastNodesV6
+        | DastMacroPathPart
+        | DastMacroFullPath
+        | null,
     options?: PrintOptions,
 ) {
     options = options || {};
@@ -38,13 +45,25 @@ export function toXml(
  * Serialize a node.
  */
 export function nodesToXml(
-    node: DastNodes | DastNodes[] | DastAttribute,
+    node:
+        | DastNodes
+        | DastNodes[]
+        | DastAttribute
+        | DastMacroPathPart
+        | DastMacroFullPath,
     options: PrintOptions,
 ): string {
     if (Array.isArray(node)) {
-        return mergeAdjacentTextInArray(node)
-            .map((child) => nodesToXml(child, options))
-            .join("");
+        if (!node.some((n) => n.type === "pathPart")) {
+            return mergeAdjacentTextInArray(node as DastNodes[])
+                .map((child) => nodesToXml(child, options))
+                .join("");
+        } else {
+            // If the node is an array of macro path parts, we need to convert it to a string
+            return (node as DastMacroPathPart[])
+                .map((part) => nodesToXml(part, options))
+                .join(".");
+        }
     }
 
     const type = node && node.type;
@@ -166,6 +185,14 @@ export function nodesToXml(
                       .join(", ")})`
                 : "";
             return start + macro + end + args;
+        }
+        case "pathPart": {
+            return (
+                node.name +
+                node.index
+                    .map((ind) => `[${nodesToXml(ind.value, options)}]`)
+                    .join("")
+            );
         }
         default: {
             // Typescript exhaustiveness check

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { determinePropType } from "./propType";
+import { determinePropType } from "./determine-prop-type";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
