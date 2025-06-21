@@ -31,13 +31,6 @@ export default class Collect extends CompositeComponent {
             public: true,
         };
 
-        attributes.sourceAttributesToIgnore = {
-            createPrimitiveOfType: "stringArray",
-            createStateVariable: "sourceAttributesToIgnore",
-            defaultValue: ["isResponse"],
-            public: true,
-        };
-
         attributes.from = {
             createReferences: true,
         };
@@ -416,14 +409,7 @@ export default class Collect extends CompositeComponent {
             };
         }
 
-        let sourceAttributesToIgnore =
-            await component.stateValues.sourceAttributesToIgnore;
-
-        serializedReplacements = [
-            await collectedComponent.serialize({
-                primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
-            }),
-        ];
+        serializedReplacements = [await collectedComponent.serialize()];
 
         let res = createNewComponentIndices(
             serializedReplacements,

@@ -1,4 +1,4 @@
-import { createComponentInfoObjects } from "../componentInfoObjects";
+import { createComponentInfoObjects } from "@doenet/doenetml-worker-javascript";
 
 const componentInfoObjects = createComponentInfoObjects();
 
@@ -14,6 +14,9 @@ const componentInfoObjects = createComponentInfoObjects();
 export function determinePropType(
     componentType: string,
     propName: string,
+    /**
+     * The number of indices accessed in the prop. For example `$foo.bar[1][1]` has 2 indices.
+     */
     nIndices = 0,
 ) {
     const publicStateVariableInfo =

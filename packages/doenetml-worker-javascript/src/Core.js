@@ -3034,8 +3034,6 @@ export default class Core {
         // we'll copy the replacements of the shadowed composite
         // and make those be the replacements of the shadowing composite
         let serializedReplacements = [];
-        let sourceAttributesToIgnore =
-            await component.stateValues.sourceAttributesToIgnore;
 
         let nComponents = this._components.length;
         let newNComponents = nComponents;
@@ -3075,9 +3073,7 @@ export default class Core {
 
         for (let [idx, repl] of shadowedComposite.replacements.entries()) {
             if (typeof repl === "object") {
-                const serializedComponent = await repl.serialize({
-                    primitiveSourceAttributesToIgnore: sourceAttributesToIgnore,
-                });
+                const serializedComponent = await repl.serialize();
 
                 if (
                     component.constructor.useSerializedChildrenComponentIndices
@@ -3136,67 +3132,6 @@ export default class Core {
             serializedComponents: serializedReplacements,
             componentIdx: nameOfCompositeMediatingTheShadow,
         });
-
-        let compositeAttributesObj =
-            compositeMediatingTheShadow.constructor.createAttributesObject();
-
-        let attributesToConvert = {};
-        if (component.attributes.isResponse) {
-            // We include a special case of copying isResponse from
-            // the shadowing composite.
-            // Rationale: when we serialize a component to copy it,
-            // we set primitiveSourceAttributesToIgnore=sourceAttributesToIgnore, above,
-            // which by default is ["isResponse"]
-            // so that isResponse, is not, in general copied.
-            // (We don't want copies of responses to be responses.)
-            // However, if an award has referencesAreResponses set, then we want
-            // copies of the award to also set those sources to be responses.
-            // The award accomplishes this through preprocessSerializedChildren,
-            // which adds isResponse to copies of those targets.
-            // Those copies are the shadowing composites, and we want those
-            // isResponse attributes to be added to their replacements.
-            // TODO: Is this too confusing?
-            // Can/should we give up this functionality for the sake of simplicity?
-            // A test that fails without this intervention is
-            // "full answer tag, copied in awards, shorter form" from answer.cy.js
-            attributesToConvert.isResponse = component.attributes.isResponse;
-        }
-
-        // // if the shadowing component is a first level replacement of compositeMediatingTheShadow,
-        // // then the attributes of compositeMediatingTheShadow should be passed on
-        // if (component.firstLevelReplacement) {
-        //   Object.assign(
-        //     attributesToConvert,
-        //     compositeMediatingTheShadow.attributes,
-        //   );
-        // }
-
-        // console.log(component.attributes);
-        // console.log(compositeMediatingTheShadow.attributes);
-        // console.log("attributesToConvert:", Object.keys(attributesToConvert));
-
-        for (let repl of serializedReplacements) {
-            if (typeof repl !== "object") {
-                continue;
-            }
-
-            // add attributes
-            if (!repl.attributes) {
-                repl.attributes = {};
-            }
-            const res = convertUnresolvedAttributesForComponentType({
-                attributes: attributesToConvert,
-                componentType: repl.componentType,
-                componentInfoObjects: this.componentInfoObjects,
-                compositeAttributesObj,
-                nComponents: newNComponents,
-            });
-
-            const attributesFromComposite = res.attributes;
-            newNComponents = res.nComponents;
-
-            Object.assign(repl.attributes, attributesFromComposite);
-        }
 
         // console.log("--------------");
         // console.log(
@@ -9320,18 +9255,13 @@ export default class Core {
 
                 let composite =
                     this._components[shadowingParent.shadows.compositeIdx];
-                let sourceAttributesToIgnore =
-                    await composite.stateValues.sourceAttributesToIgnore;
 
                 let shadowingSerializeChildren = [];
                 let nComponents = this._components.length;
 
                 for (let child of newChildren) {
                     if (typeof child === "object") {
-                        const serializedComponent = await child.serialize({
-                            primitiveSourceAttributesToIgnore:
-                                sourceAttributesToIgnore,
-                        });
+                        const serializedComponent = await child.serialize();
 
                         const res = createNewComponentIndices(
                             [serializedComponent],
@@ -10577,20 +10507,11 @@ export default class Core {
             if (shadowingComponent.isExpanded) {
                 let newSerializedReplacements = [];
 
-                let compositeCreatingShadow =
-                    this._components[shadowingComponent.shadows.compositeIdx];
-                let sourceAttributesToIgnore =
-                    await compositeCreatingShadow.stateValues
-                        .sourceAttributesToIgnore;
-
                 let nComponents = this._components.length;
                 let newNComponents = nComponents;
                 for (let repl of replacementsToShadow) {
                     if (typeof repl === "object") {
-                        const serializedComponent = await repl.serialize({
-                            primitiveSourceAttributesToIgnore:
-                                sourceAttributesToIgnore,
-                        });
+                        const serializedComponent = await repl.serialize();
 
                         const res = createNewComponentIndices(
                             [serializedComponent],

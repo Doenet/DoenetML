@@ -4910,16 +4910,6 @@ class AttributeComponentDependency extends Dependency {
                 ) {
                     break;
                 }
-            } else {
-                let composite =
-                    this.dependencyHandler._components[shadows.compositeIdx];
-                if ("sourceAttributesToIgnore" in composite.state) {
-                    let sourceAttributesToIgnore =
-                        await composite.stateValues.sourceAttributesToIgnore;
-                    if (sourceAttributesToIgnore.includes(this.attributeName)) {
-                        break;
-                    }
-                }
             }
 
             attribute = comp.attributes[this.attributeName];

@@ -100,10 +100,7 @@ type VisitOptions = {
     includeArrays?: boolean;
 };
 
-const DEFAULT_CONTEXT: VisitorContext = {
-    inMathMode: false,
-    hasMathModeAncestor: false,
-};
+const DEFAULT_CONTEXT: VisitorContext = {};
 
 export type VisitInfo = {
     /**
