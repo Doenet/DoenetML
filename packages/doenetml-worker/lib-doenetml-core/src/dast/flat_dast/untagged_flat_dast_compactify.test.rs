@@ -836,6 +836,7 @@ fn compactify_index_in_extend() {
                     "nodeIdx": 2,
                     "unresolvedPath": [{ "type": "flatPathPart", "name": "", "index": [{ "value": [4] }] }],
                     "originalPath": [{ "type": "flatPathPart", "name": "m", "index": [{ "value": [4] }] }],
+                    "nodesInResolvedPath": [3, 2],
                   }
                 }
               },
@@ -851,6 +852,7 @@ fn compactify_index_in_extend() {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }],
+                    "nodesInResolvedPath": [4, 1],
                   }
                 }
               },
@@ -917,6 +919,7 @@ fn compactify_index_in_extend_additional_compactification_before() {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }],
+                    "nodesInResolvedPath": [2, 1],
                   }
                 }
               },
@@ -932,6 +935,7 @@ fn compactify_index_in_extend_additional_compactification_before() {
                     "nodeIdx": 2,
                     "unresolvedPath": [{ "type": "flatPathPart", "name": "", "index": [{ "value": [4] }] }],
                     "originalPath": [{ "type": "flatPathPart", "name": "m", "index": [{ "value": [4] }] }],
+                    "nodesInResolvedPath": [3, 2],
                   }
                 }
               },
@@ -947,6 +951,7 @@ fn compactify_index_in_extend_additional_compactification_before() {
                     "nodeIdx": 1,
                     "unresolvedPath": null,
                     "originalPath": [{ "type": "flatPathPart", "name": "n", "index": [] }],
+                    "nodesInResolvedPath": [4, 1],
                   }
                 }
               },

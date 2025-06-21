@@ -196,7 +196,7 @@ impl Resolver {
                     NodeResolverData {
                         node_parent: node
                             .parent()
-                            .map(|idx| NodeParent::Node(idx))
+                            .map(NodeParent::Node)
                             .unwrap_or(NodeParent::FlatRoot),
                         resolution_algorithm: ResolutionAlgorithm::lookup_by_flat_node(node),
                         name_map: mem::take(&mut name_map[idx_plus_1]),
@@ -258,10 +258,8 @@ impl Resolver {
 
         // Add parents and stop_propagation for new nodes
         for node in flat_fragment.nodes.iter() {
-            self.node_resolver_data[node.idx() + 1].node_parent = node
-                .parent()
-                .map(|idx| NodeParent::Node(idx))
-                .unwrap_or(parent_node);
+            self.node_resolver_data[node.idx() + 1].node_parent =
+                node.parent().map(NodeParent::Node).unwrap_or(parent_node);
             self.node_resolver_data[node.idx() + 1].resolution_algorithm =
                 ResolutionAlgorithm::lookup_by_flat_node(node);
         }
