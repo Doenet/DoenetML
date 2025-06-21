@@ -477,6 +477,11 @@ impl Resolver {
         origin: Index,
         skip_parent_search: bool,
     ) -> Result<RefResolution, ResolutionError> {
+        // If `origin` passed in is not a node in the resolver, then return no referent
+        if origin + 1 >= self.node_resolver_data.len() {
+            return Err(ResolutionError::NoReferent);
+        }
+
         let path = path.as_ref();
         let mut current_idx = origin;
         let original_path = path.to_vec();

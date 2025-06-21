@@ -1282,7 +1282,7 @@ export class DependencyHandler {
         // console.log(`delete from needed to resolve ${componentIdxBlocked}, ${typeBlocked}, ${stateVariableBlocked}, ${dependencyBlocked}, ${blockerType}, ${blockerCode}`)
         // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
 
-        let codeBlocked = componentIdxBlocked;
+        let codeBlocked = componentIdxBlocked.toString();
         if (stateVariableBlocked) {
             codeBlocked += "|" + stateVariableBlocked;
             if (dependencyBlocked) {
@@ -1543,7 +1543,7 @@ export class DependencyHandler {
         // console.log(`delete from resolve blocked by ${blockerComponentIdx}, ${blockerType}, ${blockerStateVariable}, ${blockerDependency}, ${typeBlocked}, ${codeBlocked}`)
         // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
 
-        let blockerCode = blockerComponentIdx;
+        let blockerCode = blockerComponentIdx.toString();
         if (blockerStateVariable) {
             blockerCode += "|" + blockerStateVariable;
             if (blockerDependency) {
@@ -1730,7 +1730,7 @@ export class DependencyHandler {
         stateVariableBlocked,
         dependencyBlocked,
     }) {
-        let blockerCode = blockerComponentIdx;
+        let blockerCode = blockerComponentIdx.toString();
         if (blockerStateVariable) {
             blockerCode += "|" + blockerStateVariable;
             if (blockerDependency) {
@@ -2460,7 +2460,7 @@ export class DependencyHandler {
         dependency,
         previouslyVisited = [],
     }) {
-        let code = componentIdx;
+        let code = componentIdx.toString();
         if (stateVariable) {
             code += "|" + stateVariable;
             if (dependency) {
@@ -2620,7 +2620,7 @@ export class DependencyHandler {
         stateVariable,
         dependency,
     }) {
-        let code = componentIdx;
+        let code = componentIdx.toString();
         if (stateVariable) {
             code += "|" + stateVariable;
             if (dependency) {
@@ -3275,7 +3275,7 @@ class Dependency {
 
                 for (let upVar of this.upstreamVariableNames) {
                     this.dependencyHandler.deleteFromNeededToResolve({
-                        componentIdxBlocked: this.componentIdx,
+                        componentIdxBlocked: this.upstreamComponentIdx,
                         typeBlocked: "stateVariable",
                         stateVariableBlocked: upVar,
                         blockerType: "stateVariable",
@@ -7054,16 +7054,8 @@ class RefResolutionIndexDependencies extends Dependency {
 
         this.componentList = [];
 
-        if (composite.refResolution.unresolvedPath == null) {
-            return {
-                success: true,
-                downstreamComponentIndices: [],
-                downstreamComponentTypes: [],
-            };
-        }
-
         const gatherResult = await this.gatherComponentsInPath(
-            composite.refResolution.unresolvedPath,
+            composite.refResolution.originalPath,
         );
 
         if (gatherResult.success) {
@@ -7082,7 +7074,7 @@ class RefResolutionIndexDependencies extends Dependency {
         }
     }
 
-    // Iterate through all indices of `unresolvedPath`.
+    // Iterate through all indices of `originalPath`.
     // If encounter unexpanded composites, set up resolve blockers
     // so that this dependency will be resolved again once the composites are expanded.
     // Otherwise, gather all the component indices of the "integer" components into `componentList`.
@@ -7092,10 +7084,10 @@ class RefResolutionIndexDependencies extends Dependency {
     // - success: true,
     // - componentList: a list of the component indices of the "integer" components found in the unresolved path
     // Throw an error if an index of unresolved path does not contain either a string or a single integer component
-    async gatherComponentsInPath(unresolvedPath) {
+    async gatherComponentsInPath(originalPath) {
         const componentList = [];
         let foundUnexpanded = false;
-        for (const path_part of unresolvedPath) {
+        for (const path_part of originalPath) {
             for (const index_part of path_part.index) {
                 if (typeof index_part.value[0] !== "string") {
                     let indexComponent = index_part.value[0];
@@ -7182,11 +7174,11 @@ class RefResolutionIndexDependencies extends Dependency {
 dependencyTypeArray.push(RefResolutionIndexDependencies);
 
 /**
- * A dependency that attempts to resolve any unresolvedPath of a `refResolution` on a composite component.
+ * A dependency that attempts to resolve the `originalPath` of a `refResolution` on a composite component.
  *
  * If `refResolution.nodeIdx` has any composite descendants
  * or any indices of the unresolved path have composites, these composites are first expanded.
- * Then, the unresolved path is resolved against the descendants of `refResolution.nodeIdx`.
+ * Then, the `originalPath` path is resolved against the descendants of `refResolution.nodeIdx`.
  *
  * The rust resolver is called to match the unresolved path on the descendants of `nodeIdx,
  * `nodeIdx` is updated to the matched component, and `unresolvedPath` is updated to any remaining unresolved path.
@@ -7233,7 +7225,6 @@ class RefResolutionDependency extends Dependency {
         }
 
         let nodeIdx = composite.refResolution.nodeIdx;
-        this.originalPath = composite.refResolution.originalPath;
 
         // If `nodeIdx` is a component that was created via an `extend` or `copy` attribute,
         // then it was (or will be) created from a copy that has a `createComponentIdx` attribute
@@ -7278,17 +7269,12 @@ class RefResolutionDependency extends Dependency {
             ]);
         }
 
-        if (composite.refResolution.unresolvedPath == null) {
-            this.extendIdx = nodeIdx;
-            this.unresolvedPath = null;
-            return this.foundExtend();
-        }
-
-        // Resolve all components in the unresolved path to integer values
-        const resolveComponentResult = await this.resolveComponentsInPath(
-            composite.refResolution.unresolvedPath,
-            force,
-        );
+        // Resolve all components in the path indices to integer values
+        const resolveComponentResult =
+            await this.resolveComponentsInPathIndices(
+                composite.refResolution.originalPath,
+                force,
+            );
 
         if (!resolveComponentResult.success) {
             return {
@@ -7298,163 +7284,42 @@ class RefResolutionDependency extends Dependency {
             };
         }
 
-        let unresolvedPath = resolveComponentResult.unresolvedPath;
+        this.originalPath = resolveComponentResult.path;
 
-        while (unresolvedPath?.length > 0) {
-            const refComponent = this.dependencyHandler._components[nodeIdx];
+        const refComponent = this.dependencyHandler._components[nodeIdx];
 
-            if (!refComponent) {
-                this.addUpdateTriggerForMissingComponent(nodeIdx);
-                this.missingComponentBlockers.push(nodeIdx);
+        if (!refComponent) {
+            this.addUpdateTriggerForMissingComponent(nodeIdx);
+            this.missingComponentBlockers.push(nodeIdx);
 
-                return {
-                    success: true,
-                    downstreamComponentIndices: [],
-                    downstreamComponentTypes: [],
-                };
-            }
+            // XXX: if uncomment the next two lines, then
+            // "get document credit even when have composites as a siblings" of `document.test.ts` fails
+            // because a copy does not update its replacements when it should
+            // (its `extendedComponent` state variable is not updating event after its `extendIdx` variable updates).
+            // This is due to some flaw in the update logic, but haven't yet been able to track it down!
+            // There is no good reason for uncommenting the below code to trigger than behavior.
 
-            const haveComposite =
-                this.dependencyHandler.componentInfoObjects.isCompositeComponent(
-                    {
-                        componentType: refComponent.componentType,
-                        includeNonStandard: true,
-                    },
-                );
+            // this.extendIdx = -1;
+            // this.unresolvedPath = this.originalPath;
 
-            if (haveComposite) {
-                // make sure that the composite refComponent is expanded
-                if (!refComponent.isExpanded) {
-                    this.addBlockerForUnexpandedComposite(refComponent);
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
 
-                    return {
-                        success: false,
-                        downstreamComponentIndices: [],
-                        downstreamComponentTypes: [],
-                    };
-                }
+        const haveComposite =
+            this.dependencyHandler.componentInfoObjects.isCompositeComponent({
+                componentType: refComponent.componentType,
+                includeNonStandard: true,
+            });
 
-                this.compositeReplacementDependencies.push(
-                    refComponent.componentIdx,
-                );
-                this.addUpdateTriggersForCompositeReplacements([
-                    refComponent.componentIdx,
-                ]);
-            }
+        if (haveComposite) {
+            // make sure that the composite refComponent is expanded
+            if (!refComponent.isExpanded) {
+                this.addBlockerForUnexpandedComposite(refComponent);
 
-            const nextPathPart = unresolvedPath[0];
-
-            if (nextPathPart.name !== "") {
-                // see if we can resolve `name` starting from `nodeIdx`
-
-                const refResolution = this.dependencyHandler.core.resolvePath(
-                    this.dependencyHandler.core.resolver,
-                    { path: unresolvedPath },
-                    nodeIdx,
-                    true,
-                );
-
-                if (
-                    refResolution.unresolvedPath?.length ===
-                        unresolvedPath.length &&
-                    refResolution.unresolvedPath[0].name !== ""
-                ) {
-                    // The resolver didn't make any progress.
-                    // As a sanity check, make sure the node index and name didn't change
-                    if (
-                        refResolution.nodeIdx !== nodeIdx ||
-                        refResolution.unresolvedPath[0].name !==
-                            nextPathPart.name
-                    ) {
-                        throw Error(
-                            "Something went wrong with resolver as it changed the index or name without making progress",
-                        );
-                    }
-
-                    // Since name didn't match, return the result
-                    this.extendIdx = nodeIdx;
-                    this.unresolvedPath = unresolvedPath;
-
-                    return this.foundExtend();
-                }
-
-                // some progress was made so continue to next loop
-                nodeIdx = refResolution.nodeIdx;
-                unresolvedPath = refResolution.unresolvedPath;
-                continue;
-            }
-
-            // Don't have a name for the next path part, so we just have an index
-
-            if (!haveComposite) {
-                // Since don't have a composite, return the result
-                this.extendIdx = nodeIdx;
-                this.unresolvedPath = unresolvedPath;
-
-                return this.foundExtend();
-            }
-
-            const index = nextPathPart.index;
-            if (index.length === 0) {
-                throw Error(
-                    "Something went wrong as we have a ref resolution without a name or an index",
-                );
-            }
-
-            const replacementIdx = index[0].value;
-
-            // Note: strings that are not blank do take up a slot for replacement index.
-            // However, this non-blank strings that do take up a slot
-            // will not be returned as a replacement (instead the replacement will be empty).
-            // Rationale: we do not have a mechanism for linking a string to its replacement source,
-            // so returning the string would it unlinked and inconsistent with other cases.
-            const nonBlankStringReplacements = refComponent.replacements.filter(
-                (x) => typeof x !== "string" || x.trim() !== "",
-            );
-
-            // Replace all copies with their replacements so that copies don't take up an index
-            // but are treated as though they were not an intermediary
-
-            // Reverse the replacements so that we can use them as a queue
-            nonBlankStringReplacements.reverse();
-
-            let foundUnexpandedCopy = false;
-            const replacementsWithoutCopies = [];
-
-            let elt = nonBlankStringReplacements.pop();
-
-            while (elt) {
-                if (elt.componentType === "_copy") {
-                    // make sure that the copy is expanded
-                    if (!elt.isExpanded) {
-                        this.addBlockerForUnexpandedComposite(elt);
-
-                        foundUnexpandedCopy = true;
-                    } else {
-                        this.compositeReplacementDependencies.push(
-                            elt.componentIdx,
-                        );
-                        this.addUpdateTriggersForCompositeReplacements([
-                            elt.componentIdx,
-                        ]);
-
-                        // Add the replacements of the copy to the queue (in reverse order)
-                        const newNonBlankReplacements = elt.replacements.filter(
-                            (x) => typeof x !== "string" || x.trim() !== "",
-                        );
-                        newNonBlankReplacements.reverse();
-                        nonBlankStringReplacements.push(
-                            ...newNonBlankReplacements,
-                        );
-                    }
-                } else {
-                    replacementsWithoutCopies.push(elt);
-                }
-
-                elt = nonBlankStringReplacements.pop();
-            }
-
-            if (foundUnexpandedCopy) {
                 return {
                     success: false,
                     downstreamComponentIndices: [],
@@ -7462,38 +7327,338 @@ class RefResolutionDependency extends Dependency {
                 };
             }
 
-            const theReplacement =
-                replacementsWithoutCopies[replacementIdx - 1];
-            if (theReplacement && typeof theReplacement !== "string") {
-                // found a replacement component that matches
-                nodeIdx = theReplacement.componentIdx;
+            this.compositeReplacementDependencies.push(
+                refComponent.componentIdx,
+            );
+            this.addUpdateTriggersForCompositeReplacements([
+                refComponent.componentIdx,
+            ]);
+        }
 
-                if (index.length === 1) {
-                    // we finished off this path part
-                    unresolvedPath.shift();
-                } else {
-                    nextPathPart.index.shift();
-                }
+        let refResolution;
 
-                // We made progress so continue in the loop
-                continue;
-            } else {
-                // No replacement at the given replacement index, so we should return nothing
+        const getDoenetMLStringForReference = () => {
+            const originalPath = composite.refResolution.originalPath;
+            const startOffset = originalPath[0].position?.start.offset;
+            const endOffset =
+                originalPath[originalPath.length - 1].position?.end.offset;
+
+            let doenetMLString = "";
+            if (startOffset != undefined && endOffset != undefined) {
+                doenetMLString =
+                    this.dependencyHandler.core.allDoenetMLs?.[0]?.substring(
+                        startOffset,
+                        endOffset,
+                    ) ?? "";
+            }
+            return doenetMLString;
+        };
+
+        // We skip parent search only if we start with no path,
+        // which will happen from references to items created in a repeat
+        const skip_parent_search = resolveComponentResult.path[0].name === "";
+
+        // console.log(
+        //     "resolve path",
+        //     this.dependencyHandler.core.resolver,
+        //     { path: resolveComponentResult.path },
+        //     composite.refResolution.nodesInResolvedPath[0],
+        //     skip_parent_search,
+        // );
+
+        try {
+            refResolution = this.dependencyHandler.core.resolvePath(
+                this.dependencyHandler.core.resolver,
+                { path: resolveComponentResult.path },
+                composite.refResolution.nodesInResolvedPath[0],
+                skip_parent_search,
+            );
+        } catch (e) {
+            // console.log("resolve error", e);
+            if (e === "NonUniqueReferent" || e === "NoReferent") {
+                const referenceText = getDoenetMLStringForReference();
+
+                // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
+                // Rather than duplicating code to make the messages,
+                // we could make sure that `ref_resolve` formats the messages in this case, too.
+                const message =
+                    e === "NonUniqueReferent"
+                        ? `Multiple referents found for reference: $${referenceText}`
+                        : `No referent found for reference: $${referenceText}`;
+
+                this.dependencyHandler.core.addErrorWarning({
+                    type: "warning",
+                    message,
+                    position: composite.position,
+                });
+
                 this.extendIdx = -1;
-                this.unresolvedPath = null;
+                this.unresolvedPath = this.originalPath;
                 return {
                     success: true,
                     downstreamComponentIndices: [],
                     downstreamComponentTypes: [],
                 };
+            } else {
+                throw e;
             }
         }
 
-        // No unresolved path left
-        this.extendIdx = nodeIdx;
-        this.unresolvedPath = null;
+        this.extendIdx = refResolution.nodeIdx;
+        this.unresolvedPath = refResolution.unresolvedPath;
+
+        // console.log({ refResolution });
+
+        // let foundUnexpanded = false;
+
+        for (const idx of refResolution.nodesInResolvedPath) {
+            const componentInvolved = this.dependencyHandler._components[idx];
+            if (
+                idx !== this.compositeIdx &&
+                componentInvolved &&
+                this.dependencyHandler.componentInfoObjects.isCompositeComponent(
+                    {
+                        componentType: componentInvolved.componentType,
+                        includeNonStandard: true,
+                    },
+                )
+            ) {
+                // if (!componentInvolved.isExpanded) {
+                //     this.addBlockerForUnexpandedComposite(componentInvolved);
+                //     foundUnexpanded = true;
+                // }
+
+                this.compositeReplacementDependencies.push(
+                    componentInvolved.componentIdx,
+                );
+                this.addUpdateTriggersForCompositeReplacements([
+                    componentInvolved.componentIdx,
+                ]);
+            }
+        }
+
+        // if (foundUnexpanded) {
+        //     return {
+        //         success: false,
+        //         downstreamComponentIndices: [],
+        //         downstreamComponentTypes: [],
+        //     };
+        // }
+
+        if (refResolution.unresolvedPath === null) {
+            // No unresolved path left, so we're done
+
+            return this.foundExtend();
+        }
+
+        if (refResolution.unresolvedPath[0].name !== "") {
+            // We stopped matching on a name.
+            // Unless a composite caught above changes its replacements,
+            // this name will not match a descendant and must match a prop.
+            // Return the result
+
+            return this.foundExtend();
+        }
+
+        // We stopped matching on an index of refResolution.nodeIdx
+        nodeIdx = refResolution.nodeIdx;
+
+        // Make sure the node we stopped on exists
+        const newRefComponent = this.dependencyHandler._components[nodeIdx];
+
+        if (!newRefComponent) {
+            this.addUpdateTriggerForMissingComponent(nodeIdx);
+            this.missingComponentBlockers.push(nodeIdx);
+
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        if (
+            this.dependencyHandler.componentInfoObjects.isCompositeComponent({
+                componentType: newRefComponent.componentType,
+                includeNonStandard: true,
+            })
+        ) {
+            // make sure that the composite refComponent is expanded
+            if (!newRefComponent.isExpanded) {
+                this.addBlockerForUnexpandedComposite(newRefComponent);
+
+                return {
+                    success: false,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+
+            const referenceText = getDoenetMLStringForReference();
+
+            this.dependencyHandler.core.addErrorWarning({
+                type: "warning",
+                message: `No referent found for reference: $${referenceText}`,
+                position: composite.position,
+            });
+
+            this.compositeReplacementDependencies.push(
+                newRefComponent.componentIdx,
+            );
+            this.addUpdateTriggersForCompositeReplacements([
+                newRefComponent.componentIdx,
+            ]);
+        }
 
         return this.foundExtend();
+
+        //     const nextPathPart = unresolvedPath[0];
+
+        //     console.log({ nextPathPart });
+
+        //     if (
+        //         nextPathPart.name !== "" &&
+        //         refResolution.unresolvedPath.length === unresolvedPath.length &&
+        //         refResolution.unresolvedPath[0].name === nextPathPart.name &&
+        //         refResolution.unresolvedPath[0].index.length ===
+        //             nextPathPart.index.length
+        //     ) {
+        //         // Since we didn't match anything, return the result
+        //         this.extendIdx = nodeIdx;
+        //         this.unresolvedPath = unresolvedPath;
+
+        //         return this.foundExtend();
+        //     }
+
+        //     if (nextPathPart.name !== "") {
+        //         // see if we can resolve `name` starting from `nodeIdx`
+
+        //         const refResolution = this.dependencyHandler.core.resolvePath(
+        //             this.dependencyHandler.core.resolver,
+        //             { path: unresolvedPath },
+        //             nodeIdx,
+        //             true,
+        //         );
+
+        //         console.log("refResolution", refResolution);
+
+        //         // some progress was made so continue to next loop
+        //         nodeIdx = refResolution.nodeIdx;
+        //         unresolvedPath = refResolution.unresolvedPath;
+        //         continue;
+        //     }
+
+        //     // Don't have a name for the next path part, so we just have an index
+
+        //     if (!haveComposite) {
+        //         // Since don't have a composite, return the result
+        //         this.extendIdx = nodeIdx;
+        //         this.unresolvedPath = unresolvedPath;
+
+        //         return this.foundExtend();
+        //     }
+
+        //     const index = nextPathPart.index;
+        //     if (index.length === 0) {
+        //         throw Error(
+        //             "Something went wrong as we have a ref resolution without a name or an index",
+        //         );
+        //     }
+
+        //     const replacementIdx = index[0].value;
+
+        //     // Note: strings that are not blank do take up a slot for replacement index.
+        //     // However, this non-blank strings that do take up a slot
+        //     // will not be returned as a replacement (instead the replacement will be empty).
+        //     // Rationale: we do not have a mechanism for linking a string to its replacement source,
+        //     // so returning the string would it unlinked and inconsistent with other cases.
+        //     const nonBlankStringReplacements = refComponent.replacements.filter(
+        //         (x) => typeof x !== "string" || x.trim() !== "",
+        //     );
+
+        //     // Replace all copies with their replacements so that copies don't take up an index
+        //     // but are treated as though they were not an intermediary
+
+        //     // Reverse the replacements so that we can use them as a queue
+        //     nonBlankStringReplacements.reverse();
+
+        //     let foundUnexpandedCopy = false;
+        //     const replacementsWithoutCopies = [];
+
+        //     let elt = nonBlankStringReplacements.pop();
+
+        //     while (elt) {
+        //         if (elt.componentType === "_copy") {
+        //             // make sure that the copy is expanded
+        //             if (!elt.isExpanded) {
+        //                 this.addBlockerForUnexpandedComposite(elt);
+
+        //                 foundUnexpandedCopy = true;
+        //             } else {
+        //                 console.log("have a _copy", elt.componentIdx);
+
+        //                 this.compositeReplacementDependencies.push(
+        //                     elt.componentIdx,
+        //                 );
+        //                 this.addUpdateTriggersForCompositeReplacements([
+        //                     elt.componentIdx,
+        //                 ]);
+
+        //                 // Add the replacements of the copy to the queue (in reverse order)
+        //                 const newNonBlankReplacements = elt.replacements.filter(
+        //                     (x) => typeof x !== "string" || x.trim() !== "",
+        //                 );
+        //                 newNonBlankReplacements.reverse();
+        //                 nonBlankStringReplacements.push(
+        //                     ...newNonBlankReplacements,
+        //                 );
+        //             }
+        //         } else {
+        //             replacementsWithoutCopies.push(elt);
+        //         }
+
+        //         elt = nonBlankStringReplacements.pop();
+        //     }
+
+        //     if (foundUnexpandedCopy) {
+        //         return {
+        //             success: false,
+        //             downstreamComponentIndices: [],
+        //             downstreamComponentTypes: [],
+        //         };
+        //     }
+
+        //     const theReplacement =
+        //         replacementsWithoutCopies[replacementIdx - 1];
+        //     if (theReplacement && typeof theReplacement !== "string") {
+        //         // found a replacement component that matches
+        //         nodeIdx = theReplacement.componentIdx;
+
+        //         if (index.length === 1) {
+        //             // we finished off this path part
+        //             unresolvedPath.shift();
+        //         } else {
+        //             nextPathPart.index.shift();
+        //         }
+
+        //         // We made progress so continue in the loop
+        //         continue;
+        //     } else {
+        //         // No replacement at the given replacement index, so we should return nothing
+        //         this.extendIdx = -1;
+        //         this.unresolvedPath = null;
+        //         return {
+        //             success: true,
+        //             downstreamComponentIndices: [],
+        //             downstreamComponentTypes: [],
+        //         };
+        //     }
+
+        // // No unresolved path left
+        // this.extendIdx = nodeIdx;
+        // this.unresolvedPath = null;
+
+        // return this.foundExtend();
     }
 
     foundExtend() {
@@ -7519,7 +7684,7 @@ class RefResolutionDependency extends Dependency {
     }
 
     /**
-     * Iterate through all indices of `unresolvedPath`.
+     * Iterate through all indices of `path`.
      * If any component is found, it must be an "integer".
      * Resolve its `value` state variable, which should be an integer,
      * and use its string value instead of the component.
@@ -7527,9 +7692,9 @@ class RefResolutionDependency extends Dependency {
      * Note: we use strings rather than numbers for the literal indices
      * so that the unresolved path follows the `FlatPathPart` assumed by the rust resolver.
      */
-    async resolveComponentsInPath(unresolvedPath) {
-        const unresolvedPathWithResolvedComponents = [];
-        for (const path_part of unresolvedPath) {
+    async resolveComponentsInPathIndices(path) {
+        const pathWithResolvedIndexComponents = [];
+        for (const path_part of path) {
             let index = [];
             for (const index_part of path_part.index) {
                 if (typeof index_part.value[0] === "string") {
@@ -7589,7 +7754,7 @@ class RefResolutionDependency extends Dependency {
                 }
             }
 
-            unresolvedPathWithResolvedComponents.push({
+            pathWithResolvedIndexComponents.push({
                 name: path_part.name,
                 index,
                 position: path_part.position,
@@ -7598,7 +7763,7 @@ class RefResolutionDependency extends Dependency {
 
         return {
             success: true,
-            unresolvedPath: unresolvedPathWithResolvedComponents,
+            path: pathWithResolvedIndexComponents,
         };
     }
 
@@ -9653,10 +9818,6 @@ class DetermineDependenciesDependency extends Dependency {
     static dependencyType = "determineDependencies";
 
     setUpParameters() {
-        // this flag will be turned on with mark stale
-        // and turned off after dependencies are recalculated
-        this.recalculateDependencies = true;
-
         if (this.definition.componentIdx != undefined) {
             this.componentIdx = this.definition.componentIdx;
         } else {
@@ -9674,7 +9835,7 @@ class DetermineDependenciesDependency extends Dependency {
     }
 
     async determineDownstreamComponents() {
-        // console.log(`deterine downstream components of determine deps dependency ${this.dependencyName} of ${this.representativeStateVariable} of ${this.upstreamComponentIdx}`)
+        // console.log(`determine downstream components of determine deps dependency ${this.dependencyName} of ${this.representativeStateVariable} of ${this.upstreamComponentIdx}`)
 
         let component = this.dependencyHandler._components[this.componentIdx];
 

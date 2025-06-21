@@ -178,7 +178,7 @@ impl FlatRoot {
         // We are going to trim all the nodes that are not referenced.
         // We make a map of old indices to new indices.
         let mut current_shift = 0;
-        let old_to_new_indices = is_referenced
+        let old_to_new_indices_prelim = is_referenced
             .iter()
             .enumerate()
             .map(|(old_idx, is_referenced)| {
@@ -187,6 +187,29 @@ impl FlatRoot {
                     current_shift += 1;
                 }
                 ret
+            })
+            .collect::<Vec<_>>();
+
+        // We need to handle the special case of a reference inside the index of an extend attribute,
+        // for example the `$n` in: `<math extend="$m[$n]" />`.
+        // In this case, the outer reference `$m` will be removed but the inner reference `$n` stays.
+        // The parent of `$n` was originally the index of `$m`; it needs to be shifted to the index of the parent `$m`.
+        // To accomplish this, we map references of removed nodes to their parents,
+        // recursing if parent is also removed
+        let old_to_new_indices = old_to_new_indices_prelim
+            .iter()
+            .enumerate()
+            .map(|(old_idx, new_idx)| {
+                if is_referenced[old_idx] {
+                    *new_idx
+                } else {
+                    let mut parent = self.nodes[old_idx].parent();
+                    while parent.is_some_and(|idx| !is_referenced[idx]) {
+                        parent = self.nodes[parent.unwrap()].parent();
+                    }
+                    // if a removed element doesn't have a parent, set it to the document root
+                    old_to_new_indices_prelim[parent.unwrap_or_default()]
+                }
             })
             .collect::<Vec<_>>();
 
