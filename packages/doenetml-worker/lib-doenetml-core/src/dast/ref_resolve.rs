@@ -119,12 +119,12 @@ impl ResolutionAlgorithm {
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub enum IndexResolution {
-    /// Do not modify the `index_resolutions` field of the flat fragment parent
+    /// Do not modify any `index_resolutions`
     None,
-    /// Replace the `index_resolutions` field of the flat fragment parent with references to its children
-    ReplaceAll,
-    /// Splice references to the fragment parent's children into its `index_resolutions` field, replacing the specified range of indices
-    ReplaceRange(Range<Index>),
+    /// Replace the `index_resolutions` field of component `Index` with references to the added children
+    ReplaceAll { parent: Index },
+    /// Splice references to the added children into the`index_resolutions` field of component `Index`, replacing the specified range of indices
+    ReplaceRange { parent: Index, range: Range<usize> },
 }
 
 /// The possibilities for the parent of a node in the resolver
@@ -288,20 +288,11 @@ impl Resolver {
             for (key, ref_) in new_parent_map.into_iter() {
                 parent_map.entry(key).or_insert(ref_);
             }
-
-            // If the new nodes are also index resolutions for the parent,
-            // add them to `index_resolutions`
-            match index_resolution {
-                IndexResolution::None => {}
-                IndexResolution::ReplaceAll | IndexResolution::ReplaceRange(_) => {
-                    self.replace_index_resolutions(
-                        parent_idx,
-                        &flat_fragment.children,
-                        index_resolution,
-                    );
-                }
-            }
         }
+
+        // If the new nodes are also index resolutions for a parent,
+        // add them to `index_resolutions`
+        self.replace_index_resolutions(&flat_fragment.children, index_resolution);
 
         self.add_implicit_index_resolutions(
             &FlatRootOrFragment::Fragment(flat_fragment),
@@ -330,9 +321,10 @@ impl Resolver {
             })
         {
             self.replace_index_resolutions(
-                element.idx,
                 &element.children,
-                IndexResolution::ReplaceAll,
+                IndexResolution::ReplaceAll {
+                    parent: element.idx,
+                },
             );
         }
     }
@@ -341,10 +333,13 @@ impl Resolver {
     /// using the replace mode given by `mode`.
     fn replace_index_resolutions(
         &mut self,
-        parent_idx: Index,
         components: &[UntaggedContent],
         index_resolution: IndexResolution,
     ) {
+        if matches!(index_resolution, IndexResolution::None) {
+            return;
+        }
+
         let new_resolutions: Vec<Option<usize>> = components
             .iter()
             .filter_map(|child| match child {
@@ -362,15 +357,15 @@ impl Resolver {
             .collect();
 
         match index_resolution {
-            IndexResolution::ReplaceAll => {
-                self.node_resolver_data[parent_idx + 1].index_resolutions = new_resolutions;
+            IndexResolution::ReplaceAll { parent } => {
+                self.node_resolver_data[parent + 1].index_resolutions = new_resolutions;
             }
-            IndexResolution::ReplaceRange(range) => {
-                self.node_resolver_data[parent_idx + 1]
+            IndexResolution::ReplaceRange { parent, range } => {
+                self.node_resolver_data[parent + 1]
                     .index_resolutions
                     .splice(range, new_resolutions);
             }
-            IndexResolution::None => {}
+            IndexResolution::None => unreachable!(),
         }
     }
 
@@ -584,8 +579,10 @@ impl Resolver {
                                             continue;
                                         }
                                         None => {
-                                            // a value of `None` corresponds to an index matching a text node, which we cannot reference
-                                            return Err(ResolutionError::NoReferent);
+                                            // A value of `None` corresponds to an index matching a text node, which we cannot reference
+                                            // We let control pass to the below code which will add the remainder as an unresolved path.
+                                            // Note: we don't return `NoReferent`, as it is possible the index resolutions
+                                            // will later change so that this reference will begin to have a referent
                                         }
                                     }
                                 }
