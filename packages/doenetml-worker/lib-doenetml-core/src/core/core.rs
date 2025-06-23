@@ -1,7 +1,7 @@
 //! A version of `Core` based on `DirectedGraph`
 
 use crate::dast::{
-    flat_dast::{FlatFragment, FlatNode, FlatRoot, NormalizedRoot},
+    flat_dast::{FlatFragment, FlatNode, FlatRoot, NormalizedRoot, UntaggedContent},
     ref_expand::Expander,
     ref_resolve::{IndexResolution, Resolver},
     DastRoot, FlatDastRoot,
@@ -61,6 +61,16 @@ impl Core {
         index_resolution: IndexResolution,
     ) {
         resolver.add_nodes(flat_fragment, index_resolution);
+    }
+
+    /// Replace the index resolutions of the parent of `index_resolution` with `components`,
+    /// replacing the indices given by `index_resolution`.
+    pub fn replace_index_resolutions_in_resolver(
+        components: &[UntaggedContent],
+        resolver: &mut Resolver,
+        index_resolution: IndexResolution,
+    ) {
+        resolver.replace_index_resolutions(components, index_resolution);
     }
 
     pub fn delete_nodes_from_resolver(nodes: &[FlatNode], resolver: &mut Resolver) {

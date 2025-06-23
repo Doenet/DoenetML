@@ -7432,20 +7432,6 @@ class RefResolutionDependency extends Dependency {
                     componentInvolved.componentIdx,
                 ]);
             }
-
-            if (
-                componentInvolved &&
-                (await componentInvolved.stateValues
-                    .isInactiveCompositeReplacement)
-            ) {
-                this.extendIdx = -1;
-
-                return {
-                    success: true,
-                    downstreamComponentIndices: [],
-                    downstreamComponentTypes: [],
-                };
-            }
         }
 
         if (refResolution.unresolvedPath === null) {

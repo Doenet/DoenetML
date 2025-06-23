@@ -1674,7 +1674,6 @@ describe("Repeat tag tests", async () => {
             ).eq(pTextCommas);
         }
         for (let name of noCommaNames) {
-            console.log(name);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx(name)

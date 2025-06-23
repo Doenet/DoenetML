@@ -69,6 +69,7 @@ export default class Core {
         coreId,
         resolver,
         addNodesToResolver,
+        replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
         resolvePath,
         updateRenderersCallback,
@@ -96,6 +97,8 @@ export default class Core {
 
         this.resolver = resolver;
         this.addNodesToResolver = addNodesToResolver;
+        this.replaceIndexResolutionsInResolver =
+            replaceIndexResolutionsInResolver;
         this.deleteNodesFromResolver = deleteNodesFromResolver;
         this.resolvePath = resolvePath;
 
@@ -2671,10 +2674,8 @@ export default class Core {
         blankStringReplacements,
     }) {
         if (
-            (serializedReplacements.length === 0 &&
-                updateOldReplacementsStart === updateOldReplacementsEnd) ||
-            (component.constructor.replacementsAlreadyInResolver &&
-                !overrideReplacementsAlreadyInResolver)
+            component.constructor.replacementsAlreadyInResolver &&
+            !overrideReplacementsAlreadyInResolver
         ) {
             return;
         }
@@ -2902,9 +2903,17 @@ export default class Core {
                                 replacementsWithoutExpandedCopies.push(repl);
                                 i++;
                             } else {
-                                const newReplacements = await calcStartEndIdx(
-                                    repl.replacements,
-                                );
+                                let replReplacements = repl.replacements;
+                                if (repl.replacementsToWithhold) {
+                                    replReplacements = replReplacements.slice(
+                                        0,
+                                        replReplacements.length -
+                                            repl.replacementsToWithhold,
+                                    );
+                                }
+
+                                const newReplacements =
+                                    await calcStartEndIdx(replReplacements);
                                 const n = newReplacements.length;
 
                                 if (
@@ -9927,7 +9936,6 @@ export default class Core {
                         component,
                         change,
                         componentChanges,
-                        originalEffectiveLength,
                     });
 
                     // adjust original effective length, as we may have adjusted index resolutions in resolver
@@ -10193,7 +10201,6 @@ export default class Core {
                         component,
                         change,
                         componentChanges,
-                        originalEffectiveLength,
                     });
                 }
 
@@ -10241,7 +10248,7 @@ export default class Core {
                             component,
                             change,
                             componentChanges,
-                            originalEffectiveLength,
+                            adjustResolver: true,
                         });
                 }
 
@@ -10771,7 +10778,7 @@ export default class Core {
         component,
         change,
         componentChanges,
-        originalEffectiveLength,
+        adjustResolver = false,
     }) {
         let compositesWithAdjustedReplacements = [];
 
@@ -10806,36 +10813,6 @@ export default class Core {
                 numberDeleted: 0,
             };
 
-            // determine which replacements are blank strings
-            const blankStringReplacements = component.replacements.map(
-                (repl) => typeof repl === "string" && repl.trim() === "",
-            );
-
-            const serializedCopyOfAdditionalReplacements = [];
-
-            for (const repl of component.replacements.slice(
-                firstIndToStopWithholding,
-                lastIndToStopWithholding,
-            )) {
-                serializedCopyOfAdditionalReplacements.push(
-                    await repl.serialize(),
-                );
-            }
-
-            await this.addReplacementsToResolver({
-                serializedReplacements: serializedCopyOfAdditionalReplacements,
-                component,
-                updateOldReplacementsStart: Math.min(
-                    originalEffectiveLength,
-                    firstIndToStopWithholding,
-                ),
-                updateOldReplacementsEnd: Math.min(
-                    originalEffectiveLength,
-                    lastIndToStopWithholding,
-                ),
-                blankStringReplacements,
-            });
-
             componentChanges.push(newChange);
         } else if (changeInReplacementsToWithhold > 0) {
             compositesWithAdjustedReplacements.push(component.componentIdx);
@@ -10865,30 +10842,66 @@ export default class Core {
                 deletedComponents: withheldReplacements,
             };
             componentChanges.push(newChange);
+        }
 
-            this.removeComponentsFromResolver(
-                component.replacements.slice(firstIndToStartWithholding),
-            );
-
-            // determine which replacements are blank strings
+        if (adjustResolver) {
             const blankStringReplacements = component.replacements.map(
                 (repl) => typeof repl === "string" && repl.trim() === "",
             );
 
-            await this.addReplacementsToResolver({
-                serializedReplacements: [],
-                component,
-                updateOldReplacementsStart: Math.min(
-                    originalEffectiveLength,
-                    firstIndToStartWithholding,
-                ),
-                updateOldReplacementsEnd: Math.min(
-                    originalEffectiveLength,
-                    lastIndToStartWithholding,
-                ),
-                blankStringReplacements,
-            });
+            const { indexResolution } =
+                await this.determineParentAndIndexResolutionForResolver({
+                    component,
+                    updateOldReplacementsStart: 0,
+                    updateOldReplacementsEnd:
+                        component.replacements.length -
+                        (component.replacementsToWithhold ?? 0),
+                    blankStringReplacements,
+                });
+
+            let indexParent =
+                indexResolution.ReplaceAll?.parent ??
+                indexResolution.ReplaceRange?.parent ??
+                null;
+
+            if (
+                indexParent !== null &&
+                indexParent !== component.componentIdx
+            ) {
+                const indexParentComposite = this._components[indexParent];
+
+                if (indexParentComposite) {
+                    if (this.replaceIndexResolutionsInResolver) {
+                        const newContentForIndex = component.replacements
+                            .slice(
+                                0,
+                                component.replacements.length -
+                                    change.replacementsToWithhold,
+                            )
+                            .map((repl) => {
+                                if (typeof repl === "string") {
+                                    return repl;
+                                } else {
+                                    return repl.componentIdx;
+                                }
+                            });
+
+                        let resolver = this.replaceIndexResolutionsInResolver(
+                            this.resolver,
+                            { content: newContentForIndex },
+                            indexResolution,
+                        );
+
+                        this.resolver = resolver;
+
+                        await this.dependencies.addBlockersFromChangedReplacements(
+                            indexParentComposite,
+                        );
+                    }
+                }
+            }
         }
+
         component.replacementsToWithhold = replacementsToWithhold;
         await this.dependencies.addBlockersFromChangedReplacements(component);
 
@@ -10905,7 +10918,7 @@ export default class Core {
                         component: shadowingComponent,
                         change,
                         componentChanges,
-                        originalEffectiveLength,
+                        adjustResolver,
                     });
                 compositesWithAdjustedReplacements.push(
                     ...additionalcompositesWithAdjustedReplacements,

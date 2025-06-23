@@ -11,6 +11,7 @@ import {
     RefResolution,
     Resolver,
     IndexResolution,
+    ContentVector,
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
 import { resolvePathImmediatelyToNodeIdx } from "./utils/externalPathResolution";
@@ -74,6 +75,11 @@ export class PublicDoenetMLCore {
         flat_fragment: FlatFragment,
         index_resolution: IndexResolution,
     ) => Resolver;
+    replaceIndexResolutionsInResolver?: (
+        resolver: Resolver,
+        components: ContentVector,
+        index_resolution: IndexResolution,
+    ) => Resolver;
     deleteNodesFromResolver?: (
         resolver: Resolver,
         node_list: NodeList,
@@ -105,6 +111,7 @@ export class PublicDoenetMLCore {
         normalizedRoot,
         resolver,
         addNodesToResolver,
+        replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
         resolvePath,
     }: {
@@ -119,7 +126,12 @@ export class PublicDoenetMLCore {
             flat_fragment: FlatFragment,
             index_resolution: IndexResolution,
         ) => Resolver;
-        deleteNodesFromResolver?: (
+        replaceIndexResolutionsInResolver: (
+            resolver: Resolver,
+            components: ContentVector,
+            index_resolution: IndexResolution,
+        ) => Resolver;
+        deleteNodesFromResolver: (
             resolver: Resolver,
             node_list: NodeList,
         ) => Resolver;
@@ -132,6 +144,8 @@ export class PublicDoenetMLCore {
     }) {
         this.initialResolver = resolver;
         this.addNodesToResolver = addNodesToResolver;
+        this.replaceIndexResolutionsInResolver =
+            replaceIndexResolutionsInResolver;
         this.deleteNodesFromResolver = deleteNodesFromResolver;
         this.resolvePath = resolvePath;
 
@@ -219,6 +233,8 @@ export class PublicDoenetMLCore {
             ...args,
             resolver: this.initialResolver,
             addNodesToResolver: this.addNodesToResolver,
+            replaceIndexResolutionsInResolver:
+                this.replaceIndexResolutionsInResolver,
             deleteNodesFromResolver: this.deleteNodesFromResolver,
             resolvePath: this.resolvePath,
             updateRenderersCallback,

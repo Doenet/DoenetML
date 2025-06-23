@@ -329,9 +329,9 @@ impl Resolver {
         }
     }
 
-    /// Replace the `index_resolutions` corresponding to `parent_idx` with `components`,
-    /// using the replace mode given by `mode`.
-    fn replace_index_resolutions(
+    /// Replace the index resolutions of the parent of `index_resolution` with `components`,
+    /// replacing the indices given by `index_resolution`.
+    pub fn replace_index_resolutions(
         &mut self,
         components: &[UntaggedContent],
         index_resolution: IndexResolution,

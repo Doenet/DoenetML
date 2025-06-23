@@ -1220,6 +1220,97 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
 }
 
 #[test]
+fn replace_index_resolutions() {
+    let dast_root = dast_root_no_position(
+        r#"<a name="x">
+            <group name="g"><b /> <c/></group>
+            <d />
+        </a>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+    let g_idx = find(&flat_root, "group").unwrap();
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    // `g[1]` resolves to b
+    let path = make_path_with_indices(&[TestPathPart {
+        name: "g",
+        indices: vec!["1"],
+    }]);
+    let referent = resolver.resolve(path.clone(), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: b_idx,
+            unresolved_path: None,
+            original_path: path,
+            nodes_in_resolved_path: vec![a_idx, g_idx, b_idx]
+        })
+    );
+
+    // `g[2]` resolves to c
+    let path = make_path_with_indices(&[TestPathPart {
+        name: "g",
+        indices: vec!["2"],
+    }]);
+    let referent = resolver.resolve(path.clone(), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: c_idx,
+            unresolved_path: None,
+            original_path: path,
+            nodes_in_resolved_path: vec![a_idx, g_idx, c_idx]
+        })
+    );
+
+    // replace the first index resolution of `g` to be `d` rather than `a``
+    resolver.replace_index_resolutions(
+        &[UntaggedContent::Ref(d_idx)],
+        IndexResolution::ReplaceRange {
+            parent: g_idx,
+            range: Range { start: 0, end: 1 },
+        },
+    );
+
+    // `g[1]` resolves to `d`
+    let path = make_path_with_indices(&[TestPathPart {
+        name: "g",
+        indices: vec!["1"],
+    }]);
+    let referent = resolver.resolve(path.clone(), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: d_idx,
+            unresolved_path: None,
+            original_path: path,
+            nodes_in_resolved_path: vec![a_idx, g_idx, d_idx]
+        })
+    );
+
+    // `g[2]` still resolves to c
+    let path = make_path_with_indices(&[TestPathPart {
+        name: "g",
+        indices: vec!["2"],
+    }]);
+    let referent = resolver.resolve(path.clone(), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: c_idx,
+            unresolved_path: None,
+            original_path: path,
+            nodes_in_resolved_path: vec![a_idx, g_idx, c_idx]
+        })
+    );
+}
+
+#[test]
 fn add_nodes_with_no_parent() {
     let dast_root = dast_root_no_position(
         r#"<e><a name="x">
