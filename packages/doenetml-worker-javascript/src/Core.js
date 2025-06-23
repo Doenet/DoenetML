@@ -2679,179 +2679,13 @@ export default class Core {
             return;
         }
 
-        // If the composite was created as a child for a list,
-        // then the parent for resolving names is that list (the parent of the resolver).
-        // If `createComponentIdx` was specified, then that should be the parent for resolving names.
-        // Else, the composite should be the parent for resolving names.
-
-        let update_start = updateOldReplacementsStart;
-        let update_end = updateOldReplacementsEnd;
-
-        if (
-            updateOldReplacementsStart !== undefined &&
-            updateOldReplacementsEnd !== undefined
-        ) {
-            // We are replacing a range of replacement, but these include blank strings.
-            // Adjust the range to ignore blank strings
-            for (const [
-                i,
-                isBlankString,
-            ] of blankStringReplacements.entries()) {
-                if (i >= updateOldReplacementsEnd) {
-                    break;
-                }
-                if (isBlankString) {
-                    update_end--;
-                    if (i < updateOldReplacementsStart) {
-                        update_start--;
-                    }
-                }
-            }
-        }
-
-        let parentIdx;
-
-        let indexResolution = "None";
-
-        if (component.doenetAttributes.forList) {
-            parentIdx = component.parentIdx;
-
-            // Don't add index resolutions in this case,
-            // we're just adding to the children of the list, not the replacements of the list
-        } else if (component.attributes.createComponentIdx?.primitive) {
-            parentIdx =
-                component.attributes.createComponentIdx?.primitive.value;
-
-            if (
-                component.attributes.createComponentOfType?.primitive &&
-                this.componentInfoObjects.isCompositeComponent({
-                    componentType:
-                        component.attributes.createComponentOfType.primitive
-                            .value,
-                    includeNonStandard: true,
-                })
-            ) {
-                indexResolution = "ReplaceAll";
-
-                if (update_start !== undefined && update_end !== undefined) {
-                    indexResolution = {
-                        ReplaceRange: { start: update_start, end: update_end },
-                    };
-                }
-            }
-        } else if (component.componentType === "_copy") {
-            // determine if is a replacement of another type of composite
-            let copyComponent = component;
-
-            while (copyComponent.replacementOf) {
-                if (copyComponent.replacementOf.componentType === "_copy") {
-                    copyComponent = copyComponent.replacementOf;
-                    continue;
-                } else {
-                    break;
-                }
-            }
-
-            // now we have a copyComponent that is not a replacement of a copy
-            if (copyComponent.replacementOf) {
-                const parent = copyComponent.replacementOf;
-                parentIdx = parent.componentIdx;
-
-                // determine where the replacement will end up being spliced in
-
-                let start_idx, end_idx;
-
-                function replaceExpandedCopies(replacements) {
-                    const nonBlankStringReplacements = replacements.filter(
-                        (x) => typeof x !== "string" || x.trim() !== "",
-                    );
-                    const replacementsWithoutExpandedCopies = [];
-
-                    let i = 0;
-
-                    for (const repl of nonBlankStringReplacements) {
-                        if (repl.componentType == "_copy") {
-                            if (!repl.isExpanded) {
-                                if (
-                                    repl.componentIdx ===
-                                    copyComponent.componentIdx
-                                ) {
-                                    start_idx = i;
-                                    end_idx = i + 1;
-                                }
-                                replacementsWithoutExpandedCopies.push(repl);
-                                i++;
-                            } else {
-                                const newReplacements = replaceExpandedCopies(
-                                    repl.replacements,
-                                );
-                                const n = newReplacements.length;
-
-                                if (
-                                    repl.componentIdx ===
-                                    copyComponent.componentIdx
-                                ) {
-                                    if (
-                                        update_start !== undefined &&
-                                        update_end !== undefined
-                                    ) {
-                                        start_idx = i + update_start;
-                                        end_idx = i + update_end;
-                                    } else {
-                                        start_idx = i;
-                                        end_idx = i + n;
-                                    }
-                                }
-
-                                replacementsWithoutExpandedCopies.push(
-                                    ...newReplacements,
-                                );
-                                i += n;
-                            }
-                        } else {
-                            replacementsWithoutExpandedCopies.push(repl);
-                            i++;
-                        }
-                    }
-
-                    return replacementsWithoutExpandedCopies;
-                }
-
-                const replacementsWithoutExpandedCopies = replaceExpandedCopies(
-                    parent.replacements,
-                );
-
-                if (start_idx !== undefined && end_idx !== undefined) {
-                    indexResolution = {
-                        ReplaceRange: { start: start_idx, end: end_idx },
-                    };
-                } else {
-                    // if the copy was not found as a replacement of the composite,
-                    // then it wasn't a top-level replacement and it doesn't affect the composite's index resolution
-                    indexResolution = "None";
-                }
-            } else {
-                parentIdx = copyComponent.componentIdx;
-                indexResolution = "ReplaceAll";
-            }
-        } else {
-            parentIdx = component.componentIdx;
-
-            if (
-                this.componentInfoObjects.isCompositeComponent({
-                    componentType: component.componentType,
-                    includeNonStandard: true,
-                })
-            ) {
-                if (update_start !== undefined && update_end !== undefined) {
-                    indexResolution = {
-                        ReplaceRange: { start: update_start, end: update_end },
-                    };
-                } else {
-                    indexResolution = "ReplaceAll";
-                }
-            }
-        }
+        const { parentIdx, indexResolution } =
+            await this.determineParentAndIndexResolutionForResolver({
+                component,
+                updateOldReplacementsStart,
+                updateOldReplacementsEnd,
+                blankStringReplacements,
+            });
 
         // If `createComponentIdx` was specified, the one replacement is already in the resolver,
         // so we just add its children and attribute components/references.
@@ -2908,17 +2742,22 @@ export default class Core {
             );
             this.resolver = resolver;
 
+            let indexParent =
+                indexResolution.ReplaceAll?.parent ??
+                indexResolution.ReplaceRange?.parent ??
+                null;
+
             if (
-                parentIdx !== component.componentIdx &&
-                this.componentInfoObjects.isCompositeComponent({
-                    componentType: this._components[parentIdx]?.componentType,
-                    includeNonStandard: true,
-                })
+                indexParent !== null &&
+                indexParent !== component.componentIdx
             ) {
-                const parentComposite = this._components[parentIdx];
-                await this.dependencies.addBlockersFromChangedReplacements(
-                    parentComposite,
-                );
+                const indexParentComposite = this._components[indexParent];
+
+                if (indexParentComposite) {
+                    await this.dependencies.addBlockersFromChangedReplacements(
+                        indexParentComposite,
+                    );
+                }
             }
 
             // console.log(
@@ -2926,6 +2765,219 @@ export default class Core {
             //     JSON.parse(JSON.stringify(this.resolver)),
             // );
         }
+    }
+
+    async determineParentAndIndexResolutionForResolver({
+        component,
+        updateOldReplacementsStart,
+        updateOldReplacementsEnd,
+        blankStringReplacements,
+    }) {
+        // If the composite was created as a child for a list,
+        // then the parent for resolving names is that list (the parent of the resolver).
+        // If `createComponentIdx` was specified, then that should be the parent for resolving names.
+        // Else, the composite should be the parent for resolving names.
+
+        let update_start = updateOldReplacementsStart;
+        let update_end = updateOldReplacementsEnd;
+
+        if (
+            updateOldReplacementsStart !== undefined &&
+            updateOldReplacementsEnd !== undefined
+        ) {
+            // We are replacing a range of replacement, but these include blank strings.
+            // Adjust the range to ignore blank strings
+            for (const [
+                i,
+                isBlankString,
+            ] of blankStringReplacements.entries()) {
+                if (i >= updateOldReplacementsEnd) {
+                    break;
+                }
+                if (isBlankString) {
+                    update_end--;
+                    if (i < updateOldReplacementsStart) {
+                        update_start--;
+                    }
+                }
+            }
+        }
+
+        let parentIdx;
+
+        let indexResolution = "None";
+
+        if (component.doenetAttributes.forList) {
+            // Don't add index resolutions in this case,
+            // we're just adding to the children of the list, not the replacements of the list
+            parentIdx = component.parentIdx;
+        } else if (component.attributes.createComponentIdx?.primitive) {
+            // If `createComponentIdx` is set, then we have a copy component created from an `extend` attribute.
+            // That component is already in the resolver so will be the parent of the fragment added to the browser.
+            parentIdx =
+                component.attributes.createComponentIdx?.primitive.value;
+
+            // If the component type of that parent, specified by `createComponentOfType`, is a composite,
+            // then it could have an index specified, so we add an index resolution
+            if (
+                component.attributes.createComponentOfType?.primitive &&
+                this.componentInfoObjects.isCompositeComponent({
+                    componentType:
+                        component.attributes.createComponentOfType.primitive
+                            .value,
+                    includeNonStandard: true,
+                })
+            ) {
+                indexResolution = { ReplaceAll: { parent: parentIdx } };
+
+                if (update_start !== undefined && update_end !== undefined) {
+                    const parent = this._components[parentIdx];
+
+                    indexResolution = {
+                        ReplaceRange: {
+                            parent: parentIdx,
+                            range: { start: update_start, end: update_end },
+                        },
+                    };
+                }
+            }
+        } else if (component.componentType === "_copy") {
+            // If we have a copy that wasn't from an extend, then it was from a reference.
+            // Although references don't have names that can be
+            // Copy components are typically not part of the resolver structure and generally skipped.
+            // Since we don't allow direct authoring of copy components,
+            // they should occur only from references
+
+            // determine if is a replacement of another type of composite
+            let copyComponent = component;
+            parentIdx = component.componentIdx;
+
+            while (copyComponent.replacementOf) {
+                if (copyComponent.replacementOf.componentType === "_copy") {
+                    copyComponent = copyComponent.replacementOf;
+                    continue;
+                } else {
+                    break;
+                }
+            }
+
+            // now we have a copyComponent that is not a replacement of a copy
+            if (copyComponent.replacementOf) {
+                const indexParent = copyComponent.replacementOf;
+
+                // determine where the replacement will end up being spliced in
+
+                let start_idx, end_idx;
+
+                async function calcStartEndIdx(replacements) {
+                    let nonWithheldReplacements = [];
+                    for (const repl of replacements) {
+                        if (
+                            typeof repl === "string" ||
+                            !(await repl.stateValues
+                                .isInactiveCompositeReplacement)
+                        ) {
+                            nonWithheldReplacements.push(repl);
+                        }
+                    }
+
+                    const nonBlankStringReplacements =
+                        nonWithheldReplacements.filter(
+                            (x) => typeof x !== "string" || x.trim() !== "",
+                        );
+                    const replacementsWithoutExpandedCopies = [];
+
+                    let i = 0;
+
+                    for (const repl of nonBlankStringReplacements) {
+                        if (repl.componentType == "_copy") {
+                            if (!repl.isExpanded) {
+                                if (
+                                    repl.componentIdx ===
+                                    copyComponent.componentIdx
+                                ) {
+                                    start_idx = i;
+                                    end_idx = i + 1;
+                                }
+                                replacementsWithoutExpandedCopies.push(repl);
+                                i++;
+                            } else {
+                                const newReplacements = await calcStartEndIdx(
+                                    repl.replacements,
+                                );
+                                const n = newReplacements.length;
+
+                                if (
+                                    repl.componentIdx ===
+                                    copyComponent.componentIdx
+                                ) {
+                                    if (
+                                        update_start !== undefined &&
+                                        update_end !== undefined
+                                    ) {
+                                        start_idx = i + update_start;
+                                        end_idx = i + update_end;
+                                    } else {
+                                        start_idx = i;
+                                        end_idx = i + n;
+                                    }
+                                }
+
+                                replacementsWithoutExpandedCopies.push(
+                                    ...newReplacements,
+                                );
+                                i += n;
+                            }
+                        } else {
+                            replacementsWithoutExpandedCopies.push(repl);
+                            i++;
+                        }
+                    }
+
+                    return replacementsWithoutExpandedCopies;
+                }
+
+                await calcStartEndIdx(indexParent.replacements);
+
+                if (start_idx !== undefined && end_idx !== undefined) {
+                    indexResolution = {
+                        ReplaceRange: {
+                            parent: indexParent.componentIdx,
+                            range: { start: start_idx, end: end_idx },
+                        },
+                    };
+                } else {
+                    // if the copy was not found as a replacement of the composite,
+                    // then it wasn't a top-level replacement and it doesn't affect the composite's index resolution
+                    indexResolution = "None";
+                }
+            } else {
+                parentIdx = copyComponent.componentIdx;
+                indexResolution = { ReplaceAll: { parent: parentIdx } };
+            }
+        } else {
+            parentIdx = component.componentIdx;
+
+            if (
+                this.componentInfoObjects.isCompositeComponent({
+                    componentType: component.componentType,
+                    includeNonStandard: true,
+                })
+            ) {
+                if (update_start !== undefined && update_end !== undefined) {
+                    indexResolution = {
+                        ReplaceRange: {
+                            parent: parentIdx,
+                            range: { start: update_start, end: update_end },
+                        },
+                    };
+                } else {
+                    indexResolution = { ReplaceAll: { parent: parentIdx } };
+                }
+            }
+        }
+
+        return { parentIdx, indexResolution };
     }
 
     addComponentsToResolver(components, parentIdx) {
@@ -9865,13 +9917,23 @@ export default class Core {
 
         // iterate through all replacement changes
         for (let change of replacementResults.replacementChanges) {
+            let originalEffectiveLength =
+                component.replacements.length -
+                (component.replacementsToWithhold ?? 0);
+
             if (change.changeType === "add") {
                 if (change.replacementsToWithhold !== undefined) {
                     await this.adjustReplacementsToWithhold({
                         component,
                         change,
                         componentChanges,
+                        originalEffectiveLength,
                     });
+
+                    // adjust original effective length, as we may have adjusted index resolutions in resolver
+                    originalEffectiveLength =
+                        component.replacements.length -
+                        (component.replacementsToWithhold ?? 0);
                 }
 
                 let unproxiedComponent =
@@ -9890,6 +9952,15 @@ export default class Core {
 
                 let numberToDelete = change.numberReplacementsToReplace;
                 let firstIndex = change.firstReplacementInd;
+
+                const updateOldReplacementsStart = Math.min(
+                    originalEffectiveLength,
+                    firstIndex,
+                );
+                const updateOldReplacementsEnd = Math.min(
+                    originalEffectiveLength,
+                    firstIndex + (numberToDelete ?? 0),
+                );
 
                 // determine which replacements are blank strings before deleting replacements
                 const blankStringReplacements = component.replacements.map(
@@ -9931,9 +10002,8 @@ export default class Core {
                     await this.addReplacementsToResolver({
                         serializedReplacements,
                         component,
-                        updateOldReplacementsStart: firstIndex,
-                        updateOldReplacementsEnd:
-                            firstIndex + (numberToDelete ?? 0),
+                        updateOldReplacementsStart,
+                        updateOldReplacementsEnd,
                         blankStringReplacements,
                     });
 
@@ -9990,8 +10060,8 @@ export default class Core {
                             parentsOfDeleted,
                             deletedComponents,
                             addedComponents,
-                            firstIndex,
-                            numberToDelete,
+                            updateOldReplacementsStart,
+                            updateOldReplacementsEnd,
                             blankStringReplacements,
                         });
 
@@ -10123,6 +10193,7 @@ export default class Core {
                         component,
                         change,
                         componentChanges,
+                        originalEffectiveLength,
                     });
                 }
 
@@ -10170,6 +10241,7 @@ export default class Core {
                             component,
                             change,
                             componentChanges,
+                            originalEffectiveLength,
                         });
                 }
 
@@ -10454,8 +10526,8 @@ export default class Core {
         parentsOfDeleted,
         deletedComponents,
         addedComponents,
-        firstIndex,
-        numberToDelete,
+        updateOldReplacementsStart,
+        updateOldReplacementsEnd,
         blankStringReplacements,
     }) {
         let newShadowedBy = calculateAllComponentsShadowing(componentToShadow);
@@ -10537,9 +10609,8 @@ export default class Core {
                     serializedReplacements: newSerializedReplacements,
                     component: shadowingComponent,
                     overrideReplacementsAlreadyInResolver: true,
-                    updateOldReplacementsStart: firstIndex,
-                    updateOldReplacementsEnd:
-                        firstIndex + (numberToDelete ?? 0),
+                    updateOldReplacementsStart,
+                    updateOldReplacementsEnd,
                     blankStringReplacements,
                 });
 
@@ -10673,8 +10744,8 @@ export default class Core {
                             parentsOfDeleted,
                             deletedComponents,
                             addedComponents,
-                            firstIndex,
-                            numberToDelete,
+                            updateOldReplacementsStart,
+                            updateOldReplacementsEnd,
                             blankStringReplacements,
                         });
                     Object.assign(newComponentsForShadows, recursionComponents);
@@ -10700,6 +10771,7 @@ export default class Core {
         component,
         change,
         componentChanges,
+        originalEffectiveLength,
     }) {
         let compositesWithAdjustedReplacements = [];
 
@@ -10733,6 +10805,37 @@ export default class Core {
                 firstIndex: firstIndToStopWithholding,
                 numberDeleted: 0,
             };
+
+            // determine which replacements are blank strings
+            const blankStringReplacements = component.replacements.map(
+                (repl) => typeof repl === "string" && repl.trim() === "",
+            );
+
+            const serializedCopyOfAdditionalReplacements = [];
+
+            for (const repl of component.replacements.slice(
+                firstIndToStopWithholding,
+                lastIndToStopWithholding,
+            )) {
+                serializedCopyOfAdditionalReplacements.push(
+                    await repl.serialize(),
+                );
+            }
+
+            await this.addReplacementsToResolver({
+                serializedReplacements: serializedCopyOfAdditionalReplacements,
+                component,
+                updateOldReplacementsStart: Math.min(
+                    originalEffectiveLength,
+                    firstIndToStopWithholding,
+                ),
+                updateOldReplacementsEnd: Math.min(
+                    originalEffectiveLength,
+                    lastIndToStopWithholding,
+                ),
+                blankStringReplacements,
+            });
+
             componentChanges.push(newChange);
         } else if (changeInReplacementsToWithhold > 0) {
             compositesWithAdjustedReplacements.push(component.componentIdx);
@@ -10762,6 +10865,29 @@ export default class Core {
                 deletedComponents: withheldReplacements,
             };
             componentChanges.push(newChange);
+
+            this.removeComponentsFromResolver(
+                component.replacements.slice(firstIndToStartWithholding),
+            );
+
+            // determine which replacements are blank strings
+            const blankStringReplacements = component.replacements.map(
+                (repl) => typeof repl === "string" && repl.trim() === "",
+            );
+
+            await this.addReplacementsToResolver({
+                serializedReplacements: [],
+                component,
+                updateOldReplacementsStart: Math.min(
+                    originalEffectiveLength,
+                    firstIndToStartWithholding,
+                ),
+                updateOldReplacementsEnd: Math.min(
+                    originalEffectiveLength,
+                    lastIndToStartWithholding,
+                ),
+                blankStringReplacements,
+            });
         }
         component.replacementsToWithhold = replacementsToWithhold;
         await this.dependencies.addBlockersFromChangedReplacements(component);
@@ -10779,6 +10905,7 @@ export default class Core {
                         component: shadowingComponent,
                         change,
                         componentChanges,
+                        originalEffectiveLength,
                     });
                 compositesWithAdjustedReplacements.push(
                     ...additionalcompositesWithAdjustedReplacements,

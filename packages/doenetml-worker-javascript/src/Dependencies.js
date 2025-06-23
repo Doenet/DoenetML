@@ -5319,6 +5319,17 @@ class ChildDependency extends Dependency {
                             continue;
                         }
                         if (compositeInfo.lastInd < activeInd) {
+                            // firstInd/lastInd as describing the interval with inclusive convention at both ends.
+                            // Therefore if lastInd = firstInd-1, it means that there were no replacements for the composite.
+                            // Since we still want to communicate the compositeReplacementRange in this case,
+                            // we set the translated ind to be a interval of length 0 that corresponds to the composite's location.
+                            if (
+                                compositeInfo.lastInd ===
+                                compositeInfo.firstInd - 1
+                            ) {
+                                translatedFirstInd = ind;
+                                translatedLastInd = ind - 1;
+                            }
                             break;
                         }
 
@@ -7064,7 +7075,7 @@ class RefResolutionIndexDependencies extends Dependency {
         }
     }
 
-    // Iterate through all indices of `originalPath`.
+    // Iterate through the index of all parts of `originalPath`.
     // If encounter unexpanded composites, set up resolve blockers
     // so that this dependency will be resolved again once the composites are expanded.
     // Otherwise, gather all the component indices of the "integer" components into `componentList`.
@@ -7167,10 +7178,8 @@ dependencyTypeArray.push(RefResolutionIndexDependencies);
  * A dependency that attempts to resolve the `originalPath` of a `refResolution` on a composite component.
  *
  * If `refResolution.nodeIdx` has any composite descendants
- * or any indices of the unresolved path have composites, these composites are first expanded.
- * Then, the `originalPath` path is resolved against the descendants of `refResolution.nodeIdx`.
- *
- * The rust resolver is called to match the unresolved path on the descendants of `nodeIdx,
+ * or any indices of the path have composites, these composites are first expanded.
+ * Then, the `originalPath` path is resolved using the first node of `refResolution.nodesInResolvedPath` as the origin;
  * `nodeIdx` is updated to the matched component, and `unresolvedPath` is updated to any remaining unresolved path.
  *
  * If an index is encountered (which halts the rust resolver), then
@@ -7327,6 +7336,11 @@ class RefResolutionDependency extends Dependency {
 
         let refResolution;
 
+        /**
+         * Given the ref resolution `composite.refResolution`
+         * and the DoenetML string from `this.dependencyHandler.core.allDoenetMLs[0]`,
+         * return the substring of DoenetML corresponding to the resolution's `originalPath`.
+         */
         const getDoenetMLStringForReference = () => {
             const originalPath = composite.refResolution.originalPath;
             const startOffset = originalPath[0].position?.start.offset;
@@ -7399,8 +7413,6 @@ class RefResolutionDependency extends Dependency {
 
         // console.log({ refResolution });
 
-        // let foundUnexpanded = false;
-
         for (const idx of refResolution.nodesInResolvedPath) {
             const componentInvolved = this.dependencyHandler._components[idx];
             if (
@@ -7413,11 +7425,6 @@ class RefResolutionDependency extends Dependency {
                     },
                 )
             ) {
-                // if (!componentInvolved.isExpanded) {
-                //     this.addBlockerForUnexpandedComposite(componentInvolved);
-                //     foundUnexpanded = true;
-                // }
-
                 this.compositeReplacementDependencies.push(
                     componentInvolved.componentIdx,
                 );
@@ -7425,15 +7432,21 @@ class RefResolutionDependency extends Dependency {
                     componentInvolved.componentIdx,
                 ]);
             }
-        }
 
-        // if (foundUnexpanded) {
-        //     return {
-        //         success: false,
-        //         downstreamComponentIndices: [],
-        //         downstreamComponentTypes: [],
-        //     };
-        // }
+            if (
+                componentInvolved &&
+                (await componentInvolved.stateValues
+                    .isInactiveCompositeReplacement)
+            ) {
+                this.extendIdx = -1;
+
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+        }
 
         if (refResolution.unresolvedPath === null) {
             // No unresolved path left, so we're done
@@ -7443,8 +7456,7 @@ class RefResolutionDependency extends Dependency {
 
         if (refResolution.unresolvedPath[0].name !== "") {
             // We stopped matching on a name.
-            // Unless a composite caught above changes its replacements,
-            // this name will not match a descendant and must match a prop.
+            // This name must match a prop.
             // Return the result
 
             return this.foundExtend();
@@ -7473,7 +7485,8 @@ class RefResolutionDependency extends Dependency {
                 includeNonStandard: true,
             })
         ) {
-            // make sure that the composite refComponent is expanded
+            // We ended on a composite component with the next unresolved path being an index.
+            // If the composite isn't expanded, that's the next blocker for resolving the reference.
             if (!newRefComponent.isExpanded) {
                 this.addBlockerForUnexpandedComposite(newRefComponent);
 
@@ -7484,6 +7497,8 @@ class RefResolutionDependency extends Dependency {
                 };
             }
 
+            // If the composite is expanded and yet the index did not match one of the composite's replacements,
+            // then there is no replacement at that index, and we obtained no referent for the reference.
             const referenceText = getDoenetMLStringForReference();
 
             this.dependencyHandler.core.addErrorWarning({
@@ -7501,155 +7516,15 @@ class RefResolutionDependency extends Dependency {
         }
 
         return this.foundExtend();
-
-        //     const nextPathPart = unresolvedPath[0];
-
-        //     console.log({ nextPathPart });
-
-        //     if (
-        //         nextPathPart.name !== "" &&
-        //         refResolution.unresolvedPath.length === unresolvedPath.length &&
-        //         refResolution.unresolvedPath[0].name === nextPathPart.name &&
-        //         refResolution.unresolvedPath[0].index.length ===
-        //             nextPathPart.index.length
-        //     ) {
-        //         // Since we didn't match anything, return the result
-        //         this.extendIdx = nodeIdx;
-        //         this.unresolvedPath = unresolvedPath;
-
-        //         return this.foundExtend();
-        //     }
-
-        //     if (nextPathPart.name !== "") {
-        //         // see if we can resolve `name` starting from `nodeIdx`
-
-        //         const refResolution = this.dependencyHandler.core.resolvePath(
-        //             this.dependencyHandler.core.resolver,
-        //             { path: unresolvedPath },
-        //             nodeIdx,
-        //             true,
-        //         );
-
-        //         console.log("refResolution", refResolution);
-
-        //         // some progress was made so continue to next loop
-        //         nodeIdx = refResolution.nodeIdx;
-        //         unresolvedPath = refResolution.unresolvedPath;
-        //         continue;
-        //     }
-
-        //     // Don't have a name for the next path part, so we just have an index
-
-        //     if (!haveComposite) {
-        //         // Since don't have a composite, return the result
-        //         this.extendIdx = nodeIdx;
-        //         this.unresolvedPath = unresolvedPath;
-
-        //         return this.foundExtend();
-        //     }
-
-        //     const index = nextPathPart.index;
-        //     if (index.length === 0) {
-        //         throw Error(
-        //             "Something went wrong as we have a ref resolution without a name or an index",
-        //         );
-        //     }
-
-        //     const replacementIdx = index[0].value;
-
-        //     // Note: strings that are not blank do take up a slot for replacement index.
-        //     // However, this non-blank strings that do take up a slot
-        //     // will not be returned as a replacement (instead the replacement will be empty).
-        //     // Rationale: we do not have a mechanism for linking a string to its replacement source,
-        //     // so returning the string would it unlinked and inconsistent with other cases.
-        //     const nonBlankStringReplacements = refComponent.replacements.filter(
-        //         (x) => typeof x !== "string" || x.trim() !== "",
-        //     );
-
-        //     // Replace all copies with their replacements so that copies don't take up an index
-        //     // but are treated as though they were not an intermediary
-
-        //     // Reverse the replacements so that we can use them as a queue
-        //     nonBlankStringReplacements.reverse();
-
-        //     let foundUnexpandedCopy = false;
-        //     const replacementsWithoutCopies = [];
-
-        //     let elt = nonBlankStringReplacements.pop();
-
-        //     while (elt) {
-        //         if (elt.componentType === "_copy") {
-        //             // make sure that the copy is expanded
-        //             if (!elt.isExpanded) {
-        //                 this.addBlockerForUnexpandedComposite(elt);
-
-        //                 foundUnexpandedCopy = true;
-        //             } else {
-        //                 console.log("have a _copy", elt.componentIdx);
-
-        //                 this.compositeReplacementDependencies.push(
-        //                     elt.componentIdx,
-        //                 );
-        //                 this.addUpdateTriggersForCompositeReplacements([
-        //                     elt.componentIdx,
-        //                 ]);
-
-        //                 // Add the replacements of the copy to the queue (in reverse order)
-        //                 const newNonBlankReplacements = elt.replacements.filter(
-        //                     (x) => typeof x !== "string" || x.trim() !== "",
-        //                 );
-        //                 newNonBlankReplacements.reverse();
-        //                 nonBlankStringReplacements.push(
-        //                     ...newNonBlankReplacements,
-        //                 );
-        //             }
-        //         } else {
-        //             replacementsWithoutCopies.push(elt);
-        //         }
-
-        //         elt = nonBlankStringReplacements.pop();
-        //     }
-
-        //     if (foundUnexpandedCopy) {
-        //         return {
-        //             success: false,
-        //             downstreamComponentIndices: [],
-        //             downstreamComponentTypes: [],
-        //         };
-        //     }
-
-        //     const theReplacement =
-        //         replacementsWithoutCopies[replacementIdx - 1];
-        //     if (theReplacement && typeof theReplacement !== "string") {
-        //         // found a replacement component that matches
-        //         nodeIdx = theReplacement.componentIdx;
-
-        //         if (index.length === 1) {
-        //             // we finished off this path part
-        //             unresolvedPath.shift();
-        //         } else {
-        //             nextPathPart.index.shift();
-        //         }
-
-        //         // We made progress so continue in the loop
-        //         continue;
-        //     } else {
-        //         // No replacement at the given replacement index, so we should return nothing
-        //         this.extendIdx = -1;
-        //         this.unresolvedPath = null;
-        //         return {
-        //             success: true,
-        //             downstreamComponentIndices: [],
-        //             downstreamComponentTypes: [],
-        //         };
-        //     }
-
-        // // No unresolved path left
-        // this.extendIdx = nodeIdx;
-        // this.unresolvedPath = null;
-
-        // return this.foundExtend();
     }
+
+    /**
+     * Given that we've successfully resolved the reference
+     * and set `this.extendIdx` to the resulting node,
+     * finish the determination of downstream components by
+     * - checking if the component `this.extendIdx` exist and setting up a blocker if it doesn't,
+     * - setting the downstream component data to that component if it does exist.
+     */
 
     foundExtend() {
         let extendedComponent =
@@ -7674,13 +7549,13 @@ class RefResolutionDependency extends Dependency {
     }
 
     /**
-     * Iterate through all indices of `path`.
+     * Iterate through the index of all parts of `path`.
      * If any component is found, it must be an "integer".
      * Resolve its `value` state variable, which should be an integer,
      * and use its string value instead of the component.
      *
      * Note: we use strings rather than numbers for the literal indices
-     * so that the unresolved path follows the `FlatPathPart` assumed by the rust resolver.
+     * so that the unresolved path follows the `FlatPathPart` assumed by the resolver.
      */
     async resolveComponentsInPathIndices(path) {
         const pathWithResolvedIndexComponents = [];

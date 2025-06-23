@@ -1039,12 +1039,14 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
     );
 
     // `g[2]` has no referent as it matches a text node.
+    // To make sure that the unresolved_path does not resolve to anything in later processing by core,
+    // its name is set to `"invalid_index"`
     let path = make_path_with_indices(&[TestPathPart {
         name: "g",
         indices: vec!["2"],
     }]);
     let unresolved_path = make_path_with_indices(&[TestPathPart {
-        name: "",
+        name: "__invalid_index",
         indices: vec!["2"],
     }]);
     let referent = resolver.resolve(path.clone(), a_idx, false);
@@ -1129,12 +1131,14 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
     );
 
     // `g[3]` has no referent as it now matches the text node
+    // To make sure that the unresolved_path does not resolve to anything in later processing by core,
+    // its name is set to `"invalid_index"`
     let path = make_path_with_indices(&[TestPathPart {
         name: "g",
         indices: vec!["3"],
     }]);
     let unresolved_path = make_path_with_indices(&[TestPathPart {
-        name: "",
+        name: "__invalid_index",
         indices: vec!["3"],
     }]);
     let referent = resolver.resolve(path.clone(), a_idx, false);

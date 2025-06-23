@@ -56,6 +56,7 @@ function textFromChildrenSub({
     let newChildren: any[] = [];
     let newPotentialListComponents: boolean[] = [];
     let lastChildInd = startInd - 1;
+    let lastChildIndIncludingEmptyComposites = lastChildInd;
 
     for (
         let rangeInd = 0;
@@ -122,18 +123,40 @@ function textFromChildrenSub({
                     // (after converting them into strings)
                     // trimming any white space to the right of all but the last child
                     // so that there is not a space before each comma
-                    newChildren.push(
-                        childrenInRange
-                            .map(textFromComponentConverter)
-                            .filter((v) => v !== "")
-                            .map((v, i, a) =>
-                                i === a.length - 1 ? v : v.trimEnd(),
-                            )
-                            .join(", "),
+
+                    const stringChildren = childrenInRange.map(
+                        textFromComponentConverter,
                     );
+
+                    let isBlankStringChild = stringChildren.map(
+                        (child) => child.trim() === "",
+                    );
+
+                    let newStringChild = stringChildren[0];
+
+                    for (let [prevInd, stringChild] of stringChildren
+                        .slice(1)
+                        .entries()) {
+                        if (
+                            !isBlankStringChild[prevInd] &&
+                            isBlankStringChild
+                                .slice(prevInd + 1)
+                                .some((x) => !x)
+                        ) {
+                            // The previous child is not a blank string
+                            // and we have some future child that is not a blank string,
+                            // so we want to add a comma between them, with no space showing before the comma.
+                            // Remove any ending blank string and add the comma
+
+                            newStringChild = newStringChild.trimEnd() + ", ";
+                        }
+                        newStringChild += stringChild;
+                    }
+
+                    newChildren.push(newStringChild);
                 } else {
                     // We are not turning the children in a list,
-                    // so just convert the children into strings and concatentate
+                    // so just convert the children into strings and concatenate
                     newChildren.push(
                         childrenInRange
                             .map(textFromComponentConverter)
@@ -148,6 +171,13 @@ function textFromChildrenSub({
                 }
             }
             lastChildInd = rangeLastInd;
+            // If we had an empty composite, then rangeLastInd = rangeFirstInd -1.
+            // In this case, we still don't want to add the composite back to `potentialListComponents`
+            // so we make sure `lastChildIndIncludingEmptyComposites` is after that composite
+            lastChildIndIncludingEmptyComposites = Math.max(
+                rangeFirstInd,
+                rangeLastInd,
+            );
         }
     }
 
@@ -159,7 +189,7 @@ function textFromChildrenSub({
             // their status of being a potential list component is not changed
             newPotentialListComponents.push(
                 ...potentialListComponents.slice(
-                    lastChildInd - startInd + 1,
+                    lastChildIndIncludingEmptyComposites - startInd + 1,
                     endInd - startInd + 1,
                 ),
             );

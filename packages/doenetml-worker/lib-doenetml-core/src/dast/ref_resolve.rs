@@ -580,9 +580,31 @@ impl Resolver {
                                         }
                                         None => {
                                             // A value of `None` corresponds to an index matching a text node, which we cannot reference
-                                            // We let control pass to the below code which will add the remainder as an unresolved path.
+                                            // We add the remaining path as an unresolved path
+                                            // with name `"__invalid_index"` to make sure it won't resolve to anything.
                                             // Note: we don't return `NoReferent`, as it is possible the index resolutions
                                             // will later change so that this reference will begin to have a referent
+
+                                            let remaining_path: Vec<FlatPathPart> =
+                                                iter::once(FlatPathPart {
+                                                    name: "__invalid_index".into(),
+                                                    index: part
+                                                        .index
+                                                        .iter()
+                                                        .skip(index_idx)
+                                                        .cloned()
+                                                        .collect(),
+                                                    position: part.position.clone(),
+                                                })
+                                                .chain(path.cloned())
+                                                .collect();
+
+                                            return Ok(RefResolution {
+                                                node_idx: current_idx,
+                                                unresolved_path: Some(remaining_path),
+                                                original_path,
+                                                nodes_in_resolved_path,
+                                            });
                                         }
                                     }
                                 }

@@ -614,7 +614,6 @@ function newComponentIndicesForAttributesFromSerialized(
             Object.assign(idxMap, attrResult.idxMap);
             nComponents = attrResult.nComponents;
         } else if (attribute.type === "unresolved") {
-            // TODO: do we need to copy these two from serialized component?
             const attrResult = createNewComponentIndicesUnflattened(
                 attribute.children,
                 nComponents,
