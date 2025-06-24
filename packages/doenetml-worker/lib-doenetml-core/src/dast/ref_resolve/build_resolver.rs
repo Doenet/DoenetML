@@ -301,5 +301,5 @@ fn get_element_name(element: &FlatElement) -> Option<String> {
 }
 
 #[cfg(test)]
-#[path = "build.test.rs"]
+#[path = "build_resolver.test.rs"]
 mod test;
