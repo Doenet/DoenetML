@@ -1,7 +1,8 @@
-use super::*;
 use crate::{
     dast::{
-        flat_dast::{FlatFragment, FlatIndex, FlatRoot},
+        flat_dast::{
+            FlatFragment, FlatIndex, FlatNode, FlatPathPart, FlatRoot, Index, UntaggedContent,
+        },
         DastElementContent, DastRoot,
     },
     test_utils::*,

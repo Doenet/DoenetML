@@ -1,8 +1,107 @@
-use std::iter;
+use std::{collections::HashMap, iter};
 
-use crate::dast::flat_dast::{FlatPathPart, Index, UntaggedContent};
+use serde::{Deserialize, Serialize};
+use tsify_next::Tsify;
 
-use super::{NodeParent, Ref, RefResolution, ResolutionAlgorithm, ResolutionError, Resolver};
+use crate::dast::flat_dast::{FlatNode, FlatPathPart, Index, UntaggedContent};
+
+use super::ResolutionError;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi))]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
+pub struct RefResolution {
+    /// The final index of the node reached when resolving
+    pub node_idx: Index,
+    /// The indices of all nodes involved in resolving
+    pub nodes_in_resolved_path: Vec<Index>,
+    /// The path after `node_idx` that remains unresolved
+    pub unresolved_path: Option<Vec<FlatPathPart>>,
+    /// The original path that was resolved with origin `nodes_in_resolved_path[0]`
+    pub original_path: Vec<FlatPathPart>,
+}
+
+/// Status of a pointer referring to children of an element.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub(super) enum Ref {
+    Unique(Index),
+    Ambiguous(Vec<Index>),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub(super) enum ResolutionAlgorithm {
+    SearchChildren,
+    DontSearchChildren,
+    Unsearchable,
+}
+
+const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
+
+impl ResolutionAlgorithm {
+    fn lookup_by_name(name: &str) -> Self {
+        if DONT_SEARCH_CHILDREN.contains(&name) {
+            ResolutionAlgorithm::DontSearchChildren
+        } else {
+            ResolutionAlgorithm::SearchChildren
+        }
+    }
+
+    pub(super) fn lookup_by_flat_node(node: &FlatNode) -> Self {
+        if let FlatNode::Element(element) = node {
+            Self::lookup_by_name(element.name.as_str())
+        } else {
+            ResolutionAlgorithm::Unsearchable
+        }
+    }
+}
+
+/// The possibilities for the parent of a node in the resolver
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub enum NodeParent {
+    None,
+    FlatRoot,
+    Node(Index),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct NodeResolverData {
+    /// The parent of the node. Options are:
+    /// - `NodeParent:None` corresponds to no parent
+    /// - `NodeParent:FlatRoot` corresponds to the parent being the flat root (which isn't a node)
+    /// - `NodeParent:Node(i)` corresponds to the parent being node `i`.
+    pub(super) node_parent: NodeParent,
+    pub(super) resolution_algorithm: ResolutionAlgorithm,
+    /// Map of all the names that are accessible (as descendants) from the node
+    pub(super) name_map: HashMap<String, Ref>,
+    /// Map of resolutions of indices that follow a match to the node.
+    /// If `index_resolutions[i] = Some(j)` and the reference `$node_reference` matches the node,
+    /// then the reference `$node_reference[i+1]` resolves to node `k`
+    /// (as references are indexed starting from `1`).
+    /// Note: `index_resolutions[i] = None` indicates that `$node_reference[i+1]` would resolve to a text node,
+    /// which is not a valid ref resolution.
+    pub(super) index_resolutions: Vec<Option<Index>>,
+}
+
+/// A `Resolver` is used to lookup elements by path/name. It constructs a search index
+/// upon construction. If the underlying `FlatRoot` changes, a new `Resolver` should be
+/// recreated.
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct Resolver {
+    /// List of the node resolver data for a node at a given index shifted by `1`
+    /// so that `node_resolver_data[i+1]` gives the data for node `i`
+    /// and `node_resolver_data[0]` gives that data for the flat root (which isn't a node)
+    pub(super) node_resolver_data: Vec<NodeResolverData>,
+}
 
 impl Resolver {
     /// Search for a node specified by `path` starting from `origin`. This algorithm searches first

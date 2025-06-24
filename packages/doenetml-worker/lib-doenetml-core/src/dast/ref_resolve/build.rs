@@ -1,10 +1,12 @@
 use std::{collections::HashMap, iter, mem, ops::Range};
 
-use crate::dast::flat_dast::{FlatFragment, FlatNode, FlatRoot, FlatRootOrFragment};
+use crate::dast::flat_dast::{
+    FlatElement, FlatFragment, FlatNode, FlatRoot, FlatRootOrFragment, UntaggedContent,
+};
 
 use super::{
-    get_element_name, IndexResolution, NodeParent, NodeResolverData, Ref, ResolutionAlgorithm,
-    Resolver, CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
+    IndexResolution, NodeParent, NodeResolverData, Ref, ResolutionAlgorithm, Resolver,
+    CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
 };
 
 impl Resolver {
@@ -279,6 +281,23 @@ impl Resolver {
 
         descendant_names
     }
+}
+
+/// Get the name of `element` from its `name` attribute,
+/// where the `name` attribute must have exactly one text child to be considered valid.
+fn get_element_name(element: &FlatElement) -> Option<String> {
+    let name = element
+        .attributes
+        .iter()
+        .find(|attr| attr.name == "name")
+        .and_then(|attr| {
+            match (attr.children.len(), attr.children.first()) {
+                // A name attribute should have exactly one text child. Otherwise it is considered invalid.
+                (1, Some(UntaggedContent::Text(name))) => Some(name.clone()),
+                _ => None,
+            }
+        });
+    name
 }
 
 #[cfg(test)]
