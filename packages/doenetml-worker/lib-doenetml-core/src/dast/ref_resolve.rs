@@ -4,7 +4,7 @@
 //! name or prop name, the longest valid partial match is used and unmatched portions of a `path` are
 //! preserved for future use.
 
-mod build;
+mod build_resolver;
 mod compactify;
 mod errors;
 mod index_resolutions;

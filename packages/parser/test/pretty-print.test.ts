@@ -140,4 +140,25 @@ describe("Prettier", async () => {
             expect(prettyPrinted).toEqual(outStr);
         }
     });
+
+    it("Don't create new macro names when &dollar; entity appears in text", async () => {
+        const cases = [
+            {
+                inStr: "<p>&dollar;x</p>",
+                outStr: "<p>$\u200Bx</p>",
+            },
+            {
+                inStr: "<p>&dollar;</p>",
+                outStr: "<p>$</p>",
+            },
+        ];
+
+        for (const { inStr, outStr } of cases) {
+            const prettyPrinted = await prettyPrint(inStr, {
+                doenetSyntax: false,
+                printWidth: 30,
+            });
+            expect(prettyPrinted).toEqual(outStr);
+        }
+    });
 });

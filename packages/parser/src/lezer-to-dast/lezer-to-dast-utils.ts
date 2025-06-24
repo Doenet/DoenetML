@@ -21,7 +21,15 @@ export function entityToString(node: SyntaxNode, source: string): string {
         case "CharacterReference":
         case "EntityReference": {
             const entity = extractContent(node, source);
-            return entityStringToRawString(entity);
+            const converted = entityStringToRawString(entity);
+            // Special care must be taken for things like `$dollar;` which
+            // convert to `$`. If they are followed by [a-zA-Z_], then converting
+            // `&dollar;` to `$` will insert a macro reference where there was previously none.
+            if (converted === "$" && /[a-zA-Z_]/.test(source.charAt(node.to))) {
+                // If the next character is a letter, add a zero-width space afterward.
+                return converted + "\u200B";
+            }
+            return converted;
         }
     }
     throw new Error(

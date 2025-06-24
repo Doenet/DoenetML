@@ -6577,7 +6577,9 @@ describe("Extend and references tests", async () => {
                 stateVariables[await resolvePathToNodeIdx("sec3")]
                     .activeChildren[1].componentIdx
             ].stateValues.text,
-        ).eq("Reference $p does not add ability to reference names: (, ).");
+        ).eq(
+            "Reference $\u200Bp does not add ability to reference names: (, ).",
+        );
         expect(
             stateVariables[
                 stateVariables[await resolvePathToNodeIdx("sec4")]
