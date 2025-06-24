@@ -124,36 +124,15 @@ function textFromChildrenSub({
                     // trimming any white space to the right of all but the last child
                     // so that there is not a space before each comma
 
-                    const stringChildren = childrenInRange.map(
-                        textFromComponentConverter,
+                    newChildren.push(
+                        childrenInRange
+                            .map(textFromComponentConverter)
+                            .filter((v) => v !== "")
+                            .map((v, i, a) =>
+                                i === a.length - 1 ? v : v.trimEnd(),
+                            )
+                            .join(", "),
                     );
-
-                    let isBlankStringChild = stringChildren.map(
-                        (child) => child.trim() === "",
-                    );
-
-                    let newStringChild = stringChildren[0];
-
-                    for (let [prevInd, stringChild] of stringChildren
-                        .slice(1)
-                        .entries()) {
-                        if (
-                            !isBlankStringChild[prevInd] &&
-                            isBlankStringChild
-                                .slice(prevInd + 1)
-                                .some((x) => !x)
-                        ) {
-                            // The previous child is not a blank string
-                            // and we have some future child that is not a blank string,
-                            // so we want to add a comma between them, with no space showing before the comma.
-                            // Remove any ending blank string and add the comma
-
-                            newStringChild = newStringChild.trimEnd() + ", ";
-                        }
-                        newStringChild += stringChild;
-                    }
-
-                    newChildren.push(newStringChild);
                 } else {
                     // We are not turning the children in a list,
                     // so just convert the children into strings and concatenate
