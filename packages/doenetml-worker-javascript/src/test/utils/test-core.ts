@@ -86,6 +86,8 @@ export async function createTestCore({
 
     const { normalizedRoot, resolver } = rustCore.return_normalized_dast_root();
     const addNodesToResolver = PublicDoenetMLCoreRust.add_nodes_to_resolver;
+    const replaceIndexResolutionsInResolver =
+        PublicDoenetMLCoreRust.replace_index_resolutions_in_resolver;
     const deleteNodesFromResolver =
         PublicDoenetMLCoreRust.delete_nodes_from_resolver;
     const resolvePath = PublicDoenetMLCoreRust.resolve_path;
@@ -105,6 +107,7 @@ export async function createTestCore({
         normalizedRoot,
         resolver,
         addNodesToResolver,
+        replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
         resolvePath,
     });

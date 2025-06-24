@@ -252,7 +252,15 @@ impl Expander {
                         num_element_children += 1;
 
                         match &flat_root.nodes[*idx] {
-                            FlatNode::Element(e) => e.extending.clone(),
+                            // Change the initial node referenced in the resolver from the index of the attribute that will be deleted
+                            // to the index of the component that is extending or copying
+
+                            // TODO: there must be a cleaner way to change the initial node index without cloning twice!
+                            FlatNode::Element(e) => e.extending.clone().map(|s| {
+                                let mut s2 = s.clone();
+                                s2.set_initial_node_index(element.idx);
+                                s2
+                            }),
                             FlatNode::Error(err) => {
                                 error_found = Some(err);
                                 None

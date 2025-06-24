@@ -12,8 +12,10 @@ use doenetml_core::{
     components::{prelude::ComponentIdx, types::Action},
     core::core::Core,
     dast::{
-        flat_dast::{FlatFragment, FlatNode, FlatPathPart, FlatRoot, Index, NormalizedRoot},
-        ref_resolve::{RefResolution, ResolutionError, Resolver},
+        flat_dast::{
+            FlatFragment, FlatNode, FlatPathPart, FlatRoot, Index, NormalizedRoot, UntaggedContent,
+        },
+        ref_resolve::{IndexResolution, RefResolution, ResolutionError, Resolver},
         DastRoot, FlatDastElementUpdate, FlatDastRoot,
     },
 };
@@ -62,6 +64,11 @@ pub struct PathToCheck {
     path: Vec<FlatPathPart>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct ContentVector {
+    content: Vec<UntaggedContent>,
+}
 #[derive(Debug, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct NodeList {
@@ -121,8 +128,26 @@ impl PublicDoenetMLCore {
         })
     }
 
-    pub fn add_nodes_to_resolver(mut resolver: Resolver, flat_fragment: FlatFragment) -> Resolver {
-        Core::add_nodes_to_resolver(&flat_fragment, &mut resolver);
+    pub fn add_nodes_to_resolver(
+        mut resolver: Resolver,
+        flat_fragment: FlatFragment,
+        index_resolution: IndexResolution,
+    ) -> Resolver {
+        Core::add_nodes_to_resolver(&flat_fragment, &mut resolver, index_resolution);
+
+        resolver
+    }
+
+    pub fn replace_index_resolutions_in_resolver(
+        mut resolver: Resolver,
+        components: ContentVector,
+        index_resolution: IndexResolution,
+    ) -> Resolver {
+        Core::replace_index_resolutions_in_resolver(
+            &components.content,
+            &mut resolver,
+            index_resolution,
+        );
 
         resolver
     }

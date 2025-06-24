@@ -22,7 +22,7 @@ export async function resolvePathImmediatelyToNodeIdx(
     // This algorithm is not a careful check of the correct form.
     // It assumes all characters of the `name` of each path piece are word characters.
 
-    if (!coreWorker.resolvePath) {
+    if (!coreWorker.resolvePath || !coreWorker.core) {
         return -1;
     }
 
@@ -60,25 +60,67 @@ export async function resolvePathImmediatelyToNodeIdx(
     try {
         const resolver = coreWorker.getResolver();
 
-        const resolution = coreWorker.resolvePath(
+        // console.log("resolve path", { path, origin });
+        let resolution = coreWorker.resolvePath(
             resolver,
             { path },
             origin,
             false,
         );
 
-        const newResolution = await resolveAdditionalPathImmediately(
-            resolution,
-            resolver,
-            coreWorker,
-        );
+        while (resolution.unresolvedPath !== null) {
+            if (resolution.unresolvedPath[0].name !== "") {
+                // We stopped matching on a name.
+                // This name will not match a descendant and must match a prop.
+                // The entire `path` did no match a node
+                return -1;
+            }
 
-        if (newResolution.unresolvedPath == null) {
-            return newResolution.nodeIdx;
-        } else {
-            // If we have any unresolved path left, then the entire `path` did not match a node.
-            return -1;
+            const refComponent =
+                coreWorker.core._components![resolution.nodeIdx];
+
+            const haveComposite =
+                coreWorker.core.componentInfoObjects.isCompositeComponent({
+                    componentType: refComponent.componentType,
+                    includeNonStandard: true,
+                });
+
+            if (!haveComposite || refComponent.isExpanded) {
+                // If we don't have a composite or the composite is already expanded,
+                // there nothing more we can do to try to resolve the remaining path
+                return -1;
+            }
+
+            const index = resolution.unresolvedPath[0].index;
+            if (index.length === 0) {
+                throw Error(
+                    "Something went wrong as we have a ref resolution without a name or an index",
+                );
+            }
+
+            const replacementIdx = index[0].value[0];
+            if (typeof replacementIdx !== "string") {
+                throw Error(
+                    "Not implemented: we have not implemented `resolvePathImmediatelyToNodeIdx` for paths that contain references to nodes.",
+                );
+            }
+
+            // If the component component `refComponent` is not expanded,
+            // then we force expand it by forcibly resolving `readyToExpandWhenResolved`
+            // before calling `expandCompositeComponent`.
+            await refComponent.stateValues.readyToExpandWhenResolved;
+            await coreWorker.core.expandCompositeComponent(refComponent);
+
+            // try resolving again
+            resolution = coreWorker.resolvePath(
+                resolver,
+                { path },
+                origin,
+                false,
+            );
         }
+
+        return resolution.nodeIdx;
     } catch (err) {
         console.error(err);
         return -1;
@@ -99,181 +141,4 @@ function extractIndex(s: string) {
     }
 
     return index;
-}
-
-/**
- * An abbreviated version of the algorithm of `determineDownstreamComponents`
- * from `RefResolutionDependency` of `Dependencies.js`
- * that attempts to resolve the unresolvedPath of `resolution`.
- *
- * This function expands any composite component encountered
- */
-async function resolveAdditionalPathImmediately(
-    resolution: RefResolution,
-    resolver: Resolver,
-    coreWorker: PublicDoenetMLCore,
-): Promise<RefResolution> {
-    if (resolution.unresolvedPath === null) {
-        return resolution;
-    }
-
-    if (!coreWorker.resolvePath || !coreWorker.core) {
-        throw Error(
-            "Must have resolvePath and core to call resolveAdditionalPath",
-        );
-    }
-
-    let nodeIdx = resolution.nodeIdx;
-    let unresolvedPath = resolution.unresolvedPath;
-
-    while (unresolvedPath?.length > 0) {
-        const nextPathPart = unresolvedPath[0];
-
-        // If the next part has a name, it can only match a prop
-        if (nextPathPart.name !== "") {
-            const refResolution = coreWorker.resolvePath(
-                resolver,
-                { path: unresolvedPath },
-                nodeIdx,
-                true,
-            );
-
-            if (
-                refResolution.unresolvedPath?.length ===
-                    unresolvedPath.length &&
-                refResolution.unresolvedPath[0].name !== ""
-            ) {
-                // The resolver didn't make any progress.
-                // As a sanity check, make sure the node index and name didn't change
-                if (
-                    refResolution.nodeIdx !== nodeIdx ||
-                    refResolution.unresolvedPath[0].name !== nextPathPart.name
-                ) {
-                    throw Error(
-                        "Something went wrong with resolver as it changed the index or name without making progress",
-                    );
-                }
-
-                return {
-                    nodeIdx,
-                    unresolvedPath,
-                    originalPath: resolution.originalPath,
-                };
-            }
-
-            // some progress was made so continue to next loop
-            nodeIdx = refResolution.nodeIdx;
-            if (refResolution.unresolvedPath === null) {
-                break;
-            }
-            unresolvedPath = refResolution.unresolvedPath;
-            continue;
-        }
-
-        const refComponent = coreWorker.core._components![nodeIdx];
-
-        const haveComposite =
-            coreWorker.core.componentInfoObjects.isCompositeComponent({
-                componentType: refComponent.componentType,
-                includeNonStandard: true,
-            });
-
-        if (!haveComposite) {
-            // Since don't have a composite, return the result
-            return {
-                nodeIdx,
-                unresolvedPath,
-                originalPath: resolution.originalPath,
-            };
-        }
-
-        const index = nextPathPart.index;
-        if (index.length === 0) {
-            throw Error(
-                "Something went wrong as we have a ref resolution without a name or an index",
-            );
-        }
-
-        const replacementIdx = index[0].value[0];
-        if (typeof replacementIdx !== "string") {
-            throw Error(
-                "Not implemented: we have not implemented `resolvePathImmediatelyToNodeIdx` for paths that contain references to nodes.",
-            );
-        }
-
-        // If the component component `refComponent` is not expanded,
-        // then we force expand it by forcibly resolving `readyToExpandWhenResolved`
-        // before calling `expandCompositeComponent`.
-        if (!refComponent.isExpanded) {
-            // Calling the getter on `stateValues` forces the state variable to be immediately resolved and evaluated
-            await refComponent.stateValues.readyToExpandWhenResolved;
-            await coreWorker.core.expandCompositeComponent(refComponent);
-        }
-
-        // Note: strings that are not blank do take up a slot for replacement index.
-        // However, this non-blank strings that do take up a slot
-        // will not be returned as a replacement (instead the replacement will be empty).
-        // Rationale: we do not have a mechanism for linking a string to its replacement source,
-        // so returning the string would it unlinked and inconsistent with other cases.
-        const nonBlankStringReplacements = refComponent.replacements.filter(
-            (x: any) => typeof x !== "string" || x.trim() !== "",
-        );
-
-        // Replace all copies with their replacements so that copies don't take up an index
-        // but are treated as though they were not an intermediary
-
-        // Reverse the replacements so that we can use them as a queue
-        nonBlankStringReplacements.reverse();
-
-        const replacementsWithoutCopies: any[] = [];
-
-        let elt = nonBlankStringReplacements.pop();
-
-        while (elt) {
-            if (elt.componentType === "_copy") {
-                // Add the replacements of the copy to the queue (in reverse order)
-                const newNonBlankReplacements = elt.replacements.filter(
-                    (x: any) => typeof x !== "string" || x.trim() !== "",
-                );
-                newNonBlankReplacements.reverse();
-                nonBlankStringReplacements.push(...newNonBlankReplacements);
-            } else {
-                replacementsWithoutCopies.push(elt);
-            }
-
-            elt = nonBlankStringReplacements.pop();
-        }
-
-        const theReplacement =
-            replacementsWithoutCopies[Number(replacementIdx) - 1];
-        if (theReplacement && typeof theReplacement !== "string") {
-            // found a replacement component that matches
-            nodeIdx = theReplacement.componentIdx;
-
-            if (index.length === 1) {
-                // we finished off this path part
-                unresolvedPath.shift();
-            } else {
-                nextPathPart.index.shift();
-            }
-
-            // We made progress so continue in the loop
-            continue;
-        } else {
-            // No replacement at the given replacement index, so we should return nothing
-            console.error(`Couldn't find node at index ${replacementIdx}`);
-
-            return {
-                nodeIdx: -1,
-                unresolvedPath: null,
-                originalPath: resolution.originalPath,
-            };
-        }
-    }
-
-    return {
-        nodeIdx,
-        unresolvedPath: null,
-        originalPath: resolution.originalPath,
-    };
 }

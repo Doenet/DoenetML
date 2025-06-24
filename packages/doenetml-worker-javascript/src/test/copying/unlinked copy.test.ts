@@ -911,8 +911,8 @@ describe("Unlinked Copying Tests", async () => {
       </p>
     </group>
     
-    <group copy="$g" name="g2" newNamespace />
-    <group copy="$g2" name="g3" newNamespace />
+    <group copy="$g" name="g2" />
+    <group copy="$g2" name="g3" />
     `,
         });
 

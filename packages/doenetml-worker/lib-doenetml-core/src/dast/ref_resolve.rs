@@ -4,7 +4,7 @@
 //! name or prop name, the longest valid partial match is used and unmatched portions of a `path` are
 //! preserved for future use.
 
-use std::{collections::HashMap, iter, mem};
+use std::{collections::HashMap, iter, mem, ops::Range};
 
 use crate::dast::flat_dast::{FlatNode, UntaggedContent};
 
@@ -69,13 +69,18 @@ pub fn format_error_message(err: ResolutionError, path: &[FlatPathPart]) -> Stri
 #[cfg_attr(feature = "web", tsify(into_wasm_abi))]
 #[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct RefResolution {
+    /// The final index of the node reached when resolving
     pub node_idx: Index,
+    /// The indices of all nodes involved in resolving
+    pub nodes_in_resolved_path: Vec<Index>,
+    /// The path after `node_idx` that remains unresolved
     pub unresolved_path: Option<Vec<FlatPathPart>>,
+    /// The original path that was resolved with origin `nodes_in_resolved_path[0]`
     pub original_path: Vec<FlatPathPart>,
 }
 
 /// Status of a pointer referring to children of an element.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 enum Ref {
     Unique(Index),
     Ambiguous(Vec<Index>),
@@ -108,6 +113,54 @@ impl ResolutionAlgorithm {
     }
 }
 
+/// An enum specifying whether or not nodes that are being added to the resolver should also be added as index resolutions
+/// of the flat fragment parent, and if so, which existing indices they should replace.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub enum IndexResolution {
+    /// Do not modify any `index_resolutions`
+    None,
+    /// Replace the `index_resolutions` field of component `Index` with references to the added children
+    ReplaceAll { parent: Index },
+    /// Splice references to the added children into the`index_resolutions` field of component `Index`, replacing the specified range of indices
+    ReplaceRange { parent: Index, range: Range<usize> },
+}
+
+/// The possibilities for the parent of a node in the resolver
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub enum NodeParent {
+    None,
+    FlatRoot,
+    Node(Index),
+}
+
+const CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS: [&str; 1] = ["group"];
+const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct NodeResolverData {
+    /// The parent of the node. Options are:
+    /// - `NodeParent:None` corresponds to no parent
+    /// - `NodeParent:FlatRoot` corresponds to the parent being the flat root (which isn't a node)
+    /// - `NodeParent:Node(i)` corresponds to the parent being node `i`.
+    node_parent: NodeParent,
+    resolution_algorithm: ResolutionAlgorithm,
+    /// Map of all the names that are accessible (as descendants) from the node
+    name_map: HashMap<String, Ref>,
+    /// Map of resolutions of indices that follow a match to the node.
+    /// If `index_resolutions[i] = Some(j)` and the reference `$node_reference` matches the node,
+    /// then the reference `$node_reference[i+1]` resolves to node `k`
+    /// (as references are indexed starting from `1`).
+    /// Note: `index_resolutions[i] = None` indicates that `$node_reference[i+1]` would resolve to a text node,
+    /// which is not a valid ref resolution.
+    index_resolutions: Vec<Option<Index>>,
+}
+
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
 /// upon construction. If the underlying `FlatRoot` changes, a new `Resolver` should be
 /// recreated.
@@ -115,44 +168,51 @@ impl ResolutionAlgorithm {
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct Resolver {
-    /// List of the parent of a node at a given index, except that all indices are shifted by `1`
-    /// so that index `0` corresponds to the flat root (which isn't a node).
-    /// I.e., the first entry corresponds to the flat root (which has no parent)
-    /// and if the parent of node `i` is `j`, then `node_parent[i+1] = Some(j+1)`.
-    node_parent: Vec<Option<Index>>,
-    /// List of the resolution algorithm of a node at a given index shifted by `1`
-    /// so that `resolution_algorithm[i+1]` gives the resolution algorithm of node `i`.
-    resolution_algorithm: Vec<ResolutionAlgorithm>,
-    /// Map of all the names that are accessible (as descendants) from a given node,
-    /// where indices ae shifted by `1`.
-    /// `name_map[0]` is a map of all names accessible from the `flat_root`
-    /// and `name_map[i+1]` is a map of all names accessible from node `i`.
-    name_map: Vec<HashMap<String, Ref>>,
+    /// List of the node resolver data for a node at a given index shifted by `1`
+    /// so that `node_resolver_data[i+1]` gives the data for node `i`
+    /// and `node_resolver_data[0]` gives that data for the flat root (which isn't a node)
+    node_resolver_data: Vec<NodeResolverData>,
 }
-
-const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
 
 impl Resolver {
     pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
-        Resolver {
-            node_parent: iter::once(None)
-                .chain(
-                    flat_root
-                        .nodes
-                        .iter()
-                        .map(|node| node.parent().map(|idx| idx + 1).or(Some(0))),
-                )
-                .collect(),
-            resolution_algorithm: iter::once(ResolutionAlgorithm::SearchChildren)
-                .chain(
-                    flat_root
-                        .nodes
-                        .iter()
-                        .map(ResolutionAlgorithm::lookup_by_flat_node),
-                )
-                .collect(),
-            name_map: Self::build_name_map(&FlatRootOrFragment::Root(flat_root)),
-        }
+        let mut name_map = Self::build_name_map(&FlatRootOrFragment::Root(flat_root));
+
+        let mut resolver = Resolver {
+            node_resolver_data: Range {
+                start: 0,
+                end: flat_root.nodes.len() + 1,
+            }
+            .map(|idx_plus_1| {
+                if idx_plus_1 == 0 {
+                    NodeResolverData {
+                        node_parent: NodeParent::None,
+                        resolution_algorithm: ResolutionAlgorithm::SearchChildren,
+                        name_map: mem::take(&mut name_map[0]),
+                        index_resolutions: Vec::new(),
+                    }
+                } else {
+                    let node = &flat_root.nodes[idx_plus_1 - 1];
+                    NodeResolverData {
+                        node_parent: node
+                            .parent()
+                            .map(NodeParent::Node)
+                            .unwrap_or(NodeParent::FlatRoot),
+                        resolution_algorithm: ResolutionAlgorithm::lookup_by_flat_node(node),
+                        name_map: mem::take(&mut name_map[idx_plus_1]),
+                        index_resolutions: Vec::new(),
+                    }
+                }
+            })
+            .collect(),
+        };
+
+        resolver.add_implicit_index_resolutions(
+            &FlatRootOrFragment::Root(flat_root),
+            &CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
+        );
+
+        resolver
     }
 
     /// Add nodes of `flat_fragment` to the resolver.
@@ -170,54 +230,142 @@ impl Resolver {
     /// ```
     ///
     /// Arguments:
-    /// - `flat_fragment`: a `FlatFragment` containing the new descendants added to `flat_fragment.parent_idx`.
-    pub fn add_nodes(&mut self, flat_fragment: &FlatFragment) {
-        let prev_num_nodes = self.node_parent.len();
+    /// - `flat_fragment`: a `FlatFragment` containing the new descendants added to `flat_fragment.parent_idx`
+    /// - `index_resolution`: used to optionally specify that the children of the `flat_fragment` should also
+    ///   be added as indices of the `flat_fragment` parent.
+    pub fn add_nodes(&mut self, flat_fragment: &FlatFragment, index_resolution: IndexResolution) {
+        let prev_num_nodes = self.node_resolver_data.len();
         let new_num_nodes = flat_fragment.len() + 1;
 
-        let parent_idx = flat_fragment
-            .parent_idx
-            .expect("add_nodes should be called with a flat fragment that has a parent.");
+        let parent_node = match flat_fragment.parent_idx {
+            Some(idx) => NodeParent::Node(idx),
+            None => NodeParent::None,
+        };
 
         // add placeholders for missing nodes as well as new nodes to be added
         if new_num_nodes > prev_num_nodes {
             let padding = new_num_nodes - prev_num_nodes;
-            self.node_parent.extend(iter::repeat_n(None, padding));
-            self.resolution_algorithm
-                .extend(iter::repeat_n(ResolutionAlgorithm::SearchChildren, padding));
-            self.name_map
-                .extend(iter::repeat_with(HashMap::new).take(padding));
+            self.node_resolver_data.extend(iter::repeat_n(
+                NodeResolverData {
+                    node_parent: NodeParent::None,
+                    resolution_algorithm: ResolutionAlgorithm::SearchChildren,
+                    name_map: HashMap::new(),
+                    index_resolutions: Vec::new(),
+                },
+                padding,
+            ));
         }
 
         // Add parents and stop_propagation for new nodes
         for node in flat_fragment.nodes.iter() {
-            self.node_parent[node.idx() + 1] = node.parent().map(|idx| idx + 1);
-            self.resolution_algorithm[node.idx() + 1] =
+            self.node_resolver_data[node.idx() + 1].node_parent =
+                node.parent().map(NodeParent::Node).unwrap_or(parent_node);
+            self.node_resolver_data[node.idx() + 1].resolution_algorithm =
                 ResolutionAlgorithm::lookup_by_flat_node(node);
         }
 
-        // placeholder for missing nodes
-
         let mut subtree_name_map =
             Self::build_name_map(&FlatRootOrFragment::Fragment(flat_fragment));
-
-        // We will add items to the resolver for parent only if the parent does not already have items with that name,
-        // i.e., the resolver will continue to resolve to descendants of parent as before,
-        // and now will fall back to new items if there wasn't already a ref resolution.
-        let parent_map = &mut self.name_map[parent_idx + 1];
-        let new_parent_map = mem::take(&mut subtree_name_map[parent_idx + 1]);
-
-        for (key, ref_) in new_parent_map.into_iter() {
-            parent_map.entry(key).or_insert(ref_);
-        }
 
         // Add new items to `name_map`.
         // If a node was already in the `name_map`, its value is replaced.
         for node in flat_fragment.nodes.iter() {
             let names = mem::take(&mut subtree_name_map[node.idx() + 1]);
             for (key, ref_) in names.into_iter() {
-                self.name_map[node.idx() + 1].insert(key, ref_);
+                self.node_resolver_data[node.idx() + 1]
+                    .name_map
+                    .insert(key, ref_);
             }
+        }
+
+        if let Some(parent_idx) = flat_fragment.parent_idx {
+            // We will add items to the resolver for parent only if the parent does not already have items with that name,
+            // i.e., the resolver will continue to resolve to descendants of parent as before,
+            // and now will fall back to new items if there wasn't already a ref resolution.
+            let parent_map = &mut self.node_resolver_data[parent_idx + 1].name_map;
+            let new_parent_map = mem::take(&mut subtree_name_map[parent_idx + 1]);
+
+            for (key, ref_) in new_parent_map.into_iter() {
+                parent_map.entry(key).or_insert(ref_);
+            }
+        }
+
+        // If the new nodes are also index resolutions for a parent,
+        // add them to `index_resolutions`
+        self.replace_index_resolutions(&flat_fragment.children, index_resolution);
+
+        self.add_implicit_index_resolutions(
+            &FlatRootOrFragment::Fragment(flat_fragment),
+            &CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
+        );
+    }
+
+    /// Find any elements in `flat_root_or_fragment` that are marked `CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS`
+    /// and add index resolutions so that their children will resolve as their indices
+    fn add_implicit_index_resolutions(
+        &mut self,
+        flat_root_or_fragment: &FlatRootOrFragment,
+        children_are_index_resolutions: &[&str],
+    ) {
+        for element in flat_root_or_fragment
+            .nodes_iter()
+            .filter_map(|node| match node {
+                FlatNode::Element(element) => {
+                    if children_are_index_resolutions.contains(&element.name.as_str()) {
+                        Some(element)
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            })
+        {
+            self.replace_index_resolutions(
+                &element.children,
+                IndexResolution::ReplaceAll {
+                    parent: element.idx,
+                },
+            );
+        }
+    }
+
+    /// Replace the index resolutions of the parent of `index_resolution` with `components`,
+    /// replacing the indices given by `index_resolution`.
+    pub fn replace_index_resolutions(
+        &mut self,
+        components: &[UntaggedContent],
+        index_resolution: IndexResolution,
+    ) {
+        if matches!(index_resolution, IndexResolution::None) {
+            return;
+        }
+
+        let new_resolutions: Vec<Option<usize>> = components
+            .iter()
+            .filter_map(|child| match child {
+                UntaggedContent::Text(s) => {
+                    if s.trim().is_empty() {
+                        // a blank text node is ignored
+                        None
+                    } else {
+                        // any other text node takes up an index but that index will have not a ref resolution
+                        Some(None)
+                    }
+                }
+                UntaggedContent::Ref(idx) => Some(Some(*idx)),
+            })
+            .collect();
+
+        match index_resolution {
+            IndexResolution::ReplaceAll { parent } => {
+                self.node_resolver_data[parent + 1].index_resolutions = new_resolutions;
+            }
+            IndexResolution::ReplaceRange { parent, range } => {
+                self.node_resolver_data[parent + 1]
+                    .index_resolutions
+                    .splice(range, new_resolutions);
+            }
+            IndexResolution::None => unreachable!(),
         }
     }
 
@@ -233,10 +381,17 @@ impl Resolver {
         }) {
             let mut prev_parent_idx_plus_1 = node_idx + 1;
 
-            while let Some(parent_idx_plus_1) = self.node_parent[prev_parent_idx_plus_1] {
+            loop {
+                let parent_idx_plus_1 =
+                    match self.node_resolver_data[prev_parent_idx_plus_1].node_parent {
+                        NodeParent::None => break,
+                        NodeParent::FlatRoot => 0,
+                        NodeParent::Node(idx) => idx + 1,
+                    };
+
                 prev_parent_idx_plus_1 = parent_idx_plus_1;
 
-                let name_map = &mut self.name_map[parent_idx_plus_1];
+                let name_map = &mut self.node_resolver_data[parent_idx_plus_1].name_map;
 
                 let references = name_map.remove(&name);
 
@@ -270,10 +425,14 @@ impl Resolver {
         }
 
         // Now that we have finished recursing through parents of all nodes,
-        // remove nodes from node_parent structure
+        // remove nodes from `node_parent` structure
+        // and clear their `index_resolutions`
         for node in nodes.iter() {
-            if node.idx() + 1 < self.node_parent.len() {
-                self.node_parent[node.idx() + 1] = None;
+            if node.idx() + 1 < self.node_resolver_data.len() {
+                self.node_resolver_data[node.idx() + 1].node_parent = NodeParent::None;
+                self.node_resolver_data[node.idx() + 1]
+                    .index_resolutions
+                    .clear();
             }
         }
     }
@@ -311,80 +470,174 @@ impl Resolver {
         origin: Index,
         skip_parent_search: bool,
     ) -> Result<RefResolution, ResolutionError> {
+        // If `origin` passed in is not a node in the resolver, then return no referent
+        if origin + 1 >= self.node_resolver_data.len() {
+            return Err(ResolutionError::NoReferent);
+        }
+
         let path = path.as_ref();
         let mut current_idx = origin;
         let original_path = path.to_vec();
 
         let mut path = path.iter();
 
+        // A list of all the nodes involved in resolving
+        let mut nodes_in_resolved_path = vec![origin];
+
+        // Note: `remaining_path` is declared outside the following `if` statement
+        // as it needs to live as long as the `path` iterator does.
+        let remaining_path: Vec<FlatPathPart>;
+
         if !skip_parent_search {
             let first_path_part = path.next().ok_or(ResolutionError::NoReferent)?;
             current_idx = self.search_parents(&first_path_part.name, current_idx)?;
+            if current_idx != origin {
+                nodes_in_resolved_path.push(current_idx);
+            }
             // If we made it here, the first entry in `path` has a valid referent.
-            // If this entry also has an index, we need to stop searching. This would
+            // If this entry also has an index, we add the index back to the beginning of the path
+            // so that it will be address first, below. This would
             // happen if the reference was something like `$a[2].b`.
             if !first_path_part.index.is_empty() {
-                let remaining_path: Vec<FlatPathPart> = iter::once(FlatPathPart {
+                // In order to create a new iterator that is the same type as the original `path` iterator,
+                // we first create a new vector, then create a path iterator from it.
+                remaining_path = iter::once(FlatPathPart {
                     name: "".into(),
                     index: first_path_part.index.clone(),
                     position: first_path_part.position.clone(),
                 })
                 .chain(path.cloned())
                 .collect();
-                return Ok(RefResolution {
-                    node_idx: current_idx,
-                    unresolved_path: Some(remaining_path),
-                    original_path,
-                });
+
+                path = remaining_path.iter();
             }
         }
 
-        while let Some(part) = path.next() {
-            let mut matched_part_name = false;
+        let mut node_data = &self.node_resolver_data[current_idx + 1];
 
-            if self.resolution_algorithm[current_idx + 1] == ResolutionAlgorithm::SearchChildren {
-                // current_idx specifies the "root" of the search. We try to resolve
-                // children based on the path part, returning an error if there is an ambiguity.
-                if let Some(referent) = self.name_map[current_idx + 1].get(&part.name) {
-                    matched_part_name = true;
-                    match referent {
-                        Ref::Unique(idx) => {
-                            current_idx = *idx;
-                        }
-                        Ref::Ambiguous(_) => {
-                            return Err(ResolutionError::NonUniqueReferent);
+        while let Some(part) = path.next() {
+            if !part.name.is_empty() {
+                let mut matched_part_name = false;
+
+                if node_data.resolution_algorithm == ResolutionAlgorithm::SearchChildren {
+                    // current_idx specifies the "root" of the search. We try to resolve
+                    // children based on the path part, returning an error if there is an ambiguity.
+                    if let Some(referent) = node_data.name_map.get(&part.name) {
+                        matched_part_name = true;
+                        match referent {
+                            Ref::Unique(idx) => {
+                                current_idx = *idx;
+                                if !nodes_in_resolved_path.contains(&current_idx) {
+                                    nodes_in_resolved_path.push(current_idx);
+                                }
+                                node_data = &self.node_resolver_data[current_idx + 1];
+                            }
+                            Ref::Ambiguous(_) => {
+                                return Err(ResolutionError::NonUniqueReferent);
+                            }
                         }
                     }
                 }
+
+                if !matched_part_name {
+                    // If we cannot find an appropriate child, the remaining path parts might be
+                    // prop references. Return them and consider `current_idx` the match.
+                    // This also handles the case where we don't search children.
+                    let remaining_path: Vec<FlatPathPart> =
+                        iter::once(part.clone()).chain(path.cloned()).collect();
+                    return Ok(RefResolution {
+                        node_idx: current_idx,
+                        unresolved_path: Some(remaining_path),
+                        original_path,
+                        nodes_in_resolved_path,
+                    });
+                }
             }
 
-            if !matched_part_name {
-                // If we cannot find an appropriate child, the remaining path parts might be
-                // prop references. Return them and consider `current_idx` the match.
-                // This also handles the case where we don't search children.
-                let remaining_path: Vec<FlatPathPart> =
-                    iter::once(part.clone()).chain(path.cloned()).collect();
-                return Ok(RefResolution {
-                    node_idx: current_idx,
-                    unresolved_path: Some(remaining_path),
-                    original_path,
-                });
-            }
+            for (index_idx, index) in part.index.iter().enumerate() {
+                if index.value.len() == 1 {
+                    match &index.value[0] {
+                        UntaggedContent::Text(index_str) => match index_str.parse::<usize>() {
+                            Ok(index_num) => {
+                                if index_num == 0 {
+                                    // path indices begin at `1``, so we cannot match a `0`
+                                    return Err(ResolutionError::NoReferent);
+                                }
 
-            // If there index specified, we immediately stop since component information is needed
-            // to resolve all remaining path parts.
-            if !part.index.is_empty() {
+                                if let Some(node_match) =
+                                    node_data.index_resolutions.get(index_num - 1)
+                                {
+                                    match node_match {
+                                        Some(new_node_idx) => {
+                                            current_idx = *new_node_idx;
+                                            if !nodes_in_resolved_path.contains(&current_idx) {
+                                                nodes_in_resolved_path.push(current_idx);
+                                            }
+                                            node_data = &self.node_resolver_data[current_idx + 1];
+
+                                            // since we found a match, we continue to the next index, if it exists
+                                            continue;
+                                        }
+                                        None => {
+                                            // A value of `None` corresponds to an index matching a text node, which we cannot reference
+                                            // We add the remaining path as an unresolved path
+                                            // with name `"__invalid_index"` to make sure it won't resolve to anything.
+                                            // Note: we don't return `NoReferent`, as it is possible the index resolutions
+                                            // will later change so that this reference will begin to have a referent
+
+                                            let remaining_path: Vec<FlatPathPart> =
+                                                iter::once(FlatPathPart {
+                                                    name: "__invalid_index".into(),
+                                                    index: part
+                                                        .index
+                                                        .iter()
+                                                        .skip(index_idx)
+                                                        .cloned()
+                                                        .collect(),
+                                                    position: part.position.clone(),
+                                                })
+                                                .chain(path.cloned())
+                                                .collect();
+
+                                            return Ok(RefResolution {
+                                                node_idx: current_idx,
+                                                unresolved_path: Some(remaining_path),
+                                                original_path,
+                                                nodes_in_resolved_path,
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                            Err(_) => {
+                                // the string index did not correspond to non-negative integer
+                                return Err(ResolutionError::NoReferent);
+                            }
+                        },
+                        UntaggedContent::Ref(_) => {
+                            // if the index is a reference to another component,
+                            // then we need information that is not in the resolver to continue,
+                        }
+                    }
+                }
+
+                // If we make it here, then either
+                // - `index.value` was not a single text node, or
+                // - `index.value` did correspond to a valid index, but it wasn't in `self.index_resolutions` for the current node
+                // We need information that is not in the resolver to continue, so we return the remaining path as unresolved.
                 let remaining_path: Vec<FlatPathPart> = iter::once(FlatPathPart {
                     name: "".into(),
-                    index: part.index.clone(),
+                    index: part.index.iter().skip(index_idx).cloned().collect(),
                     position: part.position.clone(),
                 })
                 .chain(path.cloned())
                 .collect();
+
                 return Ok(RefResolution {
                     node_idx: current_idx,
                     unresolved_path: Some(remaining_path),
                     original_path,
+                    nodes_in_resolved_path,
                 });
             }
         }
@@ -394,18 +647,19 @@ impl Resolver {
             node_idx: current_idx,
             unresolved_path: None,
             original_path,
+            nodes_in_resolved_path,
         })
     }
 
     /// Search up the chain of parents to find the first node that has `name` accessible.
     /// Return the referent of `name`.
     fn search_parents(&self, name: &str, origin: usize) -> Result<Index, ResolutionError> {
-        let mut current_idx_plus_1 = origin + 1;
+        let mut node_data = &self.node_resolver_data[origin + 1];
 
         // if passed in a node without a parent, then search from that node itself
         // TODO: don't duplicate code with case where have parent, below
-        if self.node_parent[current_idx_plus_1].is_none() {
-            if let Some(resolved) = self.name_map[current_idx_plus_1].get(name) {
+        if matches!(node_data.node_parent, NodeParent::None) {
+            if let Some(resolved) = node_data.name_map.get(name) {
                 match resolved {
                     Ref::Unique(idx) => {
                         return Ok(*idx);
@@ -419,8 +673,14 @@ impl Resolver {
             return Err(ResolutionError::NoReferent);
         }
 
-        while let Some(parent_plus_1) = self.node_parent[current_idx_plus_1] {
-            if let Some(resolved) = self.name_map[parent_plus_1].get(name) {
+        loop {
+            let parent_plus_1 = match node_data.node_parent {
+                NodeParent::None => break,
+                NodeParent::FlatRoot => 0,
+                NodeParent::Node(idx) => idx + 1,
+            };
+
+            if let Some(resolved) = self.node_resolver_data[parent_plus_1].name_map.get(name) {
                 match resolved {
                     Ref::Unique(idx) => {
                         return Ok(*idx);
@@ -430,7 +690,7 @@ impl Resolver {
                     }
                 }
             }
-            current_idx_plus_1 = parent_plus_1;
+            node_data = &self.node_resolver_data[parent_plus_1];
         }
         Err(ResolutionError::NoReferent)
     }
@@ -446,11 +706,9 @@ impl Resolver {
         // If we were given a flat root, then include root itself (with index 0),
         // else, for a flat fragment, include the fragment parent, where add one to the index
         let base_parent_idx_plus_1 = match flat_root_or_fragment {
-            FlatRootOrFragment::Root(_) => 0,
+            FlatRootOrFragment::Root(_) => Some(0),
             FlatRootOrFragment::Fragment(flat_fragment) => {
-                flat_fragment.parent_idx.expect(
-                    "build_name_map should be called with a flat fragment that has a parent.",
-                ) + 1
+                flat_fragment.parent_idx.map(|idx| idx + 1)
             }
         };
 
@@ -469,12 +727,17 @@ impl Resolver {
             let name = name.unwrap();
 
             // Iterate through all ancestors of element,
-            // including the fragment parent, if it exists
-            for parent_idx_plus_1 in flat_root_or_fragment
+            // including the base parent, if it exists
+
+            let mut parents = flat_root_or_fragment
                 .parent_iter(element.idx)
                 .map(|parent| parent.idx + 1)
-                .chain(iter::once(base_parent_idx_plus_1))
-            {
+                .collect::<Vec<_>>();
+            if let Some(idx) = base_parent_idx_plus_1 {
+                parents.push(idx);
+            }
+
+            for parent_idx_plus_1 in parents {
                 descendant_names[parent_idx_plus_1]
                     .get_mut(&name)
                     .map(|x| {
@@ -496,7 +759,7 @@ impl Resolver {
 
                 // Stop if we've reached a parent that isn't the base parent
                 // and is a type where we don't search children
-                if parent_idx_plus_1 != base_parent_idx_plus_1 && parent_idx_plus_1 > 0 {
+                if Some(parent_idx_plus_1) != base_parent_idx_plus_1 && parent_idx_plus_1 > 0 {
                     match ResolutionAlgorithm::lookup_by_flat_node(
                         flat_root_or_fragment.get_node(parent_idx_plus_1 - 1),
                     ) {
@@ -514,52 +777,17 @@ impl Resolver {
     /// Compactify the resolver so that it corresponds to the new indices
     /// of the compactified dast.
     pub fn compactify(&mut self, node_is_referenced: &[bool], old_to_new_indices: &[usize]) {
-        // Note: the first entry, which corresponds to the flat_root, is always `None`
-        let new_node_parent: Vec<Option<usize>> = iter::once(None)
-            .chain(
-                self.node_parent
-                    .iter()
-                    // Skip the flat_root: the enumerated indices will be actual node indices
-                    .skip(1)
-                    .enumerate()
-                    .filter(|(idx, _parent)| node_is_referenced[*idx])
-                    .map(|(_idx, parent)| {
-                        parent.map(|par_idx_plus_1| {
-                            if par_idx_plus_1 == 0 {
-                                par_idx_plus_1
-                            } else {
-                                old_to_new_indices[par_idx_plus_1 - 1] + 1
-                            }
-                        })
-                    }),
-            )
-            .collect();
-        self.node_parent = new_node_parent;
-
-        // Note: the first entry, which corresponds to the flat_root, is always `SearchChildren`
-        let new_resolution_algorithm: Vec<ResolutionAlgorithm> =
-            iter::once(ResolutionAlgorithm::SearchChildren)
-                .chain(
-                    self.resolution_algorithm
-                        .iter()
-                        // Skip the flat_root: the enumerated indices will be actual node indices
-                        .skip(1)
-                        .enumerate()
-                        .filter(|(idx, _val)| node_is_referenced[*idx])
-                        .map(|(_idx, val)| *val),
-                )
-                .collect();
-        self.resolution_algorithm = new_resolution_algorithm;
-
-        // For the name map, we do need to adjust the map from flat_root, which is the first entry.
-        // In this case, we cannot skip it, so the enumerated indices will be node indices plus 1
-        let new_name_map: Vec<HashMap<String, Ref>> = self
-            .name_map
+        // Note: the first entry, which corresponds to the flat_root, is always present
+        let new_node_resolver_data: Vec<NodeResolverData> = self
+            .node_resolver_data
             .iter()
             .enumerate()
-            .filter(|(idx_plus_1, _names)| *idx_plus_1 == 0 || node_is_referenced[idx_plus_1 - 1])
-            .map(|(_idx_plus_1, names)| {
-                names
+            .filter(|(idx_plus_1, _node_data)| {
+                *idx_plus_1 == 0 || node_is_referenced[idx_plus_1 - 1]
+            })
+            .map(|(idx_plus_1, node_data)| {
+                let name_map = node_data
+                    .name_map
                     .iter()
                     .map(|(key, ref_)| match ref_ {
                         Ref::Unique(idx) => (key.clone(), Ref::Unique(old_to_new_indices[*idx])),
@@ -570,10 +798,35 @@ impl Resolver {
                             ),
                         ),
                     })
-                    .collect()
+                    .collect();
+
+                let index_resolutions = node_data
+                    .index_resolutions
+                    .iter()
+                    .map(|v| v.map(|idx| old_to_new_indices[idx]))
+                    .collect();
+
+                if idx_plus_1 == 0 {
+                    NodeResolverData {
+                        node_parent: NodeParent::None,
+                        resolution_algorithm: ResolutionAlgorithm::SearchChildren,
+                        name_map,
+                        index_resolutions,
+                    }
+                } else {
+                    NodeResolverData {
+                        node_parent: match node_data.node_parent {
+                            NodeParent::None | NodeParent::FlatRoot => node_data.node_parent,
+                            NodeParent::Node(idx) => NodeParent::Node(old_to_new_indices[idx]),
+                        },
+                        resolution_algorithm: node_data.resolution_algorithm,
+                        name_map,
+                        index_resolutions,
+                    }
+                }
             })
             .collect();
-        self.name_map = new_name_map;
+        self.node_resolver_data = new_node_resolver_data;
     }
 }
 
