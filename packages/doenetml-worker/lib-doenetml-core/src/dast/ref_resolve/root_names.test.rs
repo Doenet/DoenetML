@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[test]
-fn find_shortest_unique_name() {
+fn find_simplest_unique_name() {
     let dast_root = dast_root_no_position(
         r#"
     <document>
@@ -45,7 +45,7 @@ fn find_shortest_unique_name() {
 }
 
 #[test]
-fn find_shortest_names_with_index() {
+fn find_simplest_names_with_index() {
     let dast_root = dast_root_no_position(
         r#"
     <document>
@@ -58,7 +58,8 @@ fn find_shortest_names_with_index() {
                 </group>
             </group>
         </a>
-        <e name="y"/>"#,
+        <e name="y"/>
+    </document>"#,
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
 
@@ -98,7 +99,8 @@ fn option_children_are_ignored() {
                 </c>
             </option>
         </a>
-        <e name="z"/>"#,
+        <e name="z"/>
+    </document>"#,
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
 
@@ -135,7 +137,7 @@ fn fragments_added_require_parent_or_index() {
     let e_idx = find(&flat_root, "e").unwrap();
 
     let flat_fragment = flat_fragment_from_str(
-        r#"<b name="long"><c name="z" /></b><d name="y" />"#,
+        r#"<b><c name="z" /></b><d name="y" />"#,
         e_idx + 1,
         Some(a_idx),
     );
@@ -157,4 +159,48 @@ fn fragments_added_require_parent_or_index() {
     assert_eq!(root_names[c_idx], Some("x.z".to_string()));
     assert_eq!(root_names[d_idx], Some("x.y".to_string()));
     assert_eq!(root_names[e_idx], Some("z".to_string()));
+}
+
+#[test]
+fn sub_names_are_preferred_over_indices() {
+    let dast_root = dast_root_no_position(r#"<a name="x"/>"#);
+
+    let flat_root = FlatRoot::from_dast(&dast_root);
+
+    let a_idx = find(&flat_root, "a").unwrap();
+
+    let flat_fragment = flat_fragment_from_str(r#"<b name="long">"#, a_idx + 1, Some(a_idx));
+
+    let b_idx = a_idx + 1;
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: a_idx },
+    );
+    let root_names = calculate_root_names(resolver);
+
+    assert_eq!(root_names[b_idx], Some("x.long".to_string()));
+}
+
+#[test]
+fn ties_are_broken_by_overall_length() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <a name="long">
+       <b name="x">
+          <c name="long2">
+            <d name="y" />
+          </c>
+      </b>
+    </a>
+    <e name="y" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let d_idx = find(&flat_root, "d").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+    let root_names = calculate_root_names(resolver);
+
+    assert_eq!(root_names[d_idx], Some("x.y".to_string()));
 }

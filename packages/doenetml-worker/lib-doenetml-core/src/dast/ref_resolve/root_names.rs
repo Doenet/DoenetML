@@ -1,4 +1,4 @@
-//! For each node, calculate the shortest name by which the node can be referenced
+//! For each node, calculate the simplest name by which the node can be referenced
 //! with the root as the origin. Since the names are designed to be HTML ids,
 //! use `:` (rather than `[]`) to join index resolutions to create the names.
 
@@ -77,25 +77,27 @@ pub struct ResolutionsToNode {
 type NamesReachableFromRoot = Vec<String>;
 
 /// Given the data from `resolver`, calculate the root name for each node,
-/// i.e., the shortest (fewest number of characters) name by which the node can be referenced when origin is the root.
+/// i.e., the simplest name by which the node can be referenced when origin is the root.
 ///
 /// Since the names are designed to be valid HTML ids, they use non-standard notation for indices,
-/// where `[3]` is replaced with `:3`.
+/// where `[3]` is replaced with `:3`. For example, a reference `$a.b[3][4].c`
+/// would be represented by the name `a.b:3:4.c`.
 ///
 /// Returns a vector indexed by the node index. The vector entries entries are:
 /// - `None`: if the node does not have a uniquely accessible name from the root
-/// - `Some(name)`: where `name` is the shortest unique name for accessing the node from the root.
-///   For example, if a node's shortest reference is`$a.b[3][4].c`, then `name` would be `a.b:3:4.c`.
+/// - `Some(name)`: where `name` is the "simplest" unique name for accessing the node from the root.
+///   "Simplest" is defined as the fewest number of pieces (indices or sub-names) used to construct the name
+///   (with ties broken by the fewest number of indices or the shortest overall name length).
 ///
 /// For example, consider the DoenetML.
 /// ```xml
-/// <a name="y"><group name="grp"><b /><c name="x" /></group></a>
+/// <a name="y"><group name="g"><b /><c name="x" /></group></a>
 /// <d name="x" />
 /// ```
 /// The results for different nodes would be
 /// - `<a>`: `Some("x")`, as `<a>` is directly resolvable from the root as `$x`
-/// - `<b>`: `Some("grp:1")`, as `$grp[1]` is the only reference from root that resolves to `<b/>`
-/// - `<c>`: `Some("x.y")`, as `"x.y"` is shorter (has fewer characters) than `grp:2`
+/// - `<b>`: `Some("g:1")`, as `$g[1]` is the only reference from root that resolves to `<b/>`
+/// - `<c>`: `Some("x.y")`, as `"x.y"` is deemed simpler than `g:2` (as indices are considered more complex than sub-names)
 /// - `<d>`: `None`, as `<d>` does not have a unique reference from the root
 pub fn calculate_root_names(resolver: Resolver) -> Vec<Option<String>> {
     // Note: resolver's data has one more entry than number of nodes as it also contains the root
@@ -162,11 +164,29 @@ pub fn calculate_root_names(resolver: Resolver) -> Vec<Option<String>> {
         reachable_names = concatenate_reachable_names(idx, reachable_names, &resolutions_to_node);
     }
 
+    // The final root name for each node is the "simplest" of the reachable names where "simplest" is defined by
+    // the fewest number of pieces (indices or sub-names) used to construct the name.
+    // Ties are broken by the fewest number of indices used, followed by the shortest overall name.
     reachable_names
         .into_iter()
         .map(|possible_names| {
             possible_names.unwrap().into_iter().reduce(|acc, name| {
-                if name.len() < acc.len() {
+                let index_count_name = name.chars().filter(|c| *c == ':').count();
+                let index_count_acc = acc.chars().filter(|c| *c == ':').count();
+                let separator_count_name =
+                    index_count_name + name.chars().filter(|c| *c == '.').count();
+                let separator_count_acc =
+                    index_count_acc + acc.chars().filter(|c| *c == '.').count();
+
+                if separator_count_name < separator_count_acc {
+                    name
+                } else if separator_count_name > separator_count_acc {
+                    acc
+                } else if index_count_name < index_count_acc {
+                    name
+                } else if index_count_name > index_count_acc {
+                    acc
+                } else if name.len() < acc.len() {
                     name
                 } else {
                     acc
