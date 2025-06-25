@@ -68,7 +68,7 @@ pub struct ResolutionsToNode {
     by_index: Option<ResolutionViaIndex>,
 }
 
-/// A list of the names that given node is reachable when the origin is the root.
+/// A list of the names by which a given node is reachable when the origin is the root.
 ///
 /// Since the names are designed to be valid HTML ids, they use non-standard notation for indices,
 /// where `[3]` is replaced with `:3`.
