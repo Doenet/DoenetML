@@ -19,6 +19,9 @@ pub enum NodeOrRoot {
     Node(Index),
 }
 
+/// A list of the `origins` for which a reference to the name `name` resolves to a given node.
+///
+/// See [`ResolutionsToNode`] for additional details and an example.
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
@@ -27,6 +30,9 @@ pub struct ResolutionViaName {
     origins: Vec<NodeOrRoot>,
 }
 
+/// The `origin` for which a reference to the index `index` resolves to a given node.
+///
+/// See [`ResolutionsToNode`] for additional details and an example.
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
@@ -35,7 +41,7 @@ pub struct ResolutionViaIndex {
     origin: NodeOrRoot,
 }
 
-/// A description of how the resolution of a single name or a single index starting an origin
+/// A description of how the resolution of a single name or a single index starting at an origin
 /// could result in a given node being the referent.
 ///
 /// For example, consider the DoenetML.
