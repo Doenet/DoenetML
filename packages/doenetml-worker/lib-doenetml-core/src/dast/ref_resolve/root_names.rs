@@ -1,6 +1,6 @@
 //! For each node, calculate the shortest name by which the node can be referenced
-//! with the root as the origin. Since the names are designed to be CSS selectors,
-//! use `|` (rather than `[]`) to join index resolutions to create the names.
+//! with the root as the origin. Since the names are designed to be HTML ids,
+//! use `:` (rather than `[]`) to join index resolutions to create the names.
 
 use std::iter;
 
@@ -75,22 +75,22 @@ pub struct ResolutionsToNode {
 
 /// A list of the names that given node is reachable when the origin is the root.
 ///
-/// Since the names are designed to be valid CSS selectors, they use non-standard notation for indices,
-/// where `[3]` is replaced with `|3`.
+/// Since the names are designed to be valid HTML ids, they use non-standard notation for indices,
+/// where `[3]` is replaced with `:3`.
 ///
-/// A name of the form `x.y|3.c` indicates that the reference `$x.y[3].c` with the origin of root would uniquely resolve to the node.
+/// A name of the form `x.y:3.c` indicates that the reference `$x.y[3].c` with the origin of root would uniquely resolve to the node.
 type NamesReachableFromRoot = Vec<String>;
 
 /// Given the data from `resolver`, calculate the root name for each node,
 /// i.e., the shortest (fewest number of characters) name by which the node can be referenced when origin is the root.
 ///
-/// Since the names are designed to be valid CSS selectors, they use non-standard notation for indices,
-/// where `[3]` is replaced with `|3`.
+/// Since the names are designed to be valid HTML ids, they use non-standard notation for indices,
+/// where `[3]` is replaced with `:3`.
 ///
 /// Returns a vector indexed by the node index. The vector entries entries are:
 /// - `None`: if the node does not have a uniquely accessible name from the root
 /// - `Some(name)`: where `name` is the shortest unique name for accessing the node from the root.
-///   For example, if a node's shortest reference is`$a.b[3][4].c`, then `name` would be `a.b|3|4.c`.
+///   For example, if a node's shortest reference is`$a.b[3][4].c`, then `name` would be `a.b:3:4.c`.
 ///
 /// For example, consider the DoenetML.
 /// ```xml
@@ -99,8 +99,8 @@ type NamesReachableFromRoot = Vec<String>;
 /// ```
 /// The results for different nodes would be
 /// - `<a>`: `Some("x")`, as `<a>` is directly resolvable from the root as `$x`
-/// - `<b>`: `Some("grp|1")`, as `$grp[1]` is the only reference from root that resolves to `<b/>`
-/// - `<c>`: `Some("x.y")`, as `"x.y"` is shorter (has fewer characters) than `grp|2`
+/// - `<b>`: `Some("grp:1")`, as `$grp[1]` is the only reference from root that resolves to `<b/>`
+/// - `<c>`: `Some("x.y")`, as `"x.y"` is shorter (has fewer characters) than `grp:2`
 /// - `<d>`: `None`, as `<d>` does not have a unique reference from the root
 pub fn calculate_root_names(resolver: Resolver) -> Vec<Option<String>> {
     // Note: resolver's data has one more entry than number of nodes as it also contains the root
@@ -236,9 +236,9 @@ fn concatenate_reachable_names(
                     concatenate_reachable_names(dest_idx, reachable_names, resolutions_to_node);
 
                 // Since we called `concatenate_reachable_names` on `dest_idx`, we can safely unwrap the option
-                // and concatenate the result with `index`, joining with a `|`.
+                // and concatenate the result with `index`, joining with a `:`.
                 for reachable_name in reachable_names[dest_idx].as_deref().unwrap().iter() {
-                    names.push(format!("{}|{}", reachable_name, index + 1));
+                    names.push(format!("{}:{}", reachable_name, index + 1));
                 }
             }
         }

@@ -79,9 +79,9 @@ fn find_shortest_names_with_index() {
     assert_eq!(root_names[a_idx], Some("x".to_string()));
     assert_eq!(root_names[g1_idx], Some("x.y".to_string()));
     assert_eq!(root_names[b_idx], Some("z".to_string()));
-    assert_eq!(root_names[c_idx], Some("x.y|2".to_string()));
-    assert_eq!(root_names[g2_idx], Some("x.y|3".to_string()));
-    assert_eq!(root_names[d_idx], Some("x.y|3|1".to_string()));
+    assert_eq!(root_names[c_idx], Some("x.y:2".to_string()));
+    assert_eq!(root_names[g2_idx], Some("x.y:3".to_string()));
+    assert_eq!(root_names[d_idx], Some("x.y:3:1".to_string()));
     assert_eq!(root_names[e_idx], None);
 }
 
@@ -153,7 +153,7 @@ fn fragments_added_require_parent_or_index() {
     let root_names = calculate_root_names(resolver);
 
     assert_eq!(root_names[a_idx], Some("x".to_string()));
-    assert_eq!(root_names[b_idx], Some("x|1".to_string()));
+    assert_eq!(root_names[b_idx], Some("x:1".to_string()));
     assert_eq!(root_names[c_idx], Some("x.z".to_string()));
     assert_eq!(root_names[d_idx], Some("x.y".to_string()));
     assert_eq!(root_names[e_idx], Some("z".to_string()));
