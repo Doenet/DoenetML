@@ -1,6 +1,9 @@
 use super::*;
 use crate::{
-    dast::{flat_dast::FlatRoot, ref_resolve::test_helpers::*},
+    dast::{
+        flat_dast::FlatRoot,
+        ref_resolve::{test_helpers::*, IndexResolution},
+    },
     test_utils::*,
 };
 
@@ -42,7 +45,7 @@ fn find_shortest_unique_name() {
 }
 
 #[test]
-fn with_index() {
+fn find_shortest_names_with_index() {
     let dast_root = dast_root_no_position(
         r#"
     <document>
@@ -80,4 +83,78 @@ fn with_index() {
     assert_eq!(root_names[g2_idx], Some("x.y|3".to_string()));
     assert_eq!(root_names[d_idx], Some("x.y|3|1".to_string()));
     assert_eq!(root_names[e_idx], None);
+}
+
+#[test]
+fn option_children_are_ignored() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <document>
+        <a name="x">
+            <option name="y">
+                <b name="z" />
+                <c name="u">
+                  <d name="v" />
+                </c>
+            </option>
+        </a>
+        <e name="z"/>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+
+    let doc_idx = find(&flat_root, "document").unwrap();
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+    let e_idx = find(&flat_root, "e").unwrap();
+    let o_idx = find(&flat_root, "option").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+    let root_names = calculate_root_names(resolver);
+
+    assert_eq!(root_names[doc_idx], None);
+    assert_eq!(root_names[a_idx], Some("x".to_string()));
+    assert_eq!(root_names[o_idx], Some("y".to_string()));
+    assert_eq!(root_names[b_idx], None);
+    assert_eq!(root_names[c_idx], None);
+    assert_eq!(root_names[d_idx], None);
+    assert_eq!(root_names[e_idx], Some("z".to_string()));
+}
+
+#[test]
+fn fragments_added_require_parent_or_index() {
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="x"/>
+        <e name="z"/>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+
+    let a_idx = find(&flat_root, "a").unwrap();
+    let e_idx = find(&flat_root, "e").unwrap();
+
+    let flat_fragment = flat_fragment_from_str(
+        r#"<b name="long"><c name="z" /></b><d name="y" />"#,
+        e_idx + 1,
+        Some(a_idx),
+    );
+
+    let b_idx = e_idx + 1;
+    let c_idx = e_idx + 2;
+    let d_idx = e_idx + 3;
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: a_idx },
+    );
+
+    let root_names = calculate_root_names(resolver);
+
+    assert_eq!(root_names[a_idx], Some("x".to_string()));
+    assert_eq!(root_names[b_idx], Some("x|1".to_string()));
+    assert_eq!(root_names[c_idx], Some("x.z".to_string()));
+    assert_eq!(root_names[d_idx], Some("x.y".to_string()));
+    assert_eq!(root_names[e_idx], Some("z".to_string()));
 }

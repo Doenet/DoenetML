@@ -5,6 +5,7 @@
 use std::iter;
 
 use serde::{Deserialize, Serialize};
+use tsify_next::Tsify;
 
 use crate::dast::flat_dast::Index;
 
@@ -22,16 +23,24 @@ use super::{Ref, ResolutionAlgorithm, Resolver};
 // }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub enum NodeOrRoot {
     Root,
     Node(Index),
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct ResolutionViaName {
     name: String,
     origins: Vec<NodeOrRoot>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct ResolutionViaIndex {
     index: usize,
     origin: NodeOrRoot,
@@ -56,7 +65,9 @@ pub struct ResolutionViaIndex {
 /// For node `<a>`, only the field `by_name` exists, with `name` being `"y"` and `origins` containing the root (`NodeOrRoot::Root`).
 ///
 /// For node `<d>`, `ResolutionsToNode` would contain no entries, as `<d>` cannot be uniquely resolved from anywhere.
-#[derive(Default)]
+#[derive(Default, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct ResolutionsToNode {
     by_name: Option<ResolutionViaName>,
     by_index: Option<ResolutionViaIndex>,
