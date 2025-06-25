@@ -2641,11 +2641,11 @@ export default class Core {
             (flatFragment.nodes.length > 0 || indexResolution !== "None") &&
             this.addNodesToResolver
         ) {
-            console.log("add nodes to resolver", {
-                resolver: JSON.parse(JSON.stringify(this.resolver)),
-                flatFragment,
-                indexResolution,
-            });
+            // console.log("add nodes to resolver", {
+            //     resolver: JSON.parse(JSON.stringify(this.resolver)),
+            //     flatFragment,
+            //     indexResolution,
+            // });
             let resolver = this.addNodesToResolver(
                 this.resolver,
                 flatFragment,
