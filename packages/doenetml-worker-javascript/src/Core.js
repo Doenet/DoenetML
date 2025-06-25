@@ -104,7 +104,7 @@ export default class Core {
         this.resolvePath = resolvePath;
         this.calculateRootNames = calculateRootNames;
 
-        this.rootNames = this.calculateRootNames?.(this.resolver);
+        this.rootNames = this.calculateRootNames?.(this.resolver).names;
 
         this.updateRenderersCallback = updateRenderersCallback;
         this.reportScoreAndStateCallback = reportScoreAndStateCallback;
@@ -2653,9 +2653,7 @@ export default class Core {
             );
             this.resolver = resolver;
 
-            this.rootNames = this.calculateRootNames?.(this.resolver);
-
-            console.log({ rootNames: this.rootNames });
+            this.rootNames = this.calculateRootNames?.(this.resolver).names;
 
             let indexParent =
                 indexResolution.ReplaceAll?.parent ??
@@ -2934,7 +2932,7 @@ export default class Core {
             );
             this.resolver = resolver;
 
-            this.rootNames = this.calculateRootNames?.(this.resolver);
+            this.rootNames = this.calculateRootNames?.(this.resolver).names;
 
             // console.log(
             //     "added nodes",
@@ -9682,7 +9680,7 @@ export default class Core {
             });
             this.resolver = resolver;
 
-            this.rootNames = this.calculateRootNames?.(this.resolver);
+            this.rootNames = this.calculateRootNames?.(this.resolver).names;
         }
     }
 
