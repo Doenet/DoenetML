@@ -19,10 +19,10 @@ pub enum NodeOrRoot {
     Node(Index),
 }
 
-/// A list of the `origins` for which a reference to the name `name` resolves to a given node.
+/// A list of the `origins` for which a reference to the name `name` (uniquely) resolves to a given node.
 ///
 /// See [`ResolutionsToNode`] for additional details and an example.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct ResolutionViaName {
@@ -33,7 +33,7 @@ pub struct ResolutionViaName {
 /// The `origin` for which a reference to the index `index` resolves to a given node.
 ///
 /// See [`ResolutionsToNode`] for additional details and an example.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct ResolutionViaIndex {
@@ -53,14 +53,14 @@ pub struct ResolutionViaIndex {
 /// - `by_name`: `ResolutionViaName { name: "x", origins }`,
 ///   where `origins` is the vector of the indices of the nodes `<b>` and `<group>`.
 ///   For both of those origins, resolving the name `"x"` would result in the unique referent of `<c>`.
-/// - `by_index`: `ResolutionViaIndex { index: 2, origin }`,
+/// - `by_index`: `ResolutionViaIndex { index: 1, origin }`,
 ///   where `origin` is the index of the node `<group>`.
 ///   This value arises from the fact that  `<group>` takes index resolutions and `<c>` is the referent of the second index.
 ///
 /// For node `<a>`, only the field `by_name` exists, with `name` being `"y"` and `origins` containing the root (`NodeOrRoot::Root`).
 ///
 /// For node `<d>`, `ResolutionsToNode` would contain no entries, as `<d>` cannot be uniquely resolved from anywhere.
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct ResolutionsToNode {
@@ -95,9 +95,9 @@ type NamesReachableFromRoot = Vec<String>;
 /// <d name="x" />
 /// ```
 /// The results for different nodes would be
-/// - `<a>`: `Some("x")`, as `<a>` is directly resolvable from the root as `$x`
+/// - `<a>`: `Some("y")`, as `<a>` is directly resolvable from the root as `$y`
 /// - `<b>`: `Some("g:1")`, as `$g[1]` is the only reference from root that resolves to `<b/>`
-/// - `<c>`: `Some("x.y")`, as `"x.y"` is deemed simpler than `g:2` (as indices are considered more complex than sub-names)
+/// - `<c>`: `Some("y.x")`, as `"y.x"` is deemed simpler than `g:2` (indices are considered more complex than sub-names)
 /// - `<d>`: `None`, as `<d>` does not have a unique reference from the root
 pub fn calculate_root_names(resolver: Resolver) -> Vec<Option<String>> {
     // Note: resolver's data has one more entry than number of nodes as it also contains the root
@@ -105,9 +105,7 @@ pub fn calculate_root_names(resolver: Resolver) -> Vec<Option<String>> {
 
     // First, calculate for each node, origins from which it can be resolve a a single names or index
     let mut resolutions_to_node: Vec<ResolutionsToNode> =
-        iter::repeat_with(ResolutionsToNode::default)
-            .take(n_nodes)
-            .collect::<Vec<_>>();
+        iter::repeat_n(ResolutionsToNode::default(), n_nodes).collect::<Vec<_>>();
 
     for (node_idx_plus_1, node_data) in resolver.node_resolver_data.iter().enumerate() {
         let origin = if node_idx_plus_1 == 0 {
@@ -116,6 +114,7 @@ pub fn calculate_root_names(resolver: Resolver) -> Vec<Option<String>> {
             NodeOrRoot::Node(node_idx_plus_1 - 1)
         };
         match node_data.resolution_algorithm {
+            ResolutionAlgorithm::DontSearchChildren | ResolutionAlgorithm::Unsearchable => {}
             ResolutionAlgorithm::SearchChildren => {
                 for (name, ref_) in node_data.name_map.iter() {
                     match ref_ {
@@ -138,7 +137,6 @@ pub fn calculate_root_names(resolver: Resolver) -> Vec<Option<String>> {
                     }
                 }
             }
-            ResolutionAlgorithm::DontSearchChildren | ResolutionAlgorithm::Unsearchable => {}
         }
 
         for (index, resolution) in node_data.index_resolutions.iter().enumerate() {
