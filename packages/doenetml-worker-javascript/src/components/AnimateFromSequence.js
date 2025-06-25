@@ -497,7 +497,7 @@ export default class AnimateFromSequence extends BaseComponent {
                         let target = dependencyValues["target" + ind];
                         if (target == null) {
                             let message =
-                                "Invalid animation target: cannot find target.";
+                                "Invalid target for <animateFromSequence>: cannot find target.";
 
                             warnings.push({
                                 message,
@@ -525,7 +525,7 @@ export default class AnimateFromSequence extends BaseComponent {
                                     level: 1,
                                 });
                             } else {
-                                let message = `Invalid animation target: cannot find a state variable named "value" on a <${target.componentType}>.`;
+                                let message = `Invalid target for <animateFromSequence>: cannot find a state variable named "value" on a <${target.componentType}>.`;
                                 warnings.push({
                                     message,
                                     level: 1,
