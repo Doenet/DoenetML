@@ -11,17 +11,6 @@ use crate::dast::flat_dast::Index;
 
 use super::{Ref, ResolutionAlgorithm, Resolver};
 
-/// A description of the name or index resolved leading to a given node being the referent.
-///
-/// See [`ReachableSingleHop`] for context and an example.
-// #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
-// pub enum SingleResolveHop {
-//     /// Resolving the name given by the `String` will reach the node in question
-//     Name(String),
-//     /// Resolving the index given by the `usize` will reach the node in question
-//     Index(usize),
-// }
-
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
