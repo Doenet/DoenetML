@@ -1406,9 +1406,9 @@ describe("AnimateFromSequence Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#p1.n1")).should("have.text", "1");
-        cy.get(cesc("#p1.n2")).should("have.text", "2");
-        cy.get(cesc("#p1.n3")).should("have.text", "3");
+        cy.get(cesc("#grp.n1")).should("have.text", "1");
+        cy.get(cesc("#grp.n2")).should("have.text", "2");
+        cy.get(cesc("#grp.n3")).should("have.text", "3");
         cy.get(cesc("#p2.n1")).should("have.text", "1");
         cy.get(cesc("#p2.n2")).should("have.text", "2");
         cy.get(cesc("#p2.n3")).should("have.text", "3");
@@ -1423,15 +1423,15 @@ describe("AnimateFromSequence Tag Tests", function () {
                 stateVariables[await win.resolvePath1("x")].stateValues.value,
             ).eq(1);
             expect(
-                stateVariables[await win.resolvePath1("p1.n1")].stateValues
+                stateVariables[await win.resolvePath1("grp.n1")].stateValues
                     .value,
             ).eq(1);
             expect(
-                stateVariables[await win.resolvePath1("p1.n2")].stateValues
+                stateVariables[await win.resolvePath1("grp.n2")].stateValues
                     .value,
             ).eq(2);
             expect(
-                stateVariables[await win.resolvePath1("p1.n3")].stateValues
+                stateVariables[await win.resolvePath1("grp.n3")].stateValues
                     .value,
             ).eq(3);
             expect(
@@ -1469,37 +1469,37 @@ describe("AnimateFromSequence Tag Tests", function () {
         });
 
         cy.get("#b").click();
-        cy.get(cesc("#p1.n1")).should("have.text", "2");
+        cy.get(cesc("#grp.n1")).should("have.text", "2");
         cy.get(cesc("#p2.n1")).should("have.text", "2");
         cy.get(cesc("#c2.n1")).should("have.text", "2");
-        cy.get(cesc("#p1.n1")).should("have.text", "3");
+        cy.get(cesc("#grp.n1")).should("have.text", "3");
         cy.get(cesc("#p2.n1")).should("have.text", "3");
         cy.get(cesc("#c2.n1")).should("have.text", "3");
-        cy.get(cesc("#p1.n1")).should("have.text", "4");
+        cy.get(cesc("#grp.n1")).should("have.text", "4");
         cy.get(cesc("#p2.n1")).should("have.text", "4");
         cy.get(cesc("#c2.n1")).should("have.text", "4");
-        cy.get(cesc("#p1.n1")).should("have.text", "5");
+        cy.get(cesc("#grp.n1")).should("have.text", "5");
         cy.get(cesc("#p2.n1")).should("have.text", "5");
         cy.get(cesc("#c2.n1")).should("have.text", "5");
-        cy.get(cesc("#p1.n1")).should("have.text", "6");
+        cy.get(cesc("#grp.n1")).should("have.text", "6");
         cy.get(cesc("#p2.n1")).should("have.text", "6");
         cy.get(cesc("#c2.n1")).should("have.text", "6");
-        cy.get(cesc("#p1.n1")).should("have.text", "7");
+        cy.get(cesc("#grp.n1")).should("have.text", "7");
         cy.get(cesc("#p2.n1")).should("have.text", "7");
         cy.get(cesc("#c2.n1")).should("have.text", "7");
-        cy.get(cesc("#p1.n1")).should("have.text", "8");
+        cy.get(cesc("#grp.n1")).should("have.text", "8");
         cy.get(cesc("#p2.n1")).should("have.text", "8");
         cy.get(cesc("#c2.n1")).should("have.text", "8");
-        cy.get(cesc("#p1.n1")).should("have.text", "9");
+        cy.get(cesc("#grp.n1")).should("have.text", "9");
         cy.get(cesc("#p2.n1")).should("have.text", "9");
         cy.get(cesc("#c2.n1")).should("have.text", "9");
-        cy.get(cesc("#p1.n1")).should("have.text", "10");
+        cy.get(cesc("#grp.n1")).should("have.text", "10");
         cy.get(cesc("#p2.n1")).should("have.text", "10");
         cy.get(cesc("#c2.n1")).should("have.text", "10");
-        cy.get(cesc("#p1.n1")).should("have.text", "1");
+        cy.get(cesc("#grp.n1")).should("have.text", "1");
         cy.get(cesc("#p2.n1")).should("have.text", "1");
         cy.get(cesc("#c2.n1")).should("have.text", "1");
-        cy.get(cesc("#p1.n1")).should("have.text", "2");
+        cy.get(cesc("#grp.n1")).should("have.text", "2");
         cy.get(cesc("#p2.n1")).should("have.text", "2");
         cy.get(cesc("#c2.n1")).should("have.text", "2");
 
@@ -1516,7 +1516,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         );
 
         // should stop at 2 or 3
-        cy.get(cesc("#p1.n1")).contains(/2|3/);
+        cy.get(cesc("#grp.n1")).contains(/2|3/);
 
         let lastValue1;
 
@@ -1527,15 +1527,15 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(lastValue1 === 2 || lastValue1 === 3).be.true;
 
             expect(
-                stateVariables[await win.resolvePath1("p1.n1")].stateValues
+                stateVariables[await win.resolvePath1("grp.n1")].stateValues
                     .value,
             ).eq(lastValue1);
             expect(
-                stateVariables[await win.resolvePath1("p1.n2")].stateValues
+                stateVariables[await win.resolvePath1("grp.n2")].stateValues
                     .value,
             ).eq(2);
             expect(
-                stateVariables[await win.resolvePath1("p1.n3")].stateValues
+                stateVariables[await win.resolvePath1("grp.n3")].stateValues
                     .value,
             ).eq(3);
             expect(
@@ -1571,9 +1571,9 @@ describe("AnimateFromSequence Tag Tests", function () {
                     .animationOn,
             ).eq(false);
 
-            cy.get(cesc("#p1.n1")).should("have.text", `${lastValue1}`);
-            cy.get(cesc("#p1.n2")).should("have.text", "2");
-            cy.get(cesc("#p1.n3")).should("have.text", "3");
+            cy.get(cesc("#grp.n1")).should("have.text", `${lastValue1}`);
+            cy.get(cesc("#grp.n2")).should("have.text", "2");
+            cy.get(cesc("#grp.n3")).should("have.text", "3");
             cy.get(cesc("#p2.n1")).should("have.text", `${lastValue1}`);
             cy.get(cesc("#p2.n2")).should("have.text", "2");
             cy.get(cesc("#p2.n3")).should("have.text", "3");
@@ -1590,22 +1590,22 @@ describe("AnimateFromSequence Tag Tests", function () {
         });
 
         cy.get("#b").click();
-        cy.get(cesc("#p1.n2")).should("have.text", "3");
+        cy.get(cesc("#grp.n2")).should("have.text", "3");
         cy.get(cesc("#p2.n2")).should("have.text", "3");
         cy.get(cesc("#c2.n2")).should("have.text", "3");
-        cy.get(cesc("#p1.n2")).should("have.text", "4");
+        cy.get(cesc("#grp.n2")).should("have.text", "4");
         cy.get(cesc("#p2.n2")).should("have.text", "4");
         cy.get(cesc("#c2.n2")).should("have.text", "4");
-        cy.get(cesc("#p1.n2")).should("have.text", "5");
+        cy.get(cesc("#grp.n2")).should("have.text", "5");
         cy.get(cesc("#p2.n2")).should("have.text", "5");
         cy.get(cesc("#c2.n2")).should("have.text", "5");
-        cy.get(cesc("#p1.n2")).should("have.text", "6");
+        cy.get(cesc("#grp.n2")).should("have.text", "6");
         cy.get(cesc("#p2.n2")).should("have.text", "6");
         cy.get(cesc("#c2.n2")).should("have.text", "6");
-        cy.get(cesc("#p1.n2")).should("have.text", "7");
+        cy.get(cesc("#grp.n2")).should("have.text", "7");
         cy.get(cesc("#p2.n2")).should("have.text", "7");
         cy.get(cesc("#c2.n2")).should("have.text", "7");
-        cy.get(cesc("#p1.n2")).should("have.text", "8");
+        cy.get(cesc("#grp.n2")).should("have.text", "8");
         cy.get(cesc("#p2.n2")).should("have.text", "8");
         cy.get(cesc("#c2.n2")).should("have.text", "8");
 
@@ -1622,7 +1622,7 @@ describe("AnimateFromSequence Tag Tests", function () {
         );
 
         // should stop at 9 or 0
-        cy.get(cesc("#p1.n2")).contains(/8|9/);
+        cy.get(cesc("#grp.n2")).contains(/8|9/);
 
         let lastValue2;
 
@@ -1633,15 +1633,15 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(lastValue2 === 8 || lastValue2 === 9).be.true;
 
             expect(
-                stateVariables[await win.resolvePath1("p1.n1")].stateValues
+                stateVariables[await win.resolvePath1("grp.n1")].stateValues
                     .value,
             ).eq(lastValue1);
             expect(
-                stateVariables[await win.resolvePath1("p1.n2")].stateValues
+                stateVariables[await win.resolvePath1("grp.n2")].stateValues
                     .value,
             ).eq(lastValue2);
             expect(
-                stateVariables[await win.resolvePath1("p1.n3")].stateValues
+                stateVariables[await win.resolvePath1("grp.n3")].stateValues
                     .value,
             ).eq(3);
             expect(
@@ -1677,9 +1677,9 @@ describe("AnimateFromSequence Tag Tests", function () {
                     .animationOn,
             ).eq(false);
 
-            cy.get(cesc("#p1.n1")).should("have.text", `${lastValue1}`);
-            cy.get(cesc("#p1.n2")).should("have.text", `${lastValue2}`);
-            cy.get(cesc("#p1.n3")).should("have.text", "3");
+            cy.get(cesc("#grp.n1")).should("have.text", `${lastValue1}`);
+            cy.get(cesc("#grp.n2")).should("have.text", `${lastValue2}`);
+            cy.get(cesc("#grp.n3")).should("have.text", "3");
             cy.get(cesc("#p2.n1")).should("have.text", `${lastValue1}`);
             cy.get(cesc("#p2.n2")).should("have.text", `${lastValue2}`);
             cy.get(cesc("#p2.n3")).should("have.text", "3");
@@ -1695,10 +1695,10 @@ describe("AnimateFromSequence Tag Tests", function () {
         cy.log("Switch to animate index 3 while animating");
 
         cy.get("#b").click();
-        cy.get(cesc("#p1.n2")).should("have.text", "10");
+        cy.get(cesc("#grp.n2")).should("have.text", "10");
         cy.get(cesc("#p2.n2")).should("have.text", "10");
         cy.get(cesc("#c2.n2")).should("have.text", "10");
-        cy.get(cesc("#p1.n2")).should("have.text", "1");
+        cy.get(cesc("#grp.n2")).should("have.text", "1");
         cy.get(cesc("#p2.n2")).should("have.text", "1");
         cy.get(cesc("#c2.n2")).should("have.text", "1");
 
@@ -1706,16 +1706,16 @@ describe("AnimateFromSequence Tag Tests", function () {
             force: true,
         });
 
-        cy.get(cesc("#p1.n3")).should("have.text", "4");
+        cy.get(cesc("#grp.n3")).should("have.text", "4");
         cy.get(cesc("#p2.n3")).should("have.text", "4");
         cy.get(cesc("#c2.n3")).should("have.text", "4");
-        cy.get(cesc("#p1.n3")).should("have.text", "5");
+        cy.get(cesc("#grp.n3")).should("have.text", "5");
         cy.get(cesc("#p2.n3")).should("have.text", "5");
         cy.get(cesc("#c2.n3")).should("have.text", "5");
-        cy.get(cesc("#p1.n3")).should("have.text", "6");
+        cy.get(cesc("#grp.n3")).should("have.text", "6");
         cy.get(cesc("#p2.n3")).should("have.text", "6");
         cy.get(cesc("#c2.n3")).should("have.text", "6");
-        cy.get(cesc("#p1.n3")).should("have.text", "7");
+        cy.get(cesc("#grp.n3")).should("have.text", "7");
         cy.get(cesc("#p2.n3")).should("have.text", "7");
         cy.get(cesc("#c2.n3")).should("have.text", "7");
 
@@ -1732,10 +1732,10 @@ describe("AnimateFromSequence Tag Tests", function () {
         );
 
         // should stop at 7 or 8
-        cy.get(cesc("#p1.n3")).contains(/7|8/);
+        cy.get(cesc("#grp.n3")).contains(/7|8/);
 
         // previous should have stopped at 1 or 2
-        cy.get(cesc("#p1.n2")).contains(/1|2/);
+        cy.get(cesc("#grp.n2")).contains(/1|2/);
 
         let lastValue3;
 
@@ -1745,16 +1745,16 @@ describe("AnimateFromSequence Tag Tests", function () {
                 stateVariables[await win.resolvePath1("x")].stateValues.value;
             expect(lastValue3 === 7 || lastValue3 === 8).be.true;
             lastValue2 =
-                stateVariables[await win.resolvePath1("p1.n2")].stateValues
+                stateVariables[await win.resolvePath1("grp.n2")].stateValues
                     .value;
             expect(lastValue2 === 1 || lastValue2 === 2).be.true;
 
             expect(
-                stateVariables[await win.resolvePath1("p1.n1")].stateValues
+                stateVariables[await win.resolvePath1("grp.n1")].stateValues
                     .value,
             ).eq(lastValue1);
             expect(
-                stateVariables[await win.resolvePath1("p1.n3")].stateValues
+                stateVariables[await win.resolvePath1("grp.n3")].stateValues
                     .value,
             ).eq(lastValue3);
             expect(
@@ -1790,9 +1790,9 @@ describe("AnimateFromSequence Tag Tests", function () {
                     .animationOn,
             ).eq(false);
 
-            cy.get(cesc("#p1.n1")).should("have.text", `${lastValue1}`);
-            cy.get(cesc("#p1.n2")).should("have.text", `${lastValue2}`);
-            cy.get(cesc("#p1.n3")).should("have.text", `${lastValue3}`);
+            cy.get(cesc("#grp.n1")).should("have.text", `${lastValue1}`);
+            cy.get(cesc("#grp.n2")).should("have.text", `${lastValue2}`);
+            cy.get(cesc("#grp.n3")).should("have.text", `${lastValue3}`);
             cy.get(cesc("#p2.n1")).should("have.text", `${lastValue1}`);
             cy.get(cesc("#p2.n2")).should("have.text", `${lastValue2}`);
             cy.get(cesc("#p2.n3")).should("have.text", `${lastValue3}`);
