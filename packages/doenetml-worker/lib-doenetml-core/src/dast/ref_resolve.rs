@@ -8,6 +8,7 @@ mod build_resolver;
 mod compactify;
 mod errors;
 mod index_resolutions;
+mod node_traversal;
 mod resolve;
 mod root_names;
 

@@ -1,11 +1,10 @@
-use std::{collections::HashMap, iter};
-
+use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
+use std::iter;
 use tsify_next::Tsify;
 
-use crate::dast::flat_dast::{FlatNode, FlatPathPart, Index, UntaggedContent};
-
 use super::ResolutionError;
+use crate::dast::flat_dast::{FlatNode, FlatPathPart, Index, UntaggedContent};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -79,8 +78,9 @@ pub struct NodeResolverData {
     /// - `NodeParent:Node(i)` corresponds to the parent being node `i`.
     pub(super) node_parent: NodeParent,
     pub(super) resolution_algorithm: ResolutionAlgorithm,
-    /// Map of all the names that are accessible (as descendants) from the node
-    pub(super) name_map: HashMap<String, Ref>,
+    /// Map of all the names that are accessible (as descendants) from the node.
+    /// The data structure uses a `FxHashMap` so that iterating over the `name_map` is done in a consistent order.
+    pub(super) name_map: FxHashMap<String, Ref>,
     /// Map of resolutions of indices that follow a match to the node.
     /// If `index_resolutions[i] = Some(j)` and the reference `$node_reference` matches the node,
     /// then the reference `$node_reference[i+1]` resolves to node `k`
