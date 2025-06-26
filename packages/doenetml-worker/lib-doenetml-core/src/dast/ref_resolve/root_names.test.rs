@@ -184,12 +184,15 @@ fn sub_names_are_preferred_over_indices() {
 }
 
 #[test]
-fn ties_are_broken_by_overall_length() {
+fn ties_are_handled_consistently_even_as_document_changes() {
+    // Note: the root name for `<d>` could equally well be `x.y`, `z.y` or `u.y`.
+    // The chosen name is now `u.y`.
+    // We test to make sure it stays `u.y` even if we modify the document by adding more nodes.
     let dast_root = dast_root_no_position(
         r#"
-    <a name="long">
-       <b name="x">
-          <c name="long2">
+    <a name="x">
+       <b name="z">
+          <c name="u">
             <d name="y" />
           </c>
       </b>
@@ -202,5 +205,34 @@ fn ties_are_broken_by_overall_length() {
     let resolver = Resolver::from_flat_root(&flat_root);
     let root_names = calculate_root_names(resolver);
 
-    assert_eq!(root_names[d_idx], Some("x.y".to_string()));
+    assert_eq!(root_names[d_idx], Some("u.y".to_string()));
+
+    // similar document with addition of more nodes
+    let dast_root = dast_root_no_position(
+        r#"
+    <f name="f"/>
+    <a name="x">
+       <g name="g"/>
+       <b name="z">
+          <c name="u">
+            <i name="i"/>
+            <h>
+                <d name="y" />
+            </h>
+            <j name="j"/>
+          </c>
+          <k name="k"/>
+      </b>
+    </a>
+    <l name="l"/>
+    <e name="y" />
+    <m name="m"/><n name="n" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let d_idx = find(&flat_root, "d").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+    let root_names = calculate_root_names(resolver);
+
+    assert_eq!(root_names[d_idx], Some("u.y".to_string()));
 }
