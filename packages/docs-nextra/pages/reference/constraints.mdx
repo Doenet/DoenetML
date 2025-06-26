@@ -5,15 +5,17 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <constraints>{:dn}`
 
-` <constraints>{:dn}` is a container element that delineates a block of code for defining one or more constraint components associated with a ` <point>{:dn}`.
+` <constraints>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
+component that delineates a block of code for defining one or more constraint components 
+associated with a ` <point>{:dn}`.
 
 ## Attributes and Properties 
- <AttrDisplay name='constraints'/> 
+The ` <constraints>{:dn}` component has no attributes.
  <PropDisplay name='constraints'/>
 
 ---
 
-### Example: ` <constraints>{:dn}` with nested <tage>constrainToGrid</tage>
+### Example: ` <constraints>{:dn}` with nested `<constrainToGrid/>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -30,7 +32,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-The ` <point>{:dn}` is constrained to the default $1 \times 1$ grid by nesting a ` <constrainToGrid/>{:dn}` component within a ` <constraints>{:dn}` block.
+The ` <point>{:dn}` is constrained to the 
+default $1 \times 1$ grid by nesting a ` <constrainToGrid/>{:dn}` 
+component within a ` <constraints>{:dn}` block.
 
 
 
@@ -54,13 +58,15 @@ The ` <point>{:dn}` is constrained to the default $1 \times 1$ grid by nesting a
 
 
 
-A ` <point>{:dn}` defining the center of the ` <circle>{:dn}` is constrained to a ` <line>{:dn}` by nesting a ` <constrainTo>{:dn}` component within a ` <constraints>{:dn}` block.
+A ` <point>{:dn}` defining the center of the ` <circle>{:dn}` is 
+constrained to a ` <line>{:dn}` by nesting a ` <constrainTo>{:dn}` component 
+within a ` <constraints>{:dn}` block.
 
 
 
 ---
 
-### Example: ` <constraints>{:dn}` with nested <tage>attractToGrid</tage>
+### Example: ` <constraints>{:dn}` with nested `<attractToGrid/>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -75,17 +81,22 @@ A ` <point>{:dn}` defining the center of the ` <circle>{:dn}` is constrained to 
 
 
 
-The ` <point>{:dn}` is attracted to a custom grid by nesting an ` <attractToGrid>{:dn}` component within a ` <constraints>{:dn}` block.
+The ` <point>{:dn}` is attracted to a custom grid by 
+nesting an ` <attractToGrid>{:dn}` component within a ` <constraints>{:dn}` block.
 
 
 
 ---
 
-### Example: constraintUsed
+### Property Example: constraintUsed
 
 
 ```doenet-editor-horiz
-<p>Move the point on and off the gridlines to observe the change in the <tag>constraints</tag> property (shown below the graph).</p>
+<p>Move the point on and off the gridlines to 
+observe the change in the <tag>constraints</tag> property 
+(shown below the graph).
+</p>
+
 <graph size="small" grid="3 4">
   <point name="p">
     <constraints name="pConstraints">
@@ -94,11 +105,15 @@ The ` <point>{:dn}` is attracted to a custom grid by nesting an ` <attractToGrid
     <label>$p.coords</label>
   </point>
 </graph>
-<p><c>constraintUsed</c> = $pConstraints.constraintUsed</p>
+<p><c>constraintUsed</c> = 
+  $pConstraints.constraintUsed</p>
 ```
 
 
 
-The `constraintUsed` property renders the boolean value corresponding to whether the current location of the ` <point>{:dn}` is utilizing the specified constraint - in this case, an ` <attractToGrid/>{:dn}` constraint.
+The `constraintUsed` property renders the boolean value 
+corresponding to whether the current location of the ` <point>{:dn}` is 
+utilizing the specified constraint - in this case, 
+an ` <attractToGrid/>{:dn}` constraint.
 
 

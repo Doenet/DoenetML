@@ -6,7 +6,10 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <example>{:dn}`
 
 
-` <example>{:dn}` renders an auto-numbered block of content. Inline components such as paragraphs (` <p>{:dn}`) and other components can be nested within an ` <example>{:dn}` to group and order content. Some examples are: another ` <example>{:dn}`, a ` <section>{:dn}`, a ` <figure>{:dn}`, or a ` <problem>{:dn}`.
+` <example>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) 
+component which renders an auto-numbered block of content. Inline components such as paragraphs ` <p>{:dn}`
+and other components can be nested within an ` <example>{:dn}` to group and order content. Some 
+examples are: another ` <example>{:dn}`, a ` <section>{:dn}`, a ` <figure>{:dn}`, or a ` <problem>{:dn}`.
 
 ## Attributes and Properties 
  <AttrDisplay name='example'/> 
@@ -18,23 +21,26 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ```doenet-editor-horiz
-
----
-
+<example>
   <p>Interactive activity here.</p>
-
+    <section>
+      <p><lorem generateWords="10"/></p>
+    </section>
+</example>
 
 <section>
   <p><lorem generateWords="10"/></p>
 </section>
-<problem>
-  <p><answer>42</answer></p>
-</problem>
+
+<example>
+  <p><lorem generateWords="10"/></p>
+</example>
 ```
 
 
 
-Within a DoenetML document, default titles for sectional components are auto-numbered. Each sectional component is on the same counter.
+Within a DoenetML document, default titles for sectional components are 
+auto-numbered. Each sectional component is on the same counter.
 
 
 
@@ -43,18 +49,18 @@ Within a DoenetML document, default titles for sectional components are auto-num
 ### Example: ` <example>{:dn}` with custom title
 
 
-```doenet-editor-horiz
-
----
-
+```doenet-example
+<example><title>Neat example</title>
+  
   <p><lorem generateWords="10"/></p>
 
-
+</example>
 ```
 
 
 
-A custom ` <example>{:dn}` title is creating by providing a ` <title>{:dn}` tag within the ` <example>{:dn}`.
+A custom ` <example>{:dn}` title is creating by providing 
+a ` <title>{:dn}` tag within the ` <example>{:dn}`.
 
 
 
@@ -63,16 +69,16 @@ A custom ` <example>{:dn}` title is creating by providing a ` <title>{:dn}` tag 
 ### Example: Nesting sectional components
 
 
-```doenet-editor-horiz
-
----
-
+```doenet-example
+<example>
   <p><lorem generateWords="10"/></p>
-  <exercise><title>This is an exercise within an example</title>
+  
+  <exercise>
+    <title>This is an exercise within an example</title>
     <p><lorem generateWords="10"/></p>
   </exercise>
 
-
+</example>
 ```
 
 
@@ -83,35 +89,38 @@ A hierarchy is created by nesting one or more sectional components within an ` <
 
 ---
 
-### Example: newNameSpace
+### Example: Named ` <example>{:dn}` as a parent reference
 
 
 ```doenet-editor-horiz
+<example name="birdExample" boxed>
+  <text name="animal">Chickadee</text>
+  <p>$animal</p>
+</example>
 
----
+<example name="mammalExample" boxed>
+  <text name="animal">Hippopotamus</text>
+  <p>$animal</p>
+</example>
 
-  <p>This is the same namespace as the larger document.</p>
-  <number name="x">sqrt(2)</number>  
-  <p><m>x = $x</m></p>
+<p>From first example: 
+  The animal is $birdExample.animal.</p>
+<p>From second example: 
+  The animal is $mammalExample.animal.</p>
 
-
-
----
-
-  <p>This is a separate, distinct namespace.</p>
-  <number name="x">3/4</number>  
-  <p><m>x = $x</m></p>
-
-
-<p>General document: <m>x = $x</m></p>
-<p>Second example: <m>x</m> = $(secondExample/x)</p>
 ```
 
 
 
-The `newNameSpace` attribute defines a separate namespace within the sectional component. Values corresponding to that namespace can be accessed outside the namespace by prepending the name of the example.
+When reference names are used more than once in the same document,
+they can be distinguished (when outside their parent component) by 
+attaching the name of the parent component to the reference.
 
 
+Above, the ` <example>{:dn}` named `birdExample` is the
+parent of the `<text>{:dn}` named `animal`. Therefore, when 
+referencing this specific instance of the component with that name, 
+you should use `$birdExample.animal` as shown.
 
 ---
 
@@ -120,27 +129,22 @@ The `newNameSpace` attribute defines a separate namespace within the sectional c
 
 ```doenet-editor-horiz
 <section boxed>
-
----
-
+  <example>
     <p>This example is nested inside a section. The default number does not include the parent section.</p>
-
-
+  </example>
 </section>
+
 <section boxed>
-
----
-
+  <example includeParentNumber>
     <p>This example is nested inside a section. Rendering of the parent section number has been included.</p>
-
-
+  </example>
 </section>
 ```
 
 
 
-The `includeParentNumber` attribute is `false` by default for the ` <example>{:dn}` component (and `true` by default for the ` <section>{:dn}` component).
-
+The `includeParentNumber` attribute is `false` by default for the ` <example>{:dn}` component 
+(and `true` by default for the ` <section>{:dn}` component).
 
 In order to include the number of the parent sectional component, set `includeParentNumber` to `true`.
 
@@ -148,94 +152,71 @@ In order to include the number of the parent sectional component, set `includePa
 
 ---
 
-### Example: includeAutoNumber
+### Attribute Example: includeAutoNumber
 
 
-```doenet-editor-horiz
-
----
-
+```doenet-example
+<example><title>An important example</title>
     <p>In this section, the custom title overrides the default numbering of the section.</p>
+</example>
 
-
-
----
-
-### Example: Special title
-
+<example includeAutoNumber><title>Another important thing</title>
     <p>In this section, the number of the section is still rendered in addition to the custom title.</p>
-
-
+</example>
 ```
 
 
 
-The `includeAutoNumber` attribute is `false` by default for the ` <example>{:dn}` component. This means that if a section contains a nested ` <title>{:dn}`, it will not render the default numbering (although it will still be counted in the numbering scheme behind the scenes).
+The `includeAutoNumber` attribute is `false` by default for 
+the ` <example>{:dn}` component. This means that if a section contains 
+a nested ` <title>{:dn}`, it will not render the default numbering 
+(although it will still be counted in the numbering scheme behind the scenes).
 
 
-In order to display the example number in addition to the custom ` <title>{:dn}`, set the `includeAutoNumber` attribute to `true`.
+In order to display the example number in addition to the custom ` <title>{:dn}`, 
+set the `includeAutoNumber` attribute to `true`.
 
 
 
 ---
 
-### Example: aggregateScores and sectionWideCheckWork
+### Attribute Example: aggregateScores and sectionWideCheckWork
 
 
 ```doenet-editor-horiz
-
----
-
+<example aggregateScores sectionWideCheckWork>
   <p>Enter <m>x</m>: <answer>x</answer></p>
   <p>Enter <m>y</m>: <answer>y</answer></p>
   <p>Enter <m>z</m>: <answer>z</answer></p>
-
+</example>
 
 ```
 
-
-
-The `aggregateScores` and `sectionWideCheckWork` attributes together combine validation for all ` <answer>{:dn}` components within the ` <example>{:dn}` under a single "Check Work" button.
-
-
-
----
-
-### Example: weight *
-
-
-```doenet-editor-horiz
-```
-
-
-
-. 
-
+The `aggregateScores` and `sectionWideCheckWork` attributes 
+together combine validation for all ` <answer>{:dn}` components 
+within the ` <example>{:dn}` under a single "Check Work" button.
 
 
 ---
 
-### Example: boxed
+### Attribute Example: boxed
 
 
-```doenet-editor-horiz
-
----
-
+```doenet-example
+<example boxed>
   <p><lorem generateWords="10"/></p>
-
-
+</example>
 ```
 
-
-
-The `boxed` attribute changes the default formatting for a sectional component to one that has a border and a shaded banner for the title.
+The `boxed` attribute changes the default formatting 
+for a sectional component to one that has a border and a 
+shaded banner for the title.
 
 
 
 ---
 
-### Example: hide
+### Attribute Example: hide
 
 
 ```doenet-editor-horiz
@@ -243,13 +224,11 @@ The `boxed` attribute changes the default formatting for a sectional component t
   <label>Click here to hide the example</label>
 </booleanInput>
 
----
-
+<example hide="$hideExample">
   <p><lorem generateWords="10"/></p>
-
+</example>
 
 ```
-
 
 
 The `hide` attribute takes a boolean as input and can be used with any rendered component.

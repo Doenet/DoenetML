@@ -5,7 +5,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <derivative>{:dn}`
 
-` <derivative>{:dn}` renders the derivative of basic elementary functions (including polynomial, exponential, and trigonometric functions.)
+` <derivative>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
+component that renders the derivative of basic elementary functions 
+(including polynomial, exponential, and trigonometric functions.)
 
 ## Attributes and Properties 
  <AttrDisplay name='derivative'/> 
@@ -15,7 +17,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
-### Example: ` <derivative>{:dn}` of a sugared function
+### Example: ` <derivative>{:dn}` of a nested function
 
 
 ```doenet-editor-horiz
@@ -29,7 +31,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-A ` <derivative>{:dn}` renders the derivative of the enclosed math expression, if the expression can be interpreted as a function in $x$.
+A ` <derivative>{:dn}` renders the derivative of the enclosed math expression, 
+if the expression can be interpreted as a function in $x$.
 
 
 
@@ -40,7 +43,9 @@ A ` <derivative>{:dn}` renders the derivative of the enclosed math expression, i
 
 ```doenet-editor-horiz
 <p><m>f(x) = </m> 
-  <function name="f">e^(3x)</function></p>
+  <function name="f">e^(3x)</function>
+</p>
+
 <p><m>\frac{df}{dx} = </m>
   <derivative name="fPrime">$f</derivative></p>
 <graph size="small">
@@ -63,7 +68,9 @@ A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`.
 <p><m>g(y) = </m>
   <function name="g" variables="y">
     sin(y)+k
-  </function></p>
+  </function>
+</p>
+
 <p><m>\frac{d}{dy}($g) = </m> 
   <derivative>$g</derivative>
 </p>
@@ -71,7 +78,9 @@ A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`.
 
 
 
-A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`. The ` <function>{:dn}` is defined in terms of $y$ with the `variables` attribute and this information is carried over when evaluating the derivative.
+A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`. 
+The ` <function>{:dn}` is defined in terms of $y$ with the `variables` attribute 
+and this information is carried over when evaluating the derivative.
 
 
 
@@ -84,12 +93,15 @@ A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`. T
 <p><m>f(x,z) = </m>
 <function name="f" variables="x z">
   sec(z) + 3x^2
-</function></p>
+</function>
+</p>
+
 <p><m>\frac{\partial f}{\partial x} = </m>
   <derivative derivVariables="x">
     $f
   </derivative>
 </p>
+
 <p><m>\frac{\partial f}{\partial z} = </m>
   <derivative derivVariables="z">
     $f
@@ -99,7 +111,9 @@ A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`. T
 
 
 
-A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`. The ` <function>{:dn}` is defined in terms of $x$ and $z$ with the `variables` attribute. The variable for differentiation of the partial derivative is specified with the `derivVariables` attribute.
+A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`. 
+The ` <function>{:dn}` is defined in terms of $x$ and $z$ with the `variables` attribute. 
+The variable for differentiation of the partial derivative is specified with the `derivVariables` attribute.
 
 
 
@@ -126,24 +140,28 @@ Higher-order derivatives can be rendered by entering multiple values in the `der
 
 ---
 
-### Example: derivVariables
+### Attribute Example: derivVariables
 
 
-```doenet-editor-horiz
+```doenet-example
 <p><m>h(y,z) = </m>
 <function name="h" variables="y z">
   y z^2 + 2z cos(y)
-</function></p>
+</function>
+</p>
+
 <p><m>\frac{\partial h}{\partial y} = </m>
   <derivative derivVariables="y">
     $h
   </derivative>
 </p>
+
 <p><m>\frac{\partial h}{\partial z} = </m>
   <derivative derivVariables="z">
     $h
   </derivative>
 </p>
+
 <p><m>\frac{\partial^2 h}{\partial z \partial y} = </m>
   <derivative derivVariables="z y">
     $h
@@ -153,16 +171,17 @@ Higher-order derivatives can be rendered by entering multiple values in the `der
 
 
 
-The `derivVariables` attribute specifies the variable of differentiation (or a list of variables to differentiate with respect to) for multivariable functions.
+The `derivVariables` attribute specifies the variable of 
+differentiation (or a list of variables to differentiate with respect to) for multivariable functions.
 
 
 
 ---
 
-### Example: variables
+### Attribute Example: variables
 
 
-```doenet-editor-horiz
+```doenet-example
 <p><m>\frac{d}{dt}( x \cos(t)) = </m>
   <derivative variables="t">
     x cos(t)
@@ -172,36 +191,38 @@ The `derivVariables` attribute specifies the variable of differentiation (or a l
 
 
 
-The `variables` attribute can be used to specify the function variable if not specified by ` <function>{:dn}` definition.
+The `variables` attribute can be used to specify the 
+function variable if not specified by ` <function>{:dn}` definition.
 
 
 
 ---
 
-### Example: nInputs
+### Property Example: nInputs
 
 
-```doenet-editor-horiz
+```doenet-example
 <p><m>\frac{\partial f}{\partial x}( x \cos(t)) = </m>
   <derivative variables="x t" derivVariables="x" name="fPrime">
     x cos(t)
   </derivative>
 </p>
-<p><c>nInputs</c> = $fPrime.nInputs</p>
+
+<p><c>numInputs</c> = $fPrime.numInputs</p>
 ```
 
 
 
-The `nInputs` property returns the number of inputs associated with the enclosed function.
+The `numInputs` property returns the number of inputs associated with the enclosed function.
 
 
 
 ---
 
-### Example: nDerivatives
+### Property Example: numDerivatives
 
 
-```doenet-editor-horiz
+```doenet-example
 <p><m>\frac{\partial}{\partial t} \bigg(
   \frac{\partial^2 f }{\partial x^2}
   ( x^2 \cos t)\bigg) = </m>
@@ -210,12 +231,13 @@ The `nInputs` property returns the number of inputs associated with the enclosed
     x^2 cos(t)
   </derivative>
 </p>
-<p><c>nDerivatives</c> = $fPrime.nDerivatives</p>
+
+<p><c>numDerivatives</c> = $fPrime.numDerivatives</p>
 ```
 
 
 
-The `nDerivatives` property returns the number of differentiations performed on the enclosed function.
+The `numDerivatives` property returns the number of differentiations performed on the enclosed function.
 
 
 
@@ -233,10 +255,13 @@ The `nDerivatives` property returns the number of differentiations performed on 
     x^2 cos(t)
   </derivative>
 </p>
+
 <p><c>variables</c> = 
-  <asList>$fPrime.variables</asList></p>
+  $fPrime.variables
+</p>
 <p><c>derivVariables</c> = 
-  <asList>$fPrime.derivVariables</asList></p>
+  $fPrime.derivVariables
+</p>
 ```
 
 

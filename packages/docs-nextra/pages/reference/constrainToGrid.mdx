@@ -5,9 +5,12 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <constrainToGrid/>{:dn}`
 
-` <constrainToGrid>{:dn}` is used to constrain a [` <point>{:dn}`](point.mdx) to a grid. The grid can be the default $1 \times 1$ grid, or a custom grid defined by the `dx` and `dy` attributes, or by the `xOffset` and `yOffset` attributes.
+` <constrainToGrid>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that is used to constrain a ` <point>{:dn}` to a grid. The grid can be the default $1 \times 1$ grid,
+ or a custom grid defined by the `dx` and `dy` attributes, or by the `xOffset` and `yOffset` attributes.
 
-` <constrainToGrid/>{:dn}` forces points to snap to gridline locations. The ` <constrainToGrid/>{:dn}` component is nested within a [` <constraints>{:dn}`](constraints.mdx) block.
+` <constrainToGrid/>{:dn}` forces points to snap to gridline locations. The ` <constrainToGrid/>{:dn}` 
+component is nested within a ` <constraints>{:dn}` block.
 
 ## Attributes and Properties 
  <AttrDisplay name='constrainToGrid'/> 
@@ -87,7 +90,7 @@ The ` <point>{:dn}` is constrained to a custom $0.5 \times 0.5$ grid.
 
 ---
 
-### Example: dx, dy
+### Attribute Example: dx, dy
 
 
 ```doenet-editor-horiz
@@ -111,7 +114,7 @@ The ` <point>{:dn}` is constrained to a custom grid using the `dx` and `dy` comp
 
 ---
 
-### Example: xOffset, yOffset
+### Attribute Example: xOffset, yOffset
 
 
 ```doenet-editor-horiz

@@ -1,0 +1,363 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <curve>{:dn}`
+
+## Attribute Examples
+
+The following examples illustrate use of the ` <curve>{:dn}` tag attributes.  
+
+
+---
+
+### Attribute Example: draggable
+
+
+```doenet-editor-horiz
+<booleanInput name="isDraggable">
+  <label>Draggable?</label>
+</booleanInput> $isDraggable.value
+
+<graph size="small">
+<curve 
+  draggable="$isDraggable" 
+  through="(3,-1) (3,4) (-5,6) (-3,2)"
+/>
+</graph>
+```
+
+
+
+If a ` <curve>{:dn}` has its `draggable` attribute set to `false`, 
+the user will not be able to manipulate the through points.
+
+
+
+---
+
+### Attribute Example: labelPosition
+
+
+```doenet-editor-horiz
+<graph size="small">
+<curve 
+  name="curve1" 
+  labelPosition="left" 
+  through="(3,-1) (3,4) (-5,6) (-3,2)">
+  <label><m>C</m></label>
+</curve>
+</graph>
+
+<graph size="small">
+  <curve 
+    extend="$curve1" 
+    labelPosition="upperright"
+  />
+</graph>
+```
+
+
+
+The `labelPosition` attribute specifies the location of the 
+curve's label. Valid values are `upperleft`, `upperright`, `top`, 
+`left`, `right`, `lowerleft`, `bottom`, `lowerright`. 
+The default value is `upperright`.
+
+
+
+---
+
+### Attribute Example: flipFunction
+
+
+```doenet-example
+<booleanInput name="Poly" prefill="true">
+  <label>Show Polynomial</label>
+</booleanInput>
+<booleanInput name="Trig">
+  <label>Show Trigonometric</label>
+</booleanInput>
+
+<graph>
+  <curve hide="!$Poly">x^2
+    <label><m>P_1</m></label>
+  </curve>
+
+  <curve hide="!$Poly" 
+    flipFunction 
+    styleNumber="2">
+      x^2
+    <label><m>P_2</m></label>
+  </curve> 
+
+  <curve hide="!$Trig">sin(x)
+    <label><m>T_1</m></label>
+  </curve>
+
+  <curve hide="!$Trig" 
+    flipFunction 
+    styleNumber="3">
+      sin(x)
+    <label><m>T_2</m></label>
+  </curve>
+  <line styleNumber="6">y = x</line>
+</graph>
+```
+
+
+
+The ` <curve>{:dn}` is defined with a function between the opening 
+and closing tags. The `flipFunction` attribute reflects the curve about the line $y=x$.
+
+
+---
+
+### Attribute Example: splineTension
+
+
+```doenet-example
+<group name="through_points">
+  <point>(-1,2)</point>
+  <point>(-2.5,3.5)</point>
+  <point>(2,5)</point>
+  <point>(2.5,1)</point>
+</group>
+
+<p>Spline Tension of <m>C_1</m> = 
+  $_curve1.splineTension (default)</p>
+<p>
+  <slider name="slider1" from="0" to="1" step="0.1" initialValue="0.8">
+    <label>Spline Tension of <m>C_2</m></label>
+  </slider>
+</p>
+
+<p>Adjust the slider above to illustrate the effect of spline 
+  tension on the shape of <m>C_2</m>.</p>
+
+<graph xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <curve 
+    through="$through_points" 
+    extrapolateForward
+    extrapolateBackward 
+    labelPosition="left" 
+    applyStyleToLabel>
+      <label><m>C_1</m></label>
+  </curve>
+
+  <curve 
+    through="$through_points" 
+    splineTension="$slider1"
+    extrapolateForward 
+    extrapolateBackward
+    styleNumber="3" 
+    applyStyleToLabel>
+      <label><m>C_2</m></label>
+  </curve>
+
+  <legend position="lowerleft">
+    <label><m>C_1</m> <attr>splineTension</attr> = 0.8</label>
+    <label><m>C_2</m> <attr>splineTension</attr> = $slider1</label>
+  </legend>
+</graph>
+```
+
+
+
+Two curves are contrasted to demonstrate the effect of the `splineTension` 
+attribute on the shape of the curve. Valid values for the `splineTension` 
+attribute range from 0 (corresponding to the case where the spline is actually a polyline) 
+to 1 (for full curvature). The default value for `splineTension` is $0.8$. For 
+greater control over the shape of the curve at the through points, the ` <bezierControls>{:dn}`
+component can be used.
+
+
+
+---
+
+### Attribute Example: extrapolateBackward, extrapolateForward
+
+
+```doenet-example
+<p>Check the boxes below to view the quadratic curve extrapolations. 
+  Click and drag the handles at the endpoints of the curve 
+  to adjust the shape of the extrapolations.
+</p>
+
+<p>Extrapolate backward: <booleanInput name="extBack" /></p>
+<p>Extrapolate foward: <booleanInput name="extFor" /></p>
+
+<graph>
+  <curve 
+    through='(-3,-5) (-1, 4) (2,-3) (5,3)' 
+    extrapolateBackward="$extBack" 
+    extrapolateForward="$extFor">
+      <bezierControls alwaysVisible="true">
+        (-2,-3) (-2,0) (-2,0) (-0.3,-2)
+      </bezierControls>
+  </curve>
+</graph>
+```
+
+
+
+The `extrapolateBackward` and `extrapolateForward` attributes of 
+the ` <curve>{:dn}` component will add quadratic extrapolations 
+onto cubic splines.  The extrapolation is based on the curvature of the 
+adjacent spline segment.  The extrapolated parabola will open 
+either vertically or horizontally.
+
+
+
+---
+
+### Attribute Example: splineForm
+
+
+```doenet-example
+
+  <group name="through_points">
+    <point>(-3,1)</point>
+    <point>(-2.5,3.5)</point>
+    <point>(2,5)</point>
+    <point>(2.5,1)</point>
+  </group>
+
+<p><m>C_1</m> <attr>splineForm</attr> = $_curve1.splineForm
+  (default)</p>
+<p><m>C_2</m> <attr>splineForm</attr> = $_curve2.splineForm</p>
+
+<graph xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <curve 
+    through="$through_points" 
+    extrapolateForward
+    extrapolateBackward 
+    labelPosition="left" applyStyleToLabel>
+      <label><m>C_1</m></label>
+      <bezierControls alwaysVisible/>
+  </curve>
+
+  <curve 
+    through="$through_points" 
+    splineForm="uniform"
+    extrapolateForward 
+    extrapolateBackward 
+    styleNumber="3" 
+    applyStyleToLabel>
+      <label><m>C_2</m></label>
+      <bezierControls alwaysVisible/>
+  </curve>
+
+  <legend position="lowerleft">
+    <label>Centripetal <attr>splineForm</attr></label>
+    <label>Uniform <attr>splineForm</attr></label>
+  </legend>
+</graph>
+```
+
+
+
+Two curves are contrasted to demonstrate the effect of 
+the `splineForm` attribute on the ` <curve>{:dn}` component. 
+The `splineForm` attribute accepts input values of "`centripetal`" 
+and "`uniform`", with a default value of "`centripetal`".
+
+
+
+---
+
+### Attribute Example: variable
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <curve variable="t">(t sin(t), t)</curve>
+</graph>
+```
+
+
+
+The `variable` attribute specifies the parameter used when defining a parametric ` <curve>{:dn}`.
+
+
+
+---
+
+### Attribute Example: through
+
+
+```doenet-editor-horiz
+<p>Click the curve to adjust the through points</p>
+<graph size="small">
+  <curve through="(4,6) (7,-2) (-1,4) (-8,0)"/>
+</graph>
+```
+
+
+
+The `through` attribute defines through points for the ` <curve>{:dn}`
+
+
+
+---
+
+### Attribute Example: parMin, parMax
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <curve variable="t" parMin="pi/2" parMax="3pi/2">
+    (6cos(t), 6sin(t))
+  </curve>
+</graph>
+```
+
+
+
+The `parMin` and `parMax` attributes specify a minimum and maximum value for the parameter when graphing a parametric curve.
+
+
+
+---
+
+
+### Attribute Example: Standard graphical attributes
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle styleNumber="5" filled radius="6" fixed/>
+  <curve 
+    name="C1" 
+    layer="1" 
+    styleNumber="3" 
+    applyStyleToLabel 
+    labelIsName 
+    variable="t">
+      (4 sin(t), 4 cos(t))
+  </curve>
+  <curve 
+    name="C2" 
+    applyStyleToLabel 
+    styleNumber="2" 
+    labelIsName>
+      x^2
+  </curve>
+</graph>
+
+<p>Standard graphical attributes:</p>
+    <ul>
+      <li><attr>layer</attr> (0) is default value.</li>
+      <li><attr>styleNumber</attr> 1 - 6</li>
+      <li><attr>applyStyleToLabel</attr></li>
+      <li><attr>labelIsName</attr></li>
+    </ul>
+```
+
+
+
+The uses of the following standard graphical attributes are 
+illustrated: `layer`, `styleNumber`, `applyStyleToLabel` and `labelIsName`.
+
+

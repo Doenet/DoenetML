@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <curve>{:dn}`
 
-` <curve>{:dn}` renders a spline within a [` <graph>{:dn}`](graph.mdx).
+` <curve>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a spline within a ` <graph>{:dn}`.
 
 ## Attributes and Properties 
  <AttrDisplay name='curve'/> 
@@ -16,9 +17,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 ### Example: ` <curve>{:dn}` through 4 points
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Click the curve to adjust the through points</p>
-<graph size="small">
+<graph>
   <curve through="(4,6) (7,-2) (-1,4) (-8,0)"/>
 </graph>
 ```
@@ -34,9 +35,12 @@ A ` <curve>{:dn}` is constructed through four points specified in the `through` 
 ### Example: ` <curve>{:dn}` through 4 points with bezier controls
 
 
-```doenet-editor-horiz
-<p>Click the curve to adjust the through points. Click the points to adjust the curve's shape.</p>
-<graph size="small">
+```doenet-example
+<p>Click the curve to adjust the through points. 
+Click the points to adjust the curve's shape.
+</p>
+
+<graph>
   <curve through="(1,5) (-3,-6) (1,0) (-6,3)" name="myCurve">
     <bezierControls>(3,-3) (-2,4) (5,3) (3,3)</bezierControls>
   </curve>
@@ -45,7 +49,11 @@ A ` <curve>{:dn}` is constructed through four points specified in the `through` 
 
 
 
-A ` <curve>{:dn}` is constructed through four points specified in the `through` attribute. The shape of the curve at its through points is specified with ` <bezierControls>{:dn}`. When ` <bezierControls>{:dn}` are specified, draggable handles appear on the ` <graph>{:dn}` when the through points are clicked.
+A ` <curve>{:dn}` is constructed through four points specified in 
+the `through` attribute. The shape of the curve at its through points 
+is specified with ` <bezierControls>{:dn}`. When ` <bezierControls>{:dn}` are 
+specified, draggable handles appear on the ` <graph>{:dn}` when the 
+through points are clicked.
 
 
 
@@ -54,627 +62,28 @@ A ` <curve>{:dn}` is constructed through four points specified in the `through` 
 ### Example: Parametric equation of an ellipse
 
 
-```doenet-editor-horiz
-<p>Parametric Equation of an Ellipse: <m>x = a \cos t, \; y=b \sin t</m></p>
+```doenet-example
+<p>Parametric Equation of an Ellipse: 
+  <m>x = a \cos t, \; y=b \sin t</m>
+</p>
+
 <slider name="a" initialValue="3" labelIsName/>
 <slider name="b" initialValue="2" labelIsName/>
+
 <graph size="small">
-<curve name="parameterizedEllipse" variable="t">
-  ($a cos(t), $b sin(t))
+<curve 
+  name="parameterizedEllipse" 
+  variable="t">
+    ($a cos(t), $b sin(t))
 </curve>
 </graph>
 ```
 
 
 
-Parametric equations can be constructed with the ` <curve>{:dn}` component by assigning a parameter with the  `variable` attribute and providing function children for the $x$-coordinates and $y$-coordinates defining the ` <curve>{:dn}`.
-
-
-
----
-
-### Example: draggable
-
-
-```doenet-editor-horiz
-<booleanInput name="isDraggable">
-  <label>Draggable?</label>
-</booleanInput> $isDraggable.value
-<graph size="small">
-<curve draggable="$isDraggable" through="(3,-1) (3,4) (-5,6) (-3,2)"/>
-</graph>
-```
-
-
-
-If a ` <curve>{:dn}` has its `draggable` attribute set to `false`, the user will not be able to manipulate the through points.
-
-
-
----
-
-### Example: labelPosition
-
-
-```doenet-editor-horiz
-<graph size="small">
-<curve name="curve1" labelPosition="left" through="(3,-1) (3,4) (-5,6) (-3,2)" >
-  <label><m>C</m></label>
-</curve>
-</graph>
-<graph size="small">
-  <curve copySource="curve1" labelPosition="upperright"/>
-</graph>
-```
-
-
-
-The `labelPosition` attribute specifies the location of the curve's label. Valid values are `upperleft`, `upperright`, `top`, `left`, `right`, `lowerleft`, `bottom`, `lowerright`. The default value is `upperright`.
-
-
-
----
-
-### Example: flipFunction
-
-
-```doenet-editor-horiz
-<booleanInput name="Poly" prefill="true">
-  <label>Show Polynomial</label>
-</booleanInput>
-<booleanInput name="Trig">
-  <label>Show Trigonometric</label>
-</booleanInput>
-<graph>
-  <curve hide="!$Poly">x^2
-    <label><m>P_1</m></label>
-  </curve>
-  <curve hide="!$Poly" flipFunction styleNumber="2">x^2
-    <label><m>P_2</m></label>
-  </curve> 
-  <curve hide="!$Trig">sin(x)
-    <label><m>T_1</m></label>
-  </curve>
-  <curve hide="!$Trig" flipFunction styleNumber="3">sin(x)
-    <label><m>T_2</m></label>
-  </curve>
-  <line styleNumber="6">y = x</line>
-</graph>
-```
-
-
-
-The ` <curve>{:dn}` is defined with a function between the opening and closing tags. The `flipFunction` attribute reflects the curve about the line $y=x$.
-
-
-
----
-
-### Example: numDiscretizationPoints *
-
-
-```doenet-editor-horiz
-```
-
-
-
-
-
-
-
----
-
-### Example: periodic *
-
-
-```doenet-editor-horiz
-```
-
-
-
-
-
-
-
----
-
-### Example: splineTension
-
-
-```doenet-editor-horiz
-
-  <group name="through_points">
-    <point>(-1,2)</point>
-    <point>(-2.5,3.5)</point>
-    <point>(2,5)</point>
-    <point>(2.5,1)</point>
-  </group>
-
-<p>Spline Tension of <m>C_1</m> = 
-  $_curve1.splineTension (default)</p>
-<p>
-  <slider from="0" to="1" step="0.1" initialValue="0.8">
-    <label>Spline Tension of <m>C_2</m></label>
-  </slider>
-</p>
-<p>Adjust the slider above to illustrate the effect of spline 
-  tension on the shape of <m>C_2</m>.</p>
-<graph xmin="-6" xmax="6" ymin="-6" ymax="6">
-  <curve through="$through_points" extrapolateForward
-    extrapolateBackward labelPosition="left" applyStyleToLabel>
-    <label><m>C_1</m></label>
-  </curve>
-  <curve through="$through_points" splineTension="$_slider1"
-    extrapolateForward extrapolateBackward
-    styleNumber="3" applyStyleToLabel>
-    <label><m>C_2</m></label>
-  </curve>
-  <legend position="lowerleft">
-    <label><m>C_1</m> <attr>splineTension</attr> = 0.8</label>
-    <label><m>C_2</m> <attr>splineTension</attr> = $_slider1</label>
-  </legend>
-</graph>
-```
-
-
-
-Two curves are contrasted to demonstrate the effect of the `splineTension` attribute on the shape of the curve. Valid values for the `splineTension` attribute range from 0 (corresponding to the case where the spline is actually a polyline) to 1 (for full curvature). The default value for `splineTension` is $0.8$. For greater control over the shape of the curve at the through points, the [` <bezierControls>{:dn}`](bezierControls.mdx) component can be used.
-
-
-
----
-
-### Example: extrapolateBackward, extrapolateForward
-
-
-```doenet-editor-horiz
-<p>Check the boxes below to view the quadratic curve extrapolations. Click and drag the handles at the endpoints of the curve to adjust the shape of the extrapolations.</p>
-<p>Extrapolate backward: <booleanInput name="extBack" /></p>
-<p>Extrapolate foward: <booleanInput name="extFor" /></p>
-<graph>
-  <curve through='(-3,-5) (-1, 4) (2,-3) (5,3)' extrapolateBackward="$extBack" extrapolateForward="$extFor">
-    <bezierControls alwaysVisible="true">
-    (-2,-3) (-2,0) (-2,0) (-0.3,-2)
-    </bezierControls>
-  </curve>
-</graph>
-```
-
-
-
-The `extrapolateBackward` and `extrapolateForward` attributes of the ` <curve>{:dn}` component will add quadratic extrapolations onto cubic splines.  The extrapolation is based on the curvature of the adjacent spline segment.  The extrapolated parabola will open either vertically or horizontally.
-
-
-
----
-
-### Example: splineForm
-
-
-```doenet-editor-horiz
-
-  <group name="through_points">
-    <point>(-3,1)</point>
-    <point>(-2.5,3.5)</point>
-    <point>(2,5)</point>
-    <point>(2.5,1)</point>
-  </group>
-
-<p><m>C_1</m> <attr>splineForm</attr> = $_curve1.splineForm
-  (default)</p>
-<p><m>C_2</m> <attr>splineForm</attr> = $_curve2.splineForm</p>
-<graph xmin="-6" xmax="6" ymin="-6" ymax="6">
-  <curve through="$through_points" extrapolateForward
-    extrapolateBackward labelPosition="left" applyStyleToLabel>
-    <label><m>C_1</m></label>
-    <bezierControls alwaysVisible/>
-  </curve>
-  <curve through="$through_points" splineForm="uniform"
-    extrapolateForward extrapolateBackward 
-    styleNumber="3" applyStyleToLabel>
-    <label><m>C_2</m></label>
-    <bezierControls alwaysVisible/>
-  </curve>
-  <legend position="lowerleft">
-    <label>Centripetal <attr>splineForm</attr></label>
-    <label>Uniform <attr>splineForm</attr></label>
-  </legend>
-</graph>
-```
-
-
-
-Two curves are contrasted to demonstrate the effect of the `splineForm` attribute on the ` <curve>{:dn}` component. The `splineForm` attribute accepts input values of "`centripetal`" and "`uniform`", with a default value of "`centripetal`".
-
-
-
----
-
-### Example: variable
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve variable="t">(t sin(t), t)</curve>
-</graph>
-```
-
-
-
-The `variable` attribute specifies the parameter used when defining a parametric ` <curve>{:dn}`.
-
-
-
----
-
-### Example: through
-
-
-```doenet-editor-horiz
-<p>Click the curve to adjust the through points</p>
-<graph size="small">
-  <curve through="(4,6) (7,-2) (-1,4) (-8,0)"/>
-</graph>
-```
-
-
-
-The `through` attribute defines through points for the ` <curve>{:dn}`
-
-
-
----
-
-### Example: parMin, parMax
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve variable="t" parMin="pi/2" parMax="3pi/2">
-    (6cos(t), 6sin(t))
-  </curve>
-</graph>
-```
-
-
-
-The `parMin` and `parMax` attributes specify a minimum and maximum value for the parameter when graphing a parametric curve.
-
-
-
----
-
-### Example: nearestPointAsCurve *
-
-
-```doenet-editor-horiz
-```
-
-
-
-
-
-
-
----
-
-### Example: Standard graphical attributes
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <circle styleNumber="5" filled radius="6" fixed/>
-  <curve name="C1" layer="1" styleNumber="3" applyStyleToLabel labelIsName variable="t">
-    (4 sin(t), 4 cos(t))
-  </curve>
-  <curve name="C2" applyStyleToLabel styleNumber="2" labelIsName>x^2</curve>
-</graph>
-<p>Standard graphical attributes:</p>
-    <ul>
-      <li><attr>layer</attr> (0) is default value.</li>
-      <li><attr>styleNumber</attr> 1 - 6</li>
-      <li><attr>applyStyleToLabel</attr></li>
-      <li><attr>labelIsName</attr></li>
-    </ul>
-```
-
-
-
-The uses of the following standard graphical attributes are illustrated: `layer`, `styleNumber`, `applyStyleToLabel` and `labelIsName`.
-
-
-
----
-
-### Example: Attributes as properties - all curves
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" through="(1,5) (-3,-6) (1,0) (-6,3)">
-    <bezierControls>(3,-3) (-2,4) (5,3) (3,3)</bezierControls>
-    <label><m>C_1</m></label>
-  </curve>  
-</graph>
-<p><c>draggable</c> = $curve1.draggable</p>
-<p><c>labelPosition</c> = $curve1.labelPosition</p>
-<p><c>flipFunction</c> = $curve1.flipFunction</p>
-<p><c>numDiscretizationPoints</c> = $curve1.numDiscretizationPoints</p>
-<p><c>styleNumber</c> = $curve1.styleNumber</p>
-<p><c>label</c> = $curve1.label</p>
-<p><c>hide</c> = $curve1.hide</p>
-<p><c>layer</c> = $curve1.layer</p>
-```
-
-
-
-The general ` <curve>{:dn}` attributes shown above are also available as properties.
-
-
-
----
-
-### Example: Attributes as properties - bezier curves
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" through="(1,5) (-3,-6) (1,0) (-6,3)">
-    <bezierControls>(3,-3) (-2,4) (5,3) (3,3)</bezierControls>
-    <label><m>C_1</m></label>
-  </curve>  
-</graph>
-<p><c>splineTension</c> = $curve1.splineTension</p>
-<p><c>splineForm</c> = $curve1.splineForm</p>
-<p><c>extrapolateForward, extrapolateBackward</c> = $curve1.extrapolateForward, $curve1.extrapolateBackward</p>
-```
-
-
-
-The bezier ` <curve>{:dn}` attributes shown above are also available as properties.
-
-
-
----
-
-### Example: Attributes as properties - parametric curves
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" variable="t" parMin="pi/2" parMax="3pi/2">
-    (6cos(t), 6sin(t))
-  </curve>  
-</graph>
-<p><c>parMin</c> = $curve1.parMin</p>
-<p><c>parMax</c> = $curve1.parMax</p>
-```
-
-
-
-The parametric ` <curve>{:dn}` attributes shown above are also available as properties.
-
-
-
----
-
-### Example: numDimensions
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" variable="t">
-    (6cos(t), 6sin(t))
-  </curve>  
-</graph>
-<p><c>numDimensions</c> = $curve1.numDimensions</p>
-```
-
-
-
-The `numDimensions` property renders the number of dimensions of the ` <curve>{:dn}`.
-
-
-
----
-
-### Example: throughPoints
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" through="(4,6) (7,-2) (-1,4) (-8,0)"/> 
-</graph>
-<p><c>throughPoints</c> = <asList>$curve1.throughPoints</asList></p>
-<p><c>throughPoints[2]</c> = $curve1.throughPoints[2]</p>
-<p><c>throughPoints[2][2]</c> = $curve1.throughPoints[2][2]</p>
-```
-
-
-
-The `throughPoints` property stores the specified through points of the ` <curve>{:dn}` in an array. Individual through points and through point coordinates can be accessed using array notation.
-
-
-
----
-
-### Example: vectorControlDirections
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" through="(1,5) (-3,-6) (1,0) (-6,3)">
-    <bezierControls>
-      <controlVectors>(3,-3)</controlVectors>
-      <controlVectors direction="both">(-2,4) (1,6)</controlVectors>
-      <controlVectors direction="next">(5,3)</controlVectors>
-      <controlVectors>(3,3)</controlVectors>
-    </bezierControls>
-  </curve>
-</graph>
-<p><c>vectorControlDirections</c> = <asList>$curve1.vectorControlDirections</asList></p>
-<p><c>vectorControlDirections[2]</c> = $curve1.vectorControlDirections[2]</p>
-```
-
-
-
-The `vectorControlDirections` property stores the specified control directions of the bezier curve ` <controlVectors>{:dn}` in an array. Individual control vector directions at an indexed through point can be accessed using array notation.
-
-
-
----
-
-### Example: hiddenControls
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" through="(1,5) (-3,-6) (1,0) (-6,3)">
-    <bezierControls>
-      <controlVectors hide>(3,-3)</controlVectors>
-      <controlVectors direction="both">(-2,4) (1,6)</controlVectors>
-      <controlVectors direction="next" hide>(5,3)</controlVectors>
-      <controlVectors>(3,3)</controlVectors>
-    </bezierControls>
-  </curve>
-</graph>
-<p><c>hiddenControls</c> = <asList>$curve1.hiddenControls</asList></p>
-<p><c>hiddenControls[2]</c> = $curve1.hiddenControls[2]</p>
-```
-
-
-
-The `hiddenControls` property stores an array of boolean values that are `true` if the control vectors at the indexed through point are hidden from the user using the `hide` attribute. The status at an individual through point can be rendered using array notation.
-
-
-
----
-
-### Example: controlVectors
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" through="(1,5) (-3,-6) (1,0) (-6,3)">
-    <bezierControls>
-      <controlVectors>(3,-3)</controlVectors>
-      <controlVectors direction="both">(-2,4) (1,6)</controlVectors>
-      <controlVectors direction="next">(5,3)</controlVectors>
-      <controlVectors>(3,3)</controlVectors>
-    </bezierControls>
-  </curve>
-</graph>
-<p><c>controlVectors</c> = <asList>$curve1.controlVectors</asList></p>
-```
-
-
-
-The `controlVectors` property stores the computed control vectors of a bezier curve in an array. Individual control control vectors and displacements at an indexed through point can be accessed using array notation.
-
-
-
----
-
-### Example: controlPoints
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" through="(1,5) (-3,-6) (1,0) (-6,3)">
-    <bezierControls>(3,-3) (-2,4) (5,3) (3,3)</bezierControls>
-  </curve> 
-</graph>
-<p><c>controlPoints</c> = <asList>$curve1.controlPoints</asList></p>
-```
-
-
-
-The `controlPoints` property stores an array of control points - points at each end of the bezier control handles.
-
-
-
----
-
-### Example: fs *
-
-
-```doenet-editor-horiz
-```
-
-
-
----
-
-### Example: numXCriticalPoints, numYCriticalPoints
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" through="(-2,6) (0,0) (1,1) (-6,3)">
-    <bezierControls>(3,1) (0,2) (7,3) (3,3)</bezierControls>
-  </curve> 
-  $curve1.xCriticalPoints{styleNumber="2"}
-  $curve1.yCriticalPoints{styleNumber="3"}
-</graph>
-<p><c>numXCriticalPoints</c> = $curve1.numXCriticalPoints</p>
-<p><c>numYCriticalPoints</c> = $curve1.numYCriticalPoints</p>
-```
-
-
-
----
-
-### Example: xCriticalPoints, yCriticalPoints
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" through="(-2,6) (0,0) (1,1) (-6,3)">
-    <bezierControls>(3,1) (0,2) (7,3) (3,3)</bezierControls>
-  </curve> 
-  $curve1.xCriticalPoints{styleNumber="2"}
-  $curve1.yCriticalPoints{styleNumber="3"}
-</graph>
-<p><c>xCriticalPoints</c> = <asList>$curve1.xCriticalPoints</asList></p>
-<p><c>yCriticalPoints</c> = <asList>$curve1.yCriticalPoints</asList></p>
-```
-
-
-
----
-
-### Example: numCurvatureChangePoints
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" through="(-2,6) (0,0) (1,1) (-6,3)">
-    <bezierControls>(3,1) (0,2) (5,3) (3,3)</bezierControls>
-  </curve> 
-  $curve1.curvatureChangePoints{styleNumber="2"}
-</graph>
-<p><c>numCurvatureChangePoints</c> = $curve1.numCurvatureChangePoints</p>
-```
-
-
-
-The `numCurvatureChangePoints` property returns the number of inflection points found when computing the curve.
-
-
-
----
-
-### Example: curvatureChangePoints
-
-
-```doenet-editor-horiz
-<graph size="small">
-  <curve name="curve1" through="(-2,6) (0,0) (1,1) (-6,3)">
-    <bezierControls>(3,1) (0,2) (5,3) (3,3)</bezierControls>
-  </curve> 
-  $curve1.curvatureChangePoints{styleNumber="2"}
-</graph>
-<p><c>curvatureChangePoints</c> = $curve1.curvatureChangePoints</p>
-```
+Parametric equations can be constructed with the ` <curve>{:dn}` component 
+by assigning a parameter with the  `variable` attribute and 
+providing function children for the $x$-coordinates and $y$-coordinates 
+defining the ` <curve>{:dn}`.
 
 

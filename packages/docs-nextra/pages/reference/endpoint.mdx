@@ -6,7 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <endpoint>{:dn}`
 
 
-` <endpoint>{:dn}` renders a point that can be switched from open to closed (or unfilled to filled).
+` <endpoint>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
+component that renders a point that can be switched from open to closed (or unfilled to filled).
 
 ## Attributes and Properties 
  <AttrDisplay name='endpoint'/> 
@@ -31,7 +32,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-The default ` <endpoint>{:dn}` behaves like a ` <point>{:dn}`. An ` <endpoint>{:dn}` also accepts all ` <point>{:dn}` attributes.
+The default ` <endpoint>{:dn}` behaves like a ` <point>{:dn}`. 
+An ` <endpoint>{:dn}` also accepts all ` <point>{:dn}` attributes.
 
 
 
@@ -56,31 +58,35 @@ The default ` <endpoint>{:dn}` behaves like a ` <point>{:dn}`. An ` <endpoint>{:
 
 
 
-All attributes and properties that are available to points are also available to endpoints. Endpoints can also have the same ` <constraints>{:dn}` as points.
+All attributes and properties that are available to points are also available to 
+endpoints. Endpoints can also have the same ` <constraints>{:dn}` as points.
 
 
 
 ---
 
-### Example: switchable
+### Attribute Example: switchable
 
 
 ```doenet-editor-horiz
 <graph size="small" displayXAxis="false" 
   displayYAxis="false">
-  <endpoint switchable="true"/>
+  <endpoint switchable="true">
+    <label>Click me!</label>
+  </endpoint>
 </graph>
 ```
 
 
 
-The `switchable` attribute allows the user to click the ` <endpoint>{:dn}` to switch between an open and a closed point.
+The `switchable` attribute allows the user to click the ` <endpoint>{:dn}` to 
+switch between an open and a closed point.
 
 
 
 ---
 
-### Example: open
+### Attribute Example: open
 
 
 ```doenet-editor-horiz
@@ -98,7 +104,7 @@ The `open` attribute renders an ` <endpoint>{:dn}` that is open.
 
 ---
 
-### Example: ` <point>{:dn}` properties
+### Property Example: ` <point>{:dn}` properties
 
 
 ```doenet-editor-horiz
@@ -113,6 +119,7 @@ The `open` attribute renders an ` <endpoint>{:dn}` that is open.
     </constraints>
   </endpoint>
 </graph>
+
 <p><c>coords</c> = $ep.coords</p>
 <p><c>styleDescriptionWithNoun</c> 
   = $ep.styleDescriptionWithNoun</p>
@@ -127,13 +134,14 @@ The properties of points are accessible to endpoints as well. A few selected pro
 
 ---
 
-### Example: attributes as properties
+### Property Example: attributes as properties
 
 
 ```doenet-editor-horiz
 <graph size="small">
   <endpoint name="ep" open switchable/>
 </graph>
+
 <p><c>switchable</c> = $ep.switchable</p>
 <p><c>open</c> = $ep.open</p>
 ```

@@ -6,11 +6,12 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <else>{:dn}`
 
 
-` <else>{:dn}` is used with the [` <conditionalContent>{:dn}`](conditionalContent.mdx) component in creating logical statements with DoenetML.
+` <else>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types) 
+component that is used with the ` <conditionalContent>{:dn}`
+component in creating logical statements with DoenetML.
 
 ## Attributes and Properties 
- <AttrDisplay name='else'/> 
- <PropDisplay name='else'/>
+The ` <else>{:dn}` does not have attributes or properties.
 
 
 ---
@@ -18,11 +19,12 @@ import { AttrDisplay, PropDisplay } from "../../components"
 ### Example: ` <else>{:dn}` in a ` <conditionalContent>{:dn}` based on answer
 
 
-```doenet-editor-horiz
+```doenet-example
 <answer name="candyQuery" submitLabel="Submit Response">
     <choice name="yes">I like candy</choice>
     <choice>I do not like candy</choice>
 </answer>
+
 <conditionalContent>
   <case condition="$candyQuery.responseHasBeenSubmitted = false">
     <p>Just answer the question above...</p>
@@ -38,7 +40,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-The ` <else>{:dn}` component is used to define the third ` <case>{:dn}` response in a [` <conditionalContent>{:dn}`](conditionalContent.mdx) block.
+The ` <else>{:dn}` component is used to define the third ` <case>{:dn}` response 
+in a ` <conditionalContent>{:dn}` block.
 
 
 
@@ -47,7 +50,7 @@ The ` <else>{:dn}` component is used to define the third ` <case>{:dn}` response
 ### Example: ` <else>{:dn}` in a ` <conditionalContent>{:dn}` based on textInput
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Type in the letter A, B, or C: <textInput name="userLetter" prefill="type letter here"/></p>
 <conditionalContent>
   <case condition="$userLetter = A or $userLetter = a">A is for apple.</case>
@@ -62,6 +65,8 @@ The ` <else>{:dn}` component is used to define the third ` <case>{:dn}` response
 
 
 
-The ` <else>{:dn}` component is used to define a response to all user entries that do not match the given [` <case>{:dn}`](case.mdx) conditions in a [` <conditionalContent>{:dn}`](conditionalContent.mdx) block.
+The ` <else>{:dn}` component is used to define a response to all user entries that 
+do not match the given ` <case>{:dn}` conditions in 
+a ` <conditionalContent>{:dn}` block.
 
 

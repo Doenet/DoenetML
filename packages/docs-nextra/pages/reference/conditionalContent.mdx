@@ -6,12 +6,15 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <conditionalContent>{:dn}`
 
 
-` <conditionalContent>{:dn}` defines one or more blocks of content that 
-are evaluated only when certain conditions are met. Conditions may be defined directly on the ` <conditionalContent>{:dn}` tag using the `condition` attribute.  Alternatively, one can use one or more [` <case>{:dn}`](case.mdx) children with an optional [` <else>{:dn}`](else.mdx) child.
+` <conditionalContent>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+component that defines one or more blocks of content that 
+are evaluated only when certain conditions are met. 
+Conditions may be defined directly on the ` <conditionalContent>{:dn}` tag using the `condition` attribute.  
+Alternatively, one can use one or more [` <case>{:dn}`](case.mdx) children with an 
+optional [` <else>{:dn}`](else.mdx) child.
 
 ## Attributes and Properties 
- <AttrDisplay name='conditionalContent'/> 
- <PropDisplay name='conditionalContent'/>
+The ` <conditionalContent>{:dn}` component has no attributes or properties.
 
 
 ---
@@ -27,6 +30,7 @@ are evaluated only when certain conditions are met. Conditions may be defined di
     <choice>C</choice>
   </choiceInput>    
 </p>
+
 <conditionalContent>
   <case condition="$letter.selectedIndices = 1">
     <p>A is for apple.</p>
@@ -42,103 +46,80 @@ are evaluated only when certain conditions are met. Conditions may be defined di
 
 
 
-The ` <conditionalContent>{:dn}` component defines a block of content containing individual ` <case>{:dn}` children. The doenetML within each ` <case>{:dn}` is only rendered when its specified `condition` is `true`.
-
+The ` <conditionalContent>{:dn}` component defines a block of content 
+containing individual ` <case>{:dn}` children. The doenetML within 
+each ` <case>{:dn}` is only rendered when its specified `condition` is `true`.
 
 
 ---
 
-### Example: assignNames
+### Example: ` <conditionalContent>{:dn}` with nested ` <else>{:dn}`
 
 
 ```doenet-editor-horiz
-  <p>Type a number <m> > 0 </m>: <mathInput name="n"/></p>
-  <conditionalContent condition="$n > 0" assignNames="x y" hide>
-    <number>$n + 1</number>
-    <number>$n - 1</number>
-  </conditionalContent>
-  <p><m>x = $x</m></p>
-  <p><m>y = $y</m></p>
-  <conditionalContent assignNames="z" hide>
-    <case condition="$n > 0">
-      <number>$n + 1</number>
-    </case>
-    <case condition="$n <= 0">
-      <number>$n - 1</number>
-    </case>
-  </conditionalContent>
-  <p><m>z = $z</m></p>
+<p>Type an even integer and press enter:
+  <mathInput name="int"/></p>
+
+<conditionalContent>
+  <case condition="mod($int,2) = 0">
+    Nice work!
+  </case>
+  <else>
+    This is not an even integer.
+  </else>
+</conditionalContent> 
 ```
 
 
 
-There are two applications of `assignNames` illustrated. In the first ` <conditionalContent>{:dn}`, if the specified `condition` is met, (i.e. if a positive number is entered) the ` <number>{:dn}` components defined within the ` <conditionalContent>{:dn}` are assigned the names `x` and `y` in sequence. If the `condition` is not met these ` <number>{:dn}` components are not defined.
-
-
-In the second ` <conditionalContent>{:dn}` block, there are two different ` <case>{:dn}` components. The value $z$ is assigned depends on the content within the ` <case>{:dn}` whose `condition` is satisfied.
-
-
+The ` <conditionalContent>{:dn}` component defines a block of content 
+containing individual ` <case>{:dn}` children. To catch all remaining
+cases following a given condition or set of conditions, the 
+`<else>{:dn}` component may be used.
 
 ---
 
-### Example: assignNamesSkip *
+### Attribute Example: condition
 
 
-```doenet-editor-horiz
-```
-
-
-
-. 
-
-
-
----
-
-### Example: maximumNumberToShow *
-
-
-```doenet-editor-horiz
-```
-
-
-
-
-
-
-
----
-
-### Example: condition
-
-
-```doenet-editor-horiz
+```doenet-example
 <p>Let's graph a... 
     <choiceInput name="shape">
       <choice>circle</choice>
       <choice>square</choice>
       <choice>pentagon</choice>
     </choiceInput></p>
+
   <graph size="small">
-    <conditionalContent condition="$shape.selectedValues = circle">
-      <circle radius="4" filled/>
+    <conditionalContent 
+      condition="$shape.selectedValues = circle">
+        <circle radius="4" filled/>
     </conditionalContent>
-    <conditionalContent condition="$shape.selectedValues = square">
-      <rectangle width="8" height="8" filled center="(0,0)" verticesDraggable="false"/>
+
+    <conditionalContent 
+      condition="$shape.selectedValues = square">
+        <rectangle 
+          width="8" 
+          height="8" 
+          filled 
+          center="(0,0)" 
+          verticesDraggable="false"/>
     </conditionalContent>
-    <conditionalContent condition="$shape.selectedValues = pentagon">
-      <regularPolygon numVertices="5" sideLength="6" filled/>
+
+    <conditionalContent 
+      condition="$shape.selectedValues = pentagon">
+        <regularPolygon 
+          numVertices="5" 
+          sideLength="6" 
+          filled/>
     </conditionalContent>
   </graph>
 ```
 
 
 
-A ` <conditionalContent>{:dn}` block with a ` <condition>{:dn}` attribute renders only when the `condition` is satisfied. This allows for use of a ` <conditionalContent>{:dn}` component without nested ` <case>{:dn}` components.
+A ` <conditionalContent>{:dn}` block with a ` <condition>{:dn}` attribute 
+renders only when the `condition` is satisfied. This allows for use of 
+a ` <conditionalContent>{:dn}` component without nested ` <case>{:dn}` components.
 
 
-### Example: ` <conditionalContent>{:dn}` with `condition` attribute.
-
-
-In the sample code below, the ` <conditionalContent>{:dn}` component displays the work not if 
-the value in the ` <mathinput>{:dn}` named `n` is not a number.
