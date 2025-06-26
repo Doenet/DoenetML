@@ -15,6 +15,7 @@ import type {
     Resolver,
     PathToCheck,
     FlatFragment,
+    IndexResolution,
 } from "lib-doenetml-worker";
 import type { DastRoot } from "@doenet/parser";
 import {
@@ -238,6 +239,8 @@ export class CoreWorker {
                     resolver,
                     addNodesToResolver:
                         PublicDoenetMLCore.add_nodes_to_resolver,
+                    replaceIndexResolutionsInResolver:
+                        PublicDoenetMLCore.replace_index_resolutions_in_resolver,
                     deleteNodesFromResolver:
                         PublicDoenetMLCore.delete_nodes_from_resolver,
                     resolvePath: PublicDoenetMLCore.resolve_path,
@@ -413,10 +416,46 @@ export class CoreWorker {
         }
     }
 
-    addNodesToResolver(resolver: Resolver, flatFragment: FlatFragment) {
+    async resolvePathJavascript(name: string, origin = 0) {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        if (
+            !this.source_set ||
+            !this.flags_set ||
+            !this.doenetCore ||
+            !this.javascriptCore
+        ) {
+            throw Error("Cannot resolve path before setting source and flags");
+        }
+
+        try {
+            let path_resolution =
+                await this.javascriptCore.resolvePathImmediatelyToNodeIdx(
+                    name,
+                    origin,
+                );
+            return path_resolution;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            resolve();
+        }
+    }
+
+    addNodesToResolver(
+        resolver: Resolver,
+        flatFragment: FlatFragment,
+        indexResolution: IndexResolution,
+    ) {
         let add_nodes_result = PublicDoenetMLCore.add_nodes_to_resolver(
             resolver,
             flatFragment,
+            indexResolution,
         );
         return add_nodes_result;
     }

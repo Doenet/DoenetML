@@ -53,14 +53,6 @@ export default class RepeatForSequence extends CompositeComponent {
             defaultValue: null,
         };
 
-        attributes.for = {
-            createComponentOfType: "group",
-        };
-
-        attributes.forType = {
-            createPrimitiveOfType: "string",
-        };
-
         attributes.isResponse = {
             leaveRaw: true,
         };

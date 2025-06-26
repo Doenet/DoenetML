@@ -181,8 +181,8 @@ export default class Sequence extends CompositeComponent {
             replacements.push(serializedComponent);
         }
 
-        // console.log(`replacements for ${component.componentIdx}`)
-        // console.log(replacements)
+        // console.log(`replacements for ${component.componentIdx}`);
+        // console.log(replacements);
 
         return {
             replacements,

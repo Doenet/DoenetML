@@ -27,7 +27,7 @@ function isUndefinedOrInactive(comp) {
     ).eq(true);
 }
 
-describe("Extend tests", async () => {
+describe("Extend and references tests", async () => {
     it("extend copies properties", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -6527,5 +6527,331 @@ describe("Extend tests", async () => {
             stateVariables[await resolvePathToNodeIdx("g2")].activeChildren
                 .length,
         ).eq(0);
+    });
+
+    it("reference inside composite adds to index resolution but not names", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p"><text name="t">hi</text></p>
+
+    <section name="sec1">
+        $p
+    </section>
+
+    <section name="sec2">
+        <group name="g">$p</group>
+    </section>
+
+
+    <section name="sec3">
+       <p>Reference &dollar;p does not add ability to reference names: ($sec1.t, $sec1.p).</p>
+    </section>
+
+    <section name="sec4">
+        <p>Nor can one reference by names from the group: ($sec2.g.t, $sec2.g.p).</p>
+    </section>
+
+    <section name="sec5">
+        <p>One can reference by group index: $sec2.g[1].t.</p>$sec2.g[1]
+    </section>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("sec1")]
+                    .activeChildren[1].componentIdx
+            ].stateValues.text,
+        ).eq("hi");
+
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("sec2")]
+                    .activeChildren[1].componentIdx
+            ].stateValues.text,
+        ).eq("hi");
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("sec3")]
+                    .activeChildren[1].componentIdx
+            ].stateValues.text,
+        ).eq(
+            "Reference $\u200Bp does not add ability to reference names: (, ).",
+        );
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("sec4")]
+                    .activeChildren[1].componentIdx
+            ].stateValues.text,
+        ).eq("Nor can one reference by names from the group: (, ).");
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("sec5")]
+                    .activeChildren[1].componentIdx
+            ].stateValues.text,
+        ).eq("One can reference by group index: hi.");
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("sec5")]
+                    .activeChildren[2].componentIdx
+            ].stateValues.text,
+        ).eq("hi");
+    });
+
+    it("dynamically change index resolutions with reference inside composite", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n">1</mathInput>
+    <sequence name="s" length="$n" />
+
+    <section name="sec1">
+        <p name="p"><group name="g" asList>-6 $s-8</group></p>
+
+        <p extend="$p" name="p2" />
+
+        <p name="p3">3rd entry: $g[3], $p2.g[3]</p>
+    </section>
+
+    <section name="sec2">
+        <p name="p"><group name="g" asList><number>-6</number>$s<number>-8</number></group></p>
+
+        <p extend="$p" name="p2" />
+
+        <p name="p3">3rd entry: $g[3], $p2.g[3]</p>
+    </section>
+
+
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        let pText = "-6, 1, -8";
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
+                .text,
+        ).eq("3rd entry: , ");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
+                .text,
+        ).eq("3rd entry: -8, -8");
+
+        // Add another replacement, shifting so that the third entry comes from the sequence
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        pText = "-6, 1, 2, -8";
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
+                .text,
+        ).eq("3rd entry: 2, 2");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
+                .text,
+        ).eq("3rd entry: 2, 2");
+
+        // Remove all replacements, shifting so that there is no longer a third entry
+
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        pText = "-6, -8";
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
+                .text,
+        ).eq("3rd entry: , ");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
+                .text,
+        ).eq("3rd entry: , ");
+
+        // Add three replacements, so that third entry is again a number
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        pText = "-6, 1, 2, 3, -8";
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
+                .text,
+        ).eq("3rd entry: 2, 2");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
+                .text,
+        ).eq("3rd entry: 2, 2");
+
+        // Back to one replacements, so that third entry is back to a string for first section
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        pText = "-6, 1, -8";
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
+                .text,
+        ).eq("3rd entry: , ");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
+                .text,
+        ).eq("3rd entry: -8, -8");
+
+        // Back to 2 replacements
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        pText = "-6, 1, 2, -8";
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
+                .text,
+        ).eq(pText);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
+                .text,
+        ).eq(pText);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
+                .text,
+        ).eq("3rd entry: 2, 2");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
+                .text,
+        ).eq("3rd entry: 2, 2");
     });
 });

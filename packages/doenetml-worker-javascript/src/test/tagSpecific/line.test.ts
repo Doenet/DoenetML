@@ -5485,9 +5485,7 @@ describe("Line tag tests", async () => {
                         .value.tree,
                 ).eq(t2y);
             } else {
-                expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
-                    undefined,
-                );
+                expect(await resolvePathToNodeIdx("Ps[1]")).eq(-1);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("x")].stateValues
                         .value.tree,
@@ -5497,9 +5495,7 @@ describe("Line tag tests", async () => {
                         .value.tree,
                 ).eq("\uff3f");
             }
-            expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
-                undefined,
-            );
+            expect(await resolvePathToNodeIdx("Ps[2]")).eq(-1);
         }
 
         await check_items(NaN);

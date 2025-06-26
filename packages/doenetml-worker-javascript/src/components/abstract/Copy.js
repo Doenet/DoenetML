@@ -2177,7 +2177,9 @@ export default class Copy extends CompositeComponent {
                     }
                 }
 
-                replacementChanges.push(replacementInstruction);
+                if (replacementInstruction) {
+                    replacementChanges.push(replacementInstruction);
+                }
 
                 continue;
             }
@@ -2461,7 +2463,7 @@ export default class Copy extends CompositeComponent {
                 numReplacements: 0,
                 numNonStringReplacements: 0,
                 propVariablesCopiedByReplacement,
-                replacementInstruction: [],
+                replacementInstruction: null,
                 errors,
                 warnings,
                 nComponents,
@@ -2508,7 +2510,7 @@ export async function replacementFromProp({
     if (varName === undefined || varName.slice(0, 12) === "__not_public") {
         if (propName === "__no_target_found") {
             // find name of prop from unresolvedPath position and doenetML
-            const unresolvedPath = component.refResolution.unresolvedPath;
+            const unresolvedPath = await component.stateValues.unresolvedPath;
             const startOffset = unresolvedPath[0].position?.start.offset;
             const endOffset =
                 unresolvedPath[unresolvedPath.length - 1].position?.end.offset;

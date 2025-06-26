@@ -62,6 +62,7 @@ function addCommasForCompositeRangesSub({
     let newChildren = [];
     let newPotentialListComponents = [];
     let lastChildInd = startInd - 1;
+    let lastChildIndIncludingEmptyComposites = lastChildInd;
 
     for (
         let rangeInd = 0;
@@ -186,6 +187,13 @@ function addCommasForCompositeRangesSub({
                 }
             }
             lastChildInd = rangeLastInd;
+            // If we had an empty composite, then rangeLastInd = rangeFirstInd -1.
+            // In this case, we still don't want to add the composite back to `potentialListComponents`
+            // so we make sure `lastChildIndIncludingEmptyComposites` is after that composite
+            lastChildIndIncludingEmptyComposites = Math.max(
+                rangeFirstInd,
+                rangeLastInd,
+            );
         }
     }
 
@@ -194,7 +202,7 @@ function addCommasForCompositeRangesSub({
         if (potentialListComponents) {
             newPotentialListComponents.push(
                 ...potentialListComponents.slice(
-                    lastChildInd - startInd + 1,
+                    lastChildIndIncludingEmptyComposites - startInd + 1,
                     endInd - startInd + 1,
                 ),
             );

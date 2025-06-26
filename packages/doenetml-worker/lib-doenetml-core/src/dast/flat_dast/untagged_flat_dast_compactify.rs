@@ -108,6 +108,10 @@ impl FlatNode {
                             })
                         });
                     });
+                    resolution
+                        .nodes_in_resolved_path
+                        .iter_mut()
+                        .for_each(|idx| *idx = ref_index_map[*idx]);
                 }
             }
             FlatNode::FunctionRef(function_ref) => {
