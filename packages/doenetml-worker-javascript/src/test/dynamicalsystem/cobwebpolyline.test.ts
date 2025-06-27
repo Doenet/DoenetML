@@ -41,8 +41,8 @@ describe("cobwebPolyline Tag Tests", async () => {
   </updateValue>
   
   <graph xmin="-2" xmax="5" ymin="-2.2" ymax="4.5" width="500px" name="graph1">
-    <xlabel>x_n</xlabel>
-    <ylabel>x_{n+1}</ylabel>
+    <xLabel>x_n</xLabel>
+    <yLabel>x_{n+1}</yLabel>
     <cobwebPolyline name="cobweb" stylenumber="4" attractThreshold="0.2" numPoints="$numPoints" function="$f" initialPoint="$P1" numIterationsRequired='3' />
   </graph> 
 

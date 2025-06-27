@@ -54,29 +54,29 @@ describe("Graph tag tests", async () => {
             doenetML: `
     <text>a</text>
 
-    <graph name="g" xlabelPosition="$xlabelpos" ylabelPosition="$ylabelpos" ylabelAlignment="$ylabelalign">
-    <xlabel>$xlabel</xlabel><ylabel>$ylabel</ylabel>
+    <graph name="g" xLabelPosition="$xLabelPos" yLabelPosition="$yLabelPos" yLabelAlignment="$yLabelalign">
+    <xLabel>$xLabel</xLabel><yLabel>$yLabel</yLabel>
     </graph>
 
     <tabular>
       <row>
-        <cell>xlabel: <textInput name="xlabel" prefill="x" /></cell>
+        <cell>xLabel: <textInput name="xLabel" prefill="x" /></cell>
         <cell>position: 
-        <choiceInput inline preselectChoice="2" name="xlabelpos">
+        <choiceInput inline preselectChoice="2" name="xLabelPos">
           <choice>left</choice>
           <choice>right</choice>
         </choiceInput></cell>
       </row>
       <row>
-        <cell>ylabel: <textInput name="ylabel" prefill="y" /></cell>
+        <cell>yLabel: <textInput name="yLabel" prefill="y" /></cell>
         <cell>position:
-        <choiceInput inline preselectChoice="1" name="ylabelpos">
+        <choiceInput inline preselectChoice="1" name="yLabelPos">
           <choice>top</choice>
           <choice>bottom</choice>
         </choiceInput>
         </cell>
         <cell>alignment:
-        <choiceInput inline preselectChoice="1" name="ylabelalign">
+        <choiceInput inline preselectChoice="1" name="yLabelalign">
           <choice>left</choice>
           <choice>right</choice>
         </choiceInput>
@@ -88,88 +88,88 @@ describe("Graph tag tests", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues.xlabel,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.xLabel,
         ).eq("x");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .xlabelPosition,
+                .xLabelPosition,
         ).eq("right");
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues.ylabel,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.yLabel,
         ).eq("y");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .ylabelPosition,
+                .yLabelPosition,
         ).eq("top");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .ylabelAlignment,
+                .yLabelAlignment,
         ).eq("left");
 
         await updateTextInputValue({
             text: "hello",
-            componentIdx: await resolvePathToNodeIdx("xlabel"),
+            componentIdx: await resolvePathToNodeIdx("xLabel"),
             core,
         });
         await updateTextInputValue({
             text: "bye",
-            componentIdx: await resolvePathToNodeIdx("ylabel"),
+            componentIdx: await resolvePathToNodeIdx("yLabel"),
             core,
         });
 
         await updateSelectedIndices({
-            componentIdx: await resolvePathToNodeIdx("xlabelpos"),
+            componentIdx: await resolvePathToNodeIdx("xLabelPos"),
             selectedIndices: [1],
             core,
         });
         await updateSelectedIndices({
-            componentIdx: await resolvePathToNodeIdx("ylabelpos"),
+            componentIdx: await resolvePathToNodeIdx("yLabelPos"),
             selectedIndices: [2],
             core,
         });
         await updateSelectedIndices({
-            componentIdx: await resolvePathToNodeIdx("ylabelalign"),
+            componentIdx: await resolvePathToNodeIdx("yLabelalign"),
             selectedIndices: [2],
             core,
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues.xlabel,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.xLabel,
         ).eq("hello");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .xlabelPosition,
+                .xLabelPosition,
         ).eq("left");
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues.ylabel,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.yLabel,
         ).eq("bye");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .ylabelPosition,
+                .yLabelPosition,
         ).eq("bottom");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .ylabelAlignment,
+                .yLabelAlignment,
         ).eq("right");
     });
 
-    it("change essential xlabel and ylabel", async () => {
+    it("change essential xLabel and yLabel", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" />
-    <p><updateValue name="uvx" target="$g.xlabel" type="text" newValue="s" ><label>Change x-label</label></updateValue></p>
-    <p><updateValue name="uvy" target="$g.ylabel" type="text" newValue="t" ><label>Change y-label</label></updateValue></p>
+    <p><updateValue name="uvx" target="$g.xLabel" type="text" newValue="s" ><label>Change x-label</label></updateValue></p>
+    <p><updateValue name="uvy" target="$g.yLabel" type="text" newValue="t" ><label>Change y-label</label></updateValue></p>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues.xlabel,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.xLabel,
         ).eq("");
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues.ylabel,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.yLabel,
         ).eq("");
 
         await updateValue({
@@ -183,10 +183,10 @@ describe("Graph tag tests", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues.xlabel,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.xLabel,
         ).eq("s");
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues.ylabel,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.yLabel,
         ).eq("t");
     });
 
@@ -772,8 +772,8 @@ describe("Graph tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
-      <xlabel><math extend="$x.submittedResponse" /></xlabel>
-      <ylabel>y</ylabel>
+      <xLabel><math extend="$x.submittedResponse" /></xLabel>
+      <yLabel>y</yLabel>
     </graph>
 
     <answer name="x">x</answer>
@@ -786,7 +786,7 @@ describe("Graph tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("graph1")].stateValues
-                .xlabel,
+                .xLabel,
         ).eq("\\(\uff3f\\)");
 
         let mathinputIdx =
@@ -806,7 +806,7 @@ describe("Graph tag tests", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("graph1")].stateValues
-                .xlabel,
+                .xLabel,
         ).eq("\\(x\\)");
     });
 

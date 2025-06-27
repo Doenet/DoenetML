@@ -113,9 +113,9 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
         };
-        attributes.xlabelPosition = {
+        attributes.xLabelPosition = {
             createComponentOfType: "text",
-            createStateVariable: "xlabelPosition",
+            createStateVariable: "xLabelPosition",
             defaultValue: "right",
             public: true,
             forRenderer: true,
@@ -129,18 +129,18 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
         };
-        attributes.ylabelPosition = {
+        attributes.yLabelPosition = {
             createComponentOfType: "text",
-            createStateVariable: "ylabelPosition",
+            createStateVariable: "yLabelPosition",
             defaultValue: "top",
             public: true,
             forRenderer: true,
             toLowerCase: true,
             validValues: ["top", "bottom"],
         };
-        attributes.ylabelAlignment = {
+        attributes.yLabelAlignment = {
             createComponentOfType: "text",
-            createStateVariable: "ylabelAlignment",
+            createStateVariable: "yLabelAlignment",
             defaultValue: "left",
             public: true,
             forRenderer: true,
@@ -196,12 +196,12 @@ export default class Graph extends BlockComponent {
     static returnChildGroups() {
         return [
             {
-                group: "xlabels",
-                componentTypes: ["xlabel"],
+                group: "xLabels",
+                componentTypes: ["xLabel"],
             },
             {
-                group: "ylabels",
-                componentTypes: ["ylabel"],
+                group: "yLabels",
+                componentTypes: ["yLabel"],
             },
             {
                 group: "graphical",
@@ -242,14 +242,14 @@ export default class Graph extends BlockComponent {
             returnRoundingStateVariableDefinitions(),
         );
 
-        stateVariableDefinitions.xlabel = {
+        stateVariableDefinitions.xLabel = {
             forRenderer: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "label",
                 addStateVariablesShadowingStateVariables: {
                     hasLatex: {
-                        stateVariableToShadow: "xlabelHasLatex",
+                        stateVariableToShadow: "xLabelHasLatex",
                     },
                 },
             },
@@ -257,33 +257,33 @@ export default class Graph extends BlockComponent {
             defaultValue: "",
             additionalStateVariablesDefined: [
                 {
-                    variableName: "xlabelHasLatex",
+                    variableName: "xLabelHasLatex",
                     forRenderer: true,
                 },
             ],
             returnDependencies: () => ({
-                xlabelChild: {
+                xLabelChild: {
                     dependencyType: "child",
-                    childGroups: ["xlabels"],
+                    childGroups: ["xLabels"],
                     variableNames: ["value", "hasLatex"],
                 },
             }),
             definition({ dependencyValues }) {
-                if (dependencyValues.xlabelChild.length > 0) {
-                    let xlabelChild =
-                        dependencyValues.xlabelChild[
-                            dependencyValues.xlabelChild.length - 1
+                if (dependencyValues.xLabelChild.length > 0) {
+                    let xLabelChild =
+                        dependencyValues.xLabelChild[
+                            dependencyValues.xLabelChild.length - 1
                         ];
                     return {
                         setValue: {
-                            xlabel: xlabelChild.stateValues.value,
-                            xlabelHasLatex: xlabelChild.stateValues.hasLatex,
+                            xLabel: xLabelChild.stateValues.value,
+                            xLabelHasLatex: xLabelChild.stateValues.hasLatex,
                         },
                     };
                 } else {
                     return {
-                        useEssentialOrDefaultValue: { xlabel: true },
-                        setValue: { xlabelHasLatex: false },
+                        useEssentialOrDefaultValue: { xLabel: true },
+                        setValue: { xLabelHasLatex: false },
                     };
                 }
             },
@@ -291,18 +291,18 @@ export default class Graph extends BlockComponent {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
-                if (typeof desiredStateVariableValues.xlabel !== "string") {
+                if (typeof desiredStateVariableValues.xLabel !== "string") {
                     return { success: false };
                 }
 
-                if (dependencyValues.xlabelChild.length > 0) {
-                    let lastLabelInd = dependencyValues.xlabelChild.length - 1;
+                if (dependencyValues.xLabelChild.length > 0) {
+                    let lastLabelInd = dependencyValues.xLabelChild.length - 1;
                     return {
                         success: true,
                         instructions: [
                             {
-                                setDependency: "xlabelChild",
-                                desiredValue: desiredStateVariableValues.xlabel,
+                                setDependency: "xLabelChild",
+                                desiredValue: desiredStateVariableValues.xLabel,
                                 childIndex: lastLabelInd,
                                 variableIndex: 0,
                             },
@@ -313,8 +313,8 @@ export default class Graph extends BlockComponent {
                         success: true,
                         instructions: [
                             {
-                                setEssentialValue: "xlabel",
-                                value: desiredStateVariableValues.xlabel,
+                                setEssentialValue: "xLabel",
+                                value: desiredStateVariableValues.xLabel,
                             },
                         ],
                     };
@@ -322,14 +322,14 @@ export default class Graph extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.ylabel = {
+        stateVariableDefinitions.yLabel = {
             forRenderer: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "label",
                 addStateVariablesShadowingStateVariables: {
                     hasLatex: {
-                        stateVariableToShadow: "ylabelHasLatex",
+                        stateVariableToShadow: "yLabelHasLatex",
                     },
                 },
             },
@@ -337,33 +337,33 @@ export default class Graph extends BlockComponent {
             defaultValue: "",
             additionalStateVariablesDefined: [
                 {
-                    variableName: "ylabelHasLatex",
+                    variableName: "yLabelHasLatex",
                     forRenderer: true,
                 },
             ],
             returnDependencies: () => ({
-                ylabelChild: {
+                yLabelChild: {
                     dependencyType: "child",
-                    childGroups: ["ylabels"],
+                    childGroups: ["yLabels"],
                     variableNames: ["value", "hasLatex"],
                 },
             }),
             definition({ dependencyValues }) {
-                if (dependencyValues.ylabelChild.length > 0) {
-                    let ylabelChild =
-                        dependencyValues.ylabelChild[
-                            dependencyValues.ylabelChild.length - 1
+                if (dependencyValues.yLabelChild.length > 0) {
+                    let yLabelChild =
+                        dependencyValues.yLabelChild[
+                            dependencyValues.yLabelChild.length - 1
                         ];
                     return {
                         setValue: {
-                            ylabel: ylabelChild.stateValues.value,
-                            ylabelHasLatex: ylabelChild.stateValues.hasLatex,
+                            yLabel: yLabelChild.stateValues.value,
+                            yLabelHasLatex: yLabelChild.stateValues.hasLatex,
                         },
                     };
                 } else {
                     return {
-                        useEssentialOrDefaultValue: { ylabel: true },
-                        setValue: { ylabelHasLatex: false },
+                        useEssentialOrDefaultValue: { yLabel: true },
+                        setValue: { yLabelHasLatex: false },
                     };
                 }
             },
@@ -371,18 +371,18 @@ export default class Graph extends BlockComponent {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
-                if (typeof desiredStateVariableValues.ylabel !== "string") {
+                if (typeof desiredStateVariableValues.yLabel !== "string") {
                     return { success: false };
                 }
 
-                if (dependencyValues.ylabelChild.length > 0) {
-                    let lastLabelInd = dependencyValues.ylabelChild.length - 1;
+                if (dependencyValues.yLabelChild.length > 0) {
+                    let lastLabelInd = dependencyValues.yLabelChild.length - 1;
                     return {
                         success: true,
                         instructions: [
                             {
-                                setDependency: "ylabelChild",
-                                desiredValue: desiredStateVariableValues.ylabel,
+                                setDependency: "yLabelChild",
+                                desiredValue: desiredStateVariableValues.yLabel,
                                 childIndex: lastLabelInd,
                                 variableIndex: 0,
                             },
@@ -393,8 +393,8 @@ export default class Graph extends BlockComponent {
                         success: true,
                         instructions: [
                             {
-                                setEssentialValue: "ylabel",
-                                value: desiredStateVariableValues.ylabel,
+                                setEssentialValue: "yLabel",
+                                value: desiredStateVariableValues.yLabel,
                             },
                         ],
                     };
@@ -430,8 +430,8 @@ export default class Graph extends BlockComponent {
                     dependencyType: "child",
                     childGroups: [
                         "graphical",
-                        "xlabels",
-                        "ylabels",
+                        "xLabels",
+                        "yLabels",
                         "graphs",
                         "childrenThatShouldNotBeHere",
                     ],
