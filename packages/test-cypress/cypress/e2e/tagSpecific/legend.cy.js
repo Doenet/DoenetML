@@ -11,7 +11,6 @@ describe("Legend Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <text>a</text>
     <graph>
         <legend> <label><m>A = $sideA.length</m></label> </legend>
 
@@ -22,9 +21,6 @@ describe("Legend Tag Tests", function () {
                 "*",
             );
         });
-
-        // use this to wait for page to load
-        cy.get(cesc("#\\/_text1")).should("have.text", "a");
 
         cy.get(".MathJax").should("have.text", "A=2.83");
     });
