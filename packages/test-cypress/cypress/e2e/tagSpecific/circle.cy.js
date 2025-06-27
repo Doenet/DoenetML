@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "@doenet/utils";
+import { cesc } from "@doenet/utils";
 
 function nInDOM(n) {
     if (n < 0) {

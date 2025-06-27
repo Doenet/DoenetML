@@ -1,4 +1,4 @@
-import { cesc2 } from "@doenet/utils";
+import { cesc } from "@doenet/utils";
 
 describe("Render commas tests", function () {
     beforeEach(() => {
@@ -70,53 +70,53 @@ $fi.iterates
             );
         });
 
-        cy.get(cesc2("#0")).should(
+        cy.get(cesc("#0")).should(
             "contain.text",
             "In document: yes, no, maybe",
         );
-        cy.get(cesc2("#in_alert")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_blockQuote")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_c")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_caption")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_cell")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_choice")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_span")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_em")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_feedback")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_footnote")).click();
-        cy.get(cesc2("#in_footnote")).should("contain.text", "yes, no, maybe");
-        cy.get(cesc2("#in_hint_w_title")).click();
-        cy.get(cesc2("#in_hint_w_title")).should(
+        cy.get(cesc("#in_alert")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_blockQuote")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_c")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_caption")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_cell")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_choice")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_span")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_em")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_feedback")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_footnote")).click();
+        cy.get(cesc("#in_footnote")).should("contain.text", "yes, no, maybe");
+        cy.get(cesc("#in_hint_w_title")).click();
+        cy.get(cesc("#in_hint_w_title")).should(
             "contain.text",
             "yes, no, maybe",
         );
-        cy.get(cesc2("#in_hint_wo_title")).click();
-        cy.get(cesc2("#in_hint_wo_title")).should(
+        cy.get(cesc("#in_hint_wo_title")).click();
+        cy.get(cesc("#in_hint_wo_title")).should(
             "contain.text",
             "yes, no, maybe",
         );
-        cy.get(cesc2("#in_label")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_li")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_li2")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_p")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_pre")).should("have.text", "yes, no, maybe");
-        cy.get(cesc2("#in_q")).should("have.text", "“yes, no, maybe”");
-        cy.get(cesc2("#in_section_w_title")).should(
+        cy.get(cesc("#in_label")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_li")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_li2")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_p")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_pre")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_q")).should("have.text", "“yes, no, maybe”");
+        cy.get(cesc("#in_section_w_title")).should(
             "contain.text",
             "Title: yes, no, maybe",
         );
-        cy.get(cesc2("#in_section_w_title")).should(
+        cy.get(cesc("#in_section_w_title")).should(
             "contain.text",
             "Text: yes, no, maybe",
         );
-        cy.get(cesc2("#in_section_wo_title")).should(
+        cy.get(cesc("#in_section_wo_title")).should(
             "contain.text",
             "yes, no, maybe",
         );
-        cy.get(cesc2("#in_solution")).click();
-        cy.get(cesc2("#in_solution")).should("contain.text", "yes, no, maybe");
-        cy.get(cesc2("#in_sq")).should("have.text", "‘yes, no, maybe’");
-        cy.get(cesc2("#in_text")).should("have.text", "yes, no, maybe");
+        cy.get(cesc("#in_solution")).click();
+        cy.get(cesc("#in_solution")).should("contain.text", "yes, no, maybe");
+        cy.get(cesc("#in_sq")).should("have.text", "‘yes, no, maybe’");
+        cy.get(cesc("#in_text")).should("have.text", "yes, no, maybe");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
