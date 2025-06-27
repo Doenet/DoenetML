@@ -13,6 +13,7 @@ import { isDastElement } from "../types-util";
 import { repeatSugar } from "./component-sugar/repeat";
 import { conditionalContentSugar } from "./component-sugar/conditionalContent";
 import { selectSugar } from "./component-sugar/select";
+import { solutionSugar } from "./component-sugar/soluition";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
@@ -183,6 +184,9 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                     break;
                 case "select":
                     selectSugar(node);
+                    break;
+                case "solution":
+                    solutionSugar(node);
                     break;
             }
         });
