@@ -54,10 +54,8 @@ pub fn calculate_root_names(resolver: Resolver) -> Vec<Option<String>> {
                     .expect("Incorrect breadth-first traversal of resolver data");
 
                 root_names[edge.referent] = match edge.edge_type {
-                    ResolverEdgeType::Name(name) => Some(format!("{}.{}", origin_name, name)),
-                    ResolverEdgeType::Index(index) => {
-                        Some(format!("{}:{}", origin_name, index + 1))
-                    }
+                    ResolverEdgeType::Name(name) => Some(format!("{origin_name}.{name}")),
+                    ResolverEdgeType::Index(index) => Some(format!("{origin_name}:{}", index + 1)),
                 }
             }
         }

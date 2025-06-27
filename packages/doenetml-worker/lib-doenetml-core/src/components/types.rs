@@ -44,7 +44,7 @@ impl<T: IntoGraphNode> From<T> for PropDefinitionIdx {
     fn from(node: T) -> Self {
         match node.into() {
             GraphNode::Prop(idx) => idx.into(),
-            node => panic!("Expected GraphNode::Component, not {:?}", node),
+            node => panic!("Expected GraphNode::Component, not {node:?}"),
         }
     }
 }
@@ -95,7 +95,7 @@ impl<T: IntoGraphNode> From<T> for ComponentIdx {
     fn from(node: T) -> Self {
         match node.into() {
             GraphNode::Component(idx) => idx.into(),
-            node => panic!("Expected GraphNode::Component, not {:?}", node),
+            node => panic!("Expected GraphNode::Component, not {node:?}"),
         }
     }
 }
@@ -140,7 +140,7 @@ impl<T: IntoGraphNode> From<T> for StringIdx {
     fn from(node: T) -> Self {
         match node.into() {
             GraphNode::String(idx) => idx.into(),
-            node => panic!("Expected GraphNode::Component, not {:?}", node),
+            node => panic!("Expected GraphNode::Component, not {node:?}"),
         }
     }
 }

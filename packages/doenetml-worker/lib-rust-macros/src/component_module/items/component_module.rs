@@ -145,7 +145,7 @@ impl ComponentModule {
         ) {
             (true, Some(idx)) => {
                 let default_prop = &self.props.get_prop_names()[idx];
-                doc_comments.push_str(&format!("\n\nWhen this component is extended by a different component, the `{}` prop is implicitly used.", default_prop));
+                doc_comments.push_str(&format!("\n\nWhen this component is extended by a different component, the `{default_prop}` prop is implicitly used."));
             }
             _ => {
                 // No explanation needed

@@ -13,7 +13,7 @@ fn main() -> Result<()> {
     let result = core.to_flat_dast();
 
     let processed_string = serde_json::to_string(&result)?;
-    println!("{}", processed_string);
+    println!("{processed_string}");
 
     Ok(())
 }

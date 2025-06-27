@@ -178,7 +178,7 @@ impl PropsEnum {
         let action_names = self
             .get_prop_names()
             .iter()
-            .map(|x| format!("`{}`", x))
+            .map(|x| format!("`{x}`"))
             .collect::<Vec<_>>();
 
         format!(
@@ -351,8 +351,8 @@ impl PropsEnum {
     /// - `[ComponentName]PropsInGraph`: the props that are marked `for_render` in a graph,
     /// - `[ComponentName]PropsInText`: the props that are marked `for_render` in text,
     fn generate_for_render_props_typescript(&self, component_name: &str) -> TokenStream {
-        let type_name_in_graph = format!("{}PropsInGraph", component_name);
-        let type_name_in_text = format!("{}PropsInText", component_name);
+        let type_name_in_graph = format!("{component_name}PropsInGraph");
+        let type_name_in_text = format!("{component_name}PropsInText");
         let for_render_props = self
             .get_prop_names()
             .into_iter()
@@ -390,23 +390,21 @@ impl PropsEnum {
 
         let for_render_props_in_graph_ts = for_render_props_in_graph
             .iter()
-            .map(|(prop_name, value_type_name)| format!("{}: {}", prop_name, value_type_name))
+            .map(|(prop_name, value_type_name)| format!("{prop_name}: {value_type_name}"))
             .collect::<Vec<_>>()
             .join(", ");
         let for_render_props_in_text_ts = for_render_props_in_text
             .iter()
-            .map(|(prop_name, value_type_name)| format!("{}: {}", prop_name, value_type_name))
+            .map(|(prop_name, value_type_name)| format!("{prop_name}: {value_type_name}"))
             .collect::<Vec<_>>()
             .join(", ");
 
         // This is the actual typescript that we want to end up in the generated file.
         let type_string_in_graph = format!(
-            "export type {} = {{ {} }};",
-            type_name_in_graph, for_render_props_in_graph_ts
+            "export type {type_name_in_graph} = {{ {for_render_props_in_graph_ts} }};"
         );
         let type_string_in_text = format!(
-            "export type {} = {{ {} }};",
-            type_name_in_text, for_render_props_in_text_ts
+            "export type {type_name_in_text} = {{ {for_render_props_in_text_ts} }};"
         );
 
         quote! {
@@ -449,10 +447,7 @@ impl PropsEnum {
                 let profile_str = quote! {#profile}.to_string().replace(' ', "");
                 let value_type_str = quote! {#value_type}.to_string().replace(' ', "");
                 let panic_string = format!(
-                    "Prop `{}` has profile `{}` but the type doesn't match that returned by `prop_profile_to_type` (found `{}`)",
-                    name,
-                    profile_str,
-                    value_type_str
+                    "Prop `{name}` has profile `{profile_str}` but the type doesn't match that returned by `prop_profile_to_type` (found `{value_type_str}`)"
                 );
                 quote! {
                     if !matches!(

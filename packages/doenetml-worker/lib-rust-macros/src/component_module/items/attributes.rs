@@ -75,12 +75,11 @@ impl AttributesEnum {
         let attribute_names = self
             .get_attribute_names()
             .iter()
-            .map(|x| format!("`{}`", x))
+            .map(|x| format!("`{x}`"))
             .collect::<Vec<_>>();
         let attribute_names = attribute_names.join(", ");
         format!(
-            "The attributes available on this component are: {}",
-            attribute_names
+            "The attributes available on this component are: {attribute_names}"
         )
     }
 
@@ -125,7 +124,7 @@ impl AttributesEnum {
         };
         let name = &self.get_attribute_names()[variant_idx];
 
-        format!("{}\n- Name: \"{}\"\n{}", existing_doc, name, default)
+        format!("{existing_doc}\n- Name: \"{name}\"\n{default}")
     }
 
     /// Generate the `pub mod attrs { ... }` module.
@@ -152,8 +151,7 @@ impl AttributesEnum {
                 }
                 (Some(prop), Some(default)) => {
                     let doc_comment = format!(
-                        "Get the prop updater for the `{}` attribute.",
-                        attribute_name
+                        "Get the prop updater for the `{attribute_name}` attribute."
                     );
 
                     quote! {
@@ -165,7 +163,7 @@ impl AttributesEnum {
                 }
             };
 
-            let doc_comment = format!("Empty struct created as a placeholder for data associated with the `{}` attribute.", attribute_name);
+            let doc_comment = format!("Empty struct created as a placeholder for data associated with the `{attribute_name}` attribute.");
 
             quote! {
                 #[doc = #doc_comment]

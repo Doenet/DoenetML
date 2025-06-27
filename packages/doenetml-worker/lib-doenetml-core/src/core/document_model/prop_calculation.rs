@@ -365,8 +365,7 @@ impl DocumentModel {
                                         content_refs.extend(c_refs.into_vec());
                                     }
                                     _ => panic!(
-                                        "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
-                                        node
+                                        "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{node:?}`"
                                     ),
                                 }
                             }
@@ -411,8 +410,7 @@ impl DocumentModel {
                                         content_refs_and_annotations.extend(c_refs.into_vec().into_iter().map(|c_ref| (c_ref, annotation)));
                                     }
                                     _ => panic!(
-                                        "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{:?}`",
-                                        node
+                                        "Unexpected child of `GraphNode::Query` coming from `DataQuery::ComponentRefs`. Got node `{node:?}`"
                                     ),
                                 }
                             }
@@ -512,7 +510,7 @@ impl DocumentModel {
                                         GraphNode::Virtual(_) => {
                                             PropValue::None(())
                                         }
-                                        _ => panic!("Unexpected child of `GraphNode::Virtual` coming from `DataQuery`. Got node `{:?}`", child_node),
+                                        _ => panic!("Unexpected child of `GraphNode::Virtual` coming from `DataQuery`. Got node `{child_node:?}`"),
                                     }
                                 }).collect();
                                 PropWithMeta {
@@ -524,7 +522,7 @@ impl DocumentModel {
 
                             }
 
-                            _ => panic!("Unexpected child of `GraphNode::Query` coming from `DataQuery`. Got node `{:?}`", node),
+                            _ => panic!("Unexpected child of `GraphNode::Query` coming from `DataQuery`. Got node `{node:?}`"),
                         }
                     })
                     .collect::<Vec<_>>();

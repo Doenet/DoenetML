@@ -50,8 +50,7 @@ impl StringCache {
         let string_node = string_node.borrow();
         self.prop_cache.get_prop(string_node, origin, || {
             panic!(
-                "Trying to retrieve a string prop that hasn't been set yet, {:?}",
-                string_node
+                "Trying to retrieve a string prop that hasn't been set yet, {string_node:?}"
             )
         })
     }

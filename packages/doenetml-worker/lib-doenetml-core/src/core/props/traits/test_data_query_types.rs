@@ -53,7 +53,7 @@ pub trait TestDataQueryTypes: TryFromDataQueryResults {
                 let component_name = T::COMPONENT_NAME;
                 let possible_types_str = possible_types
                     .iter()
-                    .map(|x| format!("{:?}", x))
+                    .map(|x| format!("{x:?}"))
                     .join("`, `");
                 // Note: All whitespace after the `\` at the end of the line is removed, so if we want indented messages,
                 // we need to include the whitespace _before_ the `\`.

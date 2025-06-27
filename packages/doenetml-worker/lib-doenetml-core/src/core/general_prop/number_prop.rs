@@ -154,8 +154,7 @@ impl PropUpdater for NumberProp {
                 PropValue::Math(_) | PropValue::Number(_) | PropValue::String(_) => {}
                 _ => {
                     panic!(
-                        "Should get number, math, or string dependency for number, found {:?}",
-                        prop
+                        "Should get number, math, or string dependency for number, found {prop:?}"
                     )
                 }
             }
@@ -226,8 +225,7 @@ impl PropUpdater for NumberProp {
                 PropValue::Math(_) | PropValue::Number(_) | PropValue::String(_) => {}
                 _ => {
                     panic!(
-                        "Should get number, math, or string dependency for number, found {:?}",
-                        prop
+                        "Should get number, math, or string dependency for number, found {prop:?}"
                     )
                 }
             }

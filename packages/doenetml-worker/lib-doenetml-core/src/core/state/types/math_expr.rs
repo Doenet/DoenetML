@@ -462,7 +462,7 @@ impl MathExpr {
 impl From<prop_type::Number> for MathExpr {
     fn from(value: prop_type::Number) -> Self {
         MathExpr {
-            math_object: JsMathExpr(format!("{}", value,)),
+            math_object: JsMathExpr(format!("{value}",)),
         }
     }
 }
@@ -470,7 +470,7 @@ impl From<prop_type::Number> for MathExpr {
 impl From<prop_type::Integer> for MathExpr {
     fn from(value: prop_type::Integer) -> Self {
         MathExpr {
-            math_object: JsMathExpr(format!("{}", value,)),
+            math_object: JsMathExpr(format!("{value}",)),
         }
     }
 }
