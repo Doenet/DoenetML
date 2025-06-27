@@ -51,6 +51,8 @@ impl Resolver {
     ///
     /// From each origin node, name edges are traversed before index edges.
     pub(super) fn breadth_first_traversal(&self) -> Vec<ResolverEdge> {
+        // TODO: decide if this should be converted to an iterator
+
         let mut edges_encountered = Vec::new();
 
         let mut queue = VecDeque::new();
@@ -81,7 +83,12 @@ impl Resolver {
                         .iter()
                         .filter_map(|(name, ref_)| match ref_ {
                             Ref::Unique(idx) => {
-                                if visited[*idx] {
+                                // TODO: the check to ignore names than begin with `'_'` is only due to
+                                // adding `pluginAddCompatibilityNames` in `normalize-dast.ts` of the parser.
+                                // This plugin creates automatically generated names of the from `_componentType1`,
+                                // which we do not want to include in root names.
+                                // When we remove `pluginAddCompatibilityNames`, we should remove the check for `'_'`.
+                                if visited[*idx] || name.chars().next().unwrap() == '_' {
                                     None
                                 } else {
                                     visited[*idx] = true;
