@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe("blockquote Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -12,7 +10,7 @@ describe("blockquote Tag Tests", function () {
                 {
                     doenetML: `
   <p>Hello</p>
-  <blockQuote>
+  <blockQuote name="bq">
     For to be free is not merely to cast off one's chains, but to live in a way that respects and enhances the freedom of others.
   </blockquote>
   <p>There</p>
@@ -22,7 +20,7 @@ describe("blockquote Tag Tests", function () {
             );
         });
 
-        cy.get("blockquote" + cesc("#\\/_blockquote1")).should(
+        cy.get("blockquote#bq").should(
             "have.text",
             "\n    For to be free is not merely to cast off one's chains, but to live in a way that respects and enhances the freedom of others.\n  ",
         );
