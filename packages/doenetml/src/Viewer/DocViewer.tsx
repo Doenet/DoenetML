@@ -267,8 +267,9 @@ export function DocViewer({
         if (docId !== null) {
             const postfixForWindowFunctions =
                 prefixForIds
-                    .replaceAll("/", "")
-                    .replaceAll("\\", "")
+                    .replaceAll("::", "")
+                    .replaceAll(":", "_")
+                    .replaceAll(".", "_")
                     .replaceAll("-", "_") || "1";
 
             (window as any)[

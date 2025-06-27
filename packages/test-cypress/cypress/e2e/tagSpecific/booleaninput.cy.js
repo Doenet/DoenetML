@@ -88,7 +88,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc("#atb_input")).should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
-        //cy.get(cesc('#\\/bi_input')).should('be.checked');
+        //cy.get(cesc('#bi_input')).should('be.checked');
         cy.get(cesc("#v1")).should("have.text", "true");
         cy.get(cesc("#v2")).should("have.text", "true");
 
@@ -115,7 +115,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc("#atb_input")).should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
-        //cy.get(cesc('#\\/bi_input')).should('not.be.checked');
+        //cy.get(cesc('#bi_input')).should('not.be.checked');
         cy.get(cesc("#v1")).should("have.text", "false");
         cy.get(cesc("#v2")).should("have.text", "false");
 
@@ -142,7 +142,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc("#atb_input")).should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
-        //cy.get(cesc('#\\/bi_input')).should('be.checked');
+        //cy.get(cesc('#bi_input')).should('be.checked');
         cy.get(cesc("#v1")).should("have.text", "true");
         cy.get(cesc("#v2")).should("have.text", "true");
 
@@ -217,7 +217,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.get(cesc("#v")).should("have.text", "true");
         cy.get(cesc("#atb_input")).should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
-        //cy.get(cesc('#\\/bi_input')).should('be.checked');
+        //cy.get(cesc('#bi_input')).should('be.checked');
         cy.get(cesc("#atb")).should("contain.text", "It is ∫abf(x)dx");
         cy.get(cesc("#bi")).should("contain.text", "Hello ab");
 
@@ -351,7 +351,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.get(cesc("#v")).should("have.text", "true");
         cy.get(cesc("#asToggleButton_input")).should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
-        //cy.get(cesc('#\\/AnotherInput_input')).should('be.checked');
+        //cy.get(cesc('#AnotherInput_input')).should('be.checked');
         cy.get(cesc("#asToggleButton")).should(
             "contain.text",
             "as toggle button",
