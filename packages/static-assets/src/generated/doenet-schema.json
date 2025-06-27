@@ -1906,7 +1906,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -2238,7 +2237,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -2570,7 +2568,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -24173,7 +24170,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -24673,7 +24669,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -25173,7 +25168,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -25673,7 +25667,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -26173,7 +26166,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -26699,7 +26691,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -27199,7 +27190,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -27699,7 +27689,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -28199,7 +28188,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -28699,7 +28687,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -29199,7 +29186,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -29699,7 +29685,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -30199,7 +30184,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -30699,7 +30683,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -31199,7 +31182,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -31716,7 +31698,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -32207,7 +32188,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -32950,7 +32930,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -37366,8 +37345,7 @@
                 "split",
                 "codeEditor",
                 "summaryStatistics",
-                "blockQuote",
-                "contentPicker"
+                "blockQuote"
             ],
             "attributes": [
                 {
@@ -37932,7 +37910,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -38761,7 +38738,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -39093,7 +39069,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -39425,7 +39400,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -39757,7 +39731,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -40109,7 +40082,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -40848,8 +40820,7 @@
                 "subsetOfRealsInput",
                 "codeEditor",
                 "summaryStatistics",
-                "blockQuote",
-                "contentPicker"
+                "blockQuote"
             ],
             "attributes": [
                 {
@@ -41182,7 +41153,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -43743,9 +43713,6 @@
                     "name": "maxNumber"
                 },
                 {
-                    "name": "sourceAttributesToIgnore"
-                },
-                {
                     "name": "from"
                 },
                 {
@@ -43768,11 +43735,6 @@
                 {
                     "name": "maxNumber",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "sourceAttributesToIgnore",
-                    "type": "stringArray",
                     "isArray": false
                 },
                 {
@@ -44006,7 +43968,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -53681,7 +53642,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -56819,7 +56779,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -57883,7 +57842,6 @@
                 "matchesPattern",
                 "eigenDecomposition",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -58908,8 +58866,7 @@
                 "subsetOfRealsInput",
                 "codeEditor",
                 "summaryStatistics",
-                "blockQuote",
-                "contentPicker"
+                "blockQuote"
             ],
             "attributes": [
                 {
@@ -59229,8 +59186,7 @@
                 "subsetOfRealsInput",
                 "codeEditor",
                 "summaryStatistics",
-                "blockQuote",
-                "contentPicker"
+                "blockQuote"
             ],
             "attributes": [
                 {
@@ -59777,7 +59733,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -60099,7 +60054,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -60177,12 +60131,6 @@
                 },
                 {
                     "name": "indexName"
-                },
-                {
-                    "name": "for"
-                },
-                {
-                    "name": "forType"
                 },
                 {
                     "name": "asList",
@@ -62902,7 +62850,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -63083,6 +63030,9 @@
                     "name": "exclude"
                 },
                 {
+                    "name": "target"
+                },
+                {
                     "name": "animationOn",
                     "values": [
                         "true",
@@ -63134,16 +63084,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "sourceIndex",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "propIndex",
-                    "type": "numberList",
                     "isArray": false
                 },
                 {
@@ -64570,7 +64510,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -65943,7 +65882,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -66991,7 +66929,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -67321,7 +67258,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -67653,7 +67589,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -68936,7 +68871,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -69256,7 +69190,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -69570,7 +69503,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -70099,8 +70031,7 @@
                 "subsetOfRealsInput",
                 "codeEditor",
                 "summaryStatistics",
-                "blockQuote",
-                "contentPicker"
+                "blockQuote"
             ],
             "attributes": [
                 {
@@ -70862,7 +70793,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -71207,7 +71137,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -72586,7 +72515,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -72652,6 +72580,13 @@
                         "letter",
                         "word",
                         "comma"
+                    ]
+                },
+                {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
                     ]
                 }
             ],
@@ -73781,7 +73716,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -76926,7 +76860,6 @@
                 "eigenDecomposition",
                 "latex",
                 "blockQuote",
-                "contentPicker",
                 "stickyGroup",
                 "pointList",
                 "intervalList",
@@ -77005,356 +76938,6 @@
                 {
                     "name": "permid",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                }
-            ],
-            "top": true,
-            "acceptsStringChildren": true
-        },
-        {
-            "name": "contentPicker",
-            "children": [
-                "title",
-                "rightHandSide",
-                "description",
-                "xlabel",
-                "ylabel",
-                "statement",
-                "introduction",
-                "conclusion",
-                "topic",
-                "m",
-                "me",
-                "men",
-                "md",
-                "mdn",
-                "mrow",
-                "not",
-                "and",
-                "or",
-                "xor",
-                "isInteger",
-                "isNumber",
-                "isBetween",
-                "sum",
-                "product",
-                "clampNumber",
-                "wrapNumberPeriodic",
-                "round",
-                "setSmallToZero",
-                "convertSetToList",
-                "ceil",
-                "floor",
-                "abs",
-                "sign",
-                "mean",
-                "median",
-                "variance",
-                "standardDeviation",
-                "count",
-                "min",
-                "max",
-                "mod",
-                "gcd",
-                "lcm",
-                "extractMath",
-                "clampFunction",
-                "wrapFunctionPeriodic",
-                "derivative",
-                "extractMathOperator",
-                "em",
-                "alert",
-                "q",
-                "sq",
-                "term",
-                "c",
-                "tag",
-                "tage",
-                "tagc",
-                "attr",
-                "ndash",
-                "mdash",
-                "nbsp",
-                "ellipsis",
-                "lq",
-                "rq",
-                "lsq",
-                "rsq",
-                "section",
-                "subsection",
-                "subsubsection",
-                "paragraphs",
-                "aside",
-                "objectives",
-                "problem",
-                "exercise",
-                "question",
-                "activity",
-                "example",
-                "definition",
-                "note",
-                "theorem",
-                "proof",
-                "problems",
-                "exercises",
-                "ol",
-                "ul",
-                "odeSystem",
-                "cobwebPolyline",
-                "equilibriumPoint",
-                "equilibriumLine",
-                "equilibriumCurve",
-                "atom",
-                "ion",
-                "ionicCompound",
-                "electronConfiguration",
-                "orbitalDiagram",
-                "orbitalDiagramInput",
-                "sideBySide",
-                "sbsGroup",
-                "stack",
-                "h",
-                "idx",
-                "div",
-                "span",
-                "pre",
-                "displayDoenetML",
-                "paginator",
-                "paginatorControls",
-                "matrixInput",
-                "solution",
-                "document",
-                "text",
-                "textList",
-                "p",
-                "boolean",
-                "booleanList",
-                "math",
-                "mathList",
-                "tupleList",
-                "numberList",
-                "collect",
-                "ref",
-                "point",
-                "coords",
-                "line",
-                "lineSegment",
-                "ray",
-                "polyline",
-                "polygon",
-                "triangle",
-                "rectangle",
-                "regularPolygon",
-                "circle",
-                "parabola",
-                "curve",
-                "bezierControls",
-                "controlVectors",
-                "vector",
-                "angle",
-                "answer",
-                "award",
-                "when",
-                "mathInput",
-                "textInput",
-                "booleanInput",
-                "choiceInput",
-                "choice",
-                "number",
-                "integer",
-                "graph",
-                "function",
-                "piecewiseFunction",
-                "interval",
-                "sequence",
-                "slider",
-                "spreadsheet",
-                "cell",
-                "row",
-                "column",
-                "cellBlock",
-                "tabular",
-                "table",
-                "figure",
-                "markers",
-                "repeat",
-                "repeatForSequence",
-                "pegboard",
-                "intersection",
-                "conditionalContent",
-                "asList",
-                "variantControl",
-                "selectFromSequence",
-                "select",
-                "group",
-                "animateFromSequence",
-                "evaluate",
-                "selectRandomNumbers",
-                "sampleRandomNumbers",
-                "selectPrimeNumbers",
-                "samplePrimeNumbers",
-                "substitute",
-                "periodicSet",
-                "image",
-                "video",
-                "hint",
-                "intcomma",
-                "pluralize",
-                "feedback",
-                "lorem",
-                "updateValue",
-                "callAction",
-                "triggerSet",
-                "functionIterates",
-                "module",
-                "moduleAttributes",
-                "setup",
-                "footnote",
-                "caption",
-                "endpoint",
-                "sort",
-                "shuffle",
-                "solveEquations",
-                "subsetOfRealsInput",
-                "subsetOfReals",
-                "split",
-                "bestFitLine",
-                "regionBetweenCurveXAxis",
-                "regionBetweenCurves",
-                "regionHalfPlane",
-                "codeEditor",
-                "hasSameFactoring",
-                "dataFrame",
-                "summaryStatistics",
-                "legend",
-                "label",
-                "matchesPattern",
-                "matrix",
-                "eigenDecomposition",
-                "latex",
-                "blockQuote",
-                "contentPicker",
-                "stickyGroup",
-                "pointList",
-                "intervalList",
-                "vectorList"
-            ],
-            "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "hide",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "disabled",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixed",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixLocation",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "styleNumber"
-                },
-                {
-                    "name": "isResponse",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "separateByTopic",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "label"
-                },
-                {
-                    "name": "defaultTopicLabel"
-                }
-            ],
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "separateByTopic",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
