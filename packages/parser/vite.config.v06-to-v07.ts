@@ -17,6 +17,7 @@ export default defineConfig({
     build: {
         minify: false,
         sourcemap: true,
+        emptyOutDir: false,
         lib: {
             entry: {
                 [`v06-to-v07`]: "./src/v06-to-v07/index.ts",
