@@ -51,6 +51,8 @@ impl Resolver {
     ///
     /// From each origin node, name edges are traversed before index edges.
     pub(super) fn breadth_first_traversal(&self) -> Vec<ResolverEdge> {
+        // TODO: decide if this should be converted to an iterator
+
         let mut edges_encountered = Vec::new();
 
         let mut queue = VecDeque::new();
