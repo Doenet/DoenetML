@@ -47,7 +47,7 @@ impl StructuredData {
 
         let query_fns = fields.iter().map(|(ident, _)| {
             let ident = format_ident!("{}_query", ident);
-            let doc_comment = format!(" Get the query for the `{}` field.", ident);
+            let doc_comment = format!(" Get the query for the `{ident}` field.");
             let arg = match self.pass_data {
                 Some(ref pass_data) => quote! { arg: #pass_data },
                 None => quote! {},
@@ -133,7 +133,7 @@ impl StructuredData {
         let struct_body = fields
             .iter()
             .map(|(ident, _ty)| {
-                let err_str = format!("Missing field `{}` while unpacking.", ident);
+                let err_str = format!("Missing field `{ident}` while unpacking.");
                 quote! {
                     #ident: IntoPropView::try_into_prop_view(iter.next().ok_or_else(|| anyhow::anyhow!(#err_str))?)?
                 }

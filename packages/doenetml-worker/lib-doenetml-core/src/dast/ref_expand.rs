@@ -148,7 +148,7 @@ impl Expander {
                             Err(err) => FlatNode::Error(FlatError {
                                 idx: function_ref.idx,
                                 parent: function_ref.parent,
-                                message: format!("Ref resolution error: {}", err),
+                                message: format!("Ref resolution error: {err}"),
                                 error_type: ErrorType::Warning,
                                 unresolved_path: if let ResolutionError::NoReferent = err {
                                     Some(function_ref.path.clone())

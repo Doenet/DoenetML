@@ -115,7 +115,7 @@ impl ListMarker {
         };
 
         if needs_decimal {
-            format!("{}.", marker)
+            format!("{marker}.")
         } else {
             marker
         }

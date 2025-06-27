@@ -88,7 +88,7 @@ impl Resolver {
                                 // This plugin creates automatically generated names of the from `_componentType1`,
                                 // which we do not want to include in root names.
                                 // When we remove `pluginAddCompatibilityNames`, we should remove the check for `'_'`.
-                                if visited[*idx] || name.chars().next().unwrap() == '_' {
+                                if visited[*idx] || name.starts_with('_') {
                                     None
                                 } else {
                                     visited[*idx] = true;

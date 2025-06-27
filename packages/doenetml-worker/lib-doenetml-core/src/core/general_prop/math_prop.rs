@@ -223,8 +223,7 @@ impl PropUpdater for MathProp {
                 PropValue::Math(_) | PropValue::Number(_) | PropValue::String(_) => {}
                 _ => {
                     panic!(
-                        "Should get number, math, or string dependency for number, found {:?}",
-                        prop
+                        "Should get number, math, or string dependency for number, found {prop:?}"
                     )
                 }
             }
@@ -352,8 +351,7 @@ impl PropUpdater for MathProp {
                 PropValue::Math(_) | PropValue::Number(_) | PropValue::String(_) => {}
                 _ => {
                     panic!(
-                        "Should get number, math, or string dependency for number, found {:?}",
-                        prop
+                        "Should get number, math, or string dependency for number, found {prop:?}"
                     )
                 }
             }
@@ -674,10 +672,10 @@ fn create_template_string(
     template_string.extend(math_number_strings.iter().map(|prop| {
         match &prop.value {
             PropValue::String(str_prop) => {
-                format!(" {} ", str_prop)
+                format!(" {str_prop} ")
             }
             PropValue::Math(_) | PropValue::Number(_) => {
-                let code = format!("{}{}", code_prefix, math_idx);
+                let code = format!("{code_prefix}{math_idx}");
                 math_codes.push(code.clone());
                 math_idx += 1;
 
@@ -685,13 +683,13 @@ fn create_template_string(
                     MathParser::Latex => {
                         // for latex, must explicitly denote that code
                         // is a multi-character variable
-                        format!(r#"\operatorname{{" + {} + "}}"#, code)
+                        format!(r#"\operatorname{{" + {code} + "}}"#)
                     }
                     MathParser::Text => {
                         // for text, just make sure code is surrounded by spaces
                         // (the presence of numbers inside code will ensure that
                         // it is parsed as a multi-character variable)
-                        format!(" {} ", code)
+                        format!(" {code} ")
                     }
                 }
             }

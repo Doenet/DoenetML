@@ -204,8 +204,7 @@ impl PropUpdater for BooleanProp {
                                 PropValue::String(string_value) => value += string_value,
                                 _ => {
                                     panic!(
-                                        "Should get boolean or string for boolean, found {:?}",
-                                        prop
+                                        "Should get boolean or string for boolean, found {prop:?}"
                                     )
                                 }
                             }

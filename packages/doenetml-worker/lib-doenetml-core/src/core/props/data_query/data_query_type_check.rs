@@ -27,7 +27,7 @@ impl DataQuery {
                 match prop_specifier {
                     PropSpecifier::Matching(profiles) => Ok(prop_profiles_to_value_types(profiles)),
                     PropSpecifier::LocalIdx(local_idx) => {
-                        let prop_value_type = T::PROP_VALUE_TYPES.get(local_idx.as_usize()).unwrap_or_else(|| panic!("Error when guessing the prop type. Tried to access index {:?} but no such index exists", local_idx));
+                        let prop_value_type = T::PROP_VALUE_TYPES.get(local_idx.as_usize()).unwrap_or_else(|| panic!("Error when guessing the prop type. Tried to access index {local_idx:?} but no such index exists"));
                         Ok(vec![*prop_value_type])
                     }
                     PropSpecifier::MatchingPair(..) => Ok(vec![PropValueType::PropVec]),

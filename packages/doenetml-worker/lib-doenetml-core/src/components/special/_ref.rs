@@ -96,7 +96,7 @@ impl ComponentVariantProps for _Ref {
             0 => Rc::new(IndependentProp::new_frozen(
                 self.get_referent_idx_as_prop_value(),
             )),
-            _ => panic!("Invalid prop index {:?}", local_prop_idx),
+            _ => panic!("Invalid prop index {local_prop_idx:?}"),
         }
     }
 }
