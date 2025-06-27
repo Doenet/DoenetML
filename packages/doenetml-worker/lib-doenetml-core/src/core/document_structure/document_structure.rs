@@ -84,8 +84,7 @@ impl DocumentStructure {
     pub fn attribute_node_origin(&self, attribute_node: GraphNode) -> GraphNode {
         assert!(
             matches!(attribute_node, GraphNode::Virtual(_)),
-            "Expected a virtual node, not {:?}",
-            attribute_node
+            "Expected a virtual node, not {attribute_node:?}"
         );
         let children = self.structure_graph.get_children(attribute_node);
         // A unique virtual child means we are "extending" another attribute.
@@ -102,8 +101,7 @@ impl DocumentStructure {
     pub fn get_prop_leaf(&self, prop_node: GraphNode) -> GraphNode {
         assert!(
             matches!(prop_node, GraphNode::Prop(_)),
-            "Expected a prop node, not {:?}",
-            prop_node
+            "Expected a prop node, not {prop_node:?}"
         );
 
         let leaf_node = self.structure_graph.get_leaf(prop_node);

@@ -94,8 +94,7 @@ impl DocumentModel {
                     continue;
                 }
                 _ => panic!(
-                    "Should request value only of a prop, state or string node. Received {:?}",
-                    node
+                    "Should request value only of a prop, state or string node. Received {node:?}"
                 ),
             }
 
@@ -171,10 +170,7 @@ impl DocumentModel {
                     .document_structure
                     .borrow()
                     .set_string(node, val.clone().try_into().unwrap()),
-                _ => panic!(
-                    "Can set the value of only State and String nodes, found {:?}",
-                    node
-                ),
+                _ => panic!("Can set the value of only State and String nodes, found {node:?}"),
             }
         }
 

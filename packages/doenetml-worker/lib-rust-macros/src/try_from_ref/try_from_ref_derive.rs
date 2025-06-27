@@ -65,8 +65,7 @@ pub fn try_from_ref_derive(ts: TokenStream) -> Result<TokenStream> {
             // ```
 
             let error_message = format!(
-                "Tried to convert into `{}::??` into `{}`, but the inner types didn't match",
-                enum_name, variant_ident
+                "Tried to convert into `{enum_name}::??` into `{variant_ident}`, but the inner types didn't match"
             );
             quote! {
                 impl<'a> TryFrom<&'a #enum_name> for &'a #inner {

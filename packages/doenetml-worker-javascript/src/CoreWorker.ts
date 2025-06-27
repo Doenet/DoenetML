@@ -12,6 +12,7 @@ import {
     Resolver,
     IndexResolution,
     ContentVector,
+    RootNames,
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
 import { resolvePathImmediatelyToNodeIdx } from "./utils/externalPathResolution";
@@ -90,6 +91,7 @@ export class PublicDoenetMLCore {
         origin: number,
         skip_parent_search: boolean,
     ) => RefResolution;
+    calculateRootNames?: (resolver: Resolver) => RootNames;
 
     setSource(doenetML: string) {
         this.doenetML = doenetML;
@@ -114,6 +116,7 @@ export class PublicDoenetMLCore {
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
         resolvePath,
+        calculateRootNames,
     }: {
         activityId: string;
         docId: string;
@@ -141,6 +144,7 @@ export class PublicDoenetMLCore {
             origin: number,
             skip_parent_search: boolean,
         ) => RefResolution;
+        calculateRootNames: (resolver: Resolver) => RootNames;
     }) {
         this.initialResolver = resolver;
         this.addNodesToResolver = addNodesToResolver;
@@ -148,6 +152,7 @@ export class PublicDoenetMLCore {
             replaceIndexResolutionsInResolver;
         this.deleteNodesFromResolver = deleteNodesFromResolver;
         this.resolvePath = resolvePath;
+        this.calculateRootNames = calculateRootNames;
 
         let componentInfoObjects = createComponentInfoObjects();
 
@@ -237,6 +242,7 @@ export class PublicDoenetMLCore {
                 this.replaceIndexResolutionsInResolver,
             deleteNodesFromResolver: this.deleteNodesFromResolver,
             resolvePath: this.resolvePath,
+            calculateRootNames: this.calculateRootNames,
             updateRenderersCallback,
             reportScoreAndStateCallback,
             requestAnimationFrame,

@@ -77,7 +77,7 @@ impl ActionsEnum {
         let action_names = self
             .get_action_names()
             .iter()
-            .map(|x| format!("`{}`", x))
+            .map(|x| format!("`{x}`"))
             .collect::<Vec<_>>();
 
         format!(
@@ -91,7 +91,7 @@ impl ActionsEnum {
         let existing_doc = variant.doc.clone().unwrap_or_default();
         let name = &self.get_action_names()[variant_idx];
 
-        format!("{}\n- Name: \"{}\"", existing_doc, name)
+        format!("{existing_doc}\n- Name: \"{name}\"")
     }
 
     pub fn generate_idents_with_doc_comments(&self) -> Vec<Variant> {

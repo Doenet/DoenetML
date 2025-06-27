@@ -153,7 +153,7 @@ impl ComponentBuilder {
                 }
                 Err(err) => {
                     self.components[component_idx] = Component::new_error(
-                        format!("Error while extending: {}", err),
+                        format!("Error while extending: {err}"),
                         ComponentCommonData {
                             idx: component_idx,
                             parent: elm.parent.map(ComponentIdx::from),

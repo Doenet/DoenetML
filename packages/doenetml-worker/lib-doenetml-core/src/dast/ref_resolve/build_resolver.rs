@@ -1,4 +1,5 @@
-use std::{collections::HashMap, iter, mem, ops::Range};
+use rustc_hash::FxHashMap;
+use std::{iter, mem, ops::Range};
 
 use crate::dast::flat_dast::{
     FlatElement, FlatFragment, FlatNode, FlatRoot, FlatRootOrFragment, UntaggedContent,
@@ -84,7 +85,7 @@ impl Resolver {
                 NodeResolverData {
                     node_parent: NodeParent::None,
                     resolution_algorithm: ResolutionAlgorithm::SearchChildren,
-                    name_map: HashMap::new(),
+                    name_map: FxHashMap::default(),
                     index_resolutions: Vec::new(),
                 },
                 padding,
@@ -205,9 +206,9 @@ impl Resolver {
 
     /// Build a map of all the names that are accessible from a given node
     /// and the indices of the referents.
-    fn build_name_map(flat_root_or_fragment: &FlatRootOrFragment) -> Vec<HashMap<String, Ref>> {
+    fn build_name_map(flat_root_or_fragment: &FlatRootOrFragment) -> Vec<FxHashMap<String, Ref>> {
         // Pre-populate with empty hashmaps for each element
-        let mut descendant_names = iter::repeat_with(HashMap::new)
+        let mut descendant_names = iter::repeat_with(FxHashMap::default)
             .take(flat_root_or_fragment.len() + 1)
             .collect::<Vec<_>>();
 

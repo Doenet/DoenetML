@@ -91,6 +91,7 @@ export async function createTestCore({
     const deleteNodesFromResolver =
         PublicDoenetMLCoreRust.delete_nodes_from_resolver;
     const resolvePath = PublicDoenetMLCoreRust.resolve_path;
+    const calculateRootNames = PublicDoenetMLCoreRust.calculate_root_names;
 
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
@@ -110,6 +111,7 @@ export async function createTestCore({
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
         resolvePath,
+        calculateRootNames,
     });
 
     const dastResult = await core.createCoreGenerateDast(

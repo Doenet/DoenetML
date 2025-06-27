@@ -47,7 +47,7 @@ impl Display for DivisionType {
             DivisionType::Subsubsection => "Subsubsection".to_string(),
             DivisionType::Paragraphs => "Paragraphs".to_string(),
         };
-        write!(f, "{}", display_name)
+        write!(f, "{display_name}")
     }
 }
 

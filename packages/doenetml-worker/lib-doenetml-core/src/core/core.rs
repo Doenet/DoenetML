@@ -77,6 +77,10 @@ impl Core {
         resolver.delete_nodes(nodes);
     }
 
+    pub fn calculate_root_names(resolver: Resolver) -> Vec<Option<String>> {
+        crate::dast::ref_resolve::calculate_root_names(resolver)
+    }
+
     /// Initialize `structure_graph`, `state_graph`, and other data
     /// from `dast`.
     ///
