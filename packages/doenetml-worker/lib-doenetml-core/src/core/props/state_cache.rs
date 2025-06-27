@@ -53,9 +53,7 @@ impl StateCache {
     ) -> PropWithMeta {
         let state_node = state_node.borrow();
         self.prop_cache.get_prop(state_node, origin, || {
-            panic!(
-                "Trying to retrieve a state prop that hasn't been set yet, {state_node:?}"
-            )
+            panic!("Trying to retrieve a state prop that hasn't been set yet, {state_node:?}")
         })
     }
 

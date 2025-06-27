@@ -400,12 +400,10 @@ impl PropsEnum {
             .join(", ");
 
         // This is the actual typescript that we want to end up in the generated file.
-        let type_string_in_graph = format!(
-            "export type {type_name_in_graph} = {{ {for_render_props_in_graph_ts} }};"
-        );
-        let type_string_in_text = format!(
-            "export type {type_name_in_text} = {{ {for_render_props_in_text_ts} }};"
-        );
+        let type_string_in_graph =
+            format!("export type {type_name_in_graph} = {{ {for_render_props_in_graph_ts} }};");
+        let type_string_in_text =
+            format!("export type {type_name_in_text} = {{ {for_render_props_in_text_ts} }};");
 
         quote! {
             // Generated typescript for all props marked as `for_render`.

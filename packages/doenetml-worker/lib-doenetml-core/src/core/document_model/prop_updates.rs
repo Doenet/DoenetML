@@ -170,9 +170,7 @@ impl DocumentModel {
                     .document_structure
                     .borrow()
                     .set_string(node, val.clone().try_into().unwrap()),
-                _ => panic!(
-                    "Can set the value of only State and String nodes, found {node:?}"
-                ),
+                _ => panic!("Can set the value of only State and String nodes, found {node:?}"),
             }
         }
 

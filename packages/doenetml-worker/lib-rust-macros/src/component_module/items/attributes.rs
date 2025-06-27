@@ -78,9 +78,7 @@ impl AttributesEnum {
             .map(|x| format!("`{x}`"))
             .collect::<Vec<_>>();
         let attribute_names = attribute_names.join(", ");
-        format!(
-            "The attributes available on this component are: {attribute_names}"
-        )
+        format!("The attributes available on this component are: {attribute_names}")
     }
 
     pub fn generate_idents_with_doc_comments(&self) -> Vec<Variant> {
