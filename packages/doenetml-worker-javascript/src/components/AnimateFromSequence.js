@@ -29,25 +29,8 @@ export default class AnimateFromSequence extends BaseComponent {
         let sequenceAttributes = returnStandardSequenceAttributes();
         Object.assign(attributes, sequenceAttributes);
 
-        attributes.prop = {
-            createPrimitiveOfType: "string",
-            excludeFromSchema: true,
-        };
-
-        attributes.sourceIndex = {
-            createComponentOfType: "integer",
-            createStateVariable: "sourceIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
-        };
-
-        attributes.propIndex = {
-            createComponentOfType: "numberList",
-            createStateVariable: "propIndex",
-            defaultValue: null,
-            public: true,
-            excludeFromSchema: true,
+        attributes.target = {
+            createReferences: true,
         };
 
         attributes.animationOn = {
@@ -330,25 +313,48 @@ export default class AnimateFromSequence extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.target = {
+        stateVariableDefinitions.targetComponentIdx = {
+            additionalStateVariablesDefined: ["unresolvedPath"],
             returnDependencies: () => ({
                 target: {
-                    dependencyType: "doenetAttribute",
+                    dependencyType: "attributeRefResolutions",
                     attributeName: "target",
                 },
             }),
-            definition: ({ dependencyValues }) => ({
-                setValue: { target: dependencyValues.target },
-            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.target?.length === 1) {
+                    const target = dependencyValues.target[0];
+
+                    return {
+                        setValue: {
+                            targetComponentIdx: target.componentIdx,
+                            unresolvedPath: target.unresolvedPath,
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            targetComponentIdx: null,
+                            unresolvedPath: null,
+                        },
+                    };
+                }
+            },
         };
 
         stateVariableDefinitions.targetComponent = {
-            returnDependencies() {
-                return {
-                    targetComponent: {
-                        dependencyType: "targetComponent",
-                    },
-                };
+            stateVariablesDeterminingDependencies: ["targetComponentIdx"],
+            returnDependencies({ stateValues }) {
+                if (stateValues.targetComponentIdx != null) {
+                    return {
+                        targetComponent: {
+                            dependencyType: "componentIdentity",
+                            componentIdx: stateValues.targetComponentIdx,
+                        },
+                    };
+                } else {
+                    return {};
+                }
             },
             definition: function ({ dependencyValues }) {
                 let targetComponent = null;
@@ -362,23 +368,8 @@ export default class AnimateFromSequence extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.propName = {
-            returnDependencies: () => ({
-                propName: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "prop",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                return { setValue: { propName: dependencyValues.propName } };
-            },
-        };
-
         stateVariableDefinitions.targetIdentities = {
-            stateVariablesDeterminingDependencies: [
-                "targetComponent",
-                "sourceIndex",
-            ],
+            stateVariablesDeterminingDependencies: ["targetComponent"],
             returnDependencies: function ({
                 stateValues,
                 componentInfoObjects,
@@ -391,26 +382,15 @@ export default class AnimateFromSequence extends BaseComponent {
                             componentType:
                                 stateValues.targetComponent.componentType,
                             includeNonStandard: false,
-                        }) ||
-                        (componentInfoObjects.isCompositeComponent({
-                            componentType:
-                                stateValues.targetComponent.componentType,
-                            includeNonStandard: true,
-                        }) &&
-                            stateValues.sourceIndex !== null)
+                        })
                     ) {
                         dependencies.targets = {
                             dependencyType: "replacement",
                             compositeIdx:
                                 stateValues.targetComponent.componentIdx,
                             recursive: true,
-                            sourceIndex: stateValues.sourceIndex,
                         };
-                    } else if (
-                        stateValues.sourceIndex === null ||
-                        stateValues.sourceIndex === 1
-                    ) {
-                        // if we don't have a composite, sourceIndex can only match if it is 1
+                    } else {
                         dependencies.targets = {
                             dependencyType: "stateVariable",
                             variableName: "targetComponent",
@@ -427,7 +407,6 @@ export default class AnimateFromSequence extends BaseComponent {
                         targetIdentities = [targetIdentities];
                     }
                 }
-
                 let warnings = [];
                 if (
                     targetIdentities === null ||
@@ -435,7 +414,7 @@ export default class AnimateFromSequence extends BaseComponent {
                 ) {
                     warnings.push({
                         message:
-                            "Invalid animation target: cannot find target.",
+                            "Invalid target for <animateFromSequence>: cannot find target.",
                         level: 1,
                     });
                 }
@@ -450,8 +429,7 @@ export default class AnimateFromSequence extends BaseComponent {
         stateVariableDefinitions.targets = {
             stateVariablesDeterminingDependencies: [
                 "targetIdentities",
-                "propName",
-                "propIndex",
+                "unresolvedPath",
             ],
             returnDependencies: function ({ stateValues }) {
                 let dependencies = {
@@ -459,13 +437,9 @@ export default class AnimateFromSequence extends BaseComponent {
                         dependencyType: "stateVariable",
                         variableName: "targetIdentities",
                     },
-                    propName: {
+                    unresolvedPath: {
                         dependencyType: "stateVariable",
-                        variableName: "propName",
-                    },
-                    propIndex: {
-                        dependencyType: "stateVariable",
-                        variableName: "propIndex",
+                        variableName: "unresolvedPath",
                     },
                 };
 
@@ -476,7 +450,7 @@ export default class AnimateFromSequence extends BaseComponent {
                     ] of stateValues.targetIdentities.entries()) {
                         let thisTarget;
 
-                        if (stateValues.propName) {
+                        if (stateValues.unresolvedPath) {
                             let propIndex = stateValues.propIndex;
                             if (propIndex) {
                                 // make propIndex be a shallow copy
@@ -484,13 +458,14 @@ export default class AnimateFromSequence extends BaseComponent {
                                 // when update dependencies
                                 propIndex = [...propIndex];
                             }
+
                             thisTarget = {
-                                dependencyType: "stateVariable",
+                                dependencyType:
+                                    "stateVariableFromUnresolvedPath",
                                 componentIdx: target.componentIdx,
-                                variableName: stateValues.propName,
+                                unresolvedPath: stateValues.unresolvedPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
-                                propIndex,
                                 caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
@@ -520,20 +495,37 @@ export default class AnimateFromSequence extends BaseComponent {
 
                     for (let ind in dependencyValues.targetIdentities) {
                         let target = dependencyValues["target" + ind];
+                        if (target == null) {
+                            let message =
+                                "Invalid target for <animateFromSequence>: cannot find target.";
+
+                            warnings.push({
+                                message,
+                                level: 1,
+                            });
+                            continue;
+                        }
                         targets.push(target);
                         if (Object.keys(target.stateValues)[0] === undefined) {
-                            if (dependencyValues.propName) {
-                                let prop = dependencyValues.propName;
-                                if (dependencyValues.propIndex) {
-                                    prop = `prop[${dependencyValues.propIndex}]`;
+                            if (dependencyValues.unresolvedPath) {
+                                let prop =
+                                    dependencyValues.unresolvedPath[0].name;
+                                if (
+                                    dependencyValues.unresolvedPath[0].index
+                                        .length > 0
+                                ) {
+                                    for (const idx of dependencyValues
+                                        .unresolvedPath[0].index) {
+                                        prop += `[idx]`;
+                                    }
                                 }
-                                let message = `Invalid animation target: cannot find a state variable named "${prop}" on a <${target.componentType}>.`;
+                                let message = `Invalid target for <animateFromSequence>: cannot find a state variable named "${prop}" on a <${target.componentType}>.`;
                                 warnings.push({
                                     message,
                                     level: 1,
                                 });
                             } else {
-                                let message = `Invalid animation target: cannot find a state variable named "value" on a <${target.componentType}>.`;
+                                let message = `Invalid target for <animateFromSequence>: cannot find a state variable named "value" on a <${target.componentType}>.`;
                                 warnings.push({
                                     message,
                                     level: 1,
