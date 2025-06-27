@@ -8,7 +8,11 @@ import { reparseAttribute } from "../src/v06-to-v07/reparse-attribute";
 
 const origLog = console.log;
 console.log = (...args) => {
-    origLog(...args.map((x) => util.inspect(x, false, 10, true)));
+    try {
+        origLog(...args.map((x) => util.inspect(x, false, 10, true)));
+    } catch {
+        origLog(...args);
+    }
 };
 
 describe("v06 to v07 update", () => {

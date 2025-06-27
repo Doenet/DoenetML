@@ -1,6 +1,3 @@
-import fs from "node:fs";
-import path from "path";
-
 import init, {
     PublicDoenetMLCore as PublicDoenetMLCoreRust,
     DastRoot as DastRootInCore,
@@ -47,13 +44,13 @@ export type ResolvePathToNodeIdx = Awaited<
 >["resolvePathToNodeIdx"];
 
 export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
-    const wasmBuffer = fs.readFileSync(
-        path.resolve(
-            __dirname,
-            "../../../../doenetml-worker/lib-js-wasm-binding/pkg/lib_doenetml_worker_bg.wasm",
-        ),
-    );
-
+    // Load the WASM bundle in a way that works both in the browser and in node
+    // TODO: is there a way to avoid this from fully bundling a copy of core?
+    const wasmBuffer = (
+        await import(
+            "lib-doenetml-worker/lib_doenetml_worker_bg.wasm?arraybuffer&base64"
+        )
+    ).default;
     await init(wasmBuffer);
 
     const rustCore = PublicDoenetMLCoreRust.new();

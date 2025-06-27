@@ -40,8 +40,7 @@
             ],
             "dependencies": [
                 "../utils:build",
-                "../parser:build",
-                "../codemirror:build"
+                "../parser:build"
             ]
         }
     },
