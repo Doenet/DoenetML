@@ -13,6 +13,13 @@
     "exports": {
         ".": {
             "import": "./dist/index.js"
+        },
+        "./v06-to-v07": {
+            "import": "./dist/v06-to-v07.js",
+            "types": "./dist/v06-to-v07/index.d.ts"
+        },
+        "./*": {
+            "import": "./dist/*.js"
         }
     },
     "scripts": {
