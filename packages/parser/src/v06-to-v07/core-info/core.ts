@@ -48,7 +48,7 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
     // TODO: is there a way to avoid this from fully bundling a copy of core?
     const wasmBuffer = (
         await import(
-            "lib-doenetml-worker/lib_doenetml_worker_bg.wasm?arraybuffer&base64"
+            "@doenet/doenetml-worker/lib_doenetml_worker_bg.wasm?arraybuffer&base64"
         )
     ).default;
     await init(wasmBuffer);
