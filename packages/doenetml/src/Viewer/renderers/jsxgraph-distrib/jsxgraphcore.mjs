@@ -4,7 +4,7 @@ var __webpack_modules__ = {
             var s,
                 r = i(765),
                 o = "1.5.1-dev";
-            ((s = {
+            (s = {
                 version: o,
                 licenseText:
                     "JSXGraph v" +
@@ -139,7 +139,7 @@ var __webpack_modules__ = {
                 GENTYPE_CTX_SNAPWIDTH: 81,
                 GENTYPE_CTX_SNAPTOGRID: 82,
             }),
-                r.Z.extendConstants(r.Z, s));
+                r.Z.extendConstants(r.Z, s);
             const n = s;
         },
         705: (t, e, i) => {
@@ -149,13 +149,13 @@ var __webpack_modules__ = {
                 o = i(88),
                 n = i(109),
                 a = i(275);
-            ((s.Z.Coords = function (t, e, i, s) {
-                ((this.board = i),
+            (s.Z.Coords = function (t, e, i, s) {
+                (this.board = i),
                     (this.usrCoords = []),
                     (this.scrCoords = []),
                     (this.emitter = !n.Z.exists(s) || s),
                     this.emitter && o.Z.eventify(this),
-                    this.setCoordinates(t, e, !1, !0));
+                    this.setCoordinates(t, e, !1, !0);
             }),
                 s.Z.extend(s.Z.Coords.prototype, {
                     normalizeUsrCoords: function () {
@@ -187,9 +187,9 @@ var __webpack_modules__ = {
                         var t = this.board.origin.scrCoords,
                             e = this.scrCoords,
                             i = this.board;
-                        ((this.usrCoords[0] = 1),
+                        (this.usrCoords[0] = 1),
                             (this.usrCoords[1] = (e[1] - t[1]) / i.unitX),
-                            (this.usrCoords[2] = (t[2] - e[2]) / i.unitY));
+                            (this.usrCoords[2] = (t[2] - e[2]) / i.unitY);
                     },
                     distance: function (t, e) {
                         var i,
@@ -203,12 +203,12 @@ var __webpack_modules__ = {
                                 (o = (s = n[0] - i[0]) * s) > a.Z.eps * a.Z.eps)
                             )
                                 return Number.POSITIVE_INFINITY;
-                            ((o += (s = n[1] - i[1]) * s),
-                                (o += (s = n[2] - i[2]) * s));
+                            (o += (s = n[1] - i[1]) * s),
+                                (o += (s = n[2] - i[2]) * s);
                         } else
-                            ((i = e.scrCoords),
+                            (i = e.scrCoords),
                                 (o += (s = h[1] - i[1]) * s),
-                                (o += (s = h[2] - i[2]) * s));
+                                (o += (s = h[2] - i[2]) * s);
                         return Math.sqrt(o);
                     },
                     setCoordinates: function (t, e, i, s) {
@@ -239,7 +239,7 @@ var __webpack_modules__ = {
                         );
                     },
                     copy: function (t, e) {
-                        return (void 0 === e && (e = 0), this[t].slice(e));
+                        return void 0 === e && (e = 0), this[t].slice(e);
                     },
                     isReal: function () {
                         return (
@@ -249,7 +249,7 @@ var __webpack_modules__ = {
                     },
                     __evt__update: function (t, e) {},
                     __evt: function () {},
-                }));
+                });
             const h = s.Z.Coords;
         },
         218: (t, e, i) => {
@@ -262,11 +262,11 @@ var __webpack_modules__ = {
                 h = i(705),
                 l = i(351),
                 c = i(109);
-            ((s.Z.CoordsElement = function (t, e) {
+            (s.Z.CoordsElement = function (t, e) {
                 var i;
                 for (c.Z.exists(t) || (t = [1, 0, 0]), i = 0; i < t.length; ++i)
                     t[i] = parseFloat(t[i]);
-                ((this.coords = new h.Z(l.Z.COORDS_BY_USER, t, this.board)),
+                (this.coords = new h.Z(l.Z.COORDS_BY_USER, t, this.board)),
                     (this.initialCoords = new h.Z(
                         l.Z.COORDS_BY_USER,
                         t,
@@ -300,7 +300,7 @@ var __webpack_modules__ = {
                         onPolygon: "onPolygon",
                     })),
                     c.Z.exists(this.element) && this.addAnchor(t, e),
-                    (this.isDraggable = !0));
+                    (this.isDraggable = !0);
             }),
                 s.Z.extend(s.Z.CoordsElement.prototype, {
                     updateConstraint: function () {
@@ -348,7 +348,7 @@ var __webpack_modules__ = {
                             ((this.needsUpdateFromParent = !1),
                             x.elementClass === l.Z.OBJECT_CLASS_CIRCLE)
                         )
-                            (c.Z.evaluate(this.visProp.isgeonext) && (E = 1),
+                            c.Z.evaluate(this.visProp.isgeonext) && (E = 1),
                                 (m = o.Z.projectPointToCircle(
                                     this,
                                     x,
@@ -359,7 +359,7 @@ var __webpack_modules__ = {
                                         [x.center.X() + 1, x.center.Y()],
                                         x.center,
                                         this,
-                                    ) / E));
+                                    ) / E);
                         else if (x.elementClass === l.Z.OBJECT_CLASS_LINE) {
                             if (this.onPolygon) {
                                 if (
@@ -403,7 +403,7 @@ var __webpack_modules__ = {
                                 x.id !== this.slideObject.id &&
                                     (this.slideObject = x);
                             }
-                            ((e = x.point1.coords),
+                            (e = x.point1.coords),
                                 (i = x.point2.coords),
                                 (s = e.distance(l.Z.COORDS_BY_USER, i)) <
                                 r.Z.eps
@@ -465,21 +465,21 @@ var __webpack_modules__ = {
                                 !c.Z.evaluate(x.visProp.straightlast) &&
                                     Math.abs(i.usrCoords[0]) > r.Z.eps &&
                                     v > 1 &&
-                                    ((m = i), (O = !0), (v = 1)));
+                                    ((m = i), (O = !0), (v = 1));
                         } else if (x.type === l.Z.OBJECT_TYPE_TURTLE)
-                            (this.updateConstraint(),
+                            this.updateConstraint(),
                                 (m = (C = o.Z.projectPointToTurtle(
                                     this,
                                     x,
                                     this.board,
                                 ))[0]),
-                                (v = C[1]));
+                                (v = C[1]);
                         else if (x.elementClass === l.Z.OBJECT_CLASS_CURVE)
                             if (
                                 x.type === l.Z.OBJECT_TYPE_ARC ||
                                 x.type === l.Z.OBJECT_TYPE_SECTOR
                             )
-                                ((m = o.Z.projectPointToCircle(
+                                (m = o.Z.projectPointToCircle(
                                     this,
                                     x,
                                     this.board,
@@ -512,7 +512,7 @@ var __webpack_modules__ = {
                                         this.updateGliderFromParent()),
                                     (E = p - u),
                                     this.visProp.isgeonext && (E = 1),
-                                    Math.abs(E) > r.Z.eps && (v /= E));
+                                    Math.abs(E) > r.Z.eps && (v /= E);
                             else if (
                                 (this.updateConstraint(),
                                 x.transformations.length > 0)
@@ -527,15 +527,15 @@ var __webpack_modules__ = {
                                     c.Z.exists(C[1]._transformationSource);
 
                                 )
-                                    ((C = C[1].getTransformationSource()),
-                                        w.push(C[1]));
+                                    (C = C[1].getTransformationSource()),
+                                        w.push(C[1]);
                                 if (((y = this.coords.usrCoords), P)) {
                                     for (t = 0; t < w.length; t++)
-                                        (w[t].updateTransformMatrix(),
+                                        w[t].updateTransformMatrix(),
                                             (g = r.Z.inverse(
                                                 w[t].transformMat,
                                             )),
-                                            (y = r.Z.matVecMult(g, y)));
+                                            (y = r.Z.matVecMult(g, y));
                                     for (
                                         f = new h.Z(
                                             l.Z.COORDS_BY_USER,
@@ -563,7 +563,7 @@ var __webpack_modules__ = {
                                         this.board,
                                     );
                                 } else
-                                    (x.updateTransformMatrix(),
+                                    x.updateTransformMatrix(),
                                         (g = r.Z.inverse(x.transformMat)),
                                         (y = r.Z.matVecMult(g, y)),
                                         (f = new h.Z(
@@ -577,15 +577,15 @@ var __webpack_modules__ = {
                                             this.position || 0,
                                             x,
                                             this.board,
-                                        )));
-                                ((m = b[0]), (v = b[1]));
+                                        ));
+                                (m = b[0]), (v = b[1]);
                             } else
-                                ((m = (C = o.Z.projectPointToCurve(
+                                (m = (C = o.Z.projectPointToCurve(
                                     this,
                                     x,
                                     this.board,
                                 ))[0]),
-                                    (v = C[1]));
+                                    (v = C[1]);
                         else
                             c.Z.isPoint(x) &&
                                 ((m = o.Z.projectPointToPoint(
@@ -594,12 +594,12 @@ var __webpack_modules__ = {
                                     this.board,
                                 )),
                                 (v = this.position));
-                        (this.coords.setCoordinates(
+                        this.coords.setCoordinates(
                             l.Z.COORDS_BY_USER,
                             m.usrCoords,
                             O,
                         ),
-                            (this.position = v));
+                            (this.position = v);
                     },
                     updateGliderFromParent: function () {
                         var t,
@@ -619,7 +619,7 @@ var __webpack_modules__ = {
                             v = 2 * Math.PI;
                         if (this.needsUpdateFromParent) {
                             if (g.elementClass === l.Z.OBJECT_CLASS_CIRCLE)
-                                ((i = g.Radius()),
+                                (i = g.Radius()),
                                     c.Z.evaluate(this.visProp.isgeonext) &&
                                         (v = 1),
                                     (n = [
@@ -627,9 +627,9 @@ var __webpack_modules__ = {
                                             i * Math.cos(this.position * v),
                                         g.center.Y() +
                                             i * Math.sin(this.position * v),
-                                    ]));
+                                    ]);
                             else if (g.elementClass === l.Z.OBJECT_CLASS_LINE)
-                                ((t = g.point1.coords.usrCoords),
+                                (t = g.point1.coords.usrCoords),
                                     (e = g.point2.coords.usrCoords),
                                     (0 === t[0] && 0 === t[1] && 0 === t[2]) ||
                                     (0 === e[0] && 0 === e[1] && 0 === e[2])
@@ -668,22 +668,19 @@ var __webpack_modules__ = {
                                                   t[0] + s * (e[0] - t[0]),
                                                   t[1] + s * (e[1] - t[1]),
                                                   t[2] + s * (e[2] - t[2]),
-                                              ])));
+                                              ]));
                             else if (g.type === l.Z.OBJECT_TYPE_TURTLE)
-                                (this.coords.setCoordinates(
-                                    l.Z.COORDS_BY_USER,
-                                    [
-                                        g.Z(this.position),
-                                        g.X(this.position),
-                                        g.Y(this.position),
-                                    ],
-                                ),
+                                this.coords.setCoordinates(l.Z.COORDS_BY_USER, [
+                                    g.Z(this.position),
+                                    g.X(this.position),
+                                    g.Y(this.position),
+                                ]),
                                     this.updateConstraint(),
                                     (n = o.Z.projectPointToTurtle(
                                         this,
                                         g,
                                         this.board,
-                                    )[0].usrCoords));
+                                    )[0].usrCoords);
                             else if (
                                 g.elementClass === l.Z.OBJECT_CLASS_CURVE
                             ) {
@@ -697,8 +694,8 @@ var __webpack_modules__ = {
                                     c.Z.exists(a[1]._transformationSource);
 
                                 )
-                                    ((a = a[1].getTransformationSource()),
-                                        m.push(a[1]));
+                                    (a = a[1].getTransformationSource()),
+                                        m.push(a[1]);
                                 if (
                                     (u
                                         ? this.coords.setCoordinates(
@@ -726,7 +723,7 @@ var __webpack_modules__ = {
                                     g.type === l.Z.OBJECT_TYPE_ARC ||
                                         g.type === l.Z.OBJECT_TYPE_SECTOR)
                                 )
-                                    ((p = o.Z.rad(
+                                    (p = o.Z.rad(
                                         [g.center.X() + 1, g.center.Y()],
                                         g.center,
                                         g.radiuspoint,
@@ -766,7 +763,7 @@ var __webpack_modules__ = {
                                                     Math.sin(
                                                         this.position * v + p,
                                                     ),
-                                        ]));
+                                        ]);
                                 else if ((this.updateConstraint(), u))
                                     for (
                                         n = o.Z.projectPointToCurve(
@@ -1078,7 +1075,7 @@ var __webpack_modules__ = {
                             i >= 0;
                             i--
                         )
-                            (t === l.Z.COORDS_BY_SCREEN
+                            t === l.Z.COORDS_BY_SCREEN
                                 ? (n = new h.Z(t, e, this.board).usrCoords)
                                 : (2 === e.length && (e = [1].concat(e)),
                                   (n = e)),
@@ -1090,7 +1087,7 @@ var __webpack_modules__ = {
                                         ),
                                         n,
                                     ),
-                                ));
+                                );
                         return (
                             this.prepareUpdate().update(),
                             this.board.isSuspendedUpdate &&
@@ -1146,7 +1143,7 @@ var __webpack_modules__ = {
                                     this.coords.usrCoords,
                                     o.borders[i].stdform,
                                 )) < e && ((e = r), (t = o.borders[i]));
-                            ((o = this.board.select(t)), (n = !0));
+                            (o = this.board.select(t)), (n = !0);
                         }
                         if (!c.Z.exists(o))
                             throw new Error(
@@ -1209,7 +1206,7 @@ var __webpack_modules__ = {
                                 this.isDraggable)
                             )
                                 return;
-                            ((this.isDraggable = !0),
+                            (this.isDraggable = !0),
                                 this.elementClass === l.Z.OBJECT_CLASS_POINT &&
                                     ((this.type = l.Z.OBJECT_TYPE_POINT),
                                     (this.elType = "point")),
@@ -1223,7 +1220,7 @@ var __webpack_modules__ = {
                                     return this.coords.usrCoords[0];
                                 }),
                                 (this.Xjc = null),
-                                (this.Yjc = null));
+                                (this.Yjc = null);
                         }
                         for (t in this.board.objects)
                             this.board.objects.hasOwnProperty(t) &&
@@ -1233,7 +1230,7 @@ var __webpack_modules__ = {
                                 this.hasLabel &&
                                     (delete e.descendants[this.label.id],
                                     delete e.childElements[this.label.id]));
-                        ((this.ancestors = {}),
+                        (this.ancestors = {}),
                             (this.slideObject = null),
                             (this.slideObjects = []),
                             this.elementClass === l.Z.OBJECT_CLASS_POINT
@@ -1245,7 +1242,7 @@ var __webpack_modules__ = {
                                   : this.elementClass ===
                                         l.Z.OBJECT_CLASS_OTHER &&
                                     ((this.type = this._org_type),
-                                    (this.elType = "image")));
+                                    (this.elType = "image"));
                     },
                     addConstraint: function (t) {
                         var e,
@@ -1270,7 +1267,7 @@ var __webpack_modules__ = {
                             e < t.length;
                             e++
                         )
-                            ((i = t[e]),
+                            (i = t[e]),
                                 c.Z.isString(i)
                                     ? ((s[e] = this.board.jc.snippet(
                                           i,
@@ -1288,7 +1285,7 @@ var __webpack_modules__ = {
                                         : c.Z.isObject(i) &&
                                           c.Z.isFunction(i.Value) &&
                                           (s[e] = n(i)),
-                                (s[e].origin = i));
+                                (s[e].origin = i);
                         return (
                             1 === t.length
                                 ? (this.updateConstraint = function () {
@@ -1346,7 +1343,7 @@ var __webpack_modules__ = {
                         );
                     },
                     addAnchor: function (t, e) {
-                        ((this.relativeCoords = e
+                        (this.relativeCoords = e
                             ? new h.Z(
                                   l.Z.COORDS_BY_SCREEN,
                                   t.slice(0, 2),
@@ -1410,7 +1407,7 @@ var __webpack_modules__ = {
                                 ]);
                             }),
                             (this.isConstrained = !0),
-                            this.updateConstraint());
+                            this.updateConstraint();
                     },
                     updateTransform: function (t) {
                         var e;
@@ -1494,16 +1491,16 @@ var __webpack_modules__ = {
                                 );
                             if (!c.Z.exists(i.interpolate) || i.interpolate)
                                 for (r = n.Z.Neville(u), s = 0; s < p; s++)
-                                    ((d[s] = []),
+                                    (d[s] = []),
                                         (d[s][0] = r[0](
                                             ((p - s) / p) * r[3](),
                                         )),
                                         (d[s][1] = r[1](
                                             ((p - s) / p) * r[3](),
-                                        )));
+                                        ));
                             else {
                                 for (o = t.length - 1, s = 0; s < p; ++s)
-                                    ((h =
+                                    (h =
                                         (s / p) * o -
                                         (a = Math.floor((s / p) * o))),
                                         (d[s] = []),
@@ -1512,8 +1509,8 @@ var __webpack_modules__ = {
                                             h * u[a + 1].X()),
                                         (d[s][1] =
                                             (1 - h) * u[a].Y() +
-                                            h * u[a + 1].Y()));
-                                (d.push([u[o].X(), u[o].Y()]), d.reverse());
+                                            h * u[a + 1].Y());
+                                d.push([u[o].X(), u[o].Y()]), d.reverse();
                             }
                             this.animationPath = d;
                         } else
@@ -1527,8 +1524,8 @@ var __webpack_modules__ = {
                         );
                     },
                     moveTo: function (t, e, i) {
-                        ((i = i || {}),
-                            (t = new h.Z(l.Z.COORDS_BY_USER, t, this.board)));
+                        (i = i || {}),
+                            (t = new h.Z(l.Z.COORDS_BY_USER, t, this.board));
                         var s,
                             o = this.board.attr.animationdelay,
                             n = Math.ceil(e / o),
@@ -1720,22 +1717,22 @@ var __webpack_modules__ = {
                             (h = !0);
                     if (h) (n = new t(e, [0, 0], s, r, o)).addConstraint(i);
                     else if (c.Z.isNumber(i[0]) && c.Z.isNumber(i[1]))
-                        ((n = new t(e, i, s, r, o)),
+                        (n = new t(e, i, s, r, o)),
                             c.Z.exists(s.slideobject)
                                 ? n.makeGlider(s.slideobject)
                                 : (n.baseElement = n),
-                            (n.isDraggable = !0));
+                            (n.isDraggable = !0);
                     else {
                         if (
                             !c.Z.isObject(i[0]) ||
                             !c.Z.isTransformationOrArray(i[1])
                         )
                             return !1;
-                        ((n = new t(e, [0, 0], s, r, o)).addTransform(
+                        (n = new t(e, [0, 0], s, r, o)).addTransform(
                             i[0],
                             i[1],
                         ),
-                            (n.isDraggable = !1));
+                            (n.isDraggable = !1);
                     }
                     return (
                         n.handleSnapToGrid(),
@@ -1744,7 +1741,7 @@ var __webpack_modules__ = {
                         n.addParents(i),
                         n
                     );
-                }));
+                });
             const d = s.Z.CoordsElement;
         },
         958: (t, e, i) => {
@@ -1758,7 +1755,7 @@ var __webpack_modules__ = {
                 l = i(88),
                 c = i(327),
                 d = i(109);
-            ((s.Z.GeometryElement = function (t, e, i, s) {
+            (s.Z.GeometryElement = function (t, e, i, s) {
                 var o, n, a;
                 if (
                     ((this.needsUpdate = !0),
@@ -1877,15 +1874,15 @@ var __webpack_modules__ = {
                         this.parents = d.Z.uniqueArray(this.parents);
                     },
                     setParents: function (t) {
-                        ((this.parents = []), this.addParents(t));
+                        (this.parents = []), this.addParents(t);
                     },
                     addParentsFromJCFunctions: function (t) {
                         var e, i, s;
                         for (e = 0; e < t.length; e++)
                             for (i in t[e].deps)
-                                ((s = t[e].deps[i]),
+                                (s = t[e].deps[i]),
                                     this.addParents(s),
-                                    s.addChild(this));
+                                    s.addChild(this);
                         return this;
                     },
                     removeChild: function (t) {
@@ -1969,7 +1966,7 @@ var __webpack_modules__ = {
                         var s = new o.Z(t, e, this.board, !1),
                             n = new o.Z(t, i, this.board, !1),
                             h = a.Z.subtract(s.usrCoords, n.usrCoords);
-                        return (this.setPosition(r.Z.COORDS_BY_USER, h), this);
+                        return this.setPosition(r.Z.COORDS_BY_USER, h), this;
                     },
                     generatePolynomial: function () {
                         return [];
@@ -2016,10 +2013,10 @@ var __webpack_modules__ = {
                                         o < a;
                                         o++
                                     )
-                                        ((r = t + (o + 1) * n),
+                                        (r = t + (o + 1) * n),
                                             (h.animationData[i][a - o - 1] = s
                                                 ? Math.floor(r)
-                                                : r));
+                                                : r);
                             };
                         for (s in ((this.animationData = {}), t))
                             if (t.hasOwnProperty(s))
@@ -2099,16 +2096,16 @@ var __webpack_modules__ = {
                         );
                     },
                     hide: function () {
-                        return (this.setAttribute({ visible: !1 }), this);
+                        return this.setAttribute({ visible: !1 }), this;
                     },
                     hideElement: function () {
-                        return (this.hide(), this);
+                        return this.hide(), this;
                     },
                     show: function () {
-                        return (this.setAttribute({ visible: !0 }), this);
+                        return this.setAttribute({ visible: !0 }), this;
                     },
                     showElement: function () {
-                        return (this.show(), this);
+                        return this.show(), this;
                     },
                     updateVisibility: function (t) {
                         var e, i, s, r, o, n;
@@ -2167,10 +2164,10 @@ var __webpack_modules__ = {
                                 9 === e.length &&
                                 "#" === e.charAt(0))
                         )
-                            ((e = c.Z.rgba2rgbo(e)),
+                            (e = c.Z.rgba2rgbo(e)),
                                 (this.visProp[t] = e[0]),
                                 (this.visProp[t.replace("color", "opacity")] =
-                                    e[1]));
+                                    e[1]);
                         else if (
                             null === e ||
                             !d.Z.isObject(e) ||
@@ -2208,8 +2205,8 @@ var __webpack_modules__ = {
                         return t;
                     },
                     setLabel: function (t) {
-                        (this.hasLabel || this.setAttribute({ withlabel: !0 }),
-                            this.setLabelText(t));
+                        this.hasLabel || this.setAttribute({ withlabel: !0 }),
+                            this.setLabelText(t);
                     },
                     setLabelText: function (t) {
                         return (
@@ -2222,13 +2219,13 @@ var __webpack_modules__ = {
                         );
                     },
                     setName: function (t) {
-                        ((t = t.replace(/</g, "&lt;").replace(/>/g, "&gt;")),
+                        (t = t.replace(/</g, "&lt;").replace(/>/g, "&gt;")),
                             "slider" !== this.elType && this.setLabelText(t),
-                            this.setAttribute({ name: t }));
+                            this.setAttribute({ name: t });
                     },
                     setProperty: function () {
-                        (s.Z.deprecated("setProperty()", "setAttribute()"),
-                            this.setAttribute.apply(this, arguments));
+                        s.Z.deprecated("setProperty()", "setAttribute()"),
+                            this.setAttribute.apply(this, arguments);
                     },
                     setAttribute: function (t) {
                         var e,
@@ -2242,13 +2239,13 @@ var __webpack_modules__ = {
                             p,
                             _ = {};
                         for (e = 0; e < arguments.length; e++)
-                            ((h = arguments[e]),
+                            (h = arguments[e]),
                                 d.Z.isString(h)
                                     ? ((u = h.split(":")),
                                       (_[d.Z.trim(u[0])] = d.Z.trim(u[1])))
                                     : d.Z.isArray(h)
                                       ? (_[h[0]] = h[1])
-                                      : s.Z.extend(_, h));
+                                      : s.Z.extend(_, h);
                         for (e in (_ = this.resolveShortcuts(_)))
                             if (_.hasOwnProperty(e)) {
                                 if (
@@ -2280,17 +2277,17 @@ var __webpack_modules__ = {
                                 }
                                 switch (((p = this.visProp[n]), n)) {
                                     case "name":
-                                        ((p = this.name),
+                                        (p = this.name),
                                             delete this.board.elementsByName[
                                                 this.name
                                             ],
                                             (this.name = a),
                                             (this.board.elementsByName[
                                                 this.name
-                                            ] = this));
+                                            ] = this);
                                         break;
                                     case "needsregularupdate":
-                                        ((this.needsRegularUpdate = !(
+                                        (this.needsRegularUpdate = !(
                                             "false" === a || !1 === a
                                         )),
                                             this.board.renderer.setBuffering(
@@ -2298,10 +2295,10 @@ var __webpack_modules__ = {
                                                 this.needsRegularUpdate
                                                     ? "auto"
                                                     : "static",
-                                            ));
+                                            );
                                         break;
                                     case "labelcolor":
-                                        ((l = (a = c.Z.rgba2rgbo(a))[1]),
+                                        (l = (a = c.Z.rgba2rgbo(a))[1]),
                                             (a = a[0]),
                                             0 === l &&
                                                 d.Z.exists(this.label) &&
@@ -2325,7 +2322,7 @@ var __webpack_modules__ = {
                                                     this,
                                                     a,
                                                     l,
-                                                )));
+                                                ));
                                         break;
                                     case "infoboxtext":
                                         d.Z.isString(a)
@@ -2333,7 +2330,7 @@ var __webpack_modules__ = {
                                             : (this.infoboxText = !1);
                                         break;
                                     case "visible":
-                                        ((this.visProp.visible =
+                                        (this.visProp.visible =
                                             "false" !== a &&
                                             ("true" === a || a)),
                                             this.setDisplayRendNode(
@@ -2345,7 +2342,7 @@ var __webpack_modules__ = {
                                                 this.visProp.visible,
                                             ) &&
                                                 d.Z.exists(this.updateSize) &&
-                                                this.updateSize());
+                                                this.updateSize();
                                         break;
                                     case "face":
                                         d.Z.isPoint(this) &&
@@ -2362,30 +2359,30 @@ var __webpack_modules__ = {
                                                   "pause" !== a);
                                         break;
                                     case "gradient":
-                                        ((this.visProp.gradient = a),
+                                        (this.visProp.gradient = a),
                                             this.board.renderer.setGradient(
                                                 this,
-                                            ));
+                                            );
                                         break;
                                     case "gradientsecondcolor":
-                                        ((a = c.Z.rgba2rgbo(a)),
+                                        (a = c.Z.rgba2rgbo(a)),
                                             (this.visProp.gradientsecondcolor =
                                                 a[0]),
                                             (this.visProp.gradientsecondopacity =
                                                 a[1]),
                                             this.board.renderer.updateGradient(
                                                 this,
-                                            ));
+                                            );
                                         break;
                                     case "gradientsecondopacity":
-                                        ((this.visProp.gradientsecondopacity =
+                                        (this.visProp.gradientsecondopacity =
                                             a),
                                             this.board.renderer.updateGradient(
                                                 this,
-                                            ));
+                                            );
                                         break;
                                     case "withlabel":
-                                        ((this.visProp.withlabel = a),
+                                        (this.visProp.withlabel = a),
                                             d.Z.evaluate(a)
                                                 ? (this.label ||
                                                       this.createLabel(),
@@ -2397,7 +2394,7 @@ var __webpack_modules__ = {
                                                   this.label.setAttribute({
                                                       visible: !1,
                                                   }),
-                                            (this.hasLabel = a));
+                                            (this.hasLabel = a);
                                         break;
                                     case "radius":
                                         (this.type !== r.Z.OBJECT_TYPE_ANGLE &&
@@ -2445,11 +2442,11 @@ var __webpack_modules__ = {
                                             (this.rendNodeTag.maxlength = !!a);
                                         break;
                                     case "layer":
-                                        (this.board.renderer.setLayer(
+                                        this.board.renderer.setLayer(
                                             this,
                                             d.Z.evaluate(a),
                                         ),
-                                            this._set(n, a));
+                                            this._set(n, a);
                                         break;
                                     case "tabindex":
                                         d.Z.exists(this.rendNode) &&
@@ -2488,8 +2485,8 @@ var __webpack_modules__ = {
                         );
                     },
                     getProperty: function () {
-                        (s.Z.deprecated("getProperty()", "getAttribute()"),
-                            this.getProperty.apply(this, arguments));
+                        s.Z.deprecated("getProperty()", "getAttribute()"),
+                            this.getProperty.apply(this, arguments);
                     },
                     getAttribute: function (t) {
                         var e;
@@ -2512,10 +2509,10 @@ var __webpack_modules__ = {
                         return e;
                     },
                     setDash: function (t) {
-                        return (this.setAttribute({ dash: t }), this);
+                        return this.setAttribute({ dash: t }), this;
                     },
                     prepareUpdate: function () {
-                        return ((this.needsUpdate = !0), this);
+                        return (this.needsUpdate = !0), this;
                     },
                     remove: function () {
                         return (
@@ -2617,7 +2614,7 @@ var __webpack_modules__ = {
                         for (t in this.traces)
                             this.traces.hasOwnProperty(t) &&
                                 this.board.renderer.remove(this.traces[t]);
-                        return ((this.numTraces = 0), this);
+                        return (this.numTraces = 0), this;
                     },
                     cloneToBackground: function () {
                         return this;
@@ -2627,8 +2624,7 @@ var __webpack_modules__ = {
                     },
                     normalize: function () {
                         return (
-                            (this.stdform = n.Z.normalize(this.stdform)),
-                            this
+                            (this.stdform = n.Z.normalize(this.stdform)), this
                         );
                     },
                     toJSON: function () {
@@ -2846,7 +2842,7 @@ var __webpack_modules__ = {
                         if (d.Z.exists(this.ticks)) {
                             for (t = this.ticks.length - 1; t >= 0; t--)
                                 this.removeTicks(this.ticks[t]);
-                            ((this.ticks = []), this.board.update());
+                            (this.ticks = []), this.board.update();
                         }
                     },
                     removeTicks: function (t) {
@@ -2972,32 +2968,32 @@ var __webpack_modules__ = {
                         if (this.type === r.Z.OBJECT_TYPE_POLYGON) {
                             if ((e = this.vertices.length - 1) <= 0) return n;
                             for (t = 0; t < e; t++)
-                                ((i = this.vertices[t].X()),
+                                (i = this.vertices[t].X()),
                                     (n[0] = i < n[0] ? i : n[0]),
                                     (n[2] = i > n[2] ? i : n[2]),
                                     (i = this.vertices[t].Y()),
                                     (n[1] = i < n[1] ? i : n[1]),
-                                    (n[3] = i > n[3] ? i : n[3]));
+                                    (n[3] = i > n[3] ? i : n[3]);
                         } else if (
                             this.elementClass === r.Z.OBJECT_CLASS_CIRCLE
                         )
-                            ((s = this.center.X()),
+                            (s = this.center.X()),
                                 (o = this.center.Y()),
                                 (n = [
                                     s - this.radius,
                                     o + this.radius,
                                     s + this.radius,
                                     o - this.radius,
-                                ]));
+                                ]);
                         else if (this.elementClass === r.Z.OBJECT_CLASS_CURVE) {
                             if (0 === (e = this.vertices.length)) return n;
                             for (t = 0; t < e; t++)
-                                ((i = this.points[t].coords.usrCoords[1]),
+                                (i = this.points[t].coords.usrCoords[1]),
                                     (n[0] = i < n[0] ? i : n[0]),
                                     (n[2] = i > n[2] ? i : n[2]),
                                     (i = this.points[t].coords.usrCoords[1]),
                                     (n[1] = i < n[1] ? i : n[1]),
-                                    (n[3] = i > n[3] ? i : n[3]));
+                                    (n[3] = i > n[3] ? i : n[3]);
                         }
                         return n;
                     },
@@ -3028,7 +3024,7 @@ var __webpack_modules__ = {
                     __evt__attribute: function (t, e) {},
                     __evt__attribute_: function (t, e, i) {},
                     __evt: function () {},
-                }));
+                });
             const u = s.Z.GeometryElement;
         },
         573: (t, e, i) => {
@@ -3042,13 +3038,13 @@ var __webpack_modules__ = {
                 l = i(275),
                 c = i(218),
                 d = function () {
-                    ((this._val = parseFloat(this.rendNodeRange.value)),
+                    (this._val = parseFloat(this.rendNodeRange.value)),
                         (this.rendNodeOut.value = this.rendNodeRange.value),
-                        this.board.update());
+                        this.board.update();
                 };
-            ((s.Z.Text = function (t, e, i, s) {
+            (s.Z.Text = function (t, e, i, s) {
                 var o;
-                (this.constructor(
+                this.constructor(
                     t,
                     i,
                     r.Z.OBJECT_TYPE_TEXT,
@@ -3079,7 +3075,7 @@ var __webpack_modules__ = {
                     (this.methodMap = h.Z.deepCopy(this.methodMap, {
                         setText: "setTextJessieCode",
                         move: "setCoords",
-                    })));
+                    }));
             }),
                 (s.Z.Text.prototype = new o.Z()),
                 h.Z.copyPrototypeMethods(s.Z.Text, c.Z, "coordsConstructor"),
@@ -3143,7 +3139,7 @@ var __webpack_modules__ = {
                             a = !1;
                         if (((this.orgText = t), h.Z.isFunction(t)))
                             this.updateText = function () {
-                                ((s = t().toString()),
+                                (s = t().toString()),
                                     (this.plaintext =
                                         !r || o || n
                                             ? s
@@ -3154,7 +3150,7 @@ var __webpack_modules__ = {
                                                           !1,
                                                       ),
                                                   ),
-                                              )));
+                                              ));
                             };
                         else if (
                             (h.Z.isNumber(t)
@@ -3185,8 +3181,8 @@ var __webpack_modules__ = {
                                 "",
                                 !1,
                             )).deps)
-                                (this.addParents(e.deps[i]),
-                                    e.deps[i].addChild(this));
+                                this.addParents(e.deps[i]),
+                                    e.deps[i].addChild(this);
                             this.updateText = function () {
                                 this.plaintext = this.unescapeTicks(e());
                             };
@@ -3235,12 +3231,12 @@ var __webpack_modules__ = {
                                   ? h.Z.exists(i.offsetWidth)
                                       ? ((e = this),
                                         window.setTimeout(function () {
-                                            ((e.size = [
+                                            (e.size = [
                                                 i.offsetWidth,
                                                 i.offsetHeight,
                                             ]),
                                                 (e.needsUpdate = !0),
-                                                e.updateRenderer());
+                                                e.updateRenderer();
                                         }, 0))
                                       : (this.size = this.crudeSizeEstimate())
                                   : "internal" === s &&
@@ -3248,13 +3244,13 @@ var __webpack_modules__ = {
                                         ? ((e = this),
                                           window.setTimeout(function () {
                                               try {
-                                                  ((t = i.getBBox()),
+                                                  (t = i.getBBox()),
                                                       (e.size = [
                                                           t.width,
                                                           t.height,
                                                       ]),
                                                       (e.needsUpdate = !0),
-                                                      e.updateRenderer());
+                                                      e.updateRenderer();
                                               } catch (t) {}
                                           }, 0))
                                         : "canvas" ===
@@ -3276,7 +3272,7 @@ var __webpack_modules__ = {
                     replaceSub: function (t) {
                         if (!t.indexOf) return t;
                         for (var e, i = t.indexOf("_{"); i >= 0; )
-                            ((e = (t =
+                            (e = (t =
                                 t.substr(0, i) +
                                 t.substr(i).replace(/_\{/, "<sub>"))
                                 .substr(i)
@@ -3284,7 +3280,7 @@ var __webpack_modules__ = {
                                 (t =
                                     t.substr(0, e) +
                                     t.substr(e).replace(/\}/, "</sub>")),
-                                (i = t.indexOf("_{")));
+                                (i = t.indexOf("_{"));
                         for (i = t.indexOf("_"); i >= 0; )
                             i = (t =
                                 t.substr(0, i) +
@@ -3298,7 +3294,7 @@ var __webpack_modules__ = {
                     replaceSup: function (t) {
                         if (!t.indexOf) return t;
                         for (var e, i = t.indexOf("^{"); i >= 0; )
-                            ((e = (t =
+                            (e = (t =
                                 t.substr(0, i) +
                                 t.substr(i).replace(/\^\{/, "<sup>"))
                                 .substr(i)
@@ -3306,7 +3302,7 @@ var __webpack_modules__ = {
                                 (t =
                                     t.substr(0, e) +
                                     t.substr(e).replace(/\}/, "</sup>")),
-                                (i = t.indexOf("^{")));
+                                (i = t.indexOf("^{"));
                         for (i = t.indexOf("^"); i >= 0; )
                             i = (t =
                                 t.substr(0, i) +
@@ -3409,7 +3405,7 @@ var __webpack_modules__ = {
                             o >= 0)
                         )
                             for (; o >= 0; )
-                                ((l +=
+                                (l +=
                                     ' + "' +
                                     this.replaceSub(
                                         this.replaceSup(t.slice(0, o)),
@@ -3452,7 +3448,7 @@ var __webpack_modules__ = {
                                     (o = (t = t.slice(a + 8)).indexOf(
                                         "<value>",
                                     )),
-                                    (a = t.indexOf("</value>")));
+                                    (a = t.indexOf("</value>"));
                         return (
                             (l +=
                                 ' + "' +
@@ -3485,9 +3481,7 @@ var __webpack_modules__ = {
                             s >= 0)
                         )
                             for (; s >= 0; )
-                                (o.push(
-                                    n + this.escapeTicks(t.slice(0, s)) + n,
-                                ),
+                                o.push(n + this.escapeTicks(t.slice(0, s)) + n),
                                     (i = (i = t.slice(s + 7, r)).replace(
                                         /\s+/g,
                                         "",
@@ -3521,7 +3515,7 @@ var __webpack_modules__ = {
                                     (s = (t = t.slice(r + 8)).indexOf(
                                         "<value>",
                                     )),
-                                    (r = t.indexOf("</value>")));
+                                    (r = t.indexOf("</value>"));
                         return (
                             o.push(n + this.escapeTicks(t) + n),
                             o.join(" + ").replace(/&amp;/g, "&")
@@ -3696,7 +3690,7 @@ var __webpack_modules__ = {
                                 o !== this &&
                                 o.hasPoint(t, e) &&
                                 h++;
-                        return ((this.board.options.precision.hasPoint = a), h);
+                        return (this.board.options.precision.hasPoint = a), h;
                     },
                     setAutoPosition: function () {
                         var t,
@@ -3824,7 +3818,7 @@ var __webpack_modules__ = {
                                 typeof e[1] +
                                 "'.\nPossible parents are: [[x,y], [min, start, max]]",
                         );
-                    ((n.anchor = n.parent || n.anchor),
+                    (n.anchor = n.parent || n.anchor),
                         (n.fixed = n.fixed || !0),
                         (o = [
                             e[0][0],
@@ -3844,11 +3838,11 @@ var __webpack_modules__ = {
                         n.withlabel &&
                             (r.rendNodeLabel.innerHTML = r.name + "="),
                         (r.rendNodeOut = r.rendNodeForm.childNodes[2]),
-                        (r.rendNodeOut.value = e[1][1]));
+                        (r.rendNodeOut.value = e[1][1]);
                     try {
-                        ((r.rendNodeForm.id = r.rendNode.id + "_form"),
+                        (r.rendNodeForm.id = r.rendNode.id + "_form"),
                             (r.rendNodeRange.id = r.rendNode.id + "_range"),
-                            (r.rendNodeOut.id = r.rendNode.id + "_out"));
+                            (r.rendNodeOut.id = r.rendNode.id + "_out");
                     } catch (t) {
                         s.Z.debug(t);
                     }
@@ -3866,13 +3860,13 @@ var __webpack_modules__ = {
                         r
                     );
                 }),
-                s.Z.registerElement("htmlslider", s.Z.createHTMLSlider));
+                s.Z.registerElement("htmlslider", s.Z.createHTMLSlider);
             const u = s.Z.Text;
         },
         765: (t, e, i) => {
             i.d(e, { Z: () => r });
             var s = {};
-            ("object" != typeof JXG || JXG.extend || (s = JXG),
+            "object" != typeof JXG || JXG.extend || (s = JXG),
                 (s.extend = function (t, e, i, s) {
                     var r;
                     for (r in ((i = i || !1), (s = s || !1), e))
@@ -3900,14 +3894,14 @@ var __webpack_modules__ = {
                     readers: {},
                     elements: {},
                     registerElement: function (t, e) {
-                        ((t = t.toLowerCase()), (this.elements[t] = e));
+                        (t = t.toLowerCase()), (this.elements[t] = e);
                     },
                     registerReader: function (t, e) {
                         var i, s;
                         for (i = 0; i < e.length; i++)
-                            ((s = e[i].toLowerCase()),
+                            (s = e[i].toLowerCase()),
                                 "function" != typeof this.readers[s] &&
-                                    (this.readers[s] = t));
+                                    (this.readers[s] = t);
                     },
                     shortcut: function (t, e) {
                         return function () {
@@ -3941,8 +3935,7 @@ var __webpack_modules__ = {
                     },
                     deprecated: function (t, e) {
                         var i = t + " is deprecated.";
-                        (e && (i += " Please use " + e + " instead."),
-                            s.warn(i));
+                        e && (i += " Please use " + e + " instead."), s.warn(i);
                     },
                     warn: function (t) {
                         "object" == typeof window &&
@@ -3957,7 +3950,7 @@ var __webpack_modules__ = {
                     debugInt: function (t) {
                         var e, i;
                         for (e = 0; e < arguments.length; e++)
-                            ((i = arguments[e]),
+                            (i = arguments[e]),
                                 "object" == typeof window &&
                                 window.console &&
                                 console.log
@@ -3966,32 +3959,32 @@ var __webpack_modules__ = {
                                       document.getElementById("debug") &&
                                       (document.getElementById(
                                           "debug",
-                                      ).innerHTML += i + "<br/>"));
+                                      ).innerHTML += i + "<br/>");
                     },
                     debugWST: function (t) {
                         var e = new Error();
-                        (s.debugInt.apply(this, arguments),
+                        s.debugInt.apply(this, arguments),
                             e &&
                                 e.stack &&
                                 (s.debugInt("stacktrace"),
                                 s.debugInt(
                                     e.stack.split("\n").slice(1).join("\n"),
-                                )));
+                                ));
                     },
                     debugLine: function (t) {
                         var e = new Error();
-                        (s.debugInt.apply(this, arguments),
+                        s.debugInt.apply(this, arguments),
                             e &&
                                 e.stack &&
                                 s.debugInt(
                                     "Called from",
                                     e.stack.split("\n").slice(2, 3).join("\n"),
-                                ));
+                                );
                     },
                     debug: function (t) {
                         s.debugInt.apply(this, arguments);
                     },
-                }));
+                });
             const r = s;
         },
         922: (t, e, i) => {
@@ -4003,7 +3996,7 @@ var __webpack_modules__ = {
                 a = i(336),
                 h = i(109),
                 l = i(421);
-            ((n.Z.Geometry = {}),
+            (n.Z.Geometry = {}),
                 s.Z.extend(n.Z.Geometry, {
                     angle: function (t, e, i) {
                         var r,
@@ -4188,11 +4181,11 @@ var __webpack_modules__ = {
                         );
                     },
                     circumcenterMidpoint: function () {
-                        (s.Z.deprecated(
+                        s.Z.deprecated(
                             "Geometry.circumcenterMidpoint()",
                             "Geometry.circumcenter()",
                         ),
-                            this.circumcenter.apply(this, arguments));
+                            this.circumcenter.apply(this, arguments);
                     },
                     circumcenter: function (t, e, i, s) {
                         var a,
@@ -4267,7 +4260,7 @@ var __webpack_modules__ = {
                             i[0][2] === i[s - 1][2];
 
                         )
-                            ((r = i.pop()), s--);
+                            (r = i.pop()), s--;
                         return (
                             (e = i[0]),
                             i.sort(function (t, i) {
@@ -4334,7 +4327,7 @@ var __webpack_modules__ = {
                                 else if (e === r - 1) break;
                                 e += 1;
                             }
-                            ((i += 1), (s = h.Z.swap(s, i, e)));
+                            (i += 1), (s = h.Z.swap(s, i, e));
                         }
                         return s.slice(0, i);
                     },
@@ -4399,7 +4392,7 @@ var __webpack_modules__ = {
                                 )
                                     return;
                             }
-                            (o
+                            o
                                 ? a || (b = this.isSameDir(e, i, c, d) ? d : c)
                                 : a
                                   ? (f = this.isSameDir(e, i, c, d) ? c : d)
@@ -4415,7 +4408,7 @@ var __webpack_modules__ = {
                                     i.setCoordinates(
                                         r.Z.COORDS_BY_USER,
                                         b.usrCoords,
-                                    ));
+                                    );
                         }
                     },
                     calcLineDelimitingPoints: function (t, e, i) {
@@ -4521,7 +4514,7 @@ var __webpack_modules__ = {
                                 )
                                     return;
                             }
-                            (f
+                            f
                                 ? b || (_ = this.isSameDir(e, i, a, l) ? l : a)
                                 : b
                                   ? (p = this.isSameDir(e, i, a, l) ? a : l)
@@ -4537,7 +4530,7 @@ var __webpack_modules__ = {
                                     i.setCoordinates(
                                         r.Z.COORDS_BY_USER,
                                         _.usrCoords,
-                                    ));
+                                    );
                         }
                     },
                     calcLabelQuadrant: function (t) {
@@ -4677,7 +4670,7 @@ var __webpack_modules__ = {
                             n < l - 1;
                             a = n++
                         )
-                            ((p = h.Z.exists(f[n].coords) ? f[n].coords : f[n]),
+                            (p = h.Z.exists(f[n].coords) ? f[n].coords : f[n]),
                                 (_ = h.Z.exists(f[a].coords)
                                     ? f[a].coords
                                     : f[a]),
@@ -4687,7 +4680,7 @@ var __webpack_modules__ = {
                                             (d - p.scrCoords[2])) /
                                             (_.scrCoords[2] - p.scrCoords[2]) +
                                             p.scrCoords[1] &&
-                                    (b = !b));
+                                    (b = !b);
                         return b;
                     },
                     intersectionFunction: function (t, e, i, a, l, c) {
@@ -5457,7 +5450,7 @@ var __webpack_modules__ = {
                             p = t.borders.length,
                             _ = [];
                         for (a = 0; a < p; a++)
-                            ((c = t.borders[a]),
+                            (c = t.borders[a]),
                                 (l = this.meetSegmentSegment(
                                     c.point1.coords.usrCoords,
                                     c.point2.coords.usrCoords,
@@ -5467,7 +5460,7 @@ var __webpack_modules__ = {
                                 (!n || (l[2] >= 0 && l[2] < 1)) &&
                                     l[1] >= 0 &&
                                     l[1] < 1 &&
-                                    _.push(l[0]));
+                                    _.push(l[0]);
                         return (
                             d >= 0 && d < _.length && (u = _[d]),
                             new o.Z(r.Z.COORDS_BY_USER, u, s)
@@ -5567,10 +5560,10 @@ var __webpack_modules__ = {
                             r < a;
                             r++
                         )
-                            (o && ((e[r][2] *= 0.5), (e[r][2] += s)),
+                            o && ((e[r][2] *= 0.5), (e[r][2] += s)),
                                 (e[r][1] *= 0.5),
                                 (e[r][1] += i),
-                                t.push(e[r]));
+                                t.push(e[r]);
                     },
                     _bezierMeetSubdivision: function (t, e, i) {
                         var s,
@@ -5883,7 +5876,7 @@ var __webpack_modules__ = {
                             d > n.Z.eps;
 
                         )
-                            (d > P ? ((u = P), (d -= P)) : ((u = d), (d = 0)),
+                            d > P ? ((u = P), (d -= P)) : ((u = d), (d = 0)),
                                 (y = [
                                     [1, 0, 0],
                                     [
@@ -5920,7 +5913,7 @@ var __webpack_modules__ = {
                                 (h = [1, l[1] + v * m, l[2] - v * g]),
                                 (w = w.concat([a[1], h[1], l[1]])),
                                 (S = S.concat([a[2], h[2], l[2]])),
-                                (o = l.slice(0)));
+                                (o = l.slice(0));
                         return (
                             s &&
                                 ((w = w.concat([
@@ -6068,7 +6061,7 @@ var __webpack_modules__ = {
                                     d < s.numberPoints - 1;
                                     d++
                                 )
-                                    (3 === s.bezierDegree
+                                    3 === s.bezierDegree
                                         ? (C =
                                               this.projectCoordsToBeziersegment(
                                                   b,
@@ -6102,7 +6095,7 @@ var __webpack_modules__ = {
                                         _ < p && ((p = _), (i = m), (l = g)),
                                         3 === s.bezierDegree
                                             ? (u++, (d += 2))
-                                            : (v = Z));
+                                            : (v = Z);
                             c = new o.Z(r.Z.COORDS_BY_USER, l, n);
                         } else {
                             for (
@@ -6122,9 +6115,9 @@ var __webpack_modules__ = {
                                 d < 50;
                                 d++
                             )
-                                (((E = y(P)) < O || O === 1 / 0 || isNaN(O)) &&
+                                ((E = y(P)) < O || O === 1 / 0 || isNaN(O)) &&
                                     ((i = P), (O = E)),
-                                    (P += x));
+                                    (P += x);
                             for (
                                 w = x, d = 0;
                                 d < 20 && isNaN(y(i - w));
@@ -6135,7 +6128,7 @@ var __webpack_modules__ = {
                                 d < 20 && isNaN(y(i + S));
                                 d++, S *= 0.5
                             );
-                            (isNaN(y(i + S)) && (S = 0),
+                            isNaN(y(i + S)) && (S = 0),
                                 (i =
                                     (i =
                                         (i = a.Z.fminbr(y, [
@@ -6150,7 +6143,7 @@ var __webpack_modules__ = {
                                     r.Z.COORDS_BY_USER,
                                     [s.X(i), s.Y(i)],
                                     n,
-                                )));
+                                ));
                         }
                         return [s.updateTransform(c), i];
                     },
@@ -6163,7 +6156,7 @@ var __webpack_modules__ = {
                             h = e.vertices.length,
                             l = 1 / 0;
                         for (i = 0; i < h - 1; i++)
-                            (0 <=
+                            0 <=
                                 (o = s.Z.Math.Geometry.projectCoordsToSegment(
                                     t,
                                     e.vertices[i].coords.usrCoords,
@@ -6184,7 +6177,7 @@ var __webpack_modules__ = {
                                         3,
                                     )),
                                     (n = e.vertices[i + 1].coords.usrCoords)),
-                                r < l && ((a = n.slice(0)), (l = r)));
+                                r < l && ((a = n.slice(0)), (l = r));
                         return a;
                     },
                     projectPointToTurtle: function (t, e, i) {
@@ -6319,14 +6312,13 @@ var __webpack_modules__ = {
                             l = [0, 0, 0],
                             c = [0, 0, 0];
                         for (r = 0; r < 3; r++)
-                            ((l[r] = h.Z.evaluate(t[r])),
-                                (c[r] = h.Z.evaluate(e[r])));
+                            (l[r] = h.Z.evaluate(t[r])),
+                                (c[r] = h.Z.evaluate(e[r]));
                         for (o = n.Z.crossProduct(l, c), r = 0; r < 3; r++)
-                            ((l[r] = h.Z.evaluate(i[r])),
-                                (c[r] = h.Z.evaluate(s[r])));
+                            (l[r] = h.Z.evaluate(i[r])),
+                                (c[r] = h.Z.evaluate(s[r]));
                         return (
-                            (a = n.Z.crossProduct(l, c)),
-                            n.Z.crossProduct(o, a)
+                            (a = n.Z.crossProduct(l, c)), n.Z.crossProduct(o, a)
                         );
                     },
                     project3DTo3DPlane: function (t, e, i) {
@@ -6355,7 +6347,7 @@ var __webpack_modules__ = {
                               [o, (c = a.Z.Gauss(h, l))[0], n, c[1]])
                             : null;
                     },
-                }));
+                });
             const c = n.Z.Geometry;
         },
         785: (t, e, i) => {
@@ -6363,7 +6355,7 @@ var __webpack_modules__ = {
             var s = i(765),
                 r = i(275),
                 o = i(109);
-            ((s.Z.Math.DoubleBits = function () {
+            (s.Z.Math.DoubleBits = function () {
                 var t,
                     e,
                     i,
@@ -6379,16 +6371,16 @@ var __webpack_modules__ = {
                     !0,
                     1072693248 === l[1]
                         ? ((t = function (t) {
-                              return ((h[0] = t), [l[0], l[1]]);
+                              return (h[0] = t), [l[0], l[1]];
                           }),
                           (e = function (t, e) {
-                              return ((l[0] = t), (l[1] = e), h[0]);
+                              return (l[0] = t), (l[1] = e), h[0];
                           }),
                           (i = function (t) {
-                              return ((h[0] = t), l[0]);
+                              return (h[0] = t), l[0];
                           }),
                           (s = function (t) {
-                              return ((h[0] = t), l[1]);
+                              return (h[0] = t), l[1];
                           }),
                           (this.doubleBits = t),
                           (this.pack = e),
@@ -6396,16 +6388,16 @@ var __webpack_modules__ = {
                           (this.hi = s))
                         : 1072693248 === l[0] &&
                           ((r = function (t) {
-                              return ((h[0] = t), [l[1], l[0]]);
+                              return (h[0] = t), [l[1], l[0]];
                           }),
                           (o = function (t, e) {
-                              return ((l[1] = t), (l[0] = e), h[0]);
+                              return (l[1] = t), (l[0] = e), h[0];
                           }),
                           (n = function (t) {
-                              return ((h[0] = t), l[1]);
+                              return (h[0] = t), l[1];
                           }),
                           (a = function (t) {
-                              return ((h[0] = t), l[0]);
+                              return (h[0] = t), l[0];
                           }),
                           (this.doubleBits = r),
                           (this.pack = o),
@@ -6423,12 +6415,12 @@ var __webpack_modules__ = {
                         var e = this.lo(t),
                             i = this.hi(t),
                             s = 1048575 & i;
-                        return (2146435072 & i && (s += 1 << 20), [e, s]);
+                        return 2146435072 & i && (s += 1 << 20), [e, s];
                     },
                     denormalized: function (t) {
                         return !(2146435072 & this.hi(t));
                     },
-                }));
+                });
             var n = new s.Z.Math.DoubleBits(),
                 a = function (t, e) {
                     if (void 0 !== t && void 0 !== e) {
@@ -6454,12 +6446,12 @@ var __webpack_modules__ = {
                         this.lo = this.hi = 0;
                     }
                 };
-            (s.Z.extend(a.prototype, {
+            s.Z.extend(a.prototype, {
                 print: function () {
                     console.log("[", this.lo, this.hi, "]");
                 },
                 set: function (t, e) {
-                    return ((this.lo = t), (this.hi = e), this);
+                    return (this.lo = t), (this.hi = e), this;
                 },
                 bounded: function (t, e) {
                     return this.set(
@@ -7235,30 +7227,30 @@ var __webpack_modules__ = {
                         var i;
                         if (e % 1 != 0) return this.prev(Math.pow(t, e));
                         for (i = 1 == (1 & e) ? t : 1, e >>= 1; e > 0; )
-                            ((t = this.mulLo(t, t)),
+                            (t = this.mulLo(t, t)),
                                 1 == (1 & e) && (i = this.mulLo(t, i)),
-                                (e >>= 1));
+                                (e >>= 1);
                         return i;
                     },
                     powHi: function (t, e) {
                         var i;
                         if (e % 1 != 0) return this.next(Math.pow(t, e));
                         for (i = 1 == (1 & e) ? t : 1, e >>= 1; e > 0; )
-                            ((t = this.mulHi(t, t)),
+                            (t = this.mulHi(t, t)),
                                 1 == (1 & e) && (i = this.mulHi(t, i)),
-                                (e >>= 1));
+                                (e >>= 1);
                         return i;
                     },
                     disable: function () {
                         this.next = this.prev = this.identity;
                     },
                     enable: function () {
-                        ((this.prev = function (t) {
+                        (this.prev = function (t) {
                             return this._prev(t);
                         }),
                             (this.next = function (t) {
                                 return this._next(t);
-                            }));
+                            });
                     },
                     SMALLEST_DENORM: Math.pow(2, -1074),
                     UINT_MAX: -1 >>> 0,
@@ -7299,7 +7291,7 @@ var __webpack_modules__ = {
                 (s.Z.Math.IntervalArithmetic.ZERO = new a(0)),
                 (s.Z.Math.IntervalArithmetic.ONE = new a(1)),
                 (s.Z.Math.IntervalArithmetic.WHOLE = new a().setWhole()),
-                (s.Z.Math.IntervalArithmetic.EMPTY = new a().setEmpty()));
+                (s.Z.Math.IntervalArithmetic.EMPTY = new a().setEmpty());
             const h = s.Z.Math.IntervalArithmetic;
         },
         275: (t, e, i) => {
@@ -7459,10 +7451,10 @@ var __webpack_modules__ = {
                         if (o <= this.eps) return [];
                         if (n > i) {
                             for (s = 0; s < h; s++)
-                                ((a = l[i][s]),
+                                (a = l[i][s]),
                                     (l[i][s] = l[n][s]),
-                                    (l[n][s] = a));
-                            ((a = c[i]), (c[i] = c[n]), (c[n] = a));
+                                    (l[n][s] = a);
+                            (a = c[i]), (c[i] = c[n]), (c[n] = a);
                         }
                         for (r = 1 / l[i][i], e = 0; e < h; e++) l[e][i] *= r;
                         for (l[i][i] = r, s = 0; s < h; s++)
@@ -7530,7 +7522,7 @@ var __webpack_modules__ = {
                         0 === e || e === t)
                     )
                         return 1;
-                    for (i = 1, s = 0; s < e; s++) ((i *= t - s), (i /= s + 1));
+                    for (i = 1, s = 0; s < e; s++) (i *= t - s), (i /= s + 1);
                     return i;
                 }),
                 cosh:
@@ -7622,7 +7614,7 @@ var __webpack_modules__ = {
                             0 !== e;
 
                         )
-                            (1 & e && (i *= t), (e >>= 1), (t *= t));
+                            1 & e && (i *= t), (e >>= 1), (t *= t);
                         return i;
                     }
                     return this.pow(t, e);
@@ -7807,7 +7799,7 @@ var __webpack_modules__ = {
                         for (i = c - 1; i > s; i--)
                             if (Math.abs(a[i][s]) > l)
                                 if (Math.abs(a[s][s]) < l)
-                                    (r.Z.swap(a, i, s), r.Z.swap(h, i, s));
+                                    r.Z.swap(a, i, s), r.Z.swap(h, i, s);
                                 else
                                     for (
                                         a[i][s] /= a[s][s],
@@ -7822,7 +7814,7 @@ var __webpack_modules__ = {
                                 "JXG.Math.Numerics.Gauss(): The given matrix seems to be singular.",
                             );
                     }
-                    return (this.backwardSolve(a, h, !0), h);
+                    return this.backwardSolve(a, h, !0), h;
                 },
                 backwardSolve: function (t, e, i) {
                     var s, r, o, n, a;
@@ -7866,15 +7858,15 @@ var __webpack_modules__ = {
                             );
                             if (r === h) return 0;
                             for (o = e; o < h; o++)
-                                ((c = l[r][o]),
+                                (c = l[r][o]),
                                     (l[r][o] = l[e][o]),
-                                    (l[e][o] = c));
-                            ((s = -s), (a = l[e][e]));
+                                    (l[e][o] = c);
+                            (s = -s), (a = l[e][e]);
                         }
                         for (r = e + 1; r < h; r++)
                             for (o = e + 1; o < h; o++)
-                                ((c = a * l[r][o] - l[r][e] * l[e][o]),
-                                    (l[r][o] = c / i));
+                                (c = a * l[r][o] - l[r][e] * l[e][o]),
+                                    (l[r][o] = c / i);
                         i = a;
                     }
                     return s * l[h - 1][h - 1];
@@ -7910,9 +7902,9 @@ var __webpack_modules__ = {
                         b = 0;
                     for (e = 0; e < p; e++) {
                         for (i = 0; i < p; i++)
-                            ((_[e][i] = 0),
+                            (_[e][i] = 0),
                                 (f[e][i] = t[e][i]),
-                                (u += Math.abs(f[e][i])));
+                                (u += Math.abs(f[e][i]));
                         _[e][e] = 1;
                     }
                     if (1 === p) return [f, _];
@@ -7939,12 +7931,12 @@ var __webpack_modules__ = {
                                         s < p;
                                         s++
                                     )
-                                        ((h = f[s][e]),
+                                        (h = f[s][e]),
                                             (f[s][e] = a * h + o * f[s][i]),
                                             (f[s][i] = -o * h + a * f[s][i]),
                                             (h = _[s][e]),
                                             (_[s][e] = a * h + o * _[s][i]),
-                                            (_[s][i] = -o * h + a * _[s][i]));
+                                            (_[s][i] = -o * h + a * _[s][i]);
                                     for (
                                         f[e][e] = a * f[e][e] + o * f[i][e],
                                             f[i][i] =
@@ -7954,8 +7946,8 @@ var __webpack_modules__ = {
                                         s < p;
                                         s++
                                     )
-                                        ((f[e][s] = f[s][e]),
-                                            (f[i][s] = f[s][i]));
+                                        (f[e][s] = f[s][e]),
+                                            (f[i][s] = f[s][i]);
                                 }
                         b += 1;
                     } while (Math.abs(l) / u > d && b < 2e3);
@@ -8068,9 +8060,9 @@ var __webpack_modules__ = {
                             c >= 0;
                             --c
                         )
-                            ((d *= 4),
+                            (d *= 4),
                                 (u[c] = u[c + 1] + (u[c + 1] - u[c]) / (d - 1)),
-                                (p = u[c]));
+                                (p = u[c]);
                         if (Math.abs(p - _) < b * Math.abs(p)) break;
                         _ = p;
                     }
@@ -8304,21 +8296,21 @@ var __webpack_modules__ = {
                         d < a;
                         d++
                     )
-                        ((b =
+                        (b =
                             (_ = e(Z - (p = C * s[(u = 2 * d + 1)]))) +
                             (f = e(Z + p))),
                             (S[u] = _),
                             (T[u] = f),
                             (E += r[d] * b),
                             (O += o[u] * b),
-                            (x += o[u] * (Math.abs(_) + Math.abs(f))));
+                            (x += o[u] * (Math.abs(_) + Math.abs(f)));
                     for (a = Math.floor(i / 2), d = 0; d < a; d++)
-                        ((_ = e(Z - (p = C * s[(g = 2 * d)]))),
+                        (_ = e(Z - (p = C * s[(g = 2 * d)]))),
                             (f = e(Z + p)),
                             (S[g] = _),
                             (T[g] = f),
                             (O += o[g] * (_ + f)),
-                            (x += o[g] * (Math.abs(_) + Math.abs(f))));
+                            (x += o[g] * (Math.abs(_) + Math.abs(f)));
                     for (
                         l = 0.5 * O, w = o[i - 1] * Math.abs(P - l), d = 0;
                         d < i - 1;
@@ -8455,13 +8447,13 @@ var __webpack_modules__ = {
                                 a > 0 && t > this.elist[this.order[a - 1]];
 
                             )
-                                ((this.order[a] = this.order[a - 1]), a--);
+                                (this.order[a] = this.order[a - 1]), a--;
                             for (
                                 r = o < n / 2 + 2 ? o : n - o + 1, i = a + 1;
                                 i < r && t < this.elist[this.order[i]];
 
                             )
-                                ((this.order[i - 1] = this.order[i]), i++);
+                                (this.order[i - 1] = this.order[i]), i++;
                             for (
                                 this.order[i - 1] = h,
                                     e = this.elist[o],
@@ -8469,22 +8461,22 @@ var __webpack_modules__ = {
                                 s > i - 2 && e >= this.elist[this.order[s]];
 
                             )
-                                ((this.order[s + 1] = this.order[s]), s--);
-                            ((this.order[s + 1] = o),
+                                (this.order[s + 1] = this.order[s]), s--;
+                            (this.order[s + 1] = o),
                                 (h = this.order[a]),
                                 (this.i = h),
-                                (this.nrmax = a));
+                                (this.nrmax = a);
                         },
                         set_initial_result: function (t, e) {
-                            ((this.size = 1),
+                            (this.size = 1),
                                 (this.rlist[0] = t),
-                                (this.elist[0] = e));
+                                (this.elist[0] = e);
                         },
                         update: function (t, e, i, s, r, o, n, a) {
                             var h = this.i,
                                 l = this.size,
                                 c = this.level[this.i] + 1;
-                            (a > s
+                            a > s
                                 ? ((this.alist[h] = r),
                                   (this.rlist[h] = n),
                                   (this.elist[h] = a),
@@ -8506,7 +8498,7 @@ var __webpack_modules__ = {
                                 this.size++,
                                 c > this.maximum_level &&
                                     (this.maximum_level = c),
-                                this.qpsrt());
+                                this.qpsrt();
                         },
                         retrieve: function () {
                             var t = this.i;
@@ -8604,9 +8596,9 @@ var __webpack_modules__ = {
                             ),
                             -1 / 0
                         );
-                    ((o = h), (a = l), (M = 1));
+                    (o = h), (a = l), (M = 1);
                     do {
-                        ((R = 0),
+                        (R = 0),
                             (D = 0),
                             (L = 0),
                             (B = 0),
@@ -8640,7 +8632,7 @@ var __webpack_modules__ = {
                             (m = y.b_i),
                             (v = y.r_i),
                             (Z = y.e_i),
-                            M++);
+                            M++;
                     } while (M < O && !k && a > u);
                     return E.sum_results();
                 },
@@ -8662,12 +8654,12 @@ var __webpack_modules__ = {
                         o < 50 && Math.abs(h) > a;
 
                     )
-                        ((s = this.D(t, i)(e)),
+                        (s = this.D(t, i)(e)),
                             Math.abs(s) > a
                                 ? (e -= h / s)
                                 : (e += 0.2 * Math.random() - 1),
                             (h = t.apply(i, [e])),
-                            (o += 1));
+                            (o += 1);
                     return e;
                 },
                 root: function (t, e, i) {
@@ -8704,7 +8696,7 @@ var __webpack_modules__ = {
                         _ > n.Z.eps && v < 10;
 
                     )
-                        ((a = f(r)),
+                        (a = f(r)),
                             (h = -b(o)),
                             (l = g(r)),
                             (r -=
@@ -8714,7 +8706,7 @@ var __webpack_modules__ = {
                             (_ =
                                 (u = t.X(r) - e.X(o)) * u +
                                 (p = t.Y(r) - e.Y(o)) * p),
-                            (v += 1));
+                            (v += 1);
                     return (
                         (this.generalizedNewton.t1memo = r),
                         (this.generalizedNewton.t2memo = o),
@@ -8737,13 +8729,13 @@ var __webpack_modules__ = {
                                     p = 0;
                                 if (!r)
                                     for (h = 1, o = 0; o < c; o++)
-                                        ((e[o] = l(d, o) * h), (h *= -1));
+                                        (e[o] = l(d, o) * h), (h *= -1);
                                 for (a = s, o = 0; o < c; o++) {
                                     if (0 === a) return t[o][i]();
-                                    ((h = e[o] / a),
+                                    (h = e[o] / a),
                                         (a -= 1),
                                         (u += t[o][i]() * h),
-                                        (p += h));
+                                        (p += h);
                                 }
                                 return u / p;
                             };
@@ -8770,7 +8762,7 @@ var __webpack_modules__ = {
                         d = [];
                     if (2 === o) return [0, 0];
                     for (s = 0; s < o; s++)
-                        ((i = { X: t[s], Y: e[s] }), h.push(i));
+                        (i = { X: t[s], Y: e[s] }), h.push(i);
                     for (
                         h.sort(function (t, e) {
                             return t.X - e.X;
@@ -8779,7 +8771,7 @@ var __webpack_modules__ = {
                         s < o;
                         s++
                     )
-                        ((t[s] = h[s].X), (e[s] = h[s].Y));
+                        (t[s] = h[s].X), (e[s] = h[s].Y);
                     for (s = 0; s < o - 1; s++) l.push(t[s + 1] - t[s]);
                     for (s = 0; s < o - 2; s++)
                         c.push(
@@ -8791,13 +8783,13 @@ var __webpack_modules__ = {
                         s < o - 3;
                         s++
                     )
-                        ((r = l[s + 1] / n[s]),
+                        (r = l[s + 1] / n[s]),
                             n.push(2 * (l[s + 1] + l[s + 2]) - r * l[s + 1]),
-                            a.push(c[s + 1] - r * a[s]));
+                            a.push(c[s + 1] - r * a[s]);
                     for (d[o - 3] = a[o - 3] / n[o - 3], s = o - 4; s >= 0; s--)
                         d[s] = (a[s] - l[s + 1] * d[s + 1]) / n[s];
                     for (s = o - 3; s >= 0; s--) d[s + 1] = d[s];
-                    return ((d[0] = 0), (d[o - 1] = 0), d);
+                    return (d[0] = 0), (d[o - 1] = 0), d;
                 },
                 splineEval: function (t, e, i, s) {
                     var o,
@@ -8819,7 +8811,7 @@ var __webpack_modules__ = {
                     ) {
                         if (t[o] < e[0] || e[o] > e[u - 1]) return NaN;
                         for (n = 1; n < u && !(t[o] <= e[n]); n++);
-                        ((a = i[(n -= 1)]),
+                        (a = i[(n -= 1)]),
                             (h =
                                 (i[n + 1] - i[n]) / (e[n + 1] - e[n]) -
                                 ((e[n + 1] - e[n]) / 6) *
@@ -8827,7 +8819,7 @@ var __webpack_modules__ = {
                             (l = s[n] / 2),
                             (c = (s[n + 1] - s[n]) / (6 * (e[n + 1] - e[n]))),
                             (d = t[o] - e[n]),
-                            f.push(a + (h + (l + c * d) * d) * d));
+                            f.push(a + (h + (l + c * d) * d) * d);
                     }
                     return _ ? f : f[0];
                 },
@@ -8835,7 +8827,7 @@ var __webpack_modules__ = {
                     var r,
                         o = [];
                     for (r = e; r >= 0; r--)
-                        ((o = o.concat(["(", t[r].toPrecision(s), ")"])),
+                        (o = o.concat(["(", t[r].toPrecision(s), ")"])),
                             r > 1
                                 ? (o = o.concat([
                                       "*",
@@ -8845,7 +8837,7 @@ var __webpack_modules__ = {
                                       "<",
                                       "/sup> + ",
                                   ]))
-                                : 1 === r && (o = o.concat(["*", i, " + "])));
+                                : 1 === r && (o = o.concat(["*", i, " + "]));
                     return o.join("");
                 },
                 lagrangePolynomial: function (t) {
@@ -8871,8 +8863,7 @@ var __webpack_modules__ = {
                                 }
                             for (r = 0; r < h; r++) {
                                 if (i === (n = t[r].X())) return t[r].Y();
-                                ((c += a = e[r] / (i - n)),
-                                    (l += a * t[r].Y()));
+                                (c += a = e[r] / (i - n)), (l += a * t[r].Y());
                             }
                             return l / c;
                         };
@@ -8921,7 +8912,7 @@ var __webpack_modules__ = {
                                 b[c] += (c % 2 == 1 ? -1 : 1) * f[c] * d;
                         }
                         for (h = "", c = 0; c < b.length; c++)
-                            ((d = b[c]),
+                            (d = b[c]),
                                 Math.abs(d) < n.Z.eps ||
                                     (s.Z.exists(e) && (d = o.Z._round10(d, -e)),
                                     g
@@ -8930,7 +8921,7 @@ var __webpack_modules__ = {
                                         : (h += d > 0 ? " + " + d : " - " + -d),
                                     a - c > 1
                                         ? (h += r + i + "^" + (a - c))
-                                        : a - c == 1 && (h += r + i)));
+                                        : a - c == 1 && (h += r + i));
                         return h;
                     };
                 },
@@ -9159,24 +9150,24 @@ var __webpack_modules__ = {
                             if (((Z = Math.floor(o())), !c)) {
                                 if (1 === l)
                                     for (a = [], h = [], u = 0; u < C; u++)
-                                        ((a[u] = e[u].X()), (h[u] = e[u].Y()));
+                                        (a[u] = e[u].X()), (h[u] = e[u].Y());
                                 if (2 === l)
                                     for (a = [], h = [], u = 0; u < C; u++)
-                                        ((a[u] = e[u].usrCoords[1]),
-                                            (h[u] = e[u].usrCoords[2]));
+                                        (a[u] = e[u].usrCoords[1]),
+                                            (h[u] = e[u].usrCoords[2]);
                                 if (0 === l)
                                     for (a = [], h = [], u = 0; u < C; u++)
-                                        (r.Z.isFunction(e[u])
+                                        r.Z.isFunction(e[u])
                                             ? a.push(e[u]())
                                             : a.push(e[u]),
                                             r.Z.isFunction(i[u])
                                                 ? h.push(i[u]())
-                                                : h.push(i[u]));
+                                                : h.push(i[u]);
                                 for (_ = [], p = 0; p < C; p++) _.push([1]);
                                 for (u = 1; u <= Z; u++)
                                     for (p = 0; p < C; p++)
                                         _[p][u] = _[p][u - 1] * a[p];
-                                ((b = h),
+                                (b = h),
                                     (f = n.Z.transpose(_)),
                                     (g = n.Z.matMatMult(f, _)),
                                     (m = n.Z.matVecMult(f, b)),
@@ -9186,7 +9177,7 @@ var __webpack_modules__ = {
                                         Z,
                                         "x",
                                         3,
-                                    )));
+                                    ));
                             }
                             for (v = s[Z], u = Z - 1; u >= 0; u--)
                                 v = v * t + s[u];
@@ -9281,7 +9272,7 @@ var __webpack_modules__ = {
                                                 r++
                                             )
                                                 for (o = s - r + 1; o <= s; o++)
-                                                    ((n =
+                                                    (n =
                                                         o <= s - r + 1 || o < 0
                                                             ? 0
                                                             : l[o]),
@@ -9306,7 +9297,7 @@ var __webpack_modules__ = {
                                                                 ((e[o + r] -
                                                                     t) /
                                                                     h) *
-                                                                a));
+                                                                a);
                                             return l;
                                         })(r, i, u, h),
                                         n = 0,
@@ -9393,7 +9384,7 @@ var __webpack_modules__ = {
                     )
                         return [p, _, g];
                     for (a = (o - s) / e, n = 0; n < e; n++)
-                        ((h = this._riemannValue(b, l, i, a)),
+                        (h = this._riemannValue(b, l, i, a)),
                             (p[f] = b),
                             (_[f] = h),
                             (f += 1),
@@ -9401,9 +9392,9 @@ var __webpack_modules__ = {
                             "trapezoidal" === i && (h = l(b)),
                             (p[f] = b),
                             (_[f] = h),
-                            (f += 1));
+                            (f += 1);
                     for (n = 0; n < e; n++)
-                        ((h = c ? this._riemannValue(b, c, i, -a) : 0),
+                        (h = c ? this._riemannValue(b, c, i, -a) : 0),
                             (p[f] = b),
                             (_[f] = h),
                             (f += 1),
@@ -9418,7 +9409,7 @@ var __webpack_modules__ = {
                             (g += (u - d) * a),
                             (p[(f += 1)] = b),
                             (_[f] = _[2 * (e - 1) - 2 * n]),
-                            (f += 1));
+                            (f += 1);
                     return [p, _, g];
                 },
                 riemannsum: function (t, e, i, r, o) {
@@ -9539,15 +9530,15 @@ var __webpack_modules__ = {
                             throw new Error(
                                 "JXG.Math.Numerics.fzero: length of array x0 has to be at least two.",
                             );
-                        ((s = e[0]),
+                        (s = e[0]),
                             (h = t.call(i, s)),
                             (o = e[1]),
-                            (l = t.call(i, o)));
+                            (l = t.call(i, o));
                     } else
-                        ((s = (d = this.findBracket(t, e, i))[0]),
+                        (s = (d = this.findBracket(t, e, i))[0]),
                             (h = d[1]),
                             (o = d[2]),
-                            (l = d[3]));
+                            (l = d[3]);
                     if (Math.abs(h) <= Z) return s;
                     if (Math.abs(l) <= Z) return o;
                     if (h * l > 0)
@@ -9569,7 +9560,7 @@ var __webpack_modules__ = {
                             Math.abs(v) <= b || Math.abs(l) <= Z)
                         )
                             return o;
-                        (Math.abs(u) >= b &&
+                        Math.abs(u) >= b &&
                             Math.abs(h) > Math.abs(l) &&
                             ((_ = a - o),
                             s === a
@@ -9590,7 +9581,7 @@ var __webpack_modules__ = {
                             (((l = t.call(i, o)) > 0 && c > 0) ||
                                 (l < 0 && c < 0)) &&
                                 ((a = s), (c = h)),
-                            y++);
+                            y++;
                     }
                     return o;
                 },
@@ -9625,20 +9616,20 @@ var __webpack_modules__ = {
                             throw new Error(
                                 "JXG.Math.Numerics.fzero: length of array x0 has to be at least two.",
                             );
-                        ((s = e[0]),
+                        (s = e[0]),
                             (o = t.call(i, s)),
                             (a = e[1]),
-                            (h = t.call(i, a)));
+                            (h = t.call(i, a));
                     } else
-                        ((s = (l = this.findBracket(t, e, i))[0]),
+                        (s = (l = this.findBracket(t, e, i))[0]),
                             (o = l[1]),
                             (a = l[2]),
-                            (h = l[3]));
+                            (h = l[3]);
                     if (o * h > 0)
                         return r.Z.isArray(e)
                             ? this.fminbr(t, [s, a], i)
                             : this.Newton(t, s, i);
-                    ((c = s), (d = a), (_ = o), (f = h));
+                    (c = s), (d = a), (_ = o), (f = h);
                     do {
                         if (
                             ((p = c + S * (d - c)),
@@ -9654,7 +9645,7 @@ var __webpack_modules__ = {
                                 Math.abs(d - c)) > 0.5 || 0 === v)
                         )
                             break;
-                        ((C = (c - d) / (u - d)),
+                        (C = (c - d) / (u - d)),
                             (y = (_ - f) / (b - f)),
                             (P = 1 - Math.sqrt(1 - C)),
                             (E = Math.sqrt(C)),
@@ -9666,7 +9657,7 @@ var __webpack_modules__ = {
                                           ((u - c) / (d - c))
                                     : 0.5 * w) < Z && (S = Z),
                             S > 1 - Z && (S = 1 - Z),
-                            O++);
+                            O++;
                     } while (O <= x);
                     return m;
                 },
@@ -9711,7 +9702,7 @@ var __webpack_modules__ = {
                             Math.abs(a - _) + 0.5 * p <= 2 * f)
                         )
                             return a;
-                        ((b = C * (a < _ ? o - a : s - a)),
+                        (b = C * (a < _ ? o - a : s - a)),
                             Math.abs(a - l) >= f &&
                                 ((g =
                                     (a - h) * (m = (a - h) * (c - u)) -
@@ -9736,7 +9727,7 @@ var __webpack_modules__ = {
                                       ? ((h = l), (l = v), (d = u), (u = Z))
                                       : (Z <= d || h === a || h === l) &&
                                         ((h = v), (d = Z))),
-                            (O += 1));
+                            (O += 1);
                     }
                     return a;
                 },
@@ -9777,7 +9768,7 @@ var __webpack_modules__ = {
                                             isNaN(h[1]) || isNaN(h[2]))
                                         )
                                             return [NaN, r];
-                                        ((l =
+                                        (l =
                                             (l =
                                                 (l = h[1] - o[1]) == 1 / 0
                                                     ? f
@@ -9822,20 +9813,20 @@ var __webpack_modules__ = {
                                                       (c -= _ * u) * c))
                                                 : ((_ = 0),
                                                   (s = l * l + c * c)),
-                                            s > b && ((b = s), (g = r)));
+                                            s > b && ((b = s), (g = r));
                                     }
                                     return [Math.sqrt(b), g];
                                 })(t, e, i),
                                 a = o[1];
                             if (isNaN(o[0])) {
-                                (h(t, e, a - 1, s, r), r.push(t[a]));
+                                h(t, e, a - 1, s, r), r.push(t[a]);
                                 do {
                                     ++a;
                                 } while (
                                     a <= i &&
                                     isNaN(t[a].scrCoords[1] + t[a].scrCoords[2])
                                 );
-                                (a <= i && r.push(t[a]), h(t, a + 1, i, s, r));
+                                a <= i && r.push(t[a]), h(t, a + 1, i, s, r);
                             } else
                                 o[0] > s
                                     ? (h(t, e, a, s, r), h(t, a, i, s, r))
@@ -9866,7 +9857,7 @@ var __webpack_modules__ = {
                             i >= r)
                         )
                             break;
-                        (s < r - 1 && o.push(t[s + 1]), (i = s + 1));
+                        s < r - 1 && o.push(t[s + 1]), (i = s + 1);
                     }
                     return o;
                 },
@@ -9900,7 +9891,7 @@ var __webpack_modules__ = {
                         i < r - 1;
                         i++
                     )
-                        ((o = Math.abs(
+                        (o = Math.abs(
                             s.Z.Math.Numerics.det([
                                 t[i - 1].usrCoords,
                                 t[i].usrCoords,
@@ -9912,7 +9903,7 @@ var __webpack_modules__ = {
                                 p.push(d),
                                 (u[i] = { used: !0, lft: a, node: d }),
                                 (u[a].rt = i),
-                                (a = i)));
+                                (a = i));
                     for (
                         u[r - 1] = { used: !0, rt: null, lft: a, node: null },
                             u[a].rt = r - 1,
@@ -9920,7 +9911,7 @@ var __webpack_modules__ = {
                         p.length > e;
 
                     )
-                        (p.sort(function (t, e) {
+                        p.sort(function (t, e) {
                             return e.v - t.v;
                         }),
                             (u[(i = p.pop().idx)].used = !1),
@@ -9946,10 +9937,10 @@ var __webpack_modules__ = {
                                         t[c].usrCoords,
                                     ]),
                                 )),
-                                (u[h].node.v = o >= n ? o : n)));
+                                (u[h].node.v = o >= n ? o : n));
                     _ = [t[(i = 0)]];
                     do {
-                        ((i = u[i].rt), _.push(t[i]));
+                        (i = u[i].rt), _.push(t[i]);
                     } while (null !== u[i].rt);
                     return _;
                 },
@@ -10012,10 +10003,10 @@ var __webpack_modules__ = {
                             r < n.length;
                             r++
                         )
-                            ((a = s * n[r] * 0.01),
+                            (a = s * n[r] * 0.01),
                                 parseInt(a, 10) === a
                                     ? h.push(0.5 * (i[a - 1] + i[a]))
-                                    : h.push(i[parseInt(a, 10)]));
+                                    : h.push(i[parseInt(a, 10)]);
                         return o.Z.isArray(e) ? h : h[0];
                     }
                     return 0;
@@ -10109,8 +10100,8 @@ var __webpack_modules__ = {
                     return r;
                 },
                 divide: function () {
-                    (s.Z.deprecated("Statistics.divide()", "Statistics.div()"),
-                        r.Z.Statistics.div.apply(r.Z.Statistics, arguments));
+                    s.Z.deprecated("Statistics.divide()", "Statistics.div()"),
+                        r.Z.Statistics.div.apply(r.Z.Statistics, arguments);
                 },
                 mod: function (t, e, i) {
                     var s,
@@ -10195,17 +10186,17 @@ var __webpack_modules__ = {
                                 (o[i] =
                                     (t[i].usrCoords[2] - t[e].usrCoords[2]) /
                                     (t[i].usrCoords[1] - t[e].usrCoords[1]));
-                        ((s[e] = this.median(o)),
+                        (s[e] = this.median(o)),
                             n.push(
                                 t[e].usrCoords[2] - s[e] * t[e].usrCoords[1],
-                            ));
+                            );
                     }
                     return [this.median(n), this.median(s), -1];
                 },
                 generateGaussian: function (t, e) {
                     var i, s, r;
                     if (this.hasSpare)
-                        return ((this.hasSpare = !1), this.spare * e + t);
+                        return (this.hasSpare = !1), this.spare * e + t;
                     do {
                         r =
                             (i = 2 * Math.random() - 1) * i +
@@ -10228,7 +10219,7 @@ var __webpack_modules__ = {
                 o = i(275),
                 n = i(327),
                 a = i(109);
-            ((s.Z.Options = {
+            (s.Z.Options = {
                 jc: { enabled: !0, compile: !0 },
                 board: {
                     boundingBox: [-5, 5, 5, -5],
@@ -11466,12 +11457,12 @@ var __webpack_modules__ = {
                     (t.options.grid.snapSizeY = a.grid.SnapSizeY),
                     (t.takeSizeFromFile = a.takeSizeFromFile),
                     (n = function (t, e) {
-                        ((t.visProp.fillcolor = e.fillColor),
+                        (t.visProp.fillcolor = e.fillColor),
                             (t.visProp.highlightfillcolor =
                                 e.highlightFillColor),
                             (t.visProp.strokecolor = e.strokeColor),
                             (t.visProp.highlightstrokecolor =
-                                e.highlightStrokeColor));
+                                e.highlightStrokeColor);
                     }),
                     t.objects))
                         if (t.objects.hasOwnProperty(e))
@@ -11486,14 +11477,14 @@ var __webpack_modules__ = {
                                     i < o.ticks.length;
                                     i++
                                 )
-                                    ((o.ticks[i].majorTicks =
+                                    (o.ticks[i].majorTicks =
                                         a.line.ticks.majorTicks),
                                         (o.ticks[i].minTicksDistance =
                                             a.line.ticks.minTicksDistance),
                                         (o.ticks[i].visProp.minorheight =
                                             a.line.ticks.minorHeight),
                                         (o.ticks[i].visProp.majorheight =
-                                            a.line.ticks.majorHeight));
+                                            a.line.ticks.majorHeight);
                             else
                                 o.elementClass === r.Z.OBJECT_CLASS_CIRCLE
                                     ? n(o, a.circle)
@@ -11517,14 +11508,14 @@ var __webpack_modules__ = {
                                                     a.sector.fillOpacity),
                                                 (o.arc.visProp.highlightfillopacity =
                                                     a.sector.highlightFillOpacity));
-                    (t.fullUpdate(),
+                    t.fullUpdate(),
                         h && !t.hasGrid
                             ? t.removeGrids(t)
-                            : !h && t.hasGrid && t.create("grid", []));
+                            : !h && t.hasGrid && t.create("grid", []);
                 }),
                 (s.Z.useBlackWhiteOptions = function (t) {
                     var e = s.Z.Options;
-                    ((e.point.fillColor = n.Z.rgb2bw(e.point.fillColor)),
+                    (e.point.fillColor = n.Z.rgb2bw(e.point.fillColor)),
                         (e.point.highlightFillColor = n.Z.rgb2bw(
                             e.point.highlightFillColor,
                         )),
@@ -11568,9 +11559,9 @@ var __webpack_modules__ = {
                         )),
                         (e.curve.strokeColor = n.Z.rgb2bw(e.curve.strokeColor)),
                         (e.grid.gridColor = n.Z.rgb2bw(e.grid.gridColor)),
-                        s.Z.useStandardOptions(t));
+                        s.Z.useStandardOptions(t);
                 }),
-                (s.Z.Options.normalizePointFace = s.Z.normalizePointFace));
+                (s.Z.Options.normalizePointFace = s.Z.normalizePointFace);
             const h = s.Z.Options;
         },
         632: (t, e, i) => {
@@ -11600,10 +11591,10 @@ var __webpack_modules__ = {
                             ")" === l.charAt(l.length - 1))
                         ) {
                             for (e = 1, i = l.length - 2; i >= 0 && e > 0; )
-                                (")" === (s = l.charAt(i))
+                                ")" === (s = l.charAt(i))
                                     ? e++
                                     : "(" === s && (e -= 1),
-                                    (i -= 1));
+                                    (i -= 1);
                             if (0 !== e)
                                 throw new Error(
                                     "JSXGraph: Missing '(' in expression",
@@ -11613,7 +11604,7 @@ var __webpack_modules__ = {
                                 h >= 0 && a.substr(h, 1).match(/([\w.]+)/);
 
                             )
-                                ((o = RegExp.$1 + o), (h -= 1));
+                                (o = RegExp.$1 + o), (h -= 1);
                             o = (o += l.substring(i + 1, l.length)).replace(
                                 /([()+*%^\-/\][])/g,
                                 "\\$1",
@@ -11625,10 +11616,10 @@ var __webpack_modules__ = {
                                 i < d.length && e > 0;
 
                             )
-                                (")" === (s = d.charAt(i))
+                                ")" === (s = d.charAt(i))
                                     ? (e -= 1)
                                     : "(" === s && (e += 1),
-                                    (i += 1));
+                                    (i += 1);
                             if (0 !== e)
                                 throw new Error(
                                     "JSXGraph: Missing ')' in expression",
@@ -11638,10 +11629,8 @@ var __webpack_modules__ = {
                                 "\\$1",
                             );
                         } else n = "[\\w\\.]+";
-                        ((u = new RegExp("(" + o + ")\\^(" + n + ")")),
-                            (c = (t = t.replace(u, "pow($1,$2)")).indexOf(
-                                "^",
-                            )));
+                        (u = new RegExp("(" + o + ")\\^(" + n + ")")),
+                            (c = (t = t.replace(u, "pow($1,$2)")).indexOf("^"));
                     }
                     return t;
                 },
@@ -11671,18 +11660,18 @@ var __webpack_modules__ = {
                             r < i.length && o > 0;
 
                         )
-                            (")" === (h = i.charAt(r))
+                            ")" === (h = i.charAt(r))
                                 ? (o -= 1)
                                 : "(" === h
                                   ? (o += 1)
                                   : "," === h &&
                                     1 === o &&
                                     (n < 0 ? (n = r) : (a = r)),
-                                (r += 1));
+                                (r += 1);
                         if (((l = i.slice(0, r - 1)), (i = i.slice(r)), n < 0))
                             return "";
                         if (a < 0) return "";
-                        ((d = l.slice(0, n)),
+                        (d = l.slice(0, n)),
                             (u = l.slice(n + 1, a)),
                             (p = l.slice(a + 1)),
                             (c +=
@@ -11696,7 +11685,7 @@ var __webpack_modules__ = {
                                 "))"),
                             (d = null),
                             (u = null),
-                            (s = (t = i).indexOf("If(")));
+                            (s = (t = i).indexOf("If("));
                     }
                     return (c += i);
                 },
@@ -11712,7 +11701,7 @@ var __webpack_modules__ = {
                         };
                     for (n = 0; n < h.length; n++)
                         for (a = t.indexOf(h[n] + "("); a >= 0; )
-                            (a >= 0 &&
+                            a >= 0 &&
                                 (s = t.indexOf(")", a + 2)) >= 0 &&
                                 ((r = (r = t.slice(a + 2, s)).replace(
                                     /\\(['"])?/g,
@@ -11725,9 +11714,9 @@ var __webpack_modules__ = {
                                         l(o.id) +
                                         t.slice(s))),
                                 (s = t.indexOf(")", a + 2)),
-                                (a = t.indexOf(h[n] + "(", s)));
+                                (a = t.indexOf(h[n] + "(", s));
                     for (a = t.indexOf("Dist("); a >= 0; )
-                        (a >= 0 &&
+                        a >= 0 &&
                             (s = t.indexOf(",", a + 5)) >= 0 &&
                             ((r = (r = t.slice(a + 5, s)).replace(
                                 /\\(['"])?/g,
@@ -11748,10 +11737,10 @@ var __webpack_modules__ = {
                                         l(o.id) +
                                         t.slice(s))),
                             (s = t.indexOf(")", a + 1)),
-                            (a = t.indexOf("Dist(", s)));
+                            (a = t.indexOf("Dist(", s));
                     for (h = ["Deg", "Rad"], n = 0; n < h.length; n++)
                         for (a = t.indexOf(h[n] + "("); a >= 0; )
-                            (a >= 0 &&
+                            a >= 0 &&
                                 (s = t.indexOf(",", a + 4)) >= 0 &&
                                 ((r = (r = t.slice(a + 4, s)).replace(
                                     /\\(['"])?/g,
@@ -11787,7 +11776,7 @@ var __webpack_modules__ = {
                                             l(o.id) +
                                             t.slice(s))),
                                 (s = t.indexOf(")", a + 1)),
-                                (a = t.indexOf(h[n] + "(", s)));
+                                (a = t.indexOf(h[n] + "(", s));
                     return t;
                 },
                 replaceIdByObj: function (t) {
@@ -11864,11 +11853,11 @@ var __webpack_modules__ = {
                         r < o.length;
                         r++
                     )
-                        ((i = new RegExp(
+                        (i = new RegExp(
                             ["(\\W|^)(", o[r], ")"].join(""),
                             "ig",
                         )),
-                            (s = s.replace(i, ["$1", n[r]].join(""))));
+                            (s = s.replace(i, ["$1", n[r]].join("")));
                     return (s = (s = (s = (s = (s = s.replace(
                         /True/g,
                         "true",
@@ -11958,7 +11947,7 @@ var __webpack_modules__ = {
                             "This browser's implementation of Object.create is a shim and doesn't support a second argument.",
                         );
                     function i() {}
-                    return ((i.prototype = t), new i());
+                    return (i.prototype = t), new i();
                 });
             var priv = {
                     modules: {
@@ -11973,8 +11962,8 @@ var __webpack_modules__ = {
                 },
                 r,
                 _ccache;
-            ((_jxg__WEBPACK_IMPORTED_MODULE_0__.Z.JessieCode = function (t, e) {
-                ((this.scope = {
+            (_jxg__WEBPACK_IMPORTED_MODULE_0__.Z.JessieCode = function (t, e) {
+                (this.scope = {
                     id: 0,
                     hasChild: !0,
                     args: [],
@@ -12007,7 +11996,7 @@ var __webpack_modules__ = {
                             this,
                         )),
                     (this.code = ""),
-                    "string" == typeof t && this.parse(t, e));
+                    "string" == typeof t && this.parse(t, e);
             }),
                 _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.extend(
                     _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.JessieCode.prototype,
@@ -12056,10 +12045,10 @@ var __webpack_modules__ = {
                             return this.board.objects[t];
                         },
                         log: function () {
-                            (this.$log.push(arguments),
+                            this.$log.push(arguments),
                                 "object" == typeof console &&
                                     console.log &&
-                                    console.log.apply(console, arguments));
+                                    console.log.apply(console, arguments);
                         },
                         creator:
                             ((_ccache = {}),
@@ -12099,11 +12088,11 @@ var __webpack_modules__ = {
                             }),
                             r),
                         letvar: function (t, e) {
-                            (this.builtIn[t] &&
+                            this.builtIn[t] &&
                                 this._warn(
                                     '"' + t + '" is a predefined value.',
                                 ),
-                                (this.scope.locals[t] = e));
+                                (this.scope.locals[t] = e);
                         },
                         isLocalVariable: function (t) {
                             for (var e = this.scope; null !== e; ) {
@@ -12285,7 +12274,7 @@ var __webpack_modules__ = {
                             );
                         },
                         makeMap: function (t) {
-                            return ((t.isMap = !0), t);
+                            return (t.isMap = !0), t;
                         },
                         functionCodeJS: function (t) {
                             var e = t.children[0].join(", "),
@@ -12319,7 +12308,7 @@ var __webpack_modules__ = {
                                     i++
                                 )
                                     scope.locals[list[i]] = list[i];
-                                (this.replaceNames(node.children[1]),
+                                this.replaceNames(node.children[1]),
                                     (fun = (function (jc) {
                                         var fun,
                                             str =
@@ -12353,7 +12342,7 @@ var __webpack_modules__ = {
                                             );
                                         }
                                     })(this)),
-                                    this.popScope());
+                                    this.popScope();
                             } else
                                 fun = (function (t, e, i) {
                                     return function () {
@@ -12480,13 +12469,13 @@ var __webpack_modules__ = {
                                 a,
                                 h = t.replace(/\r\n/g, "\n").split("\n"),
                                 l = [];
-                            (s || (this.code += t + "\n"),
+                            s || (this.code += t + "\n"),
                                 _base_text__WEBPACK_IMPORTED_MODULE_2__.Z &&
                                     ((o =
                                         _base_text__WEBPACK_IMPORTED_MODULE_2__
                                             .Z.prototype.setText),
                                     (_base_text__WEBPACK_IMPORTED_MODULE_2__.Z.prototype.setText =
-                                        _base_text__WEBPACK_IMPORTED_MODULE_2__.Z.prototype.setTextJessieCode)));
+                                        _base_text__WEBPACK_IMPORTED_MODULE_2__.Z.prototype.setTextJessieCode));
                             try {
                                 for (
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
@@ -12496,13 +12485,13 @@ var __webpack_modules__ = {
                                     r < h.length;
                                     r++
                                 )
-                                    (i &&
+                                    i &&
                                         (h[r] =
                                             _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.GeonextParser.geonext2JS(
                                                 h[r],
                                                 this.board,
                                             )),
-                                        l.push(h[r]));
+                                        l.push(h[r]);
                                 switch (
                                     ((t = l.join("\n")),
                                     (n = parser.parse(t)),
@@ -12855,15 +12844,15 @@ var __webpack_modules__ = {
                                 case "node_op":
                                     switch (t.value) {
                                         case "op_none":
-                                            (t.children[0] &&
+                                            t.children[0] &&
                                                 this.execute(t.children[0]),
                                                 t.children[1] &&
                                                     (e = this.execute(
                                                         t.children[1],
-                                                    )));
+                                                    ));
                                             break;
                                         case "op_assign":
-                                            ((i = this.getLHS(t.children[0])),
+                                            (i = this.getLHS(t.children[0])),
                                                 (this.lhs[this.scope.id] =
                                                     i.what),
                                                 i.o.type &&
@@ -12887,7 +12876,7 @@ var __webpack_modules__ = {
                                                           e,
                                                       )
                                                     : this.letvar(i.what, e),
-                                                (this.lhs[this.scope.id] = 0));
+                                                (this.lhs[this.scope.id] = 0);
                                             break;
                                         case "op_if":
                                             this.execute(t.children[0]) &&
@@ -12925,18 +12914,16 @@ var __webpack_modules__ = {
                                                 this.execute(t.children[3]);
                                             break;
                                         case "op_proplst":
-                                            (t.children[0] &&
+                                            t.children[0] &&
                                                 this.execute(t.children[0]),
                                                 t.children[1] &&
-                                                    this.execute(
-                                                        t.children[1],
-                                                    ));
+                                                    this.execute(t.children[1]);
                                             break;
                                         case "op_emptyobject":
                                             e = {};
                                             break;
                                         case "op_proplst_val":
-                                            (this.propstack.push({}),
+                                            this.propstack.push({}),
                                                 this.propscope++,
                                                 this.execute(t.children[0]),
                                                 (e =
@@ -12944,7 +12931,7 @@ var __webpack_modules__ = {
                                                         this.propscope
                                                     ]),
                                                 this.propstack.pop(),
-                                                this.propscope--);
+                                                this.propscope--;
                                             break;
                                         case "op_prop":
                                             this.propstack[this.propscope][
@@ -12966,7 +12953,7 @@ var __webpack_modules__ = {
                                                 );
                                             break;
                                         case "op_extvalue":
-                                            ((e = this.execute(t.children[0])),
+                                            (e = this.execute(t.children[0])),
                                                 (e =
                                                     "number" ==
                                                         typeof (s =
@@ -12979,7 +12966,7 @@ var __webpack_modules__ = {
                                                         _math_math__WEBPACK_IMPORTED_MODULE_3__
                                                             .Z.eps
                                                         ? e[s]
-                                                        : undefined));
+                                                        : undefined);
                                             break;
                                         case "op_return":
                                             if (0 !== this.scope)
@@ -12989,7 +12976,7 @@ var __webpack_modules__ = {
                                             this._error("Unexpected return.");
                                             break;
                                         case "op_map":
-                                            (t.children[1].isMath ||
+                                            t.children[1].isMath ||
                                                 "node_var" ===
                                                     t.children[1].type ||
                                                 this._error(
@@ -12999,13 +12986,13 @@ var __webpack_modules__ = {
                                                     this.defineFunction(
                                                         t,
                                                     )).isMap = !0),
-                                                (e = h));
+                                                (e = h);
                                             break;
                                         case "op_function":
-                                            (((h =
+                                            ((h =
                                                 this.defineFunction(t)).isMap =
                                                 !1),
-                                                (e = h));
+                                                (e = h);
                                             break;
                                         case "op_execfun":
                                             if (
@@ -13056,7 +13043,7 @@ var __webpack_modules__ = {
                                                 s < n.length;
                                                 s++
                                             )
-                                                (_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
+                                                _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
                                                     h.scope,
                                                 ) &&
                                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
@@ -13081,7 +13068,7 @@ var __webpack_modules__ = {
                                                             .line,
                                                         col: t.children[1][s]
                                                             .ecol,
-                                                    }));
+                                                    });
                                             if (
                                                 "function" != typeof h ||
                                                 h.creator
@@ -13122,10 +13109,10 @@ var __webpack_modules__ = {
                                                             "' is undefined.",
                                                     );
                                             else e = h.apply(c, d);
-                                            (this.dpstack.pop(), this.pscope--);
+                                            this.dpstack.pop(), this.pscope--;
                                             break;
                                         case "op_property":
-                                            ((r = this.execute(t.children[0])),
+                                            (r = this.execute(t.children[0])),
                                                 (i = t.children[1]),
                                                 (e = this.resolveProperty(
                                                     r,
@@ -13134,24 +13121,24 @@ var __webpack_modules__ = {
                                                 )),
                                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
                                                     e,
-                                                ) && (e.sc = r));
+                                                ) && (e.sc = r);
                                             break;
                                         case "op_use":
-                                            (this._warn(
+                                            this._warn(
                                                 "Use of the 'use' operator is deprecated.",
                                             ),
                                                 this.use(
                                                     t.children[0].toString(),
-                                                ));
+                                                );
                                             break;
                                         case "op_delete":
-                                            (this._warn(
+                                            this._warn(
                                                 "Use of the 'delete' operator is deprecated. Please use the remove() function.",
                                             ),
                                                 (i = this.getvar(
                                                     t.children[0],
                                                 )),
-                                                (e = this.del(i)));
+                                                (e = this.del(i));
                                             break;
                                         case "op_eq":
                                             e =
@@ -13289,7 +13276,7 @@ var __webpack_modules__ = {
                                 case "node_op":
                                     switch (t.value) {
                                         case "op_none":
-                                            (t.children[0] &&
+                                            t.children[0] &&
                                                 (o = this.compile(
                                                     t.children[0],
                                                     e,
@@ -13298,7 +13285,7 @@ var __webpack_modules__ = {
                                                     (o += this.compile(
                                                         t.children[1],
                                                         e,
-                                                    )));
+                                                    ));
                                             break;
                                         case "op_assign":
                                             e
@@ -13356,7 +13343,7 @@ var __webpack_modules__ = {
                                                 this.compile(t.children[1], e);
                                             break;
                                         case "op_if_else":
-                                            ((o =
+                                            (o =
                                                 " if (" +
                                                 this.compile(t.children[0], e) +
                                                 ")" +
@@ -13366,10 +13353,10 @@ var __webpack_modules__ = {
                                                     this.compile(
                                                         t.children[2],
                                                         e,
-                                                    )));
+                                                    ));
                                             break;
                                         case "op_conditional":
-                                            ((o =
+                                            (o =
                                                 "((" +
                                                 this.compile(t.children[0], e) +
                                                 ")?(" +
@@ -13380,7 +13367,7 @@ var __webpack_modules__ = {
                                                         t.children[2],
                                                         e,
                                                     ) +
-                                                    "))"));
+                                                    "))");
                                             break;
                                         case "op_while":
                                             o =
@@ -13413,7 +13400,7 @@ var __webpack_modules__ = {
                                                 "\n}\n";
                                             break;
                                         case "op_proplst":
-                                            (t.children[0] &&
+                                            t.children[0] &&
                                                 (o =
                                                     this.compile(
                                                         t.children[0],
@@ -13422,7 +13409,7 @@ var __webpack_modules__ = {
                                                 (o += this.compile(
                                                     t.children[1],
                                                     e,
-                                                )));
+                                                ));
                                             break;
                                         case "op_prop":
                                             o =
@@ -13464,7 +13451,7 @@ var __webpack_modules__ = {
                                                 ";\n";
                                             break;
                                         case "op_map":
-                                            (t.children[1].isMath ||
+                                            t.children[1].isMath ||
                                                 "node_var" ===
                                                     t.children[1].type ||
                                                 this._error(
@@ -13486,10 +13473,10 @@ var __webpack_modules__ = {
                                                       this.compile(
                                                           t.children[1],
                                                           e,
-                                                      )));
+                                                      ));
                                             break;
                                         case "op_function":
-                                            ((r = t.children[0]),
+                                            (r = t.children[0]),
                                                 this.pushScope(r),
                                                 (o = e
                                                     ? this.functionCodeJS(t)
@@ -13500,13 +13487,11 @@ var __webpack_modules__ = {
                                                           t.children[1],
                                                           e,
                                                       )),
-                                                this.popScope());
+                                                this.popScope();
                                             break;
                                         case "op_execfunmath":
-                                            (console.log(
-                                                "op_execfunmath: TODO",
-                                            ),
-                                                (o = "-1"));
+                                            console.log("op_execfunmath: TODO"),
+                                                (o = "-1");
                                             break;
                                         case "op_execfun":
                                             if (t.children[2]) {
@@ -13541,7 +13526,7 @@ var __webpack_modules__ = {
                                                         e,
                                                     ),
                                                 );
-                                            ((o =
+                                            (o =
                                                 this.compile(t.children[0], e) +
                                                 "(" +
                                                 r.join(", ") +
@@ -13562,7 +13547,7 @@ var __webpack_modules__ = {
                                                             t.children[1][0],
                                                             e,
                                                         ) +
-                                                        "]"));
+                                                        "]");
                                             break;
                                         case "op_property":
                                             o =
@@ -13585,7 +13570,7 @@ var __webpack_modules__ = {
                                                       t.children[1];
                                             break;
                                         case "op_use":
-                                            (this._warn(
+                                            this._warn(
                                                 "Use of the 'use' operator is deprecated.",
                                             ),
                                                 (o = e
@@ -13593,10 +13578,10 @@ var __webpack_modules__ = {
                                                     : "use('"),
                                                 (o +=
                                                     t.children[0].toString() +
-                                                    "');"));
+                                                    "');");
                                             break;
                                         case "op_delete":
-                                            (this._warn(
+                                            this._warn(
                                                 "Use of the 'delete' operator is deprecated. Please use the remove() function.",
                                             ),
                                                 (o = e
@@ -13606,7 +13591,7 @@ var __webpack_modules__ = {
                                                     this.compile(
                                                         t.children[0],
                                                         e,
-                                                    ) + ")"));
+                                                    ) + ")");
                                             break;
                                         case "op_eq":
                                             o =
@@ -14201,13 +14186,13 @@ var __webpack_modules__ = {
                                     e,
                                 )
                             )
-                                ((s = Math.min(t.length, e.length)),
+                                (s = Math.min(t.length, e.length)),
                                     (r =
                                         _math_math__WEBPACK_IMPORTED_MODULE_3__.Z.innerProduct(
                                             t,
                                             e,
                                             s,
-                                        )));
+                                        ));
                             else if (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
                                     t,
@@ -14456,13 +14441,13 @@ var __webpack_modules__ = {
                                         _jxg__WEBPACK_IMPORTED_MODULE_0__.Z
                                             .boards[e].container === t
                                     ) {
-                                        ((i =
+                                        (i =
                                             _jxg__WEBPACK_IMPORTED_MODULE_0__.Z
                                                 .boards[e]),
-                                            (s = !0));
+                                            (s = !0);
                                         break;
                                     }
-                            } else ((i = t), (s = !0));
+                            } else (i = t), (s = !0);
                             s
                                 ? ((this.board = i),
                                   (this.builtIn.$board = i),
@@ -14744,9 +14729,8 @@ var __webpack_modules__ = {
                             ) {
                                 switch ((a = i[s]).type) {
                                     case "function":
-                                        (h.push(a.name),
-                                            "jc" === a.origin &&
-                                                l.push(a.name));
+                                        h.push(a.name),
+                                            "jc" === a.origin && l.push(a.name);
                                         break;
                                     case "constant":
                                         c.push(a.name);
@@ -14805,7 +14789,7 @@ var __webpack_modules__ = {
                                 : console.log("Log: ", arguments);
                         },
                     },
-                ));
+                );
             var parser = (function () {
                 var t = function (t, e, i, s) {
                         for (i = i || {}, s = t.length; s--; i[t[s]] = e);
@@ -15256,8 +15240,8 @@ var __webpack_modules__ = {
                                     );
                                     break;
                                 case 12:
-                                    ((this.$ = o[a - 1]),
-                                        (this.$.needsBrackets = !0));
+                                    (this.$ = o[a - 1]),
+                                        (this.$.needsBrackets = !0);
                                     break;
                                 case 13:
                                     this.$ = ht.createNode(
@@ -15304,17 +15288,17 @@ var __webpack_modules__ = {
                                     this.$ = o[a - 1];
                                     break;
                                 case 25:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_assign",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 27:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 4]),
                                         "node_op",
                                         "op_conditional",
@@ -15322,175 +15306,175 @@ var __webpack_modules__ = {
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 29:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_or",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 31:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_and",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 33:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_eq",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 34:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_neq",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 35:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_approx",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 37:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_lt",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 38:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_gt",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 39:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_leq",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 40:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_geq",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 42:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_add",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !0));
+                                        (this.$.isMath = !0);
                                     break;
                                 case 43:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_sub",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !0));
+                                        (this.$.isMath = !0);
                                     break;
                                 case 45:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_mul",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !0));
+                                        (this.$.isMath = !0);
                                     break;
                                 case 46:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_div",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !0));
+                                        (this.$.isMath = !0);
                                     break;
                                 case 47:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_mod",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !0));
+                                        (this.$.isMath = !0);
                                     break;
                                 case 49:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_exp",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !0));
+                                        (this.$.isMath = !0);
                                     break;
                                 case 51:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 1]),
                                         "node_op",
                                         "op_not",
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 53:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 1]),
                                         "node_op",
                                         "op_neg",
                                         o[a],
                                     )),
-                                        (this.$.isMath = !0));
+                                        (this.$.isMath = !0);
                                     break;
                                 case 57:
                                 case 63:
@@ -15499,29 +15483,29 @@ var __webpack_modules__ = {
                                 case 67:
                                 case 68:
                                 case 97:
-                                    ((this.$ = o[a]), (this.$.isMath = !1));
+                                    (this.$ = o[a]), (this.$.isMath = !1);
                                     break;
                                 case 59:
                                 case 91:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_property",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !0));
+                                        (this.$.isMath = !0);
                                     break;
                                 case 60:
                                 case 90:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 3]),
                                         "node_op",
                                         "op_extvalue",
                                         o[a - 3],
                                         o[a - 1],
                                     )),
-                                        (this.$.isMath = !0));
+                                        (this.$.isMath = !0);
                                     break;
                                 case 61:
                                     this.$ = ht.createNode(
@@ -15531,7 +15515,7 @@ var __webpack_modules__ = {
                                     );
                                     break;
                                 case 69:
-                                    ((this.$ = o[a]), (this.$.isMath = !0));
+                                    (this.$ = o[a]), (this.$.isMath = !0);
                                     break;
                                 case 70:
                                     this.$ = ht.createNode(
@@ -15599,22 +15583,22 @@ var __webpack_modules__ = {
                                     );
                                     break;
                                 case 79:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 1]),
                                         "node_op",
                                         "op_emptyobject",
                                         {},
                                     )),
-                                        (this.$.needsBrackets = !0));
+                                        (this.$.needsBrackets = !0);
                                     break;
                                 case 80:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_proplst_val",
                                         o[a - 1],
                                     )),
-                                        (this.$.needsBrackets = !0));
+                                        (this.$.needsBrackets = !0);
                                     break;
                                 case 82:
                                     this.$ = ht.createNode(
@@ -15636,17 +15620,17 @@ var __webpack_modules__ = {
                                     break;
                                 case 87:
                                 case 89:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 1]),
                                         "node_op",
                                         "op_execfun",
                                         o[a - 1],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !0));
+                                        (this.$.isMath = !0);
                                     break;
                                 case 88:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_execfun",
@@ -15655,7 +15639,7 @@ var __webpack_modules__ = {
                                         o[a],
                                         !0,
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 92:
                                     this.$ = [];
@@ -15671,32 +15655,32 @@ var __webpack_modules__ = {
                                     this.$ = o[a - 2].concat(o[a]);
                                     break;
                                 case 96:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a]),
                                         "node_var",
                                         o[a],
                                     )),
-                                        (this.$.isMath = !0));
+                                        (this.$.isMath = !0);
                                     break;
                                 case 100:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 3]),
                                         "node_op",
                                         "op_function",
                                         [],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 101:
-                                    ((this.$ = ht.createNode(
+                                    (this.$ = ht.createNode(
                                         lt(n[a - 4]),
                                         "node_op",
                                         "op_function",
                                         o[a - 2],
                                         o[a],
                                     )),
-                                        (this.$.isMath = !1));
+                                        (this.$.isMath = !1);
                                     break;
                                 case 102:
                                     this.$ = ht.createNode(
@@ -17828,10 +17812,10 @@ var __webpack_modules__ = {
                                     this.yy,
                                     f,
                                 ) && (_.yy[f] = this.yy[f]);
-                            (p.setInput(t, _.yy),
+                            p.setInput(t, _.yy),
                                 (_.yy.lexer = p),
                                 (_.yy.parser = this),
-                                void 0 === p.yylloc && (p.yylloc = {}));
+                                void 0 === p.yylloc && (p.yylloc = {});
                             var b = p.yylloc;
                             r.push(b);
                             var g = p.options && p.options.ranges;
@@ -17877,7 +17861,7 @@ var __webpack_modules__ = {
                                             x.push(
                                                 "'" + this.terminals_[P] + "'",
                                             );
-                                    ((T = p.showPosition
+                                    (T = p.showPosition
                                         ? "Parse error on line " +
                                           (a + 1) +
                                           ":\n" +
@@ -17901,7 +17885,7 @@ var __webpack_modules__ = {
                                             line: p.yylineno,
                                             loc: b,
                                             expected: x,
-                                        }));
+                                        });
                                 }
                                 if (C[0] instanceof Array && C.length > 1)
                                     throw new Error(
@@ -17912,7 +17896,7 @@ var __webpack_modules__ = {
                                     );
                                 switch (C[0]) {
                                     case 1:
-                                        (i.push(m),
+                                        i.push(m),
                                             s.push(p.yytext),
                                             r.push(p.yylloc),
                                             i.push(C[1]),
@@ -17923,7 +17907,7 @@ var __webpack_modules__ = {
                                                   (n = p.yytext),
                                                   (a = p.yylineno),
                                                   (b = p.yylloc),
-                                                  l > 0 && l--));
+                                                  l > 0 && l--);
                                         break;
                                     case 2:
                                         if (
@@ -17962,7 +17946,7 @@ var __webpack_modules__ = {
                                                 )))
                                         )
                                             return y;
-                                        (E &&
+                                        E &&
                                             ((i = i.slice(0, -1 * E * 2)),
                                             (s = s.slice(0, -1 * E)),
                                             (r = r.slice(0, -1 * E))),
@@ -17973,7 +17957,7 @@ var __webpack_modules__ = {
                                                 o[i[i.length - 2]][
                                                     i[i.length - 1]
                                                 ]),
-                                            i.push(O));
+                                            i.push(O);
                                         break;
                                     case 3:
                                         return !0;
@@ -18062,14 +18046,14 @@ var __webpack_modules__ = {
                             unput: function (t) {
                                 var e = t.length,
                                     i = t.split(/(?:\r\n?|\n)/g);
-                                ((this._input = t + this._input),
+                                (this._input = t + this._input),
                                     (this.yytext = this.yytext.substr(
                                         0,
                                         this.yytext.length - e,
                                     )),
-                                    (this.offset -= e));
+                                    (this.offset -= e);
                                 var s = this.match.split(/(?:\r\n?|\n)/g);
-                                ((this.match = this.match.substr(
+                                (this.match = this.match.substr(
                                     0,
                                     this.match.length - 1,
                                 )),
@@ -18078,7 +18062,7 @@ var __webpack_modules__ = {
                                         this.matched.length - 1,
                                     )),
                                     i.length - 1 &&
-                                        (this.yylineno -= i.length - 1));
+                                        (this.yylineno -= i.length - 1);
                                 var r = this.yylloc.range;
                                 return (
                                     (this.yylloc = {
@@ -18103,7 +18087,7 @@ var __webpack_modules__ = {
                                 );
                             },
                             more: function () {
-                                return ((this._more = !0), this);
+                                return (this._more = !0), this;
                             },
                             reject: function () {
                                 return this.options.backtrack_lexer
@@ -18237,10 +18221,9 @@ var __webpack_modules__ = {
                             next: function () {
                                 if (this.done) return this.EOF;
                                 var t, e, i, s;
-                                (this._input || (this.done = !0),
+                                this._input || (this.done = !0),
                                     this._more ||
-                                        ((this.yytext = ""),
-                                        (this.match = "")));
+                                        ((this.yytext = ""), (this.match = ""));
                                 for (
                                     var r = this._currentRules(), o = 0;
                                     o < r.length;
@@ -18729,7 +18712,7 @@ var __webpack_modules__ = {
                         },
                     },
                 ];
-            ((s.Z.rgbParser = function (t, e, i) {
+            (s.Z.rgbParser = function (t, e, i) {
                 var s,
                     o,
                     h,
@@ -18767,10 +18750,10 @@ var __webpack_modules__ = {
                     d < a.length;
                     d++
                 )
-                    ((h = a[d].re),
+                    (h = a[d].re),
                         (l = a[d].process),
                         (c = h.exec(s)) &&
-                            ((u = (o = l(c))[0]), (p = o[1]), (_ = o[2])));
+                            ((u = (o = l(c))[0]), (p = o[1]), (_ = o[2]));
                 return isNaN(u) || isNaN(p) || isNaN(_)
                     ? []
                     : [
@@ -18815,7 +18798,7 @@ var __webpack_modules__ = {
                     var s, r, n, a, h, l, c, d, u;
                     if (((t = ((t % 360) + 360) % 360), 0 === e)) {
                         if (!(isNaN(t) || t < o.Z.eps)) return "#ffffff";
-                        ((s = i), (r = i), (n = i));
+                        (s = i), (r = i), (n = i);
                     } else
                         switch (
                             ((l = t >= 360 ? 0 : t),
@@ -18828,22 +18811,22 @@ var __webpack_modules__ = {
                             h)
                         ) {
                             case 0:
-                                ((s = i), (r = u), (n = c));
+                                (s = i), (r = u), (n = c);
                                 break;
                             case 1:
-                                ((s = d), (r = i), (n = c));
+                                (s = d), (r = i), (n = c);
                                 break;
                             case 2:
-                                ((s = c), (r = i), (n = u));
+                                (s = c), (r = i), (n = u);
                                 break;
                             case 3:
-                                ((s = c), (r = d), (n = i));
+                                (s = c), (r = d), (n = i);
                                 break;
                             case 4:
-                                ((s = u), (r = c), (n = i));
+                                (s = u), (r = c), (n = i);
                                 break;
                             case 5:
-                                ((s = i), (r = c), (n = d));
+                                (s = i), (r = c), (n = d);
                         }
                     return [
                         "#",
@@ -19013,7 +18996,7 @@ var __webpack_modules__ = {
                         (e = e.toLowerCase()))
                     ) {
                         case "protanopia":
-                            ((h = -0.06150039994295001),
+                            (h = -0.06150039994295001),
                                 (l = 0.08277001656812001),
                                 (c = -0.013200141220000003),
                                 (d = 0.05858939668799999),
@@ -19022,10 +19005,10 @@ var __webpack_modules__ = {
                                 (r =
                                     n / o < 0.6903216543277437
                                         ? -(l * o + c * n) / h
-                                        : -(u * o + p * n) / d));
+                                        : -(u * o + p * n) / d);
                             break;
                         case "tritanopia":
-                            ((h = -0.00058973116217),
+                            (h = -0.00058973116217),
                                 (l = 0.007690316482),
                                 (c = -0.01011703519052),
                                 (d = 0.025495080838999994),
@@ -19034,10 +19017,10 @@ var __webpack_modules__ = {
                                 (n =
                                     o / r < 0.8349489908460004
                                         ? -(h * r + l * o) / c
-                                        : -(d * r + u * o) / p));
+                                        : -(d * r + u * o) / p);
                             break;
                         default:
-                            ((h = -0.06150039994295001),
+                            (h = -0.06150039994295001),
                                 (l = 0.08277001656812001),
                                 (c = -0.013200141220000003),
                                 (d = 0.05858939668799999),
@@ -19046,7 +19029,7 @@ var __webpack_modules__ = {
                                 (o =
                                     n / r < 0.5763833686400911
                                         ? -(h * r + c * n) / l
-                                        : -(d * r + p * n) / u));
+                                        : -(d * r + p * n) / u);
                     }
                     return (
                         (i = s.Z.LMS2rgb(r, o, n)),
@@ -19088,7 +19071,7 @@ var __webpack_modules__ = {
                     );
                 }),
                 (s.Z.setClassicColors = function () {
-                    ((s.Z.Options.elements.strokeColor = "blue"),
+                    (s.Z.Options.elements.strokeColor = "blue"),
                         (s.Z.Options.elements.fillColor = "red"),
                         (s.Z.Options.hatch.strokeColor = "blue"),
                         (s.Z.Options.angle.fillColor = "#ff7f00"),
@@ -19135,7 +19118,7 @@ var __webpack_modules__ = {
                         (s.Z.Options.semicircle.center.strokeColor = "blue"),
                         (s.Z.Options.slopetriangle.fillColor = "red"),
                         (s.Z.Options.slopetriangle.highlightFillColor = "red"),
-                        (s.Z.Options.turtle.arrow.strokeColor = "blue"));
+                        (s.Z.Options.turtle.arrow.strokeColor = "blue");
                 }),
                 s.Z.extend(s.Z, {
                     paletteWong: {
@@ -19154,14 +19137,14 @@ var __webpack_modules__ = {
                         white: "#ffffff",
                     },
                 }),
-                (s.Z.palette = s.Z.paletteWong));
+                (s.Z.palette = s.Z.paletteWong);
             const h = s.Z;
         },
         503: (t, e, i) => {
             i.d(e, { Z: () => o });
             var s = i(765),
                 r = i(109);
-            (s.Z.extendConstants(s.Z, { touchProperty: "touches" }),
+            s.Z.extendConstants(s.Z, { touchProperty: "touches" }),
                 s.Z.extend(s.Z, {
                     isTouchEvent: function (t) {
                         return s.Z.exists(t[s.Z.touchProperty]);
@@ -19189,7 +19172,7 @@ var __webpack_modules__ = {
                         "object" == typeof document,
                     supportsES6: function () {
                         try {
-                            return (new Function("(a = 0) => a"), !0);
+                            return new Function("(a = 0) => a"), !0;
                         } catch (t) {
                             return !1;
                         }
@@ -19386,7 +19369,7 @@ var __webpack_modules__ = {
                         var n = function () {
                             return i.apply(s, arguments);
                         };
-                        ((n.origin = i),
+                        (n.origin = i),
                             "object" == typeof s &&
                                 r.Z.exists(s.BOARD_MODE_NONE) &&
                                 ((s["x_internal" + e] =
@@ -19397,7 +19380,7 @@ var __webpack_modules__ = {
                                 ((o = o || !1), t.addEventListener(e, n, o)),
                             r.Z.exists(t) &&
                                 r.Z.exists(t.attachEvent) &&
-                                t.attachEvent("on" + e, n));
+                                t.attachEvent("on" + e, n);
                     },
                     removeEvent: function (t, e, i, o) {
                         var n;
@@ -19413,7 +19396,7 @@ var __webpack_modules__ = {
                                         ))
                                     ) {
                                         try {
-                                            (r.Z.exists(t) &&
+                                            r.Z.exists(t) &&
                                                 r.Z.exists(
                                                     t.removeEventListener,
                                                 ) &&
@@ -19427,7 +19410,7 @@ var __webpack_modules__ = {
                                                     t.detachEvent(
                                                         "on" + e,
                                                         o["x_internal" + e][n],
-                                                    ));
+                                                    );
                                         } catch (t) {
                                             s.Z.debug(
                                                 "event not registered in browser: (" +
@@ -19527,14 +19510,14 @@ var __webpack_modules__ = {
                                 s !== i;
 
                             )
-                                ((r += s.clientLeft - s.scrollLeft),
+                                (r += s.clientLeft - s.scrollLeft),
                                     (o += s.clientTop - s.scrollTop),
                                     (r = (e = this.getCSSTransform(
                                         [r, o],
                                         s,
                                     ))[0]),
                                     (o = e[1]),
-                                    (s = s.parentNode));
+                                    (s = s.parentNode);
                             i = i.offsetParent;
                         }
                         return [r, o];
@@ -19761,8 +19744,8 @@ var __webpack_modules__ = {
                             _++
                         )
                             try {
-                                ((o = "#" + t + g[_] + " #" + e + p),
-                                    i.styleSheets[f - 1].insertRule(o, 0));
+                                (o = "#" + t + g[_] + " #" + e + p),
+                                    i.styleSheets[f - 1].insertRule(o, 0);
                                 break;
                             } catch (t) {}
                         _ === m &&
@@ -19773,7 +19756,7 @@ var __webpack_modules__ = {
                                 "One possible reason could be that the id of the JSXGraph container does not start with a letter.",
                             ));
                     },
-                }));
+                });
             const o = s.Z;
         },
         88: (t, e, i) => {
@@ -19822,12 +19805,12 @@ var __webpack_modules__ = {
                         : this;
                 },
                 eventify: function (t) {
-                    ((t.eventHandlers = {}),
+                    (t.eventHandlers = {}),
                         (t.on = this.on),
                         (t.off = this.off),
                         (t.triggerEventHandlers = this.trigger),
                         (t.trigger = this.trigger),
-                        (t.suspended = {}));
+                        (t.suspended = {});
                 },
             };
             const o = s.Z.EventEmitter;
@@ -20126,7 +20109,7 @@ var __webpack_modules__ = {
                 },
                 swap: function (t, e, i) {
                     var s;
-                    return ((s = t[e]), (t[e] = t[i]), (t[i] = s), t);
+                    return (s = t[e]), (t[e] = t[i]), (t[i] = s), t;
                 },
                 uniqueArray: function (t) {
                     var e,
@@ -20147,7 +20130,7 @@ var __webpack_modules__ = {
                               0 !== t[e].length &&
                               ((o[i] = t[e].slice(0)), i++)
                             : ((o[i] = t[e]), i++);
-                    return ((t = o), o);
+                    return (t = o), o;
                 },
                 isInArray: function (t, e) {
                     return s.Z.indexOf(t, e) > -1;
@@ -20161,7 +20144,7 @@ var __webpack_modules__ = {
                             ? (s.push(t[i].usrCoords[1]),
                               r.push(t[i].usrCoords[2]))
                             : r.push([t[i].usrCoords[1], t[i].usrCoords[2]]);
-                    return (e && (r = [s, r]), r);
+                    return e && (r = [s, r]), r;
                 },
                 cmpArrays: function (t, e) {
                     var i;
@@ -20176,11 +20159,11 @@ var __webpack_modules__ = {
                 removeElementFromArray: function (t, e) {
                     var i;
                     for (i = 0; i < t.length; i++)
-                        if (t[i] === e) return (t.splice(i, 1), t);
+                        if (t[i] === e) return t.splice(i, 1), t;
                     return t;
                 },
                 trunc: function (t, e) {
-                    return ((e = s.Z.def(e, 0)), this.toFixed(t, e));
+                    return (e = s.Z.def(e, 0)), this.toFixed(t, e);
                 },
                 _decimalAdjust: function (t, e, i) {
                     return void 0 === i || 0 == +i
@@ -20231,7 +20214,7 @@ var __webpack_modules__ = {
                 },
                 clone: function (t) {
                     var e = {};
-                    return ((e.prototype = t), e);
+                    return (e.prototype = t), e;
                 },
                 cloneAndCopy: function (t, e) {
                     var i,
@@ -20249,10 +20232,10 @@ var __webpack_modules__ = {
                                     s < r.length;
                                     s++
                                 )
-                                    ((o = e[i][s]),
+                                    (o = e[i][s]),
                                         "object" == typeof e[i][s]
                                             ? (t[i][s] = this.merge(t[i][s], o))
-                                            : (t[i][s] = e[i][s]));
+                                            : (t[i][s] = e[i][s]);
                             else
                                 "object" == typeof r
                                     ? (t[i] || (t[i] = {}),
@@ -20559,19 +20542,16 @@ function __webpack_require__(t) {
     var e = __webpack_module_cache__[t];
     if (void 0 !== e) return e.exports;
     var i = (__webpack_module_cache__[t] = { exports: {} });
-    return (
-        __webpack_modules__[t](i, i.exports, __webpack_require__),
-        i.exports
-    );
+    return __webpack_modules__[t](i, i.exports, __webpack_require__), i.exports;
 }
-((__webpack_require__.d = (t, e) => {
+(__webpack_require__.d = (t, e) => {
     for (var i in e)
         __webpack_require__.o(e, i) &&
             !__webpack_require__.o(t, i) &&
             Object.defineProperty(t, i, { enumerable: !0, get: e[i] });
 }),
     (__webpack_require__.o = (t, e) =>
-        Object.prototype.hasOwnProperty.call(t, e)));
+        Object.prototype.hasOwnProperty.call(t, e));
 var __webpack_exports__ = {};
 (() => {
     __webpack_require__.d(__webpack_exports__, {
@@ -20706,10 +20686,10 @@ var __webpack_exports__ = {};
     t.Z.XML = {
         cleanWhitespace: function (t) {
             for (var e = t.firstChild; s.Z.exists(e); )
-                (3 !== e.nodeType || /\S/.test(e.nodeValue)
+                3 !== e.nodeType || /\S/.test(e.nodeValue)
                     ? 1 === e.nodeType && this.cleanWhitespace(e)
                     : t.removeChild(e),
-                    (e = e.nextSibling));
+                    (e = e.nextSibling);
         },
         parse: function (t) {
             var e, i;
@@ -20815,7 +20795,7 @@ var __webpack_exports__ = {};
             );
         },
         _underflow: function (t) {
-            return (console.log("erfc", "UNDERFLOW"), t < 0 ? 2 : 0);
+            return console.log("erfc", "UNDERFLOW"), t < 0 ? 2 : 0;
         },
         erfc: function (t) {
             var e, i, s, r, o;
@@ -20922,12 +20902,12 @@ var __webpack_exports__ = {};
             if (((i[e] = t), 0 === e)) a = t;
             else {
                 for (o = 0, s = e; s > 0; s--)
-                    ((r = o),
+                    (r = o),
                         (o = i[s - 1]),
                         (n = i[s] - o),
                         Math.abs(n) <= 1e-15
                             ? (i[s - 1] = 1e20)
-                            : (1, (i[s - 1] = 1 * r + 1 / n)));
+                            : (1, (i[s - 1] = 1 * r + 1 / n));
                 a = i[e % 2];
             }
             return a;
@@ -20937,10 +20917,10 @@ var __webpack_exports__ = {};
             if (((i[e] = t), e < 2)) s = t;
             else {
                 for (n = e / 2, a = 1; a <= n; a++)
-                    ((r = i[(h = e - 2 * a) + 2] - 2 * i[h + 1] + i[h]),
+                    (r = i[(h = e - 2 * a) + 2] - 2 * i[h + 1] + i[h]),
                         Math.abs(r) < 1e-15
                             ? (i[h] = 1e20)
-                            : ((o = i[h] - i[h + 1]), (i[h] -= (o * o) / r)));
+                            : ((o = i[h] - i[h + 1]), (i[h] -= (o * o) / r));
                 s = i[e % 2];
             }
             return s;
@@ -20950,12 +20930,12 @@ var __webpack_exports__ = {};
             if (((i[e] = t), e < 3)) s = t;
             else {
                 for (h = e / 3, c = e, l = 1; l <= h; l++)
-                    ((o = i[(c -= 3) + 1] - i[c]),
+                    (o = i[(c -= 3) + 1] - i[c]),
                         (n = i[c + 2] - i[c + 1]),
                         (r = (a = i[c + 3] - i[c + 2]) * (n - o) - o * (a - n)),
                         Math.abs(r) < 1e-15
                             ? (i[c] = 1e20)
-                            : (i[c] = i[c + 1] - (o * n * (a - n)) / r));
+                            : (i[c] = i[c + 1] - (o * n * (a - n)) / r);
                 s = i[e % 3];
             }
             return s;
@@ -20979,7 +20959,7 @@ var __webpack_exports__ = {};
                     break;
                 }
                 if (0 !== n && a / n > this.infty) {
-                    ((l = a), (d = "infinite"));
+                    (l = a), (d = "infinite");
                     break;
                 }
                 if (((h = a - l), Math.abs(h) < 1e-7)) break;
@@ -20999,10 +20979,10 @@ var __webpack_exports__ = {};
                     e > 1))
             )
                 for (h = (s + e - 1) * l, n = 2; n <= e; n++)
-                    ((a = (s + e - n) * Math.pow(h, n - 2) * l),
+                    (a = (s + e - n) * Math.pow(h, n - 2) * l),
                         (r[e - n] = r[e - n + 1] - a * r[e - n]),
                         (o[e - n] = o[e - n + 1] - a * o[e - n]),
-                        (l *= h));
+                        (l *= h);
             return Math.abs(o[0]) < 1e-15 ? 1e20 : r[0] / o[0];
         },
         iteration_levin: function (t, e, i, s) {
@@ -21035,7 +21015,7 @@ var __webpack_exports__ = {};
                     break;
                 }
                 if (0 !== o && n / o > this.infty) {
-                    ((d = n), (_ = "infinite"));
+                    (d = n), (_ = "infinite");
                     break;
                 }
                 if (Math.abs(l) < 1e-7) break;
@@ -21048,8 +21028,8 @@ var __webpack_exports__ = {};
         },
     };
     const a = o.Z.Extrapolate;
-    ((o.Z.Quadtree = function (t) {
-        ((this.capacity = 10),
+    (o.Z.Quadtree = function (t) {
+        (this.capacity = 10),
             (this.points = []),
             (this.xlb = t[0]),
             (this.xub = t[2]),
@@ -21058,7 +21038,7 @@ var __webpack_exports__ = {};
             (this.northWest = null),
             (this.northEast = null),
             (this.southEast = null),
-            (this.southWest = null));
+            (this.southWest = null);
     }),
         s.Z.extend(o.Z.Quadtree.prototype, {
             contains: function (t, e) {
@@ -21115,10 +21095,10 @@ var __webpack_exports__ = {};
                     t < e;
                     t += 1
                 )
-                    (this.northWest.insert(this.points[t]),
+                    this.northWest.insert(this.points[t]),
                         this.northEast.insert(this.points[t]),
                         this.southEast.insert(this.points[t]),
-                        this.southWest.insert(this.points[t]));
+                        this.southWest.insert(this.points[t]);
             },
             _query: function (t, e) {
                 var i;
@@ -21140,7 +21120,7 @@ var __webpack_exports__ = {};
                     this._query(i, r)
                 );
             },
-        }));
+        });
     const h = o.Z.Quadtree;
     var l = __webpack_require__(336);
     t.Z.Math.Nlp = {
@@ -21149,11 +21129,11 @@ var __webpack_exports__ = {};
         },
         arr2: function (t, e) {
             for (var i = 0, s = new Array(t); i < t; )
-                ((s[i] = this.arr(e)), i++);
+                (s[i] = this.arr(e)), i++;
             return s;
         },
         arraycopy: function (t, e, i, s, r) {
-            for (var o = 0; o < r; ) ((i[o + s] = t[o + e]), o++);
+            for (var o = 0; o < r; ) (i[o + s] = t[o + e]), o++;
         },
         lastNumberOfEvaluations: 0,
         GetLastNumberOfEvaluations: function () {
@@ -21260,8 +21240,8 @@ var __webpack_exports__ = {};
                 d <= e;
                 ++d
             )
-                ((q[d][U] = r[d]), (q[d][d] = J), (Q[d][d] = f));
-            ((m = U), (v = !1));
+                (q[d][U] = r[d]), (q[d][d] = J), (Q[d][d] = f);
+            (m = U), (v = !1);
             t: for (;;) {
                 if (g >= h && g > 0) {
                     Y = this.MaxIterationsReached;
@@ -21283,7 +21263,7 @@ var __webpack_exports__ = {};
                             if (tt[F][U] <= j) r[m] = q[m][U];
                             else {
                                 for (q[m][U] = r[m], p = 1; p <= s; ++p)
-                                    ((tt[p][m] = tt[p][U]), (tt[p][U] = K[p]));
+                                    (tt[p][m] = tt[p][U]), (tt[p][U] = K[p]);
                                 for (p = 1; p <= m; ++p) {
                                     for (
                                         q[m][p] = -J, f = 0, d = p;
@@ -21317,9 +21297,9 @@ var __webpack_exports__ = {};
                                       (y = u);
                             if (y <= e) {
                                 for (d = 1; d <= s; ++d)
-                                    ((f = tt[d][U]),
+                                    (f = tt[d][U]),
                                         (tt[d][U] = tt[d][y]),
-                                        (tt[d][y] = f));
+                                        (tt[d][y] = f);
                                 for (d = 1; d <= e; ++d) {
                                     for (
                                         f = q[d][y],
@@ -21330,14 +21310,14 @@ var __webpack_exports__ = {};
                                         p <= e;
                                         ++p
                                     )
-                                        ((q[d][p] -= f), (b -= Q[p][d]));
+                                        (q[d][p] -= f), (b -= Q[p][d]);
                                     Q[y][d] = b;
                                 }
                             }
                             if (((P = 0), l))
                                 for (d = 1; d <= e; ++d)
                                     for (u = 1; u <= e; ++u)
-                                        ((f =
+                                        (f =
                                             this.DOT_PRODUCT_ROW_COL(
                                                 Q,
                                                 d,
@@ -21346,7 +21326,7 @@ var __webpack_exports__ = {};
                                                 1,
                                                 e,
                                             ) - (d === u ? 1 : 0)),
-                                            (P = Math.max(P, Math.abs(f))));
+                                            (P = Math.max(P, Math.abs(f)));
                             if (P > 0.1) {
                                 Y = this.DivergingRoundingErrors;
                                 break t;
@@ -21372,11 +21352,11 @@ var __webpack_exports__ = {};
                                 ++u
                             ) {
                                 for (O = 0, x = 0, p = 1; p <= e; ++p)
-                                    ((O += Q[u][p] * Q[u][p]),
-                                        (x += q[p][u] * q[p][u]));
-                                ((it[u] = 1 / Math.sqrt(O)),
+                                    (O += Q[u][p] * Q[u][p]),
+                                        (x += q[p][u] * q[p][u]);
+                                (it[u] = 1 / Math.sqrt(O)),
                                     (st[u] = Math.sqrt(x)),
-                                    (it[u] < W || st[u] > E) && (z = !1));
+                                    (it[u] < W || st[u] > E) && (z = !1);
                             }
                             if (!v && !z) {
                                 for (m = 0, f = E, u = 1; u <= e; ++u)
@@ -21387,7 +21367,7 @@ var __webpack_exports__ = {};
                                 for (f = 0.5 * J * it[m], p = 1; p <= e; ++p)
                                     ot[p] = f * Q[m][p];
                                 for (w = 0, S = 0, c = 0, p = 1; p <= F; ++p)
-                                    ((c = this.DOT_PRODUCT_ROW_COL(
+                                    (c = this.DOT_PRODUCT_ROW_COL(
                                         ot,
                                         -1,
                                         et,
@@ -21398,7 +21378,7 @@ var __webpack_exports__ = {};
                                         p < F &&
                                             ((f = tt[p][U]),
                                             (w = Math.max(w, -c - f)),
-                                            (S = Math.max(S, c - f))));
+                                            (S = Math.max(S, c - f)));
                                 for (
                                     T = G * (w - S) > 2 * c ? -1 : 1,
                                         f = 0,
@@ -21406,9 +21386,9 @@ var __webpack_exports__ = {};
                                     d <= e;
                                     ++d
                                 )
-                                    ((ot[d] = T * ot[d]),
+                                    (ot[d] = T * ot[d]),
                                         (q[d][m] = ot[d]),
-                                        (f += Q[m][d] * ot[d]));
+                                        (f += Q[m][d] * ot[d]);
                                 for (p = 1; p <= e; ++p) Q[m][p] /= f;
                                 for (u = 1; u <= e; ++u) {
                                     if (u !== m)
@@ -21439,7 +21419,7 @@ var __webpack_exports__ = {};
                                 }
                             }
                             for (c = 0, M = 0, K[F] = 0, p = 1; p <= F; ++p)
-                                ((c =
+                                (c =
                                     K[p] -
                                     this.DOT_PRODUCT_ROW_COL(
                                         ot,
@@ -21449,7 +21429,7 @@ var __webpack_exports__ = {};
                                         1,
                                         e,
                                     )),
-                                    p < F && (M = Math.max(M, c)));
+                                    p < F && (M = Math.max(M, c));
                             if (
                                 G <
                                 1.5 * (N = (V = tt[s][U] - M) > 0 ? c / V : 0)
@@ -21489,10 +21469,10 @@ var __webpack_exports__ = {};
                             u <= e;
                             ++u
                         )
-                            ((f = Math.abs(
+                            (f = Math.abs(
                                 this.DOT_PRODUCT_ROW_COL(Q, u, ot, -1, 1, e),
                             )) > R && ((m = u), (R = f)),
-                                (rt[u] = f * it[u]));
+                                (rt[u] = f * it[u]);
                         for (D = 1.1 * J, _ = 0, u = 1; u <= e; ++u)
                             if (rt[u] >= W || rt[u] >= it[u]) {
                                 if (((f = st[u]), k > 0)) {
@@ -21504,7 +21484,7 @@ var __webpack_exports__ = {};
                             }
                         if ((_ > 0 && (m = _), 0 !== m)) {
                             for (f = 0, d = 1; d <= e; ++d)
-                                ((q[d][m] = ot[d]), (f += Q[m][d] * ot[d]));
+                                (q[d][m] = ot[d]), (f += Q[m][d] * ot[d]);
                             for (p = 1; p <= e; ++p) Q[m][p] /= f;
                             for (u = 1; u <= e; ++u)
                                 if (u !== m)
@@ -21539,8 +21519,8 @@ var __webpack_exports__ = {};
                         ) {
                             for (I = 0, p = 1; p <= F; ++p) {
                                 for (B = L = tt[p][U], d = 1; d <= e; ++d)
-                                    ((L = Math.min(L, tt[p][d])),
-                                        (B = Math.max(B, tt[p][d])));
+                                    (L = Math.min(L, tt[p][d])),
+                                        (B = Math.max(B, tt[p][d]));
                                 p <= i &&
                                     L < 0.5 * B &&
                                     ((f = Math.max(B, 0) - L),
@@ -21550,7 +21530,7 @@ var __webpack_exports__ = {};
                                 ? (G = 0)
                                 : B - L < G * I && (G = (B - L) / I);
                         }
-                        (a >= 2 &&
+                        a >= 2 &&
                             console.log(
                                 "Reduction in RHO to " +
                                     J +
@@ -21565,7 +21545,7 @@ var __webpack_exports__ = {};
                                     this.COL(q, U),
                                     e,
                                     a,
-                                ));
+                                );
                     } else v = !1;
                 }
             }
@@ -21650,21 +21630,21 @@ var __webpack_exports__ = {};
                 W = this.arr(2 + e),
                 V = e,
                 $ = 0;
-            for (h = 1; h <= t; ++h) ((U[h][h] = 1), (o[h] = 0));
+            for (h = 1; h <= t; ++h) (U[h][h] = 1), (o[h] = 0);
             if (((n = 0), (a = 0), e >= 1)) {
                 for (l = 1; l <= e; ++l) s[l] > a && ((a = s[l]), (n = l));
-                for (l = 1; l <= e; ++l) ((W[l] = l), (J[l] = a - s[l]));
+                for (l = 1; l <= e; ++l) (W[l] = l), (J[l] = a - s[l]);
             }
             c = !0;
             do {
                 t: for (;;) {
-                    ((!c || (c && 0 === a)) &&
+                    (!c || (c && 0 === a)) &&
                         ((n = V = e + 1), (W[V] = V), (J[V] = 0)),
                         (c = !1),
                         (d = 0),
                         (u = 0),
                         (p = 0),
-                        (_ = 0));
+                        (_ = 0);
                     e: do {
                         if (
                             ((f =
@@ -21688,7 +21668,7 @@ var __webpack_exports__ = {};
                             break t;
                         if (((b = 0), n <= $)) {
                             if (n < $) {
-                                ((g = W[n]), (m = J[n]), (l = n));
+                                (g = W[n]), (m = J[n]), (l = n);
                                 do {
                                     for (
                                         C = W[(Z = l + 1)],
@@ -21705,13 +21685,13 @@ var __webpack_exports__ = {};
                                         h <= t;
                                         ++h
                                     )
-                                        ((Y = P * U[h][Z] + E * U[h][l]),
+                                        (Y = P * U[h][Z] + E * U[h][l]),
                                             (U[h][Z] =
                                                 P * U[h][l] - E * U[h][Z]),
-                                            (U[h][l] = Y));
-                                    ((W[l] = C), (J[l] = J[Z]), (l = Z));
+                                            (U[h][l] = Y);
+                                    (W[l] = C), (J[l] = J[Z]), (l = Z);
                                 } while (l < $);
-                                ((W[l] = g), (J[l] = m));
+                                (W[l] = g), (J[l] = m);
                             }
                             if ((--$, V > e))
                                 for (Y = 1 / F[$], l = 1; l <= t; ++l)
@@ -21735,8 +21715,8 @@ var __webpack_exports__ = {};
                             for (C = W[n], l = 1; l <= t; ++l) z[l] = i[l][C];
                             for (O = 0, l = t; l > $; ) {
                                 for (y = 0, x = 0, h = 1; h <= t; ++h)
-                                    ((y += Y = U[h][l] * z[h]),
-                                        (x += Math.abs(Y)));
+                                    (y += Y = U[h][l] * z[h]),
+                                        (x += Math.abs(Y));
                                 if (
                                     ((w = x + 0.1 * Math.abs(y)),
                                     (S = x + 0.2 * Math.abs(y)),
@@ -21756,18 +21736,18 @@ var __webpack_exports__ = {};
                                         h <= t;
                                         ++h
                                     )
-                                        ((Y = P * U[h][l] + E * U[h][Z]),
+                                        (Y = P * U[h][l] + E * U[h][Z]),
                                             (U[h][Z] =
                                                 P * U[h][Z] - E * U[h][l]),
-                                            (U[h][l] = Y));
+                                            (U[h][l] = Y);
                                 --l;
                             }
                             if (0 === O) {
-                                ((b = -1), (l = $));
+                                (b = -1), (l = $);
                                 do {
                                     for (T = 0, M = 0, h = 1; h <= t; ++h)
-                                        ((T += Y = U[h][l] * z[h]),
-                                            (M += Math.abs(Y)));
+                                        (T += Y = U[h][l] * z[h]),
+                                            (M += Math.abs(Y));
                                     if (
                                         ((w = M + 0.1 * Math.abs(T)),
                                         (S = M + 0.2 * Math.abs(T)),
@@ -21789,7 +21769,7 @@ var __webpack_exports__ = {};
                                 for (l = 1; l <= $; ++l)
                                     J[l] = Math.max(0, J[l] - b * H[l]);
                                 if (n < $) {
-                                    ((g = W[n]), (m = J[n]), (l = n));
+                                    (g = W[n]), (m = J[n]), (l = n);
                                     do {
                                         for (
                                             N = W[(Z = l + 1)],
@@ -21816,13 +21796,13 @@ var __webpack_exports__ = {};
                                             h <= t;
                                             ++h
                                         )
-                                            ((Y = P * U[h][Z] + E * U[h][l]),
+                                            (Y = P * U[h][Z] + E * U[h][l]),
                                                 (U[h][Z] =
                                                     P * U[h][l] - E * U[h][Z]),
-                                                (U[h][l] = Y));
-                                        ((W[l] = N), (J[l] = J[Z]), (l = Z));
+                                                (U[h][l] = Y);
+                                        (W[l] = N), (J[l] = J[Z]), (l = Z);
                                     } while (l < $);
-                                    ((W[l] = g), (J[l] = m));
+                                    (W[l] = g), (J[l] = m);
                                 }
                                 if (
                                     0 ===
@@ -21832,8 +21812,8 @@ var __webpack_exports__ = {};
                                     ))
                                 )
                                     break t;
-                                ((F[$] = Y), (J[n] = 0), (J[$] = b));
-                            } else ((F[++$] = O), (J[n] = J[$]), (J[$] = 0));
+                                (F[$] = Y), (J[n] = 0), (J[$] = b);
+                            } else (F[++$] = O), (J[n] = J[$]), (J[$] = 0);
                             if (((W[n] = W[$]), (W[$] = C), V > e && C !== V)) {
                                 for (
                                     l = $ - 1,
@@ -21850,14 +21830,14 @@ var __webpack_exports__ = {};
                                     h <= t;
                                     ++h
                                 )
-                                    ((Y = P * U[h][$] + E * U[h][l]),
+                                    (Y = P * U[h][$] + E * U[h][l]),
                                         (U[h][$] = P * U[h][l] - E * U[h][$]),
-                                        (U[h][l] = Y));
-                                ((W[$] = W[l]),
+                                        (U[h][l] = Y);
+                                (W[$] = W[l]),
                                     (W[l] = C),
                                     (Y = J[l]),
                                     (J[l] = J[$]),
-                                    (J[$] = Y));
+                                    (J[$] = Y);
                             }
                             if (V > e)
                                 for (Y = 1 / F[$], l = 1; l <= t; ++l)
@@ -21883,9 +21863,9 @@ var __webpack_exports__ = {};
                                     G[l] -= Y * U[l][$];
                         }
                         for (A = r * r, R = 0, k = 0, h = 1; h <= t; ++h)
-                            (Math.abs(o[h]) >= 1e-6 * r && (A -= o[h] * o[h]),
+                            Math.abs(o[h]) >= 1e-6 * r && (A -= o[h] * o[h]),
                                 (R += o[h] * G[h]),
-                                (k += G[h] * G[h]));
+                                (k += G[h] * G[h]);
                         if (A <= 0) break t;
                         if (
                             ((Y = Math.sqrt(k * A)),
@@ -21904,7 +21884,7 @@ var __webpack_exports__ = {};
                         for (l = 1; l <= t; ++l) z[l] = o[l] + p * G[l];
                         if (V === e)
                             for (X = a, a = 0, l = 1; l <= $; ++l)
-                                ((Y =
+                                (Y =
                                     s[(C = W[l])] -
                                     this.DOT_PRODUCT_ROW_COL(
                                         z,
@@ -21914,11 +21894,11 @@ var __webpack_exports__ = {};
                                         1,
                                         t,
                                     )),
-                                    (a = Math.max(a, Y)));
+                                    (a = Math.max(a, Y));
                         l = $;
                         do {
                             for (D = 0, L = 0, h = 1; h <= t; ++h)
-                                ((D += Y = U[h][l] * z[h]), (L += Math.abs(Y)));
+                                (D += Y = U[h][l] * z[h]), (L += Math.abs(Y));
                             if (
                                 ((w = L + 0.1 * Math.abs(D)),
                                 (S = L + 0.2 * Math.abs(D)),
@@ -21944,12 +21924,12 @@ var __webpack_exports__ = {};
                                     h <= t;
                                     ++h
                                 )
-                                    ((v += Y = i[h][C] * z[h]),
-                                        (B += Math.abs(Y)));
-                                ((w = B + 0.1 * Math.abs(v)),
+                                    (v += Y = i[h][C] * z[h]),
+                                        (B += Math.abs(Y));
+                                (w = B + 0.1 * Math.abs(v)),
                                     (S = B + 0.2 * Math.abs(v)),
                                     (B >= w || w >= S) && (v = 0),
-                                    (H[l] = v));
+                                    (H[l] = v);
                             }
                         for (b = 1, n = 0, l = 1; l <= V; ++l)
                             H[l] < 0 &&
@@ -21967,9 +21947,9 @@ var __webpack_exports__ = {};
             return !1;
         },
         PrintIterationResult: function (t, e, i, s, r, o) {
-            (o > 1 &&
+            o > 1 &&
                 console.log("NFVALS = " + t + "  F = " + e + "  MAXCV = " + i),
-                o > 1 && console.log("X = " + this.PART(s, 1, r)));
+                o > 1 && console.log("X = " + this.PART(s, 1, r));
         },
         ROW: function (t, e) {
             return t[e].slice();
@@ -22029,14 +22009,14 @@ var __webpack_exports__ = {};
                 a = !1,
                 h = (s - e) / r;
             for (o = 0; o < r; o++)
-                ((n = e + o * h),
+                (n = e + o * h),
                     t.points[o].setCoordinates(
                         i.Z.COORDS_BY_USER,
                         [t.X(n, a), t.Y(n, a)],
                         !1,
                     ),
                     (t.points[o]._t = n),
-                    (a = !0));
+                    (a = !0);
             return t;
         },
         isSegmentOutside: function (t, e, i, s, r) {
@@ -22102,7 +22082,7 @@ var __webpack_exports__ = {};
                 n++
             )
                 P[n] = 0.5 * P[n - 1];
-            ((n = 1),
+            (n = 1),
                 (Z[0] = 1),
                 (C[0] = 0),
                 (a = s),
@@ -22131,7 +22111,7 @@ var __webpack_exports__ = {};
                     [d, u],
                     e.board,
                     !1,
-                )));
+                ));
             do {
                 for (
                     E =
@@ -22142,7 +22122,7 @@ var __webpack_exports__ = {};
                     (_ <= 7 || this.isSegmentDefined(d, u, h, l));
 
                 )
-                    ((Z[p] = n),
+                    (Z[p] = n),
                         (C[p] = _),
                         (y[p] = [h, l]),
                         (p += 1),
@@ -22157,8 +22137,8 @@ var __webpack_exports__ = {};
                         (l = v.scrCoords[2]),
                         (E =
                             this.isDistOK(h - d, l - u, b, g) ||
-                            this.isSegmentOutside(d, u, h, l, e.board)));
-                (O > 1 &&
+                            this.isSegmentOutside(d, u, h, l, e.board));
+                O > 1 &&
                     x(
                         e.points[O - 2].scrCoords,
                         [h, l],
@@ -22179,9 +22159,9 @@ var __webpack_exports__ = {};
                     (h = y[(p -= 1)][0]),
                     (l = y[p][1]),
                     (_ = C[p] + 1),
-                    (n = 2 * Z[p]));
+                    (n = 2 * Z[p]);
             } while (p > 0 && O < 5e5);
-            return ((e.numberPoints = e.points.length), e);
+            return (e.numberPoints = e.points.length), e;
         },
         _insertPoint_v2: function (t, e, i) {
             var s = !isNaN(this._lastCrds[1] + this._lastCrds[2]),
@@ -22262,17 +22242,17 @@ var __webpack_exports__ = {};
                 p = 0;
                 do {
                     if (isNaN(e[1] + e[2]) && !isNaN(r[1] + r[2]))
-                        ((_ = o), (f = a), (b = n));
+                        (_ = o), (f = a), (b = n);
                     else if (isNaN(s[1] + s[2]) && !isNaN(r[1] + r[2]))
-                        ((_ = n), (f = a), (b = o));
+                        (_ = n), (f = a), (b = o);
                     else if (isNaN(r[1] + r[2]) && !isNaN(s[1] + s[2]))
-                        ((_ = a), (f = n), (b = n + (n - a)));
+                        (_ = a), (f = n), (b = n + (n - a));
                     else {
                         if (!isNaN(r[1] + r[2]) || isNaN(e[1] + e[2]))
                             return !1;
-                        ((_ = a), (f = o), (b = o - (a - o)));
+                        (_ = a), (f = o), (b = o - (a - o));
                     }
-                    ((l = 0.5 * (_ + f)),
+                    (l = 0.5 * (_ + f)),
                         d.setCoordinates(
                             i.Z.COORDS_BY_USER,
                             [t.X(l, !0), t.Y(l, !0)],
@@ -22280,7 +22260,7 @@ var __webpack_exports__ = {};
                         ),
                         (u = d.usrCoords),
                         (m = isNaN(u[1] + u[2])) ? (_ = l) : ((b = f), (f = l)),
-                        ++p);
+                        ++p;
                 } while (m && p < 30);
                 if (
                     (p < 30 && ((g = u.slice()), (r = u.slice()), (f = l)),
@@ -22537,17 +22517,17 @@ var __webpack_exports__ = {};
                 (p = 0),
                 isNaN(s[1] + s[2]) && !isNaN(n[1] + n[2]))
             )
-                ((f = e), (_ = r), a);
+                (f = e), (_ = r), a;
             else if (isNaN(h[1] + h[2]) && !isNaN(n[1] + n[2]))
-                ((f = a), (_ = r), e);
+                (f = a), (_ = r), e;
             else if (isNaN(n[1] + n[2]) && !isNaN(h[1] + h[2]))
-                ((f = r), (_ = a), a + (a - r));
+                (f = r), (_ = a), a + (a - r);
             else {
                 if (!isNaN(n[1] + n[2]) || isNaN(s[1] + s[2])) return !1;
-                ((f = r), (_ = e), e - (r - e));
+                (f = r), (_ = e), e - (r - e);
             }
             do {
-                ((l = 0.5 * (_ + f)),
+                (l = 0.5 * (_ + f)),
                     d.setCoordinates(
                         i.Z.COORDS_BY_USER,
                         [t.X(l, !0), t.Y(l, !0)],
@@ -22555,7 +22535,7 @@ var __webpack_exports__ = {};
                     ),
                     (u = d.usrCoords),
                     isNaN(u[1] + u[2]) ? (f = l) : (_, (_ = l)),
-                    ++p);
+                    ++p;
             } while (p < 30 && Math.abs(_ - f) > o.Z.eps);
             return l;
         },
@@ -22661,7 +22641,7 @@ var __webpack_exports__ = {};
                     if (this._isUndefined(t, e, i, s, r)) continue;
                     if (this._isOutside(e, i, s, r, t.board)) continue;
                 }
-                ((n = 0.5 * (i + r)),
+                (n = 0.5 * (i + r)),
                     (d = t.X(n, !0)),
                     (u = t.Y(n, !0)),
                     (a = [
@@ -22700,7 +22680,7 @@ var __webpack_exports__ = {};
                         : _ <= 0 || m
                           ? this._insertPoint(t, a, n, _, null)
                           : ((Z[C++] = [a, n, s, r, _ - 1, h[0]]),
-                            (Z[C++] = [e, i, a, n, _ - 1, h[0]])));
+                            (Z[C++] = [e, i, a, n, _ - 1, h[0]]));
             }
             return this;
         },
@@ -22815,14 +22795,14 @@ var __webpack_exports__ = {};
             return { smooth: _, groups: b, types: g };
         },
         Component: function () {
-            ((this.left_isNaN = !1),
+            (this.left_isNaN = !1),
                 (this.right_isNaN = !1),
                 (this.left_t = null),
                 (this.right_t = null),
                 (this.t_values = []),
                 (this.x_values = []),
                 (this.y_values = []),
-                (this.len = 0));
+                (this.len = 0);
         },
         findComponents: function (t, e, i, s) {
             var r,
@@ -22846,7 +22826,7 @@ var __webpack_exports__ = {};
                 r <= s;
                 r++, o += n
             )
-                ((a = t.X(o, f)),
+                (a = t.X(o, f)),
                     (h = t.Y(o, f)),
                     isNaN(a) || isNaN(h)
                         ? ++p > 1 &&
@@ -22868,8 +22848,8 @@ var __webpack_exports__ = {};
                           (l.x_values[u] = a),
                           (l.y_values[u] = h),
                           u++),
-                    0 === r && (f = !0));
-            return (_ ? (l.len = u) : c.pop(), c);
+                    0 === r && (f = !0);
+            return _ ? (l.len = u) : c.pop(), c;
         },
         getPointType: function (t, e, i, s, r, o, n) {
             var a = r[0],
@@ -22941,10 +22921,10 @@ var __webpack_exports__ = {};
                 i < r;
                 i++
             )
-                ((Z[0][i] = _[i]),
+                (Z[0][i] = _[i]),
                     (C[0][i] = f[i]),
                     (y[0][i] = _[i]),
-                    (P[0][i] = f[i]));
+                    (P[0][i] = f[i]);
             for (
                 Z.push([]),
                     C.push([]),
@@ -22956,14 +22936,14 @@ var __webpack_exports__ = {};
                 i < r;
                 i++
             )
-                ((b[i] = _[i + 1] - _[i]),
+                (b[i] = _[i + 1] - _[i]),
                     (g[i] = f[i + 1] - f[i]),
                     (m[i] = b[i]),
                     (v[i] = g[i]),
                     (Z[1][i] = b[i]),
                     (C[1][i] = g[i]),
                     (y[1][i] = a / b[i]),
-                    (P[1][i] = a / g[i]));
+                    (P[1][i] = a / g[i]);
             for (r--, o = Math.min(8, f.length - 1), s = 1; s < o; s++) {
                 for (
                     Z.push([]),
@@ -22975,16 +22955,16 @@ var __webpack_exports__ = {};
                     i < r;
                     i++
                 )
-                    ((b[i] = b[i + 1] - b[i]),
+                    (b[i] = b[i + 1] - b[i]),
                         (g[i] = g[i + 1] - g[i]),
                         (Z[s + 1][i] = b[i]),
                         (C[s + 1][i] = g[i]),
                         (y[s + 1][i] =
                             a / (y[s][i + 1] - y[s][i]) + y[s - 1][i + 1]),
                         (P[s + 1][i] =
-                            a / (P[s][i + 1] - P[s][i]) + P[s - 1][i + 1]));
+                            a / (P[s][i + 1] - P[s][i]) + P[s - 1][i + 1]);
                 if (!1 === (u = this._criticalPoints(g, r, s))) {
-                    (console.log("Polynomial of degree", s), (u = []));
+                    console.log("Polynomial of degree", s), (u = []);
                     break;
                 }
                 if (u.length > 0 && ++E > 1 && s % 2 == 0) break;
@@ -22993,8 +22973,8 @@ var __webpack_exports__ = {};
             for (i = 0; i < u.length; i++) {
                 for (l = -1 / 0, c = 0; c < u[i].length; c++)
                     (d = Math.abs(u[i][c].v)) > l && ((l = d), (h = c));
-                ((h = Math.floor(u[i][h].i + s / 2)),
-                    O.push(this.getPointType(e, h, p, _, f, m, v, r + 1)));
+                (h = Math.floor(u[i][h].i + s / 2)),
+                    O.push(this.getPointType(e, h, p, _, f, m, v, r + 1));
             }
             return [O, Z, C, y, P];
         },
@@ -23023,7 +23003,7 @@ var __webpack_exports__ = {};
                 s < 1 / 0)
             ) {
                 for (r = 0; r < t.length; r++)
-                    ((h += Math.abs(t[r].v) * t[r].i), (l += Math.abs(t[r].v)));
+                    (h += Math.abs(t[r].v) * t[r].i), (l += Math.abs(t[r].v));
                 a = h / l;
             }
             return (
@@ -23076,7 +23056,7 @@ var __webpack_exports__ = {};
                 s++
             ) {
                 if (l.groups.length > 0 && ++g > 2 && (s + 1) % 2 == 0) {
-                    ((Z = l.groups), (d = l.types));
+                    (Z = l.groups), (d = l.types);
                     break;
                 }
                 r--;
@@ -23095,14 +23075,14 @@ var __webpack_exports__ = {};
                 n,
                 a,
                 h = null;
-            (t.points.length > 0 &&
+            t.points.length > 0 &&
                 (h = t.points[t.points.length - 1].scrCoords),
                 (o = new c.Z(i.Z.COORDS_BY_USER, e, t.board)),
                 (null !== h &&
                     (n = o.scrCoords[1] - h[1]) * n +
                         (a = o.scrCoords[2] - h[2]) * a <
                         0.8 * 0.8) ||
-                    ((o._t = s), t.points.push(o)));
+                    ((o._t = s), t.points.push(o));
         },
         getInterval: function (e, i, s) {
             var r, o;
@@ -23162,10 +23142,10 @@ var __webpack_exports__ = {};
                     _ < b;
                     _++
                 )
-                    ((n = f[0].t_values[_]),
+                    (n = f[0].t_values[_]),
                         (c = f[0].x_values[_]),
                         (d = f[0].y_values[_]),
-                        this._insertPoint_v4(t, [1, c, d], n));
+                        this._insertPoint_v4(t, [1, c, d], n);
                 "borderright" === i.type &&
                     ((a = f[0].t_values[b - 1]),
                     (h = f[0].right_t),
@@ -23216,9 +23196,9 @@ var __webpack_exports__ = {};
                         (this.handleSingularity(t, c, u[p], _, f),
                         (b = u[p].idx + 1));
                 }
-                ((g = c.len),
+                (g = c.len),
                     d < l.length - 1 &&
-                        this._insertPoint_v4(t, [1, NaN, NaN], c.right_t));
+                        this._insertPoint_v4(t, [1, NaN, NaN], c.right_t);
             }
             return this;
         },
@@ -23255,7 +23235,7 @@ var __webpack_exports__ = {};
                 b,
                 g = i.idx,
                 m = 100;
-            ((n = i.t),
+            (n = i.t),
                 console.log("HandleSingularity at t =", n),
                 (a = e.t_values[g - 5]),
                 (h = e.t_values[g + 5]),
@@ -23302,7 +23282,7 @@ var __webpack_exports__ = {};
                         )),
                 b < -100
                     ? this._insertPoint_v4(t, [1, u, _], n)
-                    : b > m && this._insertPoint_v4(t, [1, u, p], n));
+                    : b > m && this._insertPoint_v4(t, [1, u, p], n);
         },
         steps: 1021,
         criticalThreshold: 1e3,
@@ -23369,7 +23349,7 @@ var __webpack_exports__ = {};
                         o < n - 2;
                         o++
                     )
-                        (this._insertPoint_v4(
+                        this._insertPoint_v4(
                             t,
                             [1, c.x_values[o], c.y_values[o]],
                             c.t_values[o],
@@ -23416,7 +23396,7 @@ var __webpack_exports__ = {};
                                               [1, t.X(m, !0), t.Y(m, !0)],
                                               m,
                                           )))
-                                : 0);
+                                : 0;
                     u < d.length &&
                         ((o = d[u].idx),
                         "borderleft" === d[u].type ||
@@ -23425,21 +23405,21 @@ var __webpack_exports__ = {};
                             : this._seconditeration_v4(t, c, d[u], f, b),
                         (p = d[u].idx + 1 + 1));
                 }
-                ((n = c.len),
+                (n = c.len),
                     h < a.length - 1 &&
-                        this._insertPoint_v4(t, [1, NaN, NaN], c.right_t));
+                        this._insertPoint_v4(t, [1, NaN, NaN], c.right_t);
             }
         },
         updateParametricCurve_v4: function (t, e, i) {
             var s, r, o, n;
-            ("x" === t.xterm
+            "x" === t.xterm
                 ? ((o = 0.3 * ((n = t.board.getBoundingBox())[2] - n[0])),
                   (s = Math.max(e, n[0] - o)),
                   (r = Math.min(i, n[2] + o)))
                 : ((s = e), (r = i)),
                 (t.points = []),
                 this.plot_v4(t, s, r, this.steps),
-                (t.numberPoints = t.points.length));
+                (t.numberPoints = t.points.length);
         },
         updateParametricCurve: function (t, e, i) {
             return this.updateParametricCurve_v2(t, e, i);
@@ -23464,7 +23444,7 @@ var __webpack_exports__ = {};
             a = t[0];
             do {
                 if (!a) break;
-                ((n = a.next),
+                (n = a.next),
                     a.rtype > this.MP_EXPLICIT &&
                         (a.x - n.x) * (a.x - n.x) + (a.y - n.y) * (a.y - n.y) <
                             this.EPS_SQ &&
@@ -23480,7 +23460,7 @@ var __webpack_exports__ = {};
                         (n.lx = a.x),
                         (a.ry = a.y),
                         (n.ly = a.y)),
-                    (a = n));
+                    (a = n);
             } while (a !== t[0]);
             for (
                 i = t[0];
@@ -23525,7 +23505,7 @@ var __webpack_exports__ = {};
                             !(s >= o && h.ltype !== this.MP_END_CYCLE);
 
                     );
-                    (s === o ? f.push(0) : f.push(f[1]),
+                    s === o ? f.push(0) : f.push(f[1]),
                         n.ltype === this.MP_OPEN &&
                             ((r = n.rx - n.x) * r + (e = n.ry - n.y) * e <
                             this.EPS_SQ
@@ -23541,7 +23521,7 @@ var __webpack_exports__ = {};
                                   a.set_right_curl(this.UNITY))
                                 : ((a.rtype = this.MP_GIVEN),
                                   a.set_right_given(Math.atan2(e, r)))),
-                        this.mp_solve_choices(a, n, o, u, p, _, f));
+                        this.mp_solve_choices(a, n, o, u, p, _, f);
                 } else
                     a.rtype === this.MP_ENDPOINT &&
                         ((a.rx = a.x),
@@ -23614,10 +23594,10 @@ var __webpack_exports__ = {};
                                     T,
                                 )
                             );
-                        ((l[0] = _.right_given() - Math.atan2(r[0], s[0])),
+                        (l[0] = _.right_given() - Math.atan2(r[0], s[0])),
                             (l[0] = this.reduce_angle(l[0])),
                             (b[0] = 0),
-                            (f[0] = 0));
+                            (f[0] = 0);
                     } else if (_.rtype === this.MP_CURL) {
                         if (v.ltype === this.MP_CURL)
                             return (
@@ -23632,12 +23612,12 @@ var __webpack_exports__ = {};
                                 (e.lx = e.x - s[0] * Z),
                                 void (e.ly = e.y - r[0] * Z)
                             );
-                        ((E = _.right_curl()),
+                        (E = _.right_curl()),
                             (g = Math.abs(v.left_tension())),
                             (y = Math.abs(_.right_tension())),
                             (b[0] = this.mp_curl_ratio(E, y, g)),
                             (l[0] = -n[1] * b[0]),
-                            (f[0] = 0));
+                            (f[0] = 0);
                     } else
                         _.rtype === this.MP_OPEN &&
                             ((b[0] = 0),
@@ -23701,23 +23681,23 @@ var __webpack_exports__ = {};
                     }
                 } else {
                     if (_.ltype === this.MP_CURL) {
-                        ((E = _.left_curl()),
+                        (E = _.left_curl()),
                             (g = Math.abs(_.left_tension())),
                             (y = Math.abs(m.right_tension())),
                             (Z = this.mp_curl_ratio(E, g, y)),
                             (C[i] =
                                 (-l[i - 1] * Z) /
-                                (this.FRACTION_ONE - Z * b[i - 1])));
+                                (this.FRACTION_ONE - Z * b[i - 1]));
                         break;
                     }
                     if (_.ltype === this.MP_GIVEN) {
-                        ((C[i] =
+                        (C[i] =
                             _.left_given() - Math.atan2(r[i - 1], s[i - 1])),
-                            (C[i] = this.reduce_angle(C[i])));
+                            (C[i] = this.reduce_angle(C[i]));
                         break;
                     }
                 }
-                ((m = _), (_ = v), (p += 1));
+                (m = _), (_ = v), (p += 1);
             }
             for (p = i - 1; p > -1; p--) C[p] = l[p] - C[p + 1] * b[p];
             for (
@@ -23738,7 +23718,7 @@ var __webpack_exports__ = {};
         },
         mp_set_controls: function (t, e, i, s, r, o, n, a) {
             var h, l, c, d, u;
-            ((c = Math.abs(e.left_tension())),
+            (c = Math.abs(e.left_tension())),
                 (h = Math.abs(t.right_tension())),
                 (u = this.mp_velocity(r, o, n, a, h)),
                 (l = this.mp_velocity(n, a, r, o, c)),
@@ -23759,7 +23739,7 @@ var __webpack_exports__ = {};
                 (e.lx = e.x - (i * a + s * n) * l),
                 (e.ly = e.y - (s * a - i * n) * l),
                 (t.rtype = this.MP_EXPLICIT),
-                (e.ltype = this.MP_EXPLICIT));
+                (e.ltype = this.MP_EXPLICIT);
         },
         mp_pyth_add: function (t, e) {
             return Math.sqrt(t * t + e * e);
@@ -23828,12 +23808,12 @@ var __webpack_exports__ = {};
                     },
                 });
             for (s = r.length, i = 0; i < s; i++)
-                ((r[i].next = r[i + 1] || r[i]),
+                (r[i].next = r[i + 1] || r[i]),
                     (r[i].set_right_given = r[i].set_right_curl),
                     (r[i].set_left_given = r[i].set_left_curl),
                     (r[i].right_given = r[i].right_curl),
-                    (r[i].left_given = r[i].left_curl));
-            return ((r[s - 1].next = r[0]), r);
+                    (r[i].left_given = r[i].left_curl);
+            return (r[s - 1].next = r[0]), r;
         },
         curve: function (t, e) {
             var i,
@@ -23864,7 +23844,7 @@ var __webpack_exports__ = {};
                     if (((o = parseInt(n, 10)), isNaN(o) || o < 0 || o >= r))
                         continue;
                     if (((h = e[o]), s.Z.exists(h.type) && "curl" === h.type))
-                        ((a = s.Z.evaluate(h.curl)),
+                        (a = s.Z.evaluate(h.curl)),
                             0 === o
                                 ? ((i[o].rtype = this.MP_CURL),
                                   i[o].set_right_curl(a))
@@ -23874,8 +23854,8 @@ var __webpack_exports__ = {};
                                   : ((i[o].ltype = this.MP_CURL),
                                     (i[o].rtype = this.MP_CURL),
                                     (i[o].lx = a),
-                                    (i[o].rx = a)));
-                    (s.Z.exists(h.direction) &&
+                                    (i[o].rx = a));
+                    s.Z.exists(h.direction) &&
                         ((a = s.Z.evaluate(h.direction)),
                         s.Z.isArray(a)
                             ? (!1 !== a[0] &&
@@ -23893,15 +23873,15 @@ var __webpack_exports__ = {};
                                 ? (!1 !== a[0] &&
                                       (i[o].ly = s.Z.evaluate(a[0])),
                                   !1 !== a[1] && (i[o].ry = s.Z.evaluate(a[1])))
-                                : ((i[o].ly = a), (i[o].ry = a))));
+                                : ((i[o].ly = a), (i[o].ry = a)));
                 }
             for (this.make_choices(i), o = 0; o < r - 1; o++)
-                (c.push(i[o].x),
+                c.push(i[o].x),
                     c.push(i[o].rx),
                     c.push(i[o + 1].lx),
                     d.push(i[o].y),
                     d.push(i[o].ry),
-                    d.push(i[o + 1].ly));
+                    d.push(i[o + 1].ly);
             return (
                 c.push(i[r - 1].x),
                 d.push(i[r - 1].y),
@@ -23955,7 +23935,7 @@ var __webpack_exports__ = {};
             10, 10, 11, 11, 12, 12, 13, 13,
         ],
         v = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
-    ((t.Z.Util = t.Z.Util || {}),
+    (t.Z.Util = t.Z.Util || {}),
         (t.Z.Util.Unzip = function (e) {
             var i,
                 s,
@@ -23978,7 +23958,7 @@ var __webpack_exports__ = {};
                 x = new Array(17),
                 w = [];
             function S() {
-                return (8, p < u ? e[p++] : -1);
+                return 8, p < u ? e[p++] : -1;
             }
             function T() {
                 Z = 1;
@@ -23986,9 +23966,9 @@ var __webpack_exports__ = {};
             function M() {
                 var t;
                 try {
-                    ((t = 1 & Z),
+                    (t = 1 & Z),
                         0 === (Z >>= 1) &&
-                            ((t = 1 & (Z = S())), (Z = (Z >> 1) | 128)));
+                            ((t = 1 & (Z = S())), (Z = (Z >> 1) | 128));
                 } catch (t) {
                     throw (console.log("Probably problems on iOS7 with >>"), t);
                 }
@@ -24009,15 +23989,15 @@ var __webpack_exports__ = {};
                 c = 0;
             }
             function k(t) {
-                ((l[c++] = t),
+                (l[c++] = t),
                     n.push(String.fromCharCode(t)),
-                    32768 === c && (c = 0));
+                    32768 === c && (c = 0);
             }
             function R() {
-                ((this.b0 = 0),
+                (this.b0 = 0),
                     (this.b1 = 0),
                     (this.jump = null),
-                    (this.jumppos = -1));
+                    (this.jumppos = -1);
             }
             function D() {
                 for (;;) {
@@ -24032,17 +24012,17 @@ var __webpack_exports__ = {};
                 if (17 === O) return -1;
                 if ((P++, O++, (t = D()) >= 0)) e.b0 = t;
                 else if (((e.b0 = 32768), L())) return -1;
-                if ((t = D()) >= 0) ((e.b1 = t), (e.jump = null));
+                if ((t = D()) >= 0) (e.b1 = t), (e.jump = null);
                 else if (
                     ((e.b1 = 32768), (e.jump = E[P]), (e.jumppos = P), L())
                 )
                     return -1;
-                return (O--, 0);
+                return O--, 0;
             }
             function B(t, e, i, s) {
                 var n;
                 for (E = t, P = 0, r = i, o = e, n = 0; n < 17; n++) x[n] = 0;
-                return ((O = 0), L() ? -1 : 0);
+                return (O = 0), L() ? -1 : 0;
             }
             function I(t) {
                 for (var e, i, s = 0, r = t[s]; ; )
@@ -24113,25 +24093,25 @@ var __webpack_exports__ = {};
                             n[r] = 0;
                         for (r = 0; r < O; r++) n[v[r]] = N(3);
                         for (h = y.length, s = 0; s < h; s++) y[s] = new R();
-                        if (B(y, 19, n)) return (A(), 1);
+                        if (B(y, 19, n)) return A(), 1;
                         for (Z = P + E, s = 0, -1; s < Z; )
                             if ((r = I(y)) < 16) n[s++] = r;
                             else if (16 === r) {
-                                if (s + (r = 3 + N(2)) > Z) return (A(), 1);
+                                if (s + (r = 3 + N(2)) > Z) return A(), 1;
                                 for (o = s ? n[s - 1] : 0; r--; ) n[s++] = o;
                             } else {
                                 if (
                                     s + (r = 17 === r ? 3 + N(3) : 11 + N(7)) >
                                     Z
                                 )
-                                    return (A(), 1);
+                                    return A(), 1;
                                 for (; r--; ) n[s++] = 0;
                             }
                         for (h = C.length, s = 0; s < h; s++) C[s] = new R();
-                        if (B(C, P, n)) return (A(), 1);
+                        if (B(C, P, n)) return A(), 1;
                         for (h = C.length, s = 0; s < h; s++) y[s] = new R();
                         for (a = [], s = P; s < n.length; s++) a[s - P] = n[s];
-                        if (B(y, E, a)) return (A(), 1);
+                        if (B(y, E, a)) return A(), 1;
                         for (;;)
                             if ((r = I(C)) >= 256) {
                                 if (0 === (r -= 256)) break;
@@ -24150,7 +24130,7 @@ var __webpack_exports__ = {};
                             } else k(r);
                     }
                 } while (!e);
-                return (A(), T(), 0);
+                return A(), T(), 0;
             }
             function j() {
                 var t,
@@ -24215,7 +24195,7 @@ var __webpack_exports__ = {};
                                     ? (t = 0)
                                     : t < 255 &&
                                       (w[t++] = String.fromCharCode(e));
-                            for (s || (s = w), t = 0; t < r; ) ((e = S()), t++);
+                            for (s || (s = w), t = 0; t < r; ) (e = S()), t++;
                             if (
                                 (0,
                                 8 === l &&
@@ -24269,9 +24249,9 @@ var __webpack_exports__ = {};
                         S();
                 if (8 & i)
                     for (t = 0, w = [], e = S(); e; )
-                        (("7" !== e && ":" !== e) || (t = 0),
+                        ("7" !== e && ":" !== e) || (t = 0),
                             t < 255 && (w[t++] = e),
-                            (e = S()));
+                            (e = S());
                 if (16 & i) for (e = S(); e; ) e = S();
                 return (
                     2 & i && (S(), S()),
@@ -24288,7 +24268,7 @@ var __webpack_exports__ = {};
                     !1
                 );
             }
-            ((x[0] = 0),
+            (x[0] = 0),
                 (t.Z.Util.Unzip.prototype.unzipFile = function (t) {
                     var e;
                     for (this.unzip(), e = 0; e < h.length; e++)
@@ -24296,9 +24276,9 @@ var __webpack_exports__ = {};
                     return "";
                 }),
                 (t.Z.Util.Unzip.prototype.unzip = function () {
-                    return (j(), h);
-                }));
-        }));
+                    return j(), h;
+                });
+        });
     const Z = t.Z.Util;
     var C = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -24319,7 +24299,7 @@ var __webpack_exports__ = {};
         36, 12, 36, 12, 12, 12, 36, 12, 12, 12, 12, 12, 36, 12, 36, 12, 12, 12,
         36, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
     ];
-    ((t.Z.Util = t.Z.Util || {}),
+    (t.Z.Util = t.Z.Util || {}),
         (t.Z.Util.UTF8 = {
             encode: function (t) {
                 var e,
@@ -24354,7 +24334,7 @@ var __webpack_exports__ = {};
                     h = t.length,
                     l = [];
                 for (e = 0; e < h; e++)
-                    ((i = t.charCodeAt(e)),
+                    (i = t.charCodeAt(e)),
                         (s = C[i]),
                         (o = 0 !== n ? (63 & i) | (o << 6) : (255 >> s) & i),
                         0 === (n = C[256 + n + s]) &&
@@ -24363,8 +24343,8 @@ var __webpack_exports__ = {};
                                 : a.push(o),
                             ++r % 1e4 == 0 &&
                                 (l.push(String.fromCharCode.apply(null, a)),
-                                (a = []))));
-                return (l.push(String.fromCharCode.apply(null, a)), l.join(""));
+                                (a = [])));
+                return l.push(String.fromCharCode.apply(null, a)), l.join("");
             },
             asciiCharCodeAt: function (t, e) {
                 var i = t.charCodeAt(e);
@@ -24453,11 +24433,11 @@ var __webpack_exports__ = {};
                     }
                 return i;
             },
-        }));
+        });
     const y = t.Z.Util.UTF8;
     var P = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
         E = "=";
-    ((t.Z.Util = t.Z.Util || {}),
+    (t.Z.Util = t.Z.Util || {}),
         (t.Z.Util.Base64 = {
             _getByte: function (t, e) {
                 return 255 & t.charCodeAt(e);
@@ -24477,7 +24457,7 @@ var __webpack_exports__ = {};
                     e < s - r;
                     e += 3
                 )
-                    ((i =
+                    (i =
                         (this._getByte(o, e) << 16) |
                         (this._getByte(o, e + 1) << 8) |
                         this._getByte(o, e + 2)),
@@ -24486,19 +24466,19 @@ var __webpack_exports__ = {};
                             P.charAt((i >> 12) & 63),
                             P.charAt((i >> 6) & 63),
                             P.charAt(63 & i),
-                        ));
+                        );
                 switch (r) {
                     case 1:
-                        ((i = this._getByte(o, s - 1)),
+                        (i = this._getByte(o, s - 1)),
                             n.push(
                                 P.charAt(i >> 2),
                                 P.charAt((i << 4) & 63),
                                 E,
                                 E,
-                            ));
+                            );
                         break;
                     case 2:
-                        ((i =
+                        (i =
                             (this._getByte(o, s - 2) << 8) |
                             this._getByte(o, s - 1)),
                             n.push(
@@ -24506,7 +24486,7 @@ var __webpack_exports__ = {};
                                 P.charAt((i >> 4) & 63),
                                 P.charAt((i << 2) & 63),
                                 E,
-                            ));
+                            );
                 }
                 return n.join("");
             },
@@ -24533,7 +24513,7 @@ var __webpack_exports__ = {};
                     s < r;
                     s += 4
                 )
-                    ((n =
+                    (n =
                         (this._getIndex(i, s) << 18) |
                         (this._getIndex(i, s + 1) << 12) |
                         (this._getIndex(i, s + 2) << 6) |
@@ -24541,20 +24521,20 @@ var __webpack_exports__ = {};
                         l.push(n >> 16, (n >> 8) & 255, 255 & n),
                         s % 1e4 == 0 &&
                             (h.push(String.fromCharCode.apply(null, l)),
-                            (l = [])));
+                            (l = []));
                 switch (o) {
                     case 1:
-                        ((n =
+                        (n =
                             (this._getIndex(i, r) << 12) |
                             (this._getIndex(i, r + 1) << 6) |
                             this._getIndex(i, r + 2)),
-                            l.push(n >> 10, (n >> 2) & 255));
+                            l.push(n >> 10, (n >> 2) & 255);
                         break;
                     case 2:
-                        ((n =
+                        (n =
                             (this._getIndex(i, s) << 6) |
                             this._getIndex(i, s + 1)),
-                            l.push(n >> 4));
+                            l.push(n >> 4);
                 }
                 return (
                     h.push(String.fromCharCode.apply(null, l)),
@@ -24571,9 +24551,9 @@ var __webpack_exports__ = {};
                 for (e = 0; e < r; e++) s[e] = i.charCodeAt(e);
                 return s;
             },
-        }));
+        });
     const O = t.Z.Util.Base64;
-    ((t.Z.Server = {
+    (t.Z.Server = {
         modules: {},
         runningCalls: {},
         handleError: function (e) {
@@ -24616,7 +24596,7 @@ var __webpack_exports__ = {};
                             this.handleError(r);
                         else if ("response" === r.type) {
                             for (h = r.id, l = 0; l < r.fields.length; l++)
-                                ((n =
+                                (n =
                                     (o = r.fields[l]).namespace +
                                     ("object" ==
                                     typeof new Function(
@@ -24627,7 +24607,7 @@ var __webpack_exports__ = {};
                                     o.name +
                                     " = " +
                                     o.value),
-                                    new Function(n)());
+                                    new Function(n)();
                             for (l = 0; l < r.handler.length; l++) {
                                 for (
                                     o = r.handler[l], a = [], c = 0;
@@ -24639,7 +24619,7 @@ var __webpack_exports__ = {};
                                         o.parameters[c] +
                                         '": ' +
                                         o.parameters[c];
-                                ((n =
+                                (n =
                                     "if(typeof JXG.Server.modules." +
                                     this.runningCalls[h].module +
                                     ' == "undefined")JXG.Server.modules.' +
@@ -24671,9 +24651,9 @@ var __webpack_exports__ = {};
                                         '", "handler": "' +
                                         o.name +
                                         '" };JXG.Server.callServer("exec", __JXGSERVER_CB__, __JXGSERVER_PAR__, __JXGSERVER_SYNC);};'),
-                                    new Function(n)());
+                                    new Function(n)();
                             }
-                            (delete this.runningCalls[h], i(r.data));
+                            delete this.runningCalls[h], i(r.data);
                         }
                 }),
                 (this.cb = t.Z.bind(this.cbp, this)),
@@ -24718,7 +24698,7 @@ var __webpack_exports__ = {};
             );
         },
     }),
-        (t.Z.Server.load = t.Z.Server.loadModule));
+        (t.Z.Server.load = t.Z.Server.loadModule);
     const x = t.Z.Server;
     var w;
     o.Z.Symbolic = {
@@ -24764,10 +24744,10 @@ var __webpack_exports__ = {};
                     s.Z.isPoint(t[e]) &&
                         ((t[e].symbolic.x = ""), (t[e].symbolic.y = ""));
             };
-            (e(t.listOfFreePoints),
+            e(t.listOfFreePoints),
                 e(t.listOfDependantPoints),
                 delete t.listOfFreePoints,
-                delete t.listOfDependantPoints);
+                delete t.listOfDependantPoints;
         },
         generatePolynomials: function (t, e, i) {
             var r,
@@ -24795,7 +24775,7 @@ var __webpack_exports__ = {};
                         )
                             c.push(l[n]);
                 }
-            return (i && this.clearSymbolicCoordinates(t), c);
+            return i && this.clearSymbolicCoordinates(t), c;
         },
         geometricLocusByGroebnerBase: function (t, e) {
             var r,
@@ -24849,8 +24829,8 @@ var __webpack_exports__ = {};
                     l < t.listOfFreePoints.length;
                     l++
                 )
-                    ((t.listOfFreePoints[l].symbolic.x -= O),
-                        (t.listOfFreePoints[l].symbolic.y -= S));
+                    (t.listOfFreePoints[l].symbolic.x -= O),
+                        (t.listOfFreePoints[l].symbolic.y -= S);
                 if (
                     ((d -= O),
                     (p -= O),
@@ -24879,12 +24859,12 @@ var __webpack_exports__ = {};
                         l < t.listOfFreePoints.length;
                         l++
                     )
-                        ((m = t.listOfFreePoints[l].symbolic.x),
+                        (m = t.listOfFreePoints[l].symbolic.x),
                             (t.listOfFreePoints[l].symbolic.x =
                                 b * t.listOfFreePoints[l].symbolic.x -
                                 g * t.listOfFreePoints[l].symbolic.y),
                             (t.listOfFreePoints[l].symbolic.y =
-                                g * m + b * t.listOfFreePoints[l].symbolic.y));
+                                g * m + b * t.listOfFreePoints[l].symbolic.y);
                     if (
                         ((h.symbolic.y = 0),
                         (m = d),
@@ -24900,23 +24880,23 @@ var __webpack_exports__ = {};
                             l < t.listOfFreePoints.length;
                             l++
                         )
-                            ((t.listOfFreePoints[l].symbolic.x /= E),
-                                (t.listOfFreePoints[l].symbolic.y /= E));
+                            (t.listOfFreePoints[l].symbolic.x /= E),
+                                (t.listOfFreePoints[l].symbolic.y /= E);
                         for (l = 0; l < t.objectsList.length; l++)
                             t.objectsList[l].elementClass ===
                                 i.Z.OBJECT_CLASS_CIRCLE &&
                                 "pointRadius" === t.objectsList[l].method &&
                                 ((Z[l] = t.objectsList[l].radius),
                                 (t.objectsList[l].radius /= E));
-                        ((d /= E),
+                        (d /= E),
                             (p /= E),
                             (_ /= E),
                             (f /= E),
-                            (h.symbolic.x = 1));
+                            (h.symbolic.x = 1);
                     }
                 }
                 for (l = 0; l < t.listOfFreePoints.length; l++)
-                    ((m = t.listOfFreePoints[l].symbolic.x),
+                    (m = t.listOfFreePoints[l].symbolic.x),
                         Math.abs(m) < o.Z.eps &&
                             (t.listOfFreePoints[l].symbolic.x = 0),
                         Math.abs(m - Math.round(m)) < o.Z.eps &&
@@ -24925,7 +24905,7 @@ var __webpack_exports__ = {};
                         Math.abs(m) < o.Z.eps &&
                             (t.listOfFreePoints[l].symbolic.y = 0),
                         Math.abs(m - Math.round(m)) < o.Z.eps &&
-                            (t.listOfFreePoints[l].symbolic.y = Math.round(m)));
+                            (t.listOfFreePoints[l].symbolic.y = Math.round(m));
             }
             for (l in ((r = this.generatePolynomials(t, e).join(",")),
             (this.cbp = function (t) {
@@ -24953,7 +24933,7 @@ var __webpack_exports__ = {};
         },
     };
     const S = o.Z.Symbolic;
-    ((o.Z.Clip = {
+    (o.Z.Clip = {
         _isSeparator: function (t) {
             return isNaN(t.coords.usrCoords[1]) && isNaN(t.coords.usrCoords[2]);
         },
@@ -24980,7 +24960,7 @@ var __webpack_exports__ = {};
             return s;
         },
         Vertex: function (t, e, s, r, o, n) {
-            ((this.pos = e),
+            (this.pos = e),
                 (this.intersection = !0),
                 (this.coords = t),
                 (this.elementClass = i.Z.OBJECT_CLASS_POINT),
@@ -24993,7 +24973,7 @@ var __webpack_exports__ = {};
                     idx: 0,
                 }),
                 (this.neighbour = null),
-                (this.entry_exit = !1));
+                (this.entry_exit = !1);
         },
         _addToList: function (t, e, s) {
             var r = t.length,
@@ -25041,12 +25021,12 @@ var __webpack_exports__ = {};
                         i <= o;
                         i++
                     )
-                        (((s = t[e][i])._prev = t[e][i - 1]),
-                            (s._prev._next = s));
-                    (((s = t[e][o])._next = n),
+                        ((s = t[e][i])._prev = t[e][i - 1]),
+                            (s._prev._next = s);
+                    ((s = t[e][o])._next = n),
                         (s._next._prev = s),
                         e === h - 1 && (s._end = !0),
-                        (a = a.concat(t[e])));
+                        (a = a.concat(t[e]));
                 }
             return a;
         },
@@ -25068,7 +25048,7 @@ var __webpack_exports__ = {};
             var e, i;
             for (e = 0; e < t.length; e++)
                 try {
-                    ((i = ""),
+                    (i = ""),
                         t[e]._end && (i = " end"),
                         console.log(
                             e,
@@ -25079,7 +25059,7 @@ var __webpack_exports__ = {};
                             t[e]._prev.coords.usrCoords,
                             "next",
                             t[e]._next.coords.usrCoords + i,
-                        ));
+                        );
                 } catch (i) {
                     console.log(e, t[e].coords.usrCoords);
                 }
@@ -25107,7 +25087,7 @@ var __webpack_exports__ = {};
                 !t._end);
 
             )
-                ((t = t._next), i++);
+                (t = t._next), i++;
         },
         _noOverlap: function (t, e, i, s) {
             var r,
@@ -25199,7 +25179,7 @@ var __webpack_exports__ = {};
                                     Math.abs(Z[1]) * _ < C ||
                                         Math.abs(Z[2]) * f < C)
                                 )
-                                    ((g = "T"),
+                                    (g = "T"),
                                         Math.abs(Z[1]) * _ < C && (Z[1] = 0),
                                         Math.abs(Z[2]) * f < C && (Z[2] = 0),
                                         (a =
@@ -25213,13 +25193,13 @@ var __webpack_exports__ = {};
                                                       i.Z.COORDS_BY_USER,
                                                       d,
                                                       s,
-                                                  )));
+                                                  ));
                                 else if (
                                     Z[1] === 1 / 0 &&
                                     Z[2] === 1 / 0 &&
                                     o.Z.norm(Z[0], 3) < C
                                 ) {
-                                    ((b = this._inbetween(h, d, p)) >= 0 &&
+                                    (b = this._inbetween(h, d, p)) >= 0 &&
                                         b < 1 &&
                                         ((g = "T"),
                                         (a = new c.Z(i.Z.COORDS_BY_USER, h, s)),
@@ -25276,10 +25256,10 @@ var __webpack_exports__ = {};
                                             (m.neighbour = v),
                                             (v.neighbour = m),
                                             O[r].push(m),
-                                            x[n].push(v)));
+                                            x[n].push(v));
                                     continue;
                                 }
-                                (T,
+                                T,
                                     (m = new this.Vertex(
                                         a,
                                         r,
@@ -25299,12 +25279,12 @@ var __webpack_exports__ = {};
                                     (m.neighbour = v),
                                     (v.neighbour = m),
                                     O[r].push(m),
-                                    x[n].push(v));
+                                    x[n].push(v);
                             }
                         }
                 }
             for (E = this.sortIntersections(O), r = 0; r < E.length; r++)
-                ((E[r].data.idx = r), (E[r].neighbour.data.idx = r));
+                (E[r].data.idx = r), (E[r].neighbour.data.idx = r);
             return [E, this.sortIntersections(x)];
         },
         _getPosition: function (t, e, i, s) {
@@ -25424,14 +25404,14 @@ var __webpack_exports__ = {};
                     s.Z.exists(t._tours) && t._tours++,
                     t._tours > 3 || t._end || l > 1e3)
                 ) {
-                    (l > 1e3 &&
+                    l > 1e3 &&
                         console.log(
                             "Clipping: _classifyDegenerateIntersections exit",
                         ),
-                        s.Z.exists(t._tours) && delete t._tours);
+                        s.Z.exists(t._tours) && delete t._tours;
                     break;
                 }
-                (t.intersection && l++, (t = t._next));
+                t.intersection && l++, (t = t._next);
             }
         },
         _handleIntersectionChains: function (t) {
@@ -25525,7 +25505,7 @@ var __webpack_exports__ = {};
                                 break;
                             }
                         if (!m) {
-                            ((p = {
+                            (p = {
                                 pos: _,
                                 intersection: !1,
                                 coords: new c.Z(i.Z.COORDS_BY_USER, h, s),
@@ -25536,7 +25516,7 @@ var __webpack_exports__ = {};
                                 (p._prev = r[_]),
                                 (p._next = v),
                                 (v._prev = p),
-                                r[_]._end && ((r[_]._end = !1), (p._end = !0)));
+                                r[_]._end && ((r[_]._end = !1), (p._end = !0));
                             break;
                         }
                     }
@@ -25658,12 +25638,12 @@ var __webpack_exports__ = {};
             for (u; l < e.length && a < h; )
                 if ((o = e[l]).data.done || "X" !== o.data.type) l++;
                 else {
-                    (u,
+                    u,
                         c.length > 0 && c.push([NaN, NaN]),
                         (n = o.data.idx),
                         (s = t),
                         (d = this._addVertex(c, o, u)),
-                        (r = o.entry_exit));
+                        (r = o.entry_exit);
                     do {
                         if (d) break;
                         if (
@@ -25703,13 +25683,13 @@ var __webpack_exports__ = {};
                                 [[0], [0]]
                             );
                         if ((o = o.neighbour).data.done) break;
-                        ((o.data.done = !0),
+                        (o.data.done = !0),
                             (r = o.entry_exit),
-                            (s = o.data.path));
+                            (s = o.data.path);
                     } while (o.data.idx !== n && a < h);
-                    (a >= h &&
+                    a >= h &&
                         console.log("Tracing: stopping an infinite loop!", a),
-                        l++);
+                        l++;
                 }
             return this._getCoordsArrays(c, !1);
         },
@@ -25747,8 +25727,7 @@ var __webpack_exports__ = {};
                 n = [];
             if (0 === t.length)
                 return (
-                    (n = "union" === i ? e : []),
-                    this._getCoordsArrays(n, !0)
+                    (n = "union" === i ? e : []), this._getCoordsArrays(n, !0)
                 );
             if (0 === e.length)
                 return (
@@ -25930,9 +25909,9 @@ var __webpack_exports__ = {};
             return this.greinerHormann(t, e, "difference", i);
         },
     }),
-        t.Z.extend(o.Z.Clip, {}));
+        t.Z.extend(o.Z.Clip, {});
     o.Z.Clip;
-    ((o.Z.Poly = {}),
+    (o.Z.Poly = {}),
         (o.Z.Poly.Ring = function (t) {
             this.vars = t;
         }),
@@ -25950,9 +25929,9 @@ var __webpack_exports__ = {};
                 r++
             )
                 i.push(0);
-            ((this.ring = t),
+            (this.ring = t),
                 (this.coefficient = e || 0),
-                (this.exponents = s.Z.deepCopy(i)));
+                (this.exponents = s.Z.deepCopy(i));
         }),
         t.Z.extend(o.Z.Poly.Monomial.prototype, {
             copy: function () {
@@ -25976,9 +25955,9 @@ var __webpack_exports__ = {};
                 throw new Error(
                     "JSXGraph error: In JXG.Math.Poly.polynomial missing parameter 'ring'.",
                 );
-            ((i = s.Z.exists(e) && s.Z.isString(e) ? void 0 : []),
+            (i = s.Z.exists(e) && s.Z.isString(e) ? void 0 : []),
                 (this.ring = t),
-                (this.monomials = i));
+                (this.monomials = i);
         }),
         t.Z.extend(o.Z.Poly.Polynomial.prototype, {
             findSignature: function (t) {
@@ -26032,15 +26011,15 @@ var __webpack_exports__ = {};
                     e.push("(" + this.monomials[t].print() + ")");
                 return e.join("+");
             },
-        }));
+        });
     o.Z.Poly;
-    ((t.Z.Complex = function (t, e) {
-        ((this.isComplex = !0),
+    (t.Z.Complex = function (t, e) {
+        (this.isComplex = !0),
             t && t.isComplex && ((e = t.imaginary), (t = t.real)),
             (this.real = t || 0),
             (this.imaginary = e || 0),
             (this.absval = 0),
-            (this.angle = 0));
+            (this.angle = 0);
     }),
         t.Z.extend(t.Z.Complex.prototype, {
             toString: function () {
@@ -26081,67 +26060,63 @@ var __webpack_exports__ = {};
                 if (s.Z.isNumber(t)) {
                     if (Math.abs(t) < Math.eps)
                         return (
-                            (this.real = 1 / 0),
-                            (this.imaginary = 1 / 0),
-                            this
+                            (this.real = 1 / 0), (this.imaginary = 1 / 0), this
                         );
-                    ((this.real /= t), (this.imaginary /= t));
+                    (this.real /= t), (this.imaginary /= t);
                 } else {
                     if (
                         Math.abs(t.real) < Math.eps &&
                         Math.abs(t.imaginary) < Math.eps
                     )
                         return (
-                            (this.real = 1 / 0),
-                            (this.imaginary = 1 / 0),
-                            this
+                            (this.real = 1 / 0), (this.imaginary = 1 / 0), this
                         );
-                    ((e = t.real * t.real + t.imaginary * t.imaginary),
+                    (e = t.real * t.real + t.imaginary * t.imaginary),
                         (r = this.real),
                         (i = this.imaginary),
                         (this.real = (r * t.real + i * t.imaginary) / e),
-                        (this.imaginary = (i * t.real - r * t.imaginary) / e));
+                        (this.imaginary = (i * t.real - r * t.imaginary) / e);
                 }
                 return this;
             },
             conj: function () {
-                return ((this.imaginary *= -1), this);
+                return (this.imaginary *= -1), this;
             },
         }),
         (t.Z.C = {}),
         (t.Z.C.add = function (e, i) {
             var s = new t.Z.Complex(e);
-            return (s.add(i), s);
+            return s.add(i), s;
         }),
         (t.Z.C.sub = function (e, i) {
             var s = new t.Z.Complex(e);
-            return (s.sub(i), s);
+            return s.sub(i), s;
         }),
         (t.Z.C.mult = function (e, i) {
             var s = new t.Z.Complex(e);
-            return (s.mult(i), s);
+            return s.mult(i), s;
         }),
         (t.Z.C.div = function (e, i) {
             var s = new t.Z.Complex(e);
-            return (s.div(i), s);
+            return s.div(i), s;
         }),
         (t.Z.C.conj = function (e) {
             var i = new t.Z.Complex(e);
-            return (i.conj(), i);
+            return i.conj(), i;
         }),
         (t.Z.C.abs = function (e) {
             var i = new t.Z.Complex(e);
-            return (i.conj(), i.mult(e), Math.sqrt(i.real));
+            return i.conj(), i.mult(e), Math.sqrt(i.real);
         }),
-        (t.Z.Complex.C = t.Z.C));
+        (t.Z.Complex.C = t.Z.C);
     const T = t.Z.Complex;
     var M = __webpack_require__(766);
-    ((t.Z.AbstractRenderer = function () {
-        ((this.vOffsetText = 0),
+    (t.Z.AbstractRenderer = function () {
+        (this.vOffsetText = 0),
             (this.enhancedRendering = !0),
             (this.container = null),
             (this.type = ""),
-            (this.supportsForeignObject = !1));
+            (this.supportsForeignObject = !1);
     }),
         t.Z.extend(t.Z.AbstractRenderer.prototype, {
             _updateVisual: function (t, e, i) {
@@ -26201,14 +26176,14 @@ var __webpack_exports__ = {};
             drawPoint: function (t) {
                 var e,
                     i = M.Z.normalizePointFace(s.Z.evaluate(t.visProp.face));
-                ((e = "o" === i ? "ellipse" : "[]" === i ? "rect" : "path"),
+                (e = "o" === i ? "ellipse" : "[]" === i ? "rect" : "path"),
                     (t.rendNode = this.appendChildPrim(
                         this.createPrim(e, t.id),
                         s.Z.evaluate(t.visProp.layer),
                     )),
                     this.appendNodesToElement(t, e),
                     this._updateVisual(t, { dash: !0, shadow: !0 }, !0),
-                    this.updatePoint(t));
+                    this.updatePoint(t);
             },
             updatePoint: function (t) {
                 var e,
@@ -26253,44 +26228,44 @@ var __webpack_exports__ = {};
             },
             changePointStyle: function (t) {
                 var e = this.getElementById(t.id);
-                (s.Z.exists(e) && this.remove(e),
+                s.Z.exists(e) && this.remove(e),
                     this.drawPoint(t),
                     s.Z.clearVisPropOld(t),
                     t.visPropCalc.visible || this.display(t, !1),
-                    s.Z.evaluate(t.visProp.draft) && this.setDraft(t));
+                    s.Z.evaluate(t.visProp.draft) && this.setDraft(t);
             },
             drawLine: function (t) {
-                ((t.rendNode = this.appendChildPrim(
+                (t.rendNode = this.appendChildPrim(
                     this.createPrim("line", t.id),
                     s.Z.evaluate(t.visProp.layer),
                 )),
                     this.appendNodesToElement(t, "lines"),
-                    this.updateLine(t));
+                    this.updateLine(t);
             },
             updateLine: function (t) {
-                (this._updateVisual(t),
+                this._updateVisual(t),
                     this.updatePathWithArrowHeads(t),
-                    this.setLineCap(t));
+                    this.setLineCap(t);
             },
             drawCurve: function (t) {
-                ((t.rendNode = this.appendChildPrim(
+                (t.rendNode = this.appendChildPrim(
                     this.createPrim("path", t.id),
                     s.Z.evaluate(t.visProp.layer),
                 )),
                     this.appendNodesToElement(t, "path"),
-                    this.updateCurve(t));
+                    this.updateCurve(t);
             },
             updateCurve: function (t) {
-                (this._updateVisual(t),
+                this._updateVisual(t),
                     this.updatePathWithArrowHeads(t),
-                    this.setLineCap(t));
+                    this.setLineCap(t);
             },
             updatePathWithArrowHeads: function (t, e) {
                 var r,
                     o,
                     n = t.visProp,
                     a = e ? "highlight" : "";
-                ((r =
+                (r =
                     e && n.highlightstrokewidth
                         ? Math.max(
                               s.Z.evaluate(n.highlightstrokewidth),
@@ -26303,7 +26278,7 @@ var __webpack_exports__ = {};
                         ? this.updateLineWithEndings(t, o)
                         : t.elementClass === i.Z.OBJECT_CLASS_CURVE &&
                           this.updatePath(t),
-                    this.setArrowSize(t, o));
+                    this.setArrowSize(t, o);
             },
             getArrowHeadData: function (t, e, r) {
                 var n,
@@ -26529,20 +26504,20 @@ var __webpack_exports__ = {};
             },
             setLineCap: function (t) {},
             drawTicks: function (t) {
-                ((t.rendNode = this.appendChildPrim(
+                (t.rendNode = this.appendChildPrim(
                     this.createPrim("path", t.id),
                     s.Z.evaluate(t.visProp.layer),
                 )),
-                    this.appendNodesToElement(t, "path"));
+                    this.appendNodesToElement(t, "path");
             },
             updateTicks: function (t) {},
             drawEllipse: function (t) {
-                ((t.rendNode = this.appendChildPrim(
+                (t.rendNode = this.appendChildPrim(
                     this.createPrim("ellipse", t.id),
                     s.Z.evaluate(t.visProp.layer),
                 )),
                     this.appendNodesToElement(t, "ellipse"),
-                    this.updateEllipse(t));
+                    this.updateEllipse(t);
             },
             updateEllipse: function (t) {
                 this._updateVisual(t);
@@ -26563,23 +26538,23 @@ var __webpack_exports__ = {};
                     );
             },
             drawPolygon: function (t) {
-                ((t.rendNode = this.appendChildPrim(
+                (t.rendNode = this.appendChildPrim(
                     this.createPrim("polygon", t.id),
                     s.Z.evaluate(t.visProp.layer),
                 )),
                     this.appendNodesToElement(t, "polygon"),
-                    this.updatePolygon(t));
+                    this.updatePolygon(t);
             },
             updatePolygon: function (t) {
-                (this._updateVisual(t, { stroke: !0, dash: !0 }),
-                    this.updatePolygonPrim(t.rendNode, t));
+                this._updateVisual(t, { stroke: !0, dash: !0 }),
+                    this.updatePolygonPrim(t.rendNode, t);
             },
             displayCopyright: function (t, e) {},
             drawInternalText: function (t) {},
             updateInternalText: function (t) {},
             drawText: function (t) {
                 var i, r, o, n;
-                ("html" === s.Z.evaluate(t.visProp.display) &&
+                "html" === s.Z.evaluate(t.visProp.display) &&
                 e.Z.isBrowser &&
                 "no" !== this.type
                     ? (((i =
@@ -26603,7 +26578,7 @@ var __webpack_exports__ = {};
                         ? ((n = s.Z.evaluate(t.visProp.anchor.visProp.visible)),
                           t.prepareUpdate().updateVisibility(n))
                         : t.prepareUpdate().updateVisibility(),
-                    this.updateText(t));
+                    this.updateText(t);
             },
             updateText: function (i) {
                 var r,
@@ -26666,19 +26641,19 @@ var __webpack_exports__ = {};
                                       ? (i.rendNodeLabel.innerHTML = p)
                                       : (i.rendNode.innerHTML = p);
                             } catch (t) {
-                                ((n = i.rendNode.parentNode),
+                                (n = i.rendNode.parentNode),
                                     i.rendNode.parentNode.removeChild(
                                         i.rendNode,
                                     ),
                                     (i.rendNode.innerHTML = p),
-                                    n.appendChild(i.rendNode));
+                                    n.appendChild(i.rendNode);
                             }
                             if (
                                 ((i.htmlStr = p),
                                 s.Z.evaluate(i.visProp.usemathjax))
                             )
                                 try {
-                                    (MathJax.typeset
+                                    MathJax.typeset
                                         ? MathJax.typeset([i.rendNode])
                                         : MathJax.Hub.Queue([
                                               "Typeset",
@@ -26701,7 +26676,7 @@ var __webpack_exports__ = {};
                                                 "#" + l,
                                                 a,
                                                 h,
-                                            )));
+                                            ));
                                 } catch (e) {
                                     t.Z.debug("MathJax (not yet) loaded");
                                 }
@@ -26825,7 +26800,7 @@ var __webpack_exports__ = {};
             },
             drawImage: function (t) {},
             updateImage: function (t) {
-                (this.updateRectPrim(
+                this.updateRectPrim(
                     t.rendNode,
                     t.coords.scrCoords[1],
                     t.coords.scrCoords[2] - t.size[1],
@@ -26834,7 +26809,7 @@ var __webpack_exports__ = {};
                 ),
                     this.updateImageURL(t),
                     this.transformImage(t, t.transformations),
-                    this._updateVisual(t, { stroke: !0, dash: !0 }, !0));
+                    this._updateVisual(t, { stroke: !0, dash: !0 }, !0);
             },
             joinTransforms: function (t, e) {
                 var i,
@@ -26906,7 +26881,7 @@ var __webpack_exports__ = {};
                 if (s.Z.evaluate(t.visProp.draft)) {
                     var e = t.board.options.elements.draft.color,
                         r = t.board.options.elements.draft.opacity;
-                    (this.setObjectTransition(t),
+                    this.setObjectTransition(t),
                         t.type === i.Z.OBJECT_TYPE_POLYGON
                             ? this.setObjectFillColor(t, e, r)
                             : (t.elementClass === i.Z.OBJECT_CLASS_POINT
@@ -26916,11 +26891,11 @@ var __webpack_exports__ = {};
                               this.setObjectStrokeWidth(
                                   t,
                                   t.board.options.elements.draft.strokeWidth,
-                              )));
+                              ));
                 }
             },
             removeDraft: function (t) {
-                (this.setObjectTransition(t),
+                this.setObjectTransition(t),
                     t.type === i.Z.OBJECT_TYPE_POLYGON
                         ? this.setObjectFillColor(
                               t,
@@ -26938,7 +26913,7 @@ var __webpack_exports__ = {};
                               t.visProp.strokecolor,
                               t.visProp.strokeopacity,
                           ),
-                          this.setObjectStrokeWidth(t, t.visProp.strokewidth)));
+                          this.setObjectStrokeWidth(t, t.visProp.strokewidth));
             },
             setGradient: function (t) {},
             updateGradient: function (t) {},
@@ -27044,11 +27019,11 @@ var __webpack_exports__ = {};
                                     o.fillcolor,
                                     o.fillopacity,
                                 ));
-                    ((r = s.Z.evaluate(o.strokewidth)),
+                    (r = s.Z.evaluate(o.strokewidth)),
                         this.setObjectStrokeWidth(t, r),
                         (t.elementClass !== i.Z.OBJECT_CLASS_LINE &&
                             t.elementClass !== i.Z.OBJECT_CLASS_CURVE) ||
-                            this.updatePathWithArrowHeads(t, !1));
+                            this.updatePathWithArrowHeads(t, !1);
                 }
                 return this;
             },
@@ -27058,14 +27033,14 @@ var __webpack_exports__ = {};
                 var r,
                     o,
                     n = function (t) {
-                        (t || (t = window.event),
+                        t || (t = window.event),
                             t.stopPropagation
                                 ? t.stopPropagation()
-                                : (t.cancelBubble = !0));
+                                : (t.cancelBubble = !0);
                     },
                     a = function (i, a, h) {
                         var l;
-                        ((h = h || ""),
+                        (h = h || ""),
                             ((l = r.createElement("span")).innerHTML = i),
                             (l.style.paddingLeft = "7px"),
                             (l.style.paddingRight = "7px"),
@@ -27077,14 +27052,14 @@ var __webpack_exports__ = {};
                                 l,
                                 "click",
                                 function (e) {
-                                    return (s.Z.bind(a, t)(), !1);
+                                    return s.Z.bind(a, t)(), !1;
                                 },
                                 t,
                             ),
                             e.Z.addEvent(l, "mouseup", n, t),
                             e.Z.addEvent(l, "mousedown", n, t),
                             e.Z.addEvent(l, "touchend", n, t),
-                            e.Z.addEvent(l, "touchstart", n, t));
+                            e.Z.addEvent(l, "touchstart", n, t);
                     };
                 e.Z.isBrowser &&
                     "no" !== this.type &&
@@ -27194,16 +27169,16 @@ var __webpack_exports__ = {};
             dumpToCanvas: function (t, e, i, s) {},
             screenshot: function (t) {},
             setLayer: function (t, e) {},
-        }));
+        });
     const N = t.Z.AbstractRenderer;
-    ((t.Z.FileReader = {
+    (t.Z.FileReader = {
         handleRemoteFile: function (e, i, r, o, n, a) {
             var h = !1;
             try {
-                ((h = new XMLHttpRequest()),
+                (h = new XMLHttpRequest()),
                     "raw" === r.toLowerCase()
                         ? h.overrideMimeType("text/plain; charset=" + n)
-                        : h.overrideMimeType("text/xml; charset=" + n));
+                        : h.overrideMimeType("text/xml; charset=" + n);
             } catch (t) {
                 try {
                     h = new ActiveXObject("Msxml2.XMLHTTP");
@@ -27216,7 +27191,7 @@ var __webpack_exports__ = {};
                 }
             }
             if (h) {
-                (h.open("GET", e, o),
+                h.open("GET", e, o),
                     "raw" === r.toLowerCase()
                         ? (this.cbp = function () {
                               var t = h;
@@ -27239,7 +27214,7 @@ var __webpack_exports__ = {};
                                   this.parseString(e, i, r, a));
                           }),
                     (this.cb = s.Z.bind(this.cbp, this)),
-                    (h.onreadystatechange = this.cb));
+                    (h.onreadystatechange = this.cb);
                 try {
                     h.send(null);
                 } catch (t) {
@@ -27252,7 +27227,7 @@ var __webpack_exports__ = {};
             } else t.Z.debug("AJAX not activated!");
         },
         handleLocalFile: function (t, e, i, r, o, n) {
-            (s.Z.exists(r) || (r = !0),
+            s.Z.exists(r) || (r = !0),
                 "raw" === i.toLowerCase()
                     ? (this.cbp = function (t) {
                           e(t.target.result);
@@ -27261,12 +27236,12 @@ var __webpack_exports__ = {};
                           var s = t.target.result;
                           this.parseString(s, e, i, n);
                       }),
-                (this.cb = s.Z.bind(this.cbp, this)));
+                (this.cb = s.Z.bind(this.cbp, this));
             var a = new FileReader();
-            ((a.onload = this.cb),
+            (a.onload = this.cb),
                 "raw" === i.toLowerCase()
                     ? a.readAsText(t)
-                    : a.readAsText(t, o));
+                    : a.readAsText(t, o);
         },
         parseFileContent: function (t, e, i, r, o, n) {
             s.Z.isString(t) || void 0 === FileReader
@@ -27293,12 +27268,12 @@ var __webpack_exports__ = {};
             document.write &&
             document.write(
                 '<script type="text/vbscript">\nFunction Base64Encode(inData)\n  Const Base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"\n  Dim cOut, sOut, I\n  For I = 1 To LenB(inData) Step 3\n    Dim nGroup, pOut, sGroup\n    nGroup = &H10000 * AscB(MidB(inData, I, 1)) + _\n      &H100 * MyASC(MidB(inData, I + 1, 1)) + MyASC(MidB(inData, I + 2, 1))\n    nGroup = Oct(nGroup)\n    nGroup = String(8 - Len(nGroup), "0") & nGroup\n    pOut = Mid(Base64, CLng("&o" & Mid(nGroup, 1, 2)) + 1, 1) + _\n      Mid(Base64, CLng("&o" & Mid(nGroup, 3, 2)) + 1, 1) + _\n      Mid(Base64, CLng("&o" & Mid(nGroup, 5, 2)) + 1, 1) + _\n      Mid(Base64, CLng("&o" & Mid(nGroup, 7, 2)) + 1, 1)\n    sOut = sOut + pOut\n  Next\n  Select Case LenB(inData) Mod 3\n    Case 1: \'8 bit final\n      sOut = Left(sOut, Len(sOut) - 2) + "=="\n    Case 2: \'16 bit final\n      sOut = Left(sOut, Len(sOut) - 1) + "="\n  End Select\n  Base64Encode = sOut\nEnd Function\n\nFunction MyASC(OneChar)\n  If OneChar = "" Then MyASC = 0 Else MyASC = AscB(OneChar)\nEnd Function\n\nFunction jxgBinFileReader(xhr)\n    Dim byteString\n    Dim b64String\n    Dim i\n    byteString = xhr.responseBody\n    ReDim byteArray(LenB(byteString))\n    For i = 1 To LenB(byteString)\n        byteArray(i-1) = AscB(MidB(byteString, i, 1))\n    Next\n    b64String = Base64Encode(byteString)\n    jxgBinFileReader = b64String\nEnd Function\n</script>\n',
-            ));
+            );
     const A = t.Z.FileReader;
     var k = __webpack_require__(632),
         R = __webpack_require__(254),
         D = __webpack_require__(327);
-    ((t.Z.Composition = function (t) {
+    (t.Z.Composition = function (t) {
         var e,
             i = this,
             r = [
@@ -27337,7 +27312,7 @@ var __webpack_exports__ = {};
         }),
         t))
             t.hasOwnProperty(e) && this.add(e, t[e]);
-        ((this.dump = !0), (this.subs = {}));
+        (this.dump = !0), (this.subs = {});
     }),
         t.Z.extend(t.Z.Composition.prototype, {
             add: function (t, e) {
@@ -27366,12 +27341,11 @@ var __webpack_exports__ = {};
                         break;
                     }
                 return (
-                    i && (delete this.elements[this[t].id], delete this[t]),
-                    i
+                    i && (delete this.elements[this[t].id], delete this[t]), i
                 );
             },
             nameListener: function (t, e, i) {
-                (delete this.elementsByName[t], (this.elementsByName[e] = i));
+                delete this.elementsByName[t], (this.elementsByName[e] = i);
             },
             select: function (e) {
                 return s.Z.exists(t.Z.Board)
@@ -27392,9 +27366,9 @@ var __webpack_exports__ = {};
                         (e[t] = this.subs[t].visProp);
                 return this.attr;
             },
-        }));
+        });
     const L = t.Z.Composition;
-    ((t.Z.Board = function (o, n, a, h, l, c, d, u, p, _, f) {
+    (t.Z.Board = function (o, n, a, h, l, c, d, u, p, _, f) {
         if (
             ((this.BOARD_MODE_NONE = 0),
             (this.BOARD_MODE_DRAG = 1),
@@ -27414,7 +27388,7 @@ var __webpack_exports__ = {};
             throw new Error(
                 "\nJSXGraph: HTML container element '" + o + "' not found.",
             );
-        ((this.renderer = n),
+        (this.renderer = n),
             (this.grids = []),
             (this.options = s.Z.deepCopy(M.Z)),
             (this.attr = f),
@@ -27523,7 +27497,7 @@ var __webpack_exports__ = {};
                 zoomElements: "zoomElements",
                 remove: "removeObject",
                 removeObject: "removeObject",
-            }));
+            });
     }),
         t.Z.extend(t.Z.Board.prototype, {
             generateName: function (t) {
@@ -27663,8 +27637,8 @@ var __webpack_exports__ = {};
                     o = t.id;
                 if (((this.numObjects += 1), "" === o || !s.Z.exists(o)))
                     for (o = this.id + e + r; s.Z.exists(this.objects[o]); )
-                        ((i = Math.round(65535 * Math.random())),
-                            (o = this.id + e + r + "-" + i));
+                        (i = Math.round(65535 * Math.random())),
+                            (o = this.id + e + r + "-" + i);
                 return (
                     (t.id = o),
                     (this.objects[o] = t),
@@ -27724,11 +27698,11 @@ var __webpack_exports__ = {};
                         n && s.Z.exists(n.parentNode);
 
                     )
-                        (s.Z.exists(n.style) &&
+                        s.Z.exists(n.style) &&
                             s.Z.exists(n.style.zoom) &&
                             "" !== n.style.zoom &&
                             (o *= parseFloat(n.style.zoom)),
-                            (n = n.parentNode));
+                            (n = n.parentNode);
                     return (
                         ((t = [r.left * o, r.top * o])[0] += e.Z.getProp(
                             c,
@@ -27784,10 +27758,10 @@ var __webpack_exports__ = {};
                 );
             },
             initMoveOrigin: function (t, e) {
-                ((this.drag_dx = t - this.origin.scrCoords[1]),
+                (this.drag_dx = t - this.origin.scrCoords[1]),
                     (this.drag_dy = e - this.origin.scrCoords[2]),
                     (this.mode = this.BOARD_MODE_MOVE_ORIGIN),
-                    (this.updateQuality = this.BOARD_QUALITY_LOW));
+                    (this.updateQuality = this.BOARD_QUALITY_LOW);
             },
             initMoveObject: function (t, e, r, o) {
                 var n,
@@ -27798,7 +27772,7 @@ var __webpack_exports__ = {};
                     u = this.objectsList.length,
                     p = { visProp: { layer: -1e4 } };
                 for (a = 0; a < u; a++)
-                    ((h =
+                    (h =
                         (n = this.objectsList[a]).hasPoint && n.hasPoint(t, e)),
                         n.visPropCalc.visible &&
                             h &&
@@ -27829,7 +27803,7 @@ var __webpack_exports__ = {};
                                               [t, e],
                                           ),
                                       )
-                                    : c.push([0, 0]))));
+                                    : c.push([0, 0])));
                 return (
                     this.attr.drag.enabled &&
                         l.length > 0 &&
@@ -27976,10 +27950,10 @@ var __webpack_exports__ = {};
                             _.melt(f).melt(b).melt(g)),
                         e.elementClass === i.Z.OBJECT_CLASS_LINE)
                     )
-                        ((m = []),
+                        (m = []),
                             e.point1.draggable() && m.push(e.point1),
                             e.point2.draggable() && m.push(e.point2),
-                            _.applyOnce(m));
+                            _.applyOnce(m);
                     else if (e.type === i.Z.OBJECT_TYPE_POLYGON) {
                         for (
                             m = [], Z = e.vertices.length - 1, v = 0;
@@ -27989,7 +27963,7 @@ var __webpack_exports__ = {};
                             e.vertices[v].draggable() && m.push(e.vertices[v]);
                         _.applyOnce(m);
                     }
-                    (this.update(), e.highlight(!0));
+                    this.update(), e.highlight(!0);
                 }
             },
             twoFingerTouchCircle: function (t, e, r) {
@@ -28040,7 +28014,7 @@ var __webpack_exports__ = {};
                     h = {},
                     l = this.objectsList.length;
                 for (o = 0; o < l; o++)
-                    ((a = (n = this.objectsList[o]).id),
+                    (a = (n = this.objectsList[o]).id),
                         s.Z.exists(n.hasPoint) &&
                             n.visPropCalc.visible &&
                             n.hasPoint(t, e) &&
@@ -28061,16 +28035,16 @@ var __webpack_exports__ = {};
                                       ["mouseover", "over"],
                                       [i],
                                   ),
-                                  (n.mouseover = !0))));
+                                  (n.mouseover = !0)));
                 for (o = 0; o < l; o++)
-                    ((a = (n = this.objectsList[o]).id),
+                    (a = (n = this.objectsList[o]).id),
                         n.mouseover &&
                             (h[a] ||
                                 (n.triggerEventHandlers(
                                     ["mouseout", "out"],
                                     [i],
                                 ),
-                                (n.mouseover = !1))));
+                                (n.mouseover = !1)));
             },
             saveStartPos: function (e, r) {
                 var o,
@@ -28078,19 +28052,19 @@ var __webpack_exports__ = {};
                     a = [];
                 if (e.type === i.Z.OBJECT_TYPE_TICKS) a.push([1, NaN, NaN]);
                 else if (e.elementClass === i.Z.OBJECT_CLASS_LINE)
-                    (a.push(e.point1.coords.usrCoords),
-                        a.push(e.point2.coords.usrCoords));
+                    a.push(e.point1.coords.usrCoords),
+                        a.push(e.point2.coords.usrCoords);
                 else if (e.elementClass === i.Z.OBJECT_CLASS_CIRCLE)
-                    (a.push(e.center.coords.usrCoords),
+                    a.push(e.center.coords.usrCoords),
                         "twoPoints" === e.method &&
-                            a.push(e.point2.coords.usrCoords));
+                            a.push(e.point2.coords.usrCoords);
                 else if (e.type === i.Z.OBJECT_TYPE_POLYGON)
                     for (n = e.vertices.length - 1, o = 0; o < n; o++)
                         a.push(e.vertices[o].coords.usrCoords);
                 else if (e.type === i.Z.OBJECT_TYPE_SECTOR)
-                    (a.push(e.point1.coords.usrCoords),
+                    a.push(e.point1.coords.usrCoords),
                         a.push(e.point2.coords.usrCoords),
-                        a.push(e.point3.coords.usrCoords));
+                        a.push(e.point3.coords.usrCoords);
                 else if (s.Z.isPoint(e) || e.type === i.Z.OBJECT_TYPE_GLIDER)
                     a.push(e.coords.usrCoords);
                 else if (e.elementClass === i.Z.OBJECT_CLASS_CURVE)
@@ -28105,9 +28079,9 @@ var __webpack_exports__ = {};
                         );
                     }
                 for (n = a.length, o = 0; o < n; o++)
-                    (r.Zstart.push(a[o][0]),
+                    r.Zstart.push(a[o][0]),
                         r.Xstart.push(a[o][1]),
-                        r.Ystart.push(a[o][2]));
+                        r.Ystart.push(a[o][2]);
             },
             mouseOriginMoveStart: function (t) {
                 var e, i;
@@ -28153,38 +28127,38 @@ var __webpack_exports__ = {};
                 );
             },
             originMoveEnd: function () {
-                ((this.updateQuality = this.BOARD_QUALITY_HIGH),
-                    (this.mode = this.BOARD_MODE_NONE));
+                (this.updateQuality = this.BOARD_QUALITY_HIGH),
+                    (this.mode = this.BOARD_MODE_NONE);
             },
             addEventHandlers: function () {
-                (e.Z.supportsPointerEvents()
+                e.Z.supportsPointerEvents()
                     ? this.addPointerEventHandlers()
                     : (this.addMouseEventHandlers(),
                       this.addTouchEventHandlers()),
                     null !== this.containerObj &&
                         (this.containerObj.oncontextmenu = function (t) {
-                            return (s.Z.exists(t) && t.preventDefault(), !1);
+                            return s.Z.exists(t) && t.preventDefault(), !1;
                         }),
-                    this.addKeyboardEventHandlers());
+                    this.addKeyboardEventHandlers();
             },
             addResizeEventHandlers: function () {
                 if (e.Z.isBrowser) {
                     try {
                         this.startResizeObserver();
                     } catch (t) {
-                        (e.Z.addEvent(
+                        e.Z.addEvent(
                             window,
                             "resize",
                             this.resizeListener,
                             this,
                         ),
-                            this.startIntersectionObserver());
+                            this.startIntersectionObserver();
                     }
                     e.Z.addEvent(window, "scroll", this.scrollListener, this);
                 }
             },
             removeEventHandlers: function () {
-                (this.removeMouseEventHandlers(),
+                this.removeMouseEventHandlers(),
                     this.removeTouchEventHandlers(),
                     this.removePointerEventHandlers(),
                     this.removeFullscreenEventHandlers(),
@@ -28204,12 +28178,12 @@ var __webpack_exports__ = {};
                             "scroll",
                             this.scrollListener,
                             this,
-                        )));
+                        ));
             },
             addPointerEventHandlers: function () {
                 if (!this.hasPointerHandlers && e.Z.isBrowser) {
                     var t = this.attr.movetarget || this.containerObj;
-                    (window.navigator.msPointerEnabled
+                    window.navigator.msPointerEnabled
                         ? (e.Z.addEvent(
                               this.containerObj,
                               "MSPointerDown",
@@ -28248,13 +28222,13 @@ var __webpack_exports__ = {};
                         ),
                         null !== this.containerObj &&
                             (this.containerObj.style.touchAction = "none"),
-                        (this.hasPointerHandlers = !0));
+                        (this.hasPointerHandlers = !0);
                 }
             },
             addMouseEventHandlers: function () {
                 if (!this.hasMouseHandlers && e.Z.isBrowser) {
                     var t = this.attr.movetarget || this.containerObj;
-                    (e.Z.addEvent(
+                    e.Z.addEvent(
                         this.containerObj,
                         "mousedown",
                         this.mouseDownListener,
@@ -28278,13 +28252,13 @@ var __webpack_exports__ = {};
                             this.mouseWheelListener,
                             this,
                         ),
-                        (this.hasMouseHandlers = !0));
+                        (this.hasMouseHandlers = !0);
                 }
             },
             addTouchEventHandlers: function (t) {
                 if (!this.hasTouchHandlers && e.Z.isBrowser) {
                     var i = this.attr.movetarget || this.containerObj;
-                    (e.Z.addEvent(
+                    e.Z.addEvent(
                         this.containerObj,
                         "touchstart",
                         this.touchStartListener,
@@ -28296,7 +28270,7 @@ var __webpack_exports__ = {};
                             this.touchMoveListener,
                             this,
                         ),
-                        (this.hasTouchHandlers = !0));
+                        (this.hasTouchHandlers = !0);
                 }
             },
             addFullscreenEventHandlers: function () {
@@ -28389,7 +28363,7 @@ var __webpack_exports__ = {};
             removePointerEventHandlers: function () {
                 if (this.hasPointerHandlers && e.Z.isBrowser) {
                     var t = this.attr.movetarget || this.containerObj;
-                    (window.navigator.msPointerEnabled
+                    window.navigator.msPointerEnabled
                         ? (e.Z.removeEvent(
                               this.containerObj,
                               "MSPointerDown",
@@ -28447,13 +28421,13 @@ var __webpack_exports__ = {};
                                       this,
                                   )),
                             (this.hasPointerUp = !1)),
-                        (this.hasPointerHandlers = !1));
+                        (this.hasPointerHandlers = !1);
                 }
             },
             removeMouseEventHandlers: function () {
                 if (this.hasMouseHandlers && e.Z.isBrowser) {
                     var t = this.attr.movetarget || this.containerObj;
-                    (e.Z.removeEvent(
+                    e.Z.removeEvent(
                         this.containerObj,
                         "mousedown",
                         this.mouseDownListener,
@@ -28485,13 +28459,13 @@ var __webpack_exports__ = {};
                             this.mouseWheelListener,
                             this,
                         ),
-                        (this.hasMouseHandlers = !1));
+                        (this.hasMouseHandlers = !1);
                 }
             },
             removeTouchEventHandlers: function () {
                 if (this.hasTouchHandlers && e.Z.isBrowser) {
                     var t = this.attr.movetarget || this.containerObj;
-                    (e.Z.removeEvent(
+                    e.Z.removeEvent(
                         this.containerObj,
                         "touchstart",
                         this.touchStartListener,
@@ -28511,7 +28485,7 @@ var __webpack_exports__ = {};
                                 this,
                             ),
                             (this.hasTouchEnd = !1)),
-                        (this.hasTouchHandlers = !1));
+                        (this.hasTouchHandlers = !1);
                 }
             },
             clickLeftArrow: function () {
@@ -28703,9 +28677,9 @@ var __webpack_exports__ = {};
                 var e, i;
                 for (e = 0, i = !1; e < this._board_touches.length; e++)
                     if (this._board_touches[e].pointerId === t.pointerId) {
-                        ((this._board_touches[e].clientX = t.clientX),
+                        (this._board_touches[e].clientX = t.clientX),
                             (this._board_touches[e].clientY = t.clientY),
-                            (i = !0));
+                            (i = !0);
                         break;
                     }
                 return (
@@ -28729,11 +28703,11 @@ var __webpack_exports__ = {};
                 return this;
             },
             _pointerClearTouches: function () {
-                (this._board_touches.length > 0 && this.dehighlightAll(),
+                this._board_touches.length > 0 && this.dehighlightAll(),
                     (this.updateQuality = this.BOARD_QUALITY_HIGH),
                     (this.mode = this.BOARD_MODE_NONE),
                     (this._board_touches = []),
-                    (this.touches = []));
+                    (this.touches = []);
             },
             _getPointerInputDevice: function (t) {
                 if (e.Z.isBrowser) {
@@ -28829,12 +28803,12 @@ var __webpack_exports__ = {};
                         r++
                     )
                         if (this.touches[r].obj === p) {
-                            ((o = r),
+                            (o = r),
                                 (n = this.touches[r].targets.push(c) - 1),
-                                (u = !0));
+                                (u = !0);
                             break;
                         }
-                    (u ||
+                    u ||
                         ((n = 0),
                         (o = this.touches.push({ obj: p, targets: [c] }) - 1)),
                         this.dehighlightAll(),
@@ -28842,7 +28816,7 @@ var __webpack_exports__ = {};
                         this.saveStartPos(p, this.touches[o].targets[n]),
                         t && t.preventDefault
                             ? t.preventDefault()
-                            : window.event && (window.event.returnValue = !1));
+                            : window.event && (window.event.returnValue = !1);
                 }
                 return (
                     this.touches.length > 0 &&
@@ -28902,7 +28876,7 @@ var __webpack_exports__ = {};
                         this.options.precision[o]),
                     this.selectingMode)
                 )
-                    ((s = this.getMousePosition(t)),
+                    (s = this.getMousePosition(t)),
                         this._moveSelecting(s),
                         this.triggerEventHandlers(
                             [
@@ -28911,7 +28885,7 @@ var __webpack_exports__ = {};
                                 "pointermoveselecting",
                             ],
                             [t, this.mode],
-                        ));
+                        );
                 else if (!this.mouseOriginMove(t))
                     if (this.mode === this.BOARD_MODE_DRAG) {
                         for (e = 0; e < this.touches.length; e++)
@@ -28921,7 +28895,7 @@ var __webpack_exports__ = {};
                                 i++
                             )
                                 if (r[i].num === t.pointerId) {
-                                    ((s = this.getMousePosition(t)),
+                                    (s = this.getMousePosition(t)),
                                         (r[i].X = s[0]),
                                         (r[i].Y = s[1]),
                                         1 === r.length
@@ -28939,17 +28913,17 @@ var __webpack_exports__ = {};
                                                   t,
                                               ),
                                               (r[i].Xprev = s[0]),
-                                              (r[i].Yprev = s[1])));
+                                              (r[i].Yprev = s[1]));
                                     break;
                                 }
                     } else
-                        ("touch" === this._getPointerInputDevice(t) &&
+                        "touch" === this._getPointerInputDevice(t) &&
                             (this._pointerStorePosition(t),
                             2 === this._board_touches.length &&
                                 ((t.touches = this._board_touches),
                                 this.gestureChangeListener(t))),
                             (s = this.getMousePosition(t)),
-                            this.highlightElements(s[0], s[1], t, -1));
+                            this.highlightElements(s[0], s[1], t, -1);
                 return (
                     this.triggerEventHandlers(
                         ["pointermove", "MSPointerMove", "move"],
@@ -28980,13 +28954,12 @@ var __webpack_exports__ = {};
                             r++
                         )
                             if (n[r].num === t.pointerId) {
-                                (n.splice(r, 1),
-                                    0 === n.length &&
-                                        this.touches.splice(i, 1));
+                                n.splice(r, 1),
+                                    0 === n.length && this.touches.splice(i, 1);
                                 break;
                             }
                 if ((this.originMoveEnd(), this.update(), this.selectingMode))
-                    (this._stopSelecting(t),
+                    this._stopSelecting(t),
                         this.triggerEventHandlers(
                             [
                                 "touchstopselecting",
@@ -28995,7 +28968,7 @@ var __webpack_exports__ = {};
                             ],
                             [t],
                         ),
-                        this.stopSelectionMode());
+                        this.stopSelectionMode();
                 else
                     for (i = this.downObjects.length - 1; i > -1; i--) {
                         for (o = !1, r = 0; r < this.touches.length; r++)
@@ -29080,7 +29053,7 @@ var __webpack_exports__ = {};
                         h < _.length;
                         h++
                     ) {
-                        ((_[h].num = -1), (f = this.options.precision.touch));
+                        (_[h].num = -1), (f = this.options.precision.touch);
                         do {
                             for (l = 0; l < b.length; l++)
                                 if (
@@ -29090,10 +29063,10 @@ var __webpack_exports__ = {};
                                     ) <
                                     f * f
                                 ) {
-                                    ((_[h].num = l),
+                                    (_[h].num = l),
                                         (_[h].X = b[l].screenX),
                                         (_[h].Y = b[l].screenY),
-                                        (b[l].jxg_isused = !0));
+                                        (b[l].jxg_isused = !0);
                                     break;
                                 }
                             f *= 2;
@@ -29159,10 +29132,10 @@ var __webpack_exports__ = {};
                                     c.type === i.Z.OBJECT_TYPE_TICKS ||
                                     c.type === i.Z.OBJECT_TYPE_IMAGE)
                             )
-                                ((u = [p]),
+                                (u = [p]),
                                     this.saveStartPos(c, u[0]),
                                     this.touches.push({ obj: c, targets: u }),
-                                    c.highlight(!0));
+                                    c.highlight(!0);
                             else if (
                                 c.elementClass === i.Z.OBJECT_CLASS_LINE ||
                                 c.elementClass === i.Z.OBJECT_CLASS_CIRCLE ||
@@ -29226,12 +29199,12 @@ var __webpack_exports__ = {};
                 ) {
                     for (i = 0; i < n.length; i++)
                         if (!n[i].jxg_isused) {
-                            ((s = this.getMousePosition(e, i)),
+                            (s = this.getMousePosition(e, i)),
                                 this._moveSelecting(s),
                                 this.triggerEventHandlers(
                                     ["touchmoves", "moveselecting"],
                                     [e, this.mode],
-                                ));
+                                );
                             break;
                         }
                 } else if (!this.touchOriginMove(e))
@@ -29249,7 +29222,7 @@ var __webpack_exports__ = {};
                                         s[1] > this.canvasHeight
                                     )
                                         return;
-                                    ((o[0].X = s[0]),
+                                    (o[0].X = s[0]),
                                         (o[0].Y = s[1]),
                                         this.moveObject(
                                             s[0],
@@ -29257,7 +29230,7 @@ var __webpack_exports__ = {};
                                             this.touches[i],
                                             e,
                                             "touch",
-                                        ));
+                                        );
                                 }
                             } else if (
                                 2 === o.length &&
@@ -29279,7 +29252,7 @@ var __webpack_exports__ = {};
                                         r[1] > this.canvasHeight)
                                 )
                                     return;
-                                ((o[0].X = s[0]),
+                                (o[0].X = s[0]),
                                     (o[0].Y = s[1]),
                                     (o[1].X = r[0]),
                                     (o[1].Y = r[1]),
@@ -29295,12 +29268,12 @@ var __webpack_exports__ = {};
                                     (o[0].Xprev = s[0]),
                                     (o[0].Yprev = s[1]),
                                     (o[1].Xprev = r[0]),
-                                    (o[1].Yprev = r[1]));
+                                    (o[1].Yprev = r[1]);
                             }
                     } else
-                        (2 === n.length && this.gestureChangeListener(e),
+                        2 === n.length && this.gestureChangeListener(e),
                             (s = this.getMousePosition(e, 0)),
-                            this.highlightElements(s[0], s[1], e, -1));
+                            this.highlightElements(s[0], s[1], e, -1);
                 return (
                     this.mode !== this.BOARD_MODE_DRAG &&
                         this.displayInfobox(!1),
@@ -29330,12 +29303,12 @@ var __webpack_exports__ = {};
                     this.displayInfobox(!1),
                     this.selectingMode)
                 )
-                    (this._stopSelecting(r),
+                    this._stopSelecting(r),
                         this.triggerEventHandlers(
                             ["touchstopselecting", "stopselecting"],
                             [r],
                         ),
-                        this.stopSelectionMode());
+                        this.stopSelectionMode();
                 else if (p && p.length > 0) {
                     for (o = 0; o < this.touches.length; o++)
                         u[o] = this.touches[o];
@@ -29355,11 +29328,11 @@ var __webpack_exports__ = {};
                                     ) <
                                     d * d
                                 ) {
-                                    ((c[n].found = !0),
+                                    (c[n].found = !0),
                                         (c[n].num = a),
                                         (c[n].X = p[a].screenX),
                                         (c[n].Y = p[a].screenY),
-                                        (l += 1));
+                                        (l += 1);
                                     break;
                                 }
                         if (
@@ -29503,7 +29476,7 @@ var __webpack_exports__ = {};
             mouseMoveListener: function (t) {
                 var e;
                 if (!this.checkFrameRate(t)) return !1;
-                ((e = this.getMousePosition(t)),
+                (e = this.getMousePosition(t)),
                     (this.updateQuality = this.BOARD_QUALITY_LOW),
                     this.mode !== this.BOARD_MODE_DRAG &&
                         (this.dehighlightAll(), this.displayInfobox(!1)),
@@ -29527,7 +29500,7 @@ var __webpack_exports__ = {};
                               ["mousemove", "move"],
                               [t, this.mode],
                           )),
-                    (this.updateQuality = this.BOARD_QUALITY_HIGH));
+                    (this.updateQuality = this.BOARD_QUALITY_HIGH);
             },
             mouseUpListener: function (t) {
                 var i;
@@ -29545,19 +29518,19 @@ var __webpack_exports__ = {};
                     this.update(),
                     this.selectingMode)
                 )
-                    (this._stopSelecting(t),
+                    this._stopSelecting(t),
                         this.triggerEventHandlers(
                             ["mousestopselecting", "stopselecting"],
                             [t],
                         ),
-                        this.stopSelectionMode());
+                        this.stopSelectionMode();
                 else
                     for (i = 0; i < this.downObjects.length; i++)
                         this.downObjects[i].triggerEventHandlers(
                             ["mouseup", "up"],
                             [t],
                         );
-                ((this.downObjects.length = 0),
+                (this.downObjects.length = 0),
                     this.hasMouseUp &&
                         (e.Z.removeEvent(
                             this.document,
@@ -29566,7 +29539,7 @@ var __webpack_exports__ = {};
                             this,
                         ),
                         (this.hasMouseUp = !1)),
-                    (this.mouse = null));
+                    (this.mouse = null);
             },
             mouseWheelListener: function (t) {
                 if (
@@ -29702,23 +29675,23 @@ var __webpack_exports__ = {};
                     i,
                     r = t.target.id;
                 if (!this.attr.keyboard.enabled || "" === r) return !1;
-                ((e = r.replace(this.containerObj.id + "_", "")),
+                (e = r.replace(this.containerObj.id + "_", "")),
                     (i = this.select(e)),
                     s.Z.exists(i.highlight) &&
                         (i.highlight(!0),
                         (this.focusObjects = [e]),
                         i.triggerEventHandlers(["hit"], [t])),
-                    s.Z.exists(i.coords) && this.updateInfobox(i));
+                    s.Z.exists(i.coords) && this.updateInfobox(i);
             },
             keyFocusOutListener: function (t) {
                 if (!this.attr.keyboard.enabled) return !1;
-                ((this.focusObjects = []),
+                (this.focusObjects = []),
                     this.dehighlightAll(),
-                    this.displayInfobox(!1));
+                    this.displayInfobox(!1);
             },
             updateContainerDims: function () {
                 var t, e, i, r, o, n;
-                ((t = (i = this.containerObj.getBoundingClientRect()).width),
+                (t = (i = this.containerObj.getBoundingClientRect()).width),
                     (e = i.height),
                     window &&
                         window.getComputedStyle &&
@@ -29751,7 +29724,7 @@ var __webpack_exports__ = {};
                             this._prevDim.w === t &&
                             this._prevDim.h === e) ||
                             (this.resizeContainer(t, e, !0),
-                            (this._prevDim = { w: t, h: e }))));
+                            (this._prevDim = { w: t, h: e })));
             },
             startResizeObserver: function () {
                 var t = this;
@@ -29789,7 +29762,7 @@ var __webpack_exports__ = {};
                         this._isResizing ||
                         ((this._isResizing = !0),
                         window.setTimeout(function () {
-                            (t.updateContainerDims(), (t._isResizing = !1));
+                            t.updateContainerDims(), (t._isResizing = !1);
                         }, this.attr.resize.throttle)));
             },
             scrollListener: function (t) {
@@ -29804,14 +29777,14 @@ var __webpack_exports__ = {};
             startIntersectionObserver: function () {
                 var t = this;
                 try {
-                    ((this.intersectionObserver = new IntersectionObserver(
+                    (this.intersectionObserver = new IntersectionObserver(
                         function (e) {
                             isNaN(t.getBoundingBox()[0]) &&
                                 t.updateContainerDims();
                         },
                         { root: null, rootMargin: "0px", threshold: 0.8 },
                     )),
-                        this.intersectionObserver.observe(t.containerObj));
+                        this.intersectionObserver.observe(t.containerObj);
                 } catch (t) {
                     console.log(
                         "JSXGraph: IntersectionObserver not available in this browser.",
@@ -29893,7 +29866,7 @@ var __webpack_exports__ = {};
                 );
             },
             highlightCustomInfobox: function (t, e) {
-                return (this.infobox.setText(t), this);
+                return this.infobox.setText(t), this;
             },
             dehighlightAll: function () {
                 var t,
@@ -29936,7 +29909,7 @@ var __webpack_exports__ = {};
             },
             getAllUnderMouse: function (t) {
                 var e = this.getAllObjectsUnderMouse(t);
-                return (e.push(this.getUsrCoordsOfMouse(t)), e);
+                return e.push(this.getUsrCoordsOfMouse(t)), e;
             },
             getAllObjectsUnderMouse: function (t) {
                 var i,
@@ -29959,11 +29932,11 @@ var __webpack_exports__ = {};
                     e,
                     i = this.objectsList.length;
                 for (e = 0; e < i; e++)
-                    ((t = this.objectsList[e]),
+                    (t = this.objectsList[e]),
                         s.Z.exists(t.coords) &&
                             (s.Z.evaluate(t.visProp.frozen)
                                 ? t.coords.screen2usr()
-                                : t.coords.usr2screen()));
+                                : t.coords.usr2screen());
                 return this;
             },
             moveOrigin: function (t, e, r) {
@@ -30010,7 +29983,7 @@ var __webpack_exports__ = {};
                     _ = function (t, e, s, r) {
                         return function () {
                             var o, n;
-                            ((n = (o = t.select(e.id)).coords.usrCoords[r]),
+                            (n = (o = t.select(e.id)).coords.usrCoords[r]),
                                 2 === r
                                     ? o.setPositionDirectly(
                                           i.Z.COORDS_BY_USER,
@@ -30020,27 +29993,27 @@ var __webpack_exports__ = {};
                                           i.Z.COORDS_BY_USER,
                                           [n, s()],
                                       ),
-                                o.prepareUpdate().update());
+                                o.prepareUpdate().update();
                         };
                     },
                     f = function (t, e, i) {
                         return function () {
                             var s, r;
-                            ((s = t.select(e.id)),
+                            (s = t.select(e.id)),
                                 (r = i()),
-                                s.setAttribute({ visible: r }));
+                                s.setAttribute({ visible: r });
                         };
                     },
                     b = function (t, e, i, s) {
                         return function () {
                             var r, o;
-                            ((r = t.select(e.id)),
+                            (r = t.select(e.id)),
                                 (o = i()),
                                 "strokewidth" === s
                                     ? (r.visProp.strokewidth = o)
                                     : ((o = D.Z.rgba2rgbo(o)),
                                       (r.visProp[s + "color"] = o[0]),
-                                      (r.visProp[s + "opacity"] = o[1])));
+                                      (r.visProp[s + "opacity"] = o[1]));
                         };
                     },
                     g = function (t, e, i) {
@@ -30108,15 +30081,15 @@ var __webpack_exports__ = {};
                             t.Z.debug(
                                 "debug conditions: |" + h + "| undefined",
                             );
-                        ((u = (e = e.slice(p + 7)).indexOf("<data>")),
-                            (p = e.indexOf("</data>")));
+                        (u = (e = e.slice(p + 7)).indexOf("<data>")),
+                            (p = e.indexOf("</data>"));
                     }
-                    ((this.updateConditions = function () {
+                    (this.updateConditions = function () {
                         var t;
                         for (t = 0; t < d.length; t++) d[t]();
-                        return (this.prepareUpdate().updateElements(), !0);
+                        return this.prepareUpdate().updateElements(), !0;
                     }),
-                        this.updateConditions());
+                        this.updateConditions();
                 }
             },
             updateConditions: function () {
@@ -30136,13 +30109,13 @@ var __webpack_exports__ = {};
                     Math.abs(s) > 25;
 
                 )
-                    ((this.options.grid.snapSizeX *= 2), (s /= 2));
+                    (this.options.grid.snapSizeX *= 2), (s /= 2);
                 for (
                     this.options.grid.snapSizeY = this.options.grid.gridY;
                     Math.abs(r) > 25;
 
                 )
-                    ((this.options.grid.snapSizeY *= 2), (r /= 2));
+                    (this.options.grid.snapSizeY *= 2), (r /= 2);
                 return this;
             },
             applyZoom: function () {
@@ -30244,7 +30217,7 @@ var __webpack_exports__ = {};
                     h = 0,
                     l = this.objectsList.length;
                 for (t = 0; t < l; t++)
-                    ((r = this.objectsList[t]),
+                    (r = this.objectsList[t]),
                         s.Z.isPoint(r) &&
                             r.visPropCalc.visible &&
                             (r.coords.usrCoords[1] < o
@@ -30254,7 +30227,7 @@ var __webpack_exports__ = {};
                             r.coords.usrCoords[2] > h
                                 ? (h = r.coords.usrCoords[2])
                                 : r.coords.usrCoords[2] < a &&
-                                  (a = r.coords.usrCoords[2])));
+                                  (a = r.coords.usrCoords[2]));
                 return (
                     50,
                     (e = 50 / this.unitX),
@@ -30278,12 +30251,12 @@ var __webpack_exports__ = {};
                     l = [1 / 0, -1 / 0, -1 / 0, 1 / 0];
                 if (!s.Z.isArray(t) || 0 === t.length) return this;
                 for (e = 0; e < t.length; e++)
-                    ((i = this.select(t[e]).bounds()),
+                    (i = this.select(t[e]).bounds()),
                         s.Z.isArray(i) &&
                             (i[0] < l[0] && (l[0] = i[0]),
                             i[1] > l[1] && (l[1] = i[1]),
                             i[2] > l[2] && (l[2] = i[2]),
-                            i[3] < l[3] && (l[3] = i[3])));
+                            i[3] < l[3] && (l[3] = i[3]));
                 return (
                     s.Z.isArray(l) &&
                         ((r = 0.5 * (l[0] + l[2])),
@@ -30364,23 +30337,23 @@ var __webpack_exports__ = {};
                                     e.id +
                                     " not found in list.",
                             );
-                    (delete this.objects[e.id],
+                    delete this.objects[e.id],
                         delete this.elementsByName[e.name],
                         e.visProp &&
                             s.Z.evaluate(e.visProp.trace) &&
                             e.clearTrace(),
-                        s.Z.exists(e.remove) && e.remove());
+                        s.Z.exists(e.remove) && e.remove();
                 } catch (i) {
                     t.Z.debug(e.id + ": Could not be removed: " + i);
                 }
-                return (this.update(), this);
+                return this.update(), this;
             },
             removeAncestors: function (t) {
                 var e;
                 for (e in t.ancestors)
                     t.ancestors.hasOwnProperty(e) &&
                         this.removeAncestors(t.ancestors[e]);
-                return (this.removeObject(t), this);
+                return this.removeObject(t), this;
             },
             initGeonextBoard: function () {
                 var t, e, i;
@@ -30506,13 +30479,13 @@ var __webpack_exports__ = {};
                     e < this.objectsList.length;
                     e++
                 )
-                    ((r = this.objectsList[e]),
+                    (r = this.objectsList[e]),
                         this.needsFullUpdate &&
                             r.elementClass === i.Z.OBJECT_CLASS_TEXT &&
                             r.updateSize(),
                         r
                             .update(!s.Z.exists(t) || r.id !== t.id)
-                            .updateVisibility());
+                            .updateVisibility();
                 for (e in this.groups)
                     this.groups.hasOwnProperty(e) && this.groups[e].update(t);
                 return this;
@@ -30630,7 +30603,7 @@ var __webpack_exports__ = {};
                     e < i;
                     e++
                 )
-                    ((r = this.dependentBoards[e]),
+                    (r = this.dependentBoards[e]),
                         s.Z.exists(r) &&
                             r !== this &&
                             ((r.updateQuality = this.updateQuality),
@@ -30641,8 +30614,8 @@ var __webpack_exports__ = {};
                             r.renderer.suspendRedraw(),
                             r.updateRenderer(),
                             r.renderer.unsuspendRedraw(),
-                            r.triggerEventHandlers(["update"], [])));
-                return ((this.inUpdate = !1), this);
+                            r.triggerEventHandlers(["update"], []));
+                return (this.inUpdate = !1), this;
             },
             fullUpdate: function () {
                 return (
@@ -30653,13 +30626,13 @@ var __webpack_exports__ = {};
                 );
             },
             addGrid: function () {
-                return (this.create("grid", []), this);
+                return this.create("grid", []), this;
             },
             removeGrids: function () {
                 var t;
                 for (t = 0; t < this.grids.length; t++)
                     this.removeObject(this.grids[t]);
-                return ((this.grids.length = 0), this.update(), this);
+                return (this.grids.length = 0), this.update(), this;
             },
             create: function (e, i, r) {
                 var o, n;
@@ -30708,10 +30681,10 @@ var __webpack_exports__ = {};
                 var t;
                 for (t = 0; t < this.objectsList.length; t++)
                     this.objectsList[t].clearTrace();
-                return ((this.numTraces = 0), this);
+                return (this.numTraces = 0), this;
             },
             suspendUpdate: function () {
-                return (this.inUpdate || (this.isSuspendedUpdate = !0), this);
+                return this.inUpdate || (this.isSuspendedUpdate = !0), this;
             },
             unsuspendUpdate: function () {
                 return (
@@ -30976,7 +30949,7 @@ var __webpack_exports__ = {};
                               }))
                             : s.Z.exists(r.visPropOriginal) &&
                               t.Z.extend(r.visProp, r.visPropOriginal));
-                return ((this.currentCBDef = e), this.update(), this);
+                return (this.currentCBDef = e), this.update(), this;
             },
             select: function (t, e) {
                 var i,
@@ -31047,14 +31020,14 @@ var __webpack_exports__ = {};
                         i;
 
                     )
-                        ((this.cssTransMat = o.Z.matMatMult(
+                        (this.cssTransMat = o.Z.matMatMult(
                             e.Z.getCSSTransformMatrix(i),
                             this.cssTransMat,
                         )),
                             (i =
                                 i.parentNode === i.getRootNode()
                                     ? i.parentNode.host
-                                    : i.parentNode));
+                                    : i.parentNode);
                     this.cssTransMat = o.Z.inverse(this.cssTransMat);
                 } else {
                     for (i = i.offsetParent; i; ) {
@@ -31067,11 +31040,11 @@ var __webpack_exports__ = {};
                             r !== i;
 
                         )
-                            ((this.cssTransMat = o.Z.matMatMult(
+                            (this.cssTransMat = o.Z.matMatMult(
                                 e.Z.getCSSTransformMatrix(i),
                                 this.cssTransMat,
                             )),
-                                (r = r.parentNode));
+                                (r = r.parentNode);
                         i = i.offsetParent;
                     }
                     this.cssTransMat = o.Z.inverse(this.cssTransMat);
@@ -31079,14 +31052,14 @@ var __webpack_exports__ = {};
                 return this;
             },
             startSelectionMode: function () {
-                ((this.selectingMode = !0),
+                (this.selectingMode = !0),
                     this.selectionPolygon.setAttribute({ visible: !0 }),
                     (this.selectingBox = [
                         [0, 0],
                         [0, 0],
                     ]),
                     this._setSelectionPolygonFromBox(),
-                    this.selectionPolygon.fullUpdate());
+                    this.selectionPolygon.fullUpdate();
             },
             stopSelectionMode: function () {
                 return (
@@ -31099,12 +31072,12 @@ var __webpack_exports__ = {};
                 );
             },
             _startSelecting: function (t) {
-                ((this.isSelecting = !0),
+                (this.isSelecting = !0),
                     (this.selectingBox = [
                         [t[0], t[1]],
                         [t[0], t[1]],
                     ]),
-                    this._setSelectionPolygonFromBox());
+                    this._setSelectionPolygonFromBox();
             },
             _moveSelecting: function (t) {
                 this.isSelecting &&
@@ -31114,14 +31087,14 @@ var __webpack_exports__ = {};
             },
             _stopSelecting: function (t) {
                 var e = this.getMousePosition(t);
-                ((this.isSelecting = !1),
+                (this.isSelecting = !1),
                     (this.selectingBox[1] = [e[0], e[1]]),
-                    this._setSelectionPolygonFromBox());
+                    this._setSelectionPolygonFromBox();
             },
             _setSelectionPolygonFromBox: function () {
                 var e = this.selectingBox[0],
                     i = this.selectingBox[1];
-                (this.selectionPolygon.vertices[0].setPositionDirectly(
+                this.selectionPolygon.vertices[0].setPositionDirectly(
                     t.Z.COORDS_BY_SCREEN,
                     [e[0], e[1]],
                 ),
@@ -31136,7 +31109,7 @@ var __webpack_exports__ = {};
                     this.selectionPolygon.vertices[3].setPositionDirectly(
                         t.Z.COORDS_BY_SCREEN,
                         [i[0], e[1]],
-                    ));
+                    );
             },
             _testForSelection: function (t) {
                 this._isRequiredKeyPressed(t, "selection") &&
@@ -31253,7 +31226,7 @@ var __webpack_exports__ = {};
                         (r = n.getElementById(i)),
                         o)
                     )
-                        ((r._cssFullscreenStore = {
+                        (r._cssFullscreenStore = {
                             id: o.id,
                             isFullscreen: !0,
                             margin: r.style.margin,
@@ -31265,7 +31238,7 @@ var __webpack_exports__ = {};
                                 n,
                                 s.Z.evaluate(this.attr.fullscreen.scale),
                             ),
-                            (o = null));
+                            (o = null);
                     else if (s.Z.exists(r._cssFullscreenStore)) {
                         try {
                             n.styleSheets[n.styleSheets.length - 1].deleteRule(
@@ -31276,8 +31249,8 @@ var __webpack_exports__ = {};
                                 "JSXGraph: Could not remove CSS rules for full screen mode",
                             );
                         }
-                        ((r._cssFullscreenStore.isFullscreen = !1),
-                            (r.style.margin = r._cssFullscreenStore.margin));
+                        (r._cssFullscreenStore.isFullscreen = !1),
+                            (r.style.margin = r._cssFullscreenStore.margin);
                     }
                     this.updateCSSTransforms();
                 }
@@ -31390,7 +31363,7 @@ var __webpack_exports__ = {};
                     return (
                         (this.rolling = function () {
                             var i, o, E, O, x;
-                            ((h = Z(t, p, (f = p + r * s))),
+                            (h = Z(t, p, (f = p + r * s))),
                                 (b = l.Z.root(C, _)),
                                 (i = new T(t.X(f), t.Y(f))),
                                 (o = new T(e.X(b), e.Y(b))),
@@ -31410,7 +31383,7 @@ var __webpack_exports__ = {};
                                         v.applyOnce(n),
                                         (p = f),
                                         (_ = b)),
-                                a.update());
+                                a.update();
                         }),
                         (this.start = function () {
                             return (
@@ -31420,15 +31393,15 @@ var __webpack_exports__ = {};
                             );
                         }),
                         (this.stop = function () {
-                            return (window.clearInterval(E), this);
+                            return window.clearInterval(E), this;
                         }),
                         this
                     );
                 })();
             },
-        }));
+        });
     const B = t.Z.Board;
-    ((t.Z.SVGRenderer = function (t, e) {
+    (t.Z.SVGRenderer = function (t, e) {
         var i;
         for (
             this.type = "svg",
@@ -31555,13 +31528,13 @@ var __webpack_exports__ = {};
             i < M.Z.layer.numlayers;
             i++
         )
-            ((this.layer[i] = this.container.ownerDocument.createElementNS(
+            (this.layer[i] = this.container.ownerDocument.createElementNS(
                 this.svgNamespace,
                 "g",
             )),
-                this.svgRoot.appendChild(this.layer[i]));
+                this.svgRoot.appendChild(this.layer[i]);
         try {
-            ((this.foreignObjLayer =
+            (this.foreignObjLayer =
                 this.container.ownerDocument.createElementNS(
                     this.svgNamespace,
                     "foreignObject",
@@ -31576,7 +31549,7 @@ var __webpack_exports__ = {};
                     this.container.id + "_foreignObj",
                 ),
                 this.svgRoot.appendChild(this.foreignObjLayer),
-                (this.supportsForeignObject = !0));
+                (this.supportsForeignObject = !0);
         } catch (t) {
             this.supportsForeignObject = !1;
         }
@@ -31757,27 +31730,23 @@ var __webpack_exports__ = {};
                     (s.Z.isString(e) &&
                         (7 !== o
                             ? this._setAttribute(function () {
-                                  (t.setAttributeNS(null, "stroke", e),
+                                  t.setAttributeNS(null, "stroke", e),
                                       t.setAttributeNS(null, "fill", e),
                                       t.setAttributeNS(
                                           null,
                                           "stroke-opacity",
                                           i,
                                       ),
-                                      t.setAttributeNS(
-                                          null,
-                                          "fill-opacity",
-                                          i,
-                                      ));
+                                      t.setAttributeNS(null, "fill-opacity", i);
                               }, r.visPropOld.fillcolor)
                             : this._setAttribute(function () {
-                                  (t.setAttributeNS(null, "fill", "none"),
+                                  t.setAttributeNS(null, "fill", "none"),
                                       t.setAttributeNS(null, "stroke", e),
                                       t.setAttributeNS(
                                           null,
                                           "stroke-opacity",
                                           i,
-                                      ));
+                                      );
                               }, r.visPropOld.fillcolor)),
                     this.isIE &&
                         r.rendNode.parentNode.insertBefore(
@@ -31827,7 +31796,7 @@ var __webpack_exports__ = {};
                             : (u = !1);
                     u && (c += l);
                 }
-                ((o = t.rendNode),
+                (o = t.rendNode),
                     s.Z.exists(o) ||
                         ((o = this.createPrim("path", t.id)),
                         this.appendChildPrim(o, s.Z.evaluate(t.visProp.layer)),
@@ -31848,12 +31817,12 @@ var __webpack_exports__ = {};
                         "stroke-width",
                         s.Z.evaluate(t.visProp.strokewidth),
                     ),
-                    this.updatePathPrim(o, c, t.board));
+                    this.updatePathPrim(o, c, t.board);
             },
             displayCopyright: function (t, e) {
                 var i,
                     s = this.createPrim("text", "licenseText");
-                (s.setAttributeNS(null, "x", "20px"),
+                s.setAttributeNS(null, "x", "20px"),
                     s.setAttributeNS(null, "y", 2 + e + "px"),
                     s.setAttributeNS(
                         null,
@@ -31864,7 +31833,7 @@ var __webpack_exports__ = {};
                     ),
                     (i = this.container.ownerDocument.createTextNode(t)),
                     s.appendChild(i),
-                    this.appendChildPrim(s, 0));
+                    this.appendChildPrim(s, 0);
             },
             drawInternalText: function (t) {
                 var e = this.createPrim("text", t.id);
@@ -31882,7 +31851,7 @@ var __webpack_exports__ = {};
                     i = t.plaintext,
                     r = t.getAnchorX(),
                     o = t.getAnchorY();
-                (t.rendNode.getAttributeNS(null, "class") !==
+                t.rendNode.getAttributeNS(null, "class") !==
                     t.visProp.cssclass &&
                     (t.rendNode.setAttributeNS(
                         null,
@@ -31941,17 +31910,17 @@ var __webpack_exports__ = {};
                             (t.visPropOld.top = o + e))),
                     t.htmlStr !== i &&
                         ((t.rendNodeText.data = i), (t.htmlStr = i)),
-                    this.transformImage(t, t.transformations));
+                    this.transformImage(t, t.transformations);
             },
             updateInternalTextStyle: function (t, e, i, s) {
                 this.setObjectFillColor(t, e, i);
             },
             drawImage: function (t) {
                 var e = this.createPrim("image", t.id);
-                (e.setAttributeNS(null, "preserveAspectRatio", "none"),
+                e.setAttributeNS(null, "preserveAspectRatio", "none"),
                     this.appendChildPrim(e, s.Z.evaluate(t.visProp.layer)),
                     (t.rendNode = e),
-                    this.updateImage(t));
+                    this.updateImage(t);
             },
             transformImage: function (t, e) {
                 var i,
@@ -31992,15 +31961,15 @@ var __webpack_exports__ = {};
                 t.rendNode.setAttributeNS(null, "class", i);
             },
             drawForeignObject: function (t) {
-                ((t.rendNode = this.appendChildPrim(
+                (t.rendNode = this.appendChildPrim(
                     this.createPrim("foreignObject", t.id),
                     s.Z.evaluate(t.visProp.layer),
                 )),
                     this.appendNodesToElement(t, "foreignObject"),
-                    this.updateForeignObject(t));
+                    this.updateForeignObject(t);
             },
             updateForeignObject: function (t) {
-                (t._useUserSize
+                t._useUserSize
                     ? (t.rendNode.style.overflow = "hidden")
                     : (t.rendNode.style.overflow = "visible"),
                     this.updateRectPrim(
@@ -32011,7 +31980,7 @@ var __webpack_exports__ = {};
                         t.size[1],
                     ),
                     (t.rendNode.innerHTML = t.content),
-                    this._updateVisual(t, { stroke: !0, dash: !0 }, !0));
+                    this._updateVisual(t, { stroke: !0, dash: !0 }, !0);
             },
             appendChildPrim: function (t, e) {
                 return (
@@ -32044,10 +32013,10 @@ var __webpack_exports__ = {};
                     t.parentNode.removeChild(t);
             },
             setLayer: function (t, e) {
-                (s.Z.exists(e)
+                s.Z.exists(e)
                     ? e >= M.Z.layer.numlayers && (e = M.Z.layer.numlayers - 1)
                     : (e = 0),
-                    this.layer[e].appendChild(t.rendNode));
+                    this.layer[e].appendChild(t.rendNode);
             },
             makeArrows: function (t, e) {
                 var i,
@@ -32112,7 +32081,7 @@ var __webpack_exports__ = {};
             },
             updateEllipsePrim: function (t, e, i, s, r) {
                 var o;
-                ((o = 2e5),
+                (o = 2e5),
                     (e = Math.abs(e) < o ? e : (o * e) / Math.abs(e)),
                     (i = Math.abs(i) < o ? i : (o * i) / Math.abs(i)),
                     (s = Math.abs(s) < o ? s : (o * s) / Math.abs(s)),
@@ -32120,11 +32089,11 @@ var __webpack_exports__ = {};
                     t.setAttributeNS(null, "cx", e),
                     t.setAttributeNS(null, "cy", i),
                     t.setAttributeNS(null, "rx", Math.abs(s)),
-                    t.setAttributeNS(null, "ry", Math.abs(r)));
+                    t.setAttributeNS(null, "ry", Math.abs(r));
             },
             updateLinePrim: function (t, e, i, s, r) {
                 var o;
-                ((o = 2e5),
+                (o = 2e5),
                     isNaN(e + i + s + r) ||
                         ((e = Math.abs(e) < o ? e : (o * e) / Math.abs(e)),
                         (i = Math.abs(i) < o ? i : (o * i) / Math.abs(i)),
@@ -32133,10 +32102,10 @@ var __webpack_exports__ = {};
                         t.setAttributeNS(null, "x1", e),
                         t.setAttributeNS(null, "y1", i),
                         t.setAttributeNS(null, "x2", s),
-                        t.setAttributeNS(null, "y2", r)));
+                        t.setAttributeNS(null, "y2", r));
             },
             updatePathPrim: function (t, e) {
-                ("" === e && (e = "M 0 0"), t.setAttributeNS(null, "d", e));
+                "" === e && (e = "M 0 0"), t.setAttributeNS(null, "d", e);
             },
             updatePathStringPoint: function (t, e, i) {
                 var s = "",
@@ -32296,16 +32265,16 @@ var __webpack_exports__ = {};
                     1 === t.bezierDegree)
                 )
                     for (e = 0; e < s; e++)
-                        ((i = t.points[e].scrCoords),
+                        (i = t.points[e].scrCoords),
                             isNaN(i[1]) || isNaN(i[2])
                                 ? (o = r)
                                 : ((i[1] = Math.max(Math.min(i[1], n), -5e3)),
                                   (i[2] = Math.max(Math.min(i[2], n), -5e3)),
                                   (a += o + i[1] + " " + i[2]),
-                                  (o = " L ")));
+                                  (o = " L "));
                 else if (3 === t.bezierDegree)
                     for (e = 0; e < s; )
-                        ((i = t.points[e].scrCoords),
+                        (i = t.points[e].scrCoords),
                             isNaN(i[1]) || isNaN(i[2])
                                 ? (o = r)
                                 : ((a += o + i[1] + " " + i[2]),
@@ -32323,7 +32292,7 @@ var __webpack_exports__ = {};
                                           " " +
                                           i[2])),
                                   (o = " C ")),
-                            (e += 1));
+                            (e += 1);
                 return a;
             },
             updatePathStringBezierPrim: function (t) {
@@ -32351,7 +32320,7 @@ var __webpack_exports__ = {};
                     i++
                 )
                     for (d = c, e = 0; e < h; e++)
-                        ((o = t.points[e].scrCoords),
+                        (o = t.points[e].scrCoords),
                             isNaN(o[1]) || isNaN(o[2])
                                 ? (d = c)
                                 : ((o[1] = Math.max(Math.min(o[1], u), -5e3)),
@@ -32383,7 +32352,7 @@ var __webpack_exports__ = {};
                                         ].join(""))),
                                   (d = " C "),
                                   (n = o[1]),
-                                  (a = o[2])));
+                                  (a = o[2]));
                 return p;
             },
             updatePolygonPrim: function (t, e) {
@@ -32401,20 +32370,20 @@ var __webpack_exports__ = {};
                 ) {
                     if (!e.vertices[i].isReal)
                         return void t.setAttributeNS(null, "points", "");
-                    ((r =
+                    (r =
                         r +
                         (s = e.vertices[i].coords.scrCoords)[1] +
                         "," +
                         s[2]),
-                        i < o - 2 && (r += " "));
+                        i < o - 2 && (r += " ");
                 }
                 -1 === r.indexOf("NaN") && t.setAttributeNS(null, "points", r);
             },
             updateRectPrim: function (t, e, i, s, r) {
-                (t.setAttributeNS(null, "x", e),
+                t.setAttributeNS(null, "x", e),
                     t.setAttributeNS(null, "y", i),
                     t.setAttributeNS(null, "width", s),
-                    t.setAttributeNS(null, "height", r));
+                    t.setAttributeNS(null, "height", r);
             },
             setPropertyPrim: function (t, e, i) {
                 "stroked" !== e && t.setAttributeNS(null, e, i);
@@ -32432,18 +32401,18 @@ var __webpack_exports__ = {};
                           (i.style.visibility = "hidden")));
             },
             show: function (e) {
-                (t.Z.deprecated(
+                t.Z.deprecated(
                     "Board.renderer.show()",
                     "Board.renderer.display()",
                 ),
-                    this.display(e, !0));
+                    this.display(e, !0);
             },
             hide: function (e) {
-                (t.Z.deprecated(
+                t.Z.deprecated(
                     "Board.renderer.hide()",
                     "Board.renderer.display()",
                 ),
-                    this.display(e, !1));
+                    this.display(e, !1);
             },
             setBuffering: function (t, e) {
                 t.rendNode.setAttribute("buffered-rendering", e);
@@ -32493,7 +32462,7 @@ var __webpack_exports__ = {};
                 var i = 1,
                     s = Math.cos(e),
                     r = Math.sin(e);
-                (Math.abs(s) > Math.abs(r)
+                Math.abs(s) > Math.abs(r)
                     ? (i /= Math.abs(s))
                     : (i /= Math.abs(r)),
                     s >= 0
@@ -32505,15 +32474,15 @@ var __webpack_exports__ = {};
                         ? (t.setAttributeNS(null, "y1", 0),
                           t.setAttributeNS(null, "y2", r * i))
                         : (t.setAttributeNS(null, "y1", -r * i),
-                          t.setAttributeNS(null, "y2", 0)));
+                          t.setAttributeNS(null, "y2", 0));
             },
             updateGradientCircle: function (t, e, i, s, r, o, n) {
-                (t.setAttributeNS(null, "cx", 100 * e + "%"),
+                t.setAttributeNS(null, "cx", 100 * e + "%"),
                     t.setAttributeNS(null, "cy", 100 * i + "%"),
                     t.setAttributeNS(null, "r", 100 * s + "%"),
                     t.setAttributeNS(null, "fx", 100 * r + "%"),
                     t.setAttributeNS(null, "fy", 100 * o + "%"),
-                    t.setAttributeNS(null, "fr", 100 * n + "%"));
+                    t.setAttributeNS(null, "fr", 100 * n + "%");
             },
             updateGradient: function (t) {
                 var e,
@@ -32587,8 +32556,8 @@ var __webpack_exports__ = {};
                         n.push(i[o] + " " + e + "ms");
                     for (r = n.join(", "), a = h.length, o = 0; o < a; ++o)
                         t[h[o]] && (t[h[o]].style.transition = r);
-                    ((t.visPropOld.transitionduration = e),
-                        (t.visPropOld.transitionproperties = i));
+                    (t.visPropOld.transitionduration = e),
+                        (t.visPropOld.transitionproperties = i);
                 }
             },
             _setAttribute: function (t, e) {
@@ -32602,7 +32571,7 @@ var __webpack_exports__ = {};
                     c = s.Z.evaluate(i),
                     d = s.Z.evaluate(r),
                     u = s.Z.evaluate(e.visProp.gradient);
-                ((d = d > 0 ? d : 0),
+                (d = d > 0 ? d : 0),
                     (e.visPropOld.fillcolor === c &&
                         e.visPropOld.fillopacity === d &&
                         null === u) ||
@@ -32640,7 +32609,7 @@ var __webpack_exports__ = {};
                             ("linear" !== u && "radial" !== u) ||
                                 this.updateGradient(e)),
                         (e.visPropOld.fillcolor = c),
-                        (e.visPropOld.fillopacity = d)));
+                        (e.visPropOld.fillopacity = d));
             },
             setObjectStrokeColor: function (t, e, r) {
                 var o,
@@ -32649,7 +32618,7 @@ var __webpack_exports__ = {};
                     h,
                     l = s.Z.evaluate(e),
                     c = s.Z.evaluate(r);
-                ((c = c > 0 ? c : 0),
+                (c = c > 0 ? c : 0),
                     (t.visPropOld.strokecolor === l &&
                         t.visPropOld.strokeopacity === c) ||
                         (s.Z.exists(l) &&
@@ -32663,11 +32632,11 @@ var __webpack_exports__ = {};
                             t.elementClass === i.Z.OBJECT_CLASS_TEXT
                                 ? "html" === s.Z.evaluate(t.visProp.display)
                                     ? this._setAttribute(function () {
-                                          ((h.style.color = o),
-                                              (h.style.opacity = a));
+                                          (h.style.color = o),
+                                              (h.style.opacity = a);
                                       }, t.visPropOld.strokecolor)
                                     : this._setAttribute(function () {
-                                          (h.setAttributeNS(
+                                          h.setAttributeNS(
                                               null,
                                               "style",
                                               "fill:" + o,
@@ -32676,15 +32645,15 @@ var __webpack_exports__ = {};
                                                   null,
                                                   "style",
                                                   "fill-opacity:" + a,
-                                              ));
+                                              );
                                       }, t.visPropOld.strokecolor)
                                 : this._setAttribute(function () {
-                                      (h.setAttributeNS(null, "stroke", o),
+                                      h.setAttributeNS(null, "stroke", o),
                                           h.setAttributeNS(
                                               null,
                                               "stroke-opacity",
                                               a,
-                                          ));
+                                          );
                                   }, t.visPropOld.strokecolor),
                             (t.elementClass !== i.Z.OBJECT_CLASS_CURVE &&
                                 t.elementClass !== i.Z.OBJECT_CLASS_LINE) ||
@@ -32705,7 +32674,7 @@ var __webpack_exports__ = {};
                                         t.visPropCalc.typeLast,
                                     ))),
                         (t.visPropOld.strokecolor = l),
-                        (t.visPropOld.strokeopacity = c)));
+                        (t.visPropOld.strokeopacity = c));
             },
             setObjectStrokeWidth: function (t, e) {
                 var i,
@@ -32784,13 +32753,13 @@ var __webpack_exports__ = {};
             suspendRedraw: function () {},
             unsuspendRedraw: function () {},
             resize: function (t, e) {
-                (this.svgRoot.setAttribute("width", parseFloat(t)),
-                    this.svgRoot.setAttribute("height", parseFloat(e)));
+                this.svgRoot.setAttribute("width", parseFloat(t)),
+                    this.svgRoot.setAttribute("height", parseFloat(e));
             },
             createTouchpoints: function (t) {
                 var e, i, s, r;
                 for (this.touchpoints = [], e = 0; e < t; e++)
-                    ((i = "touchpoint1_" + e),
+                    (i = "touchpoint1_" + e),
                         (r = this.createPrim("path", i)),
                         this.appendChildPrim(r, 19),
                         r.setAttributeNS(null, "d", "M 0 0"),
@@ -32811,7 +32780,7 @@ var __webpack_exports__ = {};
                         r.setAttributeNS(null, "stroke-opacity", 1),
                         r.setAttributeNS(null, "fill", "#ffffff"),
                         r.setAttributeNS(null, "fill-opacity", 0),
-                        r.setAttributeNS(null, "display", "none"));
+                        r.setAttributeNS(null, "display", "none");
             },
             showTouchpoint: function (t) {
                 this.touchpoints &&
@@ -32882,24 +32851,24 @@ var __webpack_exports__ = {};
                 var e = [];
                 if (1 === t.nodeType)
                     for (t = t.firstChild; t; )
-                        (void 0 !== t.id &&
+                        void 0 !== t.id &&
                             void 0 !== t.value &&
                             e.push([t.id, t.value]),
                             (e = e.concat(this._getValuesOfDOMElements(t))),
-                            (t = t.nextSibling));
+                            (t = t.nextSibling);
                 return e;
             },
             _getDataUri: function (t, e) {
                 var i = new Image();
-                ((i.onload = function () {
+                (i.onload = function () {
                     var t = document.createElement("canvas");
-                    ((t.width = this.naturalWidth),
+                    (t.width = this.naturalWidth),
                         (t.height = this.naturalHeight),
                         t.getContext("2d").drawImage(this, 0, 0),
                         e(t.toDataURL("image/png")),
-                        t.remove());
+                        t.remove();
                 }),
-                    (i.src = t));
+                    (i.src = t);
             },
             _getImgDataURL: function (t) {
                 var e, i, s, r, o, n;
@@ -32909,14 +32878,14 @@ var __webpack_exports__ = {};
                         n < i;
                         n++
                     ) {
-                        (e[n].setAttribute("crossorigin", "anonymous"),
+                        e[n].setAttribute("crossorigin", "anonymous"),
                             (r = s.getContext("2d")),
                             (s.width = e[n].getAttribute("width")),
-                            (s.height = e[n].getAttribute("height")));
+                            (s.height = e[n].getAttribute("height"));
                         try {
-                            (r.drawImage(e[n], 0, 0, s.width, s.height),
+                            r.drawImage(e[n], 0, 0, s.width, s.height),
                                 (o = s.toDataURL()),
-                                e[n].setAttribute("xlink:href", o));
+                                e[n].setAttribute("xlink:href", o);
                         } catch (t) {
                             console.log(
                                 "CORS problem! Image can not be used",
@@ -32943,10 +32912,10 @@ var __webpack_exports__ = {};
                         o.nextSibling;
 
                     )
-                        ((a = a.concat(
+                        (a = a.concat(
                             this._getValuesOfDOMElements(o.nextSibling),
                         )),
-                            this.foreignObjLayer.appendChild(o.nextSibling));
+                            this.foreignObjLayer.appendChild(o.nextSibling);
                 if (
                     (this._getImgDataURL(o),
                     o.setAttribute("xmlns", "http://www.w3.org/2000/svg"),
@@ -33000,7 +32969,7 @@ var __webpack_exports__ = {};
                         ? new Promise(function (t, s) {
                               try {
                                   o.onload = function () {
-                                      (a.drawImage(o, 0, 0, e, i), t());
+                                      a.drawImage(o, 0, 0, e, i), t();
                                   };
                               } catch (t) {
                                   s(t);
@@ -33085,8 +33054,8 @@ var __webpack_exports__ = {};
                         s.Z.exists(u) &&
                             ((p = u.style.display), (u.style.display = "none")),
                         (_ = function () {
-                            ((a.src = o.toDataURL("image/png")),
-                                b.removeChild(o));
+                            (a.src = o.toDataURL("image/png")),
+                                b.removeChild(o);
                         }),
                         "Promise" in window
                             ? this.dumpToCanvas(n, c, d, i).then(_)
@@ -33096,10 +33065,10 @@ var __webpack_exports__ = {};
                     this
                 );
             },
-        }));
+        });
     const I = t.Z.SVGRenderer;
-    ((t.Z.VMLRenderer = function (e) {
-        ((this.type = "vml"),
+    (t.Z.VMLRenderer = function (e) {
+        (this.type = "vml"),
             (this.container = e),
             (this.container.style.overflow = "hidden"),
             "" === this.container.style.position &&
@@ -33118,9 +33087,9 @@ var __webpack_exports__ = {};
                 t.Z.vmlStylesheet.addRule(
                     ".jxgvml",
                     "behavior:url(#default#VML)",
-                )));
+                ));
         try {
-            (e.ownerDocument.namespaces.jxgvml ||
+            e.ownerDocument.namespaces.jxgvml ||
                 e.ownerDocument.namespaces.add(
                     "jxgvml",
                     "urn:schemas-microsoft-com:vml",
@@ -33129,7 +33098,7 @@ var __webpack_exports__ = {};
                     return e.ownerDocument.createElement(
                         "<jxgvml:" + t + ' class="jxgvml">',
                     );
-                }));
+                });
         } catch (t) {
             this.createNode = function (t) {
                 return e.ownerDocument.createElement(
@@ -33169,7 +33138,7 @@ var __webpack_exports__ = {};
                     a = this.resolution,
                     h = [];
                 for (i = t.ticks.length, e = 0; e < i; e++)
-                    ((o = (r = t.ticks[e])[0]),
+                    (o = (r = t.ticks[e])[0]),
                         (n = r[1]),
                         s.Z.isNumber(o[0]) &&
                             s.Z.isNumber(o[1]) &&
@@ -33183,8 +33152,8 @@ var __webpack_exports__ = {};
                                     ", " +
                                     Math.round(a * n[1]) +
                                     " ",
-                            ));
-                (s.Z.exists(t.rendNode) ||
+                            );
+                s.Z.exists(t.rendNode) ||
                     ((t.rendNode = this.createPrim("path", t.id)),
                     this.appendChildPrim(
                         t.rendNode,
@@ -33207,11 +33176,11 @@ var __webpack_exports__ = {};
                         "opacity",
                         100 * s.Z.evaluate(t.visProp.strokeopacity) + "%",
                     ),
-                    this.updatePathPrim(t.rendNode, h, t.board));
+                    this.updatePathPrim(t.rendNode, h, t.board);
             },
             displayCopyright: function (t, e) {
                 var i, s;
-                (((i = this.createNode("textbox")).style.position = "absolute"),
+                ((i = this.createNode("textbox")).style.position = "absolute"),
                     this._setAttr(i, "id", this.container.id + "_licenseText"),
                     (i.style.left = 20),
                     (i.style.top = 2),
@@ -33223,7 +33192,7 @@ var __webpack_exports__ = {};
                         "progid:DXImageTransform.Microsoft.Matrix(M11='1.0', sizingMethod='auto expand', enabled = false) progid:DXImageTransform.Microsoft.Alpha(opacity = 30, enabled = true)"),
                     (s = this.container.ownerDocument.createTextNode(t)),
                     i.appendChild(s),
-                    this.appendChildPrim(i, 0));
+                    this.appendChildPrim(i, 0);
             },
             drawInternalText: function (t) {
                 var e;
@@ -33305,11 +33274,11 @@ var __webpack_exports__ = {};
                         a < 4;
                         a++
                     )
-                        ((i = Math.max(i, u[a][1])),
+                        (i = Math.max(i, u[a][1])),
                             (r = Math.min(r, u[a][1])),
                             (s = Math.max(s, u[a][2])),
-                            (n = Math.min(n, u[a][2])));
-                    ((e =
+                            (n = Math.min(n, u[a][2]));
+                    (e =
                         1 === c[0]
                             ? Math.floor(t.board.canvasWidth - i)
                             : Math.floor(r)),
@@ -33330,19 +33299,18 @@ var __webpack_exports__ = {};
                                   (t.rendNode.style.top = "auto"))
                                 : ((t.rendNode.style.top = e + "px"),
                                   (t.rendNode.style.bottom = "auto")),
-                            (t.visPropOld.top = _ + e)));
+                            (t.visPropOld.top = _ + e));
                 }
-                (t.htmlStr !== h &&
-                    ((t.rendNodeText.data = h), (t.htmlStr = h)),
+                t.htmlStr !== h && ((t.rendNodeText.data = h), (t.htmlStr = h)),
                     (d.filters.item(0).M11 = l[1][1]),
                     (d.filters.item(0).M12 = l[1][2]),
                     (d.filters.item(0).M21 = l[2][1]),
                     (d.filters.item(0).M22 = l[2][2]),
-                    (d.filters.item(0).enabled = !0));
+                    (d.filters.item(0).enabled = !0);
             },
             drawImage: function (t) {
                 var e;
-                (((e =
+                ((e =
                     this.container.ownerDocument.createElement(
                         "img",
                     )).style.position = "absolute"),
@@ -33352,7 +33320,7 @@ var __webpack_exports__ = {};
                     (e.style.filter =
                         "progid:DXImageTransform.Microsoft.Matrix(M11='1.0', sizingMethod='auto expand') progid:DXImageTransform.Microsoft.Alpha(opacity = 100, enabled = false)"),
                     (t.rendNode = e),
-                    this.updateImage(t));
+                    this.updateImage(t);
             },
             transformImage: function (t, e) {
                 var i,
@@ -33398,17 +33366,17 @@ var __webpack_exports__ = {};
                         h < 4;
                         h++
                     )
-                        ((s = Math.max(s, c[h][1])),
+                        (s = Math.max(s, c[h][1])),
                             (n = Math.min(n, c[h][1])),
                             (r = Math.max(r, c[h][2])),
-                            (a = Math.min(a, c[h][2])));
-                    ((l.style.left = Math.floor(n) + "px"),
+                            (a = Math.min(a, c[h][2]));
+                    (l.style.left = Math.floor(n) + "px"),
                         (l.style.top = Math.floor(a) + "px"),
                         (l.filters.item(0).M11 = i[1][1]),
                         (l.filters.item(0).M12 = i[1][2]),
                         (l.filters.item(0).M21 = i[2][1]),
                         (l.filters.item(0).M22 = i[2][2]),
-                        (l.filters.item(0).enabled = !0));
+                        (l.filters.item(0).enabled = !0);
                 }
             },
             updateImageURL: function (t) {
@@ -33424,12 +33392,12 @@ var __webpack_exports__ = {};
                 );
             },
             appendNodesToElement: function (t, e) {
-                (("shape" !== e && "path" !== e && "polygon" !== e) ||
+                ("shape" !== e && "path" !== e && "polygon" !== e) ||
                     (t.rendNodePath = this.getElementById(t.id + "_path")),
                     (t.rendNodeFill = this.getElementById(t.id + "_fill")),
                     (t.rendNodeStroke = this.getElementById(t.id + "_stroke")),
                     (t.rendNodeShadow = this.getElementById(t.id + "_shadow")),
-                    (t.rendNode = this.getElementById(t.id)));
+                    (t.rendNode = this.getElementById(t.id));
             },
             createPrim: function (t, e) {
                 var i,
@@ -33513,10 +33481,10 @@ var __webpack_exports__ = {};
                     (t.visPropOld.lastarrow = r));
             },
             updateEllipsePrim: function (t, e, i, s, r) {
-                ((t.style.left = Math.floor(e - s) + "px"),
+                (t.style.left = Math.floor(e - s) + "px"),
                     (t.style.top = Math.floor(i - r) + "px"),
                     (t.style.width = Math.floor(2 * Math.abs(s)) + "px"),
-                    (t.style.height = Math.floor(2 * Math.abs(r)) + "px"));
+                    (t.style.height = Math.floor(2 * Math.abs(r)) + "px");
             },
             updateLinePrim: function (t, e, i, s, r, o) {
                 var n,
@@ -33537,7 +33505,7 @@ var __webpack_exports__ = {};
             updatePathPrim: function (t, e, i) {
                 var s = i.canvasWidth,
                     r = i.canvasHeight;
-                (e.length <= 0 && (e = ["m 0,0"]),
+                e.length <= 0 && (e = ["m 0,0"]),
                     (t.style.width = s),
                     (t.style.height = r),
                     this._setAttr(
@@ -33548,7 +33516,7 @@ var __webpack_exports__ = {};
                             Math.floor(this.resolution * r),
                         ].join(","),
                     ),
-                    this._setAttr(t, "path", e.join("")));
+                    this._setAttr(t, "path", e.join(""));
             },
             updatePathStringPoint: function (t, e, i) {
                 var s = [],
@@ -33712,7 +33680,7 @@ var __webpack_exports__ = {};
                 if (t.numberPoints <= 0) return "";
                 if (((h = Math.min(h, t.points.length)), 1 === t.bezierDegree))
                     for (e = 0; e < h; e++)
-                        ((i = t.points[e].scrCoords),
+                        (i = t.points[e].scrCoords),
                             isNaN(i[1]) || isNaN(i[2])
                                 ? (a = n)
                                 : (i[1] > 2e4
@@ -33726,10 +33694,10 @@ var __webpack_exports__ = {};
                                           "",
                                       ),
                                   ),
-                                  (a = " l ")));
+                                  (a = " l "));
                 else if (3 === t.bezierDegree)
                     for (e = 0; e < h; )
-                        ((i = t.points[e].scrCoords),
+                        (i = t.points[e].scrCoords),
                             isNaN(i[1]) || isNaN(i[2])
                                 ? (a = n)
                                 : (s.push(
@@ -33759,8 +33727,8 @@ var __webpack_exports__ = {};
                                           ].join(""),
                                       )),
                                   (a = " c ")),
-                            (e += 1));
-                return (s.push(" e"), s);
+                            (e += 1);
+                return s.push(" e"), s;
             },
             updatePathStringBezierPrim: function (t) {
                 var e,
@@ -33788,7 +33756,7 @@ var __webpack_exports__ = {};
                     i++
                 )
                     for (_ = p, e = 0; e < b; e++)
-                        ((o = t.points[e].scrCoords),
+                        (o = t.points[e].scrCoords),
                             isNaN(o[1]) || isNaN(o[2])
                                 ? (_ = p)
                                 : (o[1] > 2e4
@@ -33857,8 +33825,8 @@ var __webpack_exports__ = {};
                                         )),
                                   (_ = " c "),
                                   (n = o[1]),
-                                  (a = o[2])));
-                return (h.push(" e"), h);
+                                  (a = o[2]));
+                return h.push(" e"), h;
             },
             updatePolygonPrim: function (t, e) {
                 var i,
@@ -33892,19 +33860,19 @@ var __webpack_exports__ = {};
                             isNaN(s[1] + s[2]))
                         )
                             return;
-                        (n.push(
+                        n.push(
                             Math.floor(o * s[1]) + "," + Math.floor(o * s[2]),
                         ),
-                            i < r - 2 && n.push(", "));
+                            i < r - 2 && n.push(", ");
                     }
-                    (n.push(" x e"), this.updatePathPrim(t, n, e.board));
+                    n.push(" x e"), this.updatePathPrim(t, n, e.board);
                 }
             },
             updateRectPrim: function (t, e, i, s, r) {
-                ((t.style.left = Math.floor(e) + "px"),
+                (t.style.left = Math.floor(e) + "px"),
                     (t.style.top = Math.floor(i) + "px"),
                     s >= 0 && (t.style.width = s + "px"),
-                    r >= 0 && (t.style.height = r + "px"));
+                    r >= 0 && (t.style.height = r + "px");
             },
             setPropertyPrim: function (t, e, i) {
                 var r,
@@ -33928,22 +33896,20 @@ var __webpack_exports__ = {};
                     (t.rendNode.style.visibility = e ? "inherit" : "hidden"));
             },
             show: function (e) {
-                (t.Z.deprecated(
+                t.Z.deprecated(
                     "Board.renderer.show()",
                     "Board.renderer.display()",
                 ),
                     e &&
                         e.rendNode &&
-                        (e.rendNode.style.visibility = "inherit"));
+                        (e.rendNode.style.visibility = "inherit");
             },
             hide: function (e) {
-                (t.Z.deprecated(
+                t.Z.deprecated(
                     "Board.renderer.hide()",
                     "Board.renderer.display()",
                 ),
-                    e &&
-                        e.rendNode &&
-                        (e.rendNode.style.visibility = "hidden"));
+                    e && e.rendNode && (e.rendNode.style.visibility = "hidden");
             },
             setDashStyle: function (t, e) {
                 var i;
@@ -34002,7 +33968,7 @@ var __webpack_exports__ = {};
                     h = s.Z.evaluate(e),
                     l = s.Z.evaluate(r),
                     c = t.rendNode;
-                ((l = l > 0 ? l : 0),
+                (l = l > 0 ? l : 0),
                     (t.visPropOld.fillcolor === h &&
                         t.visPropOld.fillopacity === l) ||
                         (s.Z.exists(h) &&
@@ -34029,7 +33995,7 @@ var __webpack_exports__ = {};
                                 )),
                                 (c.filters.item(1).enabled = !0))),
                         (t.visPropOld.fillcolor = h),
-                        (t.visPropOld.fillopacity = l)));
+                        (t.visPropOld.fillopacity = l));
             },
             setObjectStrokeColor: function (t, e, r) {
                 var o,
@@ -34039,7 +34005,7 @@ var __webpack_exports__ = {};
                     l = s.Z.evaluate(e),
                     c = s.Z.evaluate(r),
                     d = t.rendNode;
-                ((c = c > 0 ? c : 0),
+                (c = c > 0 ? c : 0),
                     (t.visPropOld.strokecolor === l &&
                         t.visPropOld.strokeopacity === c) ||
                         (s.Z.exists(l) &&
@@ -34067,7 +34033,7 @@ var __webpack_exports__ = {};
                                           100 * a + "%",
                                       ))),
                         (t.visPropOld.strokecolor = l),
-                        (t.visPropOld.strokeopacity = c)));
+                        (t.visPropOld.strokeopacity = c));
             },
             setObjectStrokeWidth: function (t, e) {
                 var i,
@@ -34102,13 +34068,13 @@ var __webpack_exports__ = {};
             unsuspendRedraw: function () {
                 this.container.style.display = "";
             },
-        }));
+        });
     const Y = t.Z.VMLRenderer;
     var j =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split(
             "",
         );
-    ((t.Z.Util = t.Z.Util || {}),
+    (t.Z.Util = t.Z.Util || {}),
         (t.Z.Util.genUUID = function (t) {
             var e,
                 i,
@@ -34132,9 +34098,9 @@ var __webpack_exports__ = {};
                         (r >>= 4),
                         (s[i] = j[19 === i ? (3 & e) | 8 : e]));
             return t + s.join("");
-        }));
+        });
     const X = t.Z.Util;
-    ((t.Z.CanvasRenderer = function (i, s) {
+    (t.Z.CanvasRenderer = function (i, s) {
         if (
             ((this.type = "canvas"),
             (this.canvasRoot = null),
@@ -34143,7 +34109,7 @@ var __webpack_exports__ = {};
             (this.canvasNamespace = null),
             e.Z.isBrowser)
         )
-            ((this.container = i),
+            (this.container = i),
                 (this.container.style.MozUserSelect = "none"),
                 (this.container.style.userSelect = "none"),
                 (this.container.style.overflow = "hidden"),
@@ -34163,11 +34129,11 @@ var __webpack_exports__ = {};
                     this.canvasId,
                 )),
                 (this.canvasRoot.style.display = "block"),
-                (this.context = this.canvasRoot.getContext("2d")));
+                (this.context = this.canvasRoot.getContext("2d"));
         else if (e.Z.isNode())
             try {
-                ((this.canvasRoot = t.Z.createCanvas(500, 500)),
-                    (this.context = this.canvasRoot.getContext("2d")));
+                (this.canvasRoot = t.Z.createCanvas(500, 500)),
+                    (this.context = this.canvasRoot.getContext("2d"));
             } catch (t) {
                 throw new Error(
                     'JXG.createCanvas not available.\nInstall the npm package `canvas`\nand call:\n    import { createCanvas } from "canvas";\n    JXG.createCanvas = createCanvas;\n',
@@ -34215,9 +34181,9 @@ var __webpack_exports__ = {};
             },
             _fill: function (t) {
                 var e = this.context;
-                (e.save(),
+                e.save(),
                     this._setColor(t, "fill") && e.fill("evenodd"),
-                    e.restore());
+                    e.restore();
             },
             _rotatePoint: function (t, e, i) {
                 return [
@@ -34378,12 +34344,12 @@ var __webpack_exports__ = {};
             _stroke: function (t) {
                 var e = this.context,
                     i = s.Z.evaluate(t.visProp.dash);
-                (e.save(),
+                e.save(),
                     i > 0
                         ? e.setLineDash && e.setLineDash(this.dashArray[i])
                         : (this.context.lineDashArray = []),
                     this._setColor(t, "stroke") && e.stroke(),
-                    e.restore());
+                    e.restore();
             },
             _translateShape: function (t, e, i) {
                 var s,
@@ -34405,7 +34371,7 @@ var __webpack_exports__ = {};
                     switch (e) {
                         case "cross":
                         case "x":
-                            (h.beginPath(),
+                            h.beginPath(),
                                 h.moveTo(r[1] - i, r[2] - i),
                                 h.lineTo(r[1] + i, r[2] + i),
                                 h.moveTo(r[1] + i, r[2] - i),
@@ -34413,11 +34379,11 @@ var __webpack_exports__ = {};
                                 (h.lineCap = "round"),
                                 (h.lineJoin = "round"),
                                 h.closePath(),
-                                this._stroke(t));
+                                this._stroke(t);
                             break;
                         case "circle":
                         case "o":
-                            (h.beginPath(),
+                            h.beginPath(),
                                 h.arc(
                                     r[1],
                                     r[2],
@@ -34428,12 +34394,12 @@ var __webpack_exports__ = {};
                                 ),
                                 h.closePath(),
                                 this._fill(t),
-                                this._stroke(t));
+                                this._stroke(t);
                             break;
                         case "square":
                         case "[]":
                             if (i <= 0) break;
-                            (h.save(),
+                            h.save(),
                                 this._setColor(t, "stroke", "fill") &&
                                     h.fillRect(
                                         r[1] - i - a,
@@ -34450,11 +34416,11 @@ var __webpack_exports__ = {};
                                     2 * i - a,
                                     2 * i - a,
                                 ),
-                                h.restore());
+                                h.restore();
                             break;
                         case "plus":
                         case "+":
-                            (h.beginPath(),
+                            h.beginPath(),
                                 h.moveTo(r[1] - i, r[2]),
                                 h.lineTo(r[1] + i, r[2]),
                                 h.moveTo(r[1], r[2] - i),
@@ -34462,79 +34428,79 @@ var __webpack_exports__ = {};
                                 (h.lineCap = "round"),
                                 (h.lineJoin = "round"),
                                 h.closePath(),
-                                this._stroke(t));
+                                this._stroke(t);
                             break;
                         case "divide":
                         case "|":
-                            (h.beginPath(),
+                            h.beginPath(),
                                 h.moveTo(r[1], r[2] - i),
                                 h.lineTo(r[1], r[2] + i),
                                 (h.lineCap = "round"),
                                 (h.lineJoin = "round"),
                                 h.closePath(),
-                                this._stroke(t));
+                                this._stroke(t);
                             break;
                         case "minus":
                         case "-":
-                            (h.beginPath(),
+                            h.beginPath(),
                                 h.moveTo(r[1] - i, r[2]),
                                 h.lineTo(r[1] + i, r[2]),
                                 (h.lineCap = "round"),
                                 (h.lineJoin = "round"),
                                 h.closePath(),
-                                this._stroke(t));
+                                this._stroke(t);
                             break;
                         case "diamond":
                         case "<>":
-                            (h.beginPath(),
+                            h.beginPath(),
                                 h.moveTo(r[1] - i, r[2]),
                                 h.lineTo(r[1], r[2] + i),
                                 h.lineTo(r[1] + i, r[2]),
                                 h.lineTo(r[1], r[2] - i),
                                 h.closePath(),
                                 this._fill(t),
-                                this._stroke(t));
+                                this._stroke(t);
                             break;
                         case "triangleup":
                         case "a":
                         case "^":
-                            (h.beginPath(),
+                            h.beginPath(),
                                 h.moveTo(r[1], r[2] - i),
                                 h.lineTo(r[1] - o, r[2] + n),
                                 h.lineTo(r[1] + o, r[2] + n),
                                 h.closePath(),
                                 this._fill(t),
-                                this._stroke(t));
+                                this._stroke(t);
                             break;
                         case "triangledown":
                         case "v":
-                            (h.beginPath(),
+                            h.beginPath(),
                                 h.moveTo(r[1], r[2] + i),
                                 h.lineTo(r[1] - o, r[2] - n),
                                 h.lineTo(r[1] + o, r[2] - n),
                                 h.closePath(),
                                 this._fill(t),
-                                this._stroke(t));
+                                this._stroke(t);
                             break;
                         case "triangleleft":
                         case "<":
-                            (h.beginPath(),
+                            h.beginPath(),
                                 h.moveTo(r[1] - i, r[2]),
                                 h.lineTo(r[1] + n, r[2] - o),
                                 h.lineTo(r[1] + n, r[2] + o),
                                 h.closePath(),
                                 this._fill(t),
-                                this._stroke(t));
+                                this._stroke(t);
                             break;
                         case "triangleright":
                         case ">":
-                            (h.beginPath(),
+                            h.beginPath(),
                                 h.moveTo(r[1] + i, r[2]),
                                 h.lineTo(r[1] - n, r[2] - o),
                                 h.lineTo(r[1] - n, r[2] + o),
                                 h.closePath(),
                                 this._fill(t),
-                                this._stroke(t));
+                                this._stroke(t);
                     }
             },
             updatePoint: function (t) {
@@ -34572,11 +34538,11 @@ var __webpack_exports__ = {};
                     (N || A)
                 ) {
                     if (t.elementClass === i.Z.OBJECT_CLASS_LINE)
-                        ((a = e.scrCoords[1]),
+                        (a = e.scrCoords[1]),
                             (h = e.scrCoords[2]),
                             (l = r.scrCoords[1]),
                             (c = r.scrCoords[2]),
-                            (O = x = Math.atan2(c - h, l - a)));
+                            (O = x = Math.atan2(c - h, l - a));
                     else {
                         if (
                             ((a = t.points[0].scrCoords[1]),
@@ -34584,7 +34550,7 @@ var __webpack_exports__ = {};
                             (E = t.points.length - 1) < 1)
                         )
                             return;
-                        ((l = t.points[t.points.length - 1].scrCoords[1]),
+                        (l = t.points[t.points.length - 1].scrCoords[1]),
                             (c = t.points[t.points.length - 1].scrCoords[2]),
                             (Z =
                                 t.points[1].scrCoords[1] -
@@ -34599,7 +34565,7 @@ var __webpack_exports__ = {};
                                 t.points[E].scrCoords[2] -
                                 t.points[E - 1].scrCoords[2]),
                             N && (O = Math.atan2(C, Z)),
-                            A && (x = Math.atan2(P, y)));
+                            A && (x = Math.atan2(P, y));
                     }
                     if (((d = s.Z.evaluate(t.visProp[o + "strokewidth"])), N))
                         if (
@@ -34643,10 +34609,10 @@ var __webpack_exports__ = {};
                                 m < v;
                                 m++
                             )
-                                ((_[m][0] *= -u),
+                                (_[m][0] *= -u),
                                     (_[m][1] *= u),
                                     (_[m][0] += 10 * u),
-                                    (_[m][1] -= 3.31 * u));
+                                    (_[m][1] -= 3.31 * u);
                         else if (5 === S)
                             for (
                                 u /= 10,
@@ -34670,10 +34636,10 @@ var __webpack_exports__ = {};
                                 m < v;
                                 m++
                             )
-                                ((_[m][0] *= -u),
+                                (_[m][0] *= -u),
                                     (_[m][1] *= u),
                                     (_[m][0] += 10 * u),
-                                    (_[m][1] -= 3.28 * u));
+                                    (_[m][1] -= 3.28 * u);
                         else if (6 === S)
                             for (
                                 u /= 10,
@@ -34697,10 +34663,10 @@ var __webpack_exports__ = {};
                                 m < v;
                                 m++
                             )
-                                ((_[m][0] *= -u),
+                                (_[m][0] *= -u),
                                     (_[m][1] *= u),
                                     (_[m][0] += 10 * u),
-                                    (_[m][1] -= 2.84 * u));
+                                    (_[m][1] -= 2.84 * u);
                         else if (7 === S)
                             for (
                                 u = d,
@@ -34718,10 +34684,10 @@ var __webpack_exports__ = {};
                                 m < v;
                                 m++
                             )
-                                ((_[m][0] *= -u),
+                                (_[m][0] *= -u),
                                     (_[m][1] *= u),
                                     (_[m][0] += 10 * u),
-                                    (_[m][1] -= 5.2 * u));
+                                    (_[m][1] -= 5.2 * u);
                         else
                             _ = [
                                 [u, 0.5 * -u],
@@ -34770,10 +34736,10 @@ var __webpack_exports__ = {};
                                 m < v;
                                 m++
                             )
-                                ((p[m][0] *= u),
+                                (p[m][0] *= u),
                                     (p[m][1] *= u),
                                     (p[m][0] -= 10 * u),
-                                    (p[m][1] -= 3.31 * u));
+                                    (p[m][1] -= 3.31 * u);
                         else if (5 === S)
                             for (
                                 u /= 10,
@@ -34797,10 +34763,10 @@ var __webpack_exports__ = {};
                                 m < v;
                                 m++
                             )
-                                ((p[m][0] *= u),
+                                (p[m][0] *= u),
                                     (p[m][1] *= u),
                                     (p[m][0] -= 10 * u),
-                                    (p[m][1] -= 3.28 * u));
+                                    (p[m][1] -= 3.28 * u);
                         else if (6 === S)
                             for (
                                 u /= 10,
@@ -34824,10 +34790,10 @@ var __webpack_exports__ = {};
                                 m < v;
                                 m++
                             )
-                                ((p[m][0] *= u),
+                                (p[m][0] *= u),
                                     (p[m][1] *= u),
                                     (p[m][0] -= 10 * u),
-                                    (p[m][1] -= 2.84 * u));
+                                    (p[m][1] -= 2.84 * u);
                         else if (7 === S)
                             for (
                                 u = d,
@@ -34845,17 +34811,17 @@ var __webpack_exports__ = {};
                                 m < v;
                                 m++
                             )
-                                ((p[m][0] *= u),
+                                (p[m][0] *= u),
                                     (p[m][1] *= u),
                                     (p[m][0] -= 10 * u),
-                                    (p[m][1] -= 5.2 * u));
+                                    (p[m][1] -= 5.2 * u);
                         else
                             p = [
                                 [-u, 0.5 * -u],
                                 [0, 0],
                                 [-u, 0.5 * u],
                             ];
-                    (w.save(),
+                    w.save(),
                         this._setColor(t, "stroke", "fill") &&
                             (this._setColor(t, "stroke"),
                             N &&
@@ -34880,7 +34846,7 @@ var __webpack_exports__ = {};
                                     M,
                                     g,
                                 ))),
-                        w.restore());
+                        w.restore();
                 }
             },
             drawLine: function (t) {
@@ -34941,11 +34907,11 @@ var __webpack_exports__ = {};
                         ++n
                     )
                         h.lineTo(s[n], r[n]);
-                ((h.lineCap = "round"), this._stroke(t));
+                (h.lineCap = "round"), this._stroke(t);
             },
             drawCurve: function (t) {
                 var e, i, r;
-                (s.Z.evaluate(t.visProp.handdrawing)
+                s.Z.evaluate(t.visProp.handdrawing)
                     ? this.updatePathStringBezierPrim(t)
                     : this.updatePathStringPrim(t),
                     t.numberPoints > 1 &&
@@ -34953,7 +34919,7 @@ var __webpack_exports__ = {};
                         (i = s.Z.evaluate(t.visProp[e + "strokewidth"])),
                         ((r = this.getArrowHeadData(t, i, e)).evFirst ||
                             r.evLast) &&
-                            this.drawArrows(t, null, null, e, r)));
+                            this.drawArrows(t, null, null, e, r));
             },
             updateCurve: function (t) {
                 this.drawCurve(t);
@@ -34994,12 +34960,12 @@ var __webpack_exports__ = {};
             },
             displayCopyright: function (t, e) {
                 var i = this.context;
-                (i.save(),
+                i.save(),
                     (i.font = e + "px Arial"),
                     (i.fillStyle = "#aaa"),
                     (i.lineWidth = 0.5),
                     i.fillText(t, 10, 2 + e),
-                    i.restore());
+                    i.restore();
             },
             drawInternalText: function (t) {
                 var e = s.Z.evaluate(t.visProp.fontsize),
@@ -35042,7 +35008,7 @@ var __webpack_exports__ = {};
                     h,
                     l = s.Z.evaluate(e),
                     c = s.Z.evaluate(r);
-                ((c = c > 0 ? c : 0),
+                (c = c > 0 ? c : 0),
                     (t.visPropOld.strokecolor === l &&
                         t.visPropOld.strokeopacity === c) ||
                         (s.Z.exists(l) &&
@@ -35056,18 +35022,16 @@ var __webpack_exports__ = {};
                                 "html" === s.Z.evaluate(t.visProp.display) &&
                                 ((h.style.color = o), (h.style.opacity = a))),
                         (t.visPropOld.strokecolor = l),
-                        (t.visPropOld.strokeopacity = c)));
+                        (t.visPropOld.strokeopacity = c));
             },
             drawImage: function (t) {
-                ((t.rendNode = new Image()),
-                    (t._src = ""),
-                    this.updateImage(t));
+                (t.rendNode = new Image()), (t._src = ""), this.updateImage(t);
             },
             updateImage: function (t) {
                 var e = this.context,
                     i = s.Z.evaluate(t.visProp.fillopacity),
                     r = s.Z.bind(function () {
-                        ((t.imgIsLoaded = !0),
+                        (t.imgIsLoaded = !0),
                             t.size[0] <= 0 ||
                                 t.size[1] <= 0 ||
                                 (e.save(),
@@ -35080,7 +35044,7 @@ var __webpack_exports__ = {};
                                     t.size[0],
                                     t.size[1],
                                 ),
-                                e.restore()));
+                                e.restore());
                     }, this);
                 this.updateImageURL(t)
                     ? (t.rendNode.onload = r)
@@ -35135,7 +35099,7 @@ var __webpack_exports__ = {};
                         1 === t.bezierDegree)
                     )
                         for (e = 0; e < o; e++)
-                            ((i = t.points[e].scrCoords),
+                            (i = t.points[e].scrCoords),
                                 isNaN(i[1]) || isNaN(i[2])
                                     ? (a = n)
                                     : (i[1] > h
@@ -35147,10 +35111,10 @@ var __webpack_exports__ = {};
                                       a === n
                                           ? l.moveTo(i[1], i[2])
                                           : l.lineTo(i[1], i[2]),
-                                      (a = "L")));
+                                      (a = "L"));
                     else if (3 === t.bezierDegree)
                         for (e = 0; e < o; )
-                            ((i = t.points[e].scrCoords),
+                            (i = t.points[e].scrCoords),
                                 isNaN(i[1]) || isNaN(i[2])
                                     ? (a = n)
                                     : (a === n
@@ -35168,8 +35132,8 @@ var __webpack_exports__ = {};
                                                 r[2],
                                             )),
                                       (a = "C")),
-                                (e += 1));
-                    ((l.lineCap = "round"), this._fill(t), this._stroke(t));
+                                (e += 1);
+                    (l.lineCap = "round"), this._fill(t), this._stroke(t);
                 }
             },
             updatePathStringBezierPrim: function (t) {
@@ -35198,7 +35162,7 @@ var __webpack_exports__ = {};
                         i++
                     )
                         for (d = c, e = 0; e < h; e++)
-                            ((o = t.points[e].scrCoords),
+                            (o = t.points[e].scrCoords),
                                 isNaN(o[1]) || isNaN(o[2])
                                     ? (d = c)
                                     : (o[1] > u
@@ -35228,8 +35192,8 @@ var __webpack_exports__ = {};
                                             )),
                                       (d = "C"),
                                       (n = o[1]),
-                                      (a = o[2])));
-                    ((f.lineCap = "round"), this._fill(t), this._stroke(t));
+                                      (a = o[2]));
+                    (f.lineCap = "round"), this._fill(t), this._stroke(t);
                 }
             },
             updatePolygonPrim: function (t, e) {
@@ -35247,7 +35211,7 @@ var __webpack_exports__ = {};
                         !e.vertices[s].isReal && s < o - 1;
 
                     )
-                        (s++, (a = !1));
+                        s++, (a = !1);
                     for (
                         i = e.vertices[s].coords.scrCoords,
                             n.moveTo(i[1], i[2]),
@@ -35255,10 +35219,10 @@ var __webpack_exports__ = {};
                         r < o - 1;
                         r++
                     )
-                        (e.vertices[r].isReal || (a = !1),
+                        e.vertices[r].isReal || (a = !1),
                             (i = e.vertices[r].coords.scrCoords),
-                            n.lineTo(i[1], i[2]));
-                    (n.closePath(), a && this._fill(e));
+                            n.lineTo(i[1], i[2]);
+                    n.closePath(), a && this._fill(e);
                 }
             },
             display: function (t, e) {
@@ -35268,20 +35232,20 @@ var __webpack_exports__ = {};
                     (t.rendNode.style.visibility = e ? "inherit" : "hidden"));
             },
             show: function (e) {
-                (t.Z.deprecated(
+                t.Z.deprecated(
                     "Board.renderer.show()",
                     "Board.renderer.display()",
                 ),
                     s.Z.exists(e.rendNode) &&
-                        (e.rendNode.style.visibility = "inherit"));
+                        (e.rendNode.style.visibility = "inherit");
             },
             hide: function (e) {
-                (t.Z.deprecated(
+                t.Z.deprecated(
                     "Board.renderer.hide()",
                     "Board.renderer.display()",
                 ),
                     s.Z.exists(e.rendNode) &&
-                        (e.rendNode.style.visibility = "hidden"));
+                        (e.rendNode.style.visibility = "hidden");
             },
             setGradient: function (t) {
                 var e;
@@ -35316,7 +35280,7 @@ var __webpack_exports__ = {};
                 );
             },
             suspendRedraw: function (e) {
-                (this.context.save(),
+                this.context.save(),
                     this.context.clearRect(
                         0,
                         0,
@@ -35325,13 +35289,13 @@ var __webpack_exports__ = {};
                     ),
                     e &&
                         e.attr.showcopyright &&
-                        this.displayCopyright(t.Z.licenseText, 12));
+                        this.displayCopyright(t.Z.licenseText, 12);
             },
             unsuspendRedraw: function () {
                 this.context.restore();
             },
             resize: function (t, e) {
-                (this.container
+                this.container
                     ? ((this.canvasRoot.style.width = parseFloat(t) + "px"),
                       (this.canvasRoot.style.height = parseFloat(e) + "px"),
                       this.canvasRoot.setAttribute(
@@ -35345,15 +35309,15 @@ var __webpack_exports__ = {};
                     : ((this.canvasRoot.width = 2 * parseFloat(t)),
                       (this.canvasRoot.height = 2 * parseFloat(e))),
                     (this.context = this.canvasRoot.getContext("2d")),
-                    this.context.scale(2, 2));
+                    this.context.scale(2, 2);
             },
             removeToInsertLater: function () {
                 return function () {};
             },
-        }));
+        });
     const U = t.Z.CanvasRenderer;
-    ((t.Z.NoRenderer = function () {
-        ((this.enhancedRendering = !1), (this.type = "no"));
+    (t.Z.NoRenderer = function () {
+        (this.enhancedRendering = !1), (this.type = "no");
     }),
         t.Z.extend(t.Z.NoRenderer.prototype, {
             drawPoint: function (t) {},
@@ -35425,9 +35389,9 @@ var __webpack_exports__ = {};
                 return function () {};
             },
         }),
-        (t.Z.NoRenderer.prototype = new N()));
+        (t.Z.NoRenderer.prototype = new N());
     const F = t.Z.NoRenderer;
-    ((t.Z.JSXGraph = {
+    (t.Z.JSXGraph = {
         rendererType:
             ((M.Z.board.renderer = "no"),
             e.Z.supportsVML() &&
@@ -35506,12 +35470,12 @@ var __webpack_exports__ = {};
             );
         },
         _fillBoard: function (e, i, s) {
-            (e.initInfobox(),
+            e.initInfobox(),
                 (e.maxboundingbox = i.maxboundingbox),
                 e.resizeContainer(s.width, s.height, !0, !0),
                 e._createSelectionPolygon(i),
                 e.renderer.drawZoomBar(e, i.navbar),
-                (t.Z.boards[e.id] = e));
+                (t.Z.boards[e.id] = e);
         },
         _setARIA: function (t, i) {
             var s,
@@ -35525,7 +35489,7 @@ var __webpack_exports__ = {};
                 if (!e.Z.isBrowser) return;
                 l = document;
             }
-            ((s = (r = l.getElementById(t)).ownerDocument),
+            (s = (r = l.getElementById(t)).ownerDocument),
                 (n = r.parentNode),
                 (a = t + "_ARIAlabel"),
                 (h = t + "_ARIAdescription"),
@@ -35538,7 +35502,7 @@ var __webpack_exports__ = {};
                 (o.style.display = "none"),
                 n.insertBefore(o, r),
                 r.setAttribute("aria-labelledby", a),
-                r.setAttribute("aria-describedby", h));
+                r.setAttribute("aria-describedby", h);
         },
         _removeARIANodes: function (t) {
             var e, i, s;
@@ -35722,17 +35686,17 @@ var __webpack_exports__ = {};
                 e.containerObj.removeChild(e.containerObj.firstChild);
             for (i in e.objects)
                 e.objects.hasOwnProperty(i) && delete e.objects[i];
-            (delete e.renderer,
+            delete e.renderer,
                 e.jc.creator.clearCache(),
                 delete e.jc,
-                delete t.Z.boards[e.id]);
+                delete t.Z.boards[e.id];
         },
         registerElement: function (e, i) {
-            (t.Z.deprecated(
+            t.Z.deprecated(
                 "JXG.JSXGraph.registerElement()",
                 "JXG.registerElement()",
             ),
-                t.Z.registerElement(e, i));
+                t.Z.registerElement(e, i);
         },
     }),
         e.Z.isBrowser &&
@@ -35783,8 +35747,8 @@ var __webpack_exports__ = {};
                         P = function (e, i, s, r) {
                             return function () {
                                 var o;
-                                (t.Z.JSXGraph.freeBoard(e),
-                                    ((o = y(i, s, r)).reload = P(o, i, s, r)));
+                                t.Z.JSXGraph.freeBoard(e),
+                                    ((o = y(i, s, r)).reload = P(o, i, s, r));
                             };
                         };
                     for (i = 0; i < C.length; i++)
@@ -35828,7 +35792,7 @@ var __webpack_exports__ = {};
                             )
                                 o = document.getElementById(n);
                             else {
-                                ((n = "jessiescript_autgen_jxg_" + i),
+                                (n = "jessiescript_autgen_jxg_" + i),
                                     (o =
                                         document.createElement(
                                             "div",
@@ -35842,7 +35806,7 @@ var __webpack_exports__ = {};
                                             ? "aspect-ratio:" + u + ";"
                                             : ""),
                                     o.setAttribute("style", h),
-                                    o.setAttribute("class", "jxgbox " + p));
+                                    o.setAttribute("class", "jxgbox " + p);
                                 try {
                                     document.body.insertBefore(o, C[i]);
                                 } catch (t) {
@@ -35850,7 +35814,7 @@ var __webpack_exports__ = {};
                                         jQuery(o).insertBefore(C[i]);
                                 }
                             }
-                            ((g = ""),
+                            (g = ""),
                                 s.Z.exists(m)
                                     ? ((Z = !0),
                                       (v = new XMLHttpRequest()).open("GET", m),
@@ -35865,13 +35829,13 @@ var __webpack_exports__ = {};
                                                   ":",
                                                   this.responseText,
                                               );
-                                          ((g = this.responseText + "\n" + g),
+                                          (g = this.responseText + "\n" + g),
                                               ((a = y(g, e, _)).reload = P(
                                                   a,
                                                   g,
                                                   e,
                                                   _,
-                                              )));
+                                              ));
                                       }),
                                       v.addEventListener("error", function (t) {
                                           throw new Error(
@@ -35897,16 +35861,16 @@ var __webpack_exports__ = {};
                                           )))
                                     : t.Z.debug(
                                           "JSXGraph: Apparently the div injection failed. Can't create a board, sorry.",
-                                      ));
+                                      );
                         }
                 },
                 window,
-            ));
+            );
     t.Z.JSXGraph;
     var J = __webpack_require__(958),
         G = __webpack_require__(218);
-    ((t.Z.Point = function (t, e, s) {
-        (this.constructor(t, s, i.Z.OBJECT_TYPE_POINT, i.Z.OBJECT_CLASS_POINT),
+    (t.Z.Point = function (t, e, s) {
+        this.constructor(t, s, i.Z.OBJECT_TYPE_POINT, i.Z.OBJECT_CLASS_POINT),
             (this.element = this.board.select(s.anchor)),
             this.coordsConstructor(e),
             (this.elType = "point"),
@@ -35914,7 +35878,7 @@ var __webpack_exports__ = {};
             this.board.renderer.drawPoint(this),
             this.board.finalizeAdding(this),
             this.createGradient(),
-            this.createLabel());
+            this.createLabel();
     }),
         (t.Z.Point.prototype = new J.Z()),
         s.Z.copyPrototypeMethods(t.Z.Point, G.Z, "coordsConstructor"),
@@ -35975,7 +35939,7 @@ var __webpack_exports__ = {};
                 return this;
             },
             updateRenderer: function () {
-                return (this.updateRendererGeneric("updatePoint"), this);
+                return this.updateRendererGeneric("updatePoint"), this;
             },
             bounds: function () {
                 return this.coords.usrCoords
@@ -35984,7 +35948,7 @@ var __webpack_exports__ = {};
             },
             makeIntersection: function (t, e, s, r) {
                 var o;
-                ((t = this.board.select(t)),
+                (t = this.board.select(t)),
                     (e = this.board.select(e)),
                     (o = u.Z.intersectionFunction(
                         this.board,
@@ -35994,9 +35958,9 @@ var __webpack_exports__ = {};
                         r,
                         this.visProp.alwaysintersect,
                     )),
-                    this.addConstraint([o]));
+                    this.addConstraint([o]);
                 try {
-                    (t.addChild(this), e.addChild(this));
+                    t.addChild(this), e.addChild(this);
                 } catch (i) {
                     throw new Error(
                         "JSXGraph: Can't create 'intersection' with parent types '" +
@@ -36006,7 +35970,7 @@ var __webpack_exports__ = {};
                             "'.",
                     );
                 }
-                ((this.type = i.Z.OBJECT_TYPE_INTERSECTION),
+                (this.type = i.Z.OBJECT_TYPE_INTERSECTION),
                     (this.elType = "intersection"),
                     (this.parents = [t.id, e.id, s, r]),
                     (this.generatePolynomial = function () {
@@ -36016,7 +35980,7 @@ var __webpack_exports__ = {};
                             ? []
                             : [i[0], s[0]];
                     }),
-                    this.prepareUpdate().update());
+                    this.prepareUpdate().update();
             },
             setStyle: function (t) {
                 return (
@@ -36052,12 +36016,12 @@ var __webpack_exports__ = {};
                 );
             },
             face: function (e) {
-                (t.Z.deprecated("Point.face()", "Point.setAttribute()"),
-                    this.setAttribute({ face: e }));
+                t.Z.deprecated("Point.face()", "Point.setAttribute()"),
+                    this.setAttribute({ face: e });
             },
             size: function (e) {
-                (t.Z.deprecated("Point.size()", "Point.setAttribute()"),
-                    this.setAttribute({ size: e }));
+                t.Z.deprecated("Point.size()", "Point.setAttribute()"),
+                    this.setAttribute({ size: e });
             },
             isOn: function (e, r) {
                 var n, a;
@@ -36177,7 +36141,7 @@ var __webpack_exports__ = {};
                 l,
                 c,
                 d = s.Z.copyAttributes(r, t.options, "intersection");
-            (e.push(0, 0),
+            e.push(0, 0),
                 (n = t.select(e[0])),
                 (a = t.select(e[1])),
                 (l = e[2] || 0),
@@ -36191,9 +36155,9 @@ var __webpack_exports__ = {};
                     c,
                     o.visProp.alwaysintersect,
                 )),
-                o.addConstraint([h]));
+                o.addConstraint([h]);
             try {
-                (n.addChild(o), a.addChild(o));
+                n.addChild(o), a.addChild(o);
             } catch (t) {
                 throw new Error(
                     "JSXGraph: Can't create 'intersection' with parent types '" +
@@ -36321,10 +36285,10 @@ var __webpack_exports__ = {};
             "otherintersection",
             t.Z.createOtherIntersectionPoint,
         ),
-        t.Z.registerElement("polepoint", t.Z.createPolePoint));
+        t.Z.registerElement("polepoint", t.Z.createPolePoint);
     const z = t.Z.Point;
-    ((t.Z.Line = function (e, s, r, o) {
-        (this.constructor(e, o, i.Z.OBJECT_TYPE_LINE, i.Z.OBJECT_CLASS_LINE),
+    (t.Z.Line = function (e, s, r, o) {
+        this.constructor(e, o, i.Z.OBJECT_TYPE_LINE, i.Z.OBJECT_CLASS_LINE),
             (this.point1 = this.board.select(s)),
             (this.point2 = this.board.select(r)),
             (this.ticks = []),
@@ -36352,7 +36316,7 @@ var __webpack_exports__ = {};
                 getAngle: "getAngle",
                 L: "L",
                 length: "L",
-            })));
+            }));
     }),
         (t.Z.Line.prototype = new J.Z()),
         t.Z.extend(t.Z.Line.prototype, {
@@ -36567,11 +36531,11 @@ var __webpack_exports__ = {};
                     this.point1.coords.usrCoords,
                     this.point2.coords.usrCoords,
                 );
-                ((this.stdform[0] = t[0]),
+                (this.stdform[0] = t[0]),
                     (this.stdform[1] = t[1]),
                     (this.stdform[2] = t[2]),
                     (this.stdform[3] = 0),
-                    this.normalize());
+                    this.normalize();
             },
             updateRenderer: function () {
                 return this.needsUpdate
@@ -36705,10 +36669,10 @@ var __webpack_exports__ = {};
                     );
                 switch (s.Z.evaluate(this.label.visProp.position)) {
                     case "last":
-                        ((t = a[1]), (e = a[2]));
+                        (t = a[1]), (e = a[2]);
                         break;
                     case "first":
-                        ((t = n[1]), (e = n[2]));
+                        (t = n[1]), (e = n[2]);
                         break;
                     case "lft":
                     case "llft":
@@ -36725,7 +36689,7 @@ var __webpack_exports__ = {};
                             : ((t = a[1]), (e = a[2]));
                         break;
                     default:
-                        ((t = 0.5 * (n[1] + a[1])), (e = 0.5 * (n[2] + a[2])));
+                        (t = 0.5 * (n[1] + a[1])), (e = 0.5 * (n[2] + a[2]));
                 }
                 return (
                     (h || l) &&
@@ -36788,8 +36752,8 @@ var __webpack_exports__ = {};
                     i = s.Z.isArray(t) ? t : [t],
                     r = i.length;
                 for (e = 0; e < r; e++)
-                    (this.point1.transformations.push(i[e]),
-                        this.point2.transformations.push(i[e]));
+                    this.point1.transformations.push(i[e]),
+                        this.point2.transformations.push(i[e]);
                 return this;
             },
             snapToGrid: function (t) {
@@ -36887,7 +36851,7 @@ var __webpack_exports__ = {};
                     Math.abs(this.point1.coords.usrCoords[0]) > o.Z.eps
                         ? this.point1.coords.usrCoords[0]
                         : this.point2.coords.usrCoords[0];
-                return ((t = 2 * (t - 0.5)), (1 - Math.abs(t)) * e);
+                return (t = 2 * (t - 0.5)), (1 - Math.abs(t)) * e;
             },
             L: function () {
                 return this.point1.Dist(this.point2);
@@ -36909,7 +36873,7 @@ var __webpack_exports__ = {};
                 ];
             },
             remove: function () {
-                (this.removeAllTicks(), J.Z.prototype.remove.call(this));
+                this.removeAllTicks(), J.Z.prototype.remove.call(this);
             },
         }),
         (t.Z.createLine = function (e, i, r) {
@@ -36925,20 +36889,20 @@ var __webpack_exports__ = {};
                 _ = !1;
             if (2 === i.length) {
                 if (s.Z.isArray(i[0]) && i[0].length > 1)
-                    ((c = s.Z.copyAttributes(r, e.options, "line", "point1")),
-                        (a = e.create("point", i[0], c)));
+                    (c = s.Z.copyAttributes(r, e.options, "line", "point1")),
+                        (a = e.create("point", i[0], c));
                 else if (s.Z.isString(i[0]) || s.Z.isPoint(i[0]))
                     a = e.select(i[0]);
                 else if (s.Z.isFunction(i[0]) && s.Z.isPoint(i[0]()))
-                    ((a = i[0]()), (_ = !0));
+                    (a = i[0]()), (_ = !0);
                 else if (
                     s.Z.isFunction(i[0]) &&
                     i[0]().length &&
                     i[0]().length >= 2
                 )
-                    ((c = s.Z.copyAttributes(r, e.options, "line", "point1")),
+                    (c = s.Z.copyAttributes(r, e.options, "line", "point1")),
                         (a = t.Z.createPoint(e, i[0](), c)),
-                        (_ = !0));
+                        (_ = !0);
                 else {
                     if (
                         !s.Z.isObject(i[0]) ||
@@ -36951,25 +36915,25 @@ var __webpack_exports__ = {};
                                 typeof i[1] +
                                 "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]",
                         );
-                    ((p = !0),
+                    (p = !0),
                         (c = s.Z.copyAttributes(
                             r,
                             e.options,
                             "line",
                             "point1",
                         )),
-                        (a = e.create("point", [i[0].point1, i[1]], c)));
+                        (a = e.create("point", [i[0].point1, i[1]], c));
                 }
                 if (p)
-                    ((c = s.Z.copyAttributes(r, e.options, "line", "point2")),
-                        (h = e.create("point", [i[0].point2, i[1]], c)));
+                    (c = s.Z.copyAttributes(r, e.options, "line", "point2")),
+                        (h = e.create("point", [i[0].point2, i[1]], c));
                 else if (s.Z.isArray(i[1]) && i[1].length > 1)
-                    ((c = s.Z.copyAttributes(r, e.options, "line", "point2")),
-                        (h = e.create("point", i[1], c)));
+                    (c = s.Z.copyAttributes(r, e.options, "line", "point2")),
+                        (h = e.create("point", i[1], c));
                 else if (s.Z.isString(i[1]) || s.Z.isPoint(i[1]))
                     h = e.select(i[1]);
                 else if (s.Z.isFunction(i[1]) && s.Z.isPoint(i[1]()))
-                    ((h = i[1]()), (_ = !0));
+                    (h = i[1]()), (_ = !0);
                 else {
                     if (
                         !(
@@ -36985,18 +36949,18 @@ var __webpack_exports__ = {};
                                 typeof i[1] +
                                 "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]",
                         );
-                    ((c = s.Z.copyAttributes(r, e.options, "line", "point2")),
+                    (c = s.Z.copyAttributes(r, e.options, "line", "point2")),
                         (h = t.Z.createPoint(e, i[1](), c)),
-                        (_ = !0));
+                        (_ = !0);
                 }
-                ((c = s.Z.copyAttributes(r, e.options, "line")),
+                (c = s.Z.copyAttributes(r, e.options, "line")),
                     (n = new t.Z.Line(e, a, h, c)),
                     _
                         ? ((n.constrained = !0),
                           (n.funp1 = i[0]),
                           (n.funp2 = i[1]))
                         : p || (n.isDraggable = !0),
-                    n.setParents([a.id, h.id]));
+                    n.setParents([a.id, h.id]);
             } else if (3 === i.length) {
                 for (d = !0, l = 0; l < 3; l++)
                     if (s.Z.isNumber(i[l])) u[l] = s.Z.createFunction(i[l]);
@@ -37011,9 +36975,9 @@ var __webpack_exports__ = {};
                                     typeof i[2] +
                                     "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]",
                             );
-                        ((u[l] = i[l]), (d = !1));
+                        (u[l] = i[l]), (d = !1);
                     }
-                ((c = s.Z.copyAttributes(r, e.options, "line", "point1")),
+                (c = s.Z.copyAttributes(r, e.options, "line", "point1")),
                     (a = d
                         ? e.create(
                               "point",
@@ -37078,7 +37042,7 @@ var __webpack_exports__ = {};
                     h.prepareUpdate().update(),
                     (c = s.Z.copyAttributes(r, e.options, "line")),
                     ((n = new t.Z.Line(e, a, h, c)).isDraggable = d),
-                    n.setParents([a, h]));
+                    n.setParents([a, h]);
             } else if (
                 1 === i.length &&
                 s.Z.isFunction(i[0]) &&
@@ -37086,11 +37050,11 @@ var __webpack_exports__ = {};
                 s.Z.isPoint(i[0]()[0]) &&
                 s.Z.isPoint(i[0]()[1])
             )
-                ((o = i[0]()),
+                (o = i[0]()),
                     (c = s.Z.copyAttributes(r, e.options, "line")),
                     ((n = new t.Z.Line(e, o[0], o[1], c)).constrained = !0),
                     (n.funps = i[0]),
-                    n.setParents(o));
+                    n.setParents(o);
             else {
                 if (
                     !(
@@ -37109,7 +37073,7 @@ var __webpack_exports__ = {};
                             typeof i[1] +
                             "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]",
                     );
-                ((o = i[0]),
+                (o = i[0]),
                     (c = s.Z.copyAttributes(r, e.options, "line", "point1")),
                     (a = e.create(
                         "point",
@@ -37143,7 +37107,7 @@ var __webpack_exports__ = {};
                     (c = s.Z.copyAttributes(r, e.options, "line")),
                     ((n = new t.Z.Line(e, a, h, c)).constrained = !0),
                     (n.funps = i[0]),
-                    n.setParents([a, h]));
+                    n.setParents([a, h]);
             }
             return n;
         }),
@@ -37170,7 +37134,7 @@ var __webpack_exports__ = {};
                         );
                     o.fixedLength = e[2];
                 }
-                ((o.getParents = function () {
+                (o.getParents = function () {
                     return this.parents.concat(this.fixedLength());
                 }),
                     (o.fixedLengthOldCoords = []),
@@ -37183,9 +37147,9 @@ var __webpack_exports__ = {};
                         i.Z.COORDS_BY_USER,
                         o.point2.coords.usrCoords.slice(1, 3),
                         t,
-                    )));
+                    ));
             }
-            return ((o.elType = "segment"), o);
+            return (o.elType = "segment"), o;
         }),
         t.Z.registerElement("segment", t.Z.createSegment),
         (t.Z.createArrow = function (t, e, r) {
@@ -37239,7 +37203,7 @@ var __webpack_exports__ = {};
         t.Z.registerElement("axis", t.Z.createAxis),
         (t.Z.createTangent = function (t, e, r) {
             var n, a, h, c, d;
-            if (1 === e.length) ((n = e[0]), (a = n.slideObject));
+            if (1 === e.length) (n = e[0]), (a = n.slideObject);
             else {
                 if (2 !== e.length)
                     throw new Error(
@@ -37249,7 +37213,7 @@ var __webpack_exports__ = {};
                             typeof e[1] +
                             "'.\nPossible parent types: [glider], [point,line|curve|circle|conic]",
                     );
-                if (s.Z.isPoint(e[0])) ((n = e[0]), (a = e[1]));
+                if (s.Z.isPoint(e[0])) (n = e[0]), (a = e[1]);
                 else {
                     if (!s.Z.isPoint(e[1]))
                         throw new Error(
@@ -37259,7 +37223,7 @@ var __webpack_exports__ = {};
                                 typeof e[1] +
                                 "'.\nPossible parent types: [glider], [point,line|curve|circle|conic]",
                         );
-                    ((a = e[0]), (n = e[1]));
+                    (a = e[0]), (n = e[1]);
                 }
             }
             if (
@@ -37310,7 +37274,7 @@ var __webpack_exports__ = {};
                                             u === a.numberPoints - 1 && u--;
                                         else {
                                             if (3 !== a.bezierDegree) return 0;
-                                            ((u =
+                                            (u =
                                                 3 *
                                                 Math.floor(
                                                     (n.position *
@@ -37324,7 +37288,7 @@ var __webpack_exports__ = {};
                                                     3),
                                                 u >= a.numberPoints - 1 &&
                                                     ((u = a.numberPoints - 4),
-                                                    (i = 1)));
+                                                    (i = 1));
                                         }
                                         return u < 0
                                             ? 1
@@ -37394,7 +37358,7 @@ var __webpack_exports__ = {};
                                             u === a.numberPoints - 1 && u--;
                                         else {
                                             if (3 !== a.bezierDegree) return 0;
-                                            ((u =
+                                            (u =
                                                 3 *
                                                 Math.floor(
                                                     (n.position *
@@ -37408,7 +37372,7 @@ var __webpack_exports__ = {};
                                                     3),
                                                 u >= a.numberPoints - 1 &&
                                                     ((u = a.numberPoints - 4),
-                                                    (i = 1)));
+                                                    (i = 1));
                                         }
                                         return u < 0
                                             ? 0
@@ -37478,7 +37442,7 @@ var __webpack_exports__ = {};
                                             u === a.numberPoints - 1 && u--;
                                         else {
                                             if (3 !== a.bezierDegree) return 0;
-                                            ((u =
+                                            (u =
                                                 3 *
                                                 Math.floor(
                                                     (n.position *
@@ -37492,7 +37456,7 @@ var __webpack_exports__ = {};
                                                     3),
                                                 u >= a.numberPoints - 1 &&
                                                     ((u = a.numberPoints - 4),
-                                                    (i = 1)));
+                                                    (i = 1));
                                         }
                                         return u < 0
                                             ? 0
@@ -37717,9 +37681,9 @@ var __webpack_exports__ = {};
         t.Z.registerElement("tangent", t.Z.createTangent),
         t.Z.registerElement("polar", t.Z.createTangent),
         t.Z.registerElement("radicalaxis", t.Z.createRadicalAxis),
-        t.Z.registerElement("polarline", t.Z.createPolarLine));
+        t.Z.registerElement("polarline", t.Z.createPolarLine);
     t.Z.Line;
-    ((t.Z.Group = function (t, e, r, o, n) {
+    (t.Z.Group = function (t, e, r, o, n) {
         var a, h, l, c;
         for (
             this.board = t,
@@ -37752,10 +37716,10 @@ var __webpack_exports__ = {};
             l < h.length;
             l++
         )
-            ((c = this.board.select(h[l])),
+            (c = this.board.select(h[l])),
                 !s.Z.evaluate(c.visProp.fixed) &&
                     s.Z.exists(c.coords) &&
-                    this.addPoint(c));
+                    this.addPoint(c);
         this.methodMap = {
             ungroup: "ungroup",
             add: "addPoint",
@@ -37777,7 +37741,7 @@ var __webpack_exports__ = {};
                         s.Z.isArray(e.groups) &&
                             (i = s.Z.indexOf(e.groups, this.id)) >= 0 &&
                             delete e.groups[i]);
-                return ((this.objects = {}), this);
+                return (this.objects = {}), this;
             },
             addParents: function (t) {
                 var e, i, r;
@@ -37792,7 +37756,7 @@ var __webpack_exports__ = {};
                 this.parents = s.Z.uniqueArray(this.parents);
             },
             setParents: function (t) {
-                return ((this.parents = []), this.addParents(t), this);
+                return (this.parents = []), this.addParents(t), this;
             },
             getParents: function () {
                 return s.Z.isArray(this.parents) ? this.parents : [];
@@ -37820,7 +37784,7 @@ var __webpack_exports__ = {};
                     p = null;
                 if (!this.needsUpdate) return this;
                 if ("nothing" === (t = this._update_find_drag_type()).action)
-                    return (this._updateCoordsCache(t.id), this);
+                    return this._updateCoordsCache(t.id), this;
                 if (
                     ((p = this.objects[t.id].point), "translation" === t.action)
                 )
@@ -37845,7 +37809,7 @@ var __webpack_exports__ = {};
                         d = this[i]();
                     }
                     if ("rotation" === t.action)
-                        ((l = u.Z.rad(
+                        (l = u.Z.rad(
                             this.coords[t.id].usrCoords.slice(1),
                             d,
                             this.objects[t.id].point,
@@ -37854,7 +37818,7 @@ var __webpack_exports__ = {};
                                 "transform",
                                 [l, d[0], d[1]],
                                 { type: "rotate" },
-                            )).update());
+                            )).update();
                     else {
                         if ("scaling" !== t.action) return this;
                         if (
@@ -37865,7 +37829,7 @@ var __webpack_exports__ = {};
                             Math.abs(n) < o.Z.eps)
                         )
                             return this;
-                        ((n = u.Z.distance(p.coords.usrCoords.slice(1), d) / n),
+                        (n = u.Z.distance(p.coords.usrCoords.slice(1), d) / n),
                             (a =
                                 this.scaleDirections[t.id].indexOf("x") >= 0
                                     ? n
@@ -37888,7 +37852,7 @@ var __webpack_exports__ = {};
                                     h,
                                 ],
                                 { type: "generic" },
-                            )).update());
+                            )).update();
                     }
                 }
                 for (e in (this._update_apply_transformation(t, c),
@@ -37942,7 +37906,7 @@ var __webpack_exports__ = {};
                         ((t[0] += this.coords[i].usrCoords[1]),
                         (t[1] += this.coords[i].usrCoords[2]),
                         ++e);
-                return (e > 0 && ((t[0] /= e), (t[1] /= e)), t);
+                return e > 0 && ((t[0] /= e), (t[1] /= e)), t;
             },
             _update_apply_transformation: function (t, e) {
                 var r, n;
@@ -37998,10 +37962,10 @@ var __webpack_exports__ = {};
                 return this;
             },
             removePoint: function (t) {
-                return (delete this.objects[t.id], this);
+                return delete this.objects[t.id], this;
             },
             setRotationCenter: function (t) {
-                return ((this.rotationCenter = t), this);
+                return (this.rotationCenter = t), this;
             },
             setRotationPoints: function (t) {
                 return this._setActionPoints("rotation", t);
@@ -38022,7 +37986,7 @@ var __webpack_exports__ = {};
                 return this._removeActionPoint("translation", t);
             },
             setScaleCenter: function (t) {
-                return ((this.scaleCenter = t), this);
+                return (this.scaleCenter = t), this;
             },
             setScalePoints: function (t, e) {
                 var i, r, o;
@@ -38058,15 +38022,15 @@ var __webpack_exports__ = {};
                 return this;
             },
             _addActionPoint: function (t, e) {
-                return (this[t + "Points"].push(this.board.select(e)), this);
+                return this[t + "Points"].push(this.board.select(e)), this;
             },
             _removeActionPoint: function (t, e) {
                 var i = this[t + "Points"].indexOf(this.board.select(e));
-                return (i > -1 && this[t + "Points"].splice(i, 1), this);
+                return i > -1 && this[t + "Points"].splice(i, 1), this;
             },
             setProperty: function () {
-                (t.Z.deprecated("Group.setProperty", "Group.setAttribute()"),
-                    this.setAttribute.apply(this, arguments));
+                t.Z.deprecated("Group.setProperty", "Group.setAttribute()"),
+                    this.setAttribute.apply(this, arguments);
             },
             setAttribute: function () {
                 var t;
@@ -38082,17 +38046,12 @@ var __webpack_exports__ = {};
         (t.Z.createGroup = function (e, i, r) {
             var o = s.Z.copyAttributes(r, e.options, "group"),
                 n = new t.Z.Group(e, o.id, o.name, i, o);
-            return ((n.elType = "group"), n.setParents(i), n);
+            return (n.elType = "group"), n.setParents(i), n;
         }),
-        t.Z.registerElement("group", t.Z.createGroup));
+        t.Z.registerElement("group", t.Z.createGroup);
     t.Z.Group;
-    ((t.Z.Circle = function (t, e, r, o, n) {
-        (this.constructor(
-            t,
-            n,
-            i.Z.OBJECT_TYPE_CIRCLE,
-            i.Z.OBJECT_CLASS_CIRCLE,
-        ),
+    (t.Z.Circle = function (t, e, r, o, n) {
+        this.constructor(t, n, i.Z.OBJECT_TYPE_CIRCLE, i.Z.OBJECT_CLASS_CIRCLE),
             (this.method = e),
             (this.midpoint = this.board.select(r)),
             (this.center = this.board.select(r)),
@@ -38151,7 +38110,7 @@ var __webpack_exports__ = {};
                 center: "center",
                 line: "line",
                 point2: "point2",
-            })));
+            }));
     }),
         (t.Z.Circle.prototype = new J.Z()),
         t.Z.extend(t.Z.Circle.prototype, {
@@ -38321,7 +38280,7 @@ var __webpack_exports__ = {};
                 ];
             },
             updateStdform: function () {
-                ((this.stdform[3] = 0.5),
+                (this.stdform[3] = 0.5),
                     (this.stdform[4] = this.Radius()),
                     (this.stdform[1] = -this.center.coords.usrCoords[1]),
                     (this.stdform[2] = -this.center.coords.usrCoords[2]),
@@ -38334,7 +38293,7 @@ var __webpack_exports__ = {};
                                       this.point2.coords.usrCoords[2]
                               )
                             : 0),
-                    this.normalize());
+                    this.normalize();
             },
             updateRenderer: function () {
                 return this.needsUpdate
@@ -38411,28 +38370,28 @@ var __webpack_exports__ = {};
                     n = 0.7071067811865;
                 switch (s.Z.evaluate(this.visProp.label.position)) {
                     case "lft":
-                        ((t = o[1] - r), (e = o[2]));
+                        (t = o[1] - r), (e = o[2]);
                         break;
                     case "llft":
-                        ((t = o[1] - n * r), (e = o[2] - n * r));
+                        (t = o[1] - n * r), (e = o[2] - n * r);
                         break;
                     case "rt":
-                        ((t = o[1] + r), (e = o[2]));
+                        (t = o[1] + r), (e = o[2]);
                         break;
                     case "lrt":
-                        ((t = o[1] + n * r), (e = o[2] - n * r));
+                        (t = o[1] + n * r), (e = o[2] - n * r);
                         break;
                     case "urt":
-                        ((t = o[1] + n * r), (e = o[2] + n * r));
+                        (t = o[1] + n * r), (e = o[2] + n * r);
                         break;
                     case "top":
-                        ((t = o[1]), (e = o[2] + r));
+                        (t = o[1]), (e = o[2] + r);
                         break;
                     case "bot":
-                        ((t = o[1]), (e = o[2] - r));
+                        (t = o[1]), (e = o[2] - r);
                         break;
                     default:
-                        ((t = o[1] - n * r), (e = o[2] + n * r));
+                        (t = o[1] - n * r), (e = o[2] + n * r);
                 }
                 return new c.Z(i.Z.COORDS_BY_USER, [t, e], this.board);
             },
@@ -38476,9 +38435,9 @@ var __webpack_exports__ = {};
                     i = s.Z.isArray(t) ? t : [t],
                     r = i.length;
                 for (e = 0; e < r; e++)
-                    (this.center.transformations.push(i[e]),
+                    this.center.transformations.push(i[e]),
                         "twoPoints" === this.method &&
-                            this.point2.transformations.push(i[e]));
+                            this.point2.transformations.push(i[e]);
                 return this;
             },
             snapToGrid: function () {
@@ -38645,9 +38604,9 @@ var __webpack_exports__ = {};
                 s.Z.isPoint(a[h]) && n.inherits.push(a[h]);
             return n;
         }),
-        t.Z.registerElement("circle", t.Z.createCircle));
+        t.Z.registerElement("circle", t.Z.createCircle);
     const H = t.Z.Circle;
-    ((t.Z.createEllipse = function (t, e, r) {
+    (t.Z.createEllipse = function (t, e, r) {
         var o,
             n,
             a,
@@ -38754,7 +38713,7 @@ var __webpack_exports__ = {};
                             p[1].Y() - p[0].Y(),
                             p[1].X() - p[0].X(),
                         );
-                    return (e || o(0, e), p[0].X() + Math.cos(n + t) * r);
+                    return e || o(0, e), p[0].X() + Math.cos(n + t) * r;
                 },
                 n.Y = function (t, e) {
                     var i = l(),
@@ -38792,7 +38751,7 @@ var __webpack_exports__ = {};
             d++
         )
             s.Z.isPoint(p[d]) && p[d].addChild(n);
-        return (s.Z.isPoint(h) && h.addChild(n), n.setParents(e), n);
+        return s.Z.isPoint(h) && h.addChild(n), n.setParents(e), n;
     }),
         (t.Z.createHyperbola = function (t, e, r) {
             var o,
@@ -38901,7 +38860,7 @@ var __webpack_exports__ = {};
                                 d[1].Y() - d[0].Y(),
                                 d[1].X() - d[0].X(),
                             );
-                        return (e || o(0, e), d[0].X() + Math.cos(n + t) * r);
+                        return e || o(0, e), d[0].X() + Math.cos(n + t) * r;
                     },
                     n.Y = function (t, e) {
                         var i = l(),
@@ -38924,7 +38883,7 @@ var __webpack_exports__ = {};
                 c++
             )
                 s.Z.isPoint(d[c]) && d[c].addChild(n);
-            return (s.Z.isPoint(h) && h.addChild(n), n.setParents(e), n);
+            return s.Z.isPoint(h) && h.addChild(n), n.setParents(e), n;
         }),
         (t.Z.createParabola = function (t, e, r) {
             var o,
@@ -39129,7 +39088,7 @@ var __webpack_exports__ = {};
                         P[m] = t.select(e[m]);
                     }
             else
-                (((v = [
+                ((v = [
                     [0, 0, 0],
                     [0, 0, 0],
                     [0, 0, 0],
@@ -39174,7 +39133,7 @@ var __webpack_exports__ = {};
                           }
                         : function () {
                               return e[1];
-                          }));
+                          });
             if (
                 ((d = function (t) {
                     var e, i;
@@ -39240,7 +39199,7 @@ var __webpack_exports__ = {};
                         if (Z) {
                             for (i = 0; i < 5; i++)
                                 E[i] = P[i].coords.usrCoords;
-                            ((b = c(
+                            (b = c(
                                 o.Z.crossProduct(E[0], E[1]),
                                 o.Z.crossProduct(E[2], E[3]),
                             )),
@@ -39248,12 +39207,12 @@ var __webpack_exports__ = {};
                                     o.Z.crossProduct(E[0], E[2]),
                                     o.Z.crossProduct(E[1], E[3]),
                                 )),
-                                (y = h(b, g, E[4])));
+                                (y = h(b, g, E[4]));
                         } else
                             for (i = 0; i < 3; i++)
                                 for (r = i; r < 3; r++)
-                                    ((y[i][r] = v[i][r]()),
-                                        r > i && (y[r][i] = y[i][r]));
+                                    (y[i][r] = v[i][r]()),
+                                        r > i && (y[r][i] = y[i][r]);
                         for (
                             a.quadraticform = y,
                                 (u = l.Z.Jacobi(y))[0][0][0] < 0 &&
@@ -39268,10 +39227,10 @@ var __webpack_exports__ = {};
                                 n += u[1][r][i] * u[1][r][i];
                             n = Math.sqrt(n);
                         }
-                        ((C = u[1]),
+                        (C = u[1]),
                             (f = Math.sqrt(Math.abs(u[0][0][0]))),
                             (p = Math.sqrt(Math.abs(u[0][1][1]))),
-                            (_ = Math.sqrt(Math.abs(u[0][2][2]))));
+                            (_ = Math.sqrt(Math.abs(u[0][2][2])));
                     }
                     return (
                         u[0][1][1] <= 0 && u[0][2][2] <= 0
@@ -39328,7 +39287,7 @@ var __webpack_exports__ = {};
                 for (m = 0; m < 5; m++) s.Z.isPoint(P[m]) && P[m].addChild(a);
                 a.setParents(e);
             }
-            return (a.addChild(a.center), a);
+            return a.addChild(a.center), a;
         }),
         t.Z.registerElement("ellipse", t.Z.createEllipse),
         t.Z.registerElement("hyperbola", t.Z.createHyperbola),
@@ -39355,10 +39314,10 @@ var __webpack_exports__ = {};
                 n < r.length;
                 n++
             )
-                ((this.vertices[n] = this.board.select(r[n])),
+                (this.vertices[n] = this.board.select(r[n])),
                     this.vertices[n]._is_new &&
                         (delete this.vertices[n]._is_new,
-                        (this.vertices[n]._is_new_pol = !0)));
+                        (this.vertices[n]._is_new_pol = !0));
             if (
                 (this.vertices.length > 0 &&
                     this.vertices[this.vertices.length - 1].id !==
@@ -39368,7 +39327,7 @@ var __webpack_exports__ = {};
                 this.withLines)
             )
                 for (h = this.vertices.length - 1, l = 0; l < h; l++)
-                    ((n = (l + 1) % h),
+                    (n = (l + 1) % h),
                         (d.id = d.ids && d.ids[n]),
                         (d.name = d.names && d.names[n]),
                         (d.strokecolor =
@@ -39385,7 +39344,7 @@ var __webpack_exports__ = {};
                             d,
                         )).dump = !1),
                         (this.borders[n] = a),
-                        (a.parentPolygon = this));
+                        (a.parentPolygon = this);
             for (
                 this.inherits.push(this.vertices, this.borders),
                     this.id = this.board.setId(this, "Py"),
@@ -39393,11 +39352,11 @@ var __webpack_exports__ = {};
                 n < this.vertices.length - 1;
                 n++
             )
-                ((c = this.board.select(this.vertices[n])),
+                (c = this.board.select(this.vertices[n])),
                     s.Z.exists(c._is_new_pol)
                         ? (this.addChild(c), delete c._is_new_pol)
-                        : c.addChild(this));
-            (this.board.renderer.drawPolygon(this),
+                        : c.addChild(this);
+            this.board.renderer.drawPolygon(this),
                 this.board.finalizeAdding(this),
                 this.createGradient(),
                 (this.elType = "polygon"),
@@ -39415,7 +39374,7 @@ var __webpack_exports__ = {};
                     addPoints: "addPoints",
                     insertPoints: "insertPoints",
                     removePoints: "removePoints",
-                })));
+                }));
         }),
         (t.Z.Polygon.prototype = new J.Z()),
         t.Z.extend(t.Z.Polygon.prototype, {
@@ -39474,10 +39433,10 @@ var __webpack_exports__ = {};
                     o < this.vertices.length;
                     o++
                 )
-                    (this.vertices[o].X() < t && (t = this.vertices[o].X()),
+                    this.vertices[o].X() < t && (t = this.vertices[o].X()),
                         this.vertices[o].X() > s && (s = this.vertices[o].X()),
                         this.vertices[o].Y() > e && (e = this.vertices[o].Y()),
-                        this.vertices[o].Y() < r && (r = this.vertices[o].Y()));
+                        this.vertices[o].Y() < r && (r = this.vertices[o].Y());
                 return new c.Z(
                     i.Z.COORDS_BY_USER,
                     [0.5 * (t + s), 0.5 * (e + r)],
@@ -39581,12 +39540,12 @@ var __webpack_exports__ = {};
                     t < s;
                     ++t
                 )
-                    ((e = this.vertices[t].X()) < i[0]
+                    (e = this.vertices[t].X()) < i[0]
                         ? (i[0] = e)
                         : e > i[2] && (i[2] = e),
                         (e = this.vertices[t].Y()) > i[1]
                             ? (i[1] = e)
-                            : e < i[3] && (i[3] = e));
+                            : e < i[3] && (i[3] = e);
                 return i;
             },
             bounds: function () {
@@ -39626,14 +39585,14 @@ var __webpack_exports__ = {};
                 )
                     return this;
                 for (r = arguments.length - 1, i = 1; i < r + 1; i++)
-                    ((a = s.Z.providePoints(
+                    (a = s.Z.providePoints(
                         this.board,
                         [arguments[i]],
                         {},
                         "polygon",
                         ["vertices"],
                     )[0])._is_new && (this.addChild(a), delete a._is_new),
-                        this.vertices.splice(t + i, 0, a));
+                        this.vertices.splice(t + i, 0, a);
                 if (this.withLines)
                     for (
                         n = t + 1,
@@ -39690,17 +39649,16 @@ var __webpack_exports__ = {};
                     e < arguments.length;
                     e++
                 )
-                    ((r = arguments[e]),
+                    (r = arguments[e]),
                         s.Z.isPoint(r) && (r = this.findPoint(r)),
                         s.Z.isNumber(r) &&
                             r > -1 &&
                             r < this.vertices.length &&
                             -1 === s.Z.indexOf(h, r) &&
-                            h.push(r));
+                            h.push(r);
                 if (0 === h.length)
                     return (
-                        "polygon" === this.elType && this.vertices.push(o),
-                        this
+                        "polygon" === this.elType && this.vertices.push(o), this
                     );
                 for (e = 0; e < h.length; e++)
                     this.vertices[h[e]].removeChild(this);
@@ -39713,11 +39671,11 @@ var __webpack_exports__ = {};
                     e > -1;
                     e--
                 )
-                    ((n[h[e]] = -1),
+                    (n[h[e]] = -1),
                         this.withLines &&
                             h.length > 1 &&
                             h[e] - 1 > h[e - 1] &&
-                            ((l[l.length - 1][1] = h[e]), l.push([h[e - 1]])));
+                            ((l[l.length - 1][1] = h[e]), l.push([h[e - 1]]));
                 for (
                     this.withLines && (l[l.length - 1][1] = h[0]),
                         this.vertices = [],
@@ -39778,7 +39736,7 @@ var __webpack_exports__ = {};
                 );
             },
             getParents: function () {
-                return (this.setParents(this.vertices), this.parents);
+                return this.setParents(this.vertices), this.parents;
             },
             getAttributes: function () {
                 var t,
@@ -39792,10 +39750,10 @@ var __webpack_exports__ = {};
                         t < this.borders.length;
                         t++
                     )
-                        (e.lines.ids.push(this.borders[t].id),
+                        e.lines.ids.push(this.borders[t].id),
                             e.lines.colors.push(
                                 this.borders[t].visProp.strokecolor,
-                            ));
+                            );
                 return e;
             },
             snapToGrid: function () {
@@ -39853,7 +39811,7 @@ var __webpack_exports__ = {};
                         o < i;
                         o++
                     )
-                        ((a = s[o]),
+                        (a = s[o]),
                             _(l[r], l[r + 1], a)
                                 ? (_(l[r], l[r + 1], n) ||
                                       (((h =
@@ -39877,7 +39835,7 @@ var __webpack_exports__ = {};
                                   (h[0][2] /= h[0][0]),
                                   (h[0][0] = 1),
                                   p.push(h[0])),
-                            (n = a));
+                            (n = a);
                 return p;
             },
             intersect: function (t) {
@@ -39913,12 +39871,12 @@ var __webpack_exports__ = {};
                     a < h;
                     a++
                 )
-                    (d.withlabel &&
+                    d.withlabel &&
                         (d.name =
                             "" === l.vertices[a].name
                                 ? ""
                                 : l.vertices[a].name + "'"),
-                        u.push(e.create("point", [l.vertices[a], r[1]], d)));
+                        u.push(e.create("point", [l.vertices[a], r[1]], d));
             else if (
                 !1 === (u = s.Z.providePoints(e, r, o, "polygon", ["vertices"]))
             )
@@ -39991,7 +39949,7 @@ var __webpack_exports__ = {};
                 n < a;
                 n++
             )
-                ((h = t.create(
+                (h = t.create(
                     "transform",
                     [Math.PI * (2 - (a - 2) / a), u[n - 1]],
                     { type: "rotate" },
@@ -40004,7 +39962,7 @@ var __webpack_exports__ = {};
                           (u[n] = t.create("point", [u[n - 2], h], d)),
                           (u[n].type = i.Z.OBJECT_TYPE_CAS),
                           (u[n].isDraggable = !0),
-                          (u[n].visProp.fixed = !1)));
+                          (u[n].visProp.fixed = !1));
             return (
                 (d = s.Z.copyAttributes(r, t.options, "regularpolygon")),
                 ((o = t.create("polygon", u, d)).elType = "regularpolygon"),
@@ -40024,10 +39982,10 @@ var __webpack_exports__ = {};
         }),
         t.Z.registerElement("polygon", t.Z.createPolygon),
         t.Z.registerElement("regularpolygon", t.Z.createRegularPolygon),
-        t.Z.registerElement("polygonalchain", t.Z.createPolygonalChain));
+        t.Z.registerElement("polygonalchain", t.Z.createPolygonalChain);
     const W = t.Z.Polygon;
-    ((t.Z.Curve = function (t, e, r) {
-        (this.constructor(t, r, i.Z.OBJECT_TYPE_CURVE, i.Z.OBJECT_CLASS_CURVE),
+    (t.Z.Curve = function (t, e, r) {
+        this.constructor(t, r, i.Z.OBJECT_TYPE_CURVE, i.Z.OBJECT_CLASS_CURVE),
             (this.points = []),
             (this.numberPoints = s.Z.evaluate(this.visProp.numberpointshigh)),
             (this.bezierDegree = 1),
@@ -40053,7 +40011,7 @@ var __webpack_exports__ = {};
                 setTerm: "generateTerm",
                 move: "moveTo",
                 moveTo: "moveTo",
-            })));
+            }));
     }),
         (t.Z.Curve.prototype = new J.Z()),
         t.Z.extend(t.Z.Curve.prototype, {
@@ -40280,7 +40238,7 @@ var __webpack_exports__ = {};
                         a < t;
                         a++
                     )
-                        ((o = a),
+                        (o = a),
                             s.Z.exists(this.dataY)
                                 ? ((n = a),
                                   this.points[a].setCoordinates(
@@ -40295,7 +40253,7 @@ var __webpack_exports__ = {};
                                       !1,
                                   )),
                             (this.points[a]._t = a),
-                            (d = !0));
+                            (d = !0);
                 else if (
                     (s.Z.evaluate(this.visProp.doadvancedplot)
                         ? 1 === c ||
@@ -40333,10 +40291,10 @@ var __webpack_exports__ = {};
                         a < this.points.length;
                         a++
                     )
-                        (this.qdt.insert(this.points[a]),
+                        this.qdt.insert(this.points[a]),
                             a > 0 && (this.points[a].prev = this.points[a - 1]),
                             a < t - 1 &&
-                                (this.points[a].next = this.points[a + 1]));
+                                (this.points[a].next = this.points[a + 1]);
                 for (
                     "plot" !== s.Z.evaluate(this.visProp.curvetype) &&
                         s.Z.evaluate(this.visProp.rdpsmoothing) &&
@@ -40367,11 +40325,11 @@ var __webpack_exports__ = {};
                     e < i;
                     e++
                 )
-                    ((t = this.transformations[e]).update(),
+                    (t = this.transformations[e]).update(),
                         (this.transformMat = o.Z.matMatMult(
                             t.matrix,
                             this.transformMat,
-                        )));
+                        ));
                 return this;
             },
             updateTransform: function (t) {
@@ -40436,7 +40394,7 @@ var __webpack_exports__ = {};
             },
             generateTerm: function (t, e, i, r, o) {
                 var n, a;
-                (s.Z.isArray(e)
+                s.Z.isArray(e)
                     ? ((this.dataX = e),
                       (this.numberPoints = this.dataX.length),
                       (this.X = this.interpolationFunctionFromArray.apply(
@@ -40480,7 +40438,7 @@ var __webpack_exports__ = {};
                         this.Y,
                         this.minX,
                         this.maxX,
-                    ]));
+                    ]);
             },
             notifyParents: function (t) {
                 var e,
@@ -40508,28 +40466,28 @@ var __webpack_exports__ = {};
                     h = 0.95 * this.board.canvasHeight;
                 switch (s.Z.evaluate(this.visProp.label.position)) {
                     case "ulft":
-                        ((e = o), (r = n));
+                        (e = o), (r = n);
                         break;
                     case "llft":
-                        ((e = o), (r = h));
+                        (e = o), (r = h);
                         break;
                     case "rt":
-                        ((e = a), (r = 0.5 * h));
+                        (e = a), (r = 0.5 * h);
                         break;
                     case "lrt":
-                        ((e = a), (r = h));
+                        (e = a), (r = h);
                         break;
                     case "urt":
-                        ((e = a), (r = n));
+                        (e = a), (r = n);
                         break;
                     case "top":
-                        ((e = 0.5 * a), (r = n));
+                        (e = 0.5 * a), (r = n);
                         break;
                     case "bot":
-                        ((e = 0.5 * a), (r = h));
+                        (e = 0.5 * a), (r = h);
                         break;
                     default:
-                        ((e = o), (r = 0.5 * h));
+                        (e = o), (r = 0.5 * h);
                 }
                 return (
                     (t = new c.Z(i.Z.COORDS_BY_SCREEN, [e, r], this.board, !1)),
@@ -40584,12 +40542,12 @@ var __webpack_exports__ = {};
                     h = this.points.length;
                 if (3 === this.bezierDegree) {
                     for (t = 0; t < h; t++)
-                        ((this.points[t].X = s.Z.bind(function () {
+                        (this.points[t].X = s.Z.bind(function () {
                             return this.usrCoords[1];
                         }, this.points[t])),
                             (this.points[t].Y = s.Z.bind(function () {
                                 return this.usrCoords[2];
-                            }, this.points[t])));
+                            }, this.points[t]));
                     return (
                         (i = (e = l.Z.bezier(this.points))[3]()),
                         (r = l.Z.fminbr(
@@ -40623,19 +40581,19 @@ var __webpack_exports__ = {};
                     );
                 }
                 for (t = 0; t < h; t++)
-                    (r > this.points[t].usrCoords[1] &&
+                    r > this.points[t].usrCoords[1] &&
                         (r = this.points[t].usrCoords[1]),
                         o < this.points[t].usrCoords[1] &&
                             (o = this.points[t].usrCoords[1]),
                         n > this.points[t].usrCoords[2] &&
                             (n = this.points[t].usrCoords[2]),
                         a < this.points[t].usrCoords[2] &&
-                            (a = this.points[t].usrCoords[2]));
+                            (a = this.points[t].usrCoords[2]);
                 return [r, a, o, n];
             },
             getParents: function () {
                 var t = [this.xterm, this.yterm, this.minX(), this.maxX()];
-                return (0 !== this.parents.length && (t = this.parents), t);
+                return 0 !== this.parents.length && (t = this.parents), t;
             },
             moveTo: function (t) {
                 var e,
@@ -40739,8 +40697,8 @@ var __webpack_exports__ = {};
                               t < e;
                               t++
                           )
-                              (this.dataX.push(n.points[t].usrCoords[1]),
-                                  this.dataY.push(n.points[t].usrCoords[2]));
+                              this.dataX.push(n.points[t].usrCoords[1]),
+                                  this.dataY.push(n.points[t].usrCoords[2]);
                           return this;
                       }),
                       a.addTransform(r[1]),
@@ -40784,28 +40742,27 @@ var __webpack_exports__ = {};
                                         i[0].length === i[1].length)
                                 )
                                     for (a = 0; a < i[0].length; a++)
-                                        (s.Z.isFunction(i[0][a])
+                                        s.Z.isFunction(i[0][a])
                                             ? e.push(i[0][a]())
                                             : e.push(i[0][a]),
                                             s.Z.isFunction(i[1][a])
                                                 ? r.push(i[1][a]())
-                                                : r.push(i[1][a]));
+                                                : r.push(i[1][a]);
                                 else
                                     for (a = 0; a < i.length; a++)
                                         if (s.Z.isPoint(i[a]))
-                                            (e.push(i[a].X()),
-                                                r.push(i[a].Y()));
+                                            e.push(i[a].X()), r.push(i[a].Y());
                                         else if (
                                             s.Z.isArray(i[a]) &&
                                             2 === i[a].length
                                         )
                                             for (h = 0; h < i.length; h++)
-                                                (s.Z.isFunction(i[h][0])
+                                                s.Z.isFunction(i[h][0])
                                                     ? e.push(i[h][0]())
                                                     : e.push(i[h][0]),
                                                     s.Z.isFunction(i[h][1])
                                                         ? r.push(i[h][1]())
-                                                        : r.push(i[h][1]));
+                                                        : r.push(i[h][1]);
                                         else
                                             s.Z.isFunction(i[a]) &&
                                                 2 === i[a]().length &&
@@ -40884,13 +40841,13 @@ var __webpack_exports__ = {};
                     d[0].length === d[1].length)
             )
                 for (p = 0; p < d[0].length; p++)
-                    ((u[p] = []),
+                    (u[p] = []),
                         s.Z.isFunction(d[0][p])
                             ? u[p].push(d[0][p]())
                             : u[p].push(d[0][p]),
                         s.Z.isFunction(d[1][p])
                             ? u[p].push(d[1][p]())
-                            : u[p].push(d[1][p]));
+                            : u[p].push(d[1][p]);
             else
                 for (p = 0; p < d.length; p++)
                     s.Z.isString(d[p])
@@ -40944,12 +40901,12 @@ var __webpack_exports__ = {};
                 p < _;
                 p++
             )
-                ((d = a[p]),
+                (d = a[p]),
                     s.Z.isPoint(d) &&
                         (s.Z.exists(d._is_new)
                             ? (o.addChild(d), delete d._is_new)
-                            : d.addChild(o)));
-            return ((o.elType = "cardinalspline"), o);
+                            : d.addChild(o));
+            return (o.elType = "cardinalspline"), o;
         }),
         t.Z.registerElement("cardinalspline", t.Z.createCardinalSpline),
         (t.Z.createMetapostSpline = function (e, i, r) {
@@ -40988,13 +40945,13 @@ var __webpack_exports__ = {};
                     l[0].length === l[1].length)
             )
                 for (d = 0; d < l[0].length; d++)
-                    ((c[d] = []),
+                    (c[d] = []),
                         s.Z.isFunction(l[0][d])
                             ? c[d].push(l[0][d]())
                             : c[d].push(l[0][d]),
                         s.Z.isFunction(l[1][d])
                             ? c[d].push(l[1][d]())
-                            : c[d].push(l[1][d]));
+                            : c[d].push(l[1][d]);
             else
                 for (d = 0; d < l.length; d++)
                     s.Z.isString(l[d])
@@ -41044,9 +41001,9 @@ var __webpack_exports__ = {};
                             s = a.length,
                             r = [];
                         for (i = 0; i < s; i++) r.push([a[i].X(), a[i].Y()]);
-                        ((e = t.Z.Math.Metapost.curve(r, h)),
+                        (e = t.Z.Math.Metapost.curve(r, h)),
                             (this.dataX = e[0]),
-                            (this.dataY = e[1]));
+                            (this.dataY = e[1]);
                     },
                     o.bezierDegree = 3,
                     u = a.length,
@@ -41056,7 +41013,7 @@ var __webpack_exports__ = {};
                 d++
             )
                 s.Z.isPoint(a[d]) && a[d].addChild(o);
-            return ((o.elType = "metapostspline"), o);
+            return (o.elType = "metapostspline"), o;
         }),
         t.Z.registerElement("metapostspline", t.Z.createMetapostSpline),
         (t.Z.createRiemannsum = function (t, e, i) {
@@ -41086,9 +41043,7 @@ var __webpack_exports__ = {};
                 }),
                 (h.updateDataArray = function () {
                     var t = l.Z.riemann(n, r(), o(), this.minX(), this.maxX());
-                    ((this.dataX = t[0]),
-                        (this.dataY = t[1]),
-                        (this.sum = t[2]));
+                    (this.dataX = t[0]), (this.dataY = t[1]), (this.sum = t[2]);
                 }),
                 h.addParentsFromJCFunctions([r, o]),
                 h
@@ -41164,7 +41119,7 @@ var __webpack_exports__ = {};
                                         o === a))
                                 )
                                     break;
-                            ((this.dataX[t] = a.X()), (this.dataY[t] = a.Y()));
+                            (this.dataX[t] = a.X()), (this.dataY[t] = a.Y());
                         }
                         for (r in ((n.position = _),
                         (d = !1),
@@ -41208,12 +41163,12 @@ var __webpack_exports__ = {};
                             t < i;
                             ++t
                         )
-                            ((this.dataX[e] = this.xterm[t]),
+                            (this.dataX[e] = this.xterm[t]),
                                 (this.dataY[e] = this.dataY[e - 1]),
                                 ++e,
                                 (this.dataX[e] = this.xterm[t]),
                                 (this.dataY[e] = this.yterm[t]),
-                                ++e);
+                                ++e;
                 }),
                 r
             );
@@ -41262,7 +41217,7 @@ var __webpack_exports__ = {};
                             i[1],
                             this.board,
                         );
-                        ((this.dataX = e[0]), (this.dataY = e[1]));
+                        (this.dataX = e[0]), (this.dataY = e[1]);
                     }),
                 r
             );
@@ -41277,7 +41232,7 @@ var __webpack_exports__ = {};
                 ((r = e.create("curve", [[], []], s)).updateDataArray =
                     function () {
                         var e = t.Z.Math.Clip.union(i[0], i[1], this.board);
-                        ((this.dataX = e[0]), (this.dataY = e[1]));
+                        (this.dataX = e[0]), (this.dataY = e[1]);
                     }),
                 r
             );
@@ -41296,7 +41251,7 @@ var __webpack_exports__ = {};
                             i[1],
                             this.board,
                         );
-                        ((this.dataX = e[0]), (this.dataY = e[1]));
+                        (this.dataX = e[0]), (this.dataY = e[1]);
                     }),
                 r
             );
@@ -41331,7 +41286,7 @@ var __webpack_exports__ = {};
                 (r.w = s.Z.createFunction(e[2], t, null, !0)),
                 (r.updateDataArray = function () {
                     var t, e, i, r, o, n, a, h, l;
-                    ((a = s.Z.evaluate(this.visProp.smallwidth)),
+                    (a = s.Z.evaluate(this.visProp.smallwidth)),
                         (h = s.Z.evaluate(this.visProp.dir)),
                         (i = (l = this.x()) - 0.5 * this.w()),
                         (r = l - 0.5 * this.w() * a),
@@ -41380,15 +41335,15 @@ var __webpack_exports__ = {};
                         ]),
                         "vertical" === h
                             ? ((this.dataX = t), (this.dataY = e))
-                            : ((this.dataX = e), (this.dataY = t)));
+                            : ((this.dataX = e), (this.dataY = t));
                 }),
                 r.addParentsFromJCFunctions([r.Q, r.x, r.w]),
                 r
             );
         }),
-        t.Z.registerElement("boxplot", t.Z.createBoxPlot));
+        t.Z.registerElement("boxplot", t.Z.createBoxPlot);
     t.Z.Curve;
-    ((t.Z.createArc = function (e, r, n) {
+    (t.Z.createArc = function (e, r, n) {
         var a, h, l;
         if (
             !1 ===
@@ -41439,7 +41394,7 @@ var __webpack_exports__ = {};
                     h = this.center,
                     c = this.anglepoint,
                     d = s.Z.evaluate(this.visProp.selection);
-                ((e = u.Z.rad(a, h, c)),
+                (e = u.Z.rad(a, h, c)),
                     (("minor" === d && e > Math.PI) ||
                         ("major" === d && e < Math.PI)) &&
                         (n = -1),
@@ -41462,7 +41417,7 @@ var __webpack_exports__ = {};
                     (this.dataY = t[1]),
                     (this.bezierDegree = 3),
                     this.updateStdform(),
-                    this.updateQuadraticform());
+                    this.updateQuadraticform();
             }),
             (a.Radius = function () {
                 return this.radiuspoint.Dist(this.center);
@@ -41510,7 +41465,7 @@ var __webpack_exports__ = {};
                 var s = new c.Z(i.Z.COORDS_BY_SCREEN, [t, e], this.board),
                     r = this.Radius(),
                     o = this.center.coords.distance(i.Z.COORDS_BY_USER, s) < r;
-                return (o && (o = u.Z.coordsOnArc(this, s)), o);
+                return o && (o = u.Z.coordsOnArc(this, s)), o;
             }),
             (a.getTextAnchor = function () {
                 return this.center.coords;
@@ -41638,11 +41593,11 @@ var __webpack_exports__ = {};
         }),
         t.Z.registerElement("circumcirclearc", t.Z.createCircumcircleArc),
         (t.Z.createMinorArc = function (e, i, s) {
-            return ((s.selection = "minor"), t.Z.createArc(e, i, s));
+            return (s.selection = "minor"), t.Z.createArc(e, i, s);
         }),
         t.Z.registerElement("minorarc", t.Z.createMinorArc),
         (t.Z.createMajorArc = function (e, i, s) {
-            return ((s.selection = "major"), t.Z.createArc(e, i, s));
+            return (s.selection = "major"), t.Z.createArc(e, i, s);
         }),
         t.Z.registerElement("majorarc", t.Z.createMajorArc),
         (t.Z.createSector = function (e, r, n) {
@@ -41700,7 +41655,7 @@ var __webpack_exports__ = {};
                 }),
                 "2lines" === b)
             )
-                ((a.Radius = function () {
+                (a.Radius = function () {
                     var t = s.Z.evaluate(r[4]);
                     return "auto" === t ? this.autoRadius() : t;
                 }),
@@ -41800,19 +41755,18 @@ var __webpack_exports__ = {};
                                 Math.abs(n[0]) < o.Z.eps)
                         )
                             return (
-                                (this.dataX = [NaN]),
-                                void (this.dataY = [NaN])
+                                (this.dataX = [NaN]), void (this.dataY = [NaN])
                             );
-                        ((h = u.Z.bezierArc(r, l, n, !0, 1)),
+                        (h = u.Z.bezierArc(r, l, n, !0, 1)),
                             (this.dataX = h[0]),
                             (this.dataY = h[1]),
-                            (this.bezierDegree = 3));
+                            (this.bezierDegree = 3);
                     }),
                     (a.methodMap = t.Z.deepCopy(a.methodMap, {
                         radius: "Radius",
                         getRadius: "Radius",
                         setRadius: "setRadius",
-                    })));
+                    }));
             else if ("3points" === b) {
                 for (
                     a.point1 = f[0], a.point2 = f[1], a.point3 = f[2], l = 0;
@@ -41822,7 +41776,7 @@ var __webpack_exports__ = {};
                     s.Z.exists(f[l]._is_new)
                         ? (a.addChild(f[l]), delete f[l]._is_new)
                         : f[l].addChild(a);
-                ((a.useDirection = n.usedirection),
+                (a.useDirection = n.usedirection),
                     a.setParents(f),
                     s.Z.exists(f[3]) &&
                         ((a.point4 = f[3]), a.point4.addChild(a)),
@@ -41848,10 +41802,9 @@ var __webpack_exports__ = {};
                             c = s.Z.evaluate(this.visProp.selection);
                         if (!n.isReal || !a.isReal || !h.isReal)
                             return (
-                                (this.dataX = [NaN]),
-                                void (this.dataY = [NaN])
+                                (this.dataX = [NaN]), void (this.dataY = [NaN])
                             );
-                        ((o = u.Z.rad(n, a, h)),
+                        (o = u.Z.rad(n, a, h)),
                             (("minor" === c && o > Math.PI) ||
                                 ("major" === c && o < Math.PI)) &&
                                 (l = -1),
@@ -41870,7 +41823,7 @@ var __webpack_exports__ = {};
                             (t = u.Z.bezierArc(n, a, h, !0, l)),
                             (this.dataX = t[0]),
                             (this.dataY = t[1]),
-                            (this.bezierDegree = 3));
+                            (this.bezierDegree = 3);
                     }),
                     (a.Radius = function () {
                         return this.point2.Dist(this.point1);
@@ -41887,7 +41840,7 @@ var __webpack_exports__ = {};
                         [a.point1, a.point2, a.point3],
                         h,
                     )),
-                    a.addChild(a.arc));
+                    a.addChild(a.arc);
             }
             return (
                 (a.center = a.point1),
@@ -42071,11 +42024,11 @@ var __webpack_exports__ = {};
         }),
         t.Z.registerElement("circumcirclesector", t.Z.createCircumcircleSector),
         (t.Z.createMinorSector = function (e, i, s) {
-            return ((s.selection = "minor"), t.Z.createSector(e, i, s));
+            return (s.selection = "minor"), t.Z.createSector(e, i, s);
         }),
         t.Z.registerElement("minorsector", t.Z.createMinorSector),
         (t.Z.createMajorSector = function (e, i, s) {
-            return ((s.selection = "major"), t.Z.createSector(e, i, s));
+            return (s.selection = "major"), t.Z.createSector(e, i, s);
         }),
         t.Z.registerElement("majorsector", t.Z.createMajorSector),
         (t.Z.createAngle = function (t, e, r) {
@@ -42138,7 +42091,7 @@ var __webpack_exports__ = {};
                               a = r.Dist(i),
                               h = 1,
                               l = s.Z.evaluate(this.visProp.selection);
-                          ((e = u.Z.rad(i, r, o)),
+                          (e = u.Z.rad(i, r, o)),
                               (("minor" === l && e > Math.PI) ||
                                   ("major" === l && e < Math.PI)) &&
                                   (h = -1),
@@ -42158,7 +42111,7 @@ var __webpack_exports__ = {};
                               (t = u.Z.bezierArc(i, r, o, !0, h)),
                               (this.dataX = t[0]),
                               (this.dataY = t[1]),
-                              (this.bezierDegree = 3));
+                              (this.bezierDegree = 3);
                       }),
                       (n.setAngle = function (t) {
                           var e,
@@ -42194,13 +42147,13 @@ var __webpack_exports__ = {};
                                       { type: "rotate" },
                                   )),
                                   n.coords.on("update", function () {
-                                      (i.update(),
+                                      i.update(),
                                           a.moveTo(
                                               o.Z.matVecMult(
                                                   i.matrix,
                                                   n.coords.usrCoords,
                                               ),
-                                          ));
+                                          );
                                   }),
                                   n.setParents(a)),
                               this
@@ -42233,7 +42186,7 @@ var __webpack_exports__ = {};
                         a,
                         h,
                         l = this.Radius();
-                    ("2lines" === _ && this.updateDataArraySector(),
+                    "2lines" === _ && this.updateDataArraySector(),
                         (t = this.point2),
                         (e = this.point1),
                         (i = this.point3),
@@ -42268,12 +42221,12 @@ var __webpack_exports__ = {};
                         (n[2] /= n[0]),
                         (this.dataX = [e[1], t[1], n[1], i[1], e[1]]),
                         (this.dataY = [e[2], t[2], n[2], i[2], e[2]]),
-                        (this.bezierDegree = 1));
+                        (this.bezierDegree = 1);
                 }),
                 (n.updateDataArrayNone = function () {
-                    ((this.dataX = [NaN]),
+                    (this.dataX = [NaN]),
                         (this.dataY = [NaN]),
-                        (this.bezierDegree = 1));
+                        (this.bezierDegree = 1);
                 }),
                 (n.updateDataArray = function () {
                     var t = s.Z.evaluate(this.visProp.type),
@@ -42283,7 +42236,7 @@ var __webpack_exports__ = {};
                             this.point3,
                         ),
                         i = s.Z.evaluate(this.visProp.selection);
-                    ((("minor" === i && e > 180) ||
+                    (("minor" === i && e > 180) ||
                         ("major" === i && e < 180)) &&
                         (e = 360 - e),
                         Math.abs(e - 90) <
@@ -42302,7 +42255,7 @@ var __webpack_exports__ = {};
                                       this.dot.setAttribute({ visible: !0 })),
                         (!this.visProp.visible ||
                             ("sectordot" !== t && this.dot.visProp.visible)) &&
-                            this.dot.setAttribute({ visible: !1 }));
+                            this.dot.setAttribute({ visible: !1 });
                 }),
                 (l = s.Z.copyAttributes(r, t.options, "angle", "dot")),
                 (n.dot = t.create(
@@ -42466,7 +42419,7 @@ var __webpack_exports__ = {};
                 s.Z.isPointType(t, e[0]) &&
                     e[1].elementClass === i.Z.OBJECT_CLASS_LINE)
             )
-                ((n = s.Z.providePoints(t, [e[0]], r, "point")[0]), (o = e[1]));
+                (n = s.Z.providePoints(t, [e[0]], r, "point")[0]), (o = e[1]);
             else {
                 if (
                     !s.Z.isPointType(t, e[1]) ||
@@ -42479,7 +42432,7 @@ var __webpack_exports__ = {};
                             typeof e[1] +
                             "'.\nPossible parent types: [point,line]",
                     );
-                ((n = s.Z.providePoints(t, [e[1]], r, "point")[0]), (o = e[0]));
+                (n = s.Z.providePoints(t, [e[1]], r, "point")[0]), (o = e[0]);
             }
             return (
                 (h = s.Z.copyAttributes(r, t.options, "orthogonalprojection")),
@@ -42580,7 +42533,7 @@ var __webpack_exports__ = {};
                 s.Z.isPointType(e, r[0]) &&
                     r[1].elementClass === i.Z.OBJECT_CLASS_LINE)
             )
-                ((a = r[1]), (n = s.Z.providePoints(e, [r[0]], o, "point")[0]));
+                (a = r[1]), (n = s.Z.providePoints(e, [r[0]], o, "point")[0]);
             else {
                 if (
                     !s.Z.isPointType(e, r[1]) ||
@@ -42593,7 +42546,7 @@ var __webpack_exports__ = {};
                             typeof r[1] +
                             "'.\nPossible parent types: [line,point]",
                     );
-                ((a = r[0]), (n = s.Z.providePoints(e, [r[1]], o, "point")[0]));
+                (a = r[0]), (n = s.Z.providePoints(e, [r[1]], o, "point")[0]);
             }
             return (
                 (l = s.Z.copyAttributes(o, e.options, "perpendicular")),
@@ -42628,7 +42581,7 @@ var __webpack_exports__ = {};
                 s.Z.isPointType(t, e[0]) &&
                     e[1].elementClass === i.Z.OBJECT_CLASS_LINE)
             )
-                ((n = s.Z.providePoints(t, [e[0]], r, "point")[0]), (o = e[1]));
+                (n = s.Z.providePoints(t, [e[0]], r, "point")[0]), (o = e[1]);
             else {
                 if (
                     !s.Z.isPointType(t, e[1]) ||
@@ -42641,7 +42594,7 @@ var __webpack_exports__ = {};
                             typeof e[1] +
                             "'.\nPossible parent types: [point,line]",
                     );
-                ((n = s.Z.providePoints(t, [e[1]], r, "point")[0]), (o = e[0]));
+                (n = s.Z.providePoints(t, [e[1]], r, "point")[0]), (o = e[0]);
             }
             return (
                 (a = t.create(
@@ -42741,7 +42694,7 @@ var __webpack_exports__ = {};
                 s.Z.isPointType(e, r[0]) &&
                     r[1].elementClass === i.Z.OBJECT_CLASS_LINE)
             )
-                ((a = r[1]), (n = s.Z.providePoints(e, [r[0]], o, "point")[0]));
+                (a = r[1]), (n = s.Z.providePoints(e, [r[0]], o, "point")[0]);
             else {
                 if (
                     !s.Z.isPointType(e, r[1]) ||
@@ -42754,7 +42707,7 @@ var __webpack_exports__ = {};
                             typeof r[1] +
                             "'.\nPossible parent types: [line,point]",
                     );
-                ((a = r[0]), (n = s.Z.providePoints(e, [r[1]], o, "point")[0]));
+                (a = r[0]), (n = s.Z.providePoints(e, [r[1]], o, "point")[0]);
             }
             return (
                 (c = s.Z.copyAttributes(
@@ -42796,9 +42749,9 @@ var __webpack_exports__ = {};
                 s.Z.isPointType(t, e[0]) &&
                 s.Z.isPointType(t, e[1])
             )
-                ((e = s.Z.providePoints(t, e, r, "point")),
+                (e = s.Z.providePoints(t, e, r, "point")),
                     (n = e[0]),
-                    (a = e[1]));
+                    (a = e[1]);
             else {
                 if (
                     1 !== e.length ||
@@ -42807,7 +42760,7 @@ var __webpack_exports__ = {};
                     throw new Error(
                         "JSXGraph: Can't create midpoint.\nPossible parent types: [point,point], [line]",
                     );
-                ((n = e[0].point1), (a = e[0].point2));
+                (n = e[0].point1), (a = e[0].point2);
             }
             return (
                 (c = s.Z.copyAttributes(r, t.options, "midpoint")),
@@ -42916,17 +42869,17 @@ var __webpack_exports__ = {};
                 s.Z.isPointType(t, e[1]) &&
                 s.Z.isPointType(t, e[2])
             )
-                ((e = s.Z.providePoints(t, e, r, "point")),
+                (e = s.Z.providePoints(t, e, r, "point")),
                     (o = e[0]),
                     (n = e[1]),
-                    (a = e[2]));
+                    (a = e[2]);
             else if (
                 s.Z.isPointType(t, e[0]) &&
                 e[1].elementClass === i.Z.OBJECT_CLASS_LINE
             )
-                ((a = s.Z.providePoints(t, [e[0]], r, "point")[0]),
+                (a = s.Z.providePoints(t, [e[0]], r, "point")[0]),
                     (o = e[1].point1),
-                    (n = e[1].point2));
+                    (n = e[1].point2);
             else {
                 if (
                     !s.Z.isPointType(t, e[1]) ||
@@ -42941,9 +42894,9 @@ var __webpack_exports__ = {};
                             typeof e[2] +
                             "'.\nPossible parent types: [line,point], [point,point,point]",
                     );
-                ((a = s.Z.providePoints(t, [e[1]], r, "point")[0]),
+                (a = s.Z.providePoints(t, [e[1]], r, "point")[0]),
                     (o = e[0].point1),
-                    (n = e[0].point2));
+                    (n = e[0].point2);
             }
             return (
                 (h = t.create(
@@ -43132,7 +43085,7 @@ var __webpack_exports__ = {};
         (t.Z.createNormal = function (t, e, r) {
             var n, a, h, c, d, u, p, _, f;
             for (c = 0; c < e.length; ++c) e[c] = t.select(e[c]);
-            if (1 === e.length) ((n = e[0]), (a = n.slideObject));
+            if (1 === e.length) (n = e[0]), (a = n.slideObject);
             else {
                 if (2 !== e.length)
                     throw new Error(
@@ -43143,8 +43096,8 @@ var __webpack_exports__ = {};
                             "'.\nPossible parent types: [point,line], [point,circle], [glider]",
                     );
                 if (s.Z.isPointType(t, e[0]))
-                    ((n = s.Z.providePoints(t, [e[0]], r, "point")[0]),
-                        (a = e[1]));
+                    (n = s.Z.providePoints(t, [e[0]], r, "point")[0]),
+                        (a = e[1]);
                 else {
                     if (!s.Z.isPointType(t, e[1]))
                         throw new Error(
@@ -43154,15 +43107,15 @@ var __webpack_exports__ = {};
                                 typeof e[1] +
                                 "'.\nPossible parent types: [point,line], [point,circle], [glider]",
                         );
-                    ((a = e[0]),
-                        (n = s.Z.providePoints(t, [e[1]], r, "point")[0]));
+                    (a = e[0]),
+                        (n = s.Z.providePoints(t, [e[1]], r, "point")[0]);
                 }
             }
             if (
                 ((p = s.Z.copyAttributes(r, t.options, "normal")),
                 a.elementClass === i.Z.OBJECT_CLASS_LINE)
             )
-                ((f = s.Z.copyAttributes(r, t.options, "normal", "point")),
+                (f = s.Z.copyAttributes(r, t.options, "normal", "point")),
                     (_ = t.create(
                         "point",
                         [
@@ -43176,7 +43129,7 @@ var __webpack_exports__ = {};
                     (_.isDraggable = !0),
                     ((h = t.create("line", [n, _], p)).point = _),
                     (h.subs = { point: _ }),
-                    h.inherits.push(_));
+                    h.inherits.push(_);
             else if (a.elementClass === i.Z.OBJECT_CLASS_CIRCLE)
                 h = t.create("line", [a.midpoint, n], p);
             else if (a.elementClass === i.Z.OBJECT_CLASS_CURVE)
@@ -43222,7 +43175,7 @@ var __webpack_exports__ = {};
                                           ((u -= 1), (p = 1));
                                   else {
                                       if (3 !== a.bezierDegree) return 0;
-                                      ((u =
+                                      (u =
                                           3 *
                                           Math.floor(
                                               (n.position *
@@ -43236,7 +43189,7 @@ var __webpack_exports__ = {};
                                               3),
                                           u >= a.numberPoints - 1 &&
                                               ((u = a.numberPoints - 4),
-                                              (i = 1)));
+                                              (i = 1));
                                   }
                                   return u < 0
                                       ? 1
@@ -43285,7 +43238,7 @@ var __webpack_exports__ = {};
                                       d === a.numberPoints - 1 && (d -= 1);
                                   else {
                                       if (3 !== a.bezierDegree) return 0;
-                                      ((d =
+                                      (d =
                                           3 *
                                           Math.floor(
                                               (n.position *
@@ -43299,7 +43252,7 @@ var __webpack_exports__ = {};
                                               3),
                                           d >= a.numberPoints - 1 &&
                                               ((d = a.numberPoints - 4),
-                                              (e = 1)));
+                                              (e = 1));
                                   }
                                   return d < 0
                                       ? 0
@@ -43345,7 +43298,7 @@ var __webpack_exports__ = {};
                                       u === a.numberPoints - 1 && (u -= 1);
                                   else {
                                       if (3 !== a.bezierDegree) return 0;
-                                      ((u =
+                                      (u =
                                           3 *
                                           Math.floor(
                                               (n.position *
@@ -43359,7 +43312,7 @@ var __webpack_exports__ = {};
                                               3),
                                           u >= a.numberPoints - 1 &&
                                               ((u = a.numberPoints - 4),
-                                              (i = 1)));
+                                              (i = 1));
                                   }
                                   return u < 0
                                       ? 0
@@ -43808,7 +43761,7 @@ var __webpack_exports__ = {};
                 s.Z.exists(e[l]._is_new)
                     ? (o.addChild(e[l]), delete e[l]._is_new)
                     : e[l].addChild(o);
-            return ((o.elType = "incenter"), o.setParents(e), o);
+            return (o.elType = "incenter"), o.setParents(e), o;
         }),
         (t.Z.createCircumcircle = function (e, i, r) {
             var o, n, a, h;
@@ -43917,9 +43870,9 @@ var __webpack_exports__ = {};
                     s.Z.exists(i[o]._is_new)
                         ? (a.addChild(i[o]), delete i[o]._is_new)
                         : i[o].addChild(a);
-                ((a.center = n),
+                (a.center = n),
                     (a.subs = { center: a.center }),
-                    a.inherits.push(n));
+                    a.inherits.push(n);
             } catch (t) {
                 throw new Error(
                     "JSXGraph: Can't create circumcircle with parent types '" +
@@ -44188,7 +44141,7 @@ var __webpack_exports__ = {};
         }),
         (t.Z.createMirrorPoint = function (e, i, s) {
             var r = t.Z.createMirrorElement(e, i, s);
-            return ((r.elType = "mirrorpoint"), r);
+            return (r.elType = "mirrorpoint"), r;
         }),
         (t.Z.createIntegral = function (e, r, o) {
             var n,
@@ -44210,7 +44163,7 @@ var __webpack_exports__ = {};
                 s.Z.isArray(r[0]) &&
                 r[1].elementClass === i.Z.OBJECT_CLASS_CURVE
             )
-                ((n = r[0]), (a = r[1]));
+                (n = r[0]), (a = r[1]);
             else {
                 if (
                     !s.Z.isArray(r[1]) ||
@@ -44223,7 +44176,7 @@ var __webpack_exports__ = {};
                             typeof r[1] +
                             "'.\nPossible parent types: [[number|function,number|function],curve]",
                     );
-                ((n = r[1]), (a = r[0]));
+                (n = r[1]), (a = r[0]);
             }
             return (
                 ((h = s.Z.copyAttributes(o, e.options, "integral")).withLabel =
@@ -44399,12 +44352,12 @@ var __webpack_exports__ = {};
                                 a.points[i].usrCoords[1] <= o &&
                                 (t.push(a.points[i].usrCoords[1]),
                                 e.push(a.points[i].usrCoords[2]));
-                        (t.push(h),
+                        t.push(h),
                             e.push(c),
                             t.push(0),
                             e.push(c),
                             t.push(0),
-                            e.push(l));
+                            e.push(l);
                     } else {
                         for (
                             m.X() < Z.X()
@@ -44420,14 +44373,14 @@ var __webpack_exports__ = {};
                                 a.points[i].usrCoords[1] <= o &&
                                 (t.push(a.points[i].usrCoords[1]),
                                 e.push(a.points[i].usrCoords[2]));
-                        (t.push(o),
+                        t.push(o),
                             e.push(a.Y(o)),
                             t.push(o),
                             e.push(0),
                             t.push(r),
-                            e.push(0));
+                            e.push(0);
                     }
-                    ((this.dataX = t), (this.dataY = e));
+                    (this.dataX = t), (this.dataY = e);
                 }),
                 g.addChild(C),
                 v.addChild(C),
@@ -44495,8 +44448,8 @@ var __webpack_exports__ = {};
                         n > r - d;
                         n -= d
                     )
-                        (o.dataX.push(a.usrCoords[1], h.usrCoords[1], NaN),
-                            o.dataY.push(n, n, NaN));
+                        o.dataX.push(a.usrCoords[1], h.usrCoords[1], NaN),
+                            o.dataY.push(n, n, NaN);
                     for (
                         e = Math.ceil(a.usrCoords[1] / l) * l,
                             r = Math.floor(h.usrCoords[1] / l) * l,
@@ -44507,8 +44460,8 @@ var __webpack_exports__ = {};
                         n < r + l;
                         n += l
                     )
-                        (o.dataX.push(n, n, NaN),
-                            o.dataY.push(a.usrCoords[2], h.usrCoords[2], NaN));
+                        o.dataX.push(n, n, NaN),
+                            o.dataY.push(a.usrCoords[2], h.usrCoords[2], NaN);
                 }),
                 (o.hasPoint = function () {
                     return !1;
@@ -44523,7 +44476,7 @@ var __webpack_exports__ = {};
                 ((h = s.Z.copyAttributes(r, t.options, "inequality")),
                 e[0].elementClass === i.Z.OBJECT_CLASS_LINE)
             )
-                (((a = t.create("curve", [[], []], h)).hasPoint = function () {
+                ((a = t.create("curve", [[], []], h)).hasPoint = function () {
                     return !1;
                 }),
                     (a.updateDataArray = function () {
@@ -44544,7 +44497,7 @@ var __webpack_exports__ = {};
                             },
                             p = e[0].stdform.slice(1),
                             _ = p;
-                        ((n =
+                        (n =
                             1.5 *
                             Math.max(
                                 u.Z.perpendicular(e[0], d, t)[0].distance(
@@ -44593,13 +44546,13 @@ var __webpack_exports__ = {};
                                 r[2] + _[1] * n,
                                 r[2],
                                 s[2],
-                            ]));
-                    }));
+                            ]);
+                    });
             else if (
                 e[0].elementClass === i.Z.OBJECT_CLASS_CURVE &&
                 "functiongraph" === e[0].visProp.curvetype
             )
-                (((a = t.create("curve", [[], []], h)).updateDataArray =
+                ((a = t.create("curve", [[], []], h)).updateDataArray =
                     function () {
                         var t,
                             i,
@@ -44664,8 +44617,8 @@ var __webpack_exports__ = {};
                                     n < u.length;
                                     n++
                                 )
-                                    (this.dataX.push(u[n][1]),
-                                        this.dataY.push(u[n][2]));
+                                    this.dataX.push(u[n][1]),
+                                        this.dataY.push(u[n][2]);
                                 r < o - 1 &&
                                     (this.dataX.push(NaN),
                                     this.dataY.push(NaN));
@@ -44673,7 +44626,7 @@ var __webpack_exports__ = {};
                     }),
                     (a.hasPoint = function () {
                         return !1;
-                    }));
+                    });
             else if (
                 ((n = s.Z.createFunction(e[0])),
                 a.addParentsFromJCFunctions([n]),
@@ -44682,7 +44635,7 @@ var __webpack_exports__ = {};
                 throw new Error(
                     "JSXGraph: Can't create area with the given parents.\nPossible parent types: [line], [function]",
                 );
-            return (a.addParents(e[0]), a);
+            return a.addParents(e[0]), a;
         }),
         t.Z.registerElement("arrowparallel", t.Z.createArrowParallel),
         t.Z.registerElement("bisector", t.Z.createBisector),
@@ -44736,7 +44689,7 @@ var __webpack_exports__ = {};
                             ((r.spe = e),
                             (i = function (t, e, i, s) {
                                 var o;
-                                ((r.dataX = t),
+                                (r.dataX = t),
                                     (r.dataY = e),
                                     (r.eq = i),
                                     (r.ctime = s),
@@ -44753,7 +44706,7 @@ var __webpack_exports__ = {};
                                                     .replace(/x/g, i)
                                                     .replace(/y/g, s);
                                             return r;
-                                        })));
+                                        }));
                             }),
                             i(
                                 (s = S.geometricLocusByGroebnerBase(t, o, i))
@@ -44766,10 +44719,10 @@ var __webpack_exports__ = {};
                 r
             );
         }),
-        t.Z.registerElement("locus", t.Z.createLocus));
+        t.Z.registerElement("locus", t.Z.createLocus);
     __webpack_require__(573);
-    ((t.Z.Image = function (e, r, o, n, a) {
-        (this.constructor(e, o, i.Z.OBJECT_TYPE_IMAGE, i.Z.OBJECT_CLASS_OTHER),
+    (t.Z.Image = function (e, r, o, n, a) {
+        this.constructor(e, o, i.Z.OBJECT_TYPE_IMAGE, i.Z.OBJECT_CLASS_OTHER),
             (this.element = this.board.select(o.anchor)),
             this.coordsConstructor(r),
             (this.W = s.Z.createFunction(a[0], this.board, "")),
@@ -44793,7 +44746,7 @@ var __webpack_exports__ = {};
             (this.methodMap = t.Z.deepCopy(this.methodMap, {
                 addTransformation: "addTransform",
                 trans: "addTransform",
-            })));
+            }));
     }),
         (t.Z.Image.prototype = new J.Z()),
         s.Z.copyPrototypeMethods(t.Z.Image, G.Z, "coordsConstructor"),
@@ -44883,13 +44836,13 @@ var __webpack_exports__ = {};
                                 s[e],
                             );
                     for (e = 0; e < 3; e++)
-                        ((s[e][1] /= s[e][0]),
+                        (s[e][1] /= s[e][0]),
                             (s[e][2] /= s[e][0]),
-                            (s[e][0] /= s[e][0]));
+                            (s[e][0] /= s[e][0]);
                     for (e = 1; e < 3; e++)
-                        ((s[e][0] -= s[0][0]),
+                        (s[e][0] -= s[0][0]),
                             (s[e][1] -= s[0][1]),
-                            (s[e][2] -= s[0][2]));
+                            (s[e][2] -= s[0][2]);
                     this.span = s;
                 }
                 return this;
@@ -44908,7 +44861,7 @@ var __webpack_exports__ = {};
                     [this.Z(), this.X(), this.Y()],
                     this.usrSize,
                 ];
-                return (0 !== this.parents.length && (t = this.parents), t);
+                return 0 !== this.parents.length && (t = this.parents), t;
             },
             setSize: function (t, e) {
                 return (
@@ -44938,11 +44891,11 @@ var __webpack_exports__ = {};
                         typeof i[1] +
                         "'.\nPossible parent types: [x,y], [z,x,y], [element,transformation]",
                 );
-            return (0 !== o.rotate && n.addRotation(o.rotate), n);
+            return 0 !== o.rotate && n.addRotation(o.rotate), n;
         }),
-        t.Z.registerElement("image", t.Z.createImage));
+        t.Z.registerElement("image", t.Z.createImage);
     t.Z.Image;
-    ((t.Z.createSlider = function (t, e, r) {
+    (t.Z.createSlider = function (t, e, r) {
         var n, a, h, l, d, u, p, _, f, b, g, m, v, Z, C, y, P, E, O, x, w;
         return (
             (P = (w = s.Z.copyAttributes(r, t.options, "slider")).withticks),
@@ -44987,7 +44940,7 @@ var __webpack_exports__ = {};
             (f._smax = d),
             (f._smin = h),
             (f.setMax = function (t) {
-                return ((this._smax = t), this);
+                return (this._smax = t), this;
             }),
             (f.setValue = function (t) {
                 var e = this._smax - this._smin;
@@ -45000,7 +44953,7 @@ var __webpack_exports__ = {};
                 );
             }),
             (f.setMin = function (t) {
-                return ((this._smin = t), this);
+                return (this._smin = t), this;
             }),
             y &&
                 ((w = s.Z.copyAttributes(r, t.options, "slider", "label")),
@@ -45078,12 +45031,12 @@ var __webpack_exports__ = {};
                 )),
                 (f.ticks = m)),
             (f.remove = function () {
-                (y && t.removeObject(v),
+                y && t.removeObject(v),
                     t.removeObject(g),
                     t.removeObject(b),
                     t.removeObject(_),
                     t.removeObject(p),
-                    z.prototype.remove.call(f));
+                    z.prototype.remove.call(f);
             }),
             (p.dump = !1),
             (_.dump = !1),
@@ -45157,10 +45110,10 @@ var __webpack_exports__ = {};
                     (f = e.create("ticks", [d, 0.1], a)),
                     d.inherits.push(f)),
                 (d.remove = function () {
-                    (h && d.removeTicks(f),
+                    h && d.removeTicks(f),
                         e.removeObject(p),
                         e.removeObject(u),
-                        J.Z.prototype.remove.call(this));
+                        J.Z.prototype.remove.call(this);
                 }),
                 (d.Value = function () {
                     return u.Dist(p);
@@ -45207,10 +45160,10 @@ var __webpack_exports__ = {};
                 ) {
                     for (this.data = [], r = 0; r < t.length; r++)
                         for (this.data[r] = [], o = 0; o < t[r].length; o++)
-                            ((n = t[r][o]),
+                            (n = t[r][o]),
                                 parseFloat(n).toString() === n
                                     ? (this.data[r][o] = parseFloat(n))
-                                    : (this.data[r][o] = "-" !== n ? n : NaN));
+                                    : (this.data[r][o] = "-" !== n ? n : NaN);
                     if (
                         (e &&
                             ((this.columnHeaders = this.data[0].slice(1)),
@@ -45222,8 +45175,8 @@ var __webpack_exports__ = {};
                             r < this.data.length;
                             r++
                         )
-                            (this.rowHeaders.push(this.data[r][0]),
-                                (this.data[r] = this.data[r].slice(1)));
+                            this.rowHeaders.push(this.data[r][0]),
+                                (this.data[r] = this.data[r].slice(1));
                 }
                 return this;
             },
@@ -45250,10 +45203,10 @@ var __webpack_exports__ = {};
                             n < a.length;
                             n++
                         )
-                            ((h = a[n].innerHTML),
+                            (h = a[n].innerHTML),
                                 parseFloat(h).toString() === h
                                     ? (this.data[o][n] = parseFloat(h))
-                                    : (this.data[o][n] = "-" !== h ? h : NaN));
+                                    : (this.data[o][n] = "-" !== h ? h : NaN);
                     if (
                         (e &&
                             ((this.columnHeaders = this.data[0].slice(1)),
@@ -45265,8 +45218,8 @@ var __webpack_exports__ = {};
                             o < this.data.length;
                             o++
                         )
-                            (this.rowHeaders.push(this.data[o][0]),
-                                (this.data[o] = this.data[o].slice(1)));
+                            this.rowHeaders.push(this.data[o][0]),
+                                (this.data[o] = this.data[o].slice(1));
                 }
                 return this;
             },
@@ -45302,9 +45255,9 @@ var __webpack_exports__ = {};
                     e[i] = this.data[t][i];
                 return e;
             },
-        }));
+        });
     const V = t.Z.DataSource;
-    ((t.Z.Chart = function (t, e, i) {
+    (t.Z.Chart = function (t, e, i) {
         var r, o, n, a, h, l;
         if ((this.constructor(t, i), !s.Z.isArray(e) || 0 === e.length))
             throw new Error("JSXGraph: Can't create a chart without data");
@@ -45353,7 +45306,7 @@ var __webpack_exports__ = {};
             }
             this.elements.push(a);
         }
-        return ((this.id = this.board.setId(this, "Chart")), this.elements);
+        return (this.id = this.board.setId(this, "Chart")), this.elements;
     }),
         (t.Z.Chart.prototype = new J.Z()),
         t.Z.extend(t.Z.Chart.prototype, {
@@ -45418,7 +45371,7 @@ var __webpack_exports__ = {};
                     o < e.length;
                     o++
                 )
-                    (s.Z.isFunction(e[o])
+                    s.Z.isFunction(e[o])
                         ? ((h = g(o, -0.5)), (l = g(o, 0)), (c = g(o, 0.5)))
                         : ((h = e[o] - 0.5 * a),
                           (l = e[o]),
@@ -45463,7 +45416,7 @@ var __webpack_exports__ = {};
                         (f[o] = t.create("polygon", b, p)),
                         s.Z.exists(p.labels) &&
                             s.Z.exists(p.labels[o]) &&
-                            (f[o].text = n));
+                            (f[o].text = n);
                 return f;
             },
             drawPoints: function (t, e, i, s) {
@@ -45471,8 +45424,8 @@ var __webpack_exports__ = {};
                     o = [],
                     n = s.infoboxarray;
                 for (s.fixed = !0, s.name = "", r = 0; r < e.length; r++)
-                    ((s.infoboxtext = !!n && n[r % n.length]),
-                        (o[r] = t.create("point", [e[r], i[r]], s)));
+                    (s.infoboxtext = !!n && n[r % n.length]),
+                        (o[r] = t.create("point", [e[r], i[r]], s));
                 return o;
             },
             drawPie: function (t, e, r) {
@@ -45511,7 +45464,7 @@ var __webpack_exports__ = {};
                             o =
                                 -this.point1.coords.usrCoords[2] +
                                 this.point2.coords.usrCoords[2];
-                        (s.Z.exists(this.label) &&
+                        s.Z.exists(this.label) &&
                             ((this.label.rendNode.style.fontSize =
                                 e * s.Z.evaluate(this.label.visProp.fontsize) +
                                 "px"),
@@ -45524,7 +45477,7 @@ var __webpack_exports__ = {};
                                 ],
                                 this.board,
                             )),
-                            this.fullUpdate());
+                            this.fullUpdate();
                     },
                     C = function () {
                         this.highlighted ||
@@ -45567,7 +45520,7 @@ var __webpack_exports__ = {};
                     o < e.length;
                     o++
                 )
-                    ((a[o + 1] = t.create(
+                    (a[o + 1] = t.create(
                         "point",
                         [v(o, "cos", g), v(o, "sin", m)],
                         P,
@@ -45581,7 +45534,7 @@ var __webpack_exports__ = {};
                         r.highlightonsector &&
                             (h[o].hasPoint = h[o].hasPointSector),
                         r.highlightbysize &&
-                            ((h[o].highlight = C), (h[o].noHighlight = y)));
+                            ((h[o].highlight = C), (h[o].noHighlight = y));
                 return { sectors: h, points: a, midpoint: n };
             },
             drawRadar: function (e, r, o) {
@@ -45689,13 +45642,13 @@ var __webpack_exports__ = {};
                                 ")",
                         );
                 for (d = [], u = [], a = 0; a < l; a++)
-                    ((d[a] = r[0][a]), (u[a] = d[a]));
+                    (d[a] = r[0][a]), (u[a] = d[a]);
                 for (n = 1; n < V; n++)
                     for (a = 0; a < l; a++)
-                        (r[n][a] > d[a] && (d[a] = r[n][a]),
-                            r[n][a] < u[a] && (u[a] = r[n][a]));
+                        r[n][a] > d[a] && (d[a] = r[n][a]),
+                            r[n][a] < u[a] && (u[a] = r[n][a]);
                 for (p = [], _ = [], n = 0; n < V; n++)
-                    ((p[n] = ""), (_[n] = []));
+                    (p[n] = ""), (_[n] = []);
                 for (
                     f = [],
                         b = [],
@@ -45705,7 +45658,7 @@ var __webpack_exports__ = {};
                     n < l;
                     n++
                 )
-                    ((f[n] = (d[n] - u[n]) * g), (b[n] = (d[n] - u[n]) * m));
+                    (f[n] = (d[n] - u[n]) * g), (b[n] = (d[n] - u[n]) * m);
                 if (
                     ((v = o.startshiftarray || f),
                     (Z = o.endshiftarray || b),
@@ -45797,14 +45750,14 @@ var __webpack_exports__ = {};
                         a < r.length;
                         a++
                     )
-                        ((W = r[a][n]),
+                        (W = r[a][n]),
                             (_[a][n] = e.create("point", [W, 0], {
                                 name: "",
                                 fixed: !0,
                                 withlabel: !1,
                                 visible: !1,
                             })),
-                            _[a][n].addTransform(_[a][n], D));
+                            _[a][n].addTransform(_[a][n], D);
                 for (I = [], n = 0; n < V; n++)
                     for (
                         x.labelcolor = E && E[n % E.length],
@@ -45821,21 +45774,21 @@ var __webpack_exports__ = {};
                         a < l;
                         a++
                     )
-                        (I[n].borders[a].setAttribute(
+                        I[n].borders[a].setAttribute(
                             "strokecolor:" + E[n % E.length],
                         ),
                             I[n].borders[a].setAttribute(
                                 "strokewidth:" + x.polystrokewidth,
-                            ));
+                            );
                 switch (o.legendposition || "none") {
                     case "right":
-                        ((j = o.legendleftoffset || 2),
+                        (j = o.legendleftoffset || 2),
                             (X = o.legendtopoffset || 1),
                             (this.legend = e.create(
                                 "legend",
                                 [S + O + j, T + O - X],
                                 { labels: P, colors: E },
-                            )));
+                            ));
                         break;
                     case "none":
                         break;
@@ -45864,7 +45817,7 @@ var __webpack_exports__ = {};
                         n < J;
                         n++
                     )
-                        ((G[n] = e.create("point", [C[0] + n * z, 0], {
+                        (G[n] = e.create("point", [C[0] + n * z, 0], {
                             name: F[n],
                             size: 0,
                             fixed: !0,
@@ -45872,7 +45825,7 @@ var __webpack_exports__ = {};
                             visible: !0,
                         })),
                             G[n].addTransform(G[n], D),
-                            (Y[n] = e.create("circle", [M, G[n]], x)));
+                            (Y[n] = e.create("circle", [M, G[n]], x));
                 }
                 return (
                     (this.rendNode = I[0].rendNode),
@@ -45889,7 +45842,7 @@ var __webpack_exports__ = {};
                 return this;
             },
             update: function () {
-                return (this.needsUpdate && this.updateDataArray(), this);
+                return this.needsUpdate && this.updateDataArray(), this;
             },
             updateDataArray: function () {
                 return this;
@@ -45961,7 +45914,7 @@ var __webpack_exports__ = {};
                                 u.push(u[l - 1] + 1);
                             _.width = d / C;
                         }
-                        (b && b.length === C
+                        b && b.length === C
                             ? (_.name = b[h])
                             : _.withheaders && (_.name = c[h]),
                             g && g.length === C
@@ -45994,7 +45947,7 @@ var __webpack_exports__ = {};
                                   )),
                             _.chartstyle && -1 !== _.chartstyle.indexOf("bar")
                                 ? y.push(new t.Z.Chart(i, [u, p[h]], _))
-                                : y.push(new t.Z.Chart(i, [p[h]], _)));
+                                : y.push(new t.Z.Chart(i, [p[h]], _));
                     }
                     i.unsuspendUpdate();
                 }
@@ -46046,7 +45999,7 @@ var __webpack_exports__ = {};
                     );
                 };
             for (r = 0; r < this.label_array.length; r++)
-                ((this.myAtts.name = this.label_array[r]),
+                (this.myAtts.name = this.label_array[r]),
                     (this.myAtts.strokecolor =
                         this.color_array[r % this.color_array.length]),
                     (this.myAtts.highlightstrokecolor =
@@ -46078,7 +46031,7 @@ var __webpack_exports__ = {};
                         .updateVisibility(
                             s.Z.evaluate(this.lines[r].visProp.visible),
                         )
-                        .updateRenderer());
+                        .updateRenderer();
         }),
         (t.Z.createLegend = function (e, i, r) {
             var o = [0, 0];
@@ -46086,12 +46039,12 @@ var __webpack_exports__ = {};
                 throw new Error(
                     "JSXGraph: Legend element needs two numbers as parameters",
                 );
-            return ((o = i), new t.Z.Legend(e, o, r));
+            return (o = i), new t.Z.Legend(e, o, r);
         }),
-        t.Z.registerElement("legend", t.Z.createLegend));
-    (t.Z.Chart, t.Z.Legend);
-    ((t.Z.Transformation = function (t, e, s) {
-        ((this.elementClass = i.Z.OBJECT_CLASS_OTHER),
+        t.Z.registerElement("legend", t.Z.createLegend);
+    t.Z.Chart, t.Z.Legend;
+    (t.Z.Transformation = function (t, e, s) {
+        (this.elementClass = i.Z.OBJECT_CLASS_OTHER),
             (this.type = i.Z.OBJECT_TYPE_TRANSFORMATION),
             (this.matrix = [
                 [1, 0, 0],
@@ -46107,7 +46060,7 @@ var __webpack_exports__ = {};
                 bindTo: "bindTo",
                 bind: "bindTo",
                 melt: "melt",
-            }));
+            });
     }),
         (t.Z.Transformation.prototype = {}),
         t.Z.extend(t.Z.Transformation.prototype, {
@@ -46126,29 +46079,29 @@ var __webpack_exports__ = {};
                         throw new Error(
                             "JSXGraph: translate transformation needs 2 parameters.",
                         );
-                    ((this.evalParam = s.Z.createEvalFunction(t, i, 2)),
+                    (this.evalParam = s.Z.createEvalFunction(t, i, 2)),
                         (this.update = function () {
-                            ((this.matrix[1][0] = this.evalParam(0)),
-                                (this.matrix[2][0] = this.evalParam(1)));
-                        }));
+                            (this.matrix[1][0] = this.evalParam(0)),
+                                (this.matrix[2][0] = this.evalParam(1));
+                        });
                 } else if ("scale" === e) {
                     if (2 !== i.length)
                         throw new Error(
                             "JSXGraph: scale transformation needs 2 parameters.",
                         );
-                    ((this.evalParam = s.Z.createEvalFunction(t, i, 2)),
+                    (this.evalParam = s.Z.createEvalFunction(t, i, 2)),
                         (this.update = function () {
-                            ((this.matrix[1][1] = this.evalParam(0)),
-                                (this.matrix[2][2] = this.evalParam(1)));
-                        }));
+                            (this.matrix[1][1] = this.evalParam(0)),
+                                (this.matrix[2][2] = this.evalParam(1));
+                        });
                 } else if ("reflect" === e)
-                    (i.length < 4 && (i[0] = t.select(i[0])),
+                    i.length < 4 && (i[0] = t.select(i[0])),
                         2 === i.length && (i[1] = t.select(i[1])),
                         4 === i.length &&
                             (this.evalParam = s.Z.createEvalFunction(t, i, 4)),
                         (this.update = function () {
                             var t, e, s, r, n, a, h, l;
-                            (1 === i.length
+                            1 === i.length
                                 ? (h = i[0].stdform)
                                 : 2 === i.length
                                   ? (h = o.Z.crossProduct(
@@ -46188,10 +46141,10 @@ var __webpack_exports__ = {};
                                     n * this.matrix[1][2]),
                                 (this.matrix[2][0] =
                                     n * (1 - this.matrix[2][2]) -
-                                    r * this.matrix[2][1]));
-                        }));
+                                    r * this.matrix[2][1]);
+                        });
                 else if ("rotate" === e)
-                    (3 === i.length
+                    3 === i.length
                         ? (this.evalParam = s.Z.createEvalFunction(t, i, 3))
                         : i.length > 0 &&
                           i.length <= 2 &&
@@ -46205,7 +46158,7 @@ var __webpack_exports__ = {};
                                 r = this.evalParam(0),
                                 o = Math.cos(r),
                                 n = Math.sin(r);
-                            ((this.matrix[1][1] = o),
+                            (this.matrix[1][1] = o),
                                 (this.matrix[1][2] = -n),
                                 (this.matrix[2][1] = n),
                                 (this.matrix[2][2] = o),
@@ -46217,26 +46170,26 @@ var __webpack_exports__ = {};
                                           ? ((t = i[1][0]), (e = i[1][1]))
                                           : ((t = i[1].X()), (e = i[1].Y())),
                                     (this.matrix[1][0] = t * (1 - o) + e * n),
-                                    (this.matrix[2][0] = e * (1 - o) - t * n)));
-                        }));
+                                    (this.matrix[2][0] = e * (1 - o) - t * n));
+                        });
                 else if ("shear" === e) {
                     if (2 !== i.length)
                         throw new Error(
                             "JSXGraph: shear transformation needs 2 parameters.",
                         );
-                    ((this.evalParam = s.Z.createEvalFunction(t, i, 2)),
+                    (this.evalParam = s.Z.createEvalFunction(t, i, 2)),
                         (this.update = function () {
-                            ((this.matrix[1][2] = this.evalParam(0)),
-                                (this.matrix[2][1] = this.evalParam(1)));
-                        }));
+                            (this.matrix[1][2] = this.evalParam(0)),
+                                (this.matrix[2][1] = this.evalParam(1));
+                        });
                 } else if ("generic" === e) {
                     if (9 !== i.length)
                         throw new Error(
                             "JSXGraph: generic transformation needs 9 parameters.",
                         );
-                    ((this.evalParam = s.Z.createEvalFunction(t, i, 9)),
+                    (this.evalParam = s.Z.createEvalFunction(t, i, 9)),
                         (this.update = function () {
-                            ((this.matrix[0][0] = this.evalParam(0)),
+                            (this.matrix[0][0] = this.evalParam(0)),
                                 (this.matrix[0][1] = this.evalParam(1)),
                                 (this.matrix[0][2] = this.evalParam(2)),
                                 (this.matrix[1][0] = this.evalParam(3)),
@@ -46244,8 +46197,8 @@ var __webpack_exports__ = {};
                                 (this.matrix[1][2] = this.evalParam(5)),
                                 (this.matrix[2][0] = this.evalParam(6)),
                                 (this.matrix[2][1] = this.evalParam(7)),
-                                (this.matrix[2][2] = this.evalParam(8)));
-                        }));
+                                (this.matrix[2][2] = this.evalParam(8));
+                        });
                 }
             },
             apply: function (t, e) {
@@ -46263,12 +46216,12 @@ var __webpack_exports__ = {};
                     n < r;
                     n++
                 )
-                    (this.update(),
+                    this.update(),
                         (e = o.Z.matVecMult(
                             this.matrix,
                             t[n].coords.usrCoords,
                         )),
-                        t[n].coords.setCoordinates(i.Z.COORDS_BY_USER, e));
+                        t[n].coords.setCoordinates(i.Z.COORDS_BY_USER, e);
             },
             bindTo: function (t) {
                 var e, i;
@@ -46316,15 +46269,15 @@ var __webpack_exports__ = {};
             },
             getParents: function () {
                 var t = [[].concat.apply([], this.matrix)];
-                return (0 !== this.parents.length && (t = this.parents), t);
+                return 0 !== this.parents.length && (t = this.parents), t;
             },
         }),
         (t.Z.createTransform = function (e, i, s) {
             return new t.Z.Transformation(e, s.type, i);
         }),
-        t.Z.registerElement("transform", t.Z.createTransform));
+        t.Z.registerElement("transform", t.Z.createTransform);
     t.Z.Transformation;
-    ((t.Z.Turtle = function (t, e, r) {
+    (t.Z.Turtle = function (t, e, r) {
         var o, n, a;
         return (
             this.constructor(
@@ -46398,7 +46351,7 @@ var __webpack_exports__ = {};
         t.Z.extend(t.Z.Turtle.prototype, {
             init: function (t, e, i) {
                 var s = { fixed: !0, name: "", visible: !1, withLabel: !1 };
-                ((this.arrowLen =
+                (this.arrowLen =
                     20 /
                     Math.sqrt(
                         this.board.unitX * this.board.unitX +
@@ -46435,7 +46388,7 @@ var __webpack_exports__ = {};
                     (this.subs = { arrow: this.arrow }),
                     this.inherits.push(this.arrow),
                     this.right(90 - i),
-                    this.board.update());
+                    this.board.update();
             },
             forward: function (t) {
                 if (0 === t) return this;
@@ -46477,13 +46430,13 @@ var __webpack_exports__ = {};
                             { type: "rotate" },
                         )
                         .applyOnce(this.turtle2);
-                return (this.board.update(), this);
+                return this.board.update(), this;
             },
             left: function (t) {
                 return this.right(-t);
             },
             penUp: function () {
-                return ((this.isPenDown = !1), this);
+                return (this.isPenDown = !1), this;
             },
             penDown: function () {
                 return (
@@ -46518,8 +46471,8 @@ var __webpack_exports__ = {};
                     e,
                     i = this.objects.length;
                 for (t = 0; t < i; t++)
-                    ((e = this.objects[t]), this.board.removeObject(e));
-                return (this.init(0, 0, 90), this);
+                    (e = this.objects[t]), this.board.removeObject(e);
+                return this.init(0, 0, 90), this;
             },
             setPos: function (t, e) {
                 return (
@@ -46622,8 +46575,7 @@ var __webpack_exports__ = {};
             },
             copyAttr: function (t, e) {
                 return (
-                    (this._attributes[t.toLowerCase()] = e),
-                    this._attributes
+                    (this._attributes[t.toLowerCase()] = e), this._attributes
                 );
             },
             showTurtle: function () {
@@ -46654,8 +46606,7 @@ var __webpack_exports__ = {};
             },
             pushTurtle: function () {
                 return (
-                    this.stack.push([this.pos[0], this.pos[1], this.dir]),
-                    this
+                    this.stack.push([this.pos[0], this.pos[1], this.dir]), this
                 );
             },
             popTurtle: function () {
@@ -46755,7 +46706,7 @@ var __webpack_exports__ = {};
                         i.Z.OBJECT_CLASS_CURVE
                     ) {
                         if (r <= t && t < r + o.numberPoints)
-                            return ((n = t - r), o[e](n));
+                            return (n = t - r), o[e](n);
                         r += o.numberPoints;
                     }
                 return this[e]();
@@ -46800,9 +46751,9 @@ var __webpack_exports__ = {};
                 new t.Z.Turtle(e, i, o)
             );
         }),
-        t.Z.registerElement("turtle", t.Z.createTurtle));
+        t.Z.registerElement("turtle", t.Z.createTurtle);
     t.Z.Turtle;
-    ((t.Z.Ticks = function (t, e, r) {
+    (t.Z.Ticks = function (t, e, r) {
         if (
             (this.constructor(
                 t.board,
@@ -46819,10 +46770,10 @@ var __webpack_exports__ = {};
             s.Z.isFunction(e))
         )
             throw (
-                (this.ticksFunction = e),
-                new Error("Function arguments are no longer supported.")
+                ((this.ticksFunction = e),
+                new Error("Function arguments are no longer supported."))
             );
-        (s.Z.isArray(e)
+        s.Z.isArray(e)
             ? (this.fixedTicks = e)
             : ((Math.abs(e) < o.Z.eps || e < 0) && (e = r.defaultdistance),
               (this.ticksFunction = this.makeTicksFunction(e)),
@@ -46836,7 +46787,7 @@ var __webpack_exports__ = {};
             (this.id = this.line.addTicks(this)),
             (this.elType = "ticks"),
             this.inherits.push(this.labels),
-            this.board.setId(this, "Ti"));
+            this.board.setId(this, "Ti");
     }),
         (t.Z.Ticks.prototype = new J.Z()),
         t.Z.extend(t.Z.Ticks.prototype, {
@@ -46988,7 +46939,7 @@ var __webpack_exports__ = {};
                     n,
                     a = 0.5 * s.Z.evaluate(this.visProp.majorheight),
                     h = 0.5 * s.Z.evaluate(this.visProp.minorheight);
-                (s.Z.exists(t)
+                s.Z.exists(t)
                     ? ((i = this.line.minX()),
                       (r = this.line.maxX()),
                       (n = this.line.points.length) < 2
@@ -47036,7 +46987,7 @@ var __webpack_exports__ = {};
                     (this.majStyle =
                         s.Z.evaluate(this.visProp.majorheight) < 0
                             ? "infinite"
-                            : "finite"));
+                            : "finite");
             },
             getZeroCoordinates: function () {
                 var t,
@@ -47250,14 +47201,14 @@ var __webpack_exports__ = {};
                 )
                     return 0;
                 for (; a / (l + 1) < this.minTicksDistance; )
-                    ((t *= 1 === h ? 2 : 5),
+                    (t *= 1 === h ? 2 : 5),
                         (h *= -1),
                         (o = e.usrCoords[1] + r.x * t),
                         (n = e.usrCoords[2] + r.y * t),
                         (a = e.distance(
                             i.Z.COORDS_BY_SCREEN,
                             new c.Z(i.Z.COORDS_BY_USER, [o, n], this.board),
-                        )));
+                        ));
                 return t;
             },
             processTickPosition: function (t, e, r, o) {
@@ -47268,7 +47219,7 @@ var __webpack_exports__ = {};
                     d,
                     u = s.Z.evaluate(this.visProp.ticksperlabel),
                     p = null;
-                (this.line.elementClass === i.Z.OBJECT_CLASS_LINE
+                this.line.elementClass === i.Z.OBJECT_CLASS_LINE
                     ? ((n = t.usrCoords[1] + e * o.x),
                       (a = t.usrCoords[2] + e * o.y))
                     : ((n = this.line.X(t + e)), (a = this.line.Y(t + e))),
@@ -47291,7 +47242,7 @@ var __webpack_exports__ = {};
                                       this.ticks.length,
                                   ),
                               )
-                            : this.labelsData.push(null)));
+                            : this.labelsData.push(null));
             },
             generateFixedTicks: function (t, e) {
                 var r,
@@ -47312,7 +47263,7 @@ var __webpack_exports__ = {};
                     a < this.fixedTicks.length;
                     a++
                 )
-                    (this.line.elementClass === i.Z.OBJECT_CLASS_LINE
+                    this.line.elementClass === i.Z.OBJECT_CLASS_LINE
                         ? ((u = this.fixedTicks[a]),
                           (l = t.usrCoords[1] + u * p.x),
                           (d = t.usrCoords[2] + u * p.y))
@@ -47337,7 +47288,7 @@ var __webpack_exports__ = {};
                                           a,
                                       ),
                                   ))
-                                : this.labelsData.push(null)));
+                                : this.labelsData.push(null));
             },
             getXandYdeltas: function () {
                 var t,
@@ -47423,14 +47374,14 @@ var __webpack_exports__ = {};
                             ))
                     ) {
                         for (y = [], P = [], _ = 0; _ <= g; _ += m)
-                            (y.push(
+                            y.push(
                                 this.board.origin.scrCoords[1] +
                                     f * Math.cos(_) * this.board.unitX,
                             ),
                                 P.push(
                                     this.board.origin.scrCoords[2] +
                                         f * Math.sin(_) * this.board.unitY,
-                                ));
+                                );
                         return [y, P, e];
                     }
                 } else {
@@ -47442,10 +47393,10 @@ var __webpack_exports__ = {};
                             (n = u.Z.meetLineBoard(r, this.board)),
                             v && Z)
                         )
-                            ((y[0] = n[0].scrCoords[1]),
+                            (y[0] = n[0].scrCoords[1]),
                                 (y[1] = n[1].scrCoords[1]),
                                 (P[0] = n[0].scrCoords[2]),
-                                (P[1] = n[1].scrCoords[2]));
+                                (P[1] = n[1].scrCoords[2]);
                         else if (
                             ((C = [
                                 o.Z.innerProduct(
@@ -47482,7 +47433,7 @@ var __webpack_exports__ = {};
                                   (P[1] = n[1].scrCoords[2]));
                         }
                     } else
-                        ((d =
+                        (d =
                             ">" === s.Z.evaluate(this.visProp.face)
                                 ? Math.PI / 4
                                 : "<" === s.Z.evaluate(this.visProp.face)
@@ -47498,7 +47449,7 @@ var __webpack_exports__ = {};
                             (l = Math.cos(d) * a - Math.sin(d) * h),
                             (c = Math.sin(d) * a + Math.cos(d) * h),
                             (y[2] = i[1] - l * Z),
-                            (P[2] = i[2] + c * Z));
+                            (P[2] = i[2] + c * Z);
                     if (this._isInsideCanvas(y, P)) return [y, P, e];
                 }
                 return [];
@@ -47664,11 +47615,11 @@ var __webpack_exports__ = {};
                             this.visProp.label.offset[1],
                         )));
                 for (i = r = i; i < o; i++)
-                    (this.board.renderer.display(this.labels[i], !1),
+                    this.board.renderer.display(this.labels[i], !1),
                         (this.labels[i].visProp.visible = this.labels[
                             i
                         ].visPropCalc.visible =
-                            !1));
+                            !1);
                 return this;
             },
             hideElement: function () {
@@ -47766,10 +47717,10 @@ var __webpack_exports__ = {};
         }),
         t.Z.registerElement("ticks", t.Z.createTicks),
         t.Z.registerElement("hash", t.Z.createHatchmark),
-        t.Z.registerElement("hatch", t.Z.createHatchmark));
+        t.Z.registerElement("hatch", t.Z.createHatchmark);
     t.Z.Ticks;
-    ((t.Z.CA = function (t, e, i) {
-        ((this.node = t), (this.createNode = e), (this.parser = i));
+    (t.Z.CA = function (t, e, i) {
+        (this.node = t), (this.createNode = e), (this.parser = i);
     }),
         t.Z.extend(t.Z.CA.prototype, {
             findMapNode: function (t, e) {
@@ -48186,11 +48137,11 @@ var __webpack_exports__ = {};
                         break;
                     default:
                         throw (
-                            (i = this.createNode("node_const", 0)),
+                            ((i = this.createNode("node_const", 0)),
                             console.log(
                                 'Derivative of "' + r + '" not yet implemented',
                             ),
-                            new Error("Error(" + this.line + "): ")
+                            new Error("Error(" + this.line + "): "))
                         );
                 }
                 return i;
@@ -48378,10 +48329,10 @@ var __webpack_exports__ = {};
                                         : 1) >= 1)
                             )
                                 for (; _ >= 1; )
-                                    ((c = this.derivative(c, u)),
+                                    (c = this.derivative(c, u)),
                                         (c = this.removeTrivialNodes(c)),
-                                        _--);
-                            ((l =
+                                        _--;
+                            (l =
                                 "node_op" == e.type && "op_assign" == e.value
                                     ? this.createNode("node_op", "op_map", p, c)
                                     : c),
@@ -48389,7 +48340,7 @@ var __webpack_exports__ = {};
                                 (t.type = l.type),
                                 (t.value = l.value),
                                 (t.children[0] = l.children[0]),
-                                (t.children[1] = l.children[1]));
+                                (t.children[1] = l.children[1]);
                         }
                 return t;
             },
@@ -48426,7 +48377,7 @@ var __webpack_exports__ = {};
                             return o;
                         if ("node_const" == o.type && 0 === o.value) return r;
                         if ("node_const" == r.type && "node_const" == o.type)
-                            return ((r.value += o.value), r);
+                            return (r.value += o.value), r;
                         break;
                     case "op_mul":
                         if (
@@ -48577,14 +48528,14 @@ var __webpack_exports__ = {};
                                 t
                             );
                         if ("node_const" == r.type && "node_const" == o.type)
-                            return ((r.value *= o.value), r);
+                            return (r.value *= o.value), r;
                         if (
                             "node_const" == r.type &&
                             "node_op" == o.type &&
                             ("op_mul" == o.value || "op_div" == o.value) &&
                             "node_const" == o.children[0].type
                         )
-                            return ((o.children[0].value *= r.value), o);
+                            return (o.children[0].value *= r.value), o;
                         if (
                             ((r.hash = this.parser.compile(r)),
                             (o.hash = this.parser.compile(o)),
@@ -48604,7 +48555,7 @@ var __webpack_exports__ = {};
                             ("op_mul" == o.value || "op_div" == o.value) &&
                             "node_const" == o.children[0].type
                         )
-                            return ((o.children[0].value *= r.value), o);
+                            return (o.children[0].value *= r.value), o;
                         if (
                             "node_op" == o.type &&
                             "op_exp" == o.value &&
@@ -48655,11 +48606,7 @@ var __webpack_exports__ = {};
                             (o = t.children[1]),
                             "node_const" == r.type && 0 === r.value)
                         )
-                            return (
-                                (t.value = "op_neg"),
-                                (t.children[0] = o),
-                                t
-                            );
+                            return (t.value = "op_neg"), (t.children[0] = o), t;
                         if ("node_const" == o.type && 0 === o.value) return r;
                         if (
                             "node_const" == r.type &&
@@ -48674,7 +48621,7 @@ var __webpack_exports__ = {};
                         )
                             return this.createNode("node_const", 0);
                         if ("node_const" == r.type && "node_const" == o.type)
-                            return ((r.value -= o.value), r);
+                            return (r.value -= o.value), r;
                         if (
                             "node_op" == r.type &&
                             "op_mul" == r.value &&
@@ -48767,20 +48714,20 @@ var __webpack_exports__ = {};
                                 r.value == o.value &&
                                 0 !== r.value)
                         )
-                            return ((r.value = 1), r);
+                            return (r.value = 1), r;
                         if (
                             "node_const" == r.type &&
                             0 === r.value &&
                             "node_const" == o.type &&
                             0 !== o.value
                         )
-                            return ((r.value = 0), r);
+                            return (r.value = 0), r;
                         if (
                             "node_const" == r.type &&
                             0 === r.value &&
                             ("node_op" == o.type || "node_var" == o.type)
                         )
-                            return ((t.type = "node_const"), (t.value = 0), t);
+                            return (t.type = "node_const"), (t.value = 0), t;
                         if (
                             "node_var" == r.type &&
                             "node_var" == o.type &&
@@ -48910,7 +48857,7 @@ var __webpack_exports__ = {};
                             "node_const" == (o = t.children[1]).type &&
                                 0 === o.value)
                         )
-                            return ((o.value = 1), o);
+                            return (o.value = 1), o;
                         if ("node_const" == o.type && 1 == o.value) return r;
                         if ("node_const" == r.type && 1 == r.value) return r;
                         if (
@@ -48943,7 +48890,7 @@ var __webpack_exports__ = {};
                                 "node_const" == o.type &&
                                 r.value == o.value)
                         )
-                            return ((r.value += o.value), r);
+                            return (r.value += o.value), r;
                         if (
                             "node_var" == r.type &&
                             "node_var" == o.type &&
@@ -49072,9 +49019,9 @@ var __webpack_exports__ = {};
                     case "sin":
                     case "tan":
                         if ("node_const" == i[0].type && 0 === i[0].value)
-                            return ((t.type = "node_const"), (t.value = 0), t);
+                            return (t.type = "node_const"), (t.value = 0), t;
                         if ("node_var" == i[0].type && "PI" == i[0].value)
-                            return ((t.type = "node_const"), (t.value = 0), t);
+                            return (t.type = "node_const"), (t.value = 0), t;
                         if (
                             "node_op" == i[0].type &&
                             "op_mul" == i[0].value &&
@@ -49083,11 +49030,11 @@ var __webpack_exports__ = {};
                             "node_var" == i[0].children[1].type &&
                             "PI" == i[0].children[1].value
                         )
-                            return ((t.type = "node_const"), (t.value = 0), t);
+                            return (t.type = "node_const"), (t.value = 0), t;
                         break;
                     case "cos":
                         if ("node_const" == i[0].type && 0 === i[0].value)
-                            return ((t.type = "node_const"), (t.value = 1), t);
+                            return (t.type = "node_const"), (t.value = 1), t;
                         if ("node_var" == i[0].type && "PI" == i[0].value)
                             return (
                                 (t.type = "node_op"),
@@ -49100,15 +49047,15 @@ var __webpack_exports__ = {};
                         break;
                     case "exp":
                         if ("node_const" == i[0].type && 0 === i[0].value)
-                            return ((t.type = "node_const"), (t.value = 1), t);
+                            return (t.type = "node_const"), (t.value = 1), t;
                         break;
                     case "pow":
                         if ("node_const" == i[1].type && 0 === i[1].value)
-                            return ((t.type = "node_const"), (t.value = 1), t);
+                            return (t.type = "node_const"), (t.value = 1), t;
                 }
                 return t;
             },
-        }));
+        });
     t.Z.CA;
     t.Z.Dump = {
         addMarkers: function (t, e, i) {
@@ -49174,7 +49121,7 @@ var __webpack_exports__ = {};
                     )),
                     (s[r].id = i.subs[r].id),
                     (s[r].name = i.subs[r].name));
-            return ((s.id = i.id), (s.name = i.name), s);
+            return (s.id = i.id), (s.name = i.name), s;
         },
         setBoundingBox: function (t, e, i) {
             return (
@@ -49213,11 +49160,11 @@ var __webpack_exports__ = {};
                             : s.Z.isArray(r.parents[o]) &&
                               (r.parents[o] =
                                   "[" + r.parents[o].toString() + "]");
-                    ((r.attributes = this.prepareAttributes(t, i)),
+                    (r.attributes = this.prepareAttributes(t, i)),
                         "glider" === r.type &&
                             i.onPolygon &&
                             n.push({ obj: i.id, prop: "onPolygon", val: !0 }),
-                        a.push(r));
+                        a.push(r);
                 }
             return (
                 this.deleteMarkers(t, "dumped"),
@@ -49272,7 +49219,7 @@ var __webpack_exports__ = {};
                 e < i.length;
                 e++
             )
-                (i[e].attributes.name.length > 0 &&
+                i[e].attributes.name.length > 0 &&
                     o.push("// " + i[e].attributes.name),
                     o.push(
                         "s" +
@@ -49289,9 +49236,9 @@ var __webpack_exports__ = {};
                         ((s = i[e].attributes.id),
                         null === t.objects[s].defaultTicks &&
                             o.push("s" + e + ".removeAllTicks();")),
-                    o.push(""));
+                    o.push("");
             for (e = 0; e < r.methods.length; e++)
-                (o.push(
+                o.push(
                     r.methods[e].obj +
                         "." +
                         r.methods[e].method +
@@ -49299,9 +49246,9 @@ var __webpack_exports__ = {};
                         this.arrayToParamStr(r.methods[e].params, this.toJCAN) +
                         ");",
                 ),
-                    o.push(""));
+                    o.push("");
             for (e = 0; e < r.props.length; e++)
-                (o.push(
+                o.push(
                     r.props[e].obj +
                         "." +
                         r.props[e].prop +
@@ -49309,7 +49256,7 @@ var __webpack_exports__ = {};
                         this.toJCAN(r.props[e].val) +
                         ";",
                 ),
-                    o.push(""));
+                    o.push("");
             return o.join("\n");
         },
         toJavaScript: function (t) {
@@ -49325,7 +49272,7 @@ var __webpack_exports__ = {};
                 e < i.length;
                 e++
             )
-                (n.push(
+                n.push(
                     'board.create("' +
                         i[e].type +
                         '", [' +
@@ -49343,9 +49290,9 @@ var __webpack_exports__ = {};
                                     '"].removeTicks(board.objects["' +
                                     r +
                                     '"].defaultTicks);',
-                            )));
+                            ));
             for (e = 0; e < o.methods.length; e++)
-                (n.push(
+                n.push(
                     o.methods[e].obj +
                         "." +
                         o.methods[e].method +
@@ -49353,9 +49300,9 @@ var __webpack_exports__ = {};
                         this.arrayToParamStr(o.methods[e].params, s.Z.toJSON) +
                         ");",
                 ),
-                    n.push(""));
+                    n.push("");
             for (e = 0; e < o.props.length; e++)
-                (n.push(
+                n.push(
                     o.props[e].obj +
                         "." +
                         o.props[e].prop +
@@ -49363,27 +49310,27 @@ var __webpack_exports__ = {};
                         s.Z.toJSON(o.props[e].val) +
                         ";",
                 ),
-                    n.push(""));
+                    n.push("");
             return n.join("\n");
         },
     };
     t.Z.Dump;
-    ((t.Z.createComb = function (e, i, r) {
+    (t.Z.createComb = function (e, i, r) {
         var o, n, a, h, l;
         if (2 !== i.length)
             throw (
-                (l = i.map(function (t) {
+                ((l = i.map(function (t) {
                     return "'" + typeof t + "'";
                 })),
                 new Error(
                     "JSXGraph: Can't create comb with parent types " +
                         l.join(", ") +
                         ".\nPossible parent types: [point,point], [[x1,y1],[x2,y2]]",
-                )
+                ))
             );
         if (s.Z.isArray(i[0]) && i[0].length > 1)
-            ((h = s.Z.copyAttributes(r, e.options, "comb", "point1")),
-                (o = e.create("point", i[0], h)));
+            (h = s.Z.copyAttributes(r, e.options, "comb", "point1")),
+                (o = e.create("point", i[0], h));
         else if (s.Z.isString(i[0]) || s.Z.isPoint(i[0])) o = e.select(i[0]);
         else if (s.Z.isFunction(i[0]) && s.Z.isPoint(i[0]())) o = i[0]();
         else {
@@ -49395,12 +49342,12 @@ var __webpack_exports__ = {};
                         typeof i[1] +
                         "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]]",
                 );
-            ((h = s.Z.copyAttributes(r, e.options, "comb", "point1")),
-                (o = t.Z.createPoint(e, i[0](), h)));
+            (h = s.Z.copyAttributes(r, e.options, "comb", "point1")),
+                (o = t.Z.createPoint(e, i[0](), h));
         }
         if (s.Z.isArray(i[1]) && i[1].length > 1)
-            ((h = s.Z.copyAttributes(r, e.options, "comb", "point2")),
-                (n = e.create("point", i[1], h)));
+            (h = s.Z.copyAttributes(r, e.options, "comb", "point2")),
+                (n = e.create("point", i[1], h));
         else if (s.Z.isString(i[1]) || s.Z.isPoint(i[1])) n = e.select(i[1]);
         else if (s.Z.isFunction(i[1]) && s.Z.isPoint(i[1]())) n = i[1]();
         else {
@@ -49412,8 +49359,8 @@ var __webpack_exports__ = {};
                         typeof i[1] +
                         "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]]",
                 );
-            ((h = s.Z.copyAttributes(r, e.options, "comb", "point2")),
-                (n = t.Z.createPoint(e, i[1](), h)));
+            (h = s.Z.copyAttributes(r, e.options, "comb", "point2")),
+                (n = t.Z.createPoint(e, i[1](), h));
         }
         return (
             (h = s.Z.copyAttributes(r, e.options, "comb")),
@@ -49451,7 +49398,7 @@ var __webpack_exports__ = {};
                         _ < f;
 
                     )
-                        ((h = b.X() + i * _),
+                        (h = b.X() + i * _),
                             (l = b.Y() + r * _),
                             (e *= c = Math.min(t, f - _) / Math.abs(t)),
                             (t *= c),
@@ -49461,26 +49408,25 @@ var __webpack_exports__ = {};
                             this.dataY.push(l - i * e + r * t),
                             this.dataX.push(NaN),
                             this.dataY.push(NaN),
-                            (_ += d));
+                            (_ += d);
                 }),
             a
         );
     }),
-        t.Z.registerElement("comb", t.Z.createComb));
+        t.Z.registerElement("comb", t.Z.createComb);
     var $ = function () {
-            (W.prototype.remove.call(this),
+            W.prototype.remove.call(this),
                 this.board.removeObject(this.toppoint),
                 this.board.removeObject(this.glider),
                 this.board.removeObject(this.baseline),
                 this.board.removeObject(this.basepoint),
                 this.board.removeObject(this.label),
-                this._isPrivateTangent &&
-                    this.board.removeObject(this.tangent));
+                this._isPrivateTangent && this.board.removeObject(this.tangent);
         },
         K = function () {
             return this.tangent.getSlope();
         };
-    ((t.Z.createSlopeTriangle = function (e, r, o) {
+    (t.Z.createSlopeTriangle = function (e, r, o) {
         var n,
             a,
             h,
@@ -49492,9 +49438,9 @@ var __webpack_exports__ = {};
             _,
             f = !1;
         if (1 === r.length && r[0].type === i.Z.OBJECT_TYPE_TANGENT)
-            ((a = r[0]), (h = a.glider));
+            (a = r[0]), (h = a.glider);
         else if (1 === r.length && r[0].type === i.Z.OBJECT_TYPE_GLIDER)
-            ((h = r[0]),
+            (h = r[0]),
                 (_ = s.Z.copyAttributes(
                     o,
                     e.options,
@@ -49502,7 +49448,7 @@ var __webpack_exports__ = {};
                     "tangent",
                 )),
                 (a = e.create("tangent", [h], _)),
-                (f = !0));
+                (f = !0);
         else {
             if (
                 2 !== r.length ||
@@ -49514,7 +49460,7 @@ var __webpack_exports__ = {};
                         typeof r[0] +
                         "'.",
                 );
-            ((a = r[0]), (h = r[1]));
+            (a = r[0]), (h = r[1]);
         }
         return (
             (_ = s.Z.copyAttributes(
@@ -49603,11 +49549,11 @@ var __webpack_exports__ = {};
             n
         );
     }),
-        t.Z.registerElement("slopetriangle", t.Z.createSlopeTriangle));
+        t.Z.registerElement("slopetriangle", t.Z.createSlopeTriangle);
     var q = function () {
-        ((this._value = this.rendNodeCheckbox.checked), this.board.update());
+        (this._value = this.rendNodeCheckbox.checked), this.board.update();
     };
-    ((t.Z.createCheckbox = function (i, r, o) {
+    (t.Z.createCheckbox = function (i, r, o) {
         var n,
             a,
             h = s.Z.copyAttributes(o, i.options, "checkbox");
@@ -49645,11 +49591,11 @@ var __webpack_exports__ = {};
             n
         );
     }),
-        t.Z.registerElement("checkbox", t.Z.createCheckbox));
+        t.Z.registerElement("checkbox", t.Z.createCheckbox);
     var Q = function (t) {
-        ((this._value = this.rendNodeInput.value), this.board.update());
+        (this._value = this.rendNodeInput.value), this.board.update();
     };
-    ((t.Z.createInput = function (i, r, o) {
+    (t.Z.createInput = function (i, r, o) {
         var n,
             a,
             h = s.Z.copyAttributes(o, i.options, "input");
@@ -49683,11 +49629,7 @@ var __webpack_exports__ = {};
                 return this._value;
             }),
             (n.set = function (t) {
-                return (
-                    (this._value = t),
-                    (this.rendNodeInput.value = t),
-                    this
-                );
+                return (this._value = t), (this.rendNodeInput.value = t), this;
             }),
             e.Z.addEvent(n.rendNodeInput, "input", Q, n),
             e.Z.addEvent(
@@ -49719,11 +49661,11 @@ var __webpack_exports__ = {};
             n
         );
     }),
-        t.Z.registerElement("input", t.Z.createInput));
+        t.Z.registerElement("input", t.Z.createInput);
     var tt = function () {
-        (this._handler && this._handler(), this.board.update());
+        this._handler && this._handler(), this.board.update();
     };
-    ((t.Z.createButton = function (i, r, o) {
+    (t.Z.createButton = function (i, r, o) {
         var n,
             a,
             h = s.Z.copyAttributes(o, i.options, "button");
@@ -49779,7 +49721,7 @@ var __webpack_exports__ = {};
     }),
         t.Z.registerElement("button", t.Z.createButton),
         (t.Z.ForeignObject = function (e, r, o, n, a) {
-            (this.constructor(
+            this.constructor(
                 e,
                 o,
                 i.Z.OBJECT_TYPE_FOREIGNOBJECT,
@@ -49804,7 +49746,7 @@ var __webpack_exports__ = {};
                 (this.methodMap = t.Z.deepCopy(this.methodMap, {
                     addTransformation: "addTransform",
                     trans: "addTransform",
-                })));
+                }));
         }),
         (t.Z.ForeignObject.prototype = new J.Z()),
         s.Z.copyPrototypeMethods(t.Z.ForeignObject, G.Z, "coordsConstructor"),
@@ -49897,13 +49839,13 @@ var __webpack_exports__ = {};
                                 s[e],
                             );
                     for (e = 0; e < 3; e++)
-                        ((s[e][1] /= s[e][0]),
+                        (s[e][1] /= s[e][0]),
                             (s[e][2] /= s[e][0]),
-                            (s[e][0] /= s[e][0]));
+                            (s[e][0] /= s[e][0]);
                     for (e = 1; e < 3; e++)
-                        ((s[e][0] -= s[0][0]),
+                        (s[e][0] -= s[0][0]),
                             (s[e][1] -= s[0][1]),
-                            (s[e][2] -= s[0][2]));
+                            (s[e][2] -= s[0][2]);
                     this.span = s;
                 }
                 return this;
@@ -49922,7 +49864,7 @@ var __webpack_exports__ = {};
                     [this.Z(), this.X(), this.Y()],
                     this.usrSize,
                 ];
-                return (0 !== this.parents.length && (t = this.parents), t);
+                return 0 !== this.parents.length && (t = this.parents), t;
             },
             setSize: function (t, e) {
                 return (
@@ -49957,7 +49899,7 @@ var __webpack_exports__ = {};
             return n;
         }),
         t.Z.registerElement("foreignobject", t.Z.createForeignObject),
-        t.Z.registerElement("fo", t.Z.createForeignObject));
+        t.Z.registerElement("fo", t.Z.createForeignObject);
     t.Z.ForeignObject;
     t.Z.extend(M.Z, {
         axes3d: {
@@ -50098,8 +50040,8 @@ var __webpack_exports__ = {};
         view3d: { needsRegularUpdate: !0 },
     });
     t.Z.Options;
-    ((t.Z.View3D = function (t, e, r) {
-        (this.constructor(t, r, i.Z.OBJECT_TYPE_VIEW3D, i.Z.OBJECT_CLASS_3D),
+    (t.Z.View3D = function (t, e, r) {
+        this.constructor(t, r, i.Z.OBJECT_TYPE_VIEW3D, i.Z.OBJECT_CLASS_3D),
             (this.objects = {}),
             (this.objectsList = []),
             (this.elementsByName = {}),
@@ -50117,7 +50059,7 @@ var __webpack_exports__ = {};
             (this.id = this.board.setId(this, "V")),
             this.board.finalizeAdding(this),
             (this.elType = "view3d"),
-            (this.methodMap = s.Z.deepCopy(this.methodMap, {})));
+            (this.methodMap = s.Z.deepCopy(this.methodMap, {}));
     }),
         (t.Z.View3D.prototype = new J.Z()),
         t.Z.extend(t.Z.View3D.prototype, {
@@ -50201,7 +50143,7 @@ var __webpack_exports__ = {};
                     : this;
             },
             updateRenderer: function () {
-                return ((this.needsUpdate = !1), this);
+                return (this.needsUpdate = !1), this;
             },
             project3DTo2D: function (t, e, i) {
                 var s;
@@ -50222,14 +50164,14 @@ var __webpack_exports__ = {};
                     a,
                     h = e.slice(1),
                     l = [1, 0, 0, 0];
-                ((i = i || [1, 0, 0, 0]),
+                (i = i || [1, 0, 0, 0]),
                     (a = o.Z.norm(h, 3)),
                     (n = o.Z.innerProduct(i.slice(1), h, 3) / a),
                     (s = this.matrix3D.slice(0, 3)).push([0].concat(h)),
-                    (r = t.coords.usrCoords.concat([n])));
+                    (r = t.coords.usrCoords.concat([n]));
                 try {
-                    (1 === s[2][3] && (s[2][1] = s[2][2] = 0.001 * o.Z.eps),
-                        (l = o.Z.Numerics.Gauss(s, r)));
+                    1 === s[2][3] && (s[2][1] = s[2][2] = 0.001 * o.Z.eps),
+                        (l = o.Z.Numerics.Gauss(s, r));
                 } catch (t) {
                     l = [0, NaN, NaN, NaN];
                 }
@@ -50321,25 +50263,25 @@ var __webpack_exports__ = {};
                     r++
                 ) {
                     for (n = e[0] + l * r, o = 0; o <= p; o++)
-                        ((a = i[0] + c * o),
+                        (a = i[0] + c * o),
                             (d = s.Z.isFunction(t)
                                 ? t(n, a)
                                 : [t[0](n, a), t[1](n, a), t[2](n, a)]),
                             (h = this.project3DTo2D(d)),
                             _.push(h[1]),
-                            f.push(h[2]));
-                    (_.push(NaN), f.push(NaN));
+                            f.push(h[2]);
+                    _.push(NaN), f.push(NaN);
                 }
                 for (o = 0; o <= p; o++) {
                     for (a = i[0] + c * o, r = 0; r <= u; r++)
-                        ((n = e[0] + l * r),
+                        (n = e[0] + l * r),
                             (d = s.Z.isFunction(t)
                                 ? t(n, a)
                                 : [t[0](n, a), t[1](n, a), t[2](n, a)]),
                             (h = this.project3DTo2D(d)),
                             _.push(h[1]),
-                            f.push(h[2]));
-                    (_.push(NaN), f.push(NaN));
+                            f.push(h[2]);
+                    _.push(NaN), f.push(NaN);
                 }
                 return [_, f];
             },
@@ -50347,7 +50289,7 @@ var __webpack_exports__ = {};
                 var t = this.az_slide._smin,
                     e = this.az_slide._smax - t,
                     i = this.az_slide.Value() + 0.1;
-                ((this.az_slide.position = (i - t) / e),
+                (this.az_slide.position = (i - t) / e),
                     this.az_slide.position > 1 && (this.az_slide.position = 0),
                     this.board.update(),
                     (this.timeoutAzimuth = setTimeout(
@@ -50355,11 +50297,10 @@ var __webpack_exports__ = {};
                             this.animateAzimuth();
                         }.bind(this),
                         200,
-                    )));
+                    ));
             },
             stopAzimuth: function () {
-                (clearTimeout(this.timeoutAzimuth),
-                    (this.timeoutAzimuth = null));
+                clearTimeout(this.timeoutAzimuth), (this.timeoutAzimuth = null);
             },
         }),
         (t.Z.createView3D = function (e, i, r) {
@@ -50465,20 +50406,20 @@ var __webpack_exports__ = {};
                 o
             );
         }),
-        t.Z.registerElement("view3d", t.Z.createView3D));
+        t.Z.registerElement("view3d", t.Z.createView3D);
     t.Z.View3D;
     t.Z.GeometryElement3D = function (t, e) {
-        ((this.elType = e),
+        (this.elType = e),
             (this.id = this.board.setId(this, e)),
             (this.view = t),
             (this.element2D = null),
             (this.is3D = !0),
             (this.view.objects[this.id] = this),
             this.view.objectsList.push(this),
-            "" !== this.name && (this.view.elementsByName[this.name] = this));
+            "" !== this.name && (this.view.elementsByName[this.name] = this);
     };
     t.Z.GeometryElement3D;
-    ((t.Z.createAxes3D = function (t, e, i) {
+    (t.Z.createAxes3D = function (t, e, i) {
         var r,
             o,
             n,
@@ -50505,16 +50446,15 @@ var __webpack_exports__ = {};
             w = {};
         if (s.Z.exists(C.bbox3D))
             for (r = 0; r < y.length; r++)
-                ((O[r] = C.bbox3D[r][0]), (x[r] = C.bbox3D[r][1]));
-        else
-            for (r = 0; r < y.length; r++) ((O[r] = e[1][r]), (x[r] = e[2][1]));
+                (O[r] = C.bbox3D[r][0]), (x[r] = C.bbox3D[r][1]);
+        else for (r = 0; r < y.length; r++) (O[r] = e[1][r]), (x[r] = e[2][1]);
         for (
             c = (l = s.Z.copyAttributes(i, t.options, "axes3d")).axesposition,
                 r = 0;
             r < y.length;
             r++
         )
-            ((m = (d = y[r]) + P),
+            (m = (d = y[r]) + P),
                 "center" === c
                     ? ((u = [0, 0, 0]),
                       ((p = [0, 0, 0])[r] = x[r]),
@@ -50535,7 +50475,7 @@ var __webpack_exports__ = {};
                           drawLabels: !1,
                       }),
                       2 === r && (Z.tickEndings = [1, 0]),
-                      (w[m + "Ticks"] = C.create("ticks", [w[m], 1], Z))));
+                      (w[m + "Ticks"] = C.create("ticks", [w[m], 1], Z)));
         for (
             w.O = C.create("intersection", [w[y[0] + P], w[y[1] + P]], {
                 name: "",
@@ -50551,7 +50491,7 @@ var __webpack_exports__ = {};
                 o < E.length;
                 o++
             )
-                (((u = [0, 0, 0])[r] = 0 === o ? O[r] : x[r]),
+                ((u = [0, 0, 0])[r] = 0 === o ? O[r] : x[r]),
                     (f = [0, 0, 0]),
                     ((_ = [0, 0, 0])[a] = 1),
                     (f[h] = 1),
@@ -50560,11 +50500,11 @@ var __webpack_exports__ = {};
                     (m = d + "Plane" + E[o]),
                     (l = s.Z.copyAttributes(i, t.options, "axes3d", m)),
                     (w[m] = C.create("plane3d", [u, _, f, b, g], l)),
-                    (w[m].elType = "axisplane3d"));
+                    (w[m].elType = "axisplane3d");
         for (r = 0; r < y.length; r++)
             for (d = y[r], o = 0; o < E.length; o++)
                 for (n = 1; n <= 2; n++)
-                    ((m =
+                    (m =
                         d +
                         "Plane" +
                         E[o] +
@@ -50578,7 +50518,7 @@ var __webpack_exports__ = {};
                         (l = s.Z.copyAttributes(i, t.options, "axes3d", m)),
                         (w[m] = C.create("axis3d", [u, p], l)),
                         w[v].addChild(w[m]),
-                        w[v].element2D.inherits.push(w[m]));
+                        w[v].element2D.inherits.push(w[m]);
         return w;
     }),
         t.Z.registerElement("axes3d", t.Z.createAxes3D),
@@ -50673,8 +50613,8 @@ var __webpack_exports__ = {};
                             m = a().slice(1);
                         else for (o = 0; o < 3; o++) m[o] = s.Z.evaluate(a[o]);
                         for (o = 0; o < 3; o++)
-                            ((b[o] = s.Z.evaluate(h[o])),
-                                (g[o] = s.Z.evaluate(c[o])));
+                            (b[o] = s.Z.evaluate(h[o])),
+                                (g[o] = s.Z.evaluate(c[o]));
                         for (
                             e = t.Z.Math.norm(b, 3),
                                 i = t.Z.Math.norm(g, 3),
@@ -50682,8 +50622,8 @@ var __webpack_exports__ = {};
                             o < 3;
                             o++
                         )
-                            ((b[o] /= e), (g[o] /= i));
-                        ((r = n.getMesh(
+                            (b[o] /= e), (g[o] /= i);
+                        (r = n.getMesh(
                             [
                                 function (t, e) {
                                     return m[0] + t * b[0] + e * g[0];
@@ -50707,14 +50647,14 @@ var __webpack_exports__ = {};
                             ],
                         )),
                             (this.dataX = r[0]),
-                            (this.dataY = r[1]));
+                            (this.dataY = r[1]);
                     }),
                 o
             );
         }),
         t.Z.registerElement("mesh3d", t.Z.createMesh3D),
         (t.Z.Point3D = function (t, e, r, o) {
-            (this.constructor(
+            this.constructor(
                 t.board,
                 o,
                 i.Z.OBJECT_TYPE_POINT3D,
@@ -50737,7 +50677,7 @@ var __webpack_exports__ = {};
                 }),
                 (this._params = null),
                 (this._c2d = null),
-                (this.methodMap = s.Z.deepCopy(this.methodMap, {})));
+                (this.methodMap = s.Z.deepCopy(this.methodMap, {}));
         }),
         (t.Z.Point3D.prototype = new t.Z.GeometryElement()),
         s.Z.copyPrototypeMethods(
@@ -50823,7 +50763,7 @@ var __webpack_exports__ = {};
                 );
             },
             updateRenderer: function () {
-                return ((this.needsUpdate = !1), this);
+                return (this.needsUpdate = !1), this;
             },
             projectCoords2Surface: function () {
                 var t,
@@ -50904,7 +50844,7 @@ var __webpack_exports__ = {};
         }),
         t.Z.registerElement("point3d", t.Z.createPoint3D),
         (t.Z.Curve3D = function (t, e, r, o, n, a, h) {
-            (this.constructor(
+            this.constructor(
                 t.board,
                 h,
                 i.Z.OBJECT_TYPE_CURVE3D,
@@ -50928,7 +50868,7 @@ var __webpack_exports__ = {};
                         return this.F(t)[2];
                     })),
                 (this.range = a),
-                (this.methodMap = s.Z.deepCopy(this.methodMap, {})));
+                (this.methodMap = s.Z.deepCopy(this.methodMap, {}));
         }),
         (t.Z.Curve3D.prototype = new t.Z.GeometryElement()),
         s.Z.copyPrototypeMethods(
@@ -50950,10 +50890,10 @@ var __webpack_exports__ = {};
                     c = [0, 0, 0];
                 if (((a = []), (h = []), s.Z.isArray(this.X)))
                     for (l = this.X.length, n = 0; n < l; n++)
-                        ((c = [this.X[n], this.Y[n], this.Z[n]]),
+                        (c = [this.X[n], this.Y[n], this.Z[n]]),
                             (o = this.view.project3DTo2D(c)),
                             a.push(o[1]),
-                            h.push(o[2]));
+                            h.push(o[2]);
                 else
                     for (
                         t = s.Z.evaluate(this.range),
@@ -50963,20 +50903,20 @@ var __webpack_exports__ = {};
                         n <= i;
                         n += r
                     )
-                        ((c =
+                        (c =
                             null !== this.F
                                 ? this.F(n)
                                 : [this.X(n), this.Y(n), this.Z(n)]),
                             (o = this.view.project3DTo2D(c)),
                             a.push(o[1]),
-                            h.push(o[2]));
+                            h.push(o[2]);
                 return { X: a, Y: h };
             },
             update: function () {
                 return this;
             },
             updateRenderer: function () {
-                return ((this.needsUpdate = !1), this);
+                return (this.needsUpdate = !1), this;
             },
         }),
         (t.Z.createCurve3D = function (e, i, r) {
@@ -51005,7 +50945,7 @@ var __webpack_exports__ = {};
                     e.create("curve", [[], []], c)),
                 (d.element2D.updateDataArray = function () {
                     var t = d.updateDataArray();
-                    ((this.dataX = t.X), (this.dataY = t.Y));
+                    (this.dataX = t.X), (this.dataY = t.Y);
                 }),
                 d.addChild(d.element2D),
                 d.inherits.push(d.element2D),
@@ -51018,7 +50958,7 @@ var __webpack_exports__ = {};
         }),
         t.Z.registerElement("curve3d", t.Z.createCurve3D),
         (t.Z.Line3D = function (t, e, r, o, n) {
-            (this.constructor(
+            this.constructor(
                 t.board,
                 n,
                 i.Z.OBJECT_TYPE_LINE3D,
@@ -51032,7 +50972,7 @@ var __webpack_exports__ = {};
                 (this.range = o || [-1 / 0, 1 / 0]),
                 (this.point1 = null),
                 (this.point2 = null),
-                (this.methodMap = s.Z.deepCopy(this.methodMap, {})));
+                (this.methodMap = s.Z.deepCopy(this.methodMap, {}));
         }),
         (t.Z.Line3D.prototype = new t.Z.GeometryElement()),
         s.Z.copyPrototypeMethods(
@@ -51065,7 +51005,7 @@ var __webpack_exports__ = {};
                 return this;
             },
             updateRenderer: function () {
-                return ((this.needsUpdate = !1), this);
+                return (this.needsUpdate = !1), this;
             },
         }),
         (t.Z.createLine3D = function (e, i, r) {
@@ -51142,7 +51082,7 @@ var __webpack_exports__ = {};
         }),
         t.Z.registerElement("line3d", t.Z.createLine3D),
         (t.Z.Plane3D = function (t, e, r, o, n, a, h) {
-            (this.constructor(
+            this.constructor(
                 t.board,
                 h,
                 i.Z.OBJECT_TYPE_PLANE3D,
@@ -51162,7 +51102,7 @@ var __webpack_exports__ = {};
                 (this.normal = [0, 0, 0]),
                 (this.d = 0),
                 this.updateNormal(),
-                (this.methodMap = s.Z.deepCopy(this.methodMap, {})));
+                (this.methodMap = s.Z.deepCopy(this.methodMap, {}));
         }),
         (t.Z.Plane3D.prototype = new t.Z.GeometryElement()),
         s.Z.copyPrototypeMethods(
@@ -51174,8 +51114,8 @@ var __webpack_exports__ = {};
             updateNormal: function () {
                 var t, e;
                 for (t = 0; t < 3; t++)
-                    ((this.vec1[t] = s.Z.evaluate(this.direction1[t])),
-                        (this.vec2[t] = s.Z.evaluate(this.direction2[t])));
+                    (this.vec1[t] = s.Z.evaluate(this.direction1[t])),
+                        (this.vec2[t] = s.Z.evaluate(this.direction2[t]));
                 if (
                     ((this.normal = o.Z.crossProduct(this.vec1, this.vec2)),
                     (e = o.Z.norm(this.normal)),
@@ -51278,7 +51218,7 @@ var __webpack_exports__ = {};
                             c === m.length && m.push(y.slice());
                         }
                     }
-                    (0, (f = 0), (c = 0));
+                    0, (f = 0), (c = 0);
                     do {
                         for (
                             3 === (y = m[f][c]).length &&
@@ -51293,11 +51233,11 @@ var __webpack_exports__ = {};
                             d++
                         ) {
                             if (d !== f && u.Z.distance(y, m[d][0]) < o.Z.eps) {
-                                ((f = d), (c = 0));
+                                (f = d), (c = 0);
                                 break;
                             }
                             if (d !== f && u.Z.distance(y, m[d][1]) < o.Z.eps) {
-                                ((f = d), (c = 1));
+                                (f = d), (c = 1);
                                 break;
                             }
                         }
@@ -51309,9 +51249,9 @@ var __webpack_exports__ = {};
                             break;
                         }
                     } while (0 !== f);
-                    ((n = P.project3DTo2D(m[0][0])),
+                    (n = P.project3DTo2D(m[0][0])),
                         this.dataX.push(n[1]),
-                        this.dataY.push(n[2]));
+                        this.dataY.push(n[2]);
                 } else {
                     for (
                         t = s.Z.evaluate(this.range1[0]),
@@ -51327,29 +51267,29 @@ var __webpack_exports__ = {};
                         c < 3;
                         c++
                     )
-                        ((v[c] /= a), (Z[c] /= h));
+                        (v[c] /= a), (Z[c] /= h);
                     for (d = 0; d < 4; d++) {
                         switch (d) {
                             case 0:
-                                ((p = t), (_ = i));
+                                (p = t), (_ = i);
                                 break;
                             case 1:
-                                ((p = e), (_ = i));
+                                (p = e), (_ = i);
                                 break;
                             case 2:
-                                ((p = e), (_ = r));
+                                (p = e), (_ = r);
                                 break;
                             case 3:
-                                ((p = t), (_ = r));
+                                (p = t), (_ = r);
                         }
                         for (c = 0; c < 3; c++)
                             y[c] = C[c] + p * v[c] + _ * Z[c];
-                        ((n = P.project3DTo2D(y)),
+                        (n = P.project3DTo2D(y)),
                             this.dataX.push(n[1]),
-                            this.dataY.push(n[2]));
+                            this.dataY.push(n[2]);
                     }
-                    (this.dataX.push(this.dataX[0]),
-                        this.dataY.push(this.dataY[0]));
+                    this.dataX.push(this.dataX[0]),
+                        this.dataY.push(this.dataY[0]);
                 }
                 return { X: this.dataX, Y: this.dataY };
             },
@@ -51357,7 +51297,7 @@ var __webpack_exports__ = {};
                 return this;
             },
             updateRenderer: function () {
-                return ((this.needsUpdate = !1), this);
+                return (this.needsUpdate = !1), this;
             },
         }),
         (t.Z.createPlane3D = function (e, i, r) {
@@ -51380,7 +51320,7 @@ var __webpack_exports__ = {};
                 (a.element2D = l.create("curve", [[], []], o)),
                 (a.element2D.updateDataArray = function () {
                     var t = a.updateDataArray();
-                    ((this.dataX = t.X), (this.dataY = t.Y));
+                    (this.dataX = t.X), (this.dataY = t.Y);
                 }),
                 a.addChild(a.element2D),
                 a.inherits.push(a.element2D),
@@ -51415,7 +51355,7 @@ var __webpack_exports__ = {};
         }),
         t.Z.registerElement("plane3d", t.Z.createPlane3D),
         (t.Z.Surface3D = function (t, e, r, o, n, a, h, l) {
-            (this.constructor(
+            this.constructor(
                 t.board,
                 l,
                 i.Z.OBJECT_TYPE_SURFACE3D,
@@ -51440,7 +51380,7 @@ var __webpack_exports__ = {};
                     })),
                 (this.range_u = a),
                 (this.range_v = h),
-                (this.methodMap = s.Z.deepCopy(this.methodMap, {})));
+                (this.methodMap = s.Z.deepCopy(this.methodMap, {}));
         }),
         (t.Z.Surface3D.prototype = new t.Z.GeometryElement()),
         s.Z.copyPrototypeMethods(
@@ -51472,7 +51412,7 @@ var __webpack_exports__ = {};
                 return this;
             },
             updateRenderer: function () {
-                return ((this.needsUpdate = !1), this);
+                return (this.needsUpdate = !1), this;
             },
         }),
         (t.Z.createParametricSurface3D = function (e, i, r) {
@@ -51504,7 +51444,7 @@ var __webpack_exports__ = {};
                     p.create("curve", [[], []], d)),
                 (u.element2D.updateDataArray = function () {
                     var t = u.updateDataArray();
-                    ((this.dataX = t.X), (this.dataY = t.Y));
+                    (this.dataX = t.X), (this.dataY = t.Y);
                 }),
                 u.addChild(u.element2D),
                 u.inherits.push(u.element2D),
@@ -51540,7 +51480,7 @@ var __webpack_exports__ = {};
                 i,
             );
         }),
-        t.Z.registerElement("functiongraph3d", t.Z.createFunctiongraph3D));
+        t.Z.registerElement("functiongraph3d", t.Z.createFunctiongraph3D);
     const et = t.Z.COORDS_BY_SCREEN,
         it = t.Z.COORDS_BY_USER,
         st = t.Z.Dump,
