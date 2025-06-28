@@ -27,7 +27,7 @@ jobs:
 
             - name: Build
               run: |
-                  export NODE_OPTIONS="--max_old_space_size=4096"
+                  export NODE_OPTIONS="--max_old_space_size=6114"
                   npm run build && npm run build:all
               # set the environmental variable WIREIT_CACHE="local" so that the wireit cache is saved in the .wireit directory.
               env:

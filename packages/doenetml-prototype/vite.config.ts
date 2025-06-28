@@ -82,6 +82,7 @@ function transformPackageJson(contents: string, filePath: string) {
     delete pkg.peerDependencies;
     delete pkg.dependencies;
     delete pkg.prettier;
+    delete pkg.wireit;
 
     // Everything that is externalized should be a peer dependency
     pkg.devDependencies = {};

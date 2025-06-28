@@ -2,7 +2,8 @@
     "extends": "../../tsconfig.build.json",
     "compilerOptions": {
         "outDir": "./dist/",
-        "rootDir": "./src"
+        "rootDir": "./src",
+        "types": ["vite-plugin-arraybuffer/types"]
     },
     "include": ["./**/*.ts", "./**/*.tsx"],
     "exclude": [
@@ -11,7 +12,7 @@
         "node_modules",
         "**/test/",
         "**/dist/**/*",
-        "./vite.config.ts"
+        "./vite.*.ts"
     ],
     "references": []
 }

@@ -52,7 +52,8 @@
                 "../ui-components:build",
                 "../utils:build",
                 "../virtual-keyboard:build",
-                "../parser:build"
+                "../parser:build",
+                "../parser:build:v06-to-v07"
             ]
         }
     },
