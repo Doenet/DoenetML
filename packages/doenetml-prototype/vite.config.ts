@@ -53,6 +53,7 @@ export default defineConfig({
                 "doenetml-inline-worker": "./src/index-inline-worker.ts",
             },
             formats: ["es"],
+            cssFileName: "style",
         },
         rollupOptions: {
             external: EXTERNAL_DEPS,

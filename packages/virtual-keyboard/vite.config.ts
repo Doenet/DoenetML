@@ -14,6 +14,7 @@ export default defineConfig({
                 index: "./src/virtual-keyboard/index.ts",
             },
             formats: ["es"],
+            cssFileName: "style",
         },
         rollupOptions: {
             external: [
