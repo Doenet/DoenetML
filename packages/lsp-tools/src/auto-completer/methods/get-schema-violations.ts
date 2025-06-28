@@ -16,7 +16,7 @@ import {
 import { AutoCompleter } from "..";
 
 /**
- * Get a list of completion items at the given offset.
+ * Get a list of places where the schema is violated.
  */
 export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
     /**
@@ -101,6 +101,26 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
         //
         for (const attr of Object.values(node.attributes)) {
             const attrName = this.normalizeAttributeName(attr.name);
+
+            // Make sure that `name` attributes start with a letter.
+            if (attrName === "name") {
+                const value = toXml(attr.children);
+                if (!value.charAt(0).match(/[a-zA-Z]/)) {
+                    ret.push({
+                        range: {
+                            start: this.sourceObj.offsetToLSPPosition(
+                                attr.position?.start.offset || 0,
+                            ),
+                            end: this.sourceObj.offsetToLSPPosition(
+                                attr.position?.end.offset || 0,
+                            ),
+                        },
+                        message: `Invalid attribute name='${value}'. Names must start with a letter.`,
+                        severity: DiagnosticSeverity.Error,
+                    });
+                }
+            }
+
             if (attrName === "UNKNOWN_NAME") {
                 ret.push({
                     range: {
