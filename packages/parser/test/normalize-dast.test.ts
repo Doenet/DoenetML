@@ -3,6 +3,7 @@ import util from "util";
 import { lezerToDast } from "../src/lezer-to-dast";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import { normalizeDocumentDast } from "../src/dast-normalize/normalize-dast";
+import { extractDastErrors } from "../src";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -221,5 +222,25 @@ describe("Normalize dast", async () => {
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
             `<document><select><option><math>($a b (c - $$f(x)) )</math></option><option><math>d$e</math></option></select></document>`,
         );
+    });
+
+    it("Invalidly named elements get replaced with <_error>", () => {
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        source = "<_foo />";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            `<document><_error message='Invalid component name "_foo". Names must start with a letter.' /></document>`,
+        );
+
+        source = "<p name='_foo' />";
+        dast = lezerToDast(source);
+        expect(extractDastErrors(normalizeDocumentDast(dast))).toMatchObject([
+            {
+                message: `Invalid attribute name='_foo'. Names must start with a letter.`,
+                type: "error",
+            },
+        ]);
     });
 });
