@@ -3030,7 +3030,7 @@ describe("Function Operator tag tests", async () => {
         for (let x = -10.02412412; x <= 10; x += 3.1) {
             i++;
 
-            console.log({ i });
+            //console.log({ i });
             let f_0 = f(x);
             let f_1 = f(x + dx);
             let df1_05 = df1(x + dx / 2);

@@ -13,6 +13,7 @@ export default defineConfig({
                 index: "./src/index.ts",
             },
             formats: ["es"],
+            cssFileName: "style",
         },
         rollupOptions: {
             external: [

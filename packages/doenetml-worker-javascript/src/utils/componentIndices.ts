@@ -522,7 +522,7 @@ function createComponentIndicesFromSerializedChildrenSub(
 
         const idxSource = componentIdxSources[idx];
         if (typeof idxSource === "string") {
-            console.log({ serializedComponents, componentIdxSources });
+            //console.log({ serializedComponents, componentIdxSources });
             throw Error("Serialized children don't correspond");
         }
 
@@ -585,7 +585,7 @@ function newComponentIndicesForAttributesFromSerialized(
 
         if (attribute.type === "component") {
             if (idxSource.type !== "component") {
-                console.log({ attributes, attributeIdxSources });
+                //console.log({ attributes, attributeIdxSources });
                 throw Error("Attributes don't correspond");
             }
 
@@ -601,7 +601,7 @@ function newComponentIndicesForAttributesFromSerialized(
             nComponents = attrResult.nComponents;
         } else if (attribute.type === "references") {
             if (idxSource.type !== "references") {
-                console.log({ attributes, attributeIdxSources });
+                //console.log({ attributes, attributeIdxSources });
                 throw Error("Attributes don't correspond");
             }
             const attrResult = createComponentIndicesFromSerializedChildrenSub(
@@ -630,7 +630,7 @@ function newComponentIndicesForAttributesFromSerialized(
                     idxSource.type !== "primitive" ||
                     idxSource.primitive.type !== "number"
                 ) {
-                    console.log({ attributes, attributeIdxSources });
+                    //console.log({ attributes, attributeIdxSources });
                     throw Error("Attributes don't correspond");
                 }
                 const originalIdx = attribute.primitive.value;

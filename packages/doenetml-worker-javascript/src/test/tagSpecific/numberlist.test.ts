@@ -803,7 +803,7 @@ describe("NumberList tag tests", async () => {
         ].join(", ");
 
         for (let post of ["", "a", "b"]) {
-            console.log({ post });
+            //console.log({ post });
             await test_numberList({
                 core,
                 resolvePathToNodeIdx,

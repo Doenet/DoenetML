@@ -94,9 +94,9 @@ async function run_tests({
         doenetML: createDoenetML(factoredString, partialFactoredString),
     });
 
-    console.log({
-        doenetML: createDoenetML(factoredString, partialFactoredString),
-    });
+    //console.log({
+    //    doenetML: createDoenetML(factoredString, partialFactoredString),
+    //});
 
     for (let response in responseCredits) {
         await submit_check({
