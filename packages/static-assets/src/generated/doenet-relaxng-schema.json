@@ -3,8 +3,8 @@
         "title",
         "rightHandSide",
         "description",
-        "xlabel",
-        "ylabel",
+        "xLabel",
+        "yLabel",
         "statement",
         "introduction",
         "conclusion",
@@ -183,7 +183,7 @@
         "image",
         "video",
         "hint",
-        "intcomma",
+        "intComma",
         "pluralize",
         "feedback",
         "lorem",
@@ -293,10 +293,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -629,7 +629,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -1137,7 +1137,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -1517,10 +1517,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -1853,7 +1853,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -1980,9 +1980,9 @@
                 }
             ]
         },
-        "xlabel": {
+        "xLabel": {
             "type": "element",
-            "name": "xlabel",
+            "name": "xLabel",
             "attributes": {
                 "name": {
                     "optional": true,
@@ -2088,10 +2088,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -2424,7 +2424,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -2591,14 +2591,14 @@
                 },
                 {
                     "name": "value",
-                    "type": "xlabel",
+                    "type": "xLabel",
                     "isArray": false
                 }
             ]
         },
-        "ylabel": {
+        "yLabel": {
             "type": "element",
-            "name": "ylabel",
+            "name": "yLabel",
             "attributes": {
                 "name": {
                     "optional": true,
@@ -2704,10 +2704,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -3040,7 +3040,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -3207,7 +3207,7 @@
                 },
                 {
                     "name": "value",
-                    "type": "ylabel",
+                    "type": "yLabel",
                     "isArray": false
                 }
             ]
@@ -3281,10 +3281,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -3824,7 +3824,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -4064,10 +4064,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -4607,7 +4607,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -4847,10 +4847,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -5390,7 +5390,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -5664,10 +5664,10 @@
                     "ref": "rightHandSide"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -5832,7 +5832,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -6183,10 +6183,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -6519,7 +6519,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -6783,10 +6783,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -7119,7 +7119,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -7383,10 +7383,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -7719,7 +7719,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -8385,10 +8385,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -8721,7 +8721,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -9211,7 +9211,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -9235,10 +9235,10 @@
                     "ref": "latex"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "not"
@@ -10635,7 +10635,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -11106,7 +11106,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -11590,7 +11590,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -12143,7 +12143,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -12847,7 +12847,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -13549,7 +13549,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -14263,7 +14263,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -14977,7 +14977,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -15685,7 +15685,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -16375,7 +16375,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -17062,7 +17062,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -17754,7 +17754,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -18446,7 +18446,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -19138,7 +19138,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -19844,7 +19844,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -20548,7 +20548,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -21259,7 +21259,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -21975,7 +21975,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -22684,7 +22684,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -23388,7 +23388,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -24092,7 +24092,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -24796,7 +24796,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -25500,7 +25500,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -26204,7 +26204,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -26915,7 +26915,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -27648,7 +27648,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -27672,10 +27672,10 @@
                     "ref": "latex"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -28427,7 +28427,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -28451,10 +28451,10 @@
                     "ref": "latex"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -29206,7 +29206,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -29230,10 +29230,10 @@
                     "ref": "latex"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -29861,7 +29861,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -30122,10 +30122,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -30458,7 +30458,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -30649,10 +30649,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -30985,7 +30985,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -31176,10 +31176,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -31512,7 +31512,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -31703,10 +31703,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -32039,7 +32039,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -32230,10 +32230,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -32566,7 +32566,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -32757,10 +32757,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -33093,7 +33093,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -33284,10 +33284,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -33620,7 +33620,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -33811,10 +33811,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -34147,7 +34147,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -34338,10 +34338,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -34674,7 +34674,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -34865,10 +34865,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -35201,7 +35201,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -36435,10 +36435,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -36975,7 +36975,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -37401,10 +37401,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -37941,7 +37941,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -38367,10 +38367,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -38907,7 +38907,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -39333,10 +39333,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -39873,7 +39873,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -40320,10 +40320,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -40860,7 +40860,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -41291,10 +41291,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -41831,7 +41831,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -42257,10 +42257,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -42797,7 +42797,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -43223,10 +43223,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -43763,7 +43763,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -44189,10 +44189,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -44729,7 +44729,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -45155,10 +45155,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -45695,7 +45695,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -46121,10 +46121,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -46661,7 +46661,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -47087,10 +47087,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -47627,7 +47627,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -48053,10 +48053,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -48593,7 +48593,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -49019,10 +49019,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -49559,7 +49559,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -50005,10 +50005,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -50545,7 +50545,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -50970,10 +50970,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -51510,7 +51510,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -51930,10 +51930,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -52470,7 +52470,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -53084,10 +53084,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -53627,7 +53627,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -54425,10 +54425,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -54881,10 +54881,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -55040,7 +55040,7 @@
                     "ref": "samplePrimeNumbers"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -55475,10 +55475,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -55664,7 +55664,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -56131,10 +56131,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -56323,7 +56323,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -57751,7 +57751,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -58314,7 +58314,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -59832,10 +59832,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -60375,7 +60375,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -60655,10 +60655,10 @@
                     "ref": "rightHandSide"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -60823,7 +60823,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -61138,10 +61138,10 @@
                     "ref": "rightHandSide"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -61303,7 +61303,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -61433,10 +61433,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -61976,7 +61976,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -62216,10 +62216,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -62759,7 +62759,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -62999,10 +62999,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -63542,7 +63542,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -63782,10 +63782,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -64325,7 +64325,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -64591,10 +64591,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -65134,7 +65134,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -65871,10 +65871,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -66207,7 +66207,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -66548,10 +66548,10 @@
                     "ref": "rightHandSide"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -67088,7 +67088,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -67379,10 +67379,10 @@
                     "ref": "rightHandSide"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -67547,7 +67547,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -67877,10 +67877,10 @@
                     "ref": "rightHandSide"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -68045,7 +68045,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -68190,10 +68190,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -68526,7 +68526,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -68977,7 +68977,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -69001,10 +69001,10 @@
                     "ref": "latex"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "not"
@@ -69714,7 +69714,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -70340,7 +70340,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -70748,7 +70748,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -71072,7 +71072,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -71359,10 +71359,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -71902,7 +71902,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -72262,10 +72262,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -72421,7 +72421,7 @@
                     "ref": "samplePrimeNumbers"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -73049,7 +73049,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -73517,10 +73517,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -73706,7 +73706,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -74080,10 +74080,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -74375,10 +74375,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -74733,10 +74733,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -75124,10 +75124,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -75540,10 +75540,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -75974,10 +75974,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -76465,10 +76465,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -76930,10 +76930,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -77119,7 +77119,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -77574,10 +77574,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -77763,7 +77763,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -78210,10 +78210,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -78402,7 +78402,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -79026,7 +79026,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -79413,7 +79413,7 @@
                     "ref": "samplePrimeNumbers"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -79672,10 +79672,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -79828,7 +79828,7 @@
                     "ref": "samplePrimeNumbers"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -80252,10 +80252,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -80390,7 +80390,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -81062,7 +81062,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -81095,10 +81095,10 @@
                     "ref": "numberList"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "not"
@@ -81801,7 +81801,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -81825,10 +81825,10 @@
                     "ref": "latex"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "not"
@@ -82392,7 +82392,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -82416,10 +82416,10 @@
                     "ref": "latex"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "not"
@@ -82766,10 +82766,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -82955,7 +82955,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -83349,10 +83349,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -83523,7 +83523,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -83845,10 +83845,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -84067,7 +84067,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -84325,10 +84325,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -84641,10 +84641,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -85184,7 +85184,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -85662,7 +85662,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -85737,10 +85737,10 @@
                     "ref": "bestFitLine"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "not"
@@ -86183,7 +86183,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -86258,10 +86258,10 @@
                     "ref": "bestFitLine"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "not"
@@ -86595,7 +86595,7 @@
                         "false"
                     ]
                 },
-                "xlabelPosition": {
+                "xLabelPosition": {
                     "optional": true,
                     "type": [
                         "right",
@@ -86608,14 +86608,14 @@
                         "string"
                     ]
                 },
-                "ylabelPosition": {
+                "yLabelPosition": {
                     "optional": true,
                     "type": [
                         "top",
                         "bottom"
                     ]
                 },
-                "ylabelAlignment": {
+                "yLabelAlignment": {
                     "optional": true,
                     "type": [
                         "left",
@@ -86690,10 +86690,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "rightHandSide"
@@ -86999,7 +86999,7 @@
                     "ref": "samplePrimeNumbers"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -87128,7 +87128,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "xlabelPosition",
+                    "name": "xLabelPosition",
                     "type": "text",
                     "isArray": false
                 },
@@ -87138,12 +87138,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "ylabelPosition",
+                    "name": "yLabelPosition",
                     "type": "text",
                     "isArray": false
                 },
                 {
-                    "name": "ylabelAlignment",
+                    "name": "yLabelAlignment",
                     "type": "text",
                     "isArray": false
                 },
@@ -87218,12 +87218,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "xlabel",
+                    "name": "xLabel",
                     "type": "label",
                     "isArray": false
                 },
                 {
-                    "name": "ylabel",
+                    "name": "yLabel",
                     "type": "label",
                     "isArray": false
                 },
@@ -87678,7 +87678,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -87702,10 +87702,10 @@
                     "ref": "latex"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -88234,10 +88234,10 @@
                     "ref": "piecewiseFunction"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -88928,7 +88928,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -89320,10 +89320,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -89863,7 +89863,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -90496,7 +90496,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -90514,10 +90514,10 @@
                     "ref": "latex"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "not"
@@ -91288,7 +91288,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -91318,10 +91318,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -92703,10 +92703,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -93039,7 +93039,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -93398,10 +93398,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -93734,7 +93734,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -94067,10 +94067,10 @@
                     "ref": "rightHandSide"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -94235,7 +94235,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -94431,10 +94431,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -94974,7 +94974,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -95245,10 +95245,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -95788,7 +95788,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -96038,10 +96038,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -98480,10 +98480,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -98816,7 +98816,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -99522,10 +99522,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -100065,7 +100065,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -101878,10 +101878,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -102421,7 +102421,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -103742,10 +103742,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -104285,7 +104285,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -104466,9 +104466,9 @@
                 }
             ]
         },
-        "intcomma": {
+        "intComma": {
             "type": "element",
-            "name": "intcomma",
+            "name": "intComma",
             "attributes": {
                 "name": {
                     "optional": true,
@@ -104569,10 +104569,10 @@
                     "ref": "rightHandSide"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -104737,7 +104737,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -104981,12 +104981,12 @@
                 },
                 {
                     "name": "originalValue",
-                    "type": "intcomma",
+                    "type": "intComma",
                     "isArray": false
                 },
                 {
                     "name": "value",
-                    "type": "intcomma",
+                    "type": "intComma",
                     "isArray": false
                 }
             ]
@@ -105106,10 +105106,10 @@
                     "ref": "rightHandSide"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -105274,7 +105274,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -105613,10 +105613,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -106156,7 +106156,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -106391,10 +106391,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -106934,7 +106934,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -107181,10 +107181,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -107724,7 +107724,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -108204,10 +108204,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -108440,10 +108440,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -108658,10 +108658,10 @@
                     "ref": "callAction"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -109072,10 +109072,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -109615,7 +109615,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -109830,10 +109830,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -110373,7 +110373,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -110599,10 +110599,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -111142,7 +111142,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -111362,10 +111362,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -111698,7 +111698,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -111894,10 +111894,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -112230,7 +112230,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -112676,10 +112676,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -112835,7 +112835,7 @@
                     "ref": "samplePrimeNumbers"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -113200,10 +113200,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -113743,7 +113743,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -113986,10 +113986,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -114529,7 +114529,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -114944,7 +114944,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -115733,7 +115733,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -116191,10 +116191,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -116734,7 +116734,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -117023,10 +117023,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -117350,10 +117350,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -117541,10 +117541,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -117759,10 +117759,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -117990,10 +117990,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -118533,7 +118533,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -119109,7 +119109,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -119785,10 +119785,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -119986,10 +119986,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -120322,7 +120322,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -120864,7 +120864,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -121825,7 +121825,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -122056,10 +122056,10 @@
                     "ref": "rightHandSide"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "topic"
@@ -122224,7 +122224,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -122613,10 +122613,10 @@
                     "ref": "description"
                 },
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "statement"
@@ -123156,7 +123156,7 @@
                     "ref": "hint"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -123426,10 +123426,10 @@
             },
             "children": [
                 {
-                    "ref": "xlabel"
+                    "ref": "xLabel"
                 },
                 {
-                    "ref": "ylabel"
+                    "ref": "yLabel"
                 },
                 {
                     "ref": "label"
@@ -124051,7 +124051,7 @@
                     "ref": "samplePrimeNumbers"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -124397,7 +124397,7 @@
                     "ref": "periodicSet"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
@@ -124758,7 +124758,7 @@
                     "ref": "samplePrimeNumbers"
                 },
                 {
-                    "ref": "intcomma"
+                    "ref": "intComma"
                 },
                 {
                     "ref": "pluralize"
