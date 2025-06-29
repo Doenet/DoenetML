@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "@doenet/utils";
+import { cesc } from "@doenet/utils";
 
 describe("Sectioning Tag Tests", function () {
     beforeEach(() => {
@@ -6,25 +6,24 @@ describe("Sectioning Tag Tests", function () {
         cy.visit("/");
     });
 
-    it("prefill mathinput in aside", () => {
+    it("prefill mathInput in aside", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-    <text>a</text>
     <aside name="aside1">
       <title>Starting closed</title>
-      <p>An expression: <mathinput name="expr1" prefill="(x+1)(x^2-1)" /></p>
-      <p>The value of the expression is $expr1.value{assignNames="expr1a"}</p>
+      <p>An expression: <mathInput name="expr1" prefill="(x+1)(x^2-1)" /></p>
+      <p>The value of the expression is <math extend="$expr1.value" name="expr1a" /></p>
     </aside>
     <aside name="aside2" startOpen>
       <title>Starting open</title>
-      <p>An expression: <mathinput name="expr2" prefill="(x-1)(x^2+1)" /></p>
-      <p>The value of the expression is $expr2.value{assignNames="expr2a"}</p>
+      <p>An expression: <mathInput name="expr2" prefill="(x-1)(x^2+1)" /></p>
+      <p>The value of the expression is <math extend="$expr2.value" name="expr2a" /></p>
     </aside>
   
-    <p>The first expression is $expr1.value{assignNames="expr1b"}</p>
-    <p>The second expression is $expr2.value{assignNames="expr2b"}</p>
+    <p>The first expression is <math extend="$expr1.value" name="expr1b" /></p>
+    <p>The second expression is <math extend="$expr2.value" name="expr2b" /></p>
 
     `,
                 },
@@ -32,43 +31,41 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
+        cy.get(cesc("#expr1b")).should("have.text", "(x+1)(x2−1)");
+        cy.get(cesc("#expr2b")).should("have.text", "(x−1)(x2+1)");
+        cy.get(cesc("#expr1a")).should("not.exist");
+        cy.get(cesc("#expr2a")).should("have.text", "(x−1)(x2+1)");
 
-        cy.get(cesc("#\\/expr1b")).should("have.text", "(x+1)(x2−1)");
-        cy.get(cesc("#\\/expr2b")).should("have.text", "(x−1)(x2+1)");
-        cy.get(cesc("#\\/expr1a")).should("not.exist");
-        cy.get(cesc("#\\/expr2a")).should("have.text", "(x−1)(x2+1)");
-
-        cy.get(cesc("#\\/expr1")).should("not.exist");
-        cy.get(cesc("#\\/expr2") + " .mq-editable-field")
+        cy.get(cesc("#expr1")).should("not.exist");
+        cy.get(cesc("#expr2") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).eq("(x−1)(x2+1)");
             });
 
-        cy.get(cesc("#\\/aside1_title")).click();
+        cy.get(cesc("#aside1_title")).click();
 
-        cy.get(cesc("#\\/expr1a")).should("have.text", "(x+1)(x2−1)");
-        cy.get(cesc("#\\/expr1") + " .mq-editable-field")
+        cy.get(cesc("#expr1a")).should("have.text", "(x+1)(x2−1)");
+        cy.get(cesc("#expr1") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).eq("(x+1)(x2−1)");
             });
 
-        cy.get(cesc("#\\/aside2_title")).click();
-        cy.get(cesc("#\\/expr2a")).should("not.exist");
-        cy.get(cesc("#\\/expr2")).should("not.exist");
+        cy.get(cesc("#aside2_title")).click();
+        cy.get(cesc("#expr2a")).should("not.exist");
+        cy.get(cesc("#expr2")).should("not.exist");
 
-        cy.get(cesc("#\\/expr1b")).should("have.text", "(x+1)(x2−1)");
-        cy.get(cesc("#\\/expr2b")).should("have.text", "(x−1)(x2+1)");
+        cy.get(cesc("#expr1b")).should("have.text", "(x+1)(x2−1)");
+        cy.get(cesc("#expr2b")).should("have.text", "(x−1)(x2+1)");
 
-        cy.get(cesc("#\\/expr1") + " textarea")
+        cy.get(cesc("#expr1") + " textarea")
             .type("{end}{leftArrow}{backspace}4{enter}", { force: true })
             .blur();
 
-        cy.get(cesc("#\\/expr1a")).should("contain.text", "(x+1)(x2−4)");
-        cy.get(cesc("#\\/expr1a")).should("have.text", "(x+1)(x2−4)");
-        cy.get(cesc("#\\/expr1") + " .mq-editable-field")
+        cy.get(cesc("#expr1a")).should("contain.text", "(x+1)(x2−4)");
+        cy.get(cesc("#expr1a")).should("have.text", "(x+1)(x2−4)");
+        cy.get(cesc("#expr1") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).eq(
@@ -76,31 +73,31 @@ describe("Sectioning Tag Tests", function () {
                 );
             });
 
-        cy.get(cesc("#\\/expr1b")).should("have.text", "(x+1)(x2−4)");
-        cy.get(cesc("#\\/expr2b")).should("have.text", "(x−1)(x2+1)");
+        cy.get(cesc("#expr1b")).should("have.text", "(x+1)(x2−4)");
+        cy.get(cesc("#expr2b")).should("have.text", "(x−1)(x2+1)");
 
-        cy.get(cesc("#\\/aside1_title")).click();
-        cy.get(cesc("#\\/expr1a")).should("not.exist");
-        cy.get(cesc("#\\/expr1")).should("not.exist");
+        cy.get(cesc("#aside1_title")).click();
+        cy.get(cesc("#expr1a")).should("not.exist");
+        cy.get(cesc("#expr1")).should("not.exist");
 
-        cy.get(cesc("#\\/expr1b")).should("have.text", "(x+1)(x2−4)");
-        cy.get(cesc("#\\/expr2b")).should("have.text", "(x−1)(x2+1)");
+        cy.get(cesc("#expr1b")).should("have.text", "(x+1)(x2−4)");
+        cy.get(cesc("#expr2b")).should("have.text", "(x−1)(x2+1)");
 
-        cy.get(cesc("#\\/aside2_title")).click();
+        cy.get(cesc("#aside2_title")).click();
 
-        cy.get(cesc("#\\/expr2a")).should("have.text", "(x−1)(x2+1)");
-        cy.get(cesc("#\\/expr2") + " .mq-editable-field")
+        cy.get(cesc("#expr2a")).should("have.text", "(x−1)(x2+1)");
+        cy.get(cesc("#expr2") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).eq("(x−1)(x2+1)");
             });
 
-        cy.get(cesc("#\\/expr2") + " textarea")
+        cy.get(cesc("#expr2") + " textarea")
             .type("{end}{leftArrow}{backspace}4{enter}", { force: true })
             .blur();
 
-        cy.get(cesc("#\\/expr2a")).should("have.text", "(x−1)(x2+4)");
-        cy.get(cesc("#\\/expr2") + " .mq-editable-field")
+        cy.get(cesc("#expr2a")).should("have.text", "(x−1)(x2+4)");
+        cy.get(cesc("#expr2") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).eq(
@@ -108,8 +105,8 @@ describe("Sectioning Tag Tests", function () {
                 );
             });
 
-        cy.get(cesc("#\\/expr1b")).should("have.text", "(x+1)(x2−4)");
-        cy.get(cesc("#\\/expr2b")).should("have.text", "(x−1)(x2+4)");
+        cy.get(cesc("#expr1b")).should("have.text", "(x+1)(x2−4)");
+        cy.get(cesc("#expr2b")).should("have.text", "(x−1)(x2+4)");
     });
 
     it("copy and overwrite title", () => {
@@ -119,18 +116,18 @@ describe("Sectioning Tag Tests", function () {
                     doenetML: `
       <section includeAutoName includeAutoNumber name="sec">
         <title>A title</title>
-        <p>Hello</p>
+        <p name="p1">Hello</p>
       </section>
     
-      <section includeAutoName includeAutoNumber name="revised" copySource="sec">
+      <section includeAutoName includeAutoNumber name="revised" extend="$sec">
         <title>A better title</title>
-        <p>Good day!</p>
+        <p name="p2">Good day!</p>
       </section>
 
-      <p>Copy of original title: <text copySource="sec.title" name="title1" /></p>
-      <p>Copy of revised title: <text copySource="revised.title" name="title2" /></p>
-      <p>Original section number: <text copySource="sec.sectionNumber" name="sectionNumber1" /></p>
-      <p>Revised section number: <text copySource="revised.sectionNumber" name="sectionNumber2" /></p>
+      <p>Copy of original title: <text extend="$sec.title" name="title1" /></p>
+      <p>Copy of revised title: <text extend="$revised.title" name="title2" /></p>
+      <p>Original section number: <text extend="$sec.sectionNumber" name="sectionNumber1" /></p>
+      <p>Revised section number: <text extend="$revised.sectionNumber" name="sectionNumber2" /></p>
    
     `,
                 },
@@ -138,43 +135,43 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/sec_title")).should("have.text", "Section 1: A title");
-        cy.get(cesc("#\\/revised_title")).should(
+        cy.get(cesc("#sec_title")).should("have.text", "Section 1: A title");
+        cy.get(cesc("#revised_title")).should(
             "have.text",
             "Section 2: A better title",
         );
-        cy.get(cesc("#\\/title1")).should("have.text", "A title");
-        cy.get(cesc("#\\/title2")).should("have.text", "A better title");
-        cy.get(cesc("#\\/sectionNumber1")).should("have.text", "1");
-        cy.get(cesc("#\\/sectionNumber2")).should("have.text", "2");
+        cy.get(cesc("#title1")).should("have.text", "A title");
+        cy.get(cesc("#title2")).should("have.text", "A better title");
+        cy.get(cesc("#sectionNumber1")).should("have.text", "1");
+        cy.get(cesc("#sectionNumber2")).should("have.text", "2");
 
-        cy.get(cesc("#\\/_p1")).should("have.text", "Hello");
-        cy.get(cesc("#\\/revised") + " p:first-of-type").should(
+        cy.get(cesc("#p1")).should("have.text", "Hello");
+        cy.get(cesc("#revised") + " p:first-of-type").should(
             "have.text",
             "Hello",
         );
-        cy.get(cesc("#\\/_p2")).should("have.text", "Good day!");
+        cy.get(cesc("#p2")).should("have.text", "Good day!");
     });
 
-    it("copy and overwrite title, newNamespaces", () => {
+    it("copy and overwrite title,s", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-      <section includeAutoName includeAutoNumber name="sec" newNamespace>
-        <title>A title</title>
-        <p>Hello</p>
+      <section includeAutoName includeAutoNumber name="sec">
+        <title name="title1">A title</title>
+        <p name="p1">Hello</p>
       </section>
     
-      <section includeAutoName includeAutoNumber name="revised" copySource="sec" newNamespace>
-        <title>A better title</title>
-        <p>Good day!</p>
+      <section includeAutoName includeAutoNumber name="revised" extend="$sec">
+        <title name="title2">A better title</title>
+        <p name="p2">Good day!</p>
       </section>
 
-      <p>Copy of original title: <text copySource="sec.title" name="title1" /></p>
-      <p>Copy of revised title: <text copySource="revised.title" name="title2" /></p>
-      <p>Original section number: <text copySource="sec.sectionNumber" name="sectionNumber1" /></p>
-      <p>Revised section number: <text copySource="revised.sectionNumber" name="sectionNumber2" /></p>
+      <p name="p3">Copy of original title: <text extend="$sec.title" name="title1" /></p>
+      <p name="p4">Copy of revised title: <text extend="$revised.title" name="title2" /></p>
+      <p>Original section number: <text extend="$sec.sectionNumber" name="sectionNumber1" /></p>
+      <p>Revised section number: <text extend="$revised.sectionNumber" name="sectionNumber2" /></p>
     
     `,
                 },
@@ -182,25 +179,22 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/sec_title")).should("have.text", "Section 1: A title");
-        cy.get(cesc("#\\/revised_title")).should(
+        cy.get(cesc("#sec_title")).should("have.text", "Section 1: A title");
+        cy.get(cesc("#revised_title")).should(
             "have.text",
             "Section 2: A better title",
         );
-        cy.get(cesc("#\\/sec\\/_title1")).should("have.text", "A title");
-        cy.get(cesc("#\\/revised\\/_title")).should("not.exist");
-        cy.get(cesc("#\\/revised\\/_title2")).should(
-            "have.text",
-            "A better title",
-        );
-        cy.get(cesc("#\\/title1")).should("have.text", "A title");
-        cy.get(cesc("#\\/title2")).should("have.text", "A better title");
-        cy.get(cesc("#\\/sectionNumber1")).should("have.text", "1");
-        cy.get(cesc("#\\/sectionNumber2")).should("have.text", "2");
+        cy.get(cesc("#sec.title1")).should("have.text", "A title");
+        cy.get(cesc("#revised.title")).should("not.exist");
+        cy.get(cesc("#revised.title2")).should("have.text", "A better title");
+        cy.get(cesc("#p3.title1")).should("have.text", "A title");
+        cy.get(cesc("#p4.title2")).should("have.text", "A better title");
+        cy.get(cesc("#sectionNumber1")).should("have.text", "1");
+        cy.get(cesc("#sectionNumber2")).should("have.text", "2");
 
-        cy.get(cesc("#\\/sec\\/_p1")).should("have.text", "Hello");
-        cy.get(cesc("#\\/revised\\/_p1")).should("have.text", "Hello");
-        cy.get(cesc("#\\/revised\\/_p2")).should("have.text", "Good day!");
+        cy.get(cesc("#p1")).should("have.text", "Hello");
+        cy.get(cesc("#revised.p1")).should("have.text", "Hello");
+        cy.get(cesc("#p2")).should("have.text", "Good day!");
     });
 
     // TODO: reinstate this test
@@ -229,11 +223,11 @@ describe("Sectioning Tag Tests", function () {
         </aside>
       </aside>
   
-      <p>Title 1: <text name="title1" copySource="aside1.title" /></p>
-      <p>Title 2: <text name="title2" copySource="aside2.title" /></p>
-      <p>Title 3: <text name="title3" copySource="aside3.title" /></p>
-      <p>Title 3.1: <text name="title31" copySource="aside31.title" /></p>
-      <p>Title 3.2: <text name="title32" copySource="aside32.title" /></p>
+      <p>Title 1: <text name="title1" extend="$aside1.title" /></p>
+      <p>Title 2: <text name="title2" extend="$aside2.title" /></p>
+      <p>Title 3: <text name="title3" extend="$aside3.title" /></p>
+      <p>Title 3.1: <text name="title31" extend="$aside31.title" /></p>
+      <p>Title 3.2: <text name="title32" extend="$aside32.title" /></p>
 
     `,
                 },
@@ -241,30 +235,30 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/aside1_title")).should("contain.text", "Aside 1");
-        cy.get(cesc("#\\/aside1_title")).should("not.contain.text", ":");
-        cy.get(cesc("#\\/aside2_title")).should(
+        cy.get(cesc("#aside1_title")).should("contain.text", "Aside 1");
+        cy.get(cesc("#aside1_title")).should("not.contain.text", ":");
+        cy.get(cesc("#aside2_title")).should(
             "contain.text",
             "Aside: Side point",
         );
-        cy.get(cesc("#\\/aside3_title")).should(
+        cy.get(cesc("#aside3_title")).should(
             "contain.text",
             "Aside 3: Another side point",
         );
-        cy.get(cesc("#\\/title1")).should("have.text", "Aside 1");
-        cy.get(cesc("#\\/title2")).should("have.text", "Side point");
-        cy.get(cesc("#\\/title3")).should("have.text", "Another side point");
+        cy.get(cesc("#title1")).should("have.text", "Aside 1");
+        cy.get(cesc("#title2")).should("have.text", "Side point");
+        cy.get(cesc("#title3")).should("have.text", "Another side point");
 
-        cy.get(cesc("#\\/aside3_title")).click();
+        cy.get(cesc("#aside3_title")).click();
 
-        cy.get(cesc("#\\/aside31_title")).should("contain.text", "Subpoint");
-        cy.get(cesc("#\\/aside31_title")).should("not.contain.text", "1");
-        cy.get(cesc("#\\/aside31_title")).should("not.contain.text", ":");
-        cy.get(cesc("#\\/aside32_title")).should("contain.text", "Aside 5 ");
-        cy.get(cesc("#\\/aside32_title")).should("not.contain.text", ":");
+        cy.get(cesc("#aside31_title")).should("contain.text", "Subpoint");
+        cy.get(cesc("#aside31_title")).should("not.contain.text", "1");
+        cy.get(cesc("#aside31_title")).should("not.contain.text", ":");
+        cy.get(cesc("#aside32_title")).should("contain.text", "Aside 5 ");
+        cy.get(cesc("#aside32_title")).should("not.contain.text", ":");
 
-        cy.get(cesc("#\\/title31")).should("have.text", "Subpoint");
-        cy.get(cesc("#\\/title32")).should("have.text", "Aside 5");
+        cy.get(cesc("#title31")).should("have.text", "Subpoint");
+        cy.get(cesc("#title32")).should("have.text", "Aside 5");
     });
 
     it("Aside with postpone rendering opens before initializing", () => {
@@ -285,16 +279,16 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc2("#/aside")).should("contain.text", "An aside");
-        cy.get(cesc2("#/aside")).should("not.contain.text", "The aside");
+        cy.get(cesc("#aside")).should("contain.text", "An aside");
+        cy.get(cesc("#aside")).should("not.contain.text", "The aside");
 
-        cy.get(cesc2("#/aside")).click();
-        cy.get(cesc2("#/aside")).should("contain.text", "Initializing");
-        cy.get(cesc2("#/aside")).should("not.contain.text", "The aside");
+        cy.get(cesc("#aside")).click();
+        cy.get(cesc("#aside")).should("contain.text", "Initializing");
+        cy.get(cesc("#aside")).should("not.contain.text", "The aside");
 
         cy.log("Eventually aside finishes rendering");
-        cy.get(cesc2("#/aside")).should("contain.text", "The aside");
-        cy.get(cesc2("#/aside")).should("not.contain.text", "Initializing");
+        cy.get(cesc("#aside")).should("contain.text", "The aside");
+        cy.get(cesc("#aside")).should("not.contain.text", "Initializing");
     });
 
     it("Proof with postpone rendering opens before initializing", () => {
@@ -315,16 +309,16 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc2("#/proof")).should("contain.text", "An proof");
-        cy.get(cesc2("#/proof")).should("not.contain.text", "The proof");
+        cy.get(cesc("#proof")).should("contain.text", "An proof");
+        cy.get(cesc("#proof")).should("not.contain.text", "The proof");
 
-        cy.get(cesc2("#/proof")).click();
-        cy.get(cesc2("#/proof")).should("contain.text", "Initializing");
-        cy.get(cesc2("#/proof")).should("not.contain.text", "The proof");
+        cy.get(cesc("#proof")).click();
+        cy.get(cesc("#proof")).should("contain.text", "Initializing");
+        cy.get(cesc("#proof")).should("not.contain.text", "The proof");
 
         cy.log("Eventually proof finishes rendering");
-        cy.get(cesc2("#/proof")).should("contain.text", "The proof");
-        cy.get(cesc2("#/proof")).should("not.contain.text", "Initializing");
+        cy.get(cesc("#proof")).should("contain.text", "The proof");
+        cy.get(cesc("#proof")).should("not.contain.text", "Initializing");
     });
 
     it("Exercise with statement, hint, givenanswer, and solution", () => {
@@ -334,15 +328,15 @@ describe("Sectioning Tag Tests", function () {
                     doenetML: `
 
     <exercise name="exer">
-      <title>An exercise</title>
-      <statement>The exercise</statement>
-      <hint>
+      <title name="title">An exercise</title>
+      <statement name="statement">The exercise</statement>
+      <hint name="hint">
         <p>Try harder</p>
       </hint>
-      <givenAnswer>
+      <givenAnswer name="givenAnswer">
         <p>The correct answer</p>
       </givenAnswer>
-      <solution>
+      <solution name="solution">
         <p>Here's how you do it.</p>
       </solution>
     </exercise>
@@ -353,55 +347,55 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_title1")).should("have.text", "An exercise");
+        cy.get(cesc("#title")).should("have.text", "An exercise");
 
-        cy.get(cesc("#\\/_statement1")).should("have.text", "The exercise");
+        cy.get(cesc("#statement")).should("have.text", "The exercise");
 
-        cy.get(cesc("#\\/_hint1") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint",
         );
-        cy.get(cesc("#\\/_hint1")).should("not.contain.text", "Try harder");
-        cy.get(cesc("#\\/_givenanswer1")).should("contain.text", "Answer");
-        cy.get(cesc("#\\/_givenanswer1")).should(
+        cy.get(cesc("#hint")).should("not.contain.text", "Try harder");
+        cy.get(cesc("#givenAnswer")).should("contain.text", "Answer");
+        cy.get(cesc("#givenAnswer")).should(
             "not.contain.text",
             "The correct answer",
         );
-        cy.get(cesc("#\\/_solution1")).should("contain.text", "Solution");
-        cy.get(cesc("#\\/_solution1")).should(
+        cy.get(cesc("#solution")).should("contain.text", "Solution");
+        cy.get(cesc("#solution")).should(
             "not.contain.text",
             "Here's how you do it.",
         );
 
-        cy.get(cesc("#\\/_hint1") + " [data-test=hint-heading]").click();
-        cy.get(cesc("#\\/_hint1")).should("contain.text", "Try harder");
-        cy.get(cesc("#\\/_givenanswer1")).should(
+        cy.get(cesc("#hint") + " [data-test=hint-heading]").click();
+        cy.get(cesc("#hint")).should("contain.text", "Try harder");
+        cy.get(cesc("#givenAnswer")).should(
             "not.contain.text",
             "The correct answer",
         );
-        cy.get(cesc("#\\/_solution1")).should(
+        cy.get(cesc("#solution")).should(
             "not.contain.text",
             "Here's how you do it.",
         );
 
-        cy.get(cesc("#\\/_givenanswer1_button")).click();
-        cy.get(cesc("#\\/_givenanswer1")).should(
+        cy.get(cesc("#givenAnswer_button")).click();
+        cy.get(cesc("#givenAnswer")).should(
             "contain.text",
             "The correct answer",
         );
-        cy.get(cesc("#\\/_hint1")).should("contain.text", "Try harder");
-        cy.get(cesc("#\\/_solution1")).should(
+        cy.get(cesc("#hint")).should("contain.text", "Try harder");
+        cy.get(cesc("#solution")).should(
             "not.contain.text",
             "Here's how you do it.",
         );
 
-        cy.get(cesc("#\\/_solution1_button")).click();
-        cy.get(cesc("#\\/_solution1")).should(
+        cy.get(cesc("#solution_button")).click();
+        cy.get(cesc("#solution")).should(
             "contain.text",
             "Here's how you do it.",
         );
-        cy.get(cesc("#\\/_hint1")).should("contain.text", "Try harder");
-        cy.get(cesc("#\\/_givenanswer1")).should(
+        cy.get(cesc("#hint")).should("contain.text", "Try harder");
+        cy.get(cesc("#givenAnswer")).should(
             "contain.text",
             "The correct answer",
         );
@@ -414,21 +408,21 @@ describe("Sectioning Tag Tests", function () {
                     doenetML: `
 
 <section>
-  <title>A section</title>
-  <introduction>
+  <title name="title">A section</title>
+  <introduction name="introduction">
     <p>First this</p>
     <p>Then that</p>
     <text>Hello</text> <text>World</text>
   </introduction>
-  <subsection>
+  <subsection name="subsection1">
     <title>Point 1</title>
     <p>Make the first point</p>
   </subsection>
-  <subsection>
+  <subsection name="subsection2">
     <title>Point 2</title>
     <p>Make the second point</p>
   </subsection>
-  <conclusion>
+  <conclusion name="conclusion">
     Wrap <text>it</text> <text>up</text>!
   </conclusion>
 </section>
@@ -439,23 +433,23 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_title1")).should("have.text", "A section");
+        cy.get(cesc("#title")).should("have.text", "A section");
 
-        cy.get(cesc("#\\/_introduction1")).should(
+        cy.get(cesc("#introduction")).should(
             "have.text",
             "\n    First this\n    Then that\n    Hello World\n  ",
         );
 
-        cy.get(cesc("#\\/_subsection1")).should(
+        cy.get(cesc("#subsection1")).should(
             "have.text",
             " Point 1\n    \n    Make the first point\n   ",
         );
-        cy.get(cesc("#\\/_subsection2")).should(
+        cy.get(cesc("#subsection2")).should(
             "have.text",
             " Point 2\n    \n    Make the second point\n   ",
         );
 
-        cy.get(cesc("#\\/_conclusion1")).should(
+        cy.get(cesc("#conclusion")).should(
             "have.text",
             "\n    Wrap it up!\n  ",
         );
@@ -468,11 +462,11 @@ describe("Sectioning Tag Tests", function () {
                     doenetML: `
 
 <section>
-  <title>A section</title>
-  <objectives>
+  <title name="title">A section</title>
+  <objectives name="objectives">
     <text>Hello</text> <text>World</text>
   </objectives>
-  <p>Is objectives boxed? $_objectives1.boxed</p>
+  <p name="p">Is objectives boxed? $objectives.boxed</p>
 </section>
 
     `,
@@ -481,18 +475,12 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_title1")).should("have.text", "A section");
+        cy.get(cesc("#title")).should("have.text", "A section");
 
-        cy.get(cesc("#\\/_objectives1_title")).should(
-            "have.text",
-            "Objectives 1",
-        );
-        cy.get(cesc("#\\/_objectives1")).should("contain.text", "Hello World");
+        cy.get(cesc("#objectives_title")).should("have.text", "Objectives 1");
+        cy.get(cesc("#objectives")).should("contain.text", "Hello World");
 
-        cy.get(cesc("#\\/_p1")).should(
-            "have.text",
-            "Is objectives boxed? true",
-        );
+        cy.get(cesc("#p")).should("have.text", "Is objectives boxed? true");
     });
 
     it("Activity", () => {
@@ -502,11 +490,11 @@ describe("Sectioning Tag Tests", function () {
                     doenetML: `
 
 <section>
-  <title>A section</title>
-  <activity>
+  <title name="title">A section</title>
+  <activity name="activity">
     <text>Hello</text> <text>World</text>
   </activity>
-  <p>Is activity boxed? $_activity1.boxed</p>
+  <p name="p">Is activity boxed? $activity.boxed</p>
 </section>
 
     `,
@@ -515,12 +503,12 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_title1")).should("have.text", "A section");
+        cy.get(cesc("#title")).should("have.text", "A section");
 
-        cy.get(cesc("#\\/_activity1_title")).should("have.text", "Activity 1");
-        cy.get(cesc("#\\/_activity1")).should("contain.text", "Hello World");
+        cy.get(cesc("#activity_title")).should("have.text", "Activity 1");
+        cy.get(cesc("#activity")).should("contain.text", "Hello World");
 
-        cy.get(cesc("#\\/_p1")).should("have.text", "Is activity boxed? false");
+        cy.get(cesc("#p")).should("have.text", "Is activity boxed? false");
     });
 
     it("Definition", () => {
@@ -530,11 +518,11 @@ describe("Sectioning Tag Tests", function () {
                     doenetML: `
 
 <section>
-  <title>A section</title>
-  <definition>
+  <title name="title">A section</title>
+  <definition name="definition">
     <text>Hello</text> <text>World</text>
   </definition>
-  <p>Is definition boxed? $_definition1.boxed</p>
+  <p name="p">Is definition boxed? $definition.boxed</p>
 </section>
 
     `,
@@ -543,18 +531,12 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_title1")).should("have.text", "A section");
+        cy.get(cesc("#title")).should("have.text", "A section");
 
-        cy.get(cesc("#\\/_definition1_title")).should(
-            "have.text",
-            "Definition 1",
-        );
-        cy.get(cesc("#\\/_definition1")).should("contain.text", "Hello World");
+        cy.get(cesc("#definition_title")).should("have.text", "Definition 1");
+        cy.get(cesc("#definition")).should("contain.text", "Hello World");
 
-        cy.get(cesc("#\\/_p1")).should(
-            "have.text",
-            "Is definition boxed? false",
-        );
+        cy.get(cesc("#p")).should("have.text", "Is definition boxed? false");
     });
 
     it("Note", () => {
@@ -564,11 +546,11 @@ describe("Sectioning Tag Tests", function () {
                     doenetML: `
 
 <section>
-  <title>A section</title>
-  <note>
+  <title name="title">A section</title>
+  <note name="note">
     <text>Hello</text> <text>World</text>
   </note>
-  <p>Is note boxed? $_note1.boxed</p>
+  <p name="p">Is note boxed? $note.boxed</p>
 </section>
 
     `,
@@ -577,12 +559,12 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_title1")).should("have.text", "A section");
+        cy.get(cesc("#title")).should("have.text", "A section");
 
-        cy.get(cesc("#\\/_note1_title")).should("have.text", "Note 1");
-        cy.get(cesc("#\\/_note1")).should("contain.text", "Hello World");
+        cy.get(cesc("#note_title")).should("have.text", "Note 1");
+        cy.get(cesc("#note")).should("contain.text", "Hello World");
 
-        cy.get(cesc("#\\/_p1")).should("have.text", "Is note boxed? false");
+        cy.get(cesc("#p")).should("have.text", "Is note boxed? false");
     });
 
     // TODO: reinstate this test
@@ -611,22 +593,22 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_title1")).should("have.text", "A section");
+        cy.get(cesc("#title1")).should("have.text", "A section");
 
-        cy.get(cesc("#\\/_theorem1_title")).should("have.text", "Theorem 1");
-        cy.get(cesc("#\\/_statement1")).should("have.text", "The statement");
-        cy.get(cesc("#\\/_proof1_title")).should("contain.text", "Proof");
-        cy.get(cesc("#\\/_proof1_title")).should("contain.text", "Proof");
-        cy.get(cesc("#\\/_proof1")).should("not.contain.text", "The proof");
-        cy.get(cesc("#\\/_proof1_title")).click();
-        cy.get(cesc("#\\/_proof1")).should("contain.text", "The proof");
+        cy.get(cesc("#theorem1_title")).should("have.text", "Theorem 1");
+        cy.get(cesc("#statement1")).should("have.text", "The statement");
+        cy.get(cesc("#proof1_title")).should("contain.text", "Proof");
+        cy.get(cesc("#proof1_title")).should("contain.text", "Proof");
+        cy.get(cesc("#proof1")).should("not.contain.text", "The proof");
+        cy.get(cesc("#proof1_title")).click();
+        cy.get(cesc("#proof1")).should("contain.text", "The proof");
 
-        cy.get(cesc("#\\/_theorem2_title")).should("have.text", "Corollary 2");
-        cy.get(cesc("#\\/_statement2")).should("have.text", "The statement");
-        cy.get(cesc("#\\/_proof2_title")).should("contain.text", "Proof");
-        cy.get(cesc("#\\/_proof2")).should("not.contain.text", "The proof");
-        cy.get(cesc("#\\/_proof2_title")).click();
-        cy.get(cesc("#\\/_proof2")).should("contain.text", "The proof");
+        cy.get(cesc("#theorem2_title")).should("have.text", "Corollary 2");
+        cy.get(cesc("#statement2")).should("have.text", "The statement");
+        cy.get(cesc("#proof2_title")).should("contain.text", "Proof");
+        cy.get(cesc("#proof2")).should("not.contain.text", "The proof");
+        cy.get(cesc("#proof2_title")).click();
+        cy.get(cesc("#proof2")).should("contain.text", "The proof");
     });
 
     // TODO: reinstate this test
@@ -690,21 +672,21 @@ describe("Sectioning Tag Tests", function () {
         // Note: not sure if this is how we want numbering to work long term,
         // but this test at least documents how it is working now.
 
-        cy.get(cesc("#\\/sec1_title")).should("have.text", "Section 1");
+        cy.get(cesc("#sec1_title")).should("have.text", "Section 1");
 
-        cy.get(cesc("#\\/obj1_title")).should("have.text", "Objectives 1");
-        cy.get(cesc("#\\/exp2_title")).should("have.text", "Definition 2");
-        cy.get(cesc("#\\/sec1-1_title")).should("have.text", "Section 1.1");
-        cy.get(cesc("#\\/act3_title")).should("have.text", "Activity 3");
-        cy.get(cesc("#\\/sec1-2_title")).should("have.text", "Section 1.2");
-        cy.get(cesc("#\\/aside4_title")).should("contain.text", "Aside 4");
-        cy.get(cesc("#\\/act5_title")).should("have.text", "Activity 5");
-        cy.get(cesc("#\\/out6_title")).should("have.text", "Outcomes 6");
+        cy.get(cesc("#obj1_title")).should("have.text", "Objectives 1");
+        cy.get(cesc("#exp2_title")).should("have.text", "Definition 2");
+        cy.get(cesc("#sec1-1_title")).should("have.text", "Section 1.1");
+        cy.get(cesc("#act3_title")).should("have.text", "Activity 3");
+        cy.get(cesc("#sec1-2_title")).should("have.text", "Section 1.2");
+        cy.get(cesc("#aside4_title")).should("contain.text", "Aside 4");
+        cy.get(cesc("#act5_title")).should("have.text", "Activity 5");
+        cy.get(cesc("#out6_title")).should("have.text", "Outcomes 6");
 
-        cy.get(cesc("#\\/sec2_title")).should("have.text", "Section 2");
+        cy.get(cesc("#sec2_title")).should("have.text", "Section 2");
 
-        cy.get(cesc("#\\/obj7_title")).should("have.text", "Objectives 7");
-        cy.get(cesc("#\\/sec2-1_title")).should("have.text", "Section 2.1");
+        cy.get(cesc("#obj7_title")).should("have.text", "Objectives 7");
+        cy.get(cesc("#sec2-1_title")).should("have.text", "Section 2.1");
     });
 
     it("Problems tag causes child sections to be rendered as a list", () => {
@@ -712,31 +694,31 @@ describe("Sectioning Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <problem name="aProb" newNamespace>
+    <problem name="aProb">
       <title>This is a problem</title>
       <p>Here is a problem!</p>
   
-      <ol>
+      <ol name="ol">
         <li>Item 1</li>
         <li>Item 2</li>
       </ol>
     </problem>
   
     <exercises name="exercises">
-      <problem name="prob1" newNamespace>
+      <problem name="prob1">
         <p>We don't have a title, but we have a list.</p>
           
-        <ol>
+        <ol name="ol">
           <li>Item A</li>
           <li>Item B</li>
         </ol>
       </problem>
-      <problem name="prob2" newNamespace>
+      <problem name="prob2">
       <title>A titled problem</title>
         <p>Work hard</p>
       </problem>
   
-      $aProb{name='aProbb'}
+      <problem extend="$aProb" name='aProbb' />
     </exercises>
 
     `,
@@ -745,37 +727,31 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/aProb_title")).should(
-            "have.text",
-            "This is a problem",
-        );
-        cy.get(cesc("#\\/aProb\\/_ol1")).should(
+        cy.get(cesc("#aProb_title")).should("have.text", "This is a problem");
+        cy.get(cesc("#aProb.ol")).should(
             "have.css",
             "list-style-type",
             "decimal",
         );
 
-        cy.get(cesc("#\\/exercises") + " li")
+        cy.get(cesc("#exercises") + " li")
             .eq(0)
             .should(
                 "contain.text",
                 "We don't have a title, but we have a list.",
             );
 
-        cy.get(cesc("#\\/prob1_title")).should("have.text", "");
-        cy.get(cesc("#\\/prob1\\/_ol1")).should(
+        cy.get(cesc("#prob1_title")).should("have.text", "");
+        cy.get(cesc("#exercises.ol")).should(
             "have.css",
             "list-style-type",
             "lower-alpha",
         );
 
-        cy.get(cesc("#\\/prob2_title")).should("have.text", "A titled problem");
+        cy.get(cesc("#prob2_title")).should("have.text", "A titled problem");
 
-        cy.get(cesc("#\\/aProbb_title")).should(
-            "have.text",
-            "This is a problem",
-        );
-        cy.get(cesc("#\\/aProbb\\/_ol1")).should(
+        cy.get(cesc("#aProbb_title")).should("have.text", "This is a problem");
+        cy.get(cesc("#aProbb.ol")).should(
             "have.css",
             "list-style-type",
             "lower-alpha",
@@ -787,31 +763,31 @@ describe("Sectioning Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <problem name="aProb" newNamespace>
+    <problem name="aProb">
       <title>This is a problem</title>
       <p>Here is a problem!</p>
   
-      <ol>
+      <ol name="ol">
         <li>Item 1</li>
         <li>Item 2</li>
       </ol>
     </problem>
   
     <section name="exercises" asList>
-      <problem name="prob1" newNamespace>
+      <problem name="prob1">
         <p>We don't have a title, but we have a list.</p>
           
-        <ol>
+        <ol name="ol">
           <li>Item A</li>
           <li>Item B</li>
         </ol>
       </problem>
-      <problem name="prob2" newNamespace>
+      <problem name="prob2">
       <title>A titled problem</title>
         <p>Work hard</p>
       </problem>
   
-      $aProb{name='aProbb'}
+      <problem extend="$aProb" name='aProbb' />
     </section>
 
     `,
@@ -820,37 +796,31 @@ describe("Sectioning Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/aProb_title")).should(
-            "have.text",
-            "This is a problem",
-        );
-        cy.get(cesc("#\\/aProb\\/_ol1")).should(
+        cy.get(cesc("#aProb_title")).should("have.text", "This is a problem");
+        cy.get(cesc("#aProb.ol")).should(
             "have.css",
             "list-style-type",
             "decimal",
         );
 
-        cy.get(cesc("#\\/exercises") + " li")
+        cy.get(cesc("#exercises") + " li")
             .eq(0)
             .should(
                 "contain.text",
                 "We don't have a title, but we have a list.",
             );
 
-        cy.get(cesc("#\\/prob1_title")).should("have.text", "");
-        cy.get(cesc("#\\/prob1\\/_ol1")).should(
+        cy.get(cesc("#prob1_title")).should("have.text", "");
+        cy.get(cesc("#exercises.ol")).should(
             "have.css",
             "list-style-type",
             "lower-alpha",
         );
 
-        cy.get(cesc("#\\/prob2_title")).should("have.text", "A titled problem");
+        cy.get(cesc("#prob2_title")).should("have.text", "A titled problem");
 
-        cy.get(cesc("#\\/aProbb_title")).should(
-            "have.text",
-            "This is a problem",
-        );
-        cy.get(cesc("#\\/aProbb\\/_ol1")).should(
+        cy.get(cesc("#aProbb_title")).should("have.text", "This is a problem");
+        cy.get(cesc("#aProbb.ol")).should(
             "have.css",
             "list-style-type",
             "lower-alpha",

@@ -1019,7 +1019,9 @@ export default class Core {
         rendererStatesToUpdate.push({
             componentIdx,
             stateValues: stateValuesForRenderer,
-            childrenInstructions: childrenToRender,
+            childrenInstructions: childrenToRender.filter(
+                (child) => child != null,
+            ),
         });
         if (Object.keys(stateValuesForRendererAlwaysUpdate).length > 0) {
             rendererStatesToForceUpdate.push({
@@ -1031,7 +1033,9 @@ export default class Core {
         // this.renderState is used to save the renderer state to the database
         this.rendererState[componentIdx] = {
             stateValues: stateValuesForRenderer,
-            childrenInstructions: childrenToRender,
+            childrenInstructions: childrenToRender.filter(
+                (child) => child != null,
+            ),
         };
 
         componentsWithChangedChildrenToRenderInProgress.delete(componentIdx);
@@ -1058,7 +1062,7 @@ export default class Core {
             componentIdx: componentIdx,
             effectiveIdx: component.componentOrAdaptedIdx,
             id:
-                this.rootNames?.[componentIdx] ??
+                this.rootNames?.[component.componentOrAdaptedIdx] ??
                 component.componentOrAdaptedIdx.toString(),
             componentType: component.componentType,
             rendererType: component.rendererType,
@@ -1304,7 +1308,7 @@ export default class Core {
             res.createComponentIdxMapping,
         );
 
-        for (const serializedComponent of serializedComponents) {
+        for (let serializedComponent of serializedComponents) {
             // console.timeLog('core','<-Top serializedComponents ',serializedComponent.componentIdx);
 
             if (typeof serializedComponent !== "object") {
@@ -1312,7 +1316,7 @@ export default class Core {
                 continue;
             }
 
-            const componentClass =
+            let componentClass =
                 this.componentInfoObjects.allComponentClasses[
                     serializedComponent.componentType
                 ];
@@ -3528,6 +3532,9 @@ export default class Core {
                 if (child.isExpanded) {
                     parent.compositeReplacementActiveRange.push({
                         compositeIdx: child.componentIdx,
+                        compositeName:
+                            this.rootNames?.[child.componentIdx] ??
+                            child.componentIdx.toString(),
                         extendIdx: await child.stateValues.extendIdx,
                         unresolvedPath: await child.stateValues.unresolvedPath,
                         firstInd: childInd,

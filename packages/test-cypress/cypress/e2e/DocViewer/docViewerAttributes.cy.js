@@ -1,4 +1,4 @@
-import { cesc2, deepCompare } from "@doenet/utils";
+import { cesc, deepCompare } from "@doenet/utils";
 
 describe("PageViewer Attribute Tests", function () {
     beforeEach(() => {
@@ -60,7 +60,7 @@ describe("PageViewer Attribute Tests", function () {
             });
         });
 
-        cy.get(cesc2("#/t")).should("not.exist");
+        cy.get(cesc("#t")).should("not.exist");
 
         cy.log("Core has not been initialized");
         cy.window().then(async (win) => {

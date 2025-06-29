@@ -6601,6 +6601,7 @@ describe("Extend and references tests", async () => {
     });
 
     it("dynamically change index resolutions with reference inside composite", async () => {
+        // Note: cypress test of same name in `renderCommas.cy.js` tests the DOM
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n">1</mathInput>

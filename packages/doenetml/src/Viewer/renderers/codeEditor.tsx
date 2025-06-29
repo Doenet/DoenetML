@@ -82,7 +82,7 @@ export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
             <EditorViewer
                 id={id}
                 activityId={id}
-                prefixForIds={id}
+                prefixForIds={id + "::"}
                 doenetML={currentValue}
                 width={sizeToCSS(SVs.width)}
                 height={sizeToCSS(SVs.height)}

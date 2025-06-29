@@ -8,14 +8,10 @@ describe("SampleRandomNumbers Tag Tests", function () {
 
     it(`different numbers when reload page if don't save state`, () => {
         let doenetML = `
-    <text>a</text>
-    <p><aslist>
-    <map>
-      <template><sampleRandomNumbers /></template>
-      <sources><sequence length="100" /></sources>
-    </map>
-    </aslist></p>
-
+    <text name="a">a</text>
+    <p name="p1"><repeatForSequence length="100">
+      <sampleRandomNumbers />
+    </repeatForSequence></p>
     `;
 
         cy.window().then(async (win) => {
@@ -27,21 +23,17 @@ describe("SampleRandomNumbers Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         let samples = [];
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            samples = stateVariables["/_map1"].replacements.map(
-                (x) =>
-                    stateVariables[
-                        stateVariables[
-                            stateVariables[x.componentIdx].replacements[0]
-                                .componentIdx
-                        ].replacements[0].componentIdx
-                    ].stateValues.value,
+            samples = stateVariables[
+                await win.resolvePath1("p1")
+            ].activeChildren.map(
+                (x) => stateVariables[x.componentIdx].stateValues.value,
             );
 
             expect(samples.length).eq(100);
@@ -63,19 +55,15 @@ describe("SampleRandomNumbers Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples2 = stateVariables["/_map1"].replacements.map(
-                (x) =>
-                    stateVariables[
-                        stateVariables[
-                            stateVariables[x.componentIdx].replacements[0]
-                                .componentIdx
-                        ].replacements[0].componentIdx
-                    ].stateValues.value,
+            let samples2 = stateVariables[
+                await win.resolvePath1("p1")
+            ].activeChildren.map(
+                (x) => stateVariables[x.componentIdx].stateValues.value,
             );
 
             expect(samples2.length).eq(100);
@@ -91,14 +79,12 @@ describe("SampleRandomNumbers Tag Tests", function () {
     it("same numbers when reload if save state", () => {
         let doenetML = `
     <text>a</text>
-    <p><aslist>
-    <map>
-      <template><sampleRandomNumbers /></template>
-      <sources><sequence length="100" /></sources>
-    </map>
-    </aslist></p>
+    <text name="a">a</text>
+    <p name="p1"><repeatForSequence length="100">
+      <sampleRandomNumbers />
+    </repeatForSequence></p>
 
-    <booleaninput name="bi" /><boolean name="b2" copySource="bi" />
+    <booleanInput name="bi" /><boolean name="b2" extend="$bi" />
 
     `;
 
@@ -116,21 +102,17 @@ describe("SampleRandomNumbers Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         let samples = [];
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            samples = stateVariables["/_map1"].replacements.map(
-                (x) =>
-                    stateVariables[
-                        stateVariables[
-                            stateVariables[x.componentIdx].replacements[0]
-                                .componentIdx
-                        ].replacements[0].componentIdx
-                    ].stateValues.value,
+            samples = stateVariables[
+                await win.resolvePath1("p1")
+            ].activeChildren.map(
+                (x) => stateVariables[x.componentIdx].stateValues.value,
             );
 
             expect(samples.length).eq(100);
@@ -142,8 +124,8 @@ describe("SampleRandomNumbers Tag Tests", function () {
         });
 
         cy.log("interact so changes will be saved to database");
-        cy.get(cesc("#\\/bi")).click();
-        cy.get(cesc("#\\/b2")).should("have.text", "true");
+        cy.get(cesc("#bi")).click();
+        cy.get(cesc("#b2")).should("have.text", "true");
 
         cy.log("wait for debounce");
         cy.wait(1500);
@@ -160,22 +142,18 @@ describe("SampleRandomNumbers Tag Tests", function () {
         });
 
         cy.log("make sure core is up and running");
-        cy.get(cesc("#\\/bi")).click();
-        cy.get(cesc("#\\/b2")).should("have.text", "false");
+        cy.get(cesc("#bi")).click();
+        cy.get(cesc("#b2")).should("have.text", "false");
 
         cy.log("check that values are unchanged");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let samples2 = stateVariables["/_map1"].replacements.map(
-                (x) =>
-                    stateVariables[
-                        stateVariables[
-                            stateVariables[x.componentIdx].replacements[0]
-                                .componentIdx
-                        ].replacements[0].componentIdx
-                    ].stateValues.value,
+            let samples2 = stateVariables[
+                await win.resolvePath1("p1")
+            ].activeChildren.map(
+                (x) => stateVariables[x.componentIdx].stateValues.value,
             );
 
             expect(samples2).eqls(samples);

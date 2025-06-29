@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { cesc, cesc2 } from "@doenet/utils";
+import { cesc } from "@doenet/utils";
 
 describe("UpdateValue Tag Tests", function () {
     beforeEach(() => {
@@ -14,10 +14,10 @@ describe("UpdateValue Tag Tests", function () {
     <p>m = <number name="m" >1</number></p>
     <p>n = <number name="n" >10</number></p>
 
-    <p><updateValue name="incm" target="m" newValue="$m+1"  >
+    <p><updateValue name="incm" target="$m" newValue="$m+1"  >
       <label>increment m</label>
     </updateValue></p>
-    <p><updateValue name="incn" target="n" newValue="$n+10" disabledIgnoresParentReadOnly >
+    <p><updateValue name="incn" target="$n" newValue="$n+10" disabledIgnoresParentReadOnly >
       <label>increment n</label>
     </updateValue></p>
 
@@ -36,16 +36,16 @@ describe("UpdateValue Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
-        cy.get(cesc("#\\/m")).should("have.text", "1");
-        cy.get(cesc("#\\/n")).should("have.text", "10");
+        cy.get(cesc("#m")).should("have.text", "1");
+        cy.get(cesc("#n")).should("have.text", "10");
 
-        cy.get(cesc("#\\/incm_button")).click();
-        cy.get(cesc("#\\/incn_button")).click();
+        cy.get(cesc("#incm_button")).click();
+        cy.get(cesc("#incn_button")).click();
 
-        cy.get(cesc("#\\/m")).should("have.text", "2");
-        cy.get(cesc("#\\/n")).should("have.text", "20");
+        cy.get(cesc("#m")).should("have.text", "2");
+        cy.get(cesc("#n")).should("have.text", "20");
 
         cy.wait(2000); // wait to make sure 1 second debounce occurred
 
@@ -65,16 +65,16 @@ describe("UpdateValue Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/incm_button")).should("be.disabled");
-        cy.get(cesc("#\\/incn_button")).should("not.be.disabled");
+        cy.get(cesc("#incm_button")).should("be.disabled");
+        cy.get(cesc("#incn_button")).should("not.be.disabled");
 
-        cy.get(cesc("#\\/m")).should("have.text", "2");
-        cy.get(cesc("#\\/n")).should("have.text", "20");
+        cy.get(cesc("#m")).should("have.text", "2");
+        cy.get(cesc("#n")).should("have.text", "20");
 
-        cy.get(cesc("#\\/incm_button")).click();
-        cy.get(cesc("#\\/incn_button")).click();
+        cy.get(cesc("#incm_button")).click();
+        cy.get(cesc("#incn_button")).click();
 
-        cy.get(cesc("#\\/m")).should("have.text", "2");
-        cy.get(cesc("#\\/n")).should("have.text", "30");
+        cy.get(cesc("#m")).should("have.text", "2");
+        cy.get(cesc("#n")).should("have.text", "30");
     });
 });

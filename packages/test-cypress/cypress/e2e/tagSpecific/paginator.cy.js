@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { cesc, cesc2 } from "@doenet/utils";
+import { cesc } from "@doenet/utils";
 
 describe("Paginator Tag Tests", function () {
     beforeEach(() => {
@@ -9,41 +9,41 @@ describe("Paginator Tag Tests", function () {
 
     it("Multiple sections in paginator", () => {
         let doenetML = `
-    <text>a</text>
+    <text name="a">a</text>
   
-    <paginatorControls paginator="pgn" name="pcontrols" />
+    <paginatorControls paginator="$pgn" name="pcontrols" />
   
     <paginator name="pgn">
-      <section>
-        <title>Page 1</title>
-        <p>What is 1+1? <answer>$two</answer></p>
+      <section name="section1">
+        <title name="title1">Page 1</title>
+        <p name="p1">What is 1+1? <answer name="answer1">$two</answer></p>
         <math hide name="two">2</math>
       </section>
-      <section>
-        <p>What is your name? <textinput name="name" /></p>
-        <p>Hello, $name!</p>
+      <section name="section2">
+        <p name="p2">What is your name? <textInput name="name" /></p>
+        <p name="p3">Hello, $name!</p>
       </section>
-      <section>
-        <title>Page 3</title>
+      <section name="section3">
+        <title name="title2">Page 3</title>
         <math hide name="twox">2x</math>
-        <p>What is <m name="mxx">x+x</m>? <answer>$twox</answer></p>
-        <p>What is <m name="myy">y+y</m>? <answer>2y</answer></p>
+        <p name="p">What is <m name="mxx">x+x</m>? <answer name="answer2">$twox</answer></p>
+        <p name="p">What is <m name="myy">y+y</m>? <answer name="answer3">2y</answer></p>
       </section>
     </paginator>
-    <p>
-    <callAction name="prevPage" disabled="$pageNum = 1" actionName="setPage" target="pgn" number="$pageNum -1"  >
+    <p name="p4">
+    <callAction name="prevPage" disabled="$pageNum = 1" actionName="setPage" target="$pgn" number="$pageNum -1"  >
       <label>prev</label>
     </callAction>
-    Page $pgn.currentPage{assignNames="pageNum"}
-    of $pgn.numPages{assignNames="numPages"}
-    <callAction name="nextPage" disabled="$pageNum = $numPages" actionName="setPage" target="pgn" number="$pageNum +1"  >
+    Page <number extend="$pgn.currentPage" name="pageNum" />
+    of <number extend="$pgn.numPages" name="numPages" />
+    <callAction name="nextPage" disabled="$pageNum = $numPages" actionName="setPage" target="$pgn" number="$pageNum +1"  >
       <label>next</label>
     </callAction>
     
     </p>
-    <p>What is 2+2? <answer>4</answer></p>
+    <p name="p5">What is 2+2? <answer name="answer4">4</answer></p>
   
-    <p>Credit achieved: $_document1.creditAchieved{assignNames="ca"}</p>
+    <p name="p6">Credit achieved: <number extend="$_document1.creditAchieved" name="ca" /></p>
   
     `;
 
@@ -61,40 +61,40 @@ describe("Paginator Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let mathinput1Name =
-                stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentIdx;
-            let mathinput1Anchor = cesc2("#" + mathinput1Name) + " textarea";
-            let mathinput1DisplayAnchor =
-                cesc2("#" + mathinput1Name) + " .mq-editable-field";
-            let answer1Correct = cesc2("#" + mathinput1Name + "_correct");
-            let answer1Incorrect = cesc2("#" + mathinput1Name + "_incorrect");
+            let mathInput1Name =
+                stateVariables[await win.resolvePath1("answer1")].stateValues
+                    .inputChildren[0].componentIdx;
+            let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
+            let mathInput1DisplayAnchor =
+                cesc("#" + mathInput1Name) + " .mq-editable-field";
+            let answer1Correct = cesc("#" + mathInput1Name + "_correct");
+            let answer1Incorrect = cesc("#" + mathInput1Name + "_incorrect");
 
-            let mathinput4Name =
-                stateVariables["/_answer4"].stateValues.inputChildren[0]
-                    .componentIdx;
-            let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
-            let mathinput4DisplayAnchor =
-                cesc2("#" + mathinput4Name) + " .mq-editable-field";
-            let answer4Correct = cesc2("#" + mathinput4Name + "_correct");
-            let answer4Incorrect = cesc2("#" + mathinput4Name + "_incorrect");
+            let mathInput4Name =
+                stateVariables[await win.resolvePath1("answer4")].stateValues
+                    .inputChildren[0].componentIdx;
+            let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
+            let mathInput4DisplayAnchor =
+                cesc("#" + mathInput4Name) + " .mq-editable-field";
+            let answer4Correct = cesc("#" + mathInput4Name + "_correct");
+            let answer4Incorrect = cesc("#" + mathInput4Name + "_incorrect");
 
-            cy.get(cesc2("#/ca")).should("have.text", "0");
-            cy.get(cesc2("#/_title1")).should("have.text", "Page 1");
-            cy.get(cesc2("#/_section2_title")).should("not.exist");
-            cy.get(cesc2("#/_title2")).should("not.exist");
+            cy.get(cesc("#ca")).should("have.text", "0");
+            cy.get(cesc("#title1")).should("have.text", "Page 1");
+            cy.get(cesc("#section2_title")).should("not.exist");
+            cy.get(cesc("#title2")).should("not.exist");
 
-            cy.get(mathinput4Anchor).type("4{enter}", { force: true });
+            cy.get(mathInput4Anchor).type("4{enter}", { force: true });
 
             cy.get(answer4Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.25");
+            cy.get(cesc("#ca")).should("have.text", "0.25");
 
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -102,11 +102,11 @@ describe("Paginator Tag Tests", function () {
                     );
                 });
 
-            cy.get(mathinput1Anchor).type("2{enter}", { force: true });
+            cy.get(mathInput1Anchor).type("2{enter}", { force: true });
 
             cy.get(answer1Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.5");
-            cy.get(mathinput1DisplayAnchor)
+            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get(mathInput1DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -115,13 +115,13 @@ describe("Paginator Tag Tests", function () {
                 });
 
             cy.log("move to page 2");
-            cy.get(cesc2("#/pcontrols_next")).click();
-            cy.get(cesc2("#/_title1")).should("not.exist");
-            cy.get(cesc2("#/_section2_title")).should("have.text", "Section 2");
-            cy.get(cesc2("#/_title2")).should("not.exist");
+            cy.get(cesc("#pcontrols_next")).click();
+            cy.get(cesc("#title1")).should("not.exist");
+            cy.get(cesc("#section2_title")).should("have.text", "Section 2");
+            cy.get(cesc("#title2")).should("not.exist");
 
             cy.get(answer4Correct).should("be.visible");
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -129,22 +129,22 @@ describe("Paginator Tag Tests", function () {
                     );
                 });
 
-            cy.get(cesc2("#/ca")).should("have.text", "0.5");
+            cy.get(cesc("#ca")).should("have.text", "0.5");
 
-            cy.get(cesc2("#/name_input")).type("Me{enter}");
-            cy.get(cesc2("#/_p3")).should("have.text", "Hello, Me!");
-            cy.get(cesc2("#/ca")).should("have.text", "0.5");
-            cy.get(cesc2("#/name_input")).should("have.value", "Me");
+            cy.get(cesc("#name_input")).type("Me{enter}");
+            cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
+            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get(cesc("#name_input")).should("have.value", "Me");
 
-            cy.get(mathinput1Anchor).should("not.exist");
+            cy.get(mathInput1Anchor).should("not.exist");
 
-            cy.get(mathinput4Anchor).type("{end}{backspace}3", { force: true });
+            cy.get(mathInput4Anchor).type("{end}{backspace}3", { force: true });
             cy.get(answer4Correct).should("not.exist");
-            cy.get(mathinput4Anchor).type("{enter}", { force: true });
+            cy.get(mathInput4Anchor).type("{enter}", { force: true });
             cy.get(answer4Incorrect).should("be.visible");
 
-            cy.get(cesc2("#/ca")).should("have.text", "0.25");
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -153,14 +153,14 @@ describe("Paginator Tag Tests", function () {
                 });
 
             cy.log("back to page 1");
-            cy.get(cesc2("#/pcontrols_previous")).click();
-            cy.get(cesc2("#/_title1")).should("have.text", "Page 1");
-            cy.get(cesc2("#/_section2_title")).should("not.exist");
-            cy.get(cesc2("#/_title2")).should("not.exist");
+            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get(cesc("#title1")).should("have.text", "Page 1");
+            cy.get(cesc("#section2_title")).should("not.exist");
+            cy.get(cesc("#title2")).should("not.exist");
 
             cy.get(answer1Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.25");
-            cy.get(mathinput1DisplayAnchor)
+            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get(mathInput1DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -168,20 +168,20 @@ describe("Paginator Tag Tests", function () {
                     );
                 });
 
-            cy.get(cesc2("#/name")).should("not.exist");
+            cy.get(cesc("#name")).should("not.exist");
 
             cy.log("back to second page");
-            cy.get(cesc2("#/nextPage_button")).click();
-            cy.get(cesc2("#/_title1")).should("not.exist");
-            cy.get(cesc2("#/_section2_title")).should("have.text", "Section 2");
-            cy.get(cesc2("#/_title2")).should("not.exist");
+            cy.get(cesc("#nextPage_button")).click();
+            cy.get(cesc("#title1")).should("not.exist");
+            cy.get(cesc("#section2_title")).should("have.text", "Section 2");
+            cy.get(cesc("#title2")).should("not.exist");
 
-            cy.get(cesc2("#/name_input")).should("have.value", "Me");
-            cy.get(cesc2("#/_p3")).should("have.text", "Hello, Me!");
+            cy.get(cesc("#name_input")).should("have.value", "Me");
+            cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
 
             cy.get(answer4Incorrect).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.25");
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -189,13 +189,13 @@ describe("Paginator Tag Tests", function () {
                     );
                 });
 
-            cy.get(mathinput4Anchor).type("{end}{backspace}4", { force: true });
+            cy.get(mathInput4Anchor).type("{end}{backspace}4", { force: true });
             cy.get(answer4Incorrect).should("not.exist");
-            cy.get(mathinput4Anchor).type("{enter}", { force: true });
+            cy.get(mathInput4Anchor).type("{enter}", { force: true });
 
             cy.get(answer4Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.5");
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -204,14 +204,14 @@ describe("Paginator Tag Tests", function () {
                 });
 
             cy.log("on to third page");
-            cy.get(cesc2("#/pcontrols_next")).click();
-            cy.get(cesc2("#/_title1")).should("not.exist");
-            cy.get(cesc2("#/_section2_title")).should("not.exist");
-            cy.get(cesc2("#/_title2")).should("have.text", "Page 3");
+            cy.get(cesc("#pcontrols_next")).click();
+            cy.get(cesc("#title1")).should("not.exist");
+            cy.get(cesc("#section2_title")).should("not.exist");
+            cy.get(cesc("#title2")).should("have.text", "Page 3");
 
             cy.get(answer4Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.5");
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -219,40 +219,38 @@ describe("Paginator Tag Tests", function () {
                     );
                 });
 
-            // cy.get(cesc('#\\/mxx') + ' .mjx-mrow').should('contain.text', 'x+x')
-            // cy.get(cesc('#\\/myy') + ' .mjx-mrow').should('contain.text', 'y+y')
+            // cy.get(cesc('#mxx') + ' .mjx-mrow').should('contain.text', 'x+x')
+            // cy.get(cesc('#myy') + ' .mjx-mrow').should('contain.text', 'y+y')
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                let mathinput2Name =
-                    stateVariables["/_answer2"].stateValues.inputChildren[0]
-                        .componentIdx;
-                let mathinput2Anchor =
-                    cesc2("#" + mathinput2Name) + " textarea";
-                let mathinput2DisplayAnchor =
-                    cesc2("#" + mathinput2Name) + " .mq-editable-field";
-                let answer2Correct = cesc2("#" + mathinput2Name + "_correct");
-                let answer2Incorrect = cesc2(
-                    "#" + mathinput2Name + "_incorrect",
+                let mathInput2Name =
+                    stateVariables[await win.resolvePath1("answer2")]
+                        .stateValues.inputChildren[0].componentIdx;
+                let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
+                let mathInput2DisplayAnchor =
+                    cesc("#" + mathInput2Name) + " .mq-editable-field";
+                let answer2Correct = cesc("#" + mathInput2Name + "_correct");
+                let answer2Incorrect = cesc(
+                    "#" + mathInput2Name + "_incorrect",
                 );
 
-                let mathinput3Name =
-                    stateVariables["/_answer3"].stateValues.inputChildren[0]
-                        .componentIdx;
-                let mathinput3Anchor =
-                    cesc2("#" + mathinput3Name) + " textarea";
-                let mathinput3DisplayAnchor =
-                    cesc2("#" + mathinput3Name) + " .mq-editable-field";
-                let answer3Correct = cesc2("#" + mathinput3Name + "_correct");
-                let answer3Incorrect = cesc2(
-                    "#" + mathinput3Name + "_incorrect",
+                let mathInput3Name =
+                    stateVariables[await win.resolvePath1("answer3")]
+                        .stateValues.inputChildren[0].componentIdx;
+                let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
+                let mathInput3DisplayAnchor =
+                    cesc("#" + mathInput3Name) + " .mq-editable-field";
+                let answer3Correct = cesc("#" + mathInput3Name + "_correct");
+                let answer3Incorrect = cesc(
+                    "#" + mathInput3Name + "_incorrect",
                 );
 
-                cy.get(mathinput2Anchor).type("2x{enter}", { force: true });
+                cy.get(mathInput2Anchor).type("2x{enter}", { force: true });
                 cy.get(answer2Correct).should("be.visible");
-                cy.get(cesc2("#/ca")).should("have.text", "0.75");
-                cy.get(mathinput2DisplayAnchor)
+                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get(mathInput2DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -260,10 +258,10 @@ describe("Paginator Tag Tests", function () {
                         ).equal("2x");
                     });
 
-                cy.get(mathinput3Anchor).type("2y{enter}", { force: true });
+                cy.get(mathInput3Anchor).type("2y{enter}", { force: true });
                 cy.get(answer3Correct).should("be.visible");
-                cy.get(cesc2("#/ca")).should("have.text", "1");
-                cy.get(mathinput3DisplayAnchor)
+                cy.get(cesc("#ca")).should("have.text", "1");
+                cy.get(mathInput3DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -271,14 +269,14 @@ describe("Paginator Tag Tests", function () {
                         ).equal("2y");
                     });
 
-                cy.get(mathinput2Anchor).type("{end}{backspace}z", {
+                cy.get(mathInput2Anchor).type("{end}{backspace}z", {
                     force: true,
                 });
                 cy.get(answer2Correct).should("not.exist");
-                cy.get(mathinput2Anchor).type("{enter}", { force: true });
+                cy.get(mathInput2Anchor).type("{enter}", { force: true });
                 cy.get(answer2Incorrect).should("be.visible");
-                cy.get(cesc2("#/ca")).should("have.text", "0.75");
-                cy.get(mathinput2DisplayAnchor)
+                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get(mathInput2DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -287,20 +285,20 @@ describe("Paginator Tag Tests", function () {
                     });
 
                 cy.log("back to second page");
-                cy.get(cesc2("#/prevPage_button")).click();
-                cy.get(cesc2("#/_title1")).should("not.exist");
-                cy.get(cesc2("#/_section2_title")).should(
+                cy.get(cesc("#prevPage_button")).click();
+                cy.get(cesc("#title1")).should("not.exist");
+                cy.get(cesc("#section2_title")).should(
                     "have.text",
                     "Section 2",
                 );
-                cy.get(cesc2("#/_title2")).should("not.exist");
+                cy.get(cesc("#title2")).should("not.exist");
 
-                cy.get(cesc2("#/name_input")).should("have.value", "Me");
-                cy.get(cesc2("#/_p3")).should("have.text", "Hello, Me!");
+                cy.get(cesc("#name_input")).should("have.value", "Me");
+                cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
 
                 cy.get(answer4Correct).should("be.visible");
-                cy.get(cesc2("#/ca")).should("have.text", "0.75");
-                cy.get(mathinput4DisplayAnchor)
+                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get(mathInput4DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -309,14 +307,14 @@ describe("Paginator Tag Tests", function () {
                     });
 
                 cy.log("back to third page");
-                cy.get(cesc2("#/pcontrols_next")).click();
-                cy.get(cesc2("#/_title1")).should("not.exist");
-                cy.get(cesc2("#/_section2_title")).should("not.exist");
-                cy.get(cesc2("#/_title2")).should("have.text", "Page 3");
+                cy.get(cesc("#pcontrols_next")).click();
+                cy.get(cesc("#title1")).should("not.exist");
+                cy.get(cesc("#section2_title")).should("not.exist");
+                cy.get(cesc("#title2")).should("have.text", "Page 3");
 
                 cy.get(answer4Correct).should("be.visible");
-                cy.get(cesc2("#/ca")).should("have.text", "0.75");
-                cy.get(mathinput4DisplayAnchor)
+                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get(mathInput4DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -325,7 +323,7 @@ describe("Paginator Tag Tests", function () {
                     });
 
                 cy.get(answer2Incorrect).should("be.visible");
-                cy.get(mathinput2DisplayAnchor)
+                cy.get(mathInput2DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -333,7 +331,7 @@ describe("Paginator Tag Tests", function () {
                         ).equal("2z");
                     });
                 cy.get(answer3Correct).should("be.visible");
-                cy.get(mathinput3DisplayAnchor)
+                cy.get(mathInput3DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -341,23 +339,23 @@ describe("Paginator Tag Tests", function () {
                         ).equal("2y");
                     });
 
-                cy.get(cesc2("#/ca")).should("have.text", "0.75");
+                cy.get(cesc("#ca")).should("have.text", "0.75");
 
                 cy.log("back to second page");
-                cy.get(cesc2("#/prevPage_button")).click();
-                cy.get(cesc2("#/_title1")).should("not.exist");
-                cy.get(cesc2("#/_section2_title")).should(
+                cy.get(cesc("#prevPage_button")).click();
+                cy.get(cesc("#title1")).should("not.exist");
+                cy.get(cesc("#section2_title")).should(
                     "have.text",
                     "Section 2",
                 );
-                cy.get(cesc2("#/_title2")).should("not.exist");
+                cy.get(cesc("#title2")).should("not.exist");
 
-                cy.get(cesc2("#/name_input")).should("have.value", "Me");
-                cy.get(cesc2("#/_p3")).should("have.text", "Hello, Me!");
+                cy.get(cesc("#name_input")).should("have.value", "Me");
+                cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
 
                 cy.get(answer4Correct).should("be.visible");
-                cy.get(cesc2("#/ca")).should("have.text", "0.75");
-                cy.get(mathinput4DisplayAnchor)
+                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get(mathInput4DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -379,7 +377,7 @@ describe("Paginator Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         cy.log("on page two");
 
@@ -387,32 +385,32 @@ describe("Paginator Tag Tests", function () {
         cy.waitUntil(() =>
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
-                return stateVariables["/_answer4"];
+                return stateVariables[await win.resolvePath1("answer4")];
             }),
         );
 
-        cy.get(cesc2("#/_title1")).should("not.exist");
-        cy.get(cesc2("#/_section2_title")).should("have.text", "Section 2");
-        cy.get(cesc2("#/_title2")).should("not.exist");
+        cy.get(cesc("#title1")).should("not.exist");
+        cy.get(cesc("#section2_title")).should("have.text", "Section 2");
+        cy.get(cesc("#title2")).should("not.exist");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let mathinput4Name =
-                stateVariables["/_answer4"].stateValues.inputChildren[0]
-                    .componentIdx;
-            let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
-            let mathinput4DisplayAnchor =
-                cesc2("#" + mathinput4Name) + " .mq-editable-field";
-            let answer4Correct = cesc2("#" + mathinput4Name + "_correct");
-            let answer4Incorrect = cesc2("#" + mathinput4Name + "_incorrect");
+            let mathInput4Name =
+                stateVariables[await win.resolvePath1("answer4")].stateValues
+                    .inputChildren[0].componentIdx;
+            let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
+            let mathInput4DisplayAnchor =
+                cesc("#" + mathInput4Name) + " .mq-editable-field";
+            let answer4Correct = cesc("#" + mathInput4Name + "_correct");
+            let answer4Incorrect = cesc("#" + mathInput4Name + "_incorrect");
 
-            cy.get(cesc2("#/name_input")).should("have.value", "Me");
-            cy.get(cesc2("#/_p3")).should("have.text", "Hello, Me!");
+            cy.get(cesc("#name_input")).should("have.value", "Me");
+            cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
 
             cy.get(answer4Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.75");
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(cesc("#ca")).should("have.text", "0.75");
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -420,13 +418,13 @@ describe("Paginator Tag Tests", function () {
                     );
                 });
 
-            cy.get(cesc2("#/name_input")).clear().type("You{enter}");
-            cy.get(cesc2("#/name_input")).should("have.value", "You");
-            cy.get(cesc2("#/_p3")).should("have.text", "Hello, You!");
+            cy.get(cesc("#name_input")).clear().type("You{enter}");
+            cy.get(cesc("#name_input")).should("have.value", "You");
+            cy.get(cesc("#p3")).should("have.text", "Hello, You!");
 
             cy.get(answer4Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.75");
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(cesc("#ca")).should("have.text", "0.75");
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -435,14 +433,14 @@ describe("Paginator Tag Tests", function () {
                 });
 
             cy.log("to third page");
-            cy.get(cesc2("#/pcontrols_next")).click();
-            cy.get(cesc2("#/_title1")).should("not.exist");
-            cy.get(cesc2("#/_section2_title")).should("not.exist");
-            cy.get(cesc2("#/_title2")).should("have.text", "Page 3");
+            cy.get(cesc("#pcontrols_next")).click();
+            cy.get(cesc("#title1")).should("not.exist");
+            cy.get(cesc("#section2_title")).should("not.exist");
+            cy.get(cesc("#title2")).should("have.text", "Page 3");
 
             cy.get(answer4Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.75");
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(cesc("#ca")).should("have.text", "0.75");
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -453,33 +451,31 @@ describe("Paginator Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                let mathinput2Name =
-                    stateVariables["/_answer2"].stateValues.inputChildren[0]
-                        .componentIdx;
-                let mathinput2Anchor =
-                    cesc2("#" + mathinput2Name) + " textarea";
-                let mathinput2DisplayAnchor =
-                    cesc2("#" + mathinput2Name) + " .mq-editable-field";
-                let answer2Correct = cesc2("#" + mathinput2Name + "_correct");
-                let answer2Incorrect = cesc2(
-                    "#" + mathinput2Name + "_incorrect",
+                let mathInput2Name =
+                    stateVariables[await win.resolvePath1("answer2")]
+                        .stateValues.inputChildren[0].componentIdx;
+                let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
+                let mathInput2DisplayAnchor =
+                    cesc("#" + mathInput2Name) + " .mq-editable-field";
+                let answer2Correct = cesc("#" + mathInput2Name + "_correct");
+                let answer2Incorrect = cesc(
+                    "#" + mathInput2Name + "_incorrect",
                 );
-                let answer2Submit = cesc2("#" + mathinput2Name + "_submit");
+                let answer2Submit = cesc("#" + mathInput2Name + "_submit");
 
-                let mathinput3Name =
-                    stateVariables["/_answer3"].stateValues.inputChildren[0]
-                        .componentIdx;
-                let mathinput3Anchor =
-                    cesc2("#" + mathinput3Name) + " textarea";
-                let mathinput3DisplayAnchor =
-                    cesc2("#" + mathinput3Name) + " .mq-editable-field";
-                let answer3Correct = cesc2("#" + mathinput3Name + "_correct");
-                let answer3Incorrect = cesc2(
-                    "#" + mathinput3Name + "_incorrect",
+                let mathInput3Name =
+                    stateVariables[await win.resolvePath1("answer3")]
+                        .stateValues.inputChildren[0].componentIdx;
+                let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
+                let mathInput3DisplayAnchor =
+                    cesc("#" + mathInput3Name) + " .mq-editable-field";
+                let answer3Correct = cesc("#" + mathInput3Name + "_correct");
+                let answer3Incorrect = cesc(
+                    "#" + mathInput3Name + "_incorrect",
                 );
 
                 cy.get(answer2Incorrect).should("be.visible");
-                cy.get(mathinput2DisplayAnchor)
+                cy.get(mathInput2DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -487,7 +483,7 @@ describe("Paginator Tag Tests", function () {
                         ).equal("2z");
                     });
                 cy.get(answer3Correct).should("be.visible");
-                cy.get(mathinput3DisplayAnchor)
+                cy.get(mathInput3DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -495,14 +491,14 @@ describe("Paginator Tag Tests", function () {
                         ).equal("2y");
                     });
 
-                cy.get(mathinput3Anchor).type("{end}{backspace}q", {
+                cy.get(mathInput3Anchor).type("{end}{backspace}q", {
                     force: true,
                 });
                 cy.get(answer3Correct).should("not.exist");
-                cy.get(mathinput3Anchor).type("{enter}", { force: true });
+                cy.get(mathInput3Anchor).type("{enter}", { force: true });
                 cy.get(answer3Incorrect).should("be.visible");
-                cy.get(cesc2("#/ca")).should("have.text", "0.5");
-                cy.get(mathinput3DisplayAnchor)
+                cy.get(cesc("#ca")).should("have.text", "0.5");
+                cy.get(mathInput3DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -510,14 +506,14 @@ describe("Paginator Tag Tests", function () {
                         ).equal("2q");
                     });
 
-                cy.get(mathinput4Anchor).type("{end}{backspace}3", {
+                cy.get(mathInput4Anchor).type("{end}{backspace}3", {
                     force: true,
                 });
                 cy.get(answer4Correct).should("not.exist");
-                cy.get(mathinput4Anchor).type("{enter}", { force: true });
+                cy.get(mathInput4Anchor).type("{enter}", { force: true });
                 cy.get(answer4Incorrect).should("be.visible");
-                cy.get(cesc2("#/ca")).should("have.text", "0.25");
-                cy.get(mathinput4DisplayAnchor)
+                cy.get(cesc("#ca")).should("have.text", "0.25");
+                cy.get(mathInput4DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -525,14 +521,14 @@ describe("Paginator Tag Tests", function () {
                         ).equal("3");
                     });
 
-                cy.get(mathinput2Anchor).type("{end}{backspace}x", {
+                cy.get(mathInput2Anchor).type("{end}{backspace}x", {
                     force: true,
                 });
                 cy.get(answer2Incorrect).should("not.exist");
-                cy.get(mathinput2Anchor).type("{enter}", { force: true });
+                cy.get(mathInput2Anchor).type("{enter}", { force: true });
                 cy.get(answer2Correct).should("be.visible");
-                cy.get(cesc2("#/ca")).should("have.text", "0.5");
-                cy.get(mathinput2DisplayAnchor)
+                cy.get(cesc("#ca")).should("have.text", "0.5");
+                cy.get(mathInput2DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -541,20 +537,20 @@ describe("Paginator Tag Tests", function () {
                     });
 
                 cy.log("back to second page");
-                cy.get(cesc2("#/pcontrols_previous")).click();
-                cy.get(cesc2("#/_title1")).should("not.exist");
-                cy.get(cesc2("#/_section2_title")).should(
+                cy.get(cesc("#pcontrols_previous")).click();
+                cy.get(cesc("#title1")).should("not.exist");
+                cy.get(cesc("#section2_title")).should(
                     "have.text",
                     "Section 2",
                 );
-                cy.get(cesc2("#/_title2")).should("not.exist");
+                cy.get(cesc("#title2")).should("not.exist");
 
-                cy.get(cesc2("#/name_input")).should("have.value", "You");
-                cy.get(cesc2("#/_p3")).should("have.text", "Hello, You!");
+                cy.get(cesc("#name_input")).should("have.value", "You");
+                cy.get(cesc("#p3")).should("have.text", "Hello, You!");
 
                 cy.get(answer4Incorrect).should("be.visible");
-                cy.get(cesc2("#/ca")).should("have.text", "0.5");
-                cy.get(mathinput4DisplayAnchor)
+                cy.get(cesc("#ca")).should("have.text", "0.5");
+                cy.get(mathInput4DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -563,14 +559,14 @@ describe("Paginator Tag Tests", function () {
                     });
 
                 cy.log("to first page");
-                cy.get(cesc2("#/pcontrols_previous")).click();
-                cy.get(cesc2("#/_title1")).should("have.text", "Page 1");
-                cy.get(cesc2("#/_section2_title")).should("not.exist");
-                cy.get(cesc2("#/_title2")).should("not.exist");
+                cy.get(cesc("#pcontrols_previous")).click();
+                cy.get(cesc("#title1")).should("have.text", "Page 1");
+                cy.get(cesc("#section2_title")).should("not.exist");
+                cy.get(cesc("#title2")).should("not.exist");
 
                 cy.get(answer4Incorrect).should("be.visible");
-                cy.get(cesc2("#/ca")).should("have.text", "0.5");
-                cy.get(mathinput4DisplayAnchor)
+                cy.get(cesc("#ca")).should("have.text", "0.5");
+                cy.get(mathInput4DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -581,22 +577,22 @@ describe("Paginator Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
 
-                    let mathinput1Name =
-                        stateVariables["/_answer1"].stateValues.inputChildren[0]
-                            .componentIdx;
-                    let mathinput1Anchor =
-                        cesc2("#" + mathinput1Name) + " textarea";
-                    let mathinput1DisplayAnchor =
-                        cesc2("#" + mathinput1Name) + " .mq-editable-field";
-                    let answer1Correct = cesc2(
-                        "#" + mathinput1Name + "_correct",
+                    let mathInput1Name =
+                        stateVariables[await win.resolvePath1("answer1")]
+                            .stateValues.inputChildren[0].componentIdx;
+                    let mathInput1Anchor =
+                        cesc("#" + mathInput1Name) + " textarea";
+                    let mathInput1DisplayAnchor =
+                        cesc("#" + mathInput1Name) + " .mq-editable-field";
+                    let answer1Correct = cesc(
+                        "#" + mathInput1Name + "_correct",
                     );
-                    let answer1Incorrect = cesc2(
-                        "#" + mathinput1Name + "_incorrect",
+                    let answer1Incorrect = cesc(
+                        "#" + mathInput1Name + "_incorrect",
                     );
 
                     cy.get(answer1Correct).should("be.visible");
-                    cy.get(mathinput1DisplayAnchor)
+                    cy.get(mathInput1DisplayAnchor)
                         .invoke("text")
                         .then((text) => {
                             expect(
@@ -604,36 +600,36 @@ describe("Paginator Tag Tests", function () {
                             ).equal("2");
                         });
 
-                    cy.get(mathinput1Anchor).type("{end}-", { force: true });
+                    cy.get(mathInput1Anchor).type("{end}-", { force: true });
                     cy.get(answer1Correct).should("not.exist");
-                    cy.get(mathinput1Anchor).type("{enter}", { force: true });
+                    cy.get(mathInput1Anchor).type("{enter}", { force: true });
                     cy.get(answer1Incorrect).should("be.visible");
-                    cy.get(mathinput1DisplayAnchor)
+                    cy.get(mathInput1DisplayAnchor)
                         .invoke("text")
                         .then((text) => {
                             expect(
                                 text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("2−");
                         });
-                    cy.get(cesc2("#/ca")).should("have.text", "0.25");
+                    cy.get(cesc("#ca")).should("have.text", "0.25");
 
                     cy.log("back to second page");
-                    cy.get(cesc2("#/pcontrols_next")).click();
-                    cy.get(cesc2("#/_title1")).should("not.exist");
-                    cy.get(cesc2("#/_section2_title")).should(
+                    cy.get(cesc("#pcontrols_next")).click();
+                    cy.get(cesc("#title1")).should("not.exist");
+                    cy.get(cesc("#section2_title")).should(
                         "have.text",
                         "Section 2",
                     );
-                    cy.get(cesc2("#/_title2")).should("not.exist");
+                    cy.get(cesc("#title2")).should("not.exist");
 
                     cy.log("back to first page");
-                    cy.get(cesc2("#/pcontrols_previous")).click();
-                    cy.get(cesc2("#/_title1")).should("have.text", "Page 1");
-                    cy.get(cesc2("#/_section2_title")).should("not.exist");
-                    cy.get(cesc2("#/_title2")).should("not.exist");
+                    cy.get(cesc("#pcontrols_previous")).click();
+                    cy.get(cesc("#title1")).should("have.text", "Page 1");
+                    cy.get(cesc("#section2_title")).should("not.exist");
+                    cy.get(cesc("#title2")).should("not.exist");
 
                     cy.get(answer1Incorrect).should("be.visible");
-                    cy.get(mathinput1DisplayAnchor)
+                    cy.get(mathInput1DisplayAnchor)
                         .invoke("text")
                         .then((text) => {
                             expect(
@@ -643,21 +639,21 @@ describe("Paginator Tag Tests", function () {
 
                     cy.log("to third page");
 
-                    cy.get(cesc2("#/pcontrols_next")).click();
-                    cy.get(cesc2("#/_title1")).should("not.exist");
-                    cy.get(cesc2("#/_section2_title")).should(
+                    cy.get(cesc("#pcontrols_next")).click();
+                    cy.get(cesc("#title1")).should("not.exist");
+                    cy.get(cesc("#section2_title")).should(
                         "have.text",
                         "Section 2",
                     );
-                    cy.get(cesc2("#/_title2")).should("not.exist");
+                    cy.get(cesc("#title2")).should("not.exist");
 
-                    cy.get(cesc2("#/pcontrols_next")).click();
-                    cy.get(cesc2("#/_title1")).should("not.exist");
-                    cy.get(cesc2("#/_section2_title")).should("not.exist");
-                    cy.get(cesc2("#/_title2")).should("have.text", "Page 3");
+                    cy.get(cesc("#pcontrols_next")).click();
+                    cy.get(cesc("#title1")).should("not.exist");
+                    cy.get(cesc("#section2_title")).should("not.exist");
+                    cy.get(cesc("#title2")).should("have.text", "Page 3");
 
                     cy.get(answer3Incorrect).should("be.visible");
-                    cy.get(mathinput3DisplayAnchor)
+                    cy.get(mathInput3DisplayAnchor)
                         .invoke("text")
                         .then((text) => {
                             expect(
@@ -666,7 +662,7 @@ describe("Paginator Tag Tests", function () {
                         });
 
                     cy.get(answer4Incorrect).should("be.visible");
-                    cy.get(mathinput4DisplayAnchor)
+                    cy.get(mathInput4DisplayAnchor)
                         .invoke("text")
                         .then((text) => {
                             expect(
@@ -675,45 +671,45 @@ describe("Paginator Tag Tests", function () {
                         });
 
                     cy.get(answer2Correct).should("be.visible");
-                    cy.get(mathinput2DisplayAnchor)
+                    cy.get(mathInput2DisplayAnchor)
                         .invoke("text")
                         .then((text) => {
                             expect(
                                 text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("2x");
                         });
-                    cy.get(cesc2("#/ca")).should("have.text", "0.25");
+                    cy.get(cesc("#ca")).should("have.text", "0.25");
 
-                    cy.get(mathinput2Anchor)
+                    cy.get(mathInput2Anchor)
                         .type("{end}:", { force: true })
                         .blur();
                     cy.get(answer2Submit).should("be.visible");
-                    cy.get(mathinput2DisplayAnchor)
+                    cy.get(mathInput2DisplayAnchor)
                         .invoke("text")
                         .then((text) => {
                             expect(
                                 text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("2x:");
                         });
-                    cy.get(cesc2("#/ca")).should("have.text", "0.25");
+                    cy.get(cesc("#ca")).should("have.text", "0.25");
 
                     cy.log("to second page");
-                    cy.get(cesc2("#/pcontrols_previous")).click();
-                    cy.get(cesc2("#/_title1")).should("not.exist");
-                    cy.get(cesc2("#/_section2_title")).should(
+                    cy.get(cesc("#pcontrols_previous")).click();
+                    cy.get(cesc("#title1")).should("not.exist");
+                    cy.get(cesc("#section2_title")).should(
                         "have.text",
                         "Section 2",
                     );
-                    cy.get(cesc2("#/_title2")).should("not.exist");
+                    cy.get(cesc("#title2")).should("not.exist");
 
                     cy.log("back to third page");
-                    cy.get(cesc2("#/pcontrols_next")).click();
-                    cy.get(cesc2("#/_title1")).should("not.exist");
-                    cy.get(cesc2("#/_section2_title")).should("not.exist");
-                    cy.get(cesc2("#/_title2")).should("have.text", "Page 3");
+                    cy.get(cesc("#pcontrols_next")).click();
+                    cy.get(cesc("#title1")).should("not.exist");
+                    cy.get(cesc("#section2_title")).should("not.exist");
+                    cy.get(cesc("#title2")).should("have.text", "Page 3");
 
                     cy.get(answer2Submit).should("be.visible");
-                    cy.get(mathinput2DisplayAnchor)
+                    cy.get(mathInput2DisplayAnchor)
                         .invoke("text")
                         .then((text) => {
                             expect(
@@ -721,7 +717,7 @@ describe("Paginator Tag Tests", function () {
                             ).equal("2x:");
                         });
                     cy.get(answer3Incorrect).should("be.visible");
-                    cy.get(mathinput3DisplayAnchor)
+                    cy.get(mathInput3DisplayAnchor)
                         .invoke("text")
                         .then((text) => {
                             expect(
@@ -729,14 +725,14 @@ describe("Paginator Tag Tests", function () {
                             ).equal("2q");
                         });
                     cy.get(answer4Incorrect).should("be.visible");
-                    cy.get(mathinput4DisplayAnchor)
+                    cy.get(mathInput4DisplayAnchor)
                         .invoke("text")
                         .then((text) => {
                             expect(
                                 text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("3");
                         });
-                    cy.get(cesc2("#/ca")).should("have.text", "0.25");
+                    cy.get(cesc("#ca")).should("have.text", "0.25");
                 });
             });
         });
@@ -753,54 +749,54 @@ describe("Paginator Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         // wait until core is loaded
         cy.waitUntil(() =>
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
-                return stateVariables["/_answer4"];
+                return stateVariables[await win.resolvePath1("answer4")];
             }),
         );
 
         cy.log("on third page without first and second defined");
-        cy.get(cesc2("#/_title1")).should("not.exist");
-        cy.get(cesc2("#/_section2_title")).should("not.exist");
-        cy.get(cesc2("#/_title2")).should("have.text", "Page 3");
+        cy.get(cesc("#title1")).should("not.exist");
+        cy.get(cesc("#section2_title")).should("not.exist");
+        cy.get(cesc("#title2")).should("have.text", "Page 3");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let mathinput2Name =
-                stateVariables["/_answer2"].stateValues.inputChildren[0]
-                    .componentIdx;
-            let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
-            let mathinput2DisplayAnchor =
-                cesc2("#" + mathinput2Name) + " .mq-editable-field";
-            let answer2Correct = cesc2("#" + mathinput2Name + "_correct");
-            let answer2Incorrect = cesc2("#" + mathinput2Name + "_incorrect");
-            let answer2Submit = cesc2("#" + mathinput2Name + "_submit");
+            let mathInput2Name =
+                stateVariables[await win.resolvePath1("answer2")].stateValues
+                    .inputChildren[0].componentIdx;
+            let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
+            let mathInput2DisplayAnchor =
+                cesc("#" + mathInput2Name) + " .mq-editable-field";
+            let answer2Correct = cesc("#" + mathInput2Name + "_correct");
+            let answer2Incorrect = cesc("#" + mathInput2Name + "_incorrect");
+            let answer2Submit = cesc("#" + mathInput2Name + "_submit");
 
-            let mathinput3Name =
-                stateVariables["/_answer3"].stateValues.inputChildren[0]
-                    .componentIdx;
-            let mathinput3Anchor = cesc2("#" + mathinput3Name) + " textarea";
-            let mathinput3DisplayAnchor =
-                cesc2("#" + mathinput3Name) + " .mq-editable-field";
-            let answer3Correct = cesc2("#" + mathinput3Name + "_correct");
-            let answer3Incorrect = cesc2("#" + mathinput3Name + "_incorrect");
+            let mathInput3Name =
+                stateVariables[await win.resolvePath1("answer3")].stateValues
+                    .inputChildren[0].componentIdx;
+            let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
+            let mathInput3DisplayAnchor =
+                cesc("#" + mathInput3Name) + " .mq-editable-field";
+            let answer3Correct = cesc("#" + mathInput3Name + "_correct");
+            let answer3Incorrect = cesc("#" + mathInput3Name + "_incorrect");
 
-            let mathinput4Name =
-                stateVariables["/_answer4"].stateValues.inputChildren[0]
-                    .componentIdx;
-            let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
-            let mathinput4DisplayAnchor =
-                cesc2("#" + mathinput4Name) + " .mq-editable-field";
-            let answer4Correct = cesc2("#" + mathinput4Name + "_correct");
-            let answer4Incorrect = cesc2("#" + mathinput4Name + "_incorrect");
+            let mathInput4Name =
+                stateVariables[await win.resolvePath1("answer4")].stateValues
+                    .inputChildren[0].componentIdx;
+            let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
+            let mathInput4DisplayAnchor =
+                cesc("#" + mathInput4Name) + " .mq-editable-field";
+            let answer4Correct = cesc("#" + mathInput4Name + "_correct");
+            let answer4Incorrect = cesc("#" + mathInput4Name + "_incorrect");
 
             cy.get(answer2Submit).should("be.visible");
-            cy.get(mathinput2DisplayAnchor)
+            cy.get(mathInput2DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -808,7 +804,7 @@ describe("Paginator Tag Tests", function () {
                     );
                 });
             cy.get(answer3Incorrect).should("be.visible");
-            cy.get(mathinput3DisplayAnchor)
+            cy.get(mathInput3DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -816,27 +812,27 @@ describe("Paginator Tag Tests", function () {
                     );
                 });
             cy.get(answer4Incorrect).should("be.visible");
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
                         "3",
                     );
                 });
-            cy.get(cesc2("#/ca")).should("have.text", "0.25");
+            cy.get(cesc("#ca")).should("have.text", "0.25");
 
             cy.log("to second page");
-            cy.get(cesc2("#/pcontrols_previous")).click();
-            cy.get(cesc2("#/_title1")).should("not.exist");
-            cy.get(cesc2("#/_section2_title")).should("have.text", "Section 2");
-            cy.get(cesc2("#/_title2")).should("not.exist");
+            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get(cesc("#title1")).should("not.exist");
+            cy.get(cesc("#section2_title")).should("have.text", "Section 2");
+            cy.get(cesc("#title2")).should("not.exist");
 
-            cy.get(cesc2("#/name_input")).should("have.value", "You");
-            cy.get(cesc2("#/_p3")).should("have.text", "Hello, You!");
+            cy.get(cesc("#name_input")).should("have.value", "You");
+            cy.get(cesc("#p3")).should("have.text", "Hello, You!");
 
             cy.get(answer4Incorrect).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.25");
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -845,9 +841,9 @@ describe("Paginator Tag Tests", function () {
                 });
 
             cy.log("back to third page");
-            cy.get(cesc2("#/pcontrols_next")).click();
+            cy.get(cesc("#pcontrols_next")).click();
             cy.get(answer2Submit).should("be.visible");
-            cy.get(mathinput2DisplayAnchor)
+            cy.get(mathInput2DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -855,7 +851,7 @@ describe("Paginator Tag Tests", function () {
                     );
                 });
             cy.get(answer3Incorrect).should("be.visible");
-            cy.get(mathinput3DisplayAnchor)
+            cy.get(mathInput3DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -863,53 +859,52 @@ describe("Paginator Tag Tests", function () {
                     );
                 });
             cy.get(answer4Incorrect).should("be.visible");
-            cy.get(mathinput4DisplayAnchor)
+            cy.get(mathInput4DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
                         "3",
                     );
                 });
-            cy.get(cesc2("#/ca")).should("have.text", "0.25");
+            cy.get(cesc("#ca")).should("have.text", "0.25");
 
             cy.log("to first page");
-            cy.get(cesc2("#/pcontrols_previous")).click();
-            cy.get(cesc2("#/_title1")).should("not.exist");
-            cy.get(cesc2("#/_section2_title")).should("have.text", "Section 2");
-            cy.get(cesc2("#/_title2")).should("not.exist");
+            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get(cesc("#title1")).should("not.exist");
+            cy.get(cesc("#section2_title")).should("have.text", "Section 2");
+            cy.get(cesc("#title2")).should("not.exist");
 
-            cy.get(cesc2("#/pcontrols_previous")).click();
-            cy.get(cesc2("#/_title1")).should("have.text", "Page 1");
-            cy.get(cesc2("#/_section2_title")).should("not.exist");
-            cy.get(cesc2("#/_title2")).should("not.exist");
+            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get(cesc("#title1")).should("have.text", "Page 1");
+            cy.get(cesc("#section2_title")).should("not.exist");
+            cy.get(cesc("#title2")).should("not.exist");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                let mathinput1Name =
-                    stateVariables["/_answer1"].stateValues.inputChildren[0]
-                        .componentIdx;
-                let mathinput1Anchor =
-                    cesc2("#" + mathinput1Name) + " textarea";
-                let mathinput1DisplayAnchor =
-                    cesc2("#" + mathinput1Name) + " .mq-editable-field";
-                let answer1Correct = cesc2("#" + mathinput1Name + "_correct");
-                let answer1Incorrect = cesc2(
-                    "#" + mathinput1Name + "_incorrect",
+                let mathInput1Name =
+                    stateVariables[await win.resolvePath1("answer1")]
+                        .stateValues.inputChildren[0].componentIdx;
+                let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
+                let mathInput1DisplayAnchor =
+                    cesc("#" + mathInput1Name) + " .mq-editable-field";
+                let answer1Correct = cesc("#" + mathInput1Name + "_correct");
+                let answer1Incorrect = cesc(
+                    "#" + mathInput1Name + "_incorrect",
                 );
 
                 cy.get(answer1Incorrect).should("be.visible");
-                cy.get(mathinput1DisplayAnchor)
+                cy.get(mathInput1DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
                             text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2−");
                     });
-                cy.get(cesc2("#/ca")).should("have.text", "0.25");
+                cy.get(cesc("#ca")).should("have.text", "0.25");
 
                 cy.get(answer4Incorrect).should("be.visible");
-                cy.get(mathinput4DisplayAnchor)
+                cy.get(mathInput4DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -922,23 +917,23 @@ describe("Paginator Tag Tests", function () {
 
     it("With weights", () => {
         let doenetML = `
-    <text>a</text>
+    <text name="a">a</text>
   
-    <paginatorControls paginator="pgn" name="pcontrols" />
+    <paginatorControls paginator="$pgn" name="pcontrols" />
   
     <paginator name="pgn">
-      <problem>
-        <answer type="text">a</answer>
+      <problem name="problem1">
+        <answer name="answer1" type="text">a</answer>
       </problem>
-      <problem weight="2">
-        <answer type="text">b</answer>
+      <problem name="problem2" weight="2">
+        <answer name="answer2" type="text">b</answer>
       </problem>
-      <problem weight="3">
-        <answer type="text">c</answer>
+      <problem name="problem3" weight="3">
+        <answer name="answer3" type="text">c</answer>
       </problem>
     </paginator>
   
-    <p>Credit achieved: $_document1.creditAchieved{assignNames="ca"}</p>
+    <p>Credit achieved: <number extend="$_document1.creditAchieved" name="ca" /></p>
   
     `;
 
@@ -956,133 +951,133 @@ describe("Paginator Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let textinput1Name =
-                stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentIdx;
-            let textinput1Anchor = cesc2("#" + textinput1Name) + "_input";
-            let textinput1DisplayAnchor =
-                cesc2("#" + textinput1Name) + " .mq-editable-field";
-            let answer1Submit = cesc2("#" + textinput1Name + "_submit");
-            let answer1Correct = cesc2("#" + textinput1Name + "_correct");
-            let answer1Incorrect = cesc2("#" + textinput1Name + "_incorrect");
+            let textInput1Name =
+                stateVariables[await win.resolvePath1("answer1")].stateValues
+                    .inputChildren[0].componentIdx;
+            let textInput1Anchor = cesc("#" + textInput1Name) + "_input";
+            let textInput1DisplayAnchor =
+                cesc("#" + textInput1Name) + " .mq-editable-field";
+            let answer1Submit = cesc("#" + textInput1Name + "_submit");
+            let answer1Correct = cesc("#" + textInput1Name + "_correct");
+            let answer1Incorrect = cesc("#" + textInput1Name + "_incorrect");
 
-            cy.get(cesc2("#/_problem1_title")).should("have.text", "Problem 1");
+            cy.get(cesc("#problem1_title")).should("have.text", "Problem 1");
 
-            cy.get(cesc2("#/ca")).should("have.text", "0");
+            cy.get(cesc("#ca")).should("have.text", "0");
 
-            cy.get(textinput1Anchor).type("a{enter}");
+            cy.get(textInput1Anchor).type("a{enter}");
 
             cy.get(answer1Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.167");
+            cy.get(cesc("#ca")).should("have.text", "0.167");
 
-            cy.get(cesc2("#/pcontrols_next")).click();
-            cy.get(cesc2("#/_problem2_title")).should("have.text", "Problem 2");
-            cy.get(cesc2("#/ca")).should("have.text", "0.167");
+            cy.get(cesc("#pcontrols_next")).click();
+            cy.get(cesc("#problem2_title")).should("have.text", "Problem 2");
+            cy.get(cesc("#ca")).should("have.text", "0.167");
 
             cy.wait(200);
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                let textinput2Name =
-                    stateVariables["/_answer2"].stateValues.inputChildren[0]
-                        .componentIdx;
-                let textinput2Anchor = cesc2("#" + textinput2Name) + "_input";
-                let textinput2DisplayAnchor =
-                    cesc2("#" + textinput2Name) + " .mq-editable-field";
-                let answer2Submit = cesc2("#" + textinput2Name + "_submit");
-                let answer2Correct = cesc2("#" + textinput2Name + "_correct");
-                let answer2Incorrect = cesc2(
-                    "#" + textinput2Name + "_incorrect",
+                let textInput2Name =
+                    stateVariables[await win.resolvePath1("answer2")]
+                        .stateValues.inputChildren[0].componentIdx;
+                let textInput2Anchor = cesc("#" + textInput2Name) + "_input";
+                let textInput2DisplayAnchor =
+                    cesc("#" + textInput2Name) + " .mq-editable-field";
+                let answer2Submit = cesc("#" + textInput2Name + "_submit");
+                let answer2Correct = cesc("#" + textInput2Name + "_correct");
+                let answer2Incorrect = cesc(
+                    "#" + textInput2Name + "_incorrect",
                 );
 
                 cy.get(answer2Submit).should("be.visible");
 
-                cy.get(cesc2("#/pcontrols_next")).click();
-                cy.get(cesc2("#/_problem3_title")).should(
+                cy.get(cesc("#pcontrols_next")).click();
+                cy.get(cesc("#problem3_title")).should(
                     "have.text",
                     "Problem 3",
                 );
-                cy.get(cesc2("#/ca")).should("have.text", "0.167");
+                cy.get(cesc("#ca")).should("have.text", "0.167");
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
 
-                    let textinput3Name =
-                        stateVariables["/_answer3"].stateValues.inputChildren[0]
-                            .componentIdx;
-                    let textinput3Anchor =
-                        cesc2("#" + textinput3Name) + "_input";
-                    let textinput3DisplayAnchor =
-                        cesc2("#" + textinput3Name) + " .mq-editable-field";
-                    let answer3Submit = cesc2("#" + textinput3Name + "_submit");
-                    let answer3Correct = cesc2(
-                        "#" + textinput3Name + "_correct",
+                    let textInput3Name =
+                        stateVariables[await win.resolvePath1("answer3")]
+                            .stateValues.inputChildren[0].componentIdx;
+                    let textInput3Anchor =
+                        cesc("#" + textInput3Name) + "_input";
+                    let textInput3DisplayAnchor =
+                        cesc("#" + textInput3Name) + " .mq-editable-field";
+                    let answer3Submit = cesc("#" + textInput3Name + "_submit");
+                    let answer3Correct = cesc(
+                        "#" + textInput3Name + "_correct",
                     );
-                    let answer3Incorrect = cesc2(
-                        "#" + textinput3Name + "_incorrect",
+                    let answer3Incorrect = cesc(
+                        "#" + textInput3Name + "_incorrect",
                     );
 
                     cy.get(answer3Submit).should("be.visible");
 
-                    cy.get(cesc2("#/pcontrols_previous")).click();
-                    cy.get(cesc2("#/_problem2_title")).should(
+                    cy.get(cesc("#pcontrols_previous")).click();
+                    cy.get(cesc("#problem2_title")).should(
                         "have.text",
                         "Problem 2",
                     );
-                    cy.get(cesc2("#/ca")).should("have.text", "0.167");
+                    cy.get(cesc("#ca")).should("have.text", "0.167");
 
-                    cy.get(textinput2Anchor).type("b{enter}");
+                    cy.get(textInput2Anchor).type("b{enter}");
 
                     cy.get(answer2Correct).should("be.visible");
-                    cy.get(cesc2("#/ca")).should("have.text", "0.5");
+                    cy.get(cesc("#ca")).should("have.text", "0.5");
 
-                    cy.get(cesc2("#/pcontrols_previous")).click();
-                    cy.get(cesc2("#/_problem1_title")).should(
+                    cy.get(cesc("#pcontrols_previous")).click();
+                    cy.get(cesc("#problem1_title")).should(
                         "have.text",
                         "Problem 1",
                     );
-                    cy.get(cesc2("#/ca")).should("have.text", "0.5");
+                    cy.get(cesc("#ca")).should("have.text", "0.5");
 
                     cy.get(answer1Correct).should("be.visible");
 
-                    cy.get(textinput1Anchor).clear();
+                    cy.get(textInput1Anchor).clear();
                     cy.get(answer1Correct).should("not.exist");
-                    cy.get(textinput1Anchor).type("{enter}");
+                    cy.get(textInput1Anchor).type("{enter}");
                     cy.get(answer1Incorrect).should("be.visible");
-                    cy.get(cesc2("#/ca")).should("have.text", "0.333");
+                    cy.get(cesc("#ca")).should("have.text", "0.333");
 
-                    cy.get(cesc2("#/pcontrols_next")).click();
-                    cy.get(cesc2("#/_problem2_title")).should(
+                    cy.get(cesc("#pcontrols_next")).click();
+                    cy.get(cesc("#problem2_title")).should(
                         "have.text",
                         "Problem 2",
                     );
-                    cy.get(cesc2("#/ca")).should("have.text", "0.333");
+                    cy.get(cesc("#ca")).should("have.text", "0.333");
 
                     cy.get(answer2Correct).should("be.visible");
 
-                    cy.get(cesc2("#/pcontrols_next")).click();
-                    cy.get(cesc2("#/_problem3_title")).should(
+                    cy.get(cesc("#pcontrols_next")).click();
+                    cy.get(cesc("#problem3_title")).should(
                         "have.text",
                         "Problem 3",
                     );
-                    cy.get(cesc2("#/ca")).should("have.text", "0.333");
+                    cy.get(cesc("#ca")).should("have.text", "0.333");
 
-                    cy.get(textinput3Anchor).clear().type("c{enter}");
+                    cy.get(textInput3Anchor).clear().type("c{enter}");
                     cy.get(answer3Correct).should("be.visible");
-                    cy.get(cesc2("#/ca")).should("have.text", "0.833");
+                    cy.get(cesc("#ca")).should("have.text", "0.833");
 
-                    cy.get(cesc2("#/pcontrols_previous")).click();
-                    cy.get(cesc2("#/_problem2_title")).should(
+                    cy.get(cesc("#pcontrols_previous")).click();
+                    cy.get(cesc("#problem2_title")).should(
                         "have.text",
                         "Problem 2",
                     );
-                    cy.get(cesc2("#/ca")).should("have.text", "0.833");
+                    cy.get(cesc("#ca")).should("have.text", "0.833");
 
                     cy.get(answer2Correct).should("be.visible");
                 });
@@ -1101,40 +1096,40 @@ describe("Paginator Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
-        cy.get(cesc2("#/_problem2_title")).should("have.text", "Problem 2");
-        cy.get(cesc2("#/ca")).should("have.text", "0.833");
+        cy.get(cesc("#problem2_title")).should("have.text", "Problem 2");
+        cy.get(cesc("#ca")).should("have.text", "0.833");
 
-        cy.get(cesc2("#/pcontrols_previous")).click();
-        cy.get(cesc2("#/_problem1_title")).should("have.text", "Problem 1");
-        cy.get(cesc2("#/ca")).should("have.text", "0.833");
+        cy.get(cesc("#pcontrols_previous")).click();
+        cy.get(cesc("#problem1_title")).should("have.text", "Problem 1");
+        cy.get(cesc("#ca")).should("have.text", "0.833");
 
-        cy.get(cesc2("#/pcontrols_next")).click();
-        cy.get(cesc2("#/_problem2_title")).should("have.text", "Problem 2");
-        cy.get(cesc2("#/ca")).should("have.text", "0.833");
+        cy.get(cesc("#pcontrols_next")).click();
+        cy.get(cesc("#problem2_title")).should("have.text", "Problem 2");
+        cy.get(cesc("#ca")).should("have.text", "0.833");
 
-        cy.get(cesc2("#/pcontrols_next")).click();
-        cy.get(cesc2("#/_problem3_title")).should("have.text", "Problem 3");
-        cy.get(cesc2("#/ca")).should("have.text", "0.833");
+        cy.get(cesc("#pcontrols_next")).click();
+        cy.get(cesc("#problem3_title")).should("have.text", "Problem 3");
+        cy.get(cesc("#ca")).should("have.text", "0.833");
     });
 
     it("With external and internal copies", () => {
         let doenetML = `
     <text>a</text>
     <setup>
-      <problem name="problema" newNamespace>
+      <problem name="problema">
         <title>A hard problem</title>
-        <p>What is 1+1? <answer><mathinput /><award>2</award></answer></p>
+        <p>What is 1+1? <answer><mathInput /><award>2</award></answer></p>
       </problem>
     </setup>
 
-    <paginatorControls paginator="pgn" name="pcontrols" />
+    <paginatorControls paginator="$pgn" name="pcontrols" />
   
     <paginator name="pgn">
       <copy name="problem1" uri="doenet:CID=bafkreifgmyjuw4m6odukznenshkyfupp3egx6ep3jgnlo747d6s5v7nznu" />
       <copy name="problem2" uri="doenet:CID=bafkreide4mismb45mxved2ibfh5jnj75kty7vjz7w6zo7goyxpwr2e7wti" />
-      <copy name="problem3" target="problema" link="false" />
+      <copy name="problem3" target="$problema" link="false" />
   
     </paginator>
     <p>Credit achieved: $_document1.creditAchieved{assignNames="ca"}</p>
@@ -1161,31 +1156,28 @@ describe("Paginator Tag Tests", function () {
 
         let choices;
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
-        cy.get(cesc2("#/problem1/_title1")).should(
-            "have.text",
-            "Animal sounds",
-        );
-        cy.get(cesc2("#/ca")).should("have.text", "0");
+        cy.get(cesc("#problem1/_title1")).should("have.text", "Animal sounds");
+        cy.get(cesc("#ca")).should("have.text", "0");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
             let correctSound =
-                stateVariables["/problem1/sound"].stateValues.value;
+                stateVariables[await win.resolvePath1("d")].stateValues.value;
 
             choices =
-                stateVariables["/problem1/_choiceinput1"].stateValues
+                stateVariables[await win.resolvePath1("1")].stateValues
                     .choiceTexts;
             let correctInd = choices.indexOf(correctSound) + 1;
             cy.get(
-                cesc2(`#/problem1/_choiceinput1_choice${correctInd}_input`),
+                cesc(`#problem1/_choiceInput1_choice${correctInd}_input`),
             ).click();
         });
 
-        cy.get(cesc2(`#/problem1/_choiceinput1_submit`)).click();
-        cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "0.333");
+        cy.get(cesc(`#problem1/_choiceInput1_submit`)).click();
+        cy.get(cesc(`#problem1/_choiceInput1_correct`)).should("be.visible");
+        cy.get(cesc("#ca")).should("have.text", "0.333");
 
         cy.wait(2000); // wait for 1 second debounce
         cy.reload();
@@ -1198,56 +1190,53 @@ describe("Paginator Tag Tests", function () {
                 "*",
             );
         });
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
         // wait until core is loaded
         cy.waitUntil(() =>
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 let foundIt = Boolean(
-                    stateVariables["/problem1/_choiceinput1"]?.stateValues
+                    stateVariables[await win.resolvePath1("1")]?.stateValues
                         ?.choiceTexts,
                 );
                 return foundIt;
             }),
         );
 
-        cy.get(cesc2("#/problem1/_title1")).should(
-            "have.text",
-            "Animal sounds",
-        );
-        cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "0.333");
+        cy.get(cesc("#problem1/_title1")).should("have.text", "Animal sounds");
+        cy.get(cesc(`#problem1/_choiceInput1_correct`)).should("be.visible");
+        cy.get(cesc("#ca")).should("have.text", "0.333");
 
-        cy.get(cesc2("#/pcontrols_next")).click();
-        cy.get(cesc2("#/problem2/_title1")).should(
+        cy.get(cesc("#pcontrols_next")).click();
+        cy.get(cesc("#problem2/_title1")).should(
             "have.text",
             "Derivative problem",
         );
-        cy.get(cesc2("#/ca")).should("have.text", "0.333");
+        cy.get(cesc("#ca")).should("have.text", "0.333");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            let mathinput2Name =
-                stateVariables["/problem2/_answer1"].stateValues
+            let mathInput2Name =
+                stateVariables[await win.resolvePath1("1")].stateValues
                     .inputChildren[0].componentIdx;
 
-            let mathinput2Anchor = cesc2(`#${mathinput2Name}`) + " textarea";
-            let mathinput2Correct = cesc2(`#${mathinput2Name}_correct`);
+            let mathInput2Anchor = cesc(`#${mathInput2Name}`) + " textarea";
+            let mathInput2Correct = cesc(`#${mathInput2Name}_correct`);
 
-            cy.get(mathinput2Anchor).type("2x{enter}", { force: true });
-            cy.get(mathinput2Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.667");
+            cy.get(mathInput2Anchor).type("2x{enter}", { force: true });
+            cy.get(mathInput2Correct).should("be.visible");
+            cy.get(cesc("#ca")).should("have.text", "0.667");
 
-            cy.get(cesc2("#/pcontrols_previous")).click();
-            cy.get(cesc2("#/problem1/_title1")).should(
+            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
                 "Animal sounds",
             );
-            cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
+            cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc2("#/ca")).should("have.text", "0.667");
+            cy.get(cesc("#ca")).should("have.text", "0.667");
 
             cy.wait(2000); // wait for 1 second debounce
             cy.reload();
@@ -1260,42 +1249,40 @@ describe("Paginator Tag Tests", function () {
                     "*",
                 );
             });
-            cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
-            cy.get(cesc2("#/problem1/_title1")).should(
+            cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
                 "Animal sounds",
             );
-            cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
+            cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc2("#/ca")).should("have.text", "0.667");
+            cy.get(cesc("#ca")).should("have.text", "0.667");
 
-            cy.get(cesc2("#/pcontrols_next")).click();
-            cy.get(cesc2("#/problem2/_title1")).should(
+            cy.get(cesc("#pcontrols_next")).click();
+            cy.get(cesc("#problem2/_title1")).should(
                 "have.text",
                 "Derivative problem",
             );
-            cy.get(mathinput2Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.667");
+            cy.get(mathInput2Correct).should("be.visible");
+            cy.get(cesc("#ca")).should("have.text", "0.667");
 
-            cy.get(cesc2("#/pcontrols_next")).click();
-            cy.get(cesc2("#/problem3/_title1")).should(
+            cy.get(cesc("#pcontrols_next")).click();
+            cy.get(cesc("#problem3/_title1")).should(
                 "have.text",
                 "A hard problem",
             );
-            cy.get(cesc2("#/ca")).should("have.text", "0.667");
+            cy.get(cesc("#ca")).should("have.text", "0.667");
 
-            cy.get(cesc2("#/problem3/_mathinput1") + " textarea").type(
+            cy.get(cesc("#problem3/_mathInput1") + " textarea").type(
                 "2{enter}",
                 {
                     force: true,
                 },
             );
-            cy.get(cesc2("#/problem3/_mathinput1_correct")).should(
-                "be.visible",
-            );
-            cy.get(cesc2("#/ca")).should("have.text", "1");
+            cy.get(cesc("#problem3/_mathInput1_correct")).should("be.visible");
+            cy.get(cesc("#ca")).should("have.text", "1");
 
             cy.wait(2000); // wait for 1 second debounce
             cy.reload();
@@ -1308,81 +1295,79 @@ describe("Paginator Tag Tests", function () {
                     "*",
                 );
             });
-            cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
-            cy.get(cesc2("#/problem3/_title1")).should(
+            cy.get(cesc("#problem3/_title1")).should(
                 "have.text",
                 "A hard problem",
             );
-            cy.get(cesc2("#/problem3/_mathinput1_correct")).should(
-                "be.visible",
-            );
-            cy.get(cesc2("#/ca")).should("have.text", "1");
+            cy.get(cesc("#problem3/_mathInput1_correct")).should("be.visible");
+            cy.get(cesc("#ca")).should("have.text", "1");
 
-            cy.get(cesc2("#/pcontrols_previous")).click();
-            cy.get(cesc2("#/problem2/_title1")).should(
+            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get(cesc("#problem2/_title1")).should(
                 "have.text",
                 "Derivative problem",
             );
-            cy.get(mathinput2Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "1");
+            cy.get(mathInput2Correct).should("be.visible");
+            cy.get(cesc("#ca")).should("have.text", "1");
 
-            cy.get(cesc2("#/pcontrols_previous")).click();
-            cy.get(cesc2("#/problem1/_title1")).should(
+            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
                 "Animal sounds",
             );
-            cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
+            cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc2("#/ca")).should("have.text", "1");
+            cy.get(cesc("#ca")).should("have.text", "1");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 let correctSound =
-                    stateVariables["/problem1/sound"].stateValues.value;
+                    stateVariables[await win.resolvePath1("d")].stateValues
+                        .value;
                 let incorrectSound =
                     correctSound === "woof" ? "squeak" : "woof";
 
                 let choiceTexts =
-                    stateVariables["/problem1/_choiceinput1"].stateValues
+                    stateVariables[await win.resolvePath1("1")].stateValues
                         .choiceTexts;
                 expect(choiceTexts).eqls(choices);
                 let incorrectInd = choices.indexOf(incorrectSound) + 1;
                 cy.get(
-                    cesc2(
-                        `#/problem1/_choiceinput1_choice${incorrectInd}_input`,
-                    ),
+                    cesc(`#problem1/_choiceInput1_choice${incorrectInd}_input`),
                 ).click();
             });
 
-            cy.get(cesc2(`#/problem1/_choiceinput1_submit`)).click();
-            cy.get(cesc2(`#/problem1/_choiceinput1_incorrect`)).should(
+            cy.get(cesc(`#problem1/_choiceInput1_submit`)).click();
+            cy.get(cesc(`#problem1/_choiceInput1_incorrect`)).should(
                 "be.visible",
             );
-            cy.get(cesc2("#/ca")).should("have.text", "0.667");
+            cy.get(cesc("#ca")).should("have.text", "0.667");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 let correctSound =
-                    stateVariables["/problem1/sound"].stateValues.value;
+                    stateVariables[await win.resolvePath1("d")].stateValues
+                        .value;
 
                 let choiceTexts =
-                    stateVariables["/problem1/_choiceinput1"].stateValues
+                    stateVariables[await win.resolvePath1("1")].stateValues
                         .choiceTexts;
                 expect(choiceTexts).eqls(choices);
                 let correctInd = choices.indexOf(correctSound) + 1;
                 cy.get(
-                    cesc2(`#/problem1/_choiceinput1_choice${correctInd}_input`),
+                    cesc(`#problem1/_choiceInput1_choice${correctInd}_input`),
                 ).click();
             });
 
-            cy.get(cesc2(`#/problem1/_choiceinput1_submit`)).click();
-            cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
+            cy.get(cesc(`#problem1/_choiceInput1_submit`)).click();
+            cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc2("#/ca")).should("have.text", "1");
+            cy.get(cesc("#ca")).should("have.text", "1");
         });
     });
 
@@ -1391,19 +1376,19 @@ describe("Paginator Tag Tests", function () {
     <text>a</text>
     <variantControl numVariants="100" />
     <setup>
-      <problem name="problema" newNamespace>
+      <problem name="problema">
         <variantControl numVariants="1" />
         <title>A hard problem</title>
-        <p>What is 1+1? <answer><mathinput /><award>2</award></answer></p>
+        <p>What is 1+1? <answer><mathInput /><award>2</award></answer></p>
       </problem>
     </setup>
 
-    <paginatorControls paginator="pgn" name="pcontrols" />
+    <paginatorControls paginator="$pgn" name="pcontrols" />
   
     <paginator name="pgn">
       <copy name="problem1" uri="doenet:CID=bafkreifgmyjuw4m6odukznenshkyfupp3egx6ep3jgnlo747d6s5v7nznu" />
       <copy name="problem2" uri="doenet:CID=bafkreide4mismb45mxved2ibfh5jnj75kty7vjz7w6zo7goyxpwr2e7wti" />
-      <copy name="problem3" target="problema" link="false" />
+      <copy name="problem3" target="$problema" link="false" />
   
     </paginator>
     <p>Credit achieved: $_document1.creditAchieved{assignNames="ca"}</p>
@@ -1424,32 +1409,29 @@ describe("Paginator Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
-        cy.get(cesc2("#/problem1/_title1")).should(
-            "have.text",
-            "Animal sounds",
-        );
-        cy.get(cesc2("#/ca")).should("have.text", "0");
+        cy.get(cesc("#problem1/_title1")).should("have.text", "Animal sounds");
+        cy.get(cesc("#ca")).should("have.text", "0");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
             let correctSound =
-                stateVariables["/problem1/sound"].stateValues.value;
+                stateVariables[await win.resolvePath1("d")].stateValues.value;
 
             let choices = [
-                ...stateVariables["/problem1/_choiceinput1"].stateValues
+                ...stateVariables[await win.resolvePath1("1")].stateValues
                     .choiceTexts,
             ];
             let correctInd = choices.indexOf(correctSound) + 1;
             cy.get(
-                cesc2(`#/problem1/_choiceinput1_choice${correctInd}_input`),
+                cesc(`#problem1/_choiceInput1_choice${correctInd}_input`),
             ).click();
         });
 
-        cy.get(cesc2(`#/problem1/_choiceinput1_submit`)).click();
-        cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "0.333");
+        cy.get(cesc(`#problem1/_choiceInput1_submit`)).click();
+        cy.get(cesc(`#problem1/_choiceInput1_correct`)).should("be.visible");
+        cy.get(cesc("#ca")).should("have.text", "0.333");
 
         cy.wait(2000); // wait for 1 second debounce
         cy.reload();
@@ -1462,44 +1444,41 @@ describe("Paginator Tag Tests", function () {
                 "*",
             );
         });
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
-        cy.get(cesc2("#/problem1/_title1")).should(
-            "have.text",
-            "Animal sounds",
-        );
-        cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "0.333");
+        cy.get(cesc("#problem1/_title1")).should("have.text", "Animal sounds");
+        cy.get(cesc(`#problem1/_choiceInput1_correct`)).should("be.visible");
+        cy.get(cesc("#ca")).should("have.text", "0.333");
 
-        cy.get(cesc2("#/pcontrols_next")).click();
-        cy.get(cesc2("#/problem2/_title1")).should(
+        cy.get(cesc("#pcontrols_next")).click();
+        cy.get(cesc("#problem2/_title1")).should(
             "have.text",
             "Derivative problem",
         );
-        cy.get(cesc2("#/ca")).should("have.text", "0.333");
+        cy.get(cesc("#ca")).should("have.text", "0.333");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            let mathinput2Name =
-                stateVariables["/problem2/_answer1"].stateValues
+            let mathInput2Name =
+                stateVariables[await win.resolvePath1("1")].stateValues
                     .inputChildren[0].componentIdx;
 
-            let mathinput2Anchor = cesc2(`#${mathinput2Name}`) + " textarea";
-            let mathinput2Correct = cesc2(`#${mathinput2Name}_correct`);
+            let mathInput2Anchor = cesc(`#${mathInput2Name}`) + " textarea";
+            let mathInput2Correct = cesc(`#${mathInput2Name}_correct`);
 
-            cy.get(mathinput2Anchor).type("2x{enter}", { force: true });
-            cy.get(mathinput2Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.667");
+            cy.get(mathInput2Anchor).type("2x{enter}", { force: true });
+            cy.get(mathInput2Correct).should("be.visible");
+            cy.get(cesc("#ca")).should("have.text", "0.667");
 
-            cy.get(cesc2("#/pcontrols_previous")).click();
-            cy.get(cesc2("#/problem1/_title1")).should(
+            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
                 "Animal sounds",
             );
-            cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
+            cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc2("#/ca")).should("have.text", "0.667");
+            cy.get(cesc("#ca")).should("have.text", "0.667");
 
             cy.wait(2000); // wait for 1 second debounce
             cy.reload();
@@ -1512,42 +1491,40 @@ describe("Paginator Tag Tests", function () {
                     "*",
                 );
             });
-            cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
-            cy.get(cesc2("#/problem1/_title1")).should(
+            cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
                 "Animal sounds",
             );
-            cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
+            cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc2("#/ca")).should("have.text", "0.667");
+            cy.get(cesc("#ca")).should("have.text", "0.667");
 
-            cy.get(cesc2("#/pcontrols_next")).click();
-            cy.get(cesc2("#/problem2/_title1")).should(
+            cy.get(cesc("#pcontrols_next")).click();
+            cy.get(cesc("#problem2/_title1")).should(
                 "have.text",
                 "Derivative problem",
             );
-            cy.get(mathinput2Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "0.667");
+            cy.get(mathInput2Correct).should("be.visible");
+            cy.get(cesc("#ca")).should("have.text", "0.667");
 
-            cy.get(cesc2("#/pcontrols_next")).click();
-            cy.get(cesc2("#/problem3/_title1")).should(
+            cy.get(cesc("#pcontrols_next")).click();
+            cy.get(cesc("#problem3/_title1")).should(
                 "have.text",
                 "A hard problem",
             );
-            cy.get(cesc2("#/ca")).should("have.text", "0.667");
+            cy.get(cesc("#ca")).should("have.text", "0.667");
 
-            cy.get(cesc2("#/problem3/_mathinput1") + " textarea").type(
+            cy.get(cesc("#problem3/_mathInput1") + " textarea").type(
                 "2{enter}",
                 {
                     force: true,
                 },
             );
-            cy.get(cesc2("#/problem3/_mathinput1_correct")).should(
-                "be.visible",
-            );
-            cy.get(cesc2("#/ca")).should("have.text", "1");
+            cy.get(cesc("#problem3/_mathInput1_correct")).should("be.visible");
+            cy.get(cesc("#ca")).should("have.text", "1");
 
             cy.wait(2000); // wait for 1 second debounce
             cy.reload();
@@ -1560,53 +1537,50 @@ describe("Paginator Tag Tests", function () {
                     "*",
                 );
             });
-            cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
-            cy.get(cesc2("#/problem3/_title1")).should(
+            cy.get(cesc("#problem3/_title1")).should(
                 "have.text",
                 "A hard problem",
             );
-            cy.get(cesc2("#/problem3/_mathinput1_correct")).should(
-                "be.visible",
-            );
-            cy.get(cesc2("#/ca")).should("have.text", "1");
+            cy.get(cesc("#problem3/_mathInput1_correct")).should("be.visible");
+            cy.get(cesc("#ca")).should("have.text", "1");
 
-            cy.get(cesc2("#/pcontrols_previous")).click();
-            cy.get(cesc2("#/problem2/_title1")).should(
+            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get(cesc("#problem2/_title1")).should(
                 "have.text",
                 "Derivative problem",
             );
-            cy.get(mathinput2Correct).should("be.visible");
-            cy.get(cesc2("#/ca")).should("have.text", "1");
+            cy.get(mathInput2Correct).should("be.visible");
+            cy.get(cesc("#ca")).should("have.text", "1");
 
-            cy.get(cesc2("#/pcontrols_previous")).click();
-            cy.get(cesc2("#/problem1/_title1")).should(
+            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
                 "Animal sounds",
             );
-            cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
+            cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc2("#/ca")).should("have.text", "1");
+            cy.get(cesc("#ca")).should("have.text", "1");
         });
     });
 
     it("Paginator controls ignore read only flag", () => {
         let doenetML = `
-    <text>a</text>
-    <paginatorControls paginator="pgn" name="pcontrols" />
+    <paginatorControls paginator="$pgn" name="pcontrols" />
   
     <paginator name="pgn">
       <problem>
-        <title>Problem 1</title>
-        <p>1: <answer type="text"><textinput name="ti1"/><award>1</award></answer></p>
+        <title name="title1">Problem 1</title>
+        <p>1: <answer type="text"><textInput name="ti1"/><award>1</award></answer></p>
       </problem>
       <problem>
-        <title>Problem 2</title>
-        <p>2: <answer type="text"><textinput name="ti2"/><award>2</award></answer></p>
+        <title name="title2">Problem 2</title>
+        <p>2: <answer type="text"><textInput name="ti2"/><award>2</award></answer></p>
       </problem>
     </paginator>
-    <p>Credit achieved: $_document1.creditAchieved{assignNames="ca"}</p>
+    <p>Credit achieved: <number extend="$_document1.creditAchieved" name="ca" /></p>
     `;
 
         cy.window().then(async (win) => {
@@ -1618,50 +1592,48 @@ describe("Paginator Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#title1")).should("have.text", "Problem 1");
 
-        cy.get(cesc2("#/_title1")).should("have.text", "Problem 1");
+        cy.get(cesc("#ti1_input")).type("1{enter}");
+        cy.get(cesc("#ti1_input")).should("have.value", "1");
 
-        cy.get(cesc("#\\/ti1_input")).type("1{enter}");
-        cy.get(cesc("#\\/ti1_input")).should("have.value", "1");
+        cy.get(cesc("#ti1_correct")).should("be.visible");
+        cy.get(cesc("#ca")).should("have.text", "0.5");
 
-        cy.get(cesc("#\\/ti1_correct")).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "0.5");
+        cy.get(cesc("#pcontrols_next")).click();
+        cy.get(cesc("#title2")).should("have.text", "Problem 2");
 
-        cy.get(cesc2("#/pcontrols_next")).click();
-        cy.get(cesc2("#/_title2")).should("have.text", "Problem 2");
-
-        cy.get(cesc("#\\/ti2_input")).type("2");
-        cy.get(cesc("#\\/ti2_input")).should("have.value", "2");
-        cy.get(cesc("#\\/ti2_submit")).should("be.visible");
-        cy.get(cesc2("#/ca")).should("have.text", "0.5");
+        cy.get(cesc("#ti2_input")).type("2");
+        cy.get(cesc("#ti2_input")).should("have.value", "2");
+        cy.get(cesc("#ti2_submit")).should("be.visible");
+        cy.get(cesc("#ca")).should("have.text", "0.5");
 
         cy.get("#testRunner_toggleControls").click();
         cy.get("#testRunner_readOnly").click();
         cy.wait(100);
         cy.get("#testRunner_toggleControls").click();
 
-        cy.get(cesc2("#/_title1")).should("have.text", "Problem 1");
+        cy.get(cesc("#title1")).should("have.text", "Problem 1");
 
-        cy.get(cesc("#\\/ti1_input")).should("be.disabled");
-        cy.get(cesc("#\\/ti1_submit")).should("be.disabled");
+        cy.get(cesc("#ti1_input")).should("be.disabled");
+        cy.get(cesc("#ti1_submit")).should("be.disabled");
 
-        cy.get(cesc2("#/pcontrols_next")).click();
-        cy.get(cesc2("#/_title2")).should("have.text", "Problem 2");
+        cy.get(cesc("#pcontrols_next")).click();
+        cy.get(cesc("#title2")).should("have.text", "Problem 2");
 
-        cy.get(cesc("#\\/ti2_input")).should("be.disabled");
-        cy.get(cesc("#\\/ti2_submit")).should("be.disabled");
+        cy.get(cesc("#ti2_input")).should("be.disabled");
+        cy.get(cesc("#ti2_submit")).should("be.disabled");
 
-        cy.get(cesc2("#/pcontrols_previous")).click();
-        cy.get(cesc2("#/_title1")).should("have.text", "Problem 1");
-        cy.get(cesc("#\\/ti1_input")).should("be.disabled");
-        cy.get(cesc("#\\/ti1_submit")).should("be.disabled");
+        cy.get(cesc("#pcontrols_previous")).click();
+        cy.get(cesc("#title1")).should("have.text", "Problem 1");
+        cy.get(cesc("#ti1_input")).should("be.disabled");
+        cy.get(cesc("#ti1_submit")).should("be.disabled");
     });
 
     it("Variants stay consistent with external copies", () => {
         let doenetMLWithSelects = `
     <text>a</text>
-    <paginatorControls paginator="pgn" name="pcontrols" />
+    <paginatorControls paginator="$pgn" name="pcontrols" />
 
     <paginator name="pgn">
       <select numToSelect="2" assignNames="(problem1) (problem2)">
@@ -1679,7 +1651,7 @@ describe("Paginator Tag Tests", function () {
 
         let doenetMLorder1 = `
     <text>a</text>
-    <paginatorControls paginator="pgn" name="pcontrols" />
+    <paginatorControls paginator="$pgn" name="pcontrols" />
     <paginator name="pgn">
       <copy uri="doenet:cid=bafkreidheiqnahrf33h6etsqwo26s7w3upl44bra6xtssxm5rmc3osjave" name="problem1" />
       <copy uri="doenet:CID=bafkreifgmyjuw4m6odukznenshkyfupp3egx6ep3jgnlo747d6s5v7nznu" name="problem2" />
@@ -1690,7 +1662,7 @@ describe("Paginator Tag Tests", function () {
 
         let doenetMLorder2 = `
     <text>a</text>
-    <paginatorControls paginator="pgn" name="pcontrols" />
+    <paginatorControls paginator="$pgn" name="pcontrols" />
     <paginator name="pgn">
       <copy uri="doenet:CID=bafkreifgmyjuw4m6odukznenshkyfupp3egx6ep3jgnlo747d6s5v7nznu" name="problem1" />
       <copy uri="doenet:cid=bafkreidheiqnahrf33h6etsqwo26s7w3upl44bra6xtssxm5rmc3osjave" name="problem2" />
@@ -1751,23 +1723,23 @@ describe("Paginator Tag Tests", function () {
                         "*",
                     );
                 });
-                cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+                cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
             }
 
             let problemInfo = [{}, {}];
             let problemOrder;
 
-            cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_document1"].stateValues
+                    stateVariables[await win.resolvePath1("1")].stateValues
                         .generatedVariantInfo.index,
                 ).eq(attemptNumber);
 
-                if (stateVariables["/problem1/a"]) {
+                if (stateVariables[await win.resolvePath1("a")]) {
                     problemOrder = [1, 2];
                 } else {
                     problemOrder = [2, 1];
@@ -1777,11 +1749,11 @@ describe("Paginator Tag Tests", function () {
 
                 for (let ind = 0; ind < 2; ind++) {
                     if (ind === 1) {
-                        cy.get(cesc2("#/pcontrols_next")).click();
+                        cy.get(cesc("#pcontrols_next")).click();
                     }
 
                     cy.wait(0).then((_) => {
-                        cy.get(cesc2("#/ca")).should(
+                        cy.get(cesc("#ca")).should(
                             "have.text",
                             `${creditAchieved}`,
                         );
@@ -1790,7 +1762,7 @@ describe("Paginator Tag Tests", function () {
                         let thisProbName = `/problem${ind + 1}`;
 
                         if (problemOrder[ind] === 1) {
-                            cy.get(cesc2(`#${thisProbName}_title`)).should(
+                            cy.get(cesc(`#${thisProbName}_title`)).should(
                                 "have.text",
                                 `Problem ${ind + 1}`,
                             );
@@ -1825,57 +1797,57 @@ describe("Paginator Tag Tests", function () {
                                         `${thisProbName}/o2/t`
                                     ].stateValues.value;
 
-                                let mathinput1Name =
+                                let mathInput1Name =
                                     stateVariables[`${thisProbName}/ans1`]
                                         .stateValues.inputChildren[0]
                                         .componentIdx;
-                                let mathinput1Anchor =
-                                    cesc2("#" + mathinput1Name) + " textarea";
-                                let answer1Correct = cesc2(
-                                    "#" + mathinput1Name + "_correct",
+                                let mathInput1Anchor =
+                                    cesc("#" + mathInput1Name) + " textarea";
+                                let answer1Correct = cesc(
+                                    "#" + mathInput1Name + "_correct",
                                 );
 
-                                let mathinput2Name =
+                                let mathInput2Name =
                                     stateVariables[`${thisProbName}/ans2`]
                                         .stateValues.inputChildren[0]
                                         .componentIdx;
-                                let mathinput2Anchor =
-                                    cesc2("#" + mathinput2Name) + " textarea";
-                                let answer2Correct = cesc2(
-                                    "#" + mathinput2Name + "_correct",
+                                let mathInput2Anchor =
+                                    cesc("#" + mathInput2Name) + " textarea";
+                                let answer2Correct = cesc(
+                                    "#" + mathInput2Name + "_correct",
                                 );
 
-                                let textinput3Name =
+                                let textInput3Name =
                                     stateVariables[`${thisProbName}/ans3`]
                                         .stateValues.inputChildren[0]
                                         .componentIdx;
-                                let textinput3Anchor =
-                                    cesc2("#" + textinput3Name) + "_input";
-                                let answer3Correct = cesc2(
-                                    "#" + textinput3Name + "_correct",
+                                let textInput3Anchor =
+                                    cesc("#" + textInput3Name) + "_input";
+                                let answer3Correct = cesc(
+                                    "#" + textInput3Name + "_correct",
                                 );
 
-                                let mathinput4Name =
+                                let mathInput4Name =
                                     stateVariables[`${thisProbName}/ans4`]
                                         .stateValues.inputChildren[0]
                                         .componentIdx;
-                                let mathinput4Anchor =
-                                    cesc2("#" + mathinput4Name) + " textarea";
-                                let answer4Correct = cesc2(
-                                    "#" + mathinput4Name + "_correct",
+                                let mathInput4Anchor =
+                                    cesc("#" + mathInput4Name) + " textarea";
+                                let answer4Correct = cesc(
+                                    "#" + mathInput4Name + "_correct",
                                 );
 
-                                let textinput5Name =
+                                let textInput5Name =
                                     stateVariables[`${thisProbName}/ans5`]
                                         .stateValues.inputChildren[0]
                                         .componentIdx;
-                                let textinput5Anchor =
-                                    cesc2("#" + textinput5Name) + "_input";
-                                let answer5Correct = cesc2(
-                                    "#" + textinput5Name + "_correct",
+                                let textInput5Anchor =
+                                    cesc("#" + textInput5Name) + "_input";
+                                let answer5Correct = cesc(
+                                    "#" + textInput5Name + "_correct",
                                 );
 
-                                cy.get(mathinput1Anchor).type(
+                                cy.get(mathInput1Anchor).type(
                                     `${
                                         thisProbInfo.a
                                     }${thisProbInfo.v.toString()}{enter}`,
@@ -1883,30 +1855,30 @@ describe("Paginator Tag Tests", function () {
                                 );
                                 cy.get(answer1Correct).should("be.visible");
 
-                                cy.get(mathinput2Anchor).type(
+                                cy.get(mathInput2Anchor).type(
                                     `${thisProbInfo.o1m.toString()}{enter}`,
                                     { force: true },
                                 );
                                 cy.get(answer2Correct).should("be.visible");
 
-                                cy.get(textinput3Anchor).type(
+                                cy.get(textInput3Anchor).type(
                                     `${thisProbInfo.o1t}{enter}`,
                                 );
                                 cy.get(answer3Correct).should("be.visible");
 
-                                cy.get(mathinput4Anchor).type(
+                                cy.get(mathInput4Anchor).type(
                                     `${thisProbInfo.o2m.toString()}{enter}`,
                                     { force: true },
                                 );
                                 cy.get(answer4Correct).should("be.visible");
 
-                                cy.get(textinput5Anchor).type(
+                                cy.get(textInput5Anchor).type(
                                     `${thisProbInfo.o2t}{enter}`,
                                 );
                                 cy.get(answer5Correct).should("be.visible");
                             });
                         } else {
-                            cy.get(cesc2(`#${thisProbName}_title`)).should(
+                            cy.get(cesc(`#${thisProbName}_title`)).should(
                                 "have.text",
                                 `Animal sounds`,
                             );
@@ -1927,7 +1899,7 @@ describe("Paginator Tag Tests", function () {
 
                                 thisProbInfo.choices = [
                                     ...stateVariables[
-                                        `${thisProbName}/_choiceinput1`
+                                        `${thisProbName}/_choiceInput1`
                                     ].stateValues.choiceTexts,
                                 ];
                                 thisProbInfo.animalInd =
@@ -1935,19 +1907,19 @@ describe("Paginator Tag Tests", function () {
                                         thisProbInfo.sound,
                                     ) + 1;
                                 cy.get(
-                                    cesc2(
-                                        `#${thisProbName}/_choiceinput1_choice${thisProbInfo.animalInd}_input`,
+                                    cesc(
+                                        `#${thisProbName}/_choiceInput1_choice${thisProbInfo.animalInd}_input`,
                                     ),
                                 ).click();
 
                                 cy.get(
-                                    cesc2(
-                                        `#${thisProbName}/_choiceinput1_submit`,
+                                    cesc(
+                                        `#${thisProbName}/_choiceInput1_submit`,
                                     ),
                                 ).click();
                                 cy.get(
-                                    cesc2(
-                                        `#${thisProbName}/_choiceinput1_correct`,
+                                    cesc(
+                                        `#${thisProbName}/_choiceInput1_correct`,
                                     ),
                                 ).should("be.visible");
                             });
@@ -1970,7 +1942,7 @@ describe("Paginator Tag Tests", function () {
                     "*",
                 );
             });
-            cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
+            cy.get(cesc("#text1")).should("have.text", "b"); //wait for page to load
 
             cy.window().then(async (win) => {
                 win.postMessage(
@@ -1980,30 +1952,32 @@ describe("Paginator Tag Tests", function () {
                     "*",
                 );
             });
-            cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
             // wait until core is loaded
             cy.waitUntil(() =>
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
-                    let foundIt = Boolean(stateVariables["/_document1"]);
+                    let foundIt = Boolean(
+                        stateVariables[await win.resolvePath1("1")],
+                    );
                     return foundIt;
                 }),
             );
 
             for (let ind = 1; ind >= 0; ind--) {
                 if (ind === 0) {
-                    cy.get(cesc2("#/pcontrols_previous")).click();
+                    cy.get(cesc("#pcontrols_previous")).click();
                 }
 
                 cy.wait(0).then((_) => {
-                    cy.get(cesc2("#/ca")).should("have.text", `1`);
+                    cy.get(cesc("#ca")).should("have.text", `1`);
 
                     let thisProbInfo = problemInfo[ind];
                     let thisProbName = `/problem${ind + 1}`;
 
                     if (problemOrder[ind] === 1) {
-                        cy.get(cesc2(`#${thisProbName}_title`)).should(
+                        cy.get(cesc(`#${thisProbName}_title`)).should(
                             "have.text",
                             `Problem ${ind + 1}`,
                         );
@@ -2050,39 +2024,39 @@ describe("Paginator Tag Tests", function () {
                                 ].stateValues.value.toString(),
                             ).eq(thisProbInfo.o2t.toString());
 
-                            let mathinput1Name =
+                            let mathInput1Name =
                                 stateVariables[`${thisProbName}/ans1`]
                                     .stateValues.inputChildren[0].componentIdx;
-                            let answer1Correct = cesc2(
-                                "#" + mathinput1Name + "_correct",
+                            let answer1Correct = cesc(
+                                "#" + mathInput1Name + "_correct",
                             );
 
-                            let mathinput2Name =
+                            let mathInput2Name =
                                 stateVariables[`${thisProbName}/ans2`]
                                     .stateValues.inputChildren[0].componentIdx;
-                            let answer2Correct = cesc2(
-                                "#" + mathinput2Name + "_correct",
+                            let answer2Correct = cesc(
+                                "#" + mathInput2Name + "_correct",
                             );
 
-                            let textinput3Name =
+                            let textInput3Name =
                                 stateVariables[`${thisProbName}/ans3`]
                                     .stateValues.inputChildren[0].componentIdx;
-                            let answer3Correct = cesc2(
-                                "#" + textinput3Name + "_correct",
+                            let answer3Correct = cesc(
+                                "#" + textInput3Name + "_correct",
                             );
 
-                            let mathinput4Name =
+                            let mathInput4Name =
                                 stateVariables[`${thisProbName}/ans4`]
                                     .stateValues.inputChildren[0].componentIdx;
-                            let answer4Correct = cesc2(
-                                "#" + mathinput4Name + "_correct",
+                            let answer4Correct = cesc(
+                                "#" + mathInput4Name + "_correct",
                             );
 
-                            let textinput5Name =
+                            let textInput5Name =
                                 stateVariables[`${thisProbName}/ans5`]
                                     .stateValues.inputChildren[0].componentIdx;
-                            let answer5Correct = cesc2(
-                                "#" + textinput5Name + "_correct",
+                            let answer5Correct = cesc(
+                                "#" + textInput5Name + "_correct",
                             );
 
                             cy.get(answer1Correct).should("be.visible");
@@ -2096,12 +2070,12 @@ describe("Paginator Tag Tests", function () {
                             cy.get(answer5Correct).should("be.visible");
                         });
                     } else {
-                        cy.get(cesc2(`#${thisProbName}_title`)).should(
+                        cy.get(cesc(`#${thisProbName}_title`)).should(
                             "have.text",
                             `Animal sounds`,
                         );
                         cy.get(
-                            cesc2(`#${thisProbName}/_choiceinput1_correct`),
+                            cesc(`#${thisProbName}/_choiceInput1_correct`),
                         ).should("be.visible");
 
                         cy.wait(10);
@@ -2119,7 +2093,7 @@ describe("Paginator Tag Tests", function () {
                                     .stateValues.value,
                             ).eq(thisProbInfo.sound);
                             expect(
-                                stateVariables[`${thisProbName}/_choiceinput1`]
+                                stateVariables[`${thisProbName}/_choiceInput1`]
                                     .stateValues.choiceTexts,
                             ).eqls(thisProbInfo.choices);
                             expect(
@@ -2128,7 +2102,7 @@ describe("Paginator Tag Tests", function () {
                                 ) + 1,
                             ).eq(thisProbInfo.animalInd);
                             cy.get(
-                                cesc2(`#${thisProbName}/_choiceinput1_correct`),
+                                cesc(`#${thisProbName}/_choiceInput1_correct`),
                             ).should("be.visible");
                         });
                     }
@@ -2147,7 +2121,7 @@ describe("Paginator Tag Tests", function () {
                     "*",
                 );
             });
-            cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
+            cy.get(cesc("#text1")).should("have.text", "b"); //wait for page to load
 
             cy.window().then(async (win) => {
                 win.postMessage(
@@ -2157,30 +2131,32 @@ describe("Paginator Tag Tests", function () {
                     "*",
                 );
             });
-            cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
 
             // wait until core is loaded
             cy.waitUntil(() =>
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
-                    let foundIt = Boolean(stateVariables["/_document1"]);
+                    let foundIt = Boolean(
+                        stateVariables[await win.resolvePath1("1")],
+                    );
                     return foundIt;
                 }),
             );
 
             for (let ind = 0; ind < 2; ind++) {
                 if (ind === 1) {
-                    cy.get(cesc2("#/pcontrols_next")).click();
+                    cy.get(cesc("#pcontrols_next")).click();
                 }
 
                 cy.wait(0).then((_) => {
-                    cy.get(cesc2("#/ca")).should("have.text", `1`);
+                    cy.get(cesc("#ca")).should("have.text", `1`);
 
                     let thisProbInfo = problemInfo[ind];
                     let thisProbName = `/problem${ind + 1}`;
 
                     if (problemOrder[ind] === 1) {
-                        cy.get(cesc2(`#${thisProbName}_title`)).should(
+                        cy.get(cesc(`#${thisProbName}_title`)).should(
                             "have.text",
                             `Problem ${ind + 1}`,
                         );
@@ -2227,39 +2203,39 @@ describe("Paginator Tag Tests", function () {
                                 ].stateValues.value.toString(),
                             ).eq(thisProbInfo.o2t.toString());
 
-                            let mathinput1Name =
+                            let mathInput1Name =
                                 stateVariables[`${thisProbName}/ans1`]
                                     .stateValues.inputChildren[0].componentIdx;
-                            let answer1Correct = cesc2(
-                                "#" + mathinput1Name + "_correct",
+                            let answer1Correct = cesc(
+                                "#" + mathInput1Name + "_correct",
                             );
 
-                            let mathinput2Name =
+                            let mathInput2Name =
                                 stateVariables[`${thisProbName}/ans2`]
                                     .stateValues.inputChildren[0].componentIdx;
-                            let answer2Correct = cesc2(
-                                "#" + mathinput2Name + "_correct",
+                            let answer2Correct = cesc(
+                                "#" + mathInput2Name + "_correct",
                             );
 
-                            let textinput3Name =
+                            let textInput3Name =
                                 stateVariables[`${thisProbName}/ans3`]
                                     .stateValues.inputChildren[0].componentIdx;
-                            let answer3Correct = cesc2(
-                                "#" + textinput3Name + "_correct",
+                            let answer3Correct = cesc(
+                                "#" + textInput3Name + "_correct",
                             );
 
-                            let mathinput4Name =
+                            let mathInput4Name =
                                 stateVariables[`${thisProbName}/ans4`]
                                     .stateValues.inputChildren[0].componentIdx;
-                            let answer4Correct = cesc2(
-                                "#" + mathinput4Name + "_correct",
+                            let answer4Correct = cesc(
+                                "#" + mathInput4Name + "_correct",
                             );
 
-                            let textinput5Name =
+                            let textInput5Name =
                                 stateVariables[`${thisProbName}/ans5`]
                                     .stateValues.inputChildren[0].componentIdx;
-                            let answer5Correct = cesc2(
-                                "#" + textinput5Name + "_correct",
+                            let answer5Correct = cesc(
+                                "#" + textInput5Name + "_correct",
                             );
 
                             cy.get(answer1Correct).should("be.visible");
@@ -2273,12 +2249,12 @@ describe("Paginator Tag Tests", function () {
                             cy.get(answer5Correct).should("be.visible");
                         });
                     } else {
-                        cy.get(cesc2(`#${thisProbName}_title`)).should(
+                        cy.get(cesc(`#${thisProbName}_title`)).should(
                             "have.text",
                             `Animal sounds`,
                         );
                         cy.get(
-                            cesc2(`#${thisProbName}/_choiceinput1_correct`),
+                            cesc(`#${thisProbName}/_choiceInput1_correct`),
                         ).should("be.visible");
 
                         cy.wait(10);
@@ -2296,7 +2272,7 @@ describe("Paginator Tag Tests", function () {
                                     .stateValues.value,
                             ).eq(thisProbInfo.sound);
                             expect(
-                                stateVariables[`${thisProbName}/_choiceinput1`]
+                                stateVariables[`${thisProbName}/_choiceInput1`]
                                     .stateValues.choiceTexts,
                             ).eqls(thisProbInfo.choices);
                             expect(
@@ -2305,7 +2281,7 @@ describe("Paginator Tag Tests", function () {
                                 ) + 1,
                             ).eq(thisProbInfo.animalInd);
                             cy.get(
-                                cesc2(`#${thisProbName}/_choiceinput1_correct`),
+                                cesc(`#${thisProbName}/_choiceInput1_correct`),
                             ).should("be.visible");
                         });
                     }
@@ -2316,57 +2292,56 @@ describe("Paginator Tag Tests", function () {
 
     it("Conditional content data is saved", () => {
         let doenetML = `
-    <text>a</text>
-    <paginatorControls paginator="pgn" name="pcontrols" />
+    <paginatorControls paginator="$pgn" name="pcontrols" />
 
     <paginator name="pgn">
 
-    <problem name="problem1" newNamespace>
+    <problem name="problem1">
 
       <setup>
-        <selectFromSequence from="1" to="2" assignNames="n" />
+        <selectFromSequence from="1" to="2" name="n" />
       </setup>
 
-      <conditionalContent>
+      <conditionalContent name="cc">
         <case condition="$n=1">
-        <p>Answer x: <answer>x</answer></p>
+        <p>Answer x: <answer name="answer">x</answer></p>
         </case>
         <case condition="$n=2">
-        <p>Answer y: <answer>y</answer></p>
+        <p>Answer y: <answer name="answer">y</answer></p>
         </case>
       </conditionalContent>
       
-      <conditionalContent condition="$n=1" >
-        <p>Answer 2x: <answer name="a1">2x</answer></p>
+      <conditionalContent condition="$n=1" name="cc1">
+        <p>Answer 2x: <answer name="a">2x</answer></p>
       </conditionalContent>
-      <conditionalContent condition="$n=2" >
-        <p>Answer 2y: <answer name="a2">2y</answer></p>
+      <conditionalContent condition="$n=2" name="cc2">
+        <p>Answer 2y: <answer name="a">2y</answer></p>
       </conditionalContent>
     </problem>
     
-    <problem name="problem2" newNamespace>
+    <problem name="problem2">
     
       <setup>
         <number name="n">1</number>
       </setup>
       
-      <conditionalContent>
+      <conditionalContent name="cc1">
         <case condition="$n=1">
-        <p>Answer 1: <answer>1</answer></p>
+        <p>Answer 1: <answer name="answer">1</answer></p>
         </case>
         <else>
-        <p>Answer 1b: <answer>1b</answer></p>
+        <p>Answer 1b: <answer name="answer">1b</answer></p>
         </else>
       </conditionalContent>
       
-      <conditionalContent condition="$n=1" >
-        <p>Answer 2: <answer>2</answer></p>
+      <conditionalContent condition="$n=1" name="cc2">
+        <p>Answer 2: <answer name="answer">2</answer></p>
       </conditionalContent>
     
     </problem>
     </paginator>
     
-    <p>Credit achieved: $_document1.creditAchieved{assignNames="ca"}</p>
+    <p>Credit achieved: <number extend="$_document1.creditAchieved" name="ca" /></p>
   
     `;
 
@@ -2384,37 +2359,38 @@ describe("Paginator Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
-
-        cy.get(cesc("#\\/problem1_title")).should("have.text", "Problem 1");
-        cy.get(cesc("#\\/ca")).should("have.text", "0");
+        cy.get(cesc("#problem1_title")).should("have.text", "Problem 1");
+        cy.get(cesc("#ca")).should("have.text", "0");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            let n = stateVariables["/problem1/n"].stateValues.value;
 
-            let mathinput1Name =
-                stateVariables[`/problem1/_answer${n}`].stateValues
-                    .inputChildren[0].componentIdx;
-            let mathinput1Anchor = cesc2("#" + mathinput1Name) + " textarea";
-            let mathinput1DisplayAnchor =
-                cesc2("#" + mathinput1Name) + " .mq-editable-field";
-            let answer1Correct = cesc2("#" + mathinput1Name + "_correct");
-            let answer1Submit = cesc2("#" + mathinput1Name + "_submit");
+            let n =
+                stateVariables[await win.resolvePath1("problem1.n[1]")]
+                    .stateValues.value;
 
-            let mathinput2Name =
-                stateVariables[`/problem1/a${n}`].stateValues.inputChildren[0]
-                    .componentIdx;
-            let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
-            let mathinput2DisplayAnchor =
-                cesc2("#" + mathinput2Name) + " .mq-editable-field";
-            let answer2Correct = cesc2("#" + mathinput2Name + "_correct");
-            let answer2Submit = cesc2("#" + mathinput2Name + "_submit");
+            let mathInput1Name =
+                stateVariables[await win.resolvePath1(`problem1.cc.answer`)]
+                    .stateValues.inputChildren[0].componentIdx;
+            let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
+            let mathInput1DisplayAnchor =
+                cesc("#" + mathInput1Name) + " .mq-editable-field";
+            let answer1Correct = cesc("#" + mathInput1Name + "_correct");
+            let answer1Submit = cesc("#" + mathInput1Name + "_submit");
+
+            let mathInput2Name =
+                stateVariables[await win.resolvePath1(`problem1.cc${n}.a`)]
+                    .stateValues.inputChildren[0].componentIdx;
+            let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
+            let mathInput2DisplayAnchor =
+                cesc("#" + mathInput2Name) + " .mq-editable-field";
+            let answer2Correct = cesc("#" + mathInput2Name + "_correct");
+            let answer2Submit = cesc("#" + mathInput2Name + "_submit");
 
             let correctAnswer = n === 1 ? "x" : "y";
 
-            cy.get(mathinput1Anchor).type(`${correctAnswer}`, { force: true });
-            cy.get(mathinput1DisplayAnchor)
+            cy.get(mathInput1Anchor).type(`${correctAnswer}`, { force: true });
+            cy.get(mathInput1DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -2423,10 +2399,10 @@ describe("Paginator Tag Tests", function () {
                 });
             cy.get(answer1Submit).click();
 
-            cy.get(cesc("#\\/ca")).should("have.text", "0.25");
+            cy.get(cesc("#ca")).should("have.text", "0.25");
 
-            cy.get(mathinput2Anchor).type(`2${correctAnswer}`, { force: true });
-            cy.get(mathinput2DisplayAnchor)
+            cy.get(mathInput2Anchor).type(`2${correctAnswer}`, { force: true });
+            cy.get(mathInput2DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -2435,17 +2411,17 @@ describe("Paginator Tag Tests", function () {
                 });
             cy.get(answer2Submit).click();
 
-            cy.get(cesc("#\\/ca")).should("have.text", "0.5");
+            cy.get(cesc("#ca")).should("have.text", "0.5");
 
-            cy.get(cesc2("#/pcontrols_next")).click();
-            cy.get(cesc("#\\/problem2_title")).should("have.text", "Problem 2");
-            cy.get(cesc("#\\/ca")).should("have.text", "0.5");
+            cy.get(cesc("#pcontrols_next")).click();
+            cy.get(cesc("#problem2_title")).should("have.text", "Problem 2");
+            cy.get(cesc("#ca")).should("have.text", "0.5");
 
-            cy.get(cesc2("#/pcontrols_previous")).click();
-            cy.get(cesc("#\\/problem1_title")).should("have.text", "Problem 1");
-            cy.get(cesc("#\\/ca")).should("have.text", "0.5");
+            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get(cesc("#problem1_title")).should("have.text", "Problem 1");
+            cy.get(cesc("#ca")).should("have.text", "0.5");
 
-            cy.get(mathinput1DisplayAnchor)
+            cy.get(mathInput1DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -2454,7 +2430,7 @@ describe("Paginator Tag Tests", function () {
                 });
             cy.get(answer1Correct).should("be.visible");
 
-            cy.get(mathinput2DisplayAnchor)
+            cy.get(mathInput2DisplayAnchor)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -2463,33 +2439,33 @@ describe("Paginator Tag Tests", function () {
                 });
             cy.get(answer2Correct).should("be.visible");
 
-            cy.get(cesc2("#/pcontrols_next")).click();
-            cy.get(cesc("#\\/problem2_title")).should("have.text", "Problem 2");
-            cy.get(cesc("#\\/ca")).should("have.text", "0.5");
+            cy.get(cesc("#pcontrols_next")).click();
+            cy.get(cesc("#problem2_title")).should("have.text", "Problem 2");
+            cy.get(cesc("#ca")).should("have.text", "0.5");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                let mathinput3Name =
-                    stateVariables[`/problem2/_answer1`].stateValues
-                        .inputChildren[0].componentIdx;
-                let mathinput3Anchor =
-                    cesc2("#" + mathinput3Name) + " textarea";
-                let mathinput3DisplayAnchor =
-                    cesc2("#" + mathinput3Name) + " .mq-editable-field";
-                let answer3Correct = cesc2("#" + mathinput3Name + "_correct");
+                let mathInput3Name =
+                    stateVariables[
+                        await win.resolvePath1(`problem2.cc1.answer`)
+                    ].stateValues.inputChildren[0].componentIdx;
+                let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
+                let mathInput3DisplayAnchor =
+                    cesc("#" + mathInput3Name) + " .mq-editable-field";
+                let answer3Correct = cesc("#" + mathInput3Name + "_correct");
 
-                let mathinput4Name =
-                    stateVariables[`/problem2/_answer3`].stateValues
-                        .inputChildren[0].componentIdx;
-                let mathinput4Anchor =
-                    cesc2("#" + mathinput4Name) + " textarea";
-                let mathinput4DisplayAnchor =
-                    cesc2("#" + mathinput4Name) + " .mq-editable-field";
-                let answer4Correct = cesc2("#" + mathinput4Name + "_correct");
+                let mathInput4Name =
+                    stateVariables[
+                        await win.resolvePath1(`problem2.cc2.answer`)
+                    ].stateValues.inputChildren[0].componentIdx;
+                let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
+                let mathInput4DisplayAnchor =
+                    cesc("#" + mathInput4Name) + " .mq-editable-field";
+                let answer4Correct = cesc("#" + mathInput4Name + "_correct");
 
-                cy.get(mathinput3Anchor).type(`1{enter}`, { force: true });
-                cy.get(mathinput3DisplayAnchor)
+                cy.get(mathInput3Anchor).type(`1{enter}`, { force: true });
+                cy.get(mathInput3DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -2498,10 +2474,10 @@ describe("Paginator Tag Tests", function () {
                     });
                 cy.get(answer3Correct).should("be.visible");
 
-                cy.get(cesc("#\\/ca")).should("have.text", "0.75");
+                cy.get(cesc("#ca")).should("have.text", "0.75");
 
-                cy.get(mathinput4Anchor).type(`2{enter}`, { force: true });
-                cy.get(mathinput4DisplayAnchor)
+                cy.get(mathInput4Anchor).type(`2{enter}`, { force: true });
+                cy.get(mathInput4DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -2510,16 +2486,16 @@ describe("Paginator Tag Tests", function () {
                     });
                 cy.get(answer4Correct).should("be.visible");
 
-                cy.get(cesc("#\\/ca")).should("have.text", "1");
+                cy.get(cesc("#ca")).should("have.text", "1");
 
-                cy.get(cesc2("#/pcontrols_previous")).click();
-                cy.get(cesc("#\\/problem1_title")).should(
+                cy.get(cesc("#pcontrols_previous")).click();
+                cy.get(cesc("#problem1_title")).should(
                     "have.text",
                     "Problem 1",
                 );
-                cy.get(cesc("#\\/ca")).should("have.text", "1");
+                cy.get(cesc("#ca")).should("have.text", "1");
 
-                cy.get(mathinput1DisplayAnchor)
+                cy.get(mathInput1DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -2528,7 +2504,7 @@ describe("Paginator Tag Tests", function () {
                     });
                 cy.get(answer1Correct).should("be.visible");
 
-                cy.get(mathinput2DisplayAnchor)
+                cy.get(mathInput2DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -2537,14 +2513,14 @@ describe("Paginator Tag Tests", function () {
                     });
                 cy.get(answer2Correct).should("be.visible");
 
-                cy.get(cesc2("#/pcontrols_next")).click();
-                cy.get(cesc("#\\/problem2_title")).should(
+                cy.get(cesc("#pcontrols_next")).click();
+                cy.get(cesc("#problem2_title")).should(
                     "have.text",
                     "Problem 2",
                 );
-                cy.get(cesc("#\\/ca")).should("have.text", "1");
+                cy.get(cesc("#ca")).should("have.text", "1");
 
-                cy.get(mathinput3DisplayAnchor)
+                cy.get(mathInput3DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -2553,7 +2529,7 @@ describe("Paginator Tag Tests", function () {
                     });
                 cy.get(answer3Correct).should("be.visible");
 
-                cy.get(mathinput4DisplayAnchor)
+                cy.get(mathInput4DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -2562,20 +2538,20 @@ describe("Paginator Tag Tests", function () {
                     });
                 cy.get(answer4Correct).should("be.visible");
 
-                cy.get(cesc("#\\/ca")).should("have.text", "1");
+                cy.get(cesc("#ca")).should("have.text", "1");
 
                 cy.wait(2000); // wait for 1 second debounce
 
                 cy.window().then(async (win) => {
                     win.postMessage(
                         {
-                            doenetML: "<text>b</text>",
+                            doenetML: "<text name='b'>b</text>",
                         },
                         "*",
                     );
                 });
 
-                cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
+                cy.get(cesc("#b")).should("have.text", "b"); //wait for page to load
 
                 cy.window().then(async (win) => {
                     win.postMessage(
@@ -2586,15 +2562,13 @@ describe("Paginator Tag Tests", function () {
                     );
                 });
 
-                cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
-
-                cy.get(cesc("#\\/problem2_title")).should(
+                cy.get(cesc("#problem2_title")).should(
                     "have.text",
                     "Problem 2",
                 );
-                cy.get(cesc("#\\/ca")).should("have.text", "1");
+                cy.get(cesc("#ca")).should("have.text", "1");
 
-                cy.get(mathinput3DisplayAnchor)
+                cy.get(mathInput3DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -2603,7 +2577,7 @@ describe("Paginator Tag Tests", function () {
                     });
                 cy.get(answer3Correct).should("be.visible");
 
-                cy.get(mathinput4DisplayAnchor)
+                cy.get(mathInput4DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -2612,16 +2586,16 @@ describe("Paginator Tag Tests", function () {
                     });
                 cy.get(answer4Correct).should("be.visible");
 
-                cy.get(cesc("#\\/ca")).should("have.text", "1");
+                cy.get(cesc("#ca")).should("have.text", "1");
 
-                cy.get(cesc2("#/pcontrols_previous")).click();
-                cy.get(cesc("#\\/problem1_title")).should(
+                cy.get(cesc("#pcontrols_previous")).click();
+                cy.get(cesc("#problem1_title")).should(
                     "have.text",
                     "Problem 1",
                 );
-                cy.get(cesc("#\\/ca")).should("have.text", "1");
+                cy.get(cesc("#ca")).should("have.text", "1");
 
-                cy.get(mathinput1DisplayAnchor)
+                cy.get(mathInput1DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(
@@ -2630,7 +2604,7 @@ describe("Paginator Tag Tests", function () {
                     });
                 cy.get(answer1Correct).should("be.visible");
 
-                cy.get(mathinput2DisplayAnchor)
+                cy.get(mathInput2DisplayAnchor)
                     .invoke("text")
                     .then((text) => {
                         expect(

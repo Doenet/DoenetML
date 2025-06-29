@@ -117,6 +117,14 @@ export function convertRefsToCopies({
                         children: ["false"],
                     };
                 }
+
+                // The "removeEmptyArrayEntries" attribute needs to be on the copy component, not the list component
+                if ("removeEmptyArrayEntries" in wrappingComponent.attributes) {
+                    newComponent.attributes.removeEmptyArrayEntries =
+                        wrappingComponent.attributes.removeEmptyArrayEntries;
+                    delete wrappingComponent.attributes.removeEmptyArrayEntries;
+                }
+
                 delete wrappingComponent.extending;
             } else {
                 outerAttributes.createComponentOfType = {

@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "@doenet/utils";
+import { cesc } from "@doenet/utils";
 
 describe("MathInput Tag Tests", function () {
     beforeEach(() => {
@@ -11,32 +11,26 @@ describe("MathInput Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <text>a</text>
-    <p>a: <mathinput name="a" /></p>
-    <p>a2: $a.value{assignNames="a2"}</p>
-    <p>a3: <copy prop="value" source="a" simplify assignNames="a3" /></p>
+    <p>a: <mathInput name="a" /></p>
+    <p>a2: <math extend="$a" name="a2" /></p>
+    <p>a3: <math extend="$a" simplify name="a3" /></p>
     `,
                 },
                 "*",
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+        cy.get(cesc("#a2")).should("contain.text", "＿");
 
-        cy.get(cesc("#\\/a2")).should("contain.text", "＿");
-
-        cy.get(cesc("#\\/a") + " textarea").type("sqrt4{enter}", {
+        cy.get(cesc("#a") + " textarea").type("sqrt4{enter}", {
             force: true,
         });
 
-        cy.get(cesc("#\\/a") + " .mq-editable-field").should(
-            "contain.text",
-            "√4",
-        );
-        cy.get(cesc("#\\/a2")).should("contain.text", "4");
-        cy.get(cesc("#\\/a3")).should("contain.text", "2");
+        cy.get(cesc("#a") + " .mq-editable-field").should("contain.text", "√4");
+        cy.get(cesc("#a2")).should("contain.text", "4");
+        cy.get(cesc("#a3")).should("contain.text", "2");
 
-        cy.get(cesc("#\\/a") + " .mq-editable-field")
+        cy.get(cesc("#a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -55,44 +49,39 @@ describe("MathInput Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <p><text>a</text></p>
-  <p>n: <mathinput name="n" prefill="10" /></p>
-  <p>Value of n: $n.value{assignNames="n2"}</p>
+  <p>n: <mathInput name="n" prefill="10" /></p>
+  <p>Value of n: <math extend="$n" name="n2"/></p>
   `,
                 },
                 "*",
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
-
         // by highlighting and typing a number, we make sure the rendererValue changes directly
         // from 10 to 20 and back to 10 (without other changes that would hide the bug)
-        cy.get(cesc("#\\/n") + " textarea")
+        cy.get(cesc("#n") + " textarea")
             .type("{home}{shift+rightArrow}2", { force: true })
             .blur();
-        cy.get(cesc("#\\/n2")).should("contain.text", "20");
+        cy.get(cesc("#n2")).should("contain.text", "20");
 
-        cy.get(cesc("#\\/n") + " textarea")
+        cy.get(cesc("#n") + " textarea")
             .type("{home}{shift+rightArrow}1", { force: true })
             .blur();
-        cy.get(cesc("#\\/n2")).should("contain.text", "10");
+        cy.get(cesc("#n2")).should("contain.text", "10");
     });
 
     it("check ignoreUpdate bug 2", () => {
         // if set core to delay 1 second on updates
-        // the extra update from focusing another mathinput wasn't being ignored
+        // the extra update from focusing another mathInput wasn't being ignored
         // leading rendererValue to get out of sync
 
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-    <text>a</text>
-
-    <p>c: <mathinput name="c" prefill="x" /></p>
-    <p>c2: $c.value{assignNames="c2"}</p>
-    <p>d: <mathinput name="d" /></p>
+    <p>c: <mathInput name="c" prefill="x" /></p>
+    <p>c2: <math extend="$c" name="c2" /></p>
+    <p>d: <mathInput name="d" /></p>
 
     `,
                 },
@@ -100,26 +89,16 @@ describe("MathInput Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+        cy.get(cesc("#c2")).should("have.text", "x");
 
-        cy.get(cesc("#\\/c2"))
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text).eq("x");
-            });
-
-        cy.get(cesc("#\\/c") + " textarea").type("{end}y{enter}", {
+        cy.get(cesc("#c") + " textarea").type("{end}y{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/d") + " textarea").focus();
+        cy.get(cesc("#d") + " textarea").focus();
 
-        cy.get(cesc("#\\/c2")).should("contain.text", "xy");
-        cy.get(cesc("#\\/c") + " .mq-editable-field").should(
-            "contain.text",
-            "xy",
-        );
-        cy.get(cesc("#\\/c2"))
+        cy.get(cesc("#c2")).should("contain.text", "xy");
+        cy.get(cesc("#c") + " .mq-editable-field").should("contain.text", "xy");
+        cy.get(cesc("#c2"))
             .eq(0)
             .invoke("text")
             .then((text) => {
@@ -127,15 +106,12 @@ describe("MathInput Tag Tests", function () {
             });
 
         // need next update to go back to x for the bug to be revealed
-        cy.get(cesc("#\\/c") + " textarea").type("{end}{backspace}{enter}", {
+        cy.get(cesc("#c") + " textarea").type("{end}{backspace}{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/c2")).should("not.contain.text", "xy");
-        cy.get(cesc("#\\/c") + " .mq-editable-field").should(
-            "contain.text",
-            "x",
-        );
-        cy.get(cesc("#\\/c2"))
+        cy.get(cesc("#c2")).should("not.contain.text", "xy");
+        cy.get(cesc("#c") + " .mq-editable-field").should("contain.text", "x");
+        cy.get(cesc("#c2"))
             .eq(0)
             .invoke("text")
             .then((text) => {
@@ -145,7 +121,7 @@ describe("MathInput Tag Tests", function () {
 
     it("set value from immediateValue on reload", () => {
         let doenetML = `
-    <p><mathinput name="n" /></p>
+    <p><mathInput name="n" /></p>
 
     <p name="pv">value: $n</p>
     <p name="piv">immediate value: $n.immediateValue</p>
@@ -165,10 +141,10 @@ describe("MathInput Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/n") + " textarea").type("1", { force: true });
+        cy.get(cesc("#n") + " textarea").type("1", { force: true });
 
-        cy.get(cesc("#\\/piv")).should("have.text", "immediate value: 1");
-        cy.get(cesc("#\\/pv")).should("contain.text", "value: \uff3f");
+        cy.get(cesc("#piv")).should("have.text", "immediate value: 1");
+        cy.get(cesc("#pv")).should("contain.text", "value: \uff3f");
 
         cy.wait(1500); // wait for debounce
 
@@ -183,8 +159,8 @@ describe("MathInput Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/pv")).should("have.text", "value: 1");
-        cy.get(cesc("#\\/piv")).should("have.text", "immediate value: 1");
+        cy.get(cesc("#pv")).should("have.text", "value: 1");
+        cy.get(cesc("#piv")).should("have.text", "immediate value: 1");
     });
 
     it("minWidth attribute", () => {
@@ -192,82 +168,79 @@ describe("MathInput Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-      <p>Specify min width: <mathinput name="mw" prefill="0" /></p>
+      <p>Specify min width: <mathInput name="mw" prefill="0" /></p>
 
-      <p>Result: <mathinput minWidth="$mw" name="result" /></p>
+      <p>Result: <mathInput minWidth="$mw" name="result" /></p>
   `,
                 },
                 "*",
             );
         });
 
-        cy.get(cesc("#\\/mw") + " .mq-editable-field").should(
+        cy.get(cesc("#mw") + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "50px",
         );
 
-        cy.get(cesc("#\\/result") + " .mq-editable-field").should(
+        cy.get(cesc("#result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "0px",
         );
 
-        cy.get(cesc("#\\/mw") + " textarea").type(
-            "{end}{backspace}100{enter}",
-            {
-                force: true,
-            },
-        );
-        cy.get(cesc("#\\/result") + " .mq-editable-field").should(
+        cy.get(cesc("#mw") + " textarea").type("{end}{backspace}100{enter}", {
+            force: true,
+        });
+        cy.get(cesc("#result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "100px",
         );
 
-        cy.get(cesc("#\\/mw") + " textarea").type(
+        cy.get(cesc("#mw") + " textarea").type(
             "{end}{backspace}{backspace}{backspace}{enter}",
             { force: true },
         );
-        cy.get(cesc("#\\/result") + " .mq-editable-field").should(
+        cy.get(cesc("#result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "50px",
         );
 
-        cy.get(cesc("#\\/mw") + " textarea").type("{end}{backspace}40{enter}", {
+        cy.get(cesc("#mw") + " textarea").type("{end}{backspace}40{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/result") + " .mq-editable-field").should(
+        cy.get(cesc("#result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "40px",
         );
 
-        cy.get(cesc("#\\/mw") + " textarea").type("{end}x{enter}", {
+        cy.get(cesc("#mw") + " textarea").type("{end}x{enter}", {
             force: true,
         });
-        cy.get(cesc("#\\/result") + " .mq-editable-field").should(
+        cy.get(cesc("#result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "50px",
         );
 
-        cy.get(cesc("#\\/mw") + " textarea").type(
+        cy.get(cesc("#mw") + " textarea").type(
             "{end}{backspace}{backspace}7{enter}",
             { force: true },
         );
-        cy.get(cesc("#\\/result") + " .mq-editable-field").should(
+        cy.get(cesc("#result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "47px",
         );
 
-        cy.get(cesc("#\\/mw") + " textarea").type(
+        cy.get(cesc("#mw") + " textarea").type(
             "{end}{backspace}{backspace}-20{enter}",
             { force: true },
         );
-        cy.get(cesc("#\\/result") + " .mq-editable-field").should(
+        cy.get(cesc("#result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "0px",
