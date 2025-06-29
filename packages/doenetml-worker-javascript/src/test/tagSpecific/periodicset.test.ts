@@ -147,6 +147,7 @@ describe("PeriodicSet tag tests", async () => {
             period,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
+
         expect(
             stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
