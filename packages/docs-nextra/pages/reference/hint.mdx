@@ -6,12 +6,13 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-` <hint>{:dn}` renders a hidden block of content that can be expanded when its banner is clicked 
+` <hint>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders a hidden block of content that can be expanded when its banner is clicked 
 or can be rendered visible only when triggered by specific user interactions.
 
 
 ## Attributes and Properties 
- <AttrDisplay name='hint'/> 
+The ` <hint>{:dn}` does not have attributes.
  <PropDisplay name='hint'/>
 
 
@@ -21,7 +22,7 @@ or can be rendered visible only when triggered by specific user interactions.
 ### Example: ` <hint>{:dn}` that is always visible
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>What food item below was NOT invented in America?
   <answer>
     <choice>Hot Dogs</choice>
@@ -35,11 +36,9 @@ or can be rendered visible only when triggered by specific user interactions.
 </hint> 
 ```
 
-
-
-The ` <hint>{:dn}` banner is not triggered by any specific conditions and is always accessible to the user. The content of the ` <hint>{:dn}` is made available by clicking on the hint banner. 
-
-
+The ` <hint>{:dn}` banner is not triggered by any specific conditions and 
+is always accessible to the user. The content of the ` <hint>{:dn}` is made 
+available by clicking on the hint banner. 
 
 ---
 
@@ -57,7 +56,8 @@ The ` <hint>{:dn}` banner is not triggered by any specific conditions and is alw
 
 
 
-The conditions under which a ` <hint>{:dn}` is visible can be tailored to specific user interactions using the ` <hide>{:dn}` attribute.
+The conditions under which a ` <hint>{:dn}` is visible can be tailored to 
+specific user interactions using the ` <hide>{:dn}` attribute.
 
 
 
@@ -67,45 +67,51 @@ The conditions under which a ` <hint>{:dn}` is visible can be tailored to specif
 
 
 ```doenet-editor-horiz
-<p>Given the line <math>y = 1/2 x - 4</math>, what is the <m>y</m>-intercept?
+<p>Given the line <math>y = 1/2 x - 4</math>, 
+what is the <m>y</m>-intercept?
   <answer name="ans">-4</answer>
-  <hint hide="($ans.nSubmissions < 2) or ($ans.creditAchieved = 1)">
+
+  <hint 
+    hide="($ans.nSubmissions < 2) or ($ans.creditAchieved = 1)">
     Think of the slope-intercept form of a line: <m>y = mx + b</m>
   </hint>
 </p>
 ```
 
-
-
-Properties of the named ` <answer>{:dn}` component are referenced by the boolean condition listed in the `hide` attribute of the ` <hint>{:dn}`. In this case, if the user answers incorrectly 2 or more times, the `hide` attribute of the ` <hint>{:dn}` will become `false`, and the ` <hint>{:dn}` will appear.
-
-
+Properties of the named ` <answer>{:dn}` component are referenced by the 
+boolean condition listed in the `hide` attribute of the ` <hint>{:dn}`. In 
+this case, if the user answers incorrectly 2 or more times, the `hide` attribute 
+of the ` <hint>{:dn}` will become `false`, and the ` <hint>{:dn}` will appear.
 
 ---
 
-### Example: open
+### Property Example: open
 
 
 ```doenet-editor-horiz
 <p>Open and close the hint.</p>
+
 <hint name="myHint">Here is a tip.</hint>
+
 <p><c>open</c> = $myHint.open</p>
 ```
 
 
 
-The `open` property renders the boolean value corresponding to whether the ` <hint>{:dn}` is currently open.
+The `open` property renders the boolean value corresponding to whether 
+the ` <hint>{:dn}` is currently open.
 
 
 
 ---
 
-### Example: title
+### Property Example: title
 
 
 ```doenet-editor-horiz
 <hint name="myHint"><title>Top Secret</title>
   Here is a tip.</hint>
+
 <p><c>title</c> = $myHint.title</p>
 ```
 

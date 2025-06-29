@@ -167,8 +167,9 @@ Mathematical content can be defined and rendered with Math Components. These com
 | [`<coords>`](coords)               | math component that renders a set of coordinates                                             |
 | [`<derivative>`](derivative)           | renders or graphs the derivative of basic elementary functions                               |
 | [`<function>`](function)             | mathematical function                                                                        |
-| [`<functionIterates>`](functionIterates)     | evaluate a function over a specified number of iterations of its argument                    |
 | [`<integer>`](integer)              | defines an integer                                                                           |
+| [`<interval>`](interval)              | defines an interval                                                                           |
+| [`<intervalList>`](intervalList)              | list of `<interval>` values separated by commas                                                                          |
 | [`<math>`](math)                 | defines a mathematical expression for computations                                           |
 | [`<mathList>`](mathList)             | list of `<math>` values separated by commas                                                  |
 | [`<matrix>`](matrix)               | defines a matrix for use in computations                                                     |
@@ -206,6 +207,7 @@ Math Operator components perform computations or take actions on the math compon
 | [`<evaluate/>`](evaluate)           | evaluate a function                                                                            |
 | `<extrema>`                                                                             |                                                                                                |
 | [`<floor>`](floor)              | renders the result of the floor function applied to the enclosed argument                      |
+| [`<functionIterates>`](functionIterates)     | evaluate a function over a specified number of iterations of its argument                    |
 | [`<gcd>`](gcd)                | renders the greatest common divisor of its arguments                                           |
 | [`<intComma>`](intComma)           | inserts commas into a large integer when rendering                                             |
 | [`<max>`](max)                | renders the maximum value of its arguments                                                     |
@@ -231,7 +233,6 @@ These components perform actions on Math components as well as other component t
 | [`<case>`](case)                | defines the condition within a `<conditionalContent>` block                                                    |
 | [`<collect />`](collect.mdx)         | gathers multiple data instances of a specified type from a graph or a sectional component and stores in a list |
 | [`<conditionalContent>`](conditionalContent.mdx)  | defines a section of content rendered upon a specific condition                                                |
-| [`<extract>`](extract)             | extract data from a component or group of components                                                           |
 | [`<extractMath>`](extractMath)         | extract data (such as number of operands, or individual operands) from mathematical expressions                |
 | [`<group>`](group)               | groups multiple components into one component which can be referenced with a single name                       |
 | [`<repeat>`](repeat)                 | iterate an action or a sequence of actions                                 |
@@ -267,7 +268,7 @@ Logic components define boolean conditions or are used in logical expressions.
 | [`<else>`](else)         | defines a logical else condition within a `<conditionalContent>` block |
 | [`<isBetween>`](isBetween)    | returns whether a value is within a specified interval                 |
 | [`<isInteger>`](isInteger)    | returns whether a value is an integer                                  |
-| [`<isNumber>`](isNumber)     | returns whether a value is a number                                    |
+| [`<isNumber>`](isNumber)     | returns whether a value is a real number                                    |
 | [`<not>`](not)          | used in the construction of boolean conditions                         |
 | [`<or>`](or)           | functions as the boolean operator `or`                                 |
 | [`<xor>`](xor)          | functions as the exclusive or boolean operator                         |

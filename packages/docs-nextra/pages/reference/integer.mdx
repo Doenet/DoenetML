@@ -7,7 +7,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <integer>{:dn}`
 
 
-` <integer>{:dn}` renders the nearest integer to the input number.
+` <integer>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
+component that defines an integer value.
 
 ## Attributes and Properties 
  <AttrDisplay name='integer'/> 
@@ -15,16 +16,18 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
-### Example: ` <integer>{:dn}` of sugared number
+### Example: ` <integer>{:dn}` of nested number
 
 
 ```doenet-editor-horiz
-<integer>2.3</integer>
+<integer name="int">2.3</integer>
+
+<p>$int </p>
 ```
 
 
 
-` <integer>{:dn}` renders the enclosed number rounded to the nearest integer value.
+The named ` <integer>{:dn}` stores the enclosed number as the nearest integer value.
 
 
 
@@ -33,14 +36,16 @@ import { AttrDisplay, PropDisplay } from "../../components"
 ### Example: ` <integer>{:dn}` of user-input
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Enter a number with a decimal or fractional part:
   <mathInput name="userN"/></p>
-<p>Your number, rounded to the nearest integer is: <integer>$userN</integer></p>
+
+<p>The nearest integer is: <integer>$userN</integer></p>
 ```
 
 
 
-The named ` <mathInput/>{:dn}` is rounded by the ` <integer>{:dn}` component to the nearest integer value.
+The named ` <mathInput/>{:dn}` is stored by the ` <integer>{:dn}` component as 
+the nearest integer value.
 
 

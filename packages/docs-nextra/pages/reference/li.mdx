@@ -6,10 +6,11 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <li>{:dn}`
 
 
-` <li>{:dn}` defines an item in either an ordered list, [` <ol>{:dn}`](ol.mdx), or an unordered list, [` <ul>{:dn}`](ul.mdx).
+` <li>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) component
+that defines an item in either an ordered list, ` <ol>{:dn}`, or an unordered list, ` <ul>{:dn}`.
 
 ## Attributes and Properties 
- <AttrDisplay name='li'/> 
+ The ` <li>{:dn}` component does not have attributes.
  <PropDisplay name='li'/>
 
 
@@ -29,7 +30,10 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-` <ul>{:dn}` renders an unordered list, with list items given by ` <li>{:dn}` children. ` <ul>{:dn}` is a block component and should not contain any components other than ` <li>{:dn}` children. Individual ` <li>{:dn}` children may themselves contain graphs, problems, paragraphs, and other content.
+` <ul>{:dn}` renders an unordered list, with list items given by ` <li>{:dn}` 
+children. ` <ul>{:dn}` is a block component and should not contain any 
+components other than ` <li>{:dn}` children. Individual ` <li>{:dn}` children may themselves 
+contain graphs, problems, paragraphs, and other content.
 
 
 
@@ -49,7 +53,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-` <ol>{:dn}` renders an ordered list, with list items given by ` <li>{:dn}` children. ` <ol>{:dn}` is a block component and should not contain any components other than ` <li>{:dn}` children. Individual ` <li>{:dn}` children may themselves contain graphs, problems, paragraphs, and other content.
+` <ol>{:dn}` renders an ordered list, with list items given by ` <li>{:dn}` children. ` <ol>{:dn}` is 
+a block component and should not contain any components other than ` <li>{:dn}` 
+children. Individual ` <li>{:dn}` children may themselves contain graphs, problems, paragraphs, and other content.
 
 
 
@@ -61,10 +67,10 @@ import { AttrDisplay, PropDisplay } from "../../components"
 ```doenet-editor-horiz
 <ul>
   <li>
-    <p><lorem generateSentences="4"/></p>
+    <p><lorem generateSentences="2"/></p>
   </li>
   <li>
-    <graph size="small" displayMode="inline"/>
+    <graph size="tiny" displayMode="inline"/>
   </li>
   <li>
     <problem>
@@ -78,6 +84,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-` <ul>{:dn}` and ` <ol>{:dn}` components can only take ` <li>{:dn}` children. Individual ` <li>{:dn}` children may themselves contain graphs, problems, paragraphs, and other content.
+` <ul>{:dn}` and ` <ol>{:dn}` components can only take ` <li>{:dn}` children. Individual 
+` <li>{:dn}` children may themselves contain graphs, problems, paragraphs, and other content.
 
 

@@ -3,10 +3,11 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 
-<tage>lorem</tage>
+# `<lorem/>{:dn}`
 
 
-` <lorem/>{:dn}` renders random lorem-ipsum filler text.  The amount of text generated is controlled by attribute specification of the number of words, sentences, and paragraphs.
+` <lorem/>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types)
+component that renders random lorem-ipsum filler text.  The amount of text generated is controlled by attribute specification of the number of words, sentences, and paragraphs.
 
 
 ## Attributes and Properties 
@@ -16,7 +17,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
-### Example: generateWords
+### Attribute Example: generateWords
 
 
 ```doenet-editor-horiz
@@ -31,7 +32,7 @@ Specify the number of words to generate with the `generateWords` attribute.
 
 ---
 
-### Example: generateSentences
+### Attribute Example: generateSentences
 
 
 ```doenet-editor-horiz
@@ -46,7 +47,7 @@ Specify the number of sentences to generate with the `generateSentences` attribu
 
 ---
 
-### Example: generateParagraphs
+### Attribute Example: generateParagraphs
 
 
 ```doenet-editor-horiz
@@ -61,11 +62,15 @@ Specify the number of paragraphs to generate with the `generateParagraphs` attri
 
 ---
 
-### Example: minSentencesPerParagraph, maxSentencesPerParagraph
+### Attribute Example: minSentencesPerParagraph, maxSentencesPerParagraph
 
 
 ```doenet-editor-horiz
-<lorem generateParagraphs="1" minSentencesPerParagraph="2" maxSentencesPerParagraph="3"/>
+<lorem 
+  generateParagraphs="1" 
+  minSentencesPerParagraph="2" 
+  maxSentencesPerParagraph="3"
+/>
 ```
 
 
@@ -76,11 +81,15 @@ You can control the length of generated paragraphs with the `minSentencesPerPara
 
 ---
 
-### Example: minWordsPerSentence, maxWordsPerSentence
+### Attribute Example: minWordsPerSentence, maxWordsPerSentence
 
 
 ```doenet-editor-horiz
-<lorem generateSentences="1" minWordsPerSentence="9" maxWordsPerSentence="10"/>
+<lorem 
+	generateSentences="1" 
+	minWordsPerSentence="9" 
+	maxWordsPerSentence="10"
+/>
 ```
 
 

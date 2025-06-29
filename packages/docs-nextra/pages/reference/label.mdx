@@ -6,7 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <label>{:dn}`
 
 
-` <label>{:dn}` renders a label on a ` <graph>{:dn}`, button, or checkbox.
+` <label>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a label on a ` <graph>{:dn}`, button, or checkbox.
 
 ## Attributes and Properties 
  <AttrDisplay name='label'/> 
@@ -17,7 +18,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 ### Example: ` <label>{:dn}` a ` <point>{:dn}` on a ` <graph>{:dn}`
 
 
-```doenet-editor-horiz
+```doenet-example
 <graph size="small">
   <point name="pointA">(3,4)
     <label>A</label>
@@ -38,7 +39,7 @@ accept a ` <label>{:dn}` component as a child.
 ### Example: A stand-alone ` <label>{:dn}` on a ` <graph>{:dn}`
 
 
-```doenet-editor-horiz
+```doenet-example
 <graph size="small">
   <point name="A" labelIsName>(3,4)
     <constraints><constrainToGrid/></constraints>
@@ -61,7 +62,7 @@ A ` <label>{:dn}` can be placed within a ` <graph>{:dn}` directly (not as a chil
 ### Example: ` <label>{:dn}` a checkbox
 
 
-```doenet-editor-horiz
+```doenet-example
 <booleanInput>
   <label>Check if you agree</label>
 </booleanInput>
@@ -80,14 +81,19 @@ A checkbox is rendered by the ` <booleanInput>{:dn}` component. The ` <booleanIn
 
 ```doenet-editor-horiz
 <p><m>n = <number name="n">1</number></m></p>
-<updateValue name="addOne" target="n" newValue="$n + 1" type="number">
-  <label>Add <m>1</m> to <m>n</m></label>
+<updateValue 
+  name="addOne" 
+  target="$n" 
+  newValue="$n + 1" 
+  type="number">
+    <label>Add <m>1</m> to <m>n</m></label>
 </updateValue>
 ```
 
 
 
-The ` <updateValue>{:dn}` component, when triggered based on a button click interaction, can take a ` <label>{:dn}` child.
+The ` <updateValue>{:dn}` component, when triggered based on a button click 
+interaction, can take a ` <label>{:dn}` child.
 
 
 
@@ -97,16 +103,19 @@ The ` <updateValue>{:dn}` component, when triggered based on a button click inte
 
 
 ```doenet-editor-horiz
-<callAction actionName="addChildren" target="g">
-  <point>(2,3)</point>
-  <label>Add point</label>
+<callAction 
+  actionName="addChildren" 
+  target="$g">
+    <point>(2,3)</point>
+    <label>Add point</label>
 </callAction>
 <graph name="g" size="small"/>      
 ```
 
 
 
-The ` <callAction>{:dn}` component, when triggered based on a button click interaction, can take a ` <label>{:dn}` child.
+The ` <callAction>{:dn}` component, when triggered based on a button click interaction, 
+can take a ` <label>{:dn}` child.
 
 
 
@@ -117,10 +126,19 @@ The ` <callAction>{:dn}` component, when triggered based on a button click inter
 
 ```doenet-editor-horiz
 <triggerSet>
-  <updateValue target="A.styleNumber" newValue="2" type="number"/>
-  <updateValue target="A.coords" newValue="(-3,-3)" type="math"/>
-  <label>Change point color and position</label>
+  <updateValue 
+    target="$A.styleNumber" 
+    newValue="2"
+  />
+  <updateValue 
+    target="$A.coords" 
+    newValue="(-3,-3)" 
+  />
+  <label>
+    Change point color and position
+  </label>
 </triggerSet>
+
 <graph size="small">
   <point name="A" coords="(4,4)" styleNumber="3"/>
 </graph>
@@ -128,7 +146,8 @@ The ` <callAction>{:dn}` component, when triggered based on a button click inter
 
 
 
-The ` <callAction>{:dn}` component, when triggered based on a button click interaction, can take a ` <label>{:dn}` child.
+The ` <callAction>{:dn}` component, when triggered based on a 
+button click interaction, can take a ` <label>{:dn}` child.
 
 
 
@@ -171,6 +190,7 @@ order in which they are defined within the graph.
 <answer>
   <award><when>$userCoords = $pointA</when></award>
 </answer></p>
+
 <graph xmin="-2" ymin="-2">
   <point name="pointA" fixed>(3,4)</point>
   <textInput name="input" anchor="(4,5)" width="30px">
@@ -190,18 +210,32 @@ can take a ` <label>{:dn}` child to prompt the desired input.
 
 ---
 
-### Example: forObject
+### Attribute Example: forObject
 
 
 ```doenet-editor-horiz
 <graph size="small">
-  <circle name="circ" center="(0,0)" through="(6,0)" filled styleNumber="6"/>
-  <lineSegment name="r" endpoints="$circ.throughPoints[1] $circ.center" styleNumber="2"/>
+  <circle 
+    name="circ" 
+    center="(0,0)" 
+    through="(6,0)" 
+    filled 
+    styleNumber="6"
+  />
+  <lineSegment 
+    name="r" 
+    endpoints="$circ.throughPoints[1] $circ.center" 
+    styleNumber="2"
+  />
   <legend>
-    <label forObject="r">radius = $r.length</label>
-    <label forObject="circ">circumference</label>
+    <label forObject="$r">
+      radius = $r.length
+    </label>
+    <label forObject="$circ">
+      circumference
+    </label>
   </legend>
-</graph>      
+</graph>     
 ```
 
 
@@ -214,10 +248,10 @@ components are defined within the ` <graph>{:dn}`.
 
 ---
 
-### Example: draggable
+### Attribute Example: draggable
 
 
-```doenet-editor-horiz
+```doenet-example
 <graph size="small">
   <label anchor="(5,5)" name="label1">Draggable!</label>
   <label draggable="false" anchor="(-5,-5)">Not Draggable!</label>
@@ -234,7 +268,7 @@ around the ` <graph>{:dn}`. All graphical objects are draggable by default.
 
 ---
 
-### Example: text
+### Property Example: text
 
 
 ```doenet-editor-horiz
@@ -252,7 +286,7 @@ The `text` property returns the text value of the named ` <label>{:dn}`.
 
 ---
 
-### Example: latex
+### Property Example: latex
 
 
 ```doenet-editor-horiz
@@ -270,7 +304,7 @@ The `latex` property returns the latex code for rendering the named ` <label>{:d
 
 ---
 
-### Example: value
+### Property Example: value
 
 
 ```doenet-editor-horiz

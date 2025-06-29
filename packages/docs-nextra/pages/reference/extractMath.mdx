@@ -6,16 +6,18 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <extractMath>{:dn}`
 
 
-` <extractMath>{:dn}` extracts data from mathematical expresssions. (See also, the ` <matchesPattern>{:dn}` component for an alternative method for extracting data.)
+` <extractMath>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types) 
+component that extracts data from mathematical expresssions. (See also, the ` <matchesPattern>{:dn}` component 
+for an alternative method for extracting data.)
 
 
 The types of data that can be extracted with ` <extractMath>{:dn}` are: 
-<ul>
-<li>the number of operands in the expression</li>
-<li>the individual operands themselves</li>
-<li>the functions involved in an expression</li>
-<li>the function arguments</li>
-</ul>
+
+- the number of operands in the expression
+- the individual operands themselves
+- the functions involved in an expression
+- the function arguments
+
 
 
 ## Attributes and Properties 
@@ -56,6 +58,7 @@ To extract an `operand`, you must also specify the `operandNumber`.
     </extractMath>
   </extractMath>
 </p>
+
 <p>Extract the argument(s) of the function from the second operand:
   <extractMath type="functionArgument">
     <extractMath type="operand" operandNumber="2">$m1</extractMath>
@@ -65,16 +68,19 @@ To extract an `operand`, you must also specify the `operandNumber`.
 
 
 
-To extract a `function` or `functionArgument`, you must first extract the `operand` under consideration. In order to extract an individual `functionArgument` in the case of a multivariable function; the `argumentNumber` must be provided as well.
+To extract a `function` or `functionArgument`, you must first extract the `operand` under 
+consideration. In order to extract an individual `functionArgument` in the case of a multivariable 
+function; the `argumentNumber` must be provided as well.
 
 
-Note that Doenet recognizes $f$ and $g$ as function symbols by default. If other symbols are to represent functions, they can be defined within the ` <math>{:dn}` component using the `functionSymbols` attribute.
+Note that Doenet recognizes $f$ and $g$ as function symbols by default. If other symbols are to 
+represent functions, they can be defined within the ` <math>{:dn}` component using the `functionSymbols` attribute.
 
 
 
 ---
 
-### Example: type
+### Attribute Example: type
 
 
 ```doenet-editor-horiz
@@ -86,13 +92,14 @@ Note that Doenet recognizes $f$ and $g$ as function symbols by default. If other
 
 
 
-The `type` attribute specifies the value to be extracted; it takes one of four possible inputs: `operand`, `numOperands`, `function`, and `functionArgument`.
+The `type` attribute specifies the value to be extracted; it takes one of four possible 
+inputs: `operand`, `numOperands`, `function`, and `functionArgument`.
 
 
 
 ---
 
-### Example: operandNumber
+### Attribute Example: operandNumber
 
 
 ```doenet-editor-horiz
@@ -100,6 +107,7 @@ The `type` attribute specifies the value to be extracted; it takes one of four p
 <p>The third operand is:
   <extractMath type="operand" operandNumber="3">$m1</extractMath>
 </p> 
+
 <math name="m2">(x^2 - 1)/2 + sin(x)</math>
 <p>The second operand is:
   <extractMath type="operand" operandNumber="2">$m2</extractMath>
@@ -108,13 +116,14 @@ The `type` attribute specifies the value to be extracted; it takes one of four p
 
 
 
-The `operandNumber` attribute is necessary when the `operand` type is extracted. It specifies the location of the requested operand within the expression.
+The `operandNumber` attribute is necessary when the `operand` type is extracted. It 
+specifies the location of the requested operand within the expression.
 
 
 
 ---
 
-### Example: argumentNumber
+### Attribute Example: argumentNumber
 
 
 ```doenet-editor-horiz
@@ -128,5 +137,6 @@ The `operandNumber` attribute is necessary when the `operand` type is extracted.
 
 
 
-When function arguments are extracted from a math expression, the `argumentNumber` attribute specifies the location of the requested argument.
+When function arguments are extracted from a math expression, the `argumentNumber` 
+attribute specifies the location of the requested argument.
 

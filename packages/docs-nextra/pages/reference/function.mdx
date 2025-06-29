@@ -5,17 +5,20 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <function>{:dn}`
 
-The ` <function>{:dn}` component defines a mathematical function that can be used for numerical or symbolic evaluation, answer validation, graphing, and other computations within Doenet.
+` <function>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) component that defines a 
+mathematical function that can be used for numerical or symbolic evaluation, 
+answer validation, graphing, and other computations within Doenet.
 There are two main ways to create a function:
-<ol>
-<li>Creating a function using a formula</li>
-<li>Creating an interpolated function through given points or with specified extrema</li>
-</ol>
 
-## Attributes and Properties 
- <AttrDisplay name='function'/> 
- <PropDisplay name='function'/>
 
+1. Creating a function using a formula
+2. Creating an interpolated function through given points or with specified extrema
+
+
+## Basic Use Examples
+
+The following examples illustrate some of the basic uses of the ` <function>{:dn}` component.  
+See the following pages for more complex examples, attributes and properties.
 
 
 
@@ -25,25 +28,39 @@ There are two main ways to create a function:
 
 
 ```doenet-editor-horiz
-      <p>If <m>f(x) = <function name="f">x^2 + 3x - 2</function></m>,
-        then <m>f(3)=$$f(3)</m> and <m>f(z) = $$f(z)</m>.
-      </p>
-      <p>If <m>g(t) = <function name="g" variable="t">sin(t)</function></m>,
-        then <m>g(0)=$$g(0)</m> and <m>g(z) = $$g(z)</m>.
-      </p>
-      <p>The graphs of <m>f</m> and <m>g</m> are shown below.</p>
-      <graph size="small">
-        $f
-        $g{styleNumber="2"}
-      </graph>
+<p>If <m>f(x) = 
+  <function name="f">
+    x^2 + 3x - 2
+  </function>
+  </m>, then 
+  <m>f(3) = $$f(3)</m> and 
+  <m>f(z) = $$f(z)</m>.
+</p>
+
+<p>If <m>g(t) = 
+  <function name="g" variable="t" styleNumber="2">
+    sin(t)
+  </function>
+  </m>, then 
+  <m>g(0) = $$g(0)</m> and 
+  <m>g(z) = $$g(z)</m>.
+</p>
+
+<p>The graphs of <m>f</m> and <m>g</m> are shown below.</p>
+<graph size="small">
+  $f
+  $g
+</graph>
 ```
 
 
 
-A single variable function can be defined by giving a formula in the variable $x$ as the child of ` <function>{:dn}`.  The variable can be changed with the `variable` attribute.
+A single variable function can be defined by giving a formula in the variable $x$ as the child of ` <function>{:dn}`.  
+The variable can be changed with the `variable` attribute.
 
 
-The function can be evaluated using a macro of the form `<displayDoenetML>$$f(x)</displayDoenetML>` or rendered on a ` <graph>{:dn}` using the reference `<displayDoenetML>$f</displayDoenetML>`.
+The function can be evaluated using a macro of the form `$$f(x)` 
+or rendered on a ` <graph>{:dn}` using the reference `$f`.
 
 
 
@@ -53,17 +70,24 @@ The function can be evaluated using a macro of the form `<displayDoenetML>$$f(x)
 
 
 ```doenet-editor-horiz
-<p>If <m>f(x,y) = <function name="f" variables="x y">(x+y, x-y)</function></m>,
-  then <m>f(3,4)=$$f(3,4)</m> and <m>f(a,b) = $$f(a,b)</m>.
+<p>If <m>f(x,y) = 
+  <function 
+    name="f" 
+    variables="x y">
+      (x+y, x-y)
+    </function>
+  </m>,
+  then <m>f(3,4) = $$f(3,4)</m> 
+  and <m>f(a,b) = $$f(a,b)</m>.
 </p>
 ```
 
 
 
-A vector-valued function can be created by giving a vector for the formula.  The `variables` attribute can specify multiple variables.
+A vector-valued function can be created by giving a vector for the formula.  
+The `variables` attribute can specify multiple variables.
 
-
-The macro notation `<displayDoenetML>$$f(x,y)</displayDoenetML>` can be used with multiple variables.
+The macro notation `$$f(x,y)` can be used with multiple variables.
 
 
 
@@ -73,15 +97,20 @@ The macro notation `<displayDoenetML>$$f(x,y)</displayDoenetML>` can be used wit
 
 
 ```doenet-editor-horiz
-    <graph size="small">
-      <function maxima="(3,4) (-5,7)" />
-      <function through="(-7,-6) (8,9)" styleNumber="2" />
-    </graph>
+<graph size="small">
+  <function maxima="(3,4) (-5,7)" />
+  <function 
+    through="(-7,-6) (8,9)" 
+    styleNumber="2"
+  />
+</graph>
 ```
 
 
 
-To create an interpolated function, use the attributes `maxima`, `minima`, `extrema`, `through` and/or `throughSlopes`.  The scales used in the interpolation algorithm are specified by the attributes `xscale` and `yscale`.
+To create an interpolated function, use the attributes `maxima`, `minima`, `extrema`, `through` 
+and/or `throughSlopes`.  The scales used in the interpolation algorithm are specified by 
+the attributes `xscale` and `yscale`.
 
 
 
@@ -90,798 +119,32 @@ To create an interpolated function, use the attributes `maxima`, `minima`, `extr
 ### Example: Interpolated functions 2
 
 
-```doenet-editor-horiz
-    Move the points
-    <graph size="small">
-      <point name="MIN" labelIsName>(-8,2)</point>
-      <point name="MAX" labelIsName styleNumber="2">(-3,6)</point>
-      <point name="EXT" labelIsName styleNumber="3">(4,-5)</point>
-      <point name="THR" labelIsName styleNumber="4">(8,-9)</point>
-      <function name="f" minima="$MIN" maxima="$MAX" extrema="$EXT" through="$THR" />
-    </graph>
-    <ul>
-    <li>Minima: <aslist>$f.minima</aslist></li>
-    <li>Maxima: <aslist>$f.maxima</aslist></li>
-    <li>Extrema: <aslist>$f.extrema</aslist></li>
-    <li>Minimum values: <aslist>$f.minimumValues</aslist></li>
-    <li>Maximum locations: <aslist>$f.maximumLocations</aslist></li>
-    </ul>
+```doenet-example
+Move the points
+<graph size="small">
+  <point name="min" labelIsName>(-8,2)</point>
+  <point name="max" labelIsName styleNumber="2">(-3,6)</point>
+  <point name="ext" labelIsName styleNumber="3">(4,-5)</point>
+  <point name="thr" labelIsName styleNumber="4">(8,-9)</point>
+  <function name="f" minima="$min" maxima="$max" extrema="$ext" through="$thr" />
+</graph>
+
+<ul>
+<li>Minima: $f.minima</li>
+<li>Maxima: $f.maxima</li>
+<li>Extrema: $f.extrema</li>
+<li>Minimum values: $f.minimumValues</li>
+<li>Maximum locations: $f.maximumLocations</li>
+</ul>
 ```
 
 
 
-In addition to specifying extrema of functions, one can also access the actual extrema of a function with the properties: `minima`, `minimumLocations`, `minimumValues`, `maxima`, `maximumLocations`, `maximumValues`, `extrema`, `extremaLocations`, `extremaValues`.
+In addition to specifying extrema of functions, one can also access the actual 
+extrema of a function with the properties: `minima`, `minimumLocations`, `minimumValues`, `maxima`, 
+`maximumLocations`, `maximumValues`, `extrema`, `extremaLocations`, `extremaValues`.
 
 
-These properties apply to both interpolated functions and scalar-valued functions of a single variable determined by a formula.
-
-
-
----
-
-### Example: domain
-
-
-```doenet-editor-horiz
-      <p>Let <m>f(x) = <function name="f" domain="[-4,2)">x^2-8</function></m> with domain <m>x \in [-4,2)</m>.</p>
-      <p><m>f(a)=$$f(a)</m>, <m>f(-5)=$$f(-5)</m>, <m>f(-4)=$$f(-4)</m>, <m>f(-1)=$$f(-1)</m>, <m>f(2)=$$f(2)</m></p>
-      <graph size="small">
-        $f
-      </graph>
-      <p><m>g=<function name="g" copySource="f" symbolic="false" /></m> is the numerical version of <m>f</m>.</p>
-      <p><m>g(a)=$$g(a)</m>, <m>g(-5)=$$g(-5)</m>, <m>g(-4)=$$g(-4)</m>, <m>g(-1)=$$g(-1)</m>, <m>g(2)=$$g(2)</m></p>
-      <p><m>h(x,y) = <function name="h" variables="x y" domain="(-1,2) [3,6]">xy</function></m> defined on the domain <m>(x,y) \in  (-1,2) \times [3,6]</m>.</p>
-      <p><m>h(1,3) = $$h(1,3), h(2,3)=$$h(2,3)</m></p>
-```
-
-
-
-The `domain` attribute accepts a list of intervals for the domain, with one interval per variable.  At present, DoenetML supports only rectangular domains specified by the product of these intervals.
-
-
-For symbolic functions (the default), evaluating at a symbolic point ignores the domain.
-
-
-
----
-
-### Example: variable/variables
-
-
-```doenet-editor-horiz
-      <p><m>f(x) = <function name="f">x/y</function></m>, <m>f(3)=$$f(3)</m></p>
-      <p><m>g(y) = <function name="g" variable="y">x/y</function></m>, <m>g(3)=$$g(3)</m></p>
-      <p><m>h(y,x) = <function name="h" variables="y x">x/y</function></m>, <m>h(3,7)=$$h(3,7)</m></p>
-```
-
-
-
-By default, a ` <function>{:dn}` will be based on the single variable $x$.
-Use the `variable` or `variables` attribute to create a function based a different variable or multiple variables.
-
-
-
----
-
-### Example: numInputs
-
-
-```doenet-editor-horiz
-      <p><m>f(x,y) = <function numInputs="2" name="f">x/y</function></m>, <m>f(a,b) = $$f(a,b)</m></p>
-      <p><m>g(x,y,z) = <function numInputs="3" name="g">x/y+z</function></m>, <m>g(a,b,c) = $$g(a,b,c)</m></p>
-      <p><m>h(x_1,x_1,x_3,x_4) = <function numInputs="4" name="h">x_1/x_2-x_3/x_4</function></m>, <m>h(a,b,c,d) = $$h(a,b,c,d)</m></p>
-```
-
-
-
-The `numInputs` will override the number of inputs that would be otherwise be determined by the `variable` or `variables` attribute.
-
-
-If fewer variables than `numInputs` are specified, they will be chosen from either $x,y,z$ or, $x_1, x_2, \ldots,$ depending if `numInputs` is larger than 4.
-
-
-
-
----
-
-### Example: symbolic
-
-
-```doenet-editor-horiz
-      <p>
-        <m>f(x)=<function name="f">1/x</function></m>
-        <m>g(x)=<function name="g" symbolic="false">1/x</function></m>
-      </p>
-      <p><m>f(3)=$$f(3)</m>, <m>f(3)=$$f(a)</m></p>
-      <p><m>g(3)=$$g(3)</m>, <m>g(a)=$$g(a)</m></p>
-      <p>Force evaluate <m>f</m> as numeric:</p>
-      <p>
-        <m>f(3) = <evaluate function="$f" input="3" forceNumeric /></m>,
-        <m>f(a) = <evaluate function="$f" input="a" forceNumeric /></m>
-      </p>
-      <p>Force evaluate <m>g</m> as symbolic:</p>
-      <p>
-        <m>g(3) = <evaluate function="$g" input="3" forceSymbolic /></m>,
-        <m>g(a) = <evaluate function="$g" input="a" forceSymbolic /></m>
-      </p>
-```
-
-
-
-A function, by default, is evaluated symbolically.  If the `symbolic` attribute is specified as false, then the function will be evaluated numerically.  Numeric evaluation is more efficient, but it can only return a number.
-
-
-If one evaluates using the full syntax of an ` <evaluate>{:dn}` component (as opposed to the shortcut macro notation of `<displayDoenetML>$$f(x,y)</displayDoenetML>`), then one can use the attributes `forceNumeric` or `forceSymbolic`> to force numerical or symbolic evaluation independent of the `symbolic` attribute.
-
-
-
----
-
-### Example: simplify
-
-
-```doenet-editor-horiz
-      <p>
-        <m>f(x) = <function name="f">x+x</function></m>,
-        <m>g(x) = <function name="g" simplify="none">x+x</function></m>
-      </p> 
-      <p><m>f(3)=$$f(3)</m>, <m>g(3)=$$g(3)</m></p>
-```
-
-
-
-By default, a function will simplify the result of its evaluation.
-To reduce or eliminate the simplification, one can specify a different value for `simplify`.
-
-
-The exact behavior of `simplify` is still under development.  Currently, it has four options:
-<ol>
-* `simplify="none"`: no simplification.
-* `simplify="full"` (or simply `simplify` by itself): apply currently available simplification routines.  Does not include expanding factored expressions.
-* `simplify="numbers"`: simplify numerical expressions like `1+2` but not algebraic expressions.  Permute terms and factors into a canonical order.
-* `simplify="numbersPreserveOrder"`: simplify numbers but without permuting terms or factors.
-</ol>
-
-
-To include expansion of factored expressions, you can add the `expand` attribute.
-
-
-The `simplify` attribute does not affect the formula itself, only the result after evaluation.
-
-
-
----
-
-### Example: expand
-
-
-```doenet-editor-horiz
-      <p>
-        <m>f(x) = <function name="f">x(x+a)</function></m>,
-        <m>g(x) = <function name="g" expand>x(x+a)</function></m>
-      </p> 
-      <p><m>f(3)=$$f(3)</m>, <m>g(3)=$$g(3)</m></p>
-```
-
-
-
-By default, a function will not expand factored expressions in the result of its evaluation.  Specifying the `expand` attribute will expand the result.
-
-
-
-The `expand` attribute does not affect the formula itself, only the result after evaluation.
-
-
-
----
-
-### Example: displayDigits/displayDecimals
-
-
-```doenet-editor-horiz
-      <p>
-        <m>f(x) = <function name="f" symbolic="false">1/x</function></m>,
-        <m>g(x) = <function name="g" symbolic="false" displayDigits="4">1/x</function></m>
-        <m>h(x) = <function name="h" symbolic="false" displayDecimals="4">1/x</function></m>
-      </p> 
-      <p>By default, display three digits or two decimals places, whichever is greater:</p>
-      <p>
-        <m>f(126) = $$f(126)</m> 
-        <m>f(0.0000035) = $$f(0.0000035)</m>
-      </p>
-      <p>Display four digits:</p>
-      <p>
-        <m>g(126) = $$g(126)</m> 
-        <m>g(0.0000035) = $$g(0.0000035)</m>
-      </p>
-      <p>Display four decimal places:</p>
-      <p>
-        <m>h(126) = $$h(126)</m>
-        <m>h(0.0000035) = $$h(0.0000035)</m>
-      </p>
-```
-
-
-
-By default, numbers in the result of a function evaluation will be displayed as rounded to three digits or to two decimal places, whichever includes more digits.  The `displayDigits` attribute will change the number of digits, and the `displayDecimals` attribute will change the number of decimal places.
-
-
-Note: these display rounding settings do not affect the actual value of the numbers in the expression.  All available digits will be used if the expression is used in another calculation unless one uses the ` <round>{:dn}` component to explicitly round numbers.
-
-
-
----
-
-### Example: displaySmallAsZero
-
-
-```doenet-editor-horiz
-      <p>
-        <m>f(x)=<function name="f" symbolic="false">e^(-x^2)</function></m>,
-        <m>g(x)=<function name="g" symbolic="false" displaySmallAsZero="false">e^(-x^2)</function></m>,
-        <m>h(x)=<function name="h" symbolic="false" displaySmallAsZero="10^(-20)">e^(-x^2)</function></m>
-      </p>
-      <p>By default, small numbers (with absolute value smaller than <m>10^{-14}</m>) are displayed as zero.</p>
-      <p>
-        <m>f(5) = $$f(5)</m>, 
-        <m>f(6) = $$f(6)</m>
-      </p>
-      <p>Don't display small numbers as zero.</p>
-      <p>
-        <m>g(6) = $$g(6)</m>,
-        <m>g(7) = $$g(7)</m>
-      </p>
-      <p>Display numbers smaller than <m>10^{-20}</m> in absolute value as zero.</p>
-      <p>
-        <m>h(6) = $$h(6)</m>,
-        <m>h(7) = $$h(7)</m>
-      </p>
-```
-
-
-
-The default value of the `displaySmallAsZero` attribute is $10^{-14}$, which means that, when evaluating a function, numerical values smaller than that value will appear as zero.  This behavior can be altered by changing the value of `displaySmallAsZero` to a different number, or even setting it to "false".
-
-
-
----
-
-### Example: padZeros
-
-
-```doenet-editor-horiz
-      <p>
-        <m>f(x) = <function name="f" symbolic="false" displayDecimals="2">x/10</function></m>,
-        <m>g(x) = <function name="g" symbolic="false" displayDecimals="2" padZeros>x/10</function></m>
-      </p>
-      <p><m>f(1)=$$f(1)</m>, <m>g(1)=$$g(1)</m></p>
-```
-
-
-
-If the `padZeros` is set, then numbers will be displayed padded with zeros so that all the digits from the combination of `displayDigits` and `displayDecimals` will be shown.
-
-
-
----
-
-### Example: minima
-
-
-```doenet-editor-horiz
-      <graph size="small">
-        <function name="f" minima="(4,5) (7,-3)" />
-        <function name="g" minima="(-7,-8) (,-6)" styleNumber="2" />
-        <function name="h" minima="(-7,4) (-1,)" styleNumber="3" />
-      </graph>
-```
-
-
-
-One way to specify required features of an interpolated function is set the `minima` to a list of points that should be minima of the function.
-
-
-The `minima` points can have an empty $x$- or $y$-coordinate, in which case the missing values will be determined algorithmically.
-
-
-The attributes `xscale` and `yscale` will be used to determine aspects of the minima that aren't specified as well as the shape of the function.
-
-
-If additional features (`maxima`, `extrema`, `through`) of the function are specified, the function may have additional minima that were not given by the `minima` attribute.
-
-
-
----
-
-### Example: maxima
-
-
-```doenet-editor-horiz
-      <graph size="small">
-        <function name="f" maxima="(4,5) (7,-3)" />
-        <function name="g" maxima="(-7,-8) (,-6)" styleNumber="2" />
-        <function name="h" maxima="(-7,4) (-1,)" styleNumber="3" />
-      </graph>
-```
-
-
-
-One way to specify required features of an interpolated function is set the `maxima` to a list of points that should be maxima of the function.
-
-
-The `maxima` points can have an empty $x$- or $y$-coordinate, in which case the missing values will be determined algorithmically.
-
-
-The attributes `xscale` and `yscale` will be used to determine aspects of the maxima that aren't specified as well as the shape of the function.
-
-
-If additional features (`minima`, `extrema`, `through`) of the function are specified, the function may have additional maxima that were not given by the `maxima` attribute.
-
-
-
----
-
-### Example: extrema
-
-
-```doenet-editor-horiz
-      <graph size="small">
-        <function name="f" extrema="(4,5) (7,-3)" />
-        <function name="g" extrema="(-7,-8) (,-6)" styleNumber="2" />
-        <function name="h" extrema="(-7,4) (-1,)" styleNumber="3" />
-      </graph>
-```
-
-
-
-One way to specify required features of an interpolated function is set the `extrema` to a list of points that should be extrema of the function.
-
-
-The `extrema` points can have an empty $x$- or $y$-coordinate, in which case the missing values will be determined algorithmically.
-
-
-The attributes `xscale` and `yscale` will be used to determine aspects of the extrema that aren't specified as well as the shape of the function.
-
-
-If additional features (`minima`, `maxima`, `through`) of the function are specified, the function may have additional extrema that were not given by the `extrema` attribute.
-
-
-
----
-
-### Example: through
-
-
-```doenet-editor-horiz
-      <graph size="small">
-        <function name="f" through="(4,5) (7,-3)" />
-        <function name="g" through="(-7,-4) (3,-6) (8,1)" styleNumber="2" />
-      </graph>
-```
-
-
-
-One way to specify required features of an interpolated function is set the `through` attribute to a list of points that the function should pass through.
-
-
-To specify the slope of the function at the through points, use the `throughSlopes` attribute.
-
-
-
----
-
-### Example: throughSlopes
-
-
-```doenet-editor-horiz
-      <graph size="small">
-        <function name="f" through="(4,5) (7,-3)" throughSlopes="1 -1" />
-        <function name="g" through="(-7,-4) (3,-6) (8,1)"  throughSlopes="0 1/2 3" styleNumber="2" />
-      </graph>
-```
-
-
-
-When the `through` attribute specifies a list of points that the function should pass through, the `throughPoints` can specify the slope of the function at those points.
-
-
-
----
-
-### Example: xscale
-
-
-```doenet-editor-horiz
-      <ol>
-        <li>Influence on range of calculated extrema
-          <p>
-            <m>g(x)=<function name="g">cos(pi x/40)</function></m>,
-            <m>h(x)=<function name="h" xscale="0.5">cos(pi x/40)</function></m>
-          </p>
-          <p>Maxima of <m>g</m>: <aslist>$g.maxima</aslist></p>
-          <p>Maxima of <m>h</m>: <aslist>$h.maxima</aslist></p>
-        </li>
-        <li>Influence on location of underspecified extrema
-          <graph size="small">
-            <function name="g1" maxima="(-8,6)" minima="(,3) (,3)"/>
-            <function name="g2" maxima="(-8,6)" minima="(,3) (,3)" xscale="4" stylenumber="2"/>
-            <function name="g3" maxima="(-8,6)" minima="(,3) (,3)" xscale="0.1" stylenumber="3"/>
-          </graph>
-          <p>The $g1.styleDescription curve has a default xscale of $g1.xscale, the $g2.styleDescription curve has an xscale of $g2.xscale, and the $g3.styleDescription curve has an xscale of $g3.xscale.</p>
-        </li>
-      </ol>
-```
-
-
-
-The `xscale` is used to determine the range of $x$-values over which to look for function extrema.
-
-
-The `xscale` attribute also influences the position of extrema when they are specified without an $x$-component.
-
-
-
----
-
-### Example: yscale
-
-
-```doenet-editor-horiz
-      <graph size="small">
-        <function name="f1" minima="(4,5)" maxima="(6,)" />
-        <function name="f2" minima="(4,5)" maxima="(6,)" yscale="4" stylenumber="2" />
-        <function name="f3" minima="(4,5)" maxima="(6,)" yscale="0.1" stylenumber="3" />
-      </graph>
-      <p>The $f1.styleDescription curve has a default yscale of $f1.yscale, the $f2.styleDescription curve has a yscale of $f2.yscale, and the $f3.styleDescription curve has a yscale of $f3.yscale.</p>
-```
-
-
-
-The `yscale` attribute influences the position of extrema when they are specified without an $y$-component.
-
-
-
----
-
-### Example: labelIsName
-
-
-```doenet-editor-horiz
-      <graph size="small">
-        <function name="f" labelIsName>6-x</function>
-        <function name="g" styleNumber="2">
-          (1+x)/(6-x)
-          <label>
-            Here is <m>\frac{1+x}{6-x}</m>
-          </label>
-        </function>
-      </graph>
-```
-
-
-
-The `labelIsName` attribute will label the graph of function by its name.  (The label is sometimes hard to find.)
-
-
-To add a custom name instead, add a ` <label>{:dn}` child to the ` <function>{:dn}`.
-
-
-
----
-
-### Example: applyStyleToLabel
-
-
-```doenet-editor-horiz
-      <graph size="small">
-        <function name="f" labelIsName applyStyleToLabel>6-x</function>
-        <function name="g" styleNumber="2" applyStyleToLabel>
-          (1+x)/(6-x)
-          <label>
-            Here is <m>\frac{1+x}{6-x}</m>
-          </label>
-        </function>
-      </graph>
-```
-
-
-
-If the `applyStyleToLabel` attribute is set, then the `lineColor` from the selected style is applied to the label text.
-
-
-
----
-
-### Example: labelPosition
-
-
-```doenet-editor-horiz
-      <graph size="small">
-        <function name="f" labelIsName labelPosition="lowerRight">x+6</function>
-        <function name="g" styleNumber="2" labelPosition="lowerRight">
-          (1+x)/(6-x)
-          <label>
-            Here is <m>\frac{1+x}{6-x}</m>
-          </label>
-        </function  >
-      </graph>
-```
-
-
-
-The `labelPosition` attribute changes the location of the label relative to the graph of the function.  Valid options are:
-
-
-* upperRight (the default)
-* upperLeft
-* lowerRight
-* lowerLeft
-* top
-* bottom
-* left
-* right
-
-
-
-
-Depending on the shape of the function (such as with the above line), the algorithm for positioning the label may behave strangely.
-
-
-
----
-
-### Example: layer
-
-
-```doenet-editor-horiz
-
-        <styleDefinitions>
-          <styleDefinition styleNumber="2" fillOpacity="1" />
-        </styleDefinitions>
-
-      <graph size="small">
-        <circle radius="4" filled styleNumber="2" layer="2" />
-        <function layer="3">6-x^2</function>
-        <function>x^2-5</function>
-      </graph>
-```
-
-
-
-To make sure an object appears on top of another object in graph, one can use the `layer` attribute to put the object in a higher layer.
-
-
-
-Objects default to be in layer 0.  Layers 0-9 are supported.
-
-
-
-
----
-
-### Example: Attributes as properties
-
-
-```doenet-editor-horiz
-    <p><m>f(x)=<function name="f">x^2</function></m></p>
-      <p>variables = $f.variables</p>
-      <p>numInputs = $f.numInputs</p>
-      <p>symbolic = $f.symbolic</p>
-      <p>simplify = $f.simplify</p>
-      <p>expand = $f.expand</p>
-      <p>displayDigits = $f.displayDigits</p>
-      <p>displayDecimals = $f.displayDecimals</p>
-      <p>displaySmallAsZero = $f.displaySmallAsZero</p>
-      <p>padZeros = $f.padZeros</p>
-      <p>xscale = $f.xscale</p>
-      <p>yscale = $f.yscale</p>
-      <p>labelIsName = $f.labelIsName</p>
-      <p>applyStyleToLabel = $f.applyStyleToLabel</p>
-      <p>labelPosition = $f.labelPosition</p>
-      <p>layer = $f.layer</p>
-```
-
-
-
-The ` <function>{:dn}` attributes listed above are also accessible as properties.
-
-
-
----
-
-### Example: numOutputs
-
-
-```doenet-editor-horiz
-      <p>
-        <m>f(x)=<function name="f">x^2</function></m>,
-        <m>g(x)=<function name="g">(x,1,-x)</function></m>
-      </p>
-      <p>
-        dimension of <m>f</m>: $f.numOutputs
-      </p>
-      <p>
-        dimension of <m>g</m>: $g.numOutputs
-      </p>
-```
-
-
-
-The `numOutputs` property of a function is the dimension of its range.
-
-
-
----
-
-### Example: formula
-
-
-```doenet-editor-horiz
-      <p>Let <m>f(x)=<function name="f">(x+1)(x-1)</function></m>.</p>
-      <p>The expanded formula of <m>f</m> is $f.formula{expand}</p>
-```
-
-
-
-If a function is defined by a formula, the `formula` property gives that formula.
-
-
-The `formula` property isn't currently implemented for interpolated functions.
-
-
-
----
-
-### Example: latex
-
-
-```doenet-editor-horiz
-      <p>Let <m>f(x)=<function name="f">x/y</function></m>.</p>
-      <p>The latex of the formula of <m>f</m> is <c>$f.latex</c>.  We could redisplay it as math with <m>$f.latex</m>, which looks just like the formula $f.formula.</p>
-```
-
-
-
-The `latex` property gives the Latex of the function's formula.
-
-
-
----
-
-### Example: numMinima
-
-
-```doenet-editor-horiz
-      <p>The number of minima of <m>f(x) = <function name="f">x^4 - x^2</function></m> is $f.numMinima.</p>
-      <p>The number of minima found for <m>g(x) = <function name="g">cos(pi x/10)</function></m> is $g.numMinima.</p>
-```
-
-
-
-The property `numMinima` gives the number of minima calculated for a function of a single variable.  By default, it looks for minima in the interval $[-100,100]$.  This interval can be changed with the `xscale` attribute.
-
-
-
----
-
-### Example: minima/minimumLocations/minimumValues
-
-
-```doenet-editor-horiz
-      <p>The minima of <m>f(x) = <function name="f">x^4/4 - x^2</function></m> are <aslist>$f.minima</aslist>.  The minimum locations are <aslist>$f.minimumLocations</aslist>.  The minimum values are <aslist>$f.minimumValues</aslist>.</p>
-      <graph size="small">
-        $f
-        $f.minima{styleNumber="2"}
-      </graph>
-```
-
-
-
-The property `minima` gives the minima of a function of a single variable as an array of points.  The property `minimumLocations` gives the values of the independent variable where the minima occur.  The property `minimumValues` gives the values of the function at the minima.
-
-
-By default, minima are calculated in the interval $[-100,100]$.   This interval can be changed with the `xscale` attribute.
-
-
-
----
-
-### Example: numMaxima
-
-
-```doenet-editor-horiz
-      <p>The number of maxima of <m>f(x) = <function name="f">x^2 - x^4</function></m> is $f.numMaxima.</p>
-      <p>The number of maxima found for <m>g(x) = <function name="g">cos(pi x/10)</function></m> is $g.numMaxima.</p>
-```
-
-
-
-The property `numMaxima` gives the number of maxima calculated for a function of a single variable.  By default, it looks for maxima in the interval $[-100,100]$.  This interval can be changed with the `xscale` attribute.
-
-
-
----
-
-### Example: maxima/maximumLocations/maximumValues
-
-
-```doenet-editor-horiz
-      <p>The maxima of <m>f(x) = <function name="f">x^2 - x^4/4</function></m> are <aslist>$f.maxima</aslist>.  The maximum locations are <aslist>$f.maximumLocations</aslist>.  The maximum values are <aslist>$f.maximumValues</aslist>.</p>
-      <graph size="small">
-        $f
-        $f.maxima{styleNumber="2"}
-      </graph>
-```
-
-
-
-The property `maxima` gives the maxima of a function of a single variable as an array of points.  The property `maximumLocations` gives the values of the independent variable where the maxima occur.  The property `maximumValues` gives the values of the function at the maxima.
-
-
-By default, maxima are calculated in the interval $[-100,100]$.   This interval can be changed with the `xscale` attribute.
-
-
-
----
-
-### Example: numExtrema
-
-
-```doenet-editor-horiz
-      <p>The number of extrema of <m>f(x) = <function name="f">x^2 - x^4</function></m> is $f.numExtrema.</p>
-      <p>The number of extrema found for <m>g(x) = <function name="g">cos(pi x/10)</function></m> is $g.numExtrema.</p>
-```
-
-
-
-The property `numExtrema` gives the number of extrema calculated for a function of a single variable.  By default, it looks for maxima in the interval $[-100,100]$.  This interval can be changed with the `xscale` attribute.
-
-
-
----
-
-### Example: extrema/extremumLocations/extremumValues
-
-
-```doenet-editor-horiz
-      <p>The extrema of <m>f(x) = <function name="f">x^4/4 - x^2</function></m> are <aslist>$f.extrema</aslist>.  The extremum locations are <aslist>$f.extremumLocations</aslist>.  The extremum values are <aslist>$f.extremumValues</aslist>.</p>
-      <graph size="small">
-        $f
-        $f.extrema{styleNumber="2"}
-      </graph>
-```
-
-
-
-The property `extrema` gives the extrema of a function of a single variable as an array of points.  The property `extremumLocations` gives the values of the independent variable where the extrema occur.  The property `extremumValues` gives the values of the function at the extrema.
-
-
-By default, extrema are calculated in the interval $[-100,100]$.   This interval can be changed with the `xscale` attribute.
-
-
-
----
-
-### Example: styleDescription/styleDescriptionWithNoun
-
-
-```doenet-editor-horiz
-
-        <styleDefinitions>
-          <styleDefinition styleNumber="3" lineColor="green" lineStyle="dashed" lineWidth="1" />
-        </styleDefinitions>
-
-      <graph>
-        <function name="f">sin(x)</function>
-        <function name="g" styleNumber="2">2cos(x/2)</function>
-        <function name="h" styleNumber="3">1-x</function>
-      </graph>
-      <p>The function <m>f</m> is $f.styleDescription.  It is a $f.styleDescriptionWithNoun.</p>
-      <p>The function <m>g</m> is $g.styleDescription.  It is a $g.styleDescriptionWithNoun.</p>
-      <p>The function <m>h</m> is $h.styleDescription.  It is a $h.styleDescriptionWithNoun.</p>
-```
-
-
-
-Since users can override styles and so may see different colors and line styles, don't directly refer to the colors and line styles you create.  Instead, use the properties `styleDescription` and `styleDescriptionWithNoun`.  With those properties, the text will change to match the displayed styles.
+These properties apply to both interpolated functions and scalar-valued functions of a 
+single variable determined by a formula.
 

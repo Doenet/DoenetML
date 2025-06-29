@@ -6,7 +6,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <floor>{:dn}`
 
 
-` <floor>{:dn}`<idx>` <floor>{:dn}`</idx> renders the result of the $\text{floor}$ function applied to the enclosed numerical expression or math input.  The $\text{floor}$ function returns the greatest integer less than or equal to a given rational number.
+` <floor>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
+component that renders the result of the $\text{floor}$ function applied to the enclosed numerical expression or 
+math input.  The $\text{floor}$ function returns the greatest integer less than or equal to a given rational number.
 
 ## Attributes and Properties 
  <AttrDisplay name='floor'/> 
@@ -15,10 +17,10 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
-### Example: ` <floor>{:dn}` function of sugared value
+### Example: ` <floor>{:dn}` function of nested value
 
 
-```doenet-editor-horiz
+```doenet-example
 <m>\lfloor 4.8 \rfloor = <floor>4.8</floor></m>
 ```
 
@@ -30,13 +32,17 @@ A ` <floor>{:dn}` component returns the result of the $\text{floor}$ function ev
 
 ---
 
-### Example: ` <floor>{:dn}` function of <tage>mathInput</tage>
+### Example: ` <floor>{:dn}` function of `<mathInput/>{:dn}`
 
 
 ```doenet-editor-horiz
 <m>y = </m> <mathInput name="y"/>
+
 <p>The <m>\mathrm{floor}</m> of <m>y</m> is: 
-  <me>\lfloor y \rfloor = <floor>$y</floor></me></p>
+  <me>\lfloor y \rfloor = 
+    <floor>$y</floor>
+  </me>
+</p>
 ```
 
 

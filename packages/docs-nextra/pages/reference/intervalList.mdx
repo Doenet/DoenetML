@@ -1,0 +1,44 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <intervalList>{:dn}`
+
+` <intervalList>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+component that renders a list of intervals.
+
+## Attributes and Properties 
+ <AttrDisplay name='intervalList'/> 
+ <PropDisplay name='intervalList'/>
+
+---
+
+### Example: ` <intervalList>{:dn}` as domain of a `<piecewiseFunction>{:dn}`
+
+
+```doenet-editor-horiz
+<intervalList name="domain">
+  (-infinity, -1] (-1, 2) (2, infinity)
+</intervalList>
+
+<graph>
+  <piecewiseFunction>
+    <function domain="$domain[1]">
+      1
+    </function>
+    <function domain="$domain[2]">
+      x^2
+    </function>
+    <function domain="$domain[3]">
+      x + 2
+    </function>
+  </piecewiseFunction>
+</graph>
+```
+
+Individual intervals in an ` <intervalList>{:dn}` can be accessed using array notation. 
+
+
+
