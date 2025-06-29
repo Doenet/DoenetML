@@ -1147,10 +1147,10 @@ describe("Displayed math tag tests", async () => {
     it("add commas to large integers", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><intcomma>25236501.35</intcomma></p>
-    <p name="p2"><intcomma><math>25236501.35</math></intcomma></p>
-    <p name="p3"><m name="m1"><intcomma>25236501.35</intcomma></m></p>
-    <p name="p4"><m name="m2"><intcomma><math>25236501.35</math></intcomma></m></p>
+    <p name="p1"><intComma>25236501.35</intComma></p>
+    <p name="p2"><intComma><math>25236501.35</math></intComma></p>
+    <p name="p3"><m name="m1"><intComma>25236501.35</intComma></m></p>
+    <p name="p4"><m name="m2"><intComma><math>25236501.35</math></intComma></m></p>
   `,
         });
 
