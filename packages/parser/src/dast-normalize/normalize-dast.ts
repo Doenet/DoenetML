@@ -13,7 +13,7 @@ import { isDastElement } from "../types-util";
 import { repeatSugar } from "./component-sugar/repeat";
 import { conditionalContentSugar } from "./component-sugar/conditionalContent";
 import { selectSugar } from "./component-sugar/select";
-import { solutionSugar } from "./component-sugar/soluition";
+import { solutionSugar } from "./component-sugar/solution";
 import { pluginEnforceValidNames } from "./enforce-valid-names";
 
 /**
@@ -188,6 +188,7 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                     selectSugar(node);
                     break;
                 case "solution":
+                case "givenAnswer":
                     solutionSugar(node);
                     break;
             }
