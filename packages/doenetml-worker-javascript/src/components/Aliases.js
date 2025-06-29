@@ -20,13 +20,13 @@ export class Description extends TextOrInline {
     static rendererType = undefined;
 }
 
-export class Xlabel extends Label {
-    static componentType = "xlabel";
+export class XLabel extends Label {
+    static componentType = "xLabel";
     static rendererType = "label";
 }
 
-export class Ylabel extends Label {
-    static componentType = "ylabel";
+export class YLabel extends Label {
+    static componentType = "yLabel";
     static rendererType = "label";
 }
 

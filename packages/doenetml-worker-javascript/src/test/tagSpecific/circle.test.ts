@@ -1579,7 +1579,7 @@ describe("Circle tag tests", async () => {
         });
 
         // move center by reffed point
-        (dx = 2), (dy = -3);
+        ((dx = 2), (dy = -3));
         cx += dx;
         cy += dy;
         t1x += dx;
@@ -3603,7 +3603,7 @@ describe("Circle tag tests", async () => {
         });
 
         // move circle so original point is in middle
-        (cx = -5), (cy = -7);
+        ((cx = -5), (cy = -7));
         await movePoint({
             componentIdx: await resolvePathToNodeIdx("point2"),
             x: cx,
@@ -3715,7 +3715,7 @@ describe("Circle tag tests", async () => {
         });
 
         // move circle shadow
-        (cx = -3), (cy = 7);
+        ((cx = -3), (cy = 7));
         await moveCircle({
             componentIdx: await resolvePathToNodeIdx("graph2.circle1"),
             cx,

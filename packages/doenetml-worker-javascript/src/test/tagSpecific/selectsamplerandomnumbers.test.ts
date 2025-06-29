@@ -121,10 +121,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
                 if (!failedCriteria) {
                     // no need to get more samples
-                    console.log(`satisfied at group ${group}`);
+                    //console.log(`satisfied at group ${group}`);
                     break;
                 } else {
-                    console.log(`failed at group ${group}`);
+                    //console.log(`failed at group ${group}`);
                 }
             }
         }

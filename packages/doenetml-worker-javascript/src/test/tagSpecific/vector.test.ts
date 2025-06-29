@@ -2299,7 +2299,7 @@ describe("Vector Tag Tests", function () {
         await check_items();
 
         // move head of vector 4
-        (hx = 6), (hy = -2);
+        ((hx = 6), (hy = -2));
         x = hy - t4y;
         y = hx - t4x;
         await moveVector({

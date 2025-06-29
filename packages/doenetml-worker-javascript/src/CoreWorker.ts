@@ -129,7 +129,7 @@ export class PublicDoenetMLCore {
             flat_fragment: FlatFragment,
             index_resolution: IndexResolution,
         ) => Resolver;
-        replaceIndexResolutionsInResolver: (
+        replaceIndexResolutionsInResolver?: (
             resolver: Resolver,
             components: ContentVector,
             index_resolution: IndexResolution,
@@ -144,7 +144,7 @@ export class PublicDoenetMLCore {
             origin: number,
             skip_parent_search: boolean,
         ) => RefResolution;
-        calculateRootNames: (resolver: Resolver) => RootNames;
+        calculateRootNames?: (resolver: Resolver) => RootNames;
     }) {
         this.initialResolver = resolver;
         this.addNodesToResolver = addNodesToResolver;

@@ -5,7 +5,7 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { ResizablePanelPair, UiButton } from "@doenet/ui-components";
+import { Button, ResizablePanelPair, UiButton } from "@doenet/ui-components";
 import { RxUpdate } from "react-icons/rx";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
@@ -17,12 +17,16 @@ import {
 } from "./ErrorWarningResponseTabs";
 import { ErrorRecord, nanInfinityReviver, WarningRecord } from "@doenet/utils";
 import { nanoid } from "nanoid";
-import { prettyPrint } from "@doenet/parser";
+import { prettyPrint, toXml } from "@doenet/parser";
 import { formatResponse } from "../utils/responses";
 import { ResizableCollapsiblePanelPair } from "@doenet/ui-components";
-import { BsExclamationTriangleFill } from "react-icons/bs";
+import { BsArrowBarUp, BsExclamationTriangleFill } from "react-icons/bs";
 import "./editor-viewer.css";
 import {
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuProvider,
     Select,
     SelectItem,
     SelectPopover,
@@ -290,6 +294,15 @@ export function EditorViewer({
             }
         };
     }, []);
+    const updateSyntaxFromV06toV07 = React.useCallback(async () => {
+        const source = editorDoenetMLRef.current;
+        const { updateSyntaxFromV06toV07 } = await import(
+            "@doenet/parser/v06-to-v07"
+        );
+        const upgraded = toXml(await updateSyntaxFromV06toV07(source));
+        onEditorChange(upgraded);
+        console.log("syntax updated to v0.7");
+    }, []);
 
     const tabStore = useTabStore();
     const codeMirror = (
@@ -371,9 +384,6 @@ export function EditorViewer({
                                     <SelectItem
                                         className="select-item"
                                         value="DoenetML"
-                                        onSelect={(e) =>
-                                            console.log("changed ", e)
-                                        }
                                     />
                                     <SelectItem
                                         className="select-item"
@@ -399,9 +409,39 @@ export function EditorViewer({
                         </UiButton>
                     </>
                 ) : null}
-                <div className="doenetml-version" title="DoenetML version">
-                    Version: {DOENETML_VERSION}
-                </div>
+                <MenuProvider>
+                    <MenuButton
+                        render={
+                            <div
+                                className="doenetml-version"
+                                title="DoenetML version"
+                            >
+                                Version: {DOENETML_VERSION}
+                                <div className="update-syntax-icon">
+                                    <BsArrowBarUp />
+                                </div>
+                            </div>
+                        }
+                    ></MenuButton>
+                    <Menu>
+                        <MenuItem
+                            render={
+                                <UiButton>
+                                    Update Syntax to DoenetML v0.7
+                                </UiButton>
+                            }
+                            onClick={updateSyntaxFromV06toV07}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    updateSyntaxFromV06toV07();
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                }
+                            }}
+                            title="Update Syntax to DoenetML v0.7 by automatically changing old-style references and namespaces to the new DoenetML v0.7 syntax."
+                        ></MenuItem>
+                    </Menu>
+                </MenuProvider>
             </div>
         </div>
     );

@@ -27,7 +27,7 @@ jobs:
 
             - name: Build
               run: |
-                  export NODE_OPTIONS="--max_old_space_size=4096"
+                  export NODE_OPTIONS="--max_old_space_size=6114"
                   npm run build && npm run build:all
               # set the environmental variable WIREIT_CACHE="local" so that the wireit cache is saved in the .wireit directory.
               env:
@@ -78,7 +78,7 @@ jobs:
             # with the wireit cache saved, this build step should be fast.
             - name: Build (cached)
               run: |
-                  export NODE_OPTIONS="--max_old_space_size=4096"
+                  export NODE_OPTIONS="--max_old_space_size=6114"
                   npm run build
               env:
                   WIREIT_CACHE: "local"
@@ -138,7 +138,7 @@ jobs:
             # with the wireit cache saved, this build step should be fast.
             - name: Build Docs
               run: |
-                  export NODE_OPTIONS="--max_old_space_size=4096"
+                  export NODE_OPTIONS="--max_old_space_size=6114"
                   cd packages/doenetml
                   npm run build
                   cd ../docs-nextra

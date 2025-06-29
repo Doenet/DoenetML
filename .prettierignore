@@ -16,3 +16,4 @@ extension/build
 *.mdx
 generated-assets
 multi-reporter-config.json
+jsxgraph-distrib
