@@ -32,57 +32,73 @@ describe("Curve Tag Bezier Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for window to load
+        cy.get(cesc("#text1")).should("have.text", "a"); //wait for window to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[0][1],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[0][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[1][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[1][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[2][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[2][2],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[3][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[3][2],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[4][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[4][2],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[5][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[5][2],
             ).greaterThan(0);
         });
 
@@ -106,52 +122,68 @@ describe("Curve Tag Bezier Tests", function () {
                 },
             });
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[0][1],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[0][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[1][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[1][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[2][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[2][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[3][1],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[3][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[4][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[4][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[5][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[5][2],
             ).greaterThan(0);
         });
     });
@@ -182,39 +214,49 @@ describe("Curve Tag Bezier Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for window to load
+        cy.get(cesc("#text1")).should("have.text", "a"); //wait for window to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[0],
             ).eqls([3, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[1],
             ).eqls([-4, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[2],
             ).eqls([1, -2]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[3],
             ).eqls([5, -6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[4],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[5],
             ).eqls([-2, 3]);
         });
 
@@ -238,43 +280,56 @@ describe("Curve Tag Bezier Tests", function () {
                 },
             });
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[0],
             ).eqls([3, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[1],
             ).eqls([-4, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[2][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[2][2],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[3][1],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[3][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[4][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[4][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[5],
             ).eqls([-2, 3]);
         });
     });
@@ -305,39 +360,49 @@ describe("Curve Tag Bezier Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for window to load
+        cy.get(cesc("#text1")).should("have.text", "a"); //wait for window to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[0],
             ).eqls([3, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[1],
             ).eqls([-4, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[2],
             ).eqls([4, -1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[3],
             ).eqls([5, -6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[4],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[5],
             ).eqls([-2, 3]);
         });
 
@@ -361,46 +426,60 @@ describe("Curve Tag Bezier Tests", function () {
                 },
             });
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[0],
             ).eqls([3, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[1][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[1][2],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[2][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[2][2],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[3][1],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[3][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[4][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[4][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[5],
             ).eqls([-2, 3]);
         });
 
@@ -424,34 +503,44 @@ describe("Curve Tag Bezier Tests", function () {
                 },
             });
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[0],
             ).eqls([3, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[1],
             ).eqls([-0.125, -6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[2],
             ).eqls([0.125, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[3],
             ).eqls([-7, 0.125]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[4],
             ).eqls([7, -0.125]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5],
+                stateVariables[await win.resolvePath1("curve1")].stateValues
+                    .controlVectors[5],
             ).eqls([-2, 3]);
         });
     });
