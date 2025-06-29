@@ -165,4 +165,124 @@ $fi.iterates
             ).eq("Title: yes, no, maybe");
         });
     });
+
+    it("dynamically change index resolutions with reference inside composite", () => {
+        // Note: this tests the DOM, corresponding to test of same name in `extend_references.test.ts`
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  
+    <mathInput name="n">1</mathInput>
+    <sequence name="s" length="$n" />
+
+    <section name="sec1">
+        <p name="p"><group name="g" asList>-6 $s-8</group></p>
+
+        <p extend="$p" name="p2" />
+
+        <p name="p3">3rd entry: $g[3], $p2.g[3]</p>
+    </section>
+
+    <section name="sec2">
+        <p name="p"><group name="g" asList><number>-6</number>$s<number>-8</number></group></p>
+
+        <p extend="$p" name="p2" />
+
+        <p name="p3">3rd entry: $g[3], $p2.g[3]</p>
+    </section>
+    <text name="in_text">$ci.choiceTexts</text>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        const pText = "-6, 1, -8";
+        cy.get(cesc("#sec1.p")).should("have.text", pText);
+        cy.get(cesc("#sec1.p2")).should("have.text", pText);
+        cy.get(cesc("#sec2.p")).should("have.text", pText);
+        cy.get(cesc("#sec2.p2")).should("have.text", pText);
+        cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: , ");
+        cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: -8, -8");
+
+        // Add another replacement, shifting so that the third entry comes from the sequence
+        cy.get("#n" + " textarea")
+            .type("{end}{backspace}2{enter}", {
+                force: true,
+            })
+            .then(() => {
+                const pText = "-6, 1, 2, -8";
+                cy.get(cesc("#sec1.p")).should("have.text", pText);
+                cy.get(cesc("#sec1.p2")).should("have.text", pText);
+                cy.get(cesc("#sec2.p")).should("have.text", pText);
+                cy.get(cesc("#sec2.p2")).should("have.text", pText);
+                cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: 2, 2");
+                cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: 2, 2");
+            });
+
+        // Remove all replacements, shifting so that there is no longer a third entry
+        cy.get("#n" + " textarea")
+            .type("{end}{backspace}0{enter}", {
+                force: true,
+            })
+            .then(() => {
+                const pText = "-6, -8";
+                cy.get(cesc("#sec1.p")).should("have.text", pText);
+                cy.get(cesc("#sec1.p2")).should("have.text", pText);
+                cy.get(cesc("#sec2.p")).should("have.text", pText);
+                cy.get(cesc("#sec2.p2")).should("have.text", pText);
+                cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: , ");
+                cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: , ");
+            });
+
+        // Add three replacements, so that third entry is again a number
+        cy.get("#n" + " textarea")
+            .type("{end}{backspace}3{enter}", {
+                force: true,
+            })
+            .then(() => {
+                const pText = "-6, 1, 2, 3, -8";
+                cy.get(cesc("#sec1.p")).should("have.text", pText);
+                cy.get(cesc("#sec1.p2")).should("have.text", pText);
+                cy.get(cesc("#sec2.p")).should("have.text", pText);
+                cy.get(cesc("#sec2.p2")).should("have.text", pText);
+                cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: 2, 2");
+                cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: 2, 2");
+            });
+
+        // Back to one replacements, so that third entry is back to a string for first section
+        cy.get("#n" + " textarea")
+            .type("{end}{backspace}1{enter}", {
+                force: true,
+            })
+            .then(() => {
+                const pText = "-6, 1, -8";
+                cy.get(cesc("#sec1.p")).should("have.text", pText);
+                cy.get(cesc("#sec1.p2")).should("have.text", pText);
+                cy.get(cesc("#sec2.p")).should("have.text", pText);
+                cy.get(cesc("#sec2.p2")).should("have.text", pText);
+                cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: , ");
+                cy.get(cesc("#sec2.p3")).should(
+                    "have.text",
+                    "3rd entry: -8, -8",
+                );
+            });
+
+        // Back to 2 replacements
+        cy.get("#n" + " textarea")
+            .type("{end}{backspace}2{enter}", {
+                force: true,
+            })
+            .then(() => {
+                const pText = "-6, 1, 2, -8";
+                cy.get(cesc("#sec1.p")).should("have.text", pText);
+                cy.get(cesc("#sec1.p2")).should("have.text", pText);
+                cy.get(cesc("#sec2.p")).should("have.text", pText);
+                cy.get(cesc("#sec2.p2")).should("have.text", pText);
+                cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: 2, 2");
+                cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: 2, 2");
+            });
+    });
 });
