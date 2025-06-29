@@ -77,7 +77,7 @@ export default React.memo(function Graph(props) {
             showCopyright: false,
             showNavigation: false, // will add navigation buttons later so can style them
             // keepAspectRatio: SVs.identicalAxisScales,
-            zoom: { wheel: !SVs.fixAxes, needShift: false },
+            zoom: { wheel: !SVs.fixAxes, needShift: true },
             pan: { enabled: !SVs.fixAxes, needShift: false },
             grid: haveFixedGrid,
         });
