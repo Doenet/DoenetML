@@ -188,6 +188,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -378,6 +384,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -961,6 +973,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -1216,6 +1234,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "forObject"
@@ -1546,6 +1570,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "forObject"
@@ -1964,6 +1994,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -2297,6 +2333,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -2630,6 +2672,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -2822,6 +2870,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "draggable",
@@ -3077,6 +3131,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -3184,6 +3244,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -3429,6 +3495,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "draggable",
@@ -3748,6 +3820,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -4065,6 +4143,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -4251,6 +4335,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -4430,6 +4520,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "draggable",
@@ -4749,6 +4845,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -5025,6 +5127,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "symbolicEquality",
                     "values": [
                         "true",
@@ -5293,6 +5401,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "symbolicEquality",
                     "values": [
                         "true",
@@ -5556,6 +5670,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "symbolicEquality",
                     "values": [
                         "true",
@@ -5817,6 +5937,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "symbolicEquality",
@@ -6139,6 +6265,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "symbolicEquality",
                     "values": [
                         "true",
@@ -6459,6 +6591,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "symbolicEquality",
                     "values": [
                         "true",
@@ -6777,6 +6915,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "symbolicEquality",
@@ -7117,6 +7261,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -7655,6 +7805,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -8199,6 +8355,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -8731,6 +8893,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -9267,6 +9435,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -9801,6 +9975,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -10327,6 +10507,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -10831,6 +11017,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -11351,6 +11543,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -11867,6 +12065,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -12387,6 +12591,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -12899,6 +13109,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -13439,6 +13655,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -13975,6 +14197,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -14527,6 +14755,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -15077,6 +15311,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -15613,6 +15853,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -16153,6 +16399,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -16689,6 +16941,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -17229,6 +17487,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -17765,6 +18029,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -18309,6 +18579,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "format",
                     "values": [
                         "text",
@@ -18849,6 +19125,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "simplify",
@@ -19428,6 +19710,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "simplify",
                     "values": [
                         "none",
@@ -20003,6 +20291,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "simplify",
@@ -20587,6 +20881,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -20978,6 +21278,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -21228,6 +21534,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -21478,6 +21790,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -21728,6 +22046,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -21978,6 +22302,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -22228,6 +22558,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -22478,6 +22814,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -22728,6 +23070,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -22978,6 +23326,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -23228,6 +23582,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -23340,6 +23700,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -23452,6 +23818,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -23564,6 +23936,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -23676,6 +24054,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -23788,6 +24172,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -23900,6 +24290,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -24012,6 +24408,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -24124,6 +24526,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -24462,6 +24870,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "aggregateScores",
@@ -24965,6 +25379,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "aggregateScores",
                     "values": [
                         "true",
@@ -25464,6 +25884,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "aggregateScores",
@@ -25967,6 +26393,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "aggregateScores",
                     "values": [
                         "true",
@@ -26466,6 +26898,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "aggregateScores",
@@ -26995,6 +27433,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "aggregateScores",
                     "values": [
                         "true",
@@ -27494,6 +27938,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "aggregateScores",
@@ -27997,6 +28447,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "aggregateScores",
                     "values": [
                         "true",
@@ -28496,6 +28952,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "aggregateScores",
@@ -28999,6 +29461,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "aggregateScores",
                     "values": [
                         "true",
@@ -29498,6 +29966,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "aggregateScores",
@@ -30001,6 +30475,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "aggregateScores",
                     "values": [
                         "true",
@@ -30500,6 +30980,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "aggregateScores",
@@ -31003,6 +31489,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "aggregateScores",
                     "values": [
                         "true",
@@ -31502,6 +31994,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "aggregateScores",
@@ -32022,6 +32520,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "aggregateScores",
                     "values": [
                         "true",
@@ -32514,6 +33018,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "aggregateScores",
                     "values": [
                         "true",
@@ -32782,6 +33292,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "label"
                 },
                 {
@@ -32906,6 +33422,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "label"
@@ -33256,6 +33778,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -33370,6 +33898,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "independentVariable"
@@ -33705,6 +34239,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -34237,6 +34777,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -34665,6 +35211,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -35089,6 +35641,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -35638,6 +36196,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "symbol"
                 },
                 {
@@ -35909,6 +36473,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "symbol"
                 },
                 {
@@ -36096,6 +36666,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "symbol"
@@ -36315,6 +36891,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -36833,6 +37415,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "labels"
                 }
             ],
@@ -36946,6 +37534,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "prefill"
@@ -37086,6 +37680,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "code"
                 },
                 {
@@ -37199,6 +37799,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -37306,6 +37912,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "lineColor"
@@ -37500,6 +38112,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -37669,6 +38287,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "width"
@@ -37842,6 +38466,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "width"
@@ -38239,6 +38869,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -38431,6 +39067,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "draggable",
@@ -38756,6 +39398,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -39069,6 +39717,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -39402,6 +40056,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -39735,6 +40395,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -40068,6 +40734,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -40423,6 +41095,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "initialPage"
                 }
             ],
@@ -40541,6 +41219,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "previousLabel"
@@ -40682,6 +41366,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "numRows"
@@ -41158,6 +41848,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -41467,6 +42163,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "documentWideCheckWork",
                     "values": [
                         "true",
@@ -41699,6 +42401,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "draggable",
@@ -42015,6 +42723,12 @@
                     "name": "isResponse"
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "unordered",
                     "values": [
                         "true",
@@ -42272,6 +42986,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -42469,6 +43189,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "symbolicEquality",
@@ -42726,6 +43452,12 @@
                     "name": "isResponse"
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "unordered",
                     "values": [
                         "true",
@@ -42916,6 +43648,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -43424,6 +44162,12 @@
                     "name": "isResponse"
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "unordered",
                     "values": [
                         "true",
@@ -43661,6 +44405,12 @@
                 },
                 {
                     "name": "isResponse"
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "unordered",
@@ -43902,6 +44652,12 @@
                     "name": "isResponse"
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "unordered",
                     "values": [
                         "true",
@@ -44000,6 +44756,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "maxNumber"
@@ -44316,6 +45078,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "to"
                 },
                 {
@@ -44527,6 +45295,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -44932,6 +45706,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -45444,6 +46224,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -45777,6 +46563,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -46056,6 +46848,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -46310,6 +47108,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -46655,6 +47459,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -47034,6 +47844,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -47409,6 +48225,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -47817,6 +48639,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -48324,6 +49152,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -48813,6 +49647,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -49264,6 +50104,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -49859,6 +50705,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "alwaysVisible",
                     "values": [
                         "true",
@@ -50037,6 +50889,12 @@
                 },
                 {
                     "name": "isResponse"
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "unordered",
@@ -50263,6 +51121,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -50689,6 +51553,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -51037,6 +51907,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "weight"
@@ -51639,6 +52515,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "credit"
                 },
                 {
@@ -52076,6 +52958,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "symbolicEquality",
                     "values": [
                         "true",
@@ -52419,6 +53307,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "prefill"
@@ -52862,6 +53756,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "prefill"
                 },
                 {
@@ -53231,6 +54131,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "prefill",
                     "values": [
                         "true",
@@ -53448,6 +54354,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "selectMultiple",
@@ -53989,6 +54901,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "credit"
                 },
                 {
@@ -54234,6 +55152,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "displayDigits"
@@ -54565,6 +55489,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "displayDigits"
@@ -54943,6 +55873,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "xmin"
@@ -55433,6 +56369,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "simplify",
@@ -55931,6 +56873,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "simplify",
@@ -56462,6 +57410,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -57128,6 +58082,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "selectForVariants"
                 },
                 {
@@ -57245,6 +58205,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "displayDigits"
@@ -57442,6 +58408,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "type",
@@ -57710,6 +58682,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "width"
@@ -58193,6 +59171,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "rowNum"
                 },
                 {
@@ -58378,6 +59362,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "rowNum"
                 },
                 {
@@ -58559,6 +59549,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "colNum"
                 },
                 {
@@ -58699,6 +59695,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "rowNum"
                 },
                 {
@@ -58822,6 +59824,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "width"
@@ -59216,6 +60224,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "suppressTableNameInTitle",
                     "values": [
                         "true",
@@ -59538,6 +60552,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "suppressFigureNameInCaption",
                     "values": [
                         "true",
@@ -59739,6 +60759,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -60086,6 +61112,12 @@
                     "name": "isResponse"
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "itemName"
                 },
                 {
@@ -60409,6 +61441,12 @@
                     "name": "isResponse"
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "type",
                     "values": [
                         "number",
@@ -60529,6 +61567,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -60714,6 +61758,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -60831,6 +61881,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "dx"
@@ -60988,6 +62044,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "buffer"
                 }
             ],
@@ -61101,6 +62163,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "dx"
@@ -61372,6 +62440,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "relativeToGraphScales",
                     "values": [
                         "true",
@@ -61569,6 +62643,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "relativeToGraphScales",
                     "values": [
                         "true",
@@ -61703,6 +62783,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -61819,6 +62905,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "threshold"
@@ -62014,6 +63106,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "relativeToGraphScales",
                     "values": [
                         "true",
@@ -62145,6 +63243,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "asList",
                     "values": [
                         "true",
@@ -62234,6 +63338,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -62459,6 +63569,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -62576,6 +63692,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "numVariants"
@@ -62701,6 +63823,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "displayDigits"
@@ -62867,6 +63995,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "numToSelect"
@@ -63208,6 +64342,12 @@
                     "name": "isResponse"
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "rendered",
                     "values": [
                         "true",
@@ -63313,6 +64453,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "type",
@@ -63507,6 +64653,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -63989,6 +65141,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "type",
                     "values": [
                         "uniform",
@@ -64165,6 +65323,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "numSamples"
@@ -64357,6 +65521,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "minValue"
                 },
                 {
@@ -64508,6 +65678,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "numSamples"
@@ -64874,6 +66050,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "type",
                     "values": [
                         "math",
@@ -65063,6 +66245,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -65568,6 +66756,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "width"
                 },
                 {
@@ -65816,6 +67010,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "width"
@@ -66246,6 +67446,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -66448,6 +67654,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "draggable",
@@ -66793,6 +68005,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "draggable",
@@ -67290,6 +68508,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "condition",
                     "values": [
                         "true",
@@ -67626,6 +68850,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -67961,6 +69191,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "condition",
                     "values": [
                         "true",
@@ -68078,6 +69314,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "minSentencesPerParagraph"
@@ -68210,6 +69452,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "target"
@@ -68424,6 +69672,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "target"
                 },
                 {
@@ -68626,6 +69880,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -68803,6 +70063,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "numIterates"
@@ -69238,6 +70504,12 @@
                     "name": "isResponse"
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "rendered",
                     "values": [
                         "true",
@@ -69564,6 +70836,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -69879,6 +71157,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -70104,6 +71388,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -70407,6 +71697,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -70592,6 +71888,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -71176,6 +72478,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "sortVectorsBy",
                     "values": [
                         "displacement",
@@ -71522,6 +72830,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "type"
                 },
                 {
@@ -71688,6 +73002,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "variables"
                 },
                 {
@@ -71846,6 +73166,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "xmin"
@@ -72162,6 +73488,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -72902,6 +74234,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "type",
                     "values": [
                         "text"
@@ -73012,6 +74350,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -73351,6 +74695,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -73523,6 +74873,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -73701,6 +75057,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -74105,6 +75467,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "prefill"
                 },
                 {
@@ -74377,6 +75745,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "symbolicEquality",
@@ -74654,6 +76028,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "source"
                 },
                 {
@@ -74815,6 +76195,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "source"
@@ -75049,6 +76435,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -75359,6 +76751,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "forObject"
                 },
                 {
@@ -75618,6 +77016,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "symbolicEquality",
@@ -75961,6 +77365,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "format",
@@ -76486,6 +77896,12 @@
                     ]
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -76764,6 +78180,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "draggable",
@@ -77250,6 +78672,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 }
             ],
             "properties": [
@@ -77438,6 +78866,12 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "labelIsName",
@@ -77678,6 +79112,12 @@
                     "name": "isResponse"
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "unordered",
                     "values": [
                         "true",
@@ -77870,6 +79310,12 @@
                     "name": "isResponse"
                 },
                 {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
                     "name": "unordered",
                     "values": [
                         "true",
@@ -78060,6 +79506,12 @@
                 },
                 {
                     "name": "isResponse"
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
                 },
                 {
                     "name": "unordered",

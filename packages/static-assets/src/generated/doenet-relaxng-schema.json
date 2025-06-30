@@ -282,6 +282,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -816,6 +828,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -1509,6 +1533,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -2043,6 +2079,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "forObject": {
@@ -2664,6 +2712,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "forObject": {
                     "optional": true,
                     "type": [
@@ -3281,6 +3341,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -4071,6 +4143,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -4859,6 +4943,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -5650,6 +5746,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -6169,6 +6277,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -6282,6 +6402,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -6394,6 +6526,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "draggable": {
@@ -6999,6 +7143,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -7600,6 +7756,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "draggable": {
@@ -8210,6 +8378,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -8405,6 +8585,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -8598,6 +8790,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "draggable": {
@@ -9215,6 +9419,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -9739,6 +9955,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -10037,6 +10265,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "symbolicEquality": {
@@ -10339,6 +10579,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -10637,6 +10889,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "symbolicEquality": {
@@ -11110,6 +11374,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -11579,6 +11855,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "symbolicEquality": {
@@ -12073,6 +12361,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -12779,6 +13079,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -13481,6 +13793,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -14197,6 +14521,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -14909,6 +15245,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -15625,6 +15973,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -16328,6 +16688,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -17006,6 +17378,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -17700,6 +18084,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -18390,6 +18786,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -19084,6 +19492,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -19774,6 +20194,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -20480,6 +20912,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -21182,6 +21626,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -21900,6 +22356,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -22616,6 +23084,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -23318,6 +23798,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -24024,6 +24516,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -24726,6 +25230,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -25432,6 +25948,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -26136,6 +26664,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -26838,6 +27378,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -27561,6 +28113,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "simplify": {
@@ -28342,6 +28906,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "simplify": {
                     "optional": true,
                     "type": [
@@ -29119,6 +29695,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "simplify": {
@@ -29908,6 +30496,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -30378,6 +30978,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -30909,6 +31521,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -31438,6 +32062,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -31969,6 +32605,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -32498,6 +33146,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -33029,6 +33689,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -33558,6 +34230,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -34089,6 +34773,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -34618,6 +35314,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -35149,6 +35857,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -35679,6 +36399,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -35796,6 +36528,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -35915,6 +36659,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -36032,6 +36788,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -36151,6 +36919,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -36268,6 +37048,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -36387,6 +37179,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -36505,6 +37309,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -36622,6 +37438,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "aggregateScores": {
@@ -37596,6 +38424,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -38566,6 +39406,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "aggregateScores": {
@@ -39540,6 +40392,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -40510,6 +41374,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "aggregateScores": {
@@ -41510,6 +42386,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -42480,6 +43368,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "aggregateScores": {
@@ -43454,6 +44354,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -44424,6 +45336,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "aggregateScores": {
@@ -45398,6 +46322,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -46368,6 +47304,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "aggregateScores": {
@@ -47342,6 +48290,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -48312,6 +49272,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "aggregateScores": {
@@ -49286,6 +50258,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -50256,6 +51240,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "aggregateScores": {
@@ -51250,6 +52246,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "aggregateScores": {
                     "optional": true,
                     "type": [
@@ -52214,6 +53222,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "aggregateScores": {
@@ -53182,6 +54202,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "label": {
                     "optional": true,
                     "type": [
@@ -53328,6 +54360,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "label": {
                     "optional": true,
                     "type": [
@@ -53472,6 +54516,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -54268,6 +55324,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "independentVariable": {
                     "optional": true,
                     "type": [
@@ -54640,6 +55708,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "labelIsName": {
@@ -55161,6 +56241,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "labelIsName": {
@@ -55769,6 +56861,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -56370,6 +57474,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "labelIsName": {
@@ -57172,6 +58288,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbol": {
                     "optional": true,
                     "type": [
@@ -57462,6 +58590,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbol": {
                     "optional": true,
                     "type": [
@@ -57667,6 +58807,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbol": {
                     "optional": true,
                     "type": [
@@ -57833,6 +58985,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -58527,6 +59691,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labels": {
                     "optional": true,
                     "type": [
@@ -58862,6 +60038,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "prefill": {
                     "optional": true,
                     "type": [
@@ -59012,6 +60200,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "code": {
                     "optional": true,
                     "type": [
@@ -59136,6 +60336,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -59252,6 +60464,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "lineColor": {
@@ -59541,6 +60765,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -59657,6 +60893,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "width": {
@@ -60035,6 +61283,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "width": {
                     "optional": true,
                     "type": [
@@ -60229,6 +61489,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -61020,6 +62292,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -61545,6 +62829,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -61836,6 +63132,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -62626,6 +63934,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -63415,6 +64735,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -64203,6 +65535,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -65014,6 +66358,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "initialPage": {
                     "optional": true,
                     "type": [
@@ -65819,6 +67175,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "previousLabel": {
                     "optional": true,
                     "type": [
@@ -65974,6 +67342,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "numRows": {
@@ -66304,6 +67684,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -66944,6 +68336,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "documentWideCheckWork": {
@@ -67792,6 +69196,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -68310,6 +69726,18 @@
                         "string"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "unordered": {
                     "optional": true,
                     "type": [
@@ -68635,6 +70063,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -69173,6 +70613,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -69690,6 +71142,18 @@
                         "string"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "unordered": {
                     "optional": true,
                     "type": [
@@ -69850,6 +71314,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -70542,6 +72018,18 @@
                         "string"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "unordered": {
                     "optional": true,
                     "type": [
@@ -70945,6 +72433,18 @@
                     ]
                 },
                 "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
                     "optional": true,
                     "type": [
                         "string"
@@ -71358,6 +72858,18 @@
                         "string"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "unordered": {
                     "optional": true,
                     "type": [
@@ -71681,6 +73193,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "maxNumber": {
                     "optional": true,
                     "type": [
@@ -71782,6 +73306,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "to": {
@@ -72612,6 +74148,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -73192,6 +74740,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -73879,6 +75439,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -74458,6 +76030,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -74764,6 +76348,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -75051,6 +76647,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "labelIsName": {
@@ -75435,6 +77043,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "labelIsName": {
@@ -75853,6 +77473,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -76267,6 +77899,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "labelIsName": {
@@ -76723,6 +78367,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "labelIsName": {
@@ -77229,6 +78885,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "labelIsName": {
@@ -77895,6 +79563,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -78517,6 +80197,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "labelIsName": {
@@ -79295,6 +80987,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "alwaysVisible": {
                     "optional": true,
                     "type": [
@@ -79621,6 +81325,18 @@
                     ]
                 },
                 "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
                     "optional": true,
                     "type": [
                         "string"
@@ -80007,6 +81723,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "labelIsName": {
@@ -80614,6 +82342,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -81116,6 +82856,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "weight": {
@@ -81949,6 +83701,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "credit": {
                     "optional": true,
                     "type": [
@@ -82581,6 +84345,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -83120,6 +84896,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "prefill": {
@@ -83743,6 +85531,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "prefill": {
                     "optional": true,
                     "type": [
@@ -84249,6 +86049,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "prefill": {
                     "optional": true,
                     "type": [
@@ -84719,6 +86531,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "selectMultiple": {
                     "optional": true,
                     "type": [
@@ -85064,6 +86888,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "credit": {
@@ -85920,6 +87756,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -86439,6 +88287,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "displayDigits": {
@@ -86965,6 +88825,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "xmin": {
@@ -87803,6 +89675,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "simplify": {
                     "optional": true,
                     "type": [
@@ -88560,6 +90444,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "simplify": {
                     "optional": true,
                     "type": [
@@ -89077,6 +90973,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -89762,6 +91670,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "selectForVariants": {
@@ -90574,6 +92494,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -90734,6 +92666,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "type": {
@@ -91236,6 +93180,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "width": {
                     "optional": true,
                     "type": [
@@ -91535,6 +93491,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "rowNum": {
@@ -92423,6 +94391,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "rowNum": {
                     "optional": true,
                     "type": [
@@ -92633,6 +94613,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "colNum": {
                     "optional": true,
                     "type": [
@@ -92787,6 +94779,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "rowNum": {
                     "optional": true,
                     "type": [
@@ -92933,6 +94937,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "width": {
@@ -93155,6 +95171,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "suppressTableNameInTitle": {
@@ -93855,6 +95883,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "suppressFigureNameInCaption": {
                     "optional": true,
                     "type": [
@@ -94552,6 +96592,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -94875,6 +96927,18 @@
                     ]
                 },
                 "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
                     "optional": true,
                     "type": [
                         "string"
@@ -95669,6 +97733,18 @@
                     ]
                 },
                 "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
                     "optional": true,
                     "type": [
                         "string"
@@ -96495,6 +98571,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -96701,6 +98789,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -96848,6 +98948,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "dx": {
@@ -97029,6 +99141,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "buffer": {
                     "optional": true,
                     "type": [
@@ -97151,6 +99275,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "dx": {
@@ -97375,6 +99511,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "relativeToGraphScales": {
@@ -97732,6 +99880,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "relativeToGraphScales": {
@@ -98101,6 +100261,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -98238,6 +100410,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "threshold": {
@@ -98387,6 +100571,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "relativeToGraphScales": {
@@ -98746,6 +100942,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "asList": {
                     "optional": true,
                     "type": [
@@ -98874,6 +101082,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -98970,6 +101190,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -99507,6 +101739,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "numVariants": {
                     "optional": true,
                     "type": [
@@ -99654,6 +101898,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "displayDigits": {
@@ -99859,6 +102115,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "numToSelect": {
                     "optional": true,
                     "type": [
@@ -99986,6 +102254,18 @@
                     ]
                 },
                 "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
                     "optional": true,
                     "type": [
                         "string"
@@ -100786,6 +103066,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "type": {
                     "optional": true,
                     "type": [
@@ -101005,6 +103297,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -101523,6 +103827,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "type": {
                     "optional": true,
                     "type": [
@@ -101741,6 +104057,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "numSamples": {
@@ -101975,6 +104303,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "minValue": {
                     "optional": true,
                     "type": [
@@ -102149,6 +104489,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "numSamples": {
                     "optional": true,
                     "type": [
@@ -102303,6 +104655,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "type": {
@@ -103193,6 +105557,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -103744,6 +106120,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "width": {
                     "optional": true,
                     "type": [
@@ -104027,6 +106415,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "width": {
                     "optional": true,
                     "type": [
@@ -104247,6 +106647,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -105048,6 +107460,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -105571,6 +107995,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "draggable": {
@@ -106111,6 +108547,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "condition": {
@@ -106909,6 +109357,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -107697,6 +110157,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "condition": {
@@ -108500,6 +110972,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "minSentencesPerParagraph": {
                     "optional": true,
                     "type": [
@@ -108653,6 +111137,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "target": {
@@ -108897,6 +111393,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "target": {
                     "optional": true,
                     "type": [
@@ -109133,6 +111641,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "draggable": {
                     "optional": true,
                     "type": [
@@ -109344,6 +111864,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "numIterates": {
@@ -109572,6 +112104,18 @@
                     ]
                 },
                 "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
                     "optional": true,
                     "type": [
                         "string"
@@ -110366,6 +112910,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -111134,6 +113690,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -111910,6 +114478,18 @@
                         "true",
                         "false"
                     ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -112444,6 +115024,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -113120,6 +115712,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -113724,6 +116328,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "sortVectorsBy": {
@@ -114537,6 +117153,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "type": {
                     "optional": true,
                     "type": [
@@ -115319,6 +117947,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "variables": {
                     "optional": true,
                     "type": [
@@ -115702,6 +118342,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "xmin": {
                     "optional": true,
                     "type": [
@@ -115976,6 +118628,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "format": {
@@ -116738,6 +119402,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "type": {
@@ -117530,6 +120206,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -117903,6 +120591,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -118091,6 +120791,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "labelIsName": {
@@ -118304,6 +121016,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -118500,6 +121224,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "prefill": {
@@ -119410,6 +122146,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -119908,6 +122656,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "source": {
                     "optional": true,
                     "type": [
@@ -120081,6 +122841,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "source": {
@@ -120340,6 +123112,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -120527,6 +123311,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "forObject": {
@@ -121148,6 +123944,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "symbolicEquality": {
                     "optional": true,
                     "type": [
@@ -121714,6 +124522,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "format": {
                     "optional": true,
                     "type": [
@@ -122214,6 +125034,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -122605,6 +125437,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "draggable": {
@@ -123196,6 +126040,18 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -123987,6 +126843,18 @@
                         "false"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [
@@ -124418,6 +127286,18 @@
                         "string"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "unordered": {
                     "optional": true,
                     "type": [
@@ -124773,6 +127653,18 @@
                         "string"
                     ]
                 },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "unordered": {
                     "optional": true,
                     "type": [
@@ -125123,6 +128015,18 @@
                     ]
                 },
                 "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
                     "optional": true,
                     "type": [
                         "string"
