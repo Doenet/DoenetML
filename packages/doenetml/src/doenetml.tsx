@@ -88,7 +88,7 @@ export function DoenetViewer({
     forceUnsuppressCheckwork = false,
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
-    linkSettings,
+    doenetViewerUrl,
     scrollableContainer,
     darkMode = "light",
     showAnswerResponseMenu = false,
@@ -119,7 +119,7 @@ export function DoenetViewer({
     forceUnsuppressCheckwork?: boolean;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
-    linkSettings?: { viewURL: string; editURL: string };
+    doenetViewerUrl?: string;
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
     showAnswerResponseMenu?: boolean;
@@ -233,7 +233,7 @@ export function DoenetViewer({
             forceShowCorrectness={forceShowCorrectness}
             forceShowSolution={forceShowSolution}
             forceUnsuppressCheckwork={forceUnsuppressCheckwork}
-            linkSettings={linkSettings}
+            doenetViewerUrl={doenetViewerUrl}
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}
             showAnswerResponseMenu={showAnswerResponseMenu}
@@ -278,7 +278,7 @@ export function DoenetEditor({
     prefixForIds = "",
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
-    linkSettings,
+    doenetViewerUrl,
     darkMode = "light",
     showAnswerResponseMenu = false,
     answerResponseCounts = {},
@@ -304,7 +304,7 @@ export function DoenetEditor({
     prefixForIds?: string;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
-    linkSettings?: { viewURL: string; editURL: string };
+    doenetViewerUrl?: string;
     darkMode?: "dark" | "light";
     showAnswerResponseMenu?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -330,7 +330,7 @@ export function DoenetEditor({
             doenetML={doenetML}
             activityId={activityId}
             prefixForIds={prefixForIds}
-            linkSettings={linkSettings}
+            doenetViewerUrl={doenetViewerUrl}
             darkMode={darkMode}
             showAnswerResponseMenu={showAnswerResponseMenu}
             answerResponseCounts={answerResponseCounts}

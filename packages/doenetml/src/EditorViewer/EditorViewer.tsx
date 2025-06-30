@@ -38,7 +38,7 @@ export function EditorViewer({
     doenetML: initialDoenetML,
     activityId: specifiedActivityId,
     prefixForIds = "",
-    linkSettings,
+    doenetViewerUrl,
     darkMode = "light",
     showAnswerResponseMenu = false,
     answerResponseCounts = {},
@@ -61,7 +61,7 @@ export function EditorViewer({
     doenetML: string;
     activityId?: string;
     prefixForIds?: string;
-    linkSettings?: { viewURL: string; editURL: string };
+    doenetViewerUrl?: string;
     darkMode?: "dark" | "light";
     showAnswerResponseMenu?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -565,7 +565,7 @@ export function EditorViewer({
                     documentStructureCallback={
                         documentStructureThenChangeCallback
                     }
-                    linkSettings={linkSettings}
+                    doenetViewerUrl={doenetViewerUrl}
                     scrollableContainer={
                         scrollableContainer.current ?? undefined
                     }

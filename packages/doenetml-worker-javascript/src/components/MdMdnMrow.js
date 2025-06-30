@@ -78,7 +78,6 @@ export class Md extends InlineComponent {
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
         stateVariableDefinitions.mrowChildIndices = {
-            forRenderer: true,
             returnDependencies: () => ({
                 mrowChildren: {
                     dependencyType: "child",
@@ -92,6 +91,40 @@ export class Md extends InlineComponent {
                     ),
                 },
             }),
+        };
+
+        stateVariableDefinitions.mrowChildRendererIds = {
+            forRenderer: true,
+            stateVariablesDeterminingDependencies: ["mrowChildIndices"],
+            returnDependencies: ({ stateValues }) => {
+                const dependencies = {
+                    numChildren: {
+                        dependencyType: "value",
+                        value: stateValues.mrowChildIndices.length,
+                    },
+                };
+
+                for (const [i, idx] of stateValues.mrowChildIndices.entries()) {
+                    dependencies[`rendererId${i}`] = {
+                        dependencyType: "rendererId",
+                        componentIdx: idx,
+                    };
+                }
+                return dependencies;
+            },
+            definition: ({ dependencyValues }) => {
+                const mrowChildRendererIds = [];
+
+                for (let i = 0; i < dependencyValues.numChildren; i++) {
+                    mrowChildRendererIds.push(
+                        dependencyValues[`rendererId${i}`],
+                    );
+                }
+
+                return {
+                    setValue: { mrowChildRendererIds },
+                };
+            },
         };
 
         stateVariableDefinitions.latex = {
