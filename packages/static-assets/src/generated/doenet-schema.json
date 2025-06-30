@@ -1773,6 +1773,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -2106,6 +2108,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -2439,6 +2443,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -24273,6 +24279,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -24624,11 +24632,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -24656,6 +24659,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -24774,6 +24782,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -25125,11 +25135,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -25157,6 +25162,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -25275,6 +25285,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -25626,11 +25638,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -25658,6 +25665,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -25776,6 +25788,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -26127,11 +26141,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -26159,6 +26168,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -26277,6 +26291,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -26649,11 +26665,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -26686,6 +26697,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -26804,6 +26820,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -27155,11 +27173,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -27187,6 +27200,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -27305,6 +27323,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -27656,11 +27676,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -27688,6 +27703,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -27806,6 +27826,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -28157,11 +28179,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -28189,6 +28206,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -28307,6 +28329,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -28658,11 +28682,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -28690,6 +28709,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -28808,6 +28832,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -29159,11 +29185,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -29191,6 +29212,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -29309,6 +29335,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -29660,11 +29688,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -29692,6 +29715,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -29810,6 +29838,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -30161,11 +30191,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -30193,6 +30218,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -30311,6 +30341,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -30662,11 +30694,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -30694,6 +30721,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -30812,6 +30844,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -31163,7 +31197,505 @@
                     "isArray": false
                 },
                 {
+                    "name": "includeParentNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionNumber",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "title",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "open",
+                    "type": "boolean",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true
+        },
+        {
+            "name": "part",
+            "children": [
+                "variantControl",
+                "title",
+                "setup",
+                "rightHandSide",
+                "description",
+                "xLabel",
+                "yLabel",
+                "statement",
+                "introduction",
+                "conclusion",
+                "topic",
+                "br",
+                "hr",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "section",
+                "subsection",
+                "subsubsection",
+                "paragraphs",
+                "aside",
+                "objectives",
+                "problem",
+                "exercise",
+                "question",
+                "activity",
+                "example",
+                "definition",
+                "note",
+                "theorem",
+                "part",
+                "task",
+                "proof",
+                "problems",
+                "exercises",
+                "ol",
+                "ul",
+                "odeSystem",
+                "cobwebPolyline",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "equilibriumCurve",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "orbitalDiagram",
+                "orbitalDiagramInput",
+                "sideBySide",
+                "sbsGroup",
+                "stack",
+                "h",
+                "idx",
+                "div",
+                "span",
+                "pre",
+                "displayDoenetML",
+                "paginator",
+                "paginatorControls",
+                "matrixInput",
+                "solution",
+                "document",
+                "text",
+                "textList",
+                "p",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "collect",
+                "link",
+                "point",
+                "coords",
+                "line",
+                "lineSegment",
+                "ray",
+                "polyline",
+                "polygon",
+                "triangle",
+                "rectangle",
+                "regularPolygon",
+                "circle",
+                "parabola",
+                "curve",
+                "bezierControls",
+                "controlVectors",
+                "vector",
+                "angle",
+                "answer",
+                "award",
+                "when",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "graph",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "slider",
+                "spreadsheet",
+                "cell",
+                "row",
+                "column",
+                "cellBlock",
+                "tabular",
+                "table",
+                "figure",
+                "markers",
+                "repeat",
+                "repeatForSequence",
+                "pegboard",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "selectFromSequence",
+                "select",
+                "group",
+                "animateFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "image",
+                "video",
+                "hint",
+                "intComma",
+                "pluralize",
+                "feedback",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "moduleAttributes",
+                "footnote",
+                "caption",
+                "endpoint",
+                "sort",
+                "shuffle",
+                "solveEquations",
+                "subsetOfRealsInput",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
+                "regionHalfPlane",
+                "codeEditor",
+                "hasSameFactoring",
+                "dataFrame",
+                "summaryStatistics",
+                "legend",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "eigenDecomposition",
+                "latex",
+                "blockQuote",
+                "stickyGroup",
+                "pointList",
+                "intervalList",
+                "vectorList"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
+                },
+                {
+                    "name": "boxed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoName",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoNumber",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoNameIfNoTitle",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoNumberIfNoTitle",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "level"
+                },
+                {
+                    "name": "includeParentNumber",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNameIfNoTitle",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNumberIfNoTitle",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -31195,6 +31727,514 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionNumber",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "title",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "open",
+                    "type": "boolean",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true
+        },
+        {
+            "name": "task",
+            "children": [
+                "variantControl",
+                "title",
+                "setup",
+                "rightHandSide",
+                "description",
+                "xLabel",
+                "yLabel",
+                "statement",
+                "introduction",
+                "conclusion",
+                "topic",
+                "br",
+                "hr",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "section",
+                "subsection",
+                "subsubsection",
+                "paragraphs",
+                "aside",
+                "objectives",
+                "problem",
+                "exercise",
+                "question",
+                "activity",
+                "example",
+                "definition",
+                "note",
+                "theorem",
+                "part",
+                "task",
+                "proof",
+                "problems",
+                "exercises",
+                "ol",
+                "ul",
+                "odeSystem",
+                "cobwebPolyline",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "equilibriumCurve",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "orbitalDiagram",
+                "orbitalDiagramInput",
+                "sideBySide",
+                "sbsGroup",
+                "stack",
+                "h",
+                "idx",
+                "div",
+                "span",
+                "pre",
+                "displayDoenetML",
+                "paginator",
+                "paginatorControls",
+                "matrixInput",
+                "solution",
+                "document",
+                "text",
+                "textList",
+                "p",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "collect",
+                "link",
+                "point",
+                "coords",
+                "line",
+                "lineSegment",
+                "ray",
+                "polyline",
+                "polygon",
+                "triangle",
+                "rectangle",
+                "regularPolygon",
+                "circle",
+                "parabola",
+                "curve",
+                "bezierControls",
+                "controlVectors",
+                "vector",
+                "angle",
+                "answer",
+                "award",
+                "when",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "graph",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "slider",
+                "spreadsheet",
+                "cell",
+                "row",
+                "column",
+                "cellBlock",
+                "tabular",
+                "table",
+                "figure",
+                "markers",
+                "repeat",
+                "repeatForSequence",
+                "pegboard",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "selectFromSequence",
+                "select",
+                "group",
+                "animateFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "image",
+                "video",
+                "hint",
+                "intComma",
+                "pluralize",
+                "feedback",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "moduleAttributes",
+                "footnote",
+                "caption",
+                "endpoint",
+                "sort",
+                "shuffle",
+                "solveEquations",
+                "subsetOfRealsInput",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
+                "regionHalfPlane",
+                "codeEditor",
+                "hasSameFactoring",
+                "dataFrame",
+                "summaryStatistics",
+                "legend",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "eigenDecomposition",
+                "latex",
+                "blockQuote",
+                "stickyGroup",
+                "pointList",
+                "intervalList",
+                "vectorList"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
+                },
+                {
+                    "name": "boxed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoName",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoNumber",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoNameIfNoTitle",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoNumberIfNoTitle",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "level"
+                },
+                {
+                    "name": "includeParentNumber",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNameIfNoTitle",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNumberIfNoTitle",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeParentNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -31313,6 +32353,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -31681,11 +32723,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "collapsible",
                     "type": "boolean",
                     "isArray": false
@@ -31713,6 +32750,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -31831,6 +32873,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -32178,11 +33222,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -32205,6 +33244,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -32323,6 +33367,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -32670,11 +33716,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -32697,6 +33738,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -33065,6 +34111,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -37578,6 +38626,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -38048,6 +39098,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -38878,6 +39930,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -39211,6 +40265,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -39544,6 +40600,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -39877,6 +40935,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -40230,6 +41290,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -41080,6 +42142,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -41307,6 +42371,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -44123,6 +45189,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -53796,6 +54864,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -56935,6 +58005,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -58040,6 +59112,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -59136,6 +60210,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -59459,6 +60535,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -59897,6 +60975,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -60220,6 +61300,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -63019,6 +64101,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -64681,6 +65765,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -66055,6 +67141,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -67104,6 +68192,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -67435,6 +68525,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -67768,6 +68860,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -69052,6 +70146,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -69373,6 +70469,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -69688,6 +70786,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -70329,6 +71429,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -70983,6 +72085,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -71329,6 +72433,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -72709,6 +73815,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -73912,6 +75020,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",
@@ -77059,6 +78169,8 @@
                 "definition",
                 "note",
                 "theorem",
+                "part",
+                "task",
                 "proof",
                 "problems",
                 "exercises",

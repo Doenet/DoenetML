@@ -82,6 +82,8 @@
         "definition",
         "note",
         "theorem",
+        "part",
+        "task",
         "proof",
         "problems",
         "exercises",
@@ -3568,6 +3570,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -4363,6 +4371,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -5156,6 +5170,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -37386,6 +37406,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -37892,11 +37918,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -37924,6 +37945,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -38364,6 +38390,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -38870,11 +38902,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -38902,6 +38929,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -39342,6 +39374,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -39848,11 +39886,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -39880,6 +39913,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -40320,6 +40358,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -40826,11 +40870,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -40858,6 +40897,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -41319,6 +41363,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -41825,11 +41875,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -41862,6 +41907,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -42302,6 +42352,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -42808,11 +42864,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -42840,6 +42891,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -43280,6 +43336,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -43786,11 +43848,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -43818,6 +43875,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -44258,6 +44320,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -44764,11 +44832,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -44796,6 +44859,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -45236,6 +45304,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -45742,11 +45816,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -45774,6 +45843,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -46214,6 +46288,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -46720,11 +46800,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -46752,6 +46827,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -47192,6 +47272,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -47698,11 +47784,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -47730,6 +47811,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -48170,6 +48256,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -48676,11 +48768,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -48708,6 +48795,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -49148,6 +49240,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -49654,11 +49752,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -49686,6 +49779,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -50126,6 +50224,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -50632,7 +50736,986 @@
                     "isArray": false
                 },
                 {
+                    "name": "includeParentNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionNumber",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "title",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "open",
+                    "type": "boolean",
+                    "isArray": false
+                }
+            ]
+        },
+        "part": {
+            "type": "element",
+            "name": "part",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "aggregateScores": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "weight": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "sectionWideCheckWork": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "submitLabel": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "submitLabelNoCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDigitsForCreditAchieved": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "boxed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "includeAutoName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "includeAutoNumber": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "includeAutoNameIfNoTitle": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "includeAutoNumberIfNoTitle": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "level": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "includeParentNumber": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "variantControl"
+                },
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "introduction"
+                },
+                {
+                    "ref": "conclusion"
+                },
+                {
+                    "ref": "topic"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "section"
+                },
+                {
+                    "ref": "subsection"
+                },
+                {
+                    "ref": "subsubsection"
+                },
+                {
+                    "ref": "paragraphs"
+                },
+                {
+                    "ref": "aside"
+                },
+                {
+                    "ref": "objectives"
+                },
+                {
+                    "ref": "problem"
+                },
+                {
+                    "ref": "exercise"
+                },
+                {
+                    "ref": "question"
+                },
+                {
+                    "ref": "activity"
+                },
+                {
+                    "ref": "example"
+                },
+                {
+                    "ref": "definition"
+                },
+                {
+                    "ref": "note"
+                },
+                {
+                    "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
+                    "ref": "proof"
+                },
+                {
+                    "ref": "problems"
+                },
+                {
+                    "ref": "exercises"
+                },
+                {
+                    "ref": "ol"
+                },
+                {
+                    "ref": "ul"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "cobwebPolyline"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "equilibriumCurve"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "orbitalDiagram"
+                },
+                {
+                    "ref": "orbitalDiagramInput"
+                },
+                {
+                    "ref": "sideBySide"
+                },
+                {
+                    "ref": "sbsGroup"
+                },
+                {
+                    "ref": "stack"
+                },
+                {
+                    "ref": "h"
+                },
+                {
+                    "ref": "idx"
+                },
+                {
+                    "ref": "div"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "pre"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "paginator"
+                },
+                {
+                    "ref": "paginatorControls"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "solution"
+                },
+                {
+                    "ref": "document"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "p"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "link"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "lineSegment"
+                },
+                {
+                    "ref": "ray"
+                },
+                {
+                    "ref": "polyline"
+                },
+                {
+                    "ref": "polygon"
+                },
+                {
+                    "ref": "triangle"
+                },
+                {
+                    "ref": "rectangle"
+                },
+                {
+                    "ref": "regularPolygon"
+                },
+                {
+                    "ref": "circle"
+                },
+                {
+                    "ref": "parabola"
+                },
+                {
+                    "ref": "curve"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "award"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "graph"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "slider"
+                },
+                {
+                    "ref": "spreadsheet"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "row"
+                },
+                {
+                    "ref": "column"
+                },
+                {
+                    "ref": "cellBlock"
+                },
+                {
+                    "ref": "tabular"
+                },
+                {
+                    "ref": "table"
+                },
+                {
+                    "ref": "figure"
+                },
+                {
+                    "ref": "markers"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "pegboard"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "image"
+                },
+                {
+                    "ref": "video"
+                },
+                {
+                    "ref": "hint"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "feedback"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "caption"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfRealsInput"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "regionBetweenCurveXAxis"
+                },
+                {
+                    "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "regionHalfPlane"
+                },
+                {
+                    "ref": "codeEditor"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "dataFrame"
+                },
+                {
+                    "ref": "summaryStatistics"
+                },
+                {
+                    "ref": "legend"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "eigenDecomposition"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "blockQuote"
+                },
+                {
+                    "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNameIfNoTitle",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNumberIfNoTitle",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -50664,6 +51747,995 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionNumber",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "title",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "open",
+                    "type": "boolean",
+                    "isArray": false
+                }
+            ]
+        },
+        "task": {
+            "type": "element",
+            "name": "task",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "aggregateScores": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "weight": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "sectionWideCheckWork": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "submitLabel": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "submitLabelNoCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDigitsForCreditAchieved": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "boxed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "includeAutoName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "includeAutoNumber": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "includeAutoNameIfNoTitle": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "includeAutoNumberIfNoTitle": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "level": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "includeParentNumber": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "variantControl"
+                },
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "introduction"
+                },
+                {
+                    "ref": "conclusion"
+                },
+                {
+                    "ref": "topic"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "section"
+                },
+                {
+                    "ref": "subsection"
+                },
+                {
+                    "ref": "subsubsection"
+                },
+                {
+                    "ref": "paragraphs"
+                },
+                {
+                    "ref": "aside"
+                },
+                {
+                    "ref": "objectives"
+                },
+                {
+                    "ref": "problem"
+                },
+                {
+                    "ref": "exercise"
+                },
+                {
+                    "ref": "question"
+                },
+                {
+                    "ref": "activity"
+                },
+                {
+                    "ref": "example"
+                },
+                {
+                    "ref": "definition"
+                },
+                {
+                    "ref": "note"
+                },
+                {
+                    "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
+                    "ref": "proof"
+                },
+                {
+                    "ref": "problems"
+                },
+                {
+                    "ref": "exercises"
+                },
+                {
+                    "ref": "ol"
+                },
+                {
+                    "ref": "ul"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "cobwebPolyline"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "equilibriumCurve"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "orbitalDiagram"
+                },
+                {
+                    "ref": "orbitalDiagramInput"
+                },
+                {
+                    "ref": "sideBySide"
+                },
+                {
+                    "ref": "sbsGroup"
+                },
+                {
+                    "ref": "stack"
+                },
+                {
+                    "ref": "h"
+                },
+                {
+                    "ref": "idx"
+                },
+                {
+                    "ref": "div"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "pre"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "paginator"
+                },
+                {
+                    "ref": "paginatorControls"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "solution"
+                },
+                {
+                    "ref": "document"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "p"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "link"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "lineSegment"
+                },
+                {
+                    "ref": "ray"
+                },
+                {
+                    "ref": "polyline"
+                },
+                {
+                    "ref": "polygon"
+                },
+                {
+                    "ref": "triangle"
+                },
+                {
+                    "ref": "rectangle"
+                },
+                {
+                    "ref": "regularPolygon"
+                },
+                {
+                    "ref": "circle"
+                },
+                {
+                    "ref": "parabola"
+                },
+                {
+                    "ref": "curve"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "award"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "graph"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "slider"
+                },
+                {
+                    "ref": "spreadsheet"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "row"
+                },
+                {
+                    "ref": "column"
+                },
+                {
+                    "ref": "cellBlock"
+                },
+                {
+                    "ref": "tabular"
+                },
+                {
+                    "ref": "table"
+                },
+                {
+                    "ref": "figure"
+                },
+                {
+                    "ref": "markers"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "pegboard"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "image"
+                },
+                {
+                    "ref": "video"
+                },
+                {
+                    "ref": "hint"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "feedback"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "caption"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfRealsInput"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "regionBetweenCurveXAxis"
+                },
+                {
+                    "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "regionHalfPlane"
+                },
+                {
+                    "ref": "codeEditor"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "dataFrame"
+                },
+                {
+                    "ref": "summaryStatistics"
+                },
+                {
+                    "ref": "legend"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "eigenDecomposition"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "blockQuote"
+                },
+                {
+                    "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNameIfNoTitle",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNumberIfNoTitle",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeParentNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -51124,6 +53196,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -51630,11 +53708,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "collapsible",
                     "type": "boolean",
                     "isArray": false
@@ -51662,6 +53735,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -52101,6 +54179,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -52607,11 +54691,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -52634,6 +54713,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -53073,6 +55157,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -53579,11 +55669,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "asList",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -53606,6 +55691,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -54249,6 +56339,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -60370,6 +62466,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -61114,6 +63216,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -62741,6 +64849,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -63534,6 +65648,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -64331,6 +66451,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -65124,6 +67250,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -65945,6 +68077,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -67470,6 +69608,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -67938,6 +70082,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -72818,6 +74968,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -86258,6 +88414,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -90985,6 +93147,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -92932,6 +95100,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -94653,6 +96827,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -95358,6 +97538,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -96192,6 +98378,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -97016,6 +99208,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -101406,6 +103604,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -103810,6 +106014,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -105702,6 +107912,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -107599,6 +109815,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -108387,6 +110609,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -109189,6 +111417,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -111124,6 +113358,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -111892,6 +114132,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -112673,6 +114919,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -114210,6 +116462,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -115315,6 +117573,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -116111,6 +118375,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -118348,6 +120618,12 @@
                     "ref": "theorem"
                 },
                 {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
                     "ref": "proof"
                 },
                 {
@@ -120181,6 +122457,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
@@ -124873,6 +127155,12 @@
                 },
                 {
                     "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
                 },
                 {
                     "ref": "proof"
