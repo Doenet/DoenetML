@@ -2338,7 +2338,7 @@ const smallerEntittyMap = Object.fromEntries(
 );
 
 const file = path.join(__dirname, "..", "src", "generated", "entity-map.json");
-const out = JSON.stringify(smallerEntittyMap, null, 4);
+const out = JSON.stringify(smallerEntittyMap, null, 4) + "\n";
 
 console.log("Writing", out.length / 1024, "KB to", file);
 
