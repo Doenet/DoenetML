@@ -170,7 +170,7 @@ export default class Link extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let url = "";
+                let url = "#";
                 let activityId = "";
                 let activityUrlPostfix = "";
 
@@ -188,7 +188,7 @@ export default class Link extends InlineComponent {
                     };
                 }
 
-                url = dependencyValues.stringsFromAttribute[0];
+                url = dependencyValues.stringsFromAttribute[0] | "#";
 
                 const result = url.match(/^doenet:([a-zA-Z0-9]+)((\?|#|$).*)/i);
 
@@ -259,6 +259,9 @@ export default class Link extends InlineComponent {
                         }
                     } else if (dependencyValues.url !== null) {
                         linkText = dependencyValues.url;
+                        if (linkText === "#") {
+                            linkText = "";
+                        }
                     }
                 } else {
                     for (let child of dependencyValues.allChildren) {
