@@ -245,23 +245,8 @@ export class Part extends SectioningComponentNumberWithSiblings {
     }
 }
 
-export class Task extends SectioningComponentNumberWithSiblings {
+export class Task extends Part {
     static componentType = "task";
-    static rendererType = "section";
-
-    static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.forceList.definition = () => ({
-            setValue: { forceList: true },
-        });
-
-        stateVariableDefinitions.containerTag.definition = () => ({
-            setValue: { containerTag: "div" },
-        });
-
-        return stateVariableDefinitions;
-    }
 }
 
 export class Proof extends UnnumberedSectioningComponent {
