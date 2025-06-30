@@ -251,14 +251,14 @@ export default class Link extends InlineComponent {
             definition: function ({ dependencyValues }) {
                 let linkText = "";
                 if (dependencyValues.allChildren.length === 0) {
-                    if (dependencyValues.url !== null) {
-                        linkText = dependencyValues.url;
-                    } else if (!dependencyValues.targetInactive) {
+                    if (!dependencyValues.targetInactive) {
                         if (dependencyValues.title !== null) {
                             linkText = dependencyValues.title;
                         } else if (dependencyValues.equationTag !== null) {
                             linkText = "(" + dependencyValues.equationTag + ")";
                         }
+                    } else if (dependencyValues.url !== null) {
+                        linkText = dependencyValues.url;
                     }
                 } else {
                     for (let child of dependencyValues.allChildren) {
