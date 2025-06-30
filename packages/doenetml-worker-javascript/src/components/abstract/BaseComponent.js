@@ -378,6 +378,16 @@ export default class BaseComponent {
                 public: true,
                 excludeFromSchema: true,
             },
+
+            // Adding `extend` and `copy` attributes so they are in the schema for all components.
+            // These attributes are unused, as the `extend` and `copy` attributes are removed
+            // from the dast when references are expanded.
+            extend: {
+                createReferences: true,
+            },
+            copy: {
+                createReferences: true,
+            },
         };
     }
 
