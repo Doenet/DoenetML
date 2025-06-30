@@ -20,6 +20,7 @@ import { upgradePathSlashesToDots } from "./slash-to-dot";
 import { lezerToDastV6 } from "..";
 import { upgradeCopySyntax } from "./upgrade-copy-syntax";
 import { upgradeAttributeSyntax } from "./upgrade-attribute-syntax";
+import { VFile } from "vfile";
 
 export type Options = {
     doNotUpgradeCopyTags?: boolean;
@@ -31,6 +32,8 @@ export type Options = {
  * etc.
  *
  * See https://github.com/Doenet/DoenetML/issues/474
+ *
+ * Any warnings are stored on the VFile object.
  */
 export async function updateSyntaxFromV06toV07_root(
     dast: DastRootV6,
@@ -51,7 +54,9 @@ export async function updateSyntaxFromV06toV07_root(
         processor = processor.use(upgradeCopySyntax);
     }
 
-    return await processor.run(dast);
+    // Error messages are stored in a VFile
+    const vfile = new VFile();
+    return { dast: await processor.run(dast, vfile), vfile };
 }
 
 /**
@@ -65,7 +70,7 @@ export async function updateSyntaxFromV06toV07(
     options?: Options,
 ) {
     const parsed = lezerToDastV6(dastStr);
-    return await updateSyntaxFromV06toV07_root(parsed, options || {});
+    return (await updateSyntaxFromV06toV07_root(parsed, options || {}));
 }
 
 /**
