@@ -9,6 +9,8 @@
         "introduction",
         "conclusion",
         "topic",
+        "br",
+        "hr",
         "m",
         "me",
         "men",
@@ -120,7 +122,7 @@
         "tupleList",
         "numberList",
         "collect",
-        "ref",
+        "link",
         "point",
         "coords",
         "line",
@@ -300,6 +302,9 @@
                 },
                 {
                     "ref": "topic"
+                },
+                {
+                    "ref": "br"
                 },
                 {
                     "ref": "m"
@@ -521,7 +526,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -1526,6 +1531,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -1745,7 +1753,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -2097,6 +2105,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -2316,7 +2327,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -2713,6 +2724,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -2932,7 +2946,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -3299,6 +3313,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -3632,7 +3652,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -4082,6 +4102,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -4415,7 +4441,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -4865,6 +4891,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -5198,7 +5230,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -6081,6 +6113,232 @@
                 }
             ]
         },
+        "br": {
+            "type": "element",
+            "name": "br",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copySource": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [],
+            "textChildrenAllowed": false,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                }
+            ]
+        },
+        "hr": {
+            "type": "element",
+            "name": "hr",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copySource": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [],
+            "textChildrenAllowed": false,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                }
+            ]
+        },
         "m": {
             "type": "element",
             "name": "m",
@@ -6190,6 +6448,9 @@
                 },
                 {
                     "ref": "topic"
+                },
+                {
+                    "ref": "br"
                 },
                 {
                     "ref": "m"
@@ -6411,7 +6672,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -6792,6 +7053,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -7011,7 +7275,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -7392,6 +7656,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -7611,7 +7878,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -8394,6 +8661,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -8613,7 +8883,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -30131,6 +30401,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -30350,7 +30623,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -30658,6 +30931,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -30877,7 +31153,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -31185,6 +31461,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -31404,7 +31683,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -31712,6 +31991,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -31931,7 +32213,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -32239,6 +32521,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -32458,7 +32743,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -32766,6 +33051,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -32985,7 +33273,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -33293,6 +33581,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -33512,7 +33803,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -33820,6 +34111,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -34039,7 +34333,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -34347,6 +34641,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -34566,7 +34863,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -34874,6 +35171,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -35093,7 +35393,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -36453,6 +36753,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -36786,7 +37092,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -37419,6 +37725,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -37752,7 +38064,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -38385,6 +38697,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -38718,7 +39036,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -39351,6 +39669,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -39684,7 +40008,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -40338,6 +40662,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -40671,7 +41001,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -41309,6 +41639,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -41642,7 +41978,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -42275,6 +42611,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -42608,7 +42950,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -43241,6 +43583,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -43574,7 +43922,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -44207,6 +44555,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -44540,7 +44894,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -45173,6 +45527,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -45506,7 +45866,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -46139,6 +46499,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -46472,7 +46838,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -47105,6 +47471,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -47438,7 +47810,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -48071,6 +48443,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -48404,7 +48782,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -49037,6 +49415,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -49370,7 +49754,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -50023,6 +50407,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -50356,7 +50746,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -50988,6 +51378,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -51321,7 +51717,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -51948,6 +52344,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -52281,7 +52683,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -53102,6 +53504,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -53435,7 +53843,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -59293,6 +59701,9 @@
                     "ref": "conclusion"
                 },
                 {
+                    "ref": "hr"
+                },
+                {
                     "ref": "section"
                 },
                 {
@@ -59850,6 +60261,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -60183,7 +60600,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -61451,6 +61868,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -61784,7 +62207,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -62234,6 +62657,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -62567,7 +62996,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -63017,6 +63446,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -63350,7 +63785,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -63800,6 +64235,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -64133,7 +64574,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -64609,6 +65050,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -64942,7 +65389,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -65880,6 +66327,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -66099,7 +66549,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -66277,6 +66727,9 @@
                 },
                 {
                     "ref": "conclusion"
+                },
+                {
+                    "ref": "hr"
                 },
                 {
                     "ref": "section"
@@ -66564,6 +67017,12 @@
                 },
                 {
                     "ref": "topic"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
                 },
                 {
                     "ref": "m"
@@ -66899,7 +67358,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -68199,6 +68658,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -68418,7 +68880,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -71265,9 +71727,9 @@
                 }
             ]
         },
-        "ref": {
+        "link": {
             "type": "element",
-            "name": "ref",
+            "name": "link",
             "attributes": {
                 "name": {
                     "optional": true,
@@ -71334,12 +71796,6 @@
                         "string"
                     ]
                 },
-                "uri": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "createButton": {
                     "optional": true,
                     "type": [
@@ -71375,6 +71831,12 @@
                 },
                 {
                     "ref": "topic"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
                 },
                 {
                     "ref": "m"
@@ -71710,7 +72172,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -72052,11 +72514,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "uri",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -72078,6 +72535,11 @@
                 },
                 {
                     "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "url",
                     "type": "text",
                     "isArray": false
                 },
@@ -84659,6 +85121,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -84992,7 +85460,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -89338,6 +89806,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -89671,7 +90145,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -91333,6 +91807,12 @@
                     "ref": "conclusion"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -91558,7 +92038,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "lineSegment"
@@ -92712,6 +93192,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -92931,7 +93414,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -93109,6 +93592,9 @@
                 },
                 {
                     "ref": "conclusion"
+                },
+                {
+                    "ref": "hr"
                 },
                 {
                     "ref": "section"
@@ -93407,6 +93893,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -93626,7 +94115,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -93804,6 +94293,9 @@
                 },
                 {
                     "ref": "conclusion"
+                },
+                {
+                    "ref": "hr"
                 },
                 {
                     "ref": "section"
@@ -94449,6 +94941,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -94782,7 +95280,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -95263,6 +95761,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -95596,7 +96100,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -98489,6 +98993,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -98708,7 +99215,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -99540,6 +100047,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -99873,7 +100386,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -101896,6 +102409,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -102229,7 +102748,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -103760,6 +104279,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -104093,7 +104618,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -105631,6 +106156,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -105964,7 +106495,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -106409,6 +106940,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -106742,7 +107279,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -107199,6 +107736,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -107532,7 +108075,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -109090,6 +109633,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -109423,7 +109972,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -109848,6 +110397,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -110181,7 +110736,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -110617,6 +111172,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -110950,7 +111511,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -111371,6 +111932,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -111590,7 +112154,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -111903,6 +112467,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -112122,7 +112689,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -112300,6 +112867,9 @@
                 },
                 {
                     "ref": "conclusion"
+                },
+                {
+                    "ref": "hr"
                 },
                 {
                     "ref": "section"
@@ -113218,6 +113788,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -113551,7 +114127,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -114004,6 +114580,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -114337,7 +114919,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -116209,6 +116791,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -116542,7 +117130,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -118008,6 +118596,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -118341,7 +118935,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -119995,6 +120589,9 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -120214,7 +120811,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
@@ -122631,6 +123228,12 @@
                     "ref": "topic"
                 },
                 {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -122964,7 +123567,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "ref"
+                    "ref": "link"
                 },
                 {
                     "ref": "point"
