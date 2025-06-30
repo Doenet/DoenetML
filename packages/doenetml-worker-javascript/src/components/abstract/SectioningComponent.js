@@ -128,57 +128,6 @@ export class SectioningComponent extends BlockComponent {
         return attributes;
     }
 
-    static returnSugarInstructions() {
-        let sugarInstructions = super.returnSugarInstructions();
-
-        let wrapWithContainer = function ({
-            matchedChildren,
-            componentAttributes,
-            nComponents,
-        }) {
-            if (componentAttributes.postponeRendering) {
-                const titleChildren = [];
-                const postponedChildren = [];
-
-                for (const child of matchedChildren) {
-                    if (
-                        typeof child === "object" &&
-                        child.componentType === "title"
-                    ) {
-                        titleChildren.push(child);
-                    } else {
-                        postponedChildren.push(child);
-                    }
-                }
-
-                return {
-                    success: true,
-                    newChildren: [
-                        ...titleChildren,
-                        {
-                            type: "serialized",
-                            componentType: "_postponeRenderContainer",
-                            componentIdx: nComponents++,
-                            children: postponedChildren,
-                            attributes: {},
-                            doenetAttributes: {},
-                            state: {},
-                        },
-                    ],
-                    nComponents,
-                };
-            } else {
-                return { success: false };
-            }
-        };
-
-        sugarInstructions.push({
-            replacementFunction: wrapWithContainer,
-        });
-
-        return sugarInstructions;
-    }
-
     static returnChildGroups() {
         return [
             {
