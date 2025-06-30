@@ -53,7 +53,7 @@ export default React.memo(function Ref(props: UseDoenetRendererProps) {
         url: SVs.url,
         activityId: SVs.activityId,
         activityUrlPostfix: SVs.activityUrlPostfix,
-        targetRenderedName: SVs.targetRenderedName,
+        targetRendererId: SVs.targetRendererId,
         doenetViewerUrl,
     });
 
@@ -110,19 +110,19 @@ export function getURLFromRef({
     url,
     activityId,
     activityUrlPostfix,
-    targetRenderedName,
+    targetRendererId,
     doenetViewerUrl = "https://doenet.org/activityViewer",
 }: {
     url: string;
     activityId: string;
     activityUrlPostfix: string;
-    targetRenderedName?: number;
+    targetRendererId?: number;
     doenetViewerUrl?: string;
 }) {
     let targetForATag: string | null = null;
 
-    if (targetRenderedName) {
-        url = `#${targetRenderedName}`;
+    if (targetRendererId) {
+        url = `#${targetRendererId}`;
     } else if (activityId) {
         url = `${doenetViewerUrl}/${activityId}${activityUrlPostfix}`;
         targetForATag = "_blank";

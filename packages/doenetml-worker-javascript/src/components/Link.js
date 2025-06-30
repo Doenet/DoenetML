@@ -78,7 +78,7 @@ export default class Link extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.targetRenderedName = {
+        stateVariableDefinitions.targetRendererId = {
             additionalStateVariablesDefined: [
                 "targetInactive",
                 "targetComponent",
@@ -94,8 +94,8 @@ export default class Link extends InlineComponent {
                             variableName: "isInactiveCompositeReplacement",
                             returnAsComponentObject: true,
                         },
-                        targetRenderedName: {
-                            dependencyType: "renderedName",
+                        targetRendererId: {
+                            dependencyType: "rendererId",
                             componentIdx: stateValues.targetComponentIdx,
                         },
                     };
@@ -114,7 +114,7 @@ export default class Link extends InlineComponent {
                             setValue: {
                                 targetComponent,
                                 targetInactive: true,
-                                targetRenderedName: null,
+                                targetRendererId: null,
                             },
                         };
                     } else {
@@ -122,8 +122,8 @@ export default class Link extends InlineComponent {
                             setValue: {
                                 targetComponent,
                                 targetInactive: false,
-                                targetRenderedName:
-                                    dependencyValues.targetRenderedName,
+                                targetRendererId:
+                                    dependencyValues.targetRendererId,
                             },
                         };
                     }
@@ -132,7 +132,7 @@ export default class Link extends InlineComponent {
                         setValue: {
                             targetComponent: null,
                             targetInactive: false,
-                            targetRenderedName: null,
+                            targetRendererId: null,
                         },
                     };
                 }
@@ -164,9 +164,9 @@ export default class Link extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "referenceFound",
                 },
-                targetRenderedName: {
+                targetRendererId: {
                     dependencyType: "stateVariable",
-                    variableName: "targetRenderedName",
+                    variableName: "targetRendererId",
                 },
             }),
             definition: function ({ dependencyValues }) {
@@ -174,8 +174,8 @@ export default class Link extends InlineComponent {
                 let activityId = "";
                 let activityUrlPostfix = "";
 
-                if (dependencyValues.targetRenderedName) {
-                    url = "#" + dependencyValues.targetRenderedName;
+                if (dependencyValues.targetRendererId) {
+                    url = "#" + dependencyValues.targetRendererId;
                     return {
                         setValue: { url, activityId, activityUrlPostfix },
                     };
@@ -210,7 +210,7 @@ export default class Link extends InlineComponent {
             },
             forRenderer: true,
             stateVariablesDeterminingDependencies: [
-                "targetRenderedName",
+                "targetRendererId",
                 "targetComponentIdx",
             ],
             returnDependencies({ stateValues }) {
@@ -231,7 +231,7 @@ export default class Link extends InlineComponent {
                     },
                 };
 
-                if (stateValues.targetRenderedName) {
+                if (stateValues.targetRendererId) {
                     dependencies.equationTag = {
                         dependencyType: "stateVariable",
                         componentIdx: stateValues.targetComponentIdx,
@@ -293,7 +293,7 @@ export default class Link extends InlineComponent {
         let url = await this.stateValues.url;
         let activityId = await this.stateValues.activityId;
         let activityUrlPostfix = await this.stateValues.activityUrlPostfix;
-        let targetRenderedName = await this.stateValues.targetRenderedName;
+        let targetRendererId = await this.stateValues.targetRendererId;
 
         let effectiveIdx = this.componentOrAdaptedIdx;
 
@@ -301,7 +301,7 @@ export default class Link extends InlineComponent {
             url,
             activityId,
             activityUrlPostfix,
-            targetRenderedName,
+            targetRendererId,
             actionId,
             componentIdx: this.componentIdx,
             effectiveIdx,

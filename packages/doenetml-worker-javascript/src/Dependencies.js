@@ -7643,6 +7643,20 @@ class RefResolutionDependency extends Dependency {
 
 dependencyTypeArray.push(RefResolutionDependency);
 
+/**
+ * A dependency that gives the resolutions of references from an attribute
+ * that was marked `createReferences: true`.
+ *
+ * Any plain strings in the attribute are ignored. Returns an array
+ * with an entry for each reference, such as `$x`, found in the attribute.
+ * Each entry has the fields:
+ * - componentIdx: the index of the component that the reference resolved to,
+ *   or `undefined` if no referent was found
+ * - unresolvedPath: any unresolved path remaining after `componentIdx` was resolved
+ * - originalPath: the original path corresponding to the given reference
+ */
+// TODO: should the componentIdx be `undefined` or `-1` if no referent?
+// We seem to be inconsistent in this convention.
 class AttributeRefResolutions extends Dependency {
     static dependencyType = "attributeRefResolutions";
 
@@ -7707,6 +7721,7 @@ class AttributeRefResolutions extends Dependency {
         result.value = result.value.map((comp) => ({
             componentIdx: comp.stateValues.extendIdx,
             unresolvedPath: comp.stateValues.unresolvedPath,
+            originalPath: comp.stateValues.originalPath,
         }));
         result.usedDefault = !this.foundAttribute;
 
@@ -7722,6 +7737,15 @@ class AttributeRefResolutions extends Dependency {
 
 dependencyTypeArray.push(AttributeRefResolutions);
 
+/**
+ * A dependency that gives the (non-blank) strings from an attribute
+ * that was marked `createReferences: true`.
+ *
+ * Such a attribute is generally used to extract references such as `$x`.
+ * However, in some cases, one may want to use the same attribute for references
+ * or for other string content. For such a case, this `StringsFromReferenceAttribute`
+ * will give the strings that were added to the attribute, ignoring any references.
+ */
 class StringsFromReferenceAttribute extends Dependency {
     static dependencyType = "stringsFromReferenceAttribute";
 
@@ -7782,8 +7806,23 @@ class StringsFromReferenceAttribute extends Dependency {
 
 dependencyTypeArray.push(StringsFromReferenceAttribute);
 
-class RenderedName extends Dependency {
-    static dependencyType = "renderedName";
+/**
+ * A dependency that gives the `rendererId` of the specified component,
+ * where `rendererId` is the `rootName` of the component, if it exists,
+ * else the `componentIdx` as a string.
+ *
+ * The `rootName` is the simplest unique reference to the component
+ * when the document root is the origin. As `rootName` is designed to be
+ * a HTML id, indices are represented with `:`. For example,
+ * if `$a.b[2][3].c` is the simplest reference to a component from the root,
+ * then its root name will be `a.b:2:3.c`.
+ *
+ * If a component was adapted from another component,
+ * then the `renderedId` of the original component is used instead,
+ * as that corresponds to the component that was authored.
+ */
+class RendererId extends Dependency {
+    static dependencyType = "rendererId";
 
     setUpParameters() {
         this.componentIdx = this.definition.componentIdx;
@@ -7816,10 +7855,9 @@ class RenderedName extends Dependency {
     async getValue() {
         if (this.component) {
             return {
-                value:
-                    this.dependencyHandler.core.rootNames?.[
-                        this.component.componentOrAdaptedIdx
-                    ] ?? this.component.componentOrAdaptedIdx.toString(),
+                value: this.dependencyHandler.core.getRendererId(
+                    this.component,
+                ),
                 changes: {},
             };
         } else {
@@ -7837,7 +7875,7 @@ class RenderedName extends Dependency {
     }
 }
 
-dependencyTypeArray.push(RenderedName);
+dependencyTypeArray.push(RendererId);
 
 class SourceCompositeStateVariableDependency extends Dependency {
     static dependencyType = "sourceCompositeStateVariable";
