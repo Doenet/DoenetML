@@ -16,7 +16,7 @@ export type UseDoenetRendererProps = {
     docId: string;
     activityId: string;
     callAction: (argObj: Record<string, any>) => void;
-    linkSettings?: { viewURL: string; editURL: string };
+    doenetViewerUrl?: string;
     scrollableContainer?: HTMLDivElement | Window;
 };
 
@@ -148,7 +148,7 @@ export default function useDoenetRenderer(
         rendererName,
         initializeChildren: () => {},
         callAction,
-        linkSettings: props.linkSettings,
+        doenetViewerUrl: props.doenetViewerUrl,
         scrollableContainer: props.scrollableContainer,
     };
 }

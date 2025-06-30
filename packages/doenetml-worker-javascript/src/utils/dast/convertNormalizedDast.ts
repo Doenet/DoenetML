@@ -789,6 +789,9 @@ export function expandAttribute({
                 references: res.components.filter(
                     (child) => typeof child === "object",
                 ),
+                stringChildren: res.components
+                    .filter((child) => typeof child === "string")
+                    .filter((child) => child.trim() !== ""),
                 position: attribute.position,
             },
             errors,

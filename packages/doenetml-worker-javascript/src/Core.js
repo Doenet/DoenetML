@@ -1572,6 +1572,7 @@ export default class Core {
 
                         attributes[attrName] = {
                             references: attrResult.components,
+                            stringChildren: attribute.stringChildren,
                         };
                     } catch (e) {
                         console.error(e);

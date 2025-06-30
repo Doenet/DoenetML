@@ -7722,6 +7722,123 @@ class AttributeRefResolutions extends Dependency {
 
 dependencyTypeArray.push(AttributeRefResolutions);
 
+class StringsFromReferenceAttribute extends Dependency {
+    static dependencyType = "stringsFromReferenceAttribute";
+
+    setUpParameters() {
+        if (this.definition.parentIdx != undefined) {
+            this.parentIdx = this.definition.parentIdx;
+            this.specifiedComponentName = this.parentIdx;
+        } else {
+            this.parentIdx = this.upstreamComponentIdx;
+        }
+
+        this.attributeName = this.definition.attributeName;
+
+        this.missingComponentBlockers = [];
+    }
+
+    async determineDownstreamComponents() {
+        let parent = this.dependencyHandler._components[this.parentIdx];
+
+        if (!parent) {
+            this.addBlockerUpdateTriggerForMissingComponent(this.parentIdx);
+            this.missingComponentBlockers.push(this.parentIdx);
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        let attribute = parent.attributes[this.attributeName];
+
+        if (attribute?.references) {
+            this.attributeStrings = [...attribute.stringChildren];
+        } else {
+            this.attributeStrings = null;
+        }
+        return {
+            success: true,
+            downstreamComponentIndices: [],
+            downstreamComponentTypes: [],
+        };
+    }
+
+    async getValue() {
+        return {
+            value: this.attributeStrings,
+            changes: {},
+        };
+    }
+
+    deleteFromUpdateTriggers() {
+        for (const componentIdx of this.missingComponentBlockers) {
+            this.deleteUpdateTriggerForMissingComponent(componentIdx);
+        }
+    }
+}
+
+dependencyTypeArray.push(StringsFromReferenceAttribute);
+
+class RenderedName extends Dependency {
+    static dependencyType = "renderedName";
+
+    setUpParameters() {
+        this.componentIdx = this.definition.componentIdx;
+        this.specifiedComponentName = this.componentIdx;
+
+        this.missingComponentBlockers = [];
+    }
+
+    async determineDownstreamComponents() {
+        this.component = this.dependencyHandler._components[this.componentIdx];
+
+        if (!this.component) {
+            this.addBlockerUpdateTriggerForMissingComponent(this.componentIdx);
+            this.missingComponentBlockers.push(this.componentIdx);
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        return {
+            success: true,
+            downstreamComponentIndices: [],
+            downstreamComponentTypes: [],
+        };
+    }
+
+    async getValue() {
+        if (this.component) {
+            return {
+                value:
+                    this.dependencyHandler.core.rootNames?.[
+                        this.component.componentOrAdaptedIdx
+                    ] ?? this.component.componentOrAdaptedIdx.toString(),
+                changes: {},
+            };
+        } else {
+            return {
+                value: "",
+                changes: {},
+            };
+        }
+    }
+
+    deleteFromUpdateTriggers() {
+        for (const componentIdx of this.missingComponentBlockers) {
+            this.deleteUpdateTriggerForMissingComponent(componentIdx);
+        }
+    }
+}
+
+dependencyTypeArray.push(RenderedName);
+
 class SourceCompositeStateVariableDependency extends Dependency {
     static dependencyType = "sourceCompositeStateVariable";
 
