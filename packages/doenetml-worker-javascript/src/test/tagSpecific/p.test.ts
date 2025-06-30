@@ -49,4 +49,29 @@ describe("P tag tests", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("Hello x");
     });
+
+    it("paragraphs with brs inside an hr between", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p name="p1">Hello<br/>paragraph 1</p>
+  <hr/>
+  <p name="p2">Bye<br/>paragraph 2</p>
+  `,
+        });
+
+        // Not testing anything about `<hr>` and `<br>` other than they don't cause errors
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("Hello paragraph 1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Bye paragraph 2");
+
+        let errorWarnings = core.core!.errorWarnings;
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(0);
+    });
 });
