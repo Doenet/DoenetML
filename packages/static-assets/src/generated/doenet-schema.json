@@ -146,12 +146,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -338,12 +332,6 @@
                 "mrow"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -931,12 +919,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -1188,12 +1170,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -1524,12 +1500,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -1952,12 +1922,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -2287,12 +2251,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -2630,12 +2588,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -2824,12 +2776,6 @@
                 "attr"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -3089,12 +3035,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -3198,12 +3138,6 @@
             "name": "hr",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -3449,12 +3383,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -3776,12 +3704,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -4099,12 +4021,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -4291,12 +4207,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -4474,12 +4384,6 @@
                 "mrow"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -4801,12 +4705,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -5083,12 +4981,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -5357,12 +5249,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -5626,12 +5512,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -5891,12 +5771,6 @@
                 "matchesPattern"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -6221,12 +6095,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -6547,12 +6415,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -6869,12 +6731,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -7215,12 +7071,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -7759,12 +7609,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -8311,12 +8155,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -8847,12 +8685,6 @@
                 "mrow"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -9391,12 +9223,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -9931,12 +9757,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -10463,12 +10283,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -10971,12 +10785,6 @@
                 "mrow"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -11499,12 +11307,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -12019,12 +11821,6 @@
                 "mrow"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -12547,12 +12343,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -13063,12 +12853,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -13611,12 +13395,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -14151,12 +13929,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -14711,12 +14483,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -15267,12 +15033,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -15807,12 +15567,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -16355,12 +16109,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -16895,12 +16643,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -17443,12 +17185,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -17983,12 +17719,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -18535,12 +18265,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -19079,12 +18803,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -19666,12 +19384,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -20245,12 +19957,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -20837,12 +20543,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -21236,12 +20936,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -21488,12 +21182,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -21748,12 +21436,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -22000,12 +21682,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -22260,12 +21936,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -22512,12 +22182,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -22772,12 +22436,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -23024,12 +22682,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -23284,12 +22936,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -23540,12 +23186,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -23654,12 +23294,6 @@
             "name": "ndash",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -23776,12 +23410,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -23890,12 +23518,6 @@
             "name": "nbsp",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -24012,12 +23634,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -24126,12 +23742,6 @@
             "name": "lq",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -24248,12 +23858,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -24366,12 +23970,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -24480,12 +24078,6 @@
             "name": "rsq",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -24824,12 +24416,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -25335,12 +24921,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -25838,12 +25418,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -26349,12 +25923,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -26852,12 +26420,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -27389,12 +26951,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -27892,12 +27448,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -28403,12 +27953,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -28906,12 +28450,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -29417,12 +28955,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -29920,12 +29452,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -30431,12 +29957,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -30934,12 +30454,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -31445,12 +30959,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -31948,12 +31456,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -32476,12 +31978,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -32974,12 +32470,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -33248,12 +32738,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -33376,12 +32860,6 @@
                 "li"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -33736,12 +33214,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -33852,12 +33324,6 @@
                 "rightHandSide"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -34193,12 +33659,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -34733,12 +34193,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -35167,12 +34621,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -35595,12 +35043,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -36152,12 +35594,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -36429,12 +35865,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -36620,12 +36050,6 @@
                 "ion"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -36845,12 +36269,6 @@
                 "mrow"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -37371,12 +36789,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -37488,12 +36900,6 @@
             "name": "orbitalDiagramInput",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -37636,12 +37042,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -37757,12 +37157,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -37866,12 +37260,6 @@
             "name": "styleDefinition",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -38070,12 +37458,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -38241,12 +37623,6 @@
                 "blockQuote"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -38420,12 +37796,6 @@
                 "sideBySide"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -38827,12 +38197,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -39021,12 +38385,6 @@
                 "attr"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -39356,12 +38714,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -39671,12 +39023,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -40014,12 +39360,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -40353,12 +39693,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -40688,12 +40022,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -41051,12 +40379,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -41173,12 +40495,6 @@
             "name": "paginatorControls",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -41320,12 +40636,6 @@
                 "matrix"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -41806,12 +41116,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -42150,12 +41454,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "fixLocation",
                     "values": [
                         "true",
@@ -42355,12 +41653,6 @@
                 "attr"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -42687,12 +41979,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -42944,12 +42230,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -43143,12 +42423,6 @@
                 "orbitalDiagram"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -43416,12 +42690,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -43602,12 +42870,6 @@
                 "mrow"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -44126,12 +43388,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -44367,12 +43623,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -44616,12 +43866,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -44741,12 +43985,6 @@
             "name": "collect",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -45034,12 +44272,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -45249,12 +44481,6 @@
                 "bestFitLine"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -45660,12 +44886,6 @@
                 "mrow"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -46180,12 +45400,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -46519,12 +45733,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -46804,12 +46012,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -47062,12 +46264,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -47413,12 +46609,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -47800,12 +46990,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -48179,12 +47363,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -48593,12 +47771,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -49108,12 +48280,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -49603,12 +48769,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -50058,12 +49218,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -50661,12 +49815,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -50851,12 +49999,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -51075,12 +50217,6 @@
                 "bestFitLine"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -51509,12 +50645,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -51861,12 +50991,6 @@
                 "booleanList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -52471,12 +51595,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -52914,12 +52032,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -53261,12 +52373,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -53712,12 +52818,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -54087,12 +53187,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -54308,12 +53402,6 @@
                 "choice"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -54857,12 +53945,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -55106,12 +54188,6 @@
                 "booleanInput"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -55443,12 +54519,6 @@
                 "booleanInput"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -55827,12 +54897,6 @@
                 "graph"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -56323,12 +55387,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -56827,12 +55885,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -57364,12 +56416,6 @@
                 "mrow"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -58038,12 +57084,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -58163,12 +57203,6 @@
             "name": "sequence",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -58362,12 +57396,6 @@
                 "markers"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -58636,12 +57664,6 @@
                 "dataFrame"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -59127,12 +58149,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -59318,12 +58334,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -59505,12 +58515,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -59651,12 +58655,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -59778,12 +58776,6 @@
                 "row"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -60180,12 +59172,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -60508,12 +59494,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -60713,12 +59693,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -61072,12 +60046,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -61401,12 +60369,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -61521,12 +60483,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -61716,12 +60672,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -61835,12 +60785,6 @@
             "name": "constrainToGrid",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -62000,12 +60944,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -62117,12 +61055,6 @@
             "name": "attractToGrid",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -62396,12 +61328,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -62599,12 +61525,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -62741,12 +61661,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -62859,12 +61773,6 @@
                 "constrainToInterior"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -63062,12 +61970,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -63199,12 +62101,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -63292,12 +62188,6 @@
                 "case"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -63527,12 +62417,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -63646,12 +62530,6 @@
             "name": "variantControl",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -63781,12 +62659,6 @@
             "name": "selectFromSequence",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -63949,12 +62821,6 @@
                 "option"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -64302,12 +63168,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -64407,12 +63267,6 @@
             "name": "animateFromSequence",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -64607,12 +63461,6 @@
             "name": "evaluate",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -65097,12 +63945,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -65277,12 +64119,6 @@
             "name": "sampleRandomNumbers",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -65477,12 +64313,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -65632,12 +64462,6 @@
             "name": "samplePrimeNumbers",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -66006,12 +64830,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -66199,12 +65017,6 @@
             "name": "periodicSet",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -66712,12 +65524,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -66964,12 +65770,6 @@
             "name": "video",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -67404,12 +66204,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -67608,12 +66402,6 @@
                 "attr"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -67959,12 +66747,6 @@
                 "attr"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -68471,12 +67253,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "disabled",
                     "values": [
                         "true",
@@ -68804,12 +67580,6 @@
                 "vectorList"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -69147,12 +67917,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -69268,12 +68032,6 @@
             "name": "lorem",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -69406,12 +68164,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -69628,12 +68380,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -69836,12 +68582,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -70017,12 +68757,6 @@
             "name": "functionIterates",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -70467,12 +69201,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -70794,12 +69522,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -71115,12 +69837,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -71342,12 +70058,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -71655,12 +70365,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -71842,12 +70546,6 @@
                 "bestFitLine"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -72434,12 +71132,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -72786,12 +71478,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -72958,12 +71644,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -73120,12 +71800,6 @@
             "name": "subsetOfRealsInput",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -73442,12 +72116,6 @@
                 "mrow"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -74190,12 +72858,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -74304,12 +72966,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -74651,12 +73307,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -74827,12 +73477,6 @@
                 "piecewiseFunction"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -75011,12 +73655,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -75423,12 +74061,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -75699,12 +74331,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -75984,12 +74610,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -76149,12 +74769,6 @@
             "name": "summaryStatistics",
             "children": [],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -76389,12 +75003,6 @@
                 "label"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -76707,12 +75315,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -76970,12 +75572,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -77319,12 +75915,6 @@
                 "column"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -77852,12 +76442,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -78134,12 +76718,6 @@
                 "mdn"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -78630,12 +77208,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -78820,12 +77392,6 @@
                 "stickyGroup"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },
@@ -79076,12 +77642,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -79274,12 +77834,6 @@
                     "name": "name"
                 },
                 {
-                    "name": "copySource"
-                },
-                {
-                    "name": "name"
-                },
-                {
                     "name": "hide",
                     "values": [
                         "true",
@@ -79468,12 +78022,6 @@
                 "latex"
             ],
             "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "copySource"
-                },
                 {
                     "name": "name"
                 },

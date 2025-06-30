@@ -236,12 +236,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -778,12 +772,6 @@
             "name": "rightHandSide",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -1487,12 +1475,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -2029,12 +2011,6 @@
             "name": "xLabel",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -2665,12 +2641,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -3291,12 +3261,6 @@
             "name": "statement",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -4097,12 +4061,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -4893,12 +4851,6 @@
             "name": "conclusion",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -5699,12 +5651,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -6231,12 +6177,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -6356,12 +6296,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -6476,12 +6410,6 @@
             "name": "m",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -7096,12 +7024,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -7706,12 +7628,6 @@
             "name": "men",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -8331,12 +8247,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -8538,12 +8448,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -8740,12 +8644,6 @@
             "name": "mrow",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -9372,12 +9270,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -9908,12 +9800,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -10215,12 +10101,6 @@
             "name": "or",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -10532,12 +10412,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -10839,12 +10713,6 @@
             "name": "isInteger",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -11327,12 +11195,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -11805,12 +11667,6 @@
             "name": "isBetween",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -12311,12 +12167,6 @@
             "name": "sum",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -13032,12 +12882,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -13743,12 +13587,6 @@
             "name": "clampNumber",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -14474,12 +14312,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -15195,12 +15027,6 @@
             "name": "round",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -15926,12 +15752,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -16641,12 +16461,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -17328,12 +17142,6 @@
             "name": "ceil",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -18037,12 +17845,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -18736,12 +18538,6 @@
             "name": "abs",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -19445,12 +19241,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -20144,12 +19934,6 @@
             "name": "mean",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -20865,12 +20649,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -21576,12 +21354,6 @@
             "name": "variance",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -22309,12 +22081,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -23037,12 +22803,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -23748,12 +23508,6 @@
             "name": "min",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -24469,12 +24223,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -25180,12 +24928,6 @@
             "name": "mod",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -25901,12 +25643,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -26617,12 +26353,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -27328,12 +27058,6 @@
             "name": "extractMath",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -28063,12 +27787,6 @@
             "name": "clampFunction",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -28859,12 +28577,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -29645,12 +29357,6 @@
             "name": "derivative",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -30449,12 +30155,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -30928,12 +30628,6 @@
             "name": "em",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -31475,12 +31169,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -32012,12 +31700,6 @@
             "name": "q",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -32559,12 +32241,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -33096,12 +32772,6 @@
             "name": "term",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -33643,12 +33313,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -34180,12 +33844,6 @@
             "name": "tag",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -34727,12 +34385,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -35264,12 +34916,6 @@
             "name": "tagc",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -35811,12 +35457,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -36353,12 +35993,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -36478,12 +36112,6 @@
             "name": "mdash",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -36613,12 +36241,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -36738,12 +36360,6 @@
             "name": "ellipsis",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -36873,12 +36489,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -36998,12 +36608,6 @@
             "name": "rq",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -37133,12 +36737,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -37263,12 +36861,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -37388,12 +36980,6 @@
             "name": "section",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -38377,12 +37963,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -39356,12 +38936,6 @@
             "name": "subsubsection",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -40345,12 +39919,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -41324,12 +40892,6 @@
             "name": "aside",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -42339,12 +41901,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -43318,12 +42874,6 @@
             "name": "problem",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -44307,12 +43857,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -45286,12 +44830,6 @@
             "name": "question",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -46275,12 +45813,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -47254,12 +46786,6 @@
             "name": "example",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -48243,12 +47769,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -49222,12 +48742,6 @@
             "name": "note",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -50211,12 +49725,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -51190,12 +50698,6 @@
             "name": "proof",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -52199,12 +51701,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -53172,12 +52668,6 @@
             "name": "exercises",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -54155,12 +53645,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -54313,12 +53797,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -54466,12 +53944,6 @@
             "name": "li",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -55277,12 +54749,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -55658,12 +55124,6 @@
             "name": "cobwebPolyline",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -56191,12 +55651,6 @@
             "name": "equilibriumPoint",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -56814,12 +56268,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -57424,12 +56872,6 @@
             "name": "equilibriumCurve",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -58241,12 +57683,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -58543,12 +57979,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -58760,12 +58190,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -58935,12 +58359,6 @@
             "name": "electronConfiguration",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -59644,12 +59062,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -59991,12 +59403,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -60153,12 +59559,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -60290,12 +59690,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -60414,12 +59808,6 @@
             "name": "styleDefinition",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -60719,12 +60107,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -60843,12 +60225,6 @@
             "name": "sideBySide",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -61236,12 +60612,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -61439,12 +60809,6 @@
             "name": "stack",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -62245,12 +61609,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -62783,12 +62141,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -63082,12 +62434,6 @@
             "name": "div",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -63888,12 +63234,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -64689,12 +64029,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -65485,12 +64819,6 @@
             "name": "displayDoenetML",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -66311,12 +65639,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -67128,12 +66450,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -67292,12 +66608,6 @@
             "name": "matrixInput",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -67634,12 +66944,6 @@
             "name": "solution",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -68320,12 +67624,6 @@
             "name": "document",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -69149,12 +68447,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -69681,12 +68973,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -70013,12 +69299,6 @@
             "name": "p",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -70566,12 +69846,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -71097,12 +70371,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -71264,12 +70532,6 @@
             "name": "math",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -71973,12 +71235,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -72388,12 +71644,6 @@
             "name": "tupleList",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -72813,12 +72063,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -73180,12 +72424,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "fixLocation": {
                     "optional": true,
                     "type": [
@@ -73256,12 +72494,6 @@
             "name": "link",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -74101,12 +73333,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -74690,12 +73916,6 @@
             "name": "coords",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -75392,12 +74612,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -75983,12 +75197,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -76301,12 +75509,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -76597,12 +75799,6 @@
             "name": "polyline",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -76993,12 +76189,6 @@
             "name": "polygon",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -77426,12 +76616,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -77849,12 +77033,6 @@
             "name": "rectangle",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -78317,12 +77495,6 @@
             "name": "regularPolygon",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -78835,12 +78007,6 @@
             "name": "circle",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -79516,12 +78682,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -80147,12 +79307,6 @@
             "name": "curve",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -80940,12 +80094,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -81280,12 +80428,6 @@
             "name": "controlVectors",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -81673,12 +80815,6 @@
             "name": "vector",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -82295,12 +81431,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -82806,12 +81936,6 @@
             "name": "answer",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -83654,12 +82778,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -84298,12 +83416,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -84846,12 +83958,6 @@
             "name": "mathInput",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -85484,12 +84590,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -86002,12 +85102,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -86484,12 +85578,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -86838,12 +85926,6 @@
             "name": "choice",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -87709,12 +86791,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -88237,12 +87313,6 @@
             "name": "integer",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -88775,12 +87845,6 @@
             "name": "graph",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -89628,12 +88692,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -90397,12 +89455,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -90923,12 +89975,6 @@
             "name": "interval",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -91620,12 +90666,6 @@
             "name": "option",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -92448,12 +91488,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -92616,12 +91650,6 @@
             "name": "slider",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -93133,12 +92161,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -93441,12 +92463,6 @@
             "name": "cell",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -94344,12 +93360,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -94566,12 +93576,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -94732,12 +93736,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -94887,12 +93885,6 @@
             "name": "tabular",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -95121,12 +94113,6 @@
             "name": "table",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -95836,12 +94822,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -96546,12 +95526,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -96881,12 +95855,6 @@
             "name": "repeat",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -97687,12 +96655,6 @@
             "name": "repeatForSequence",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -98524,12 +97486,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -98743,12 +97699,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -98898,12 +97848,6 @@
             "name": "constrainToGrid",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -99094,12 +98038,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -99225,12 +98163,6 @@
             "name": "attractToGrid",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -99461,12 +98393,6 @@
             "name": "constrainTo",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -99830,12 +98756,6 @@
             "name": "attractTo",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -100215,12 +99135,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -100360,12 +99274,6 @@
             "name": "attractToConstraint",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -100521,12 +99429,6 @@
             "name": "constrainToInterior",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -100895,12 +99797,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -101036,12 +99932,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -101140,12 +100030,6 @@
             "name": "asList",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -101692,12 +100576,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -101849,12 +100727,6 @@
             "name": "selectFromSequence",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -102068,12 +100940,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -102208,12 +101074,6 @@
             "name": "group",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -103019,12 +101879,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -103247,12 +102101,6 @@
             "name": "evaluate",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -103780,12 +102628,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -104007,12 +102849,6 @@
             "name": "sampleRandomNumbers",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -104256,12 +103092,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -104442,12 +103272,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -104605,12 +103429,6 @@
             "name": "substitute",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -105510,12 +104328,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -106073,12 +104885,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -106368,12 +105174,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -106597,12 +105397,6 @@
             "name": "hint",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -107413,12 +106207,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -107945,12 +106733,6 @@
             "name": "pluralize",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -108504,12 +107286,6 @@
             "name": "feedback",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -109311,12 +108087,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -110107,12 +108877,6 @@
             "name": "case",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -110925,12 +109689,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -111087,12 +109845,6 @@
             "name": "updateValue",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -111346,12 +110098,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -111594,12 +110340,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -111814,12 +110554,6 @@
             "name": "functionIterates",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -112064,12 +110798,6 @@
             "name": "module",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -112864,12 +111592,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -113640,12 +112362,6 @@
             "name": "setup",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -114432,12 +113148,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -114974,12 +113684,6 @@
             "name": "caption",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -115665,12 +114369,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -116278,12 +114976,6 @@
             "name": "sort",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -117106,12 +115798,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -117900,12 +116586,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -118295,12 +116975,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -118578,12 +117252,6 @@
             "name": "subsetOfReals",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -119352,12 +118020,6 @@
             "name": "split",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -120159,12 +118821,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -120544,12 +119200,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -120741,12 +119391,6 @@
             "name": "regionBetweenCurves",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -120969,12 +119613,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -121174,12 +119812,6 @@
             "name": "codeEditor",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -122099,12 +120731,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -122609,12 +121235,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -122791,12 +121411,6 @@
             "name": "summaryStatistics",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -123065,12 +121679,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -123261,12 +121869,6 @@
             "name": "label",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -123897,12 +122499,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -124475,12 +123071,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -124987,12 +123577,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -125387,12 +123971,6 @@
             "name": "latex",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -125990,12 +124568,6 @@
             "name": "blockQuote",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
@@ -126796,12 +125368,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -127241,12 +125807,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -127608,12 +126168,6 @@
                         "string"
                     ]
                 },
-                "copySource": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "hide": {
                     "optional": true,
                     "type": [
@@ -127970,12 +126524,6 @@
             "name": "vectorList",
             "attributes": {
                 "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copySource": {
                     "optional": true,
                     "type": [
                         "string"
