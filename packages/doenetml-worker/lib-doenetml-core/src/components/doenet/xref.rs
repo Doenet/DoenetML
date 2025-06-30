@@ -159,7 +159,7 @@ mod custom_props {
                     // If there are children, the display text will follow the children, so we
                     // omit the `label` part, but we put a space in front.
                     // TODO: check if this added space is compatible with localization
-                    PropCalcResult::Calculated(Rc::new(format!(" {}", ident)))
+                    PropCalcResult::Calculated(Rc::new(format!(" {ident}")))
                 } else {
                     PropCalcResult::Calculated(Rc::new(format!(
                         "{} {}",

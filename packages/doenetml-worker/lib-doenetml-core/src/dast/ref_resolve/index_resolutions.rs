@@ -21,7 +21,8 @@ pub enum IndexResolution {
     ReplaceRange { parent: Index, range: Range<usize> },
 }
 
-pub const CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS: [&str; 1] = ["group"];
+pub const CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS: [&str; 2] =
+    ["group", "_postponeRenderContainer"];
 
 impl Resolver {
     /// Find any elements in `flat_root_or_fragment` that are marked `CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS`

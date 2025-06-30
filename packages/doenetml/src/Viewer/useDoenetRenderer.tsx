@@ -8,6 +8,7 @@ export type UseDoenetRendererProps = {
         actions: Record<string, { actionName: string; componentIdx: number }>;
         componentIdx: number;
         effectiveIdx: number;
+        id: string;
         componentType: string;
         rendererType: string;
     };
@@ -30,6 +31,7 @@ export default function useDoenetRenderer(
     const actions = props.componentInstructions.actions;
     const componentIdx = props.componentInstructions.componentIdx;
     const effectiveIdx = props.componentInstructions.effectiveIdx;
+    const id = props.componentInstructions.id;
     const rendererName = props.coreId + componentIdx;
     const [renderersToLoad, setRenderersToLoad] = useState({});
     const componentInfo = useAppSelector(
@@ -135,7 +137,7 @@ export default function useDoenetRenderer(
 
     return {
         componentIdx: effectiveIdx,
-        id: prefixForIds + effectiveIdx,
+        id: prefixForIds + id,
         SVs: stateValues,
         docId: props.docId,
         activityId: props.activityId,

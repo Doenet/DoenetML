@@ -8,11 +8,14 @@ mod build_resolver;
 mod compactify;
 mod errors;
 mod index_resolutions;
+mod node_traversal;
 mod resolve;
+mod root_names;
 
 pub use errors::*;
 pub use index_resolutions::*;
 pub use resolve::*;
+pub use root_names::*;
 
 #[cfg(test)]
 mod test_helpers;

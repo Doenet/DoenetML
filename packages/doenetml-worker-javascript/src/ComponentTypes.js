@@ -163,7 +163,6 @@ import Matrix from "./components/Matrix";
 import EigenDecomposition from "./components/linearAlgebra/EigenDecomposition";
 import Latex from "./components/Latex";
 import BlockQuote from "./components/BlockQuote";
-import ContentPicker from "./components/ContentPicker";
 // import VertexConstraints from "./components/VertexConstraints";
 // import EdgeConstraints from "./components/EdgeConstraints";
 import StickyGroup from "./components/StickyGroup";
@@ -356,7 +355,6 @@ const componentTypeArray = [
     EigenDecomposition,
     Latex,
     BlockQuote,
-    ContentPicker,
     // VertexConstraints,
     // EdgeConstraints,
     StickyGroup,

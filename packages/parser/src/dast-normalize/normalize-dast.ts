@@ -13,6 +13,8 @@ import { isDastElement } from "../types-util";
 import { repeatSugar } from "./component-sugar/repeat";
 import { conditionalContentSugar } from "./component-sugar/conditionalContent";
 import { selectSugar } from "./component-sugar/select";
+import { solutionSugar } from "./component-sugar/solution";
+import { pluginEnforceValidNames } from "./enforce-valid-names";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
@@ -27,6 +29,7 @@ export function normalizeDocumentDast(
         .use(pluginChangeCdataToText)
         .use(pluginEnsureDocumentElement)
         .use(pluginConvertPretextAttributes)
+        .use(pluginEnforceValidNames)
         .use(pluginExpandAliasedElements);
     if (addCompatibilityNames) {
         processor = processor.use(pluginAddCompatibilityNames);
@@ -183,6 +186,10 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                     break;
                 case "select":
                     selectSugar(node);
+                    break;
+                case "solution":
+                case "givenAnswer":
+                    solutionSugar(node);
                     break;
             }
         });

@@ -5,11 +5,13 @@ import path from "node:path";
 import peg from "peggy";
 import * as esbuild from "esbuild";
 import { visualizer } from "rollup-plugin-visualizer";
+import arraybuffer from "vite-plugin-arraybuffer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
     plugins: [
+        arraybuffer(),
         dts(),
         //{ rollupTypes: true }
         pegjsLoader(),
@@ -18,10 +20,10 @@ export default defineConfig({
     build: {
         minify: false,
         sourcemap: true,
+        emptyOutDir: false,
         lib: {
             entry: {
                 index: "./src/index.ts",
-                [`v06-to-v07`]: "./src/v06-to-v07/index.ts",
             },
             formats: ["es"],
         },
@@ -39,7 +41,7 @@ export default defineConfig({
 /**
  * Plugin to allow importing peggy/pegjs files directly.
  */
-function pegjsLoader(options = {}) {
+export function pegjsLoader(options = {}) {
     const svgRegex = /\.peg(js|gy)$/;
 
     const ret: Plugin = {

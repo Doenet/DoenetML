@@ -146,7 +146,13 @@ export function nodesToXml(
                 const errorElement: DastElement = {
                     type: "element",
                     name: "_error",
-                    attributes: {},
+                    attributes: {
+                        message: {
+                            type: "attribute",
+                            name: "message",
+                            children: [{ type: "text", value: node.message }],
+                        },
+                    },
                     children: [{ type: "text", value: node.message }],
                 };
                 return nodesToXml(errorElement, options);

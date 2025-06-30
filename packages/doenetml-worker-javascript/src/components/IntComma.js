@@ -4,7 +4,7 @@ import { renameStateVariable } from "../utils/stateVariables";
 // convert number to number separated by commas, a la django humanize's intcomma
 
 export default class IntComma extends Text {
-    static componentType = "intcomma";
+    static componentType = "intComma";
     static rendererType = "text";
 
     static returnStateVariableDefinitions() {

@@ -25,7 +25,8 @@
         "styled-components": "^5.3.11"
     },
     "dependencies": {
-        "@doenet/utils": "^*"
+        "@doenet/utils": "^*",
+        "vite": "^*"
     },
     "devDependencies": {
         "cypress-vite": "^1.6.0"

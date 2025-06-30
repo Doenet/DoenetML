@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "@doenet/utils";
+import { cesc } from "@doenet/utils";
 
 describe("Specifying single variant document tests", function () {
     beforeEach(() => {
@@ -13,11 +13,11 @@ describe("Specifying single variant document tests", function () {
         cy.get("#testRunner_toggleControls").click();
 
         let doenetML = `
-    <variantControl numVariants="100"/>
+    <variantControl numVariants="100" uniqueVariants="false"/>
 
-    <select assignnames="(p)">
-      <option><p newNamespace>Favorite color:
-        <select assignNames="(item)">
+    <select name="p">
+      <option><p>Favorite color:
+        <select name="item">
           <option><text>red</text></option>
           <option><text>orange</text></option>
           <option><text>green</text></option>
@@ -25,16 +25,16 @@ describe("Specifying single variant document tests", function () {
           <option><text>chartreuse</text></option>
         </select>
       </p></option>
-      <option><p newNamespace>Selected number: 
-        <select assignNames="(item)">
-          <option><selectfromsequence from="1000" to="2000" /></option>
-          <option><selectfromsequence from="-1000" to="-900" /></option>
+      <option><p>Selected number: 
+        <select name="item">
+          <option><selectFromSequence from="1000" to="2000" /></option>
+          <option><selectFromSequence from="-1000" to="-900" /></option>
         </select>
       </p></option>
-      <option><p newNamespace>Chosen letter: <selectfromsequence type="letters" to="g" assignNames="item" /></p></option>
-      <option><p newNamespace>Variable: <select type="text" assignNames="item">u v w x z y</select></p></option>
+      <option><p>Chosen letter: <selectFromSequence type="letters" to="g" name="item" /></p></option>
+      <option><p>Variable: <select type="text" name="item">u v w x z y</select></p></option>
     </select>
-    <p>Enter item $item as text: <answer><textinput/><award><text>$(p/item)</text></award></answer></p>
+    <p>Enter item $item as text: <answer><textInput name="textInput1"/><award><text>$(p.item)</text></award></answer></p>
     `;
 
         let firstStringsToInd = {
@@ -57,17 +57,18 @@ describe("Specifying single variant document tests", function () {
             cy.window().then(async (win) => {
                 win.postMessage(
                     {
-                        doenetML: `<text>${ind}</text>${doenetML}`,
+                        doenetML: `<text name="a">${ind}</text>${doenetML}`,
+                        requestedVariantIndex: 3 * ind,
                     },
                     "*",
                 );
             });
             // to wait for page to load
-            cy.get(cesc("#\\/_text1")).should("have.text", `${ind}`);
+            cy.get(cesc("#a")).should("have.text", `${ind}`);
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
-                let p = stateVariables["/p"];
+                let p = stateVariables[await win.resolvePath1("p[1][1]")];
 
                 let variantInd = firstStringsToInd[p.activeChildren[0].trim()];
                 expect(variantInd).not.eq(undefined);
@@ -105,10 +106,8 @@ describe("Specifying single variant document tests", function () {
                     expect(i).not.eq(-1);
                 }
 
-                cy.get(cesc("#\\/_textinput1_input")).type(
-                    `${secondValue}{enter}`,
-                );
-                cy.get(cesc("#\\/_textinput1_correct")).should("be.visible");
+                cy.get(cesc("#textInput1_input")).type(`${secondValue}{enter}`);
+                cy.get(cesc("#textInput1_correct")).should("be.visible");
 
                 cy.wait(2000); // wait for 2 second debounce
                 cy.reload();
@@ -118,27 +117,29 @@ describe("Specifying single variant document tests", function () {
                 cy.window().then(async (win) => {
                     win.postMessage(
                         {
-                            doenetML: `<text>${ind}</text>${doenetML}`,
+                            doenetML: `<text name="a">${ind}</text>${doenetML}`,
                         },
                         "*",
                     );
                 });
                 // to wait for page to load
-                cy.get(cesc("#\\/_text1")).should("have.text", `${ind}`);
+                cy.get(cesc("#a")).should("have.text", `${ind}`);
 
                 // wait until core is loaded
                 cy.waitUntil(() =>
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
-                        return stateVariables["/_textinput1"];
+                        return stateVariables[
+                            await win.resolvePath1("textInput1")
+                        ];
                     }),
                 );
 
-                cy.get(cesc("#\\/_textinput1_correct")).should("be.visible");
+                cy.get(cesc("#textInput1_correct")).should("be.visible");
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
-                    let p = stateVariables["/p"];
+                    let p = stateVariables[await win.resolvePath1("p[1][1]")];
 
                     let variantInd2 =
                         firstStringsToInd[p.activeChildren[0].trim()];
@@ -149,24 +150,18 @@ describe("Specifying single variant document tests", function () {
                             .stateValues.value;
                     expect(secondValue2).eq(secondValue);
 
-                    cy.get(cesc("#\\/_textinput1_input")).type(`{end}X`);
-                    cy.get(cesc("#\\/_textinput1_submit")).click();
-                    cy.get(cesc("#\\/_textinput1_incorrect")).should(
-                        "be.visible",
-                    );
-                    cy.get(cesc("#\\/_textinput1_input")).type(
-                        `{end}{backspace}`,
-                    );
-                    cy.get(cesc("#\\/_textinput1_submit")).click();
-                    cy.get(cesc("#\\/_textinput1_correct")).should(
-                        "be.visible",
-                    );
+                    cy.get(cesc("#textInput1_input")).type(`{end}X`);
+                    cy.get(cesc("#textInput1_submit")).click();
+                    cy.get(cesc("#textInput1_incorrect")).should("be.visible");
+                    cy.get(cesc("#textInput1_input")).type(`{end}{backspace}`);
+                    cy.get(cesc("#textInput1_submit")).click();
+                    cy.get(cesc("#textInput1_correct")).should("be.visible");
                 });
             });
         }
     });
 
-    it("choiceinputs, reload", () => {
+    it("choiceInputs, reload", () => {
         cy.get("#testRunner_toggleControls").click();
         cy.get("#testRunner_allowLocalState").click();
         cy.wait(100);
@@ -174,35 +169,35 @@ describe("Specifying single variant document tests", function () {
 
         let doenetML = `
     <variantControl numVariants="100"/>
-    <p><choiceinput shuffleOrder name="c1">
+    <p><choiceInput shuffleOrder name="c1">
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
-    </choiceinput></p>
-    <p><choiceinput shuffleOrder inline name="c2">
+    </choiceInput></p>
+    <p><choiceInput shuffleOrder inline name="c2">
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
-    </choiceinput></p>
-    <p><choiceinput name="c3">
+    </choiceInput></p>
+    <p><choiceInput name="c3">
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
-    </choiceinput></p>
-    <p><choiceinput inline name="c4">
+    </choiceInput></p>
+    <p><choiceInput inline name="c4">
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
       <choice><lorem generateWords="3" /></choice>
-    </choiceinput></p>
-    <p>$c1.selectedValue{assignNames="c1v"}</p>
+    </choiceInput></p>
+    <p><text extend="$c1.selectedValue" name="c1v" /></p>
     `;
 
         // let generatedVariantInfo;
@@ -222,29 +217,45 @@ describe("Specifying single variant document tests", function () {
             cy.window().then(async (win) => {
                 win.postMessage(
                     {
-                        doenetML: `<text>${ind}</text>${doenetML}`,
+                        doenetML: `<text name="text1">${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
                     "*",
                 );
             });
             // to wait for page to load
-            cy.get(cesc("#\\/_text1")).should("have.text", `${ind}`);
+            cy.get(cesc("#text1")).should("have.text", `${ind}`);
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                let orderC1 = stateVariables["/c1"].stateValues.choiceOrder;
-                let orderC2 = stateVariables["/c2"].stateValues.choiceOrder;
+                let orderC1 =
+                    stateVariables[await win.resolvePath1("c1")].stateValues
+                        .choiceOrder;
+                let orderC2 =
+                    stateVariables[await win.resolvePath1("c2")].stateValues
+                        .choiceOrder;
 
-                let orderC3 = stateVariables["/c3"].stateValues.choiceOrder;
-                let orderC4 = stateVariables["/c4"].stateValues.choiceOrder;
+                let orderC3 =
+                    stateVariables[await win.resolvePath1("c3")].stateValues
+                        .choiceOrder;
+                let orderC4 =
+                    stateVariables[await win.resolvePath1("c4")].stateValues
+                        .choiceOrder;
 
-                let textC1 = stateVariables["/c1"].stateValues.choiceTexts;
-                let textC2 = stateVariables["/c2"].stateValues.choiceTexts;
+                let textC1 =
+                    stateVariables[await win.resolvePath1("c1")].stateValues
+                        .choiceTexts;
+                let textC2 =
+                    stateVariables[await win.resolvePath1("c2")].stateValues
+                        .choiceTexts;
 
-                let textC3 = stateVariables["/c3"].stateValues.choiceTexts;
-                let textC4 = stateVariables["/c4"].stateValues.choiceTexts;
+                let textC3 =
+                    stateVariables[await win.resolvePath1("c3")].stateValues
+                        .choiceTexts;
+                let textC4 =
+                    stateVariables[await win.resolvePath1("c4")].stateValues
+                        .choiceTexts;
 
                 let allOrders = [
                     ...orderC1,
@@ -259,9 +270,9 @@ describe("Specifying single variant document tests", function () {
                 originalChoiceTexts = allTexts;
 
                 // click a choice input so that data is saved to IndexedDB
-                cy.get(cesc2(`#/c1_choice1_input`)).click();
-                cy.get(cesc2(`#/c1v`)).should("have.text", textC1[0]);
-                cy.get(cesc2(`#/c1_choice1_input`)).should("be.checked");
+                cy.get(cesc(`#c1_choice1_input`)).click();
+                cy.get(cesc(`#c1v`)).should("have.text", textC1[0]);
+                cy.get(cesc(`#c1_choice1_input`)).should("be.checked");
 
                 cy.wait(2000); // wait for 2 second debounce
                 cy.reload();
@@ -271,37 +282,53 @@ describe("Specifying single variant document tests", function () {
                 cy.window().then(async (win) => {
                     win.postMessage(
                         {
-                            doenetML: `<text>${ind}</text>${doenetML}`,
+                            doenetML: `<text name="text1">${ind}</text>${doenetML}`,
                         },
                         "*",
                     );
                 });
                 // to wait for page to load
-                cy.get(cesc("#\\/_text1")).should("have.text", `${ind}`);
+                cy.get(cesc("#text1")).should("have.text", `${ind}`);
 
                 // wait until core is loaded
                 cy.waitUntil(() =>
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
-                        return stateVariables["/c1"];
+                        return stateVariables[await win.resolvePath1("c1")];
                     }),
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
 
-                    let orderC1 = stateVariables["/c1"].stateValues.choiceOrder;
-                    let orderC2 = stateVariables["/c2"].stateValues.choiceOrder;
+                    let orderC1 =
+                        stateVariables[await win.resolvePath1("c1")].stateValues
+                            .choiceOrder;
+                    let orderC2 =
+                        stateVariables[await win.resolvePath1("c2")].stateValues
+                            .choiceOrder;
 
-                    let orderC3 = stateVariables["/c3"].stateValues.choiceOrder;
-                    let orderC4 = stateVariables["/c4"].stateValues.choiceOrder;
+                    let orderC3 =
+                        stateVariables[await win.resolvePath1("c3")].stateValues
+                            .choiceOrder;
+                    let orderC4 =
+                        stateVariables[await win.resolvePath1("c4")].stateValues
+                            .choiceOrder;
 
-                    let textC1 = stateVariables["/c1"].stateValues.choiceTexts;
-                    let textC2 = stateVariables["/c2"].stateValues.choiceTexts;
+                    let textC1 =
+                        stateVariables[await win.resolvePath1("c1")].stateValues
+                            .choiceTexts;
+                    let textC2 =
+                        stateVariables[await win.resolvePath1("c2")].stateValues
+                            .choiceTexts;
 
-                    let textC3 = stateVariables["/c3"].stateValues.choiceTexts;
-                    let textC4 = stateVariables["/c4"].stateValues.choiceTexts;
+                    let textC3 =
+                        stateVariables[await win.resolvePath1("c3")].stateValues
+                            .choiceTexts;
+                    let textC4 =
+                        stateVariables[await win.resolvePath1("c4")].stateValues
+                            .choiceTexts;
 
                     let allOrders = [
                         ...orderC1,
@@ -314,13 +341,11 @@ describe("Specifying single variant document tests", function () {
                     expect(allTexts).eqls(originalChoiceTexts);
 
                     // click a choice input so that data is saved to IndexedDB
-                    cy.get(cesc2(`#/c1_choice1_input`)).should("be.checked");
-                    cy.get(cesc2(`#/c1_choice2_input`)).click();
-                    cy.get(cesc2(`#/c1v`)).should("have.text", textC1[1]);
-                    cy.get(cesc2(`#/c1_choice1_input`)).should(
-                        "not.be.checked",
-                    );
-                    cy.get(cesc2(`#/c1_choice2_input`)).should("be.checked");
+                    cy.get(cesc(`#c1_choice1_input`)).should("be.checked");
+                    cy.get(cesc(`#c1_choice2_input`)).click();
+                    cy.get(cesc(`#c1v`)).should("have.text", textC1[1]);
+                    cy.get(cesc(`#c1_choice1_input`)).should("not.be.checked");
+                    cy.get(cesc(`#c1_choice2_input`)).should("be.checked");
                 });
             });
         }
@@ -335,12 +360,12 @@ describe("Specifying single variant document tests", function () {
         cy.log("Test a bunch of variants");
         for (let ind = 1; ind <= 4; ind++) {
             let doenetML = `
-      <text>${ind}</text>
+      <text name="text1">${ind}</text>
       <variantControl numVariants="100"/>
-      <selectFromSequence from="1" to="2000000000" exclude="2000000000 3000000000 4000000000 5000000000 6000000000 8000000000 9000000000 1100000000 1200000000 1300000000 1400000000 1500000000 1600000000 1700000000 1900000000" assignNames="m" />
-      <selectFromSequence from="1" to="20" exclude="2 3 4 5 6 8 9 11 12 13 14 15 16 17 19" assignNames="n" />
-      <p>Enter $m: <answer><mathinput/><award>$m</award></answer></p>
-      <p>Enter $n: <answer><mathinput/><award>$n</award></answer></p>
+      <selectFromSequence from="1" to="2000000000" exclude="2000000000 3000000000 4000000000 5000000000 6000000000 8000000000 9000000000 1100000000 1200000000 1300000000 1400000000 1500000000 1600000000 1700000000 1900000000" name="m" />
+      <selectFromSequence from="1" to="20" exclude="2 3 4 5 6 8 9 11 12 13 14 15 16 17 19" name="n" />
+      <p>Enter $m: <answer><mathInput name="mathInput1" /><award>$m</award></answer></p>
+      <p>Enter $n: <answer><mathInput name="mathInput2" /><award>$n</award></answer></p>
 
       `;
             if (ind > 1) {
@@ -362,7 +387,7 @@ describe("Specifying single variant document tests", function () {
             });
 
             // to wait for page to load
-            cy.get(cesc("#\\/_text1")).should("have.text", `${ind}`);
+            cy.get(cesc("#text1")).should("have.text", `${ind}`);
 
             let indexChosen1, indexChosen2;
             let m, n;
@@ -370,28 +395,26 @@ describe("Specifying single variant document tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 indexChosen1 =
-                    stateVariables["/_selectfromsequence1"].stateValues
+                    stateVariables[await win.resolvePath1("m")].stateValues
                         .selectedIndices[0];
                 indexChosen2 =
-                    stateVariables["/_selectfromsequence1"].stateValues
+                    stateVariables[await win.resolvePath1("n")].stateValues
                         .selectedIndices[0];
-                m = stateVariables["/m"].stateValues.value;
-                n = stateVariables["/n"].stateValues.value;
+                m =
+                    stateVariables[await win.resolvePath1("m[1]")].stateValues
+                        .value;
+                n =
+                    stateVariables[await win.resolvePath1("n[1]")].stateValues
+                        .value;
 
-                cy.get(cesc("#\\/_mathinput1") + " textarea").type(
-                    `${m}{enter}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(cesc("#\\/_mathinput2") + " textarea").type(
-                    `${n}{enter}`,
-                    {
-                        force: true,
-                    },
-                );
-                cy.get(cesc("#\\/_mathinput1_correct")).should("be.visible");
-                cy.get(cesc("#\\/_mathinput2_correct")).should("be.visible");
+                cy.get(cesc("#mathInput1") + " textarea").type(`${m}{enter}`, {
+                    force: true,
+                });
+                cy.get(cesc("#mathInput2") + " textarea").type(`${n}{enter}`, {
+                    force: true,
+                });
+                cy.get(cesc("#mathInput1_correct")).should("be.visible");
+                cy.get(cesc("#mathInput2_correct")).should("be.visible");
 
                 cy.wait(2000); // wait for 2 second debounce
                 cy.reload();
@@ -407,61 +430,67 @@ describe("Specifying single variant document tests", function () {
                     );
                 });
                 // to wait for page to load
-                cy.get(cesc("#\\/_text1")).should("have.text", `${ind}`);
+                cy.get(cesc("#text1")).should("have.text", `${ind}`);
 
                 // wait until core is loaded
                 cy.waitUntil(() =>
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
-                        return stateVariables["/m"];
+                        return stateVariables[await win.resolvePath1("m")];
                     }),
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_selectfromsequence1"].stateValues
+                        stateVariables[await win.resolvePath1("m")].stateValues
                             .selectedIndices[0],
                     ).eq(indexChosen1);
                     expect(
-                        stateVariables["/_selectfromsequence1"].stateValues
+                        stateVariables[await win.resolvePath1("n")].stateValues
                             .selectedIndices[0],
                     ).eq(indexChosen2);
-                    expect(stateVariables["/m"].stateValues.value).eq(m);
-                    expect(stateVariables["/n"].stateValues.value).eq(n);
+                    expect(
+                        stateVariables[await win.resolvePath1("m[1]")]
+                            .stateValues.value,
+                    ).eq(m);
+                    expect(
+                        stateVariables[await win.resolvePath1("n[1]")]
+                            .stateValues.value,
+                    ).eq(n);
                 });
 
-                cy.get(cesc("#\\/_mathinput1_correct")).should("be.visible");
-                cy.get(cesc("#\\/_mathinput2_correct")).should("be.visible");
+                cy.get(cesc("#mathInput1_correct")).should("be.visible");
+                cy.get(cesc("#mathInput2_correct")).should("be.visible");
 
-                cy.get(cesc("#\\/_mathinput1") + " textarea").type(`{end}X`, {
+                cy.get(cesc("#mathInput1") + " textarea").type(`{end}X`, {
                     force: true,
                 });
-                cy.get(cesc("#\\/_mathinput2") + " textarea").type(`{end}X`, {
+                cy.get(cesc("#mathInput2") + " textarea").type(`{end}X`, {
                     force: true,
                 });
-                cy.get(cesc("#\\/_mathinput1_submit")).click();
-                cy.get(cesc("#\\/_mathinput2_submit")).click();
-                cy.get(cesc("#\\/_mathinput1_incorrect")).should("be.visible");
-                cy.get(cesc("#\\/_mathinput2_incorrect")).should("be.visible");
+                cy.get(cesc("#mathInput1_submit")).click();
+                cy.get(cesc("#mathInput2_submit")).click();
+                cy.get(cesc("#mathInput1_incorrect")).should("be.visible");
+                cy.get(cesc("#mathInput2_incorrect")).should("be.visible");
 
-                cy.get(cesc("#\\/_mathinput1") + " textarea").type(
+                cy.get(cesc("#mathInput1") + " textarea").type(
                     `{end}{backspace}`,
                     {
                         force: true,
                     },
                 );
-                cy.get(cesc("#\\/_mathinput2") + " textarea").type(
+                cy.get(cesc("#mathInput2") + " textarea").type(
                     `{end}{backspace}`,
                     {
                         force: true,
                     },
                 );
-                cy.get(cesc("#\\/_mathinput1_submit")).click();
-                cy.get(cesc("#\\/_mathinput2_submit")).click();
-                cy.get(cesc("#\\/_mathinput1_correct")).should("be.visible");
-                cy.get(cesc("#\\/_mathinput2_correct")).should("be.visible");
+                cy.get(cesc("#mathInput1_submit")).click();
+                cy.get(cesc("#mathInput2_submit")).click();
+                cy.get(cesc("#mathInput1_correct")).should("be.visible");
+                cy.get(cesc("#mathInput2_correct")).should("be.visible");
             });
         }
     });
@@ -473,28 +502,28 @@ describe("Specifying single variant document tests", function () {
         cy.get("#testRunner_toggleControls").click();
 
         let doenetML = `
-    <group name="g" newNamespace>
-      <choiceinput shuffleOrder name="ci">
+    <group name="g">
+      <choiceInput shuffleOrder name="ci">
         <choice>a</choice>
         <choice>b</choice>
         <choice>c</choice>
-      </choiceinput>
-      <p>Selected value: $ci</p>
-      <p>Enter <selectFromSequence assignNames="n" />. <answer name="ans">$n</answer></p>
+      </choiceInput>
+      <p name="p1">Selected value: $ci</p>
+      <p name="p2">Enter <selectFromSequence name="n" />. <answer name="ans">$n</answer></p>
     </group>
 
-    $g{name="g2"}
+    <group extend="$g" name="g2" />
 
-    $g{name="g3" link="false"}
+    <group copy="$g" name="g3" />
 
-    <p>Enter <selectFromSequence assignNames="m" />. <answer name="ans">$m</answer></p>
+    <p name="p3">Enter <selectFromSequence name="m" />. <answer name="ans">$m</answer></p>
     `;
 
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-      <text>1</text>${doenetML}`,
+      <text name="text1">1</text>${doenetML}`,
                     requestedVariantIndex: 1,
                 },
                 "*",
@@ -502,170 +531,191 @@ describe("Specifying single variant document tests", function () {
         });
 
         // to wait for page to load
-        cy.get(cesc("#\\/_text1")).should("have.text", `1`);
+        cy.get(cesc("#text1")).should("have.text", `1`);
 
         let choices = ["a", "b", "c"];
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let choiceOrder = stateVariables["/g/ci"].stateValues.choiceOrder;
-            let n = stateVariables["/g/n"].stateValues.value;
-            let m = stateVariables["/m"].stateValues.value;
+            let choiceOrder =
+                stateVariables[await win.resolvePath1("ci")].stateValues
+                    .choiceOrder;
+            let n =
+                stateVariables[await win.resolvePath1("n[1]")].stateValues
+                    .value;
+            let m =
+                stateVariables[await win.resolvePath1("m[1]")].stateValues
+                    .value;
 
-            let mathinput1Name =
-                stateVariables[`/g/ans`].stateValues.inputChildren[0]
-                    .componentIdx;
-            let mathinput2Name =
-                stateVariables[`/g2/ans`].stateValues.inputChildren[0]
-                    .componentIdx;
-            let mathinput3Name =
-                stateVariables[`/g3/ans`].stateValues.inputChildren[0]
-                    .componentIdx;
-            let mathinput4Name =
-                stateVariables[`/ans`].stateValues.inputChildren[0]
-                    .componentIdx;
+            let mathInput1Name =
+                stateVariables[await win.resolvePath1(`g.ans`)].stateValues
+                    .inputChildren[0].componentIdx;
+            let mathInput2Name =
+                stateVariables[await win.resolvePath1(`g2.ans`)].stateValues
+                    .inputChildren[0].componentIdx;
+            let mathInput3Name =
+                stateVariables[await win.resolvePath1(`g3.ans`)].stateValues
+                    .inputChildren[0].componentIdx;
+            let mathInput4Name =
+                stateVariables[await win.resolvePath1(`p3.ans`)].stateValues
+                    .inputChildren[0].componentIdx;
 
-            let mathinput1Anchor = cesc2("#" + mathinput1Name) + " textarea";
-            let answer1Correct = cesc2("#" + mathinput1Name + "_correct");
-            let answer1Incorrect = cesc2("#" + mathinput1Name + "_incorrect");
-            let answer1Submit = cesc2("#" + mathinput1Name + "_submit");
+            let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
+            let answer1Correct = cesc("#" + mathInput1Name + "_correct");
+            let answer1Incorrect = cesc("#" + mathInput1Name + "_incorrect");
+            let answer1Submit = cesc("#" + mathInput1Name + "_submit");
 
-            let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
-            let answer2Correct = cesc2("#" + mathinput2Name + "_correct");
-            let answer2Incorrect = cesc2("#" + mathinput2Name + "_incorrect");
-            let answer2Submit = cesc2("#" + mathinput2Name + "_submit");
+            let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
+            let answer2Correct = cesc("#" + mathInput2Name + "_correct");
+            let answer2Incorrect = cesc("#" + mathInput2Name + "_incorrect");
+            let answer2Submit = cesc("#" + mathInput2Name + "_submit");
 
-            let mathinput3Anchor = cesc2("#" + mathinput3Name) + " textarea";
-            let answer3Correct = cesc2("#" + mathinput3Name + "_correct");
-            let answer3Incorrect = cesc2("#" + mathinput3Name + "_incorrect");
-            let answer3Submit = cesc2("#" + mathinput3Name + "_submit");
+            let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
+            let answer3Correct = cesc("#" + mathInput3Name + "_correct");
+            let answer3Incorrect = cesc("#" + mathInput3Name + "_incorrect");
+            let answer3Submit = cesc("#" + mathInput3Name + "_submit");
 
-            let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
-            let answer4Correct = cesc2("#" + mathinput4Name + "_correct");
-            let answer4Incorrect = cesc2("#" + mathinput4Name + "_incorrect");
-            let answer4Submit = cesc2("#" + mathinput4Name + "_submit");
+            let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
+            let answer4Correct = cesc("#" + mathInput4Name + "_correct");
+            let answer4Incorrect = cesc("#" + mathInput4Name + "_incorrect");
+            let answer4Submit = cesc("#" + mathInput4Name + "_submit");
 
-            cy.get(`label[for=${cesc2("/g/ci_choice1_input")}]`).should(
+            cy.get(`label[for=${cesc("ci_choice1_input")}]`).should(
                 "have.text",
                 choices[choiceOrder[0] - 1],
             );
-            cy.get(`label[for=${cesc2("/g/ci_choice2_input")}]`).should(
+            cy.get(`label[for=${cesc("ci_choice2_input")}]`).should(
                 "have.text",
                 choices[choiceOrder[1] - 1],
             );
-            cy.get(`label[for=${cesc2("/g/ci_choice3_input")}]`).should(
+            cy.get(`label[for=${cesc("ci_choice3_input")}]`).should(
                 "have.text",
                 choices[choiceOrder[2] - 1],
             );
-            cy.get(`label[for=${cesc2("/g2/ci_choice1_input")}]`).should(
+            cy.get(`label[for=${cesc("g2.ci_choice1_input")}]`).should(
                 "have.text",
                 choices[choiceOrder[0] - 1],
             );
-            cy.get(`label[for=${cesc2("/g2/ci_choice2_input")}]`).should(
+            cy.get(`label[for=${cesc("g2.ci_choice2_input")}]`).should(
                 "have.text",
                 choices[choiceOrder[1] - 1],
             );
-            cy.get(`label[for=${cesc2("/g2/ci_choice3_input")}]`).should(
+            cy.get(`label[for=${cesc("g2.ci_choice3_input")}]`).should(
                 "have.text",
                 choices[choiceOrder[2] - 1],
             );
-            cy.get(`label[for=${cesc2("/g3/ci_choice1_input")}]`).should(
+            cy.get(`label[for=${cesc("g3.ci_choice1_input")}]`).should(
                 "have.text",
                 choices[choiceOrder[0] - 1],
             );
-            cy.get(`label[for=${cesc2("/g3/ci_choice2_input")}]`).should(
+            cy.get(`label[for=${cesc("g3.ci_choice2_input")}]`).should(
                 "have.text",
                 choices[choiceOrder[1] - 1],
             );
-            cy.get(`label[for=${cesc2("/g3/ci_choice3_input")}]`).should(
+            cy.get(`label[for=${cesc("g3.ci_choice3_input")}]`).should(
                 "have.text",
                 choices[choiceOrder[2] - 1],
             );
 
-            cy.get(cesc2(`#/g/_p2`)).should("have.text", `Enter ${n}. `);
-            cy.get(cesc2(`#/g2/_p2`)).should("have.text", `Enter ${n}. `);
-            cy.get(cesc2(`#/g3/_p2`)).should("have.text", `Enter ${n}. `);
-            cy.get(cesc2(`#/_p1`)).should("have.text", `Enter ${m}. `);
+            cy.get(cesc(`#p2`)).should("have.text", `Enter ${n}. `);
+            cy.get(cesc(`#g2.p2`)).should("have.text", `Enter ${n}. `);
+            cy.get(cesc(`#g3.p2`)).should("have.text", `Enter ${n}. `);
+            cy.get(cesc(`#p3`)).should("have.text", `Enter ${m}. `);
 
-            cy.get(cesc2(`#/g/ci_choice2_input`)).click();
-            cy.get(cesc2(`#/g/ci_choice2_input`)).should("be.checked");
-            cy.get(cesc2(`#/g2/ci_choice2_input`)).should("be.checked");
-            cy.get(cesc2(`#/g3/ci_choice2_input`)).should("not.be.checked");
+            cy.get(cesc(`#ci_choice2_input`)).click();
+            cy.get(cesc(`#ci_choice2_input`)).should("be.checked");
+            cy.get(cesc(`#g2.ci_choice2_input`)).should("be.checked");
+            cy.get(cesc(`#g3.ci_choice2_input`)).should("not.be.checked");
 
-            cy.get(cesc2(`#/g/_p1`)).should(
+            cy.get(cesc(`#p1`)).should(
                 "have.text",
                 `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
-            cy.get(cesc2(`#/g2/_p1`)).should(
+            cy.get(cesc(`#g2.p1`)).should(
                 "have.text",
                 `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
-            cy.get(cesc2(`#/g3/_p1`)).should("have.text", `Selected value: `);
+            cy.get(cesc(`#g3.p1`)).should("have.text", `Selected value: `);
 
-            cy.get(cesc2(`#/g3/ci_choice1_input`)).click();
-            cy.get(cesc2(`#/g/ci_choice2_input`)).should("be.checked");
-            cy.get(cesc2(`#/g2/ci_choice2_input`)).should("be.checked");
-            cy.get(cesc2(`#/g3/ci_choice1_input`)).should("be.checked");
+            cy.get(cesc(`#g3.ci_choice1_input`)).click();
+            cy.get(cesc(`#ci_choice2_input`)).should("be.checked");
+            cy.get(cesc(`#g2.ci_choice2_input`)).should("be.checked");
+            cy.get(cesc(`#g3.ci_choice1_input`)).should("be.checked");
 
-            cy.get(cesc2(`#/g/_p1`)).should(
+            cy.get(cesc(`#p1`)).should(
                 "have.text",
                 `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
-            cy.get(cesc2(`#/g2/_p1`)).should(
+            cy.get(cesc(`#g2.p1`)).should(
                 "have.text",
                 `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
-            cy.get(cesc2(`#/g3/_p1`)).should(
+            cy.get(cesc(`#g3.p1`)).should(
                 "have.text",
                 `Selected value: ${choices[choiceOrder[0] - 1]}`,
             );
 
-            cy.get(mathinput2Anchor).type(`${n}{enter}`, { force: true });
+            cy.get(mathInput2Anchor).type(`${n}{enter}`, { force: true });
             cy.get(answer1Correct).should("be.visible");
             cy.get(answer2Correct).should("be.visible");
             cy.get(answer3Submit).should("be.visible");
             cy.get(answer4Submit).should("be.visible");
 
-            cy.get(mathinput3Anchor).type(`${n}{enter}`, { force: true });
+            cy.get(mathInput3Anchor).type(`${n}{enter}`, { force: true });
             cy.get(answer3Correct).should("be.visible");
 
-            cy.get(mathinput4Anchor).type(`${m}{enter}`, { force: true });
+            cy.get(mathInput4Anchor).type(`${m}{enter}`, { force: true });
             cy.get(answer4Correct).should("be.visible");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                expect(stateVariables["/g2/n"].stateValues.value).eq(n);
-                expect(stateVariables["/g3/n"].stateValues.value).eq(n);
-                expect(stateVariables["/g2/ci"].stateValues.choiceOrder).eqls(
-                    choiceOrder,
-                );
-                expect(stateVariables["/g3/ci"].stateValues.choiceOrder).eqls(
-                    choiceOrder,
-                );
-
-                expect(stateVariables["/g/ci"].stateValues.selectedValues).eqls(
-                    [choices[choiceOrder[1] - 1]],
-                );
                 expect(
-                    stateVariables["/g2/ci"].stateValues.selectedValues,
+                    stateVariables[await win.resolvePath1("g2.n[1]")]
+                        .stateValues.value,
+                ).eq(n);
+                expect(
+                    stateVariables[await win.resolvePath1("g3.n[1]")]
+                        .stateValues.value,
+                ).eq(n);
+                expect(
+                    stateVariables[await win.resolvePath1("g2.ci")].stateValues
+                        .choiceOrder,
+                ).eqls(choiceOrder);
+                expect(
+                    stateVariables[await win.resolvePath1("g3.ci")].stateValues
+                        .choiceOrder,
+                ).eqls(choiceOrder);
+
+                expect(
+                    stateVariables[await win.resolvePath1("g.ci")].stateValues
+                        .selectedValues,
                 ).eqls([choices[choiceOrder[1] - 1]]);
                 expect(
-                    stateVariables["/g3/ci"].stateValues.selectedValues,
+                    stateVariables[await win.resolvePath1("g2.ci")].stateValues
+                        .selectedValues,
+                ).eqls([choices[choiceOrder[1] - 1]]);
+                expect(
+                    stateVariables[await win.resolvePath1("g3.ci")].stateValues
+                        .selectedValues,
                 ).eqls([choices[choiceOrder[0] - 1]]);
 
                 expect(
-                    stateVariables["/g/ans"].stateValues.submittedResponses,
+                    stateVariables[await win.resolvePath1("g.ans")].stateValues
+                        .submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/g2/ans"].stateValues.submittedResponses,
+                    stateVariables[await win.resolvePath1("g2.ans")].stateValues
+                        .submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/g3/ans"].stateValues.submittedResponses,
+                    stateVariables[await win.resolvePath1("g3.ans")].stateValues
+                        .submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/ans"].stateValues.submittedResponses,
+                    stateVariables[await win.resolvePath1("p3.ans")].stateValues
+                        .submittedResponses,
                 ).eqls([m]);
             });
 
@@ -676,7 +726,7 @@ describe("Specifying single variant document tests", function () {
                 win.postMessage(
                     {
                         doenetML: `
-      <text>1</text>${doenetML}`,
+      <text name="text1">1</text>${doenetML}`,
                         requestedVariantIndex: 1,
                     },
                     "*",
@@ -684,84 +734,93 @@ describe("Specifying single variant document tests", function () {
             });
 
             // to wait for page to load
-            cy.get(cesc("#\\/_text1")).should("have.text", `1`);
+            cy.get(cesc("#text1")).should("have.text", `1`);
 
             // wait until core is loaded
             cy.waitUntil(() =>
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
-                    return stateVariables["/ans"];
+                    return stateVariables[await win.resolvePath1("p3.ans")];
                 }),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                expect(stateVariables["/g/n"].stateValues.value).eq(n);
-                expect(stateVariables["/g2/n"].stateValues.value).eq(n);
-                expect(stateVariables["/g3/n"].stateValues.value).eq(n);
-                expect(stateVariables["/m"].stateValues.value).eq(m);
-
-                expect(stateVariables["/g/ci"].stateValues.choiceOrder).eqls(
-                    choiceOrder,
-                );
-                expect(stateVariables["/g2/ci"].stateValues.choiceOrder).eqls(
-                    choiceOrder,
-                );
-                expect(stateVariables["/g3/ci"].stateValues.choiceOrder).eqls(
-                    choiceOrder,
-                );
-
-                expect(stateVariables["/g/ci"].stateValues.selectedValues).eqls(
-                    [choices[choiceOrder[1] - 1]],
-                );
                 expect(
-                    stateVariables["/g2/ci"].stateValues.selectedValues,
+                    stateVariables[await win.resolvePath1("g.n[1]")].stateValues
+                        .value,
+                ).eq(n);
+                expect(
+                    stateVariables[await win.resolvePath1("g2.n[1]")]
+                        .stateValues.value,
+                ).eq(n);
+                expect(
+                    stateVariables[await win.resolvePath1("g3.n[1]")]
+                        .stateValues.value,
+                ).eq(n);
+                expect(
+                    stateVariables[await win.resolvePath1("m[1]")].stateValues
+                        .value,
+                ).eq(m);
+
+                expect(
+                    stateVariables[await win.resolvePath1("g.ci")].stateValues
+                        .choiceOrder,
+                ).eqls(choiceOrder);
+                expect(
+                    stateVariables[await win.resolvePath1("g2.ci")].stateValues
+                        .choiceOrder,
+                ).eqls(choiceOrder);
+                expect(
+                    stateVariables[await win.resolvePath1("g3.ci")].stateValues
+                        .choiceOrder,
+                ).eqls(choiceOrder);
+
+                expect(
+                    stateVariables[await win.resolvePath1("g.ci")].stateValues
+                        .selectedValues,
                 ).eqls([choices[choiceOrder[1] - 1]]);
                 expect(
-                    stateVariables["/g3/ci"].stateValues.selectedValues,
+                    stateVariables[await win.resolvePath1("g2.ci")].stateValues
+                        .selectedValues,
+                ).eqls([choices[choiceOrder[1] - 1]]);
+                expect(
+                    stateVariables[await win.resolvePath1("g3.ci")].stateValues
+                        .selectedValues,
                 ).eqls([choices[choiceOrder[0] - 1]]);
 
                 expect(
-                    stateVariables["/g/ans"].stateValues.submittedResponses,
+                    stateVariables[await win.resolvePath1("g.ans")].stateValues
+                        .submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/g2/ans"].stateValues.submittedResponses,
+                    stateVariables[await win.resolvePath1("g2.ans")].stateValues
+                        .submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/g3/ans"].stateValues.submittedResponses,
+                    stateVariables[await win.resolvePath1("g3.ans")].stateValues
+                        .submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/ans"].stateValues.submittedResponses,
+                    stateVariables[await win.resolvePath1("p3.ans")].stateValues
+                        .submittedResponses,
                 ).eqls([m]);
             });
 
-            cy.get(cesc2(`#/g/ci_choice2_input`)).should("be.checked");
-            cy.get(cesc2(`#/g2/ci_choice2_input`)).should("be.checked");
-            cy.get(cesc2(`#/g3/ci_choice1_input`)).should("be.checked");
+            cy.get(cesc(`#ci_choice2_input`)).should("be.checked");
+            cy.get(cesc(`#g2.ci_choice2_input`)).should("be.checked");
+            cy.get(cesc(`#g3.ci_choice1_input`)).should("be.checked");
 
-            cy.get(cesc2(`#/g/_p1`)).should(
+            cy.get(cesc(`#p1`)).should(
                 "have.text",
                 `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
-            cy.get(cesc2(`#/g2/_p1`)).should(
+            cy.get(cesc(`#g2.p1`)).should(
                 "have.text",
                 `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
-            cy.get(cesc2(`#/g3/_p1`)).should(
-                "have.text",
-                `Selected value: ${choices[choiceOrder[0] - 1]}`,
-            );
-
-            cy.get(cesc2(`#/g/_p1`)).should(
-                "have.text",
-                `Selected value: ${choices[choiceOrder[1] - 1]}`,
-            );
-            cy.get(cesc2(`#/g2/_p1`)).should(
-                "have.text",
-                `Selected value: ${choices[choiceOrder[1] - 1]}`,
-            );
-            cy.get(cesc2(`#/g3/_p1`)).should(
+            cy.get(cesc(`#g3.p1`)).should(
                 "have.text",
                 `Selected value: ${choices[choiceOrder[0] - 1]}`,
             );
@@ -771,7 +830,7 @@ describe("Specifying single variant document tests", function () {
             cy.get(answer3Correct).should("be.visible");
             cy.get(answer4Correct).should("be.visible");
 
-            cy.get(mathinput1Anchor).type(
+            cy.get(mathInput1Anchor).type(
                 `{end}{backspace}{backspace}${n + 1}`,
                 {
                     force: true,
@@ -781,14 +840,14 @@ describe("Specifying single variant document tests", function () {
             cy.get(answer1Incorrect).should("be.visible");
             cy.get(answer2Incorrect).should("be.visible");
 
-            cy.get(mathinput2Anchor).type(`{end}{backspace}{backspace}${n}`, {
+            cy.get(mathInput2Anchor).type(`{end}{backspace}{backspace}${n}`, {
                 force: true,
             });
             cy.get(answer1Submit).click();
             cy.get(answer1Correct).should("be.visible");
             cy.get(answer2Correct).should("be.visible");
 
-            cy.get(mathinput3Anchor).type(
+            cy.get(mathInput3Anchor).type(
                 `{end}{backspace}{backspace}${n + 1}`,
                 {
                     force: true,
@@ -796,13 +855,13 @@ describe("Specifying single variant document tests", function () {
             );
             cy.get(answer3Submit).click();
             cy.get(answer3Incorrect).should("be.visible");
-            cy.get(mathinput3Anchor).type(`{end}{backspace}{backspace}${n}`, {
+            cy.get(mathInput3Anchor).type(`{end}{backspace}{backspace}${n}`, {
                 force: true,
             });
             cy.get(answer3Submit).click();
             cy.get(answer3Correct).should("be.visible");
 
-            cy.get(mathinput4Anchor).type(
+            cy.get(mathInput4Anchor).type(
                 `{end}{backspace}{backspace}${m + 1}`,
                 {
                     force: true,
@@ -810,7 +869,7 @@ describe("Specifying single variant document tests", function () {
             );
             cy.get(answer4Submit).click();
             cy.get(answer4Incorrect).should("be.visible");
-            cy.get(mathinput4Anchor).type(`{end}{backspace}{backspace}${m}`, {
+            cy.get(mathInput4Anchor).type(`{end}{backspace}{backspace}${m}`, {
                 force: true,
             });
             cy.get(answer4Submit).click();

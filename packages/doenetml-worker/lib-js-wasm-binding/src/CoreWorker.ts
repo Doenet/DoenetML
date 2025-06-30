@@ -244,6 +244,7 @@ export class CoreWorker {
                     deleteNodesFromResolver:
                         PublicDoenetMLCore.delete_nodes_from_resolver,
                     resolvePath: PublicDoenetMLCore.resolve_path,
+                    calculateRootNames: PublicDoenetMLCore.calculate_root_names,
                 });
             this.javascript_initialized = true;
             return initializedResult;
@@ -382,40 +383,20 @@ export class CoreWorker {
         }
     }
 
-    // TODO: this function didn't end up being used, as we're calling `PublicDoenetMLCore.resolve_path`
-    // directly from the javascript core. Delete if it remains unused. (May 5, 2025)
-    async resolvePath(
-        resolver: Resolver,
-        path: PathToCheck,
-        origin: 0,
-        skip_parent_search: boolean,
-    ) {
-        const isProcessingPromise = this.isProcessingPromise;
-        let { promise, resolve } = promiseWithResolver();
-        this.isProcessingPromise = promise;
-
-        await isProcessingPromise;
-
-        if (!this.source_set || !this.flags_set || !this.doenetCore) {
-            throw Error("Cannot resolve path before setting source and flags");
-        }
-
-        try {
-            let path_resolution = PublicDoenetMLCore.resolve_path(
-                resolver,
-                path,
-                origin,
-                skip_parent_search,
-            );
-            return path_resolution;
-        } catch (err) {
-            console.error(err);
-            throw err;
-        } finally {
-            resolve();
-        }
-    }
-
+    /**
+     * Attempt to resolve `path` immediately by forcibly resolving any composite components required
+     * to determine the ref resolution. If the path is resolved to a node index without any unresolved path left,
+     * then return the node index. Otherwise return -1.
+     *
+     * By default, the search for the path begins at the document root, node 0. Specify a node index for `origin`
+     * to change where the search begins.
+     *
+     * By default, the search begins by recursing to the parents of `origin` to match the first part of the path.
+     * Specify `skip_parent_search` to bypass that stage and only search descendants of `origin`.
+     *
+     * At present, this function is implemented only for string indices within the path.
+     * An error is thrown if the index of a path contains any references to other nodes.
+     */
     async resolvePathJavascript(name: string, origin = 0) {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
@@ -433,12 +414,12 @@ export class CoreWorker {
         }
 
         try {
-            let path_resolution =
+            let nodeIdx =
                 await this.javascriptCore.resolvePathImmediatelyToNodeIdx(
                     name,
                     origin,
                 );
-            return path_resolution;
+            return nodeIdx;
         } catch (err) {
             console.error(err);
             throw err;

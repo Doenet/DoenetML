@@ -1517,7 +1517,7 @@ export default class Copy extends CompositeComponent {
                 };
             }
         }
-        let replacementSourceComponent =
+        const replacementSourceComponent =
             components[replacementSource.componentIdx];
 
         // Don't create any replacement if the source is inactive
@@ -1536,18 +1536,25 @@ export default class Copy extends CompositeComponent {
         // if not linking or removing empty array entries,
         // then replacementSources is resolved,
         // which we need for state variable value
+        let propName = (await component.stateValues.effectivePropNameBySource)[
+            sourceNum
+        ];
         let link = await component.stateValues.link;
-        if (!link || (await component.stateValues.removeEmptyArrayEntries)) {
-            replacementSource = (
+        if (
+            !link ||
+            (propName && (await component.stateValues.removeEmptyArrayEntries))
+        ) {
+            const replacementSourceWithProp = (
                 await component.stateValues.replacementSources
             )[sourceNum];
+
+            if (replacementSourceWithProp) {
+                replacementSource = replacementSourceWithProp;
+            }
         }
 
         // if creating copy from a prop
         // manually create the serialized component
-        let propName = (await component.stateValues.effectivePropNameBySource)[
-            sourceNum
-        ];
         if (propName) {
             let results = await replacementFromProp({
                 component,
@@ -2500,12 +2507,17 @@ export async function replacementFromProp({
 
     let replacementInd = -1; //numReplacementsSoFar - 1;
 
-    let target = components[replacementSource.componentIdx];
+    let target = undefined;
+    let varName = undefined;
 
-    let varName = publicCaseInsensitiveAliasSubstitutions({
-        stateVariables: [propName],
-        componentClass: target.constructor,
-    })[0];
+    if (replacementSource) {
+        target = components[replacementSource.componentIdx];
+
+        varName = publicCaseInsensitiveAliasSubstitutions({
+            stateVariables: [propName],
+            componentClass: target.constructor,
+        })[0];
+    }
 
     if (varName === undefined || varName.slice(0, 12) === "__not_public") {
         if (propName === "__no_target_found") {

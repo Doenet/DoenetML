@@ -646,7 +646,7 @@ describe("Specifying single variant tests", async () => {
                 let secondValues: (number | string)[] = [];
 
                 for (let i = 1; i <= 3; i++) {
-                    console.log({ i });
+                    //console.log({ i });
                     let problem =
                         stateVariables[
                             await resolvePathToNodeIdx(`problem${i}`)

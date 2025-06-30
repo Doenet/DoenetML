@@ -44,10 +44,10 @@ pub fn format_error_message(err: ResolutionError, path: &[FlatPathPart]) -> Stri
 
     match err {
         ResolutionError::NoReferent => {
-            format!("No referent found for reference: ${}", paths_string)
+            format!("No referent found for reference: ${paths_string}")
         }
         ResolutionError::NonUniqueReferent => {
-            format!("Multiple referents found for reference: ${}", paths_string)
+            format!("Multiple referents found for reference: ${paths_string}")
         }
     }
 }

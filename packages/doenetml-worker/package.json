@@ -16,6 +16,9 @@
             "require": "./dist/index.js",
             "types": "./dist/index.d.js"
         },
+        "./lib_doenetml_worker_bg.wasm": {
+            "import": "./dist/lib_doenetml_worker_bg.wasm"
+        },
         "./*": {
             "import": "./dist/*",
             "require": "./dist/*"
@@ -67,7 +70,8 @@
             "output": [
                 "dist/**/*.js",
                 "dist/**/*.d.ts",
-                "dist/**/*.json"
+                "dist/**/*.json",
+                "dist/**/*.wasm*"
             ],
             "dependencies": [
                 "../utils:build",
@@ -106,11 +110,5 @@
             ]
         }
     },
-    "devDependencies": {
-        "@vitest/browser": "^1.6.1",
-        "rollup-plugin-polyfill-node": "^0.13.0",
-        "vite": "^5.4.17",
-        "vite-plugin-static-copy": "^2.3.0",
-        "webdriverio": "^9.12.4"
-    }
+    "devDependencies": {}
 }

@@ -11,7 +11,7 @@ describe("Paragraph Markup Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <em>This is italics</em>
+  <em name="em1">This is italics</em>
   `,
                 },
                 "*",
@@ -19,7 +19,7 @@ describe("Paragraph Markup Tag Tests", function () {
         });
 
         cy.log("find em");
-        cy.get("em" + cesc("#\\/_em1")).should("have.text", "This is italics");
+        cy.get("em" + cesc("#em1")).should("have.text", "This is italics");
     });
 
     it("alert", () => {
@@ -27,7 +27,7 @@ describe("Paragraph Markup Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <alert>This is bold</alert>
+  <alert name="alert1">This is bold</alert>
   `,
                 },
                 "*",
@@ -35,10 +35,7 @@ describe("Paragraph Markup Tag Tests", function () {
         });
 
         cy.log("find alert");
-        cy.get("strong" + cesc("#\\/_alert1")).should(
-            "have.text",
-            "This is bold",
-        );
+        cy.get("strong" + cesc("#alert1")).should("have.text", "This is bold");
     });
 
     it("q", () => {
@@ -46,7 +43,7 @@ describe("Paragraph Markup Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <p><q>Double quoted</q></p>
+  <p name="p1"><q>Double quoted</q></p>
   `,
                 },
                 "*",
@@ -54,7 +51,7 @@ describe("Paragraph Markup Tag Tests", function () {
         });
 
         cy.log("find quotes");
-        cy.get("p" + cesc("#\\/_p1")).should("have.text", "“Double quoted”");
+        cy.get("p" + cesc("#p1")).should("have.text", "“Double quoted”");
     });
 
     it("sq", () => {
@@ -62,7 +59,7 @@ describe("Paragraph Markup Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <p><sq>Single quoted</sq></p>
+  <p name="p1"><sq>Single quoted</sq></p>
   `,
                 },
                 "*",
@@ -70,7 +67,7 @@ describe("Paragraph Markup Tag Tests", function () {
         });
 
         cy.log("find quotes");
-        cy.get("p" + cesc("#\\/_p1")).should("have.text", "‘Single quoted’");
+        cy.get("p" + cesc("#p1")).should("have.text", "‘Single quoted’");
     });
 
     it("c", () => {
@@ -78,7 +75,7 @@ describe("Paragraph Markup Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <c>Code!</c>
+  <c name="c1">Code!</c>
   `,
                 },
                 "*",
@@ -86,7 +83,7 @@ describe("Paragraph Markup Tag Tests", function () {
         });
 
         cy.log("find quotes");
-        cy.get("code" + cesc("#\\/_c1")).should("have.text", "Code!");
+        cy.get("code" + cesc("#c1")).should("have.text", "Code!");
     });
 
     it("term", () => {
@@ -94,7 +91,7 @@ describe("Paragraph Markup Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <term>Homogeneous</term>
+  <term name="term1">Homogeneous</term>
   `,
                 },
                 "*",
@@ -102,9 +99,6 @@ describe("Paragraph Markup Tag Tests", function () {
         });
 
         cy.log("find term");
-        cy.get("strong" + cesc("#\\/_term1")).should(
-            "have.text",
-            "Homogeneous",
-        );
+        cy.get("strong" + cesc("#term1")).should("have.text", "Homogeneous");
     });
 });

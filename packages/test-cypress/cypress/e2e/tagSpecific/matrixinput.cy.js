@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "@doenet/utils";
+import { cesc } from "@doenet/utils";
 
 describe("MatrixInput Tag Tests", function () {
     beforeEach(() => {
@@ -8,7 +8,7 @@ describe("MatrixInput Tag Tests", function () {
 
     it("set value from immediateValue on reload", () => {
         let doenetML = `
-    <p><matrixinput name="n" /></p>
+    <p><matrixInput name="n" /></p>
 
     <p name="pv">value: $n</p>
     <p name="piv">immediate value: $n.immediateValue</p>
@@ -28,10 +28,10 @@ describe("MatrixInput Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/n") + " textarea").type("1", { force: true });
+        cy.get(cesc("#n") + " textarea").type("1", { force: true });
 
-        cy.get(cesc("#\\/piv")).should("have.text", "immediate value: [1]");
-        cy.get(cesc("#\\/pv")).should("contain.text", "[\uff3f]");
+        cy.get(cesc("#piv")).should("have.text", "immediate value: [1]");
+        cy.get(cesc("#pv")).should("contain.text", "[\uff3f]");
 
         cy.wait(1500); // wait for debounce
 
@@ -46,7 +46,7 @@ describe("MatrixInput Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/pv")).should("have.text", "value: [1]");
-        cy.get(cesc("#\\/piv")).should("have.text", "immediate value: [1]");
+        cy.get(cesc("#pv")).should("have.text", "value: [1]");
+        cy.get(cesc("#piv")).should("have.text", "immediate value: [1]");
     });
 });

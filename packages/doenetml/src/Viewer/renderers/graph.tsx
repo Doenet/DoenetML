@@ -77,7 +77,7 @@ export default React.memo(function Graph(props) {
             showCopyright: false,
             showNavigation: false, // will add navigation buttons later so can style them
             // keepAspectRatio: SVs.identicalAxisScales,
-            zoom: { wheel: !SVs.fixAxes, needShift: false },
+            zoom: { wheel: !SVs.fixAxes, needShift: true },
             pan: { enabled: !SVs.fixAxes, needShift: false },
             grid: haveFixedGrid,
         });
@@ -309,13 +309,13 @@ export default React.memo(function Graph(props) {
 
         if (SVs.displayXAxis) {
             if (xaxis.current) {
-                let xaxisWithLabel = Boolean(SVs.xlabel);
+                let xaxisWithLabel = Boolean(SVs.xLabel);
 
                 if (xaxisWithLabel !== previousXaxisWithLabel.current) {
                     xaxis.current.setAttribute({ withlabel: xaxisWithLabel });
                     previousXaxisWithLabel.current = xaxisWithLabel;
                 }
-                xaxis.current.name = SVs.xlabel;
+                xaxis.current.name = SVs.xLabel;
                 xaxis.current.defaultTicks.setAttribute({
                     drawLabels: SVs.displayXAxisTickLabels,
                 });
@@ -323,7 +323,7 @@ export default React.memo(function Graph(props) {
                     let position = "rt";
                     let offset = [5, 10];
                     let anchorx = "right";
-                    if (SVs.xlabelPosition === "left") {
+                    if (SVs.xLabelPosition === "left") {
                         position = "lft";
                         anchorx = "left";
                         offset = [-5, 10];
@@ -344,13 +344,13 @@ export default React.memo(function Graph(props) {
 
         if (SVs.displayYAxis) {
             if (yaxis.current) {
-                let yaxisWithLabel = Boolean(SVs.ylabel);
+                let yaxisWithLabel = Boolean(SVs.yLabel);
 
                 if (yaxisWithLabel !== previousYaxisWithLabel.current) {
                     yaxis.current.setAttribute({ withlabel: yaxisWithLabel });
                     previousYaxisWithLabel.current = yaxisWithLabel;
                 }
-                yaxis.current.name = SVs.ylabel;
+                yaxis.current.name = SVs.yLabel;
                 yaxis.current.defaultTicks.setAttribute({
                     drawLabels: SVs.displayYAxisTickLabels,
                 });
@@ -358,11 +358,11 @@ export default React.memo(function Graph(props) {
                     let position = "rt";
                     let offset = [-10, -5];
                     let anchorx = "right";
-                    if (SVs.ylabelPosition === "bottom") {
+                    if (SVs.yLabelPosition === "bottom") {
                         position = "lft";
                         offset[1] = 5;
                     }
-                    if (SVs.ylabelAlignment === "right") {
+                    if (SVs.yLabelAlignment === "right") {
                         anchorx = "left";
                         offset[0] = 10;
                     }
@@ -445,19 +445,19 @@ export default React.memo(function Graph(props) {
 
     function createYAxis(theBoard) {
         let yaxisOptions = { highlight: false, fixed: true };
-        if (SVs.ylabel) {
+        if (SVs.yLabel) {
             let position = "rt";
             let offset = [-10, -5];
             let anchorx = "right";
-            if (SVs.ylabelPosition === "bottom") {
+            if (SVs.yLabelPosition === "bottom") {
                 position = "lft";
                 offset[1] = 5;
             }
-            if (SVs.ylabelAlignment === "right") {
+            if (SVs.yLabelAlignment === "right") {
                 anchorx = "left";
                 offset[0] = 10;
             }
-            yaxisOptions.name = SVs.ylabel;
+            yaxisOptions.name = SVs.yLabel;
             yaxisOptions.withLabel = true;
             yaxisOptions.label = {
                 position,
@@ -466,11 +466,11 @@ export default React.memo(function Graph(props) {
                 strokeColor: "var(--canvastext)",
                 highlight: false,
             };
-            if (SVs.ylabelHasLatex) {
+            if (SVs.yLabelHasLatex) {
                 yaxisOptions.label.useMathJax = true;
             }
         }
-        previousYaxisWithLabel.current = Boolean(SVs.ylabel);
+        previousYaxisWithLabel.current = Boolean(SVs.yLabel);
 
         yaxisOptions.strokeColor = "var(--canvastext)";
         yaxisOptions.highlight = false;
@@ -643,16 +643,16 @@ export default React.memo(function Graph(props) {
 
     function createXAxis(theBoard) {
         let xaxisOptions = { highlight: false, fixed: true };
-        if (SVs.xlabel) {
+        if (SVs.xLabel) {
             let position = "rt";
             let offset = [5, 10];
             let anchorx = "right";
-            if (SVs.xlabelPosition === "left") {
+            if (SVs.xLabelPosition === "left") {
                 position = "lft";
                 anchorx = "left";
                 offset = [-5, 10];
             }
-            xaxisOptions.name = SVs.xlabel;
+            xaxisOptions.name = SVs.xLabel;
             xaxisOptions.withLabel = true;
             xaxisOptions.label = {
                 position,
@@ -661,11 +661,11 @@ export default React.memo(function Graph(props) {
                 strokeColor: "var(--canvastext)",
                 highlight: false,
             };
-            if (SVs.xlabelHasLatex) {
+            if (SVs.xLabelHasLatex) {
                 xaxisOptions.label.useMathJax = true;
             }
         }
-        previousXaxisWithLabel.current = Boolean(SVs.xlabel);
+        previousXaxisWithLabel.current = Boolean(SVs.xLabel);
 
         xaxisOptions.ticks = {
             ticksDistance: 2,

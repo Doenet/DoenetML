@@ -41,7 +41,7 @@ jobs:
 
             - name: Build Docs
               run: |
-                  export NODE_OPTIONS="--max_old_space_size=4096"
+                  export NODE_OPTIONS="--max_old_space_size=6144"
                   cd packages/doenetml
                   npm run build
                   cd ../docs-nextra

@@ -1,4 +1,4 @@
-import { cesc2 } from "@doenet/utils";
+import { cesc } from "@doenet/utils";
 
 describe("Select Tag Tests", function () {
     beforeEach(() => {
@@ -11,8 +11,8 @@ describe("Select Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <text>a</text>
-    <section>
+    <text name="a">a</text>
+    <section name="sec">
       <select numToSelect="4" withReplacement>
         <option><p>hello</p></option>
         <option><p>bye</p></option>
@@ -24,7 +24,7 @@ describe("Select Tag Tests", function () {
             );
         });
 
-        cy.get(cesc2("#/_text1")).should("have.text", "a"); //wait for page to load
-        cy.get(cesc2("#/_section1")).should("not.contain.text", ",");
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#sec")).should("not.contain.text", ",");
     });
 });

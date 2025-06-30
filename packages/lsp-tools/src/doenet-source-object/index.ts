@@ -1,4 +1,5 @@
 import {
+    DastElement,
     DastElementV6,
     DastFunctionMacroV6,
     DastMacroV6,
@@ -246,7 +247,9 @@ export class DoenetSourceObject extends LazyDataObject {
      *
      * Note: these values are given as **offsets**.
      */
-    getElementTagRanges(node: DastElementV6): { start: number; end: number }[] {
+    getElementTagRanges(
+        node: DastElementV6 | DastElement,
+    ): { start: number; end: number }[] {
         const start = node.position?.start?.offset || 0;
         const end = node.position?.end?.offset || 0;
         const childrenStart = node.children[0]?.position?.start?.offset;

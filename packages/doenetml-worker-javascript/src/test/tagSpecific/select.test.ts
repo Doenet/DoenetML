@@ -1651,14 +1651,14 @@ describe("Select tag tests", async () => {
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
-        console.log({ qs });
+        //console.log({ qs });
         let rs = stateVariables[
             await resolvePathToNodeIdx("o[2][1]")
         ].activeChildren.map(
             (x) => stateVariables[x.componentIdx].stateValues.value,
         );
 
-        console.log({ rs });
+        //console.log({ rs });
         let ss = stateVariables[
             await resolvePathToNodeIdx("o[3][1]")
         ].activeChildren.map(
