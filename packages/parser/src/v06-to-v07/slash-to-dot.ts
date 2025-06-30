@@ -3,6 +3,7 @@ import {
     DastFunctionMacro,
     DastFunctionMacroV6,
     DastMacro,
+    DastMacroPathPart,
     DastMacroV6,
     DastNodesV6,
     DastRoot,
@@ -10,6 +11,7 @@ import {
 } from "../types";
 import { visit } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
+import { macroToString as v06macroToString } from "../macros-v6/macro-to-string";
 
 /**
  * Upgrade namespace path syntax.
@@ -26,7 +28,7 @@ export const upgradePathSlashesToDots: Plugin<
     DastRootV6,
     DastRoot
 > = () => {
-    return (tree) => {
+    return (tree, file) => {
         visit(
             tree,
             // @ts-ignore
@@ -57,6 +59,36 @@ export const upgradePathSlashesToDots: Plugin<
                         // @ts-ignore
                         delete node[key];
                     });
+                    if (macro.path.some((p) => p.name === "..")) {
+                        // If `".."` exists, delete the previous path part and add a warning because there is no
+                        // equivalent in the new syntax. It comes from things like `$(../x)` in the old syntax.
+                        const newPath: DastMacroPathPart[] = [];
+                        let errorMessageWritten = false;
+                        for (const part of macro.path) {
+                            if (part.name === "..") {
+                                // If there is a previous path part, remove it.
+                                if (newPath.length > 0) {
+                                    newPath.pop();
+                                    if (!errorMessageWritten) {
+                                        errorMessageWritten = true;
+                                        file.message(
+                                            `There is no equivalent to the $(../x) syntax; a best-guess was made when converting ${v06macroToString(
+                                                macro as any,
+                                            )}`,
+                                            {
+                                                start: node.position?.start,
+                                                end: node.position?.end,
+                                            },
+                                        );
+                                    }
+                                }
+                                continue; // skip
+                            }
+                            newPath.push(part);
+                        }
+                        macro.path = newPath;
+                    }
+
                     Object.assign(node, macro);
                 }
             },

@@ -76,6 +76,39 @@ describe("v06 to v07 update", () => {
         ).toEqual(correctSource);
     });
 
+    it(".. in macro path with slashes gets removed", async () => {
+        source = `<p foo="$(x/../bar)" />`;
+        correctSource = `<p foo="$bar" />`;
+
+        let res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeAttributeSyntax: true,
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+
+        expect(res.vfile.messages).toMatchInlineSnapshot(`
+          [
+            [1:1-1:1: There is no equivalent to the $(../x) syntax; a best-guess was made when converting $(x/../bar)],
+          ]
+        `);
+
+        // Only one error message even if there are two `..` in the path
+        source = `<p foo="$(x/../../bar)" />`;
+        correctSource = `<p foo="$bar" />`;
+
+        res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeAttributeSyntax: true,
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+
+        expect(res.vfile.messages).toMatchInlineSnapshot(`
+          [
+            [1:1-1:1: There is no equivalent to the $(../x) syntax; a best-guess was made when converting $(x/../../bar)],
+          ]
+        `);
+    });
+
     it("attributes aren't lost when turning slashes get turned into dots", async () => {
         source = `$foo.bar{baz="abc"}`;
         correctSource = `$foo.bar{baz="abc"}`;
