@@ -22,7 +22,7 @@ describe("link Tag Tests", function () {
       <p>Paragraph seven</p>
       <p>Paragraph eight</p>
       <p>Goto:
-      <link name="toTwo" to="$section2">Section 2</link>,
+      <link name="toTwo" to="$section2" />,
       <link name="toThree" to="$section3">Section 3</link>
       <link name="toFour" to="$section4">Section 4</link>
       <link name="toThreeii" to="$section3.p2">Second paragraph of Section 3</link>
@@ -31,7 +31,6 @@ describe("link Tag Tests", function () {
     </section>
 
     <section name="section2">
-      <title>Section 2</title>
       <p>Paragraph a</p>
       <p name="p2">Paragraph b</p>
       <p>Paragraph c</p>
@@ -42,7 +41,7 @@ describe("link Tag Tests", function () {
       <p>Paragraph h</p>
       <p>Goto:
       <link name="toOne" to="$section1">Section 1</link>,
-      <link name="toThree" to="$section3">Section 3</link>
+      <link name="toThree" to="$section3" />
       <link name="toFour" to="$section4">Section 4</link>
       </p>
     </section>
@@ -60,7 +59,7 @@ describe("link Tag Tests", function () {
       <p>Goto:
       <link name="toOne" to="$section1">Section 1</link>
       <link name="toTwo" to="$section2">Section 2</link>,
-      <link name="toFour" to="$section4">Section 4</link>
+      <link name="toFour" to="$section4" />
       </p>
     </section>
 
