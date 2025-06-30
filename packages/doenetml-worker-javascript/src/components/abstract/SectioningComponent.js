@@ -111,10 +111,8 @@ export class SectioningComponent extends BlockComponent {
 
         attributes.asList = {
             createComponentOfType: "boolean",
-            createStateVariable: "asList",
+            createStateVariable: "asListPrelim",
             defaultValue: false,
-            public: true,
-            forRenderer: true,
         };
 
         attributes.level = {
@@ -166,6 +164,60 @@ export class SectioningComponent extends BlockComponent {
             stateVariableDefinitions,
             feedbackDefinitionStateVariables,
         );
+
+        // Check if any children of the section are flagged with `forceList`
+        // (currently `<task>` and `<part>` children),
+        stateVariableDefinitions.haveForceListChildren = {
+            returnDependencies: () => ({
+                children: {
+                    dependencyType: "child",
+                    childGroups: ["anything"],
+                    variableNames: ["forceList"],
+                    variablesOptional: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                const haveForceListChildren =
+                    dependencyValues.children.findIndex(
+                        (child) => child.stateValues?.forceList,
+                    ) !== -1;
+
+                return { setValue: { haveForceListChildren } };
+            },
+        };
+
+        stateVariableDefinitions.asList = {
+            forRenderer: true,
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                asListPrelim: {
+                    dependencyType: "stateVariable",
+                    variableName: "asListPrelim",
+                },
+                haveForceListChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "haveForceListChildren",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        asList:
+                            dependencyValues.asListPrelim ||
+                            dependencyValues.haveForceListChildren,
+                    },
+                };
+            },
+        };
+
+        // forceList will be set for `<task>` and `<part>`.
+        stateVariableDefinitions.forceList = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { forceList: false } }),
+        };
 
         stateVariableDefinitions.inAList = {
             forRenderer: true,
@@ -318,14 +370,17 @@ export class SectioningComponent extends BlockComponent {
                     child,
                 ] of dependencyValues.allChildren.entries()) {
                     if (dependencyValues.asList) {
-                        // if asList, then only include titleChild and sections
+                        // if asList, then only include titleChild, sections, introduction, and conclusion
                         if (
                             child.componentIdx ===
                                 dependencyValues.titleChildName ||
                             componentInfoObjects.isInheritedComponentType({
                                 inheritedComponentType: child.componentType,
                                 baseComponentType: "_sectioningComponent",
-                            })
+                            }) ||
+                            ["introduction", "conclusion"].includes(
+                                child.componentType,
+                            )
                         ) {
                             childIndicesToRender.push(ind);
                         }
@@ -339,6 +394,57 @@ export class SectioningComponent extends BlockComponent {
                 }
 
                 return { setValue: { childIndicesToRender } };
+            },
+        };
+
+        // Determine if the rendered children start with an `<introduction>`
+        // or end with a `<conclusion>`.
+        // Currently, this is only need if `asList` is set,
+        // in which case the starting `<introduction>` or ending `<conclusion>`
+        // are rendered outside of the list.
+        stateVariableDefinitions.startsWithIntroduction = {
+            additionalStateVariablesDefined: [
+                { variableName: "endsWithConclusion", forRenderer: true },
+            ],
+            forRenderer: true,
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    childGroups: [
+                        "anything",
+                        "variantControls",
+                        "titles",
+                        "setups",
+                    ],
+                },
+                asList: {
+                    dependencyType: "stateVariable",
+                    variableName: "asList",
+                },
+                childIndicesToRender: {
+                    dependencyType: "stateVariable",
+                    variableName: "childIndicesToRender",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const childIndices = dependencyValues.childIndicesToRender;
+                const firstRenderedChild =
+                    dependencyValues.allChildren[childIndices[0]];
+
+                const startsWithIntroduction =
+                    firstRenderedChild?.componentType === "introduction";
+
+                const lastRenderedChild =
+                    dependencyValues.allChildren[
+                        childIndices[childIndices.length - 1]
+                    ];
+
+                const endsWithConclusion =
+                    lastRenderedChild?.componentType === "conclusion";
+
+                return {
+                    setValue: { startsWithIntroduction, endsWithConclusion },
+                };
             },
         };
 
