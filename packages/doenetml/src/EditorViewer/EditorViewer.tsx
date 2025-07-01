@@ -430,7 +430,7 @@ export function EditorViewer({
                             </div>
                         }
                     ></MenuButton>
-                    <Menu>
+                    <Menu className="update-syntax-menu">
                         <MenuItem
                             render={
                                 <UiButton>
