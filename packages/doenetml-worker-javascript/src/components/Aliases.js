@@ -1,5 +1,7 @@
 import TextComponent from "./Text";
 import TextOrInline from "./abstract/TextOrInline";
+import InlineComponent from "./abstract/InlineComponent";
+import BlockComponent from "./abstract/BlockComponent";
 import MathComponent from "./Math";
 import Label from "./Label";
 import MathList from "./MathList";
@@ -63,4 +65,12 @@ export class RepeatSetup extends Setup {
 
 export class Placeholder extends Setup {
     static componentType = "_placeholder";
+}
+
+export class Br extends InlineComponent {
+    static componentType = "br";
+}
+
+export class Hr extends BlockComponent {
+    static componentType = "hr";
 }

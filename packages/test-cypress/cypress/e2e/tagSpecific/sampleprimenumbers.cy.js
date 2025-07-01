@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "@doenet/utils";
+import { cesc } from "@doenet/utils";
 
 describe("SamplePrimeNumbers Tag Tests", function () {
     beforeEach(() => {
@@ -8,13 +8,10 @@ describe("SamplePrimeNumbers Tag Tests", function () {
 
     it(`different numbers when reload page if don't save state`, () => {
         let doenetML = `
-    <text>a</text>
-    <p name="p1"><aslist>
-    <map>
-      <template><samplePrimeNumbers /></template>
-      <sources><sequence length="100" /></sources>
-    </map>
-    </aslist></p>
+    <text name="a">a</text>
+    <p name="p1"><repeatForSequence length="100">
+      <samplePrimeNumbers />
+    </repeatForSequence></p>
 
     `;
 
@@ -27,7 +24,7 @@ describe("SamplePrimeNumbers Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         let samples = [];
 
@@ -35,7 +32,7 @@ describe("SamplePrimeNumbers Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentIdx
+                await win.resolvePath1("p1")
             ].activeChildren.map(
                 (x) => stateVariables[x.componentIdx].stateValues.value,
             );
@@ -63,13 +60,13 @@ describe("SamplePrimeNumbers Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
             let samples2 = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentIdx
+                await win.resolvePath1("p1")
             ].activeChildren.map(
                 (x) => stateVariables[x.componentIdx].stateValues.value,
             );
@@ -90,15 +87,12 @@ describe("SamplePrimeNumbers Tag Tests", function () {
 
     it("same numbers when reload if save state", () => {
         let doenetML = `
-    <text>a</text>
-    <p name="p1"><aslist>
-    <map>
-      <template><samplePrimeNumbers  /></template>
-      <sources><sequence length="100" /></sources>
-    </map>
-    </aslist></p>
+    <text name="a">a</text>
+    <p name="p1"><repeatForSequence length="100">
+      <samplePrimeNumbers />
+    </repeatForSequence></p>
 
-    <booleaninput name="bi" /><boolean name="b2" copySource="bi" />
+    <booleanInput name="bi" /><boolean name="b2" extend="$bi" />
 
     `;
 
@@ -116,7 +110,7 @@ describe("SamplePrimeNumbers Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         let samples = [];
 
@@ -124,7 +118,7 @@ describe("SamplePrimeNumbers Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             samples = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentIdx
+                await win.resolvePath1("p1")
             ].activeChildren.map(
                 (x) => stateVariables[x.componentIdx].stateValues.value,
             );
@@ -142,8 +136,8 @@ describe("SamplePrimeNumbers Tag Tests", function () {
         });
 
         cy.log("interact so changes will be saved to database");
-        cy.get(cesc("#\\/bi")).click();
-        cy.get(cesc("#\\/b2")).should("have.text", "true");
+        cy.get(cesc("#bi")).click();
+        cy.get(cesc("#b2")).should("have.text", "true");
 
         cy.log("wait for debounce");
         cy.wait(1500);
@@ -160,15 +154,15 @@ describe("SamplePrimeNumbers Tag Tests", function () {
         });
 
         cy.log("make sure core is up and running");
-        cy.get(cesc("#\\/bi")).click();
-        cy.get(cesc("#\\/b2")).should("have.text", "false");
+        cy.get(cesc("#bi")).click();
+        cy.get(cesc("#b2")).should("have.text", "false");
 
         cy.log("check that values are unchanged");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
             let samples2 = stateVariables[
-                stateVariables["/p1"].activeChildren[0].componentIdx
+                await win.resolvePath1("p1")
             ].activeChildren.map(
                 (x) => stateVariables[x.componentIdx].stateValues.value,
             );

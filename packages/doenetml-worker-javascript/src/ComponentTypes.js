@@ -36,7 +36,7 @@ import BooleanComponent from "./components/Boolean";
 import BooleanList from "./components/BooleanList";
 import MathComponent from "./components/Math";
 import Collect from "./components/Collect";
-import Ref from "./components/Ref";
+import Link from "./components/Link";
 import Point from "./components/Point";
 import Coords from "./components/Coords";
 import Line from "./components/Line";
@@ -163,7 +163,6 @@ import Matrix from "./components/Matrix";
 import EigenDecomposition from "./components/linearAlgebra/EigenDecomposition";
 import Latex from "./components/Latex";
 import BlockQuote from "./components/BlockQuote";
-import ContentPicker from "./components/ContentPicker";
 // import VertexConstraints from "./components/VertexConstraints";
 // import EdgeConstraints from "./components/EdgeConstraints";
 import StickyGroup from "./components/StickyGroup";
@@ -234,7 +233,7 @@ const componentTypeArray = [
     NumberList,
     Copy,
     Collect,
-    Ref,
+    Link,
     Point,
     Coords,
     Line,
@@ -356,7 +355,6 @@ const componentTypeArray = [
     EigenDecomposition,
     Latex,
     BlockQuote,
-    ContentPicker,
     // VertexConstraints,
     // EdgeConstraints,
     StickyGroup,

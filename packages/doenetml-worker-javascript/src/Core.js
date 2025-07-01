@@ -1019,7 +1019,9 @@ export default class Core {
         rendererStatesToUpdate.push({
             componentIdx,
             stateValues: stateValuesForRenderer,
-            childrenInstructions: childrenToRender,
+            childrenInstructions: childrenToRender.filter(
+                (child) => child != null,
+            ),
         });
         if (Object.keys(stateValuesForRendererAlwaysUpdate).length > 0) {
             rendererStatesToForceUpdate.push({
@@ -1031,7 +1033,9 @@ export default class Core {
         // this.renderState is used to save the renderer state to the database
         this.rendererState[componentIdx] = {
             stateValues: stateValuesForRenderer,
-            childrenInstructions: childrenToRender,
+            childrenInstructions: childrenToRender.filter(
+                (child) => child != null,
+            ),
         };
 
         componentsWithChangedChildrenToRenderInProgress.delete(componentIdx);
@@ -1057,9 +1061,7 @@ export default class Core {
         let rendererInstructions = {
             componentIdx: componentIdx,
             effectiveIdx: component.componentOrAdaptedIdx,
-            id:
-                this.rootNames?.[componentIdx] ??
-                component.componentOrAdaptedIdx.toString(),
+            id: this.getRendererId(component),
             componentType: component.componentType,
             rendererType: component.rendererType,
             actions: requestActions,
@@ -1074,6 +1076,28 @@ export default class Core {
             rendererStatesToUpdate,
             rendererStatesToForceUpdate,
         };
+    }
+
+    /**
+     * Get the `rendererId` of `component`,
+     * where `rendererId` is the `rootName` of the component, if it exists,
+     * else the `componentIdx` as a string.
+     *
+     * The `rootName` is the simplest unique reference to the component
+     * when the document root is the origin. As `rootName` is designed to be
+     * a HTML id, indices are represented with `:`. For example,
+     * if `$a.b[2][3].c` is the simplest reference to a component from the root,
+     * then its root name will be `a.b:2:3.c`.
+     *
+     * If a component was adapted from another component,
+     * then the `renderedId` of the original component is used instead,
+     * as that corresponds to the component that was authored.
+     */
+    getRendererId(component) {
+        return (
+            this.rootNames?.[component.componentOrAdaptedIdx] ??
+            component.componentOrAdaptedIdx.toString()
+        );
     }
 
     deleteFromComponentsToRender({
@@ -1304,7 +1328,7 @@ export default class Core {
             res.createComponentIdxMapping,
         );
 
-        for (const serializedComponent of serializedComponents) {
+        for (let serializedComponent of serializedComponents) {
             // console.timeLog('core','<-Top serializedComponents ',serializedComponent.componentIdx);
 
             if (typeof serializedComponent !== "object") {
@@ -1312,7 +1336,7 @@ export default class Core {
                 continue;
             }
 
-            const componentClass =
+            let componentClass =
                 this.componentInfoObjects.allComponentClasses[
                     serializedComponent.componentType
                 ];
@@ -1568,6 +1592,7 @@ export default class Core {
 
                         attributes[attrName] = {
                             references: attrResult.components,
+                            stringChildren: attribute.stringChildren,
                         };
                     } catch (e) {
                         console.error(e);
@@ -3528,6 +3553,9 @@ export default class Core {
                 if (child.isExpanded) {
                     parent.compositeReplacementActiveRange.push({
                         compositeIdx: child.componentIdx,
+                        compositeName:
+                            this.rootNames?.[child.componentIdx] ??
+                            child.componentIdx.toString(),
                         extendIdx: await child.stateValues.extendIdx,
                         unresolvedPath: await child.stateValues.unresolvedPath,
                         firstInd: childInd,

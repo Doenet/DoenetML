@@ -301,7 +301,7 @@ export default React.memo(function Section(props) {
         children = (
             <ol>
                 {children.map((child) => (
-                    <li>{child}</li>
+                    <li key={child.key}>{child}</li>
                 ))}
             </ol>
         );

@@ -24,34 +24,6 @@ export class Solution extends BlockComponent {
         return attributes;
     }
 
-    static returnSugarInstructions() {
-        let sugarInstructions = super.returnSugarInstructions();
-
-        let wrapWithContainer = function ({ matchedChildren, nComponents }) {
-            return {
-                success: true,
-                newChildren: [
-                    {
-                        type: "serialized",
-                        componentType: "_postponeRenderContainer",
-                        componentIdx: nComponents++,
-                        children: matchedChildren,
-                        attributes: {},
-                        doenetAttributes: {},
-                        state: {},
-                    },
-                ],
-                nComponents,
-            };
-        };
-
-        sugarInstructions.push({
-            replacementFunction: wrapWithContainer,
-        });
-
-        return sugarInstructions;
-    }
-
     static returnChildGroups() {
         return [
             {

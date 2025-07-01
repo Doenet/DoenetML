@@ -963,6 +963,30 @@ describe("Math expressions equality tests", async () => {
                 symbolicSimplifyEqual: true,
                 symbolicSimplifyExpandEqual: true,
             },
+            {
+                expr1: "<math>not a = b</math>",
+                expr2: "<math>not (a = b)</math>",
+                equal: true,
+                symbolicEqual: true,
+                symbolicSimplifyEqual: true,
+                symbolicSimplifyExpandEqual: true,
+            },
+            {
+                expr1: "<math>not a = b</math>",
+                expr2: "<math>(not a) = b</math>",
+                equal: false,
+                symbolicEqual: false,
+                symbolicSimplifyEqual: false,
+                symbolicSimplifyExpandEqual: false,
+            },
+            {
+                expr1: "<math>a = not b</math>",
+                expr2: "<math>a = (not b)</math>",
+                equal: true,
+                symbolicEqual: true,
+                symbolicSimplifyEqual: true,
+                symbolicSimplifyExpandEqual: true,
+            },
         ];
 
         let doenetML = "";

@@ -268,13 +268,13 @@ function contained_in(tree, i_set, match_partial) {
         if (typeof period !== "number" || Number.isNaN(period)) return false;
 
         let frac = me.math.fraction(period);
-        let p = frac.n;
+        let p = me.math.number(frac.n);
 
         if (p > 1000) {
             return false;
         }
 
-        let q = frac.d;
+        let q = me.math.number(frac.d);
         data.push([p, q, offset, period]);
     }
 

@@ -30,7 +30,7 @@ import {
 } from "../state";
 
 export const DocContext = createContext<{
-    linkSettings?: { viewURL: string; editURL: string };
+    doenetViewerUrl?: string;
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
     showAnswerResponseMenu?: boolean;
@@ -59,7 +59,7 @@ export function DocViewer({
     initializedCallback,
     setIsInErrorState,
     prefixForIds = "",
-    linkSettings = { viewURL: "/portfolioviewer", editURL: "/publiceditor" },
+    doenetViewerUrl,
     scrollableContainer,
     darkMode,
     showAnswerResponseMenu = false,
@@ -87,7 +87,7 @@ export function DocViewer({
     initializedCallback?: Function;
     setIsInErrorState?: Function;
     prefixForIds?: string;
-    linkSettings?: { viewURL: string; editURL: string };
+    doenetViewerUrl?: string;
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
     showAnswerResponseMenu?: boolean;
@@ -202,7 +202,7 @@ export function DocViewer({
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
 
     const contextForRenderers = {
-        linkSettings,
+        doenetViewerUrl,
         scrollableContainer,
         darkMode,
         showAnswerResponseMenu,
@@ -267,8 +267,9 @@ export function DocViewer({
         if (docId !== null) {
             const postfixForWindowFunctions =
                 prefixForIds
-                    .replaceAll("/", "")
-                    .replaceAll("\\", "")
+                    .replaceAll("::", "")
+                    .replaceAll(":", "_")
+                    .replaceAll(".", "_")
                     .replaceAll("-", "_") || "1";
 
             (window as any)[
@@ -676,7 +677,7 @@ export function DocViewer({
                         docId,
                         activityId,
                         callAction,
-                        linkSettings,
+                        doenetViewerUrl,
                         scrollableContainer,
                     }),
                 );

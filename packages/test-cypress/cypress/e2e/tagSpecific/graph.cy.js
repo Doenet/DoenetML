@@ -11,19 +11,19 @@ describe("Graph Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <text>a</text>
-    <graph><point>(0,0)</point>
+    <text name="a">a</text>
+    <graph name="graph1"><point>(0,0)</point>
     </graph>
 
-    <p>xmin: $_graph1.xmin{assignNames="xmin"}</p>
-    <p>xmax: $_graph1.xmax{assignNames="xmax"}</p>
-    <p>ymin: $_graph1.ymin{assignNames="ymin"}</p>
-    <p>ymax: $_graph1.ymax{assignNames="ymax"}</p>
+    <p>xmin: <number extend="$graph1.xmin" name="xmin" /></p>
+    <p>xmax: <number extend="$graph1.xmax" name="xmax" /></p>
+    <p>ymin: <number extend="$graph1.ymin" name="ymin" /></p>
+    <p>ymax: <number extend="$graph1.ymax" name="ymax" /></p>
 
-    <p>Change xmin: <mathinput name="xminInput" bindValueTo="$_graph1.xmin" /></p>
-    <p>Change xmax: <mathinput name="xmaxInput" bindValueTo="$_graph1.xmax" /></p>
-    <p>Change ymin: <mathinput name="yminInput" bindValueTo="$_graph1.ymin" /></p>
-    <p>Change ymax: <mathinput name="ymaxInput" bindValueTo="$_graph1.ymax" /></p>
+    <p>Change xmin: <mathInput name="xminInput" bindValueTo="$graph1.xmin" /></p>
+    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$graph1.xmax" /></p>
+    <p>Change ymin: <mathInput name="yminInput" bindValueTo="$graph1.ymin" /></p>
+    <p>Change ymax: <mathInput name="ymaxInput" bindValueTo="$graph1.ymax" /></p>
     
     `,
                 },
@@ -31,20 +31,32 @@ describe("Graph Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         function checkLimits(xmin, xmax, ymin, ymax) {
-            cy.get(cesc("#\\/xmin")).should("have.text", String(xmin));
-            cy.get(cesc("#\\/xmax")).should("have.text", String(xmax));
-            cy.get(cesc("#\\/ymin")).should("have.text", String(ymin));
-            cy.get(cesc("#\\/ymax")).should("have.text", String(ymax));
+            cy.get(cesc("#xmin")).should("have.text", String(xmin));
+            cy.get(cesc("#xmax")).should("have.text", String(xmax));
+            cy.get(cesc("#ymin")).should("have.text", String(ymin));
+            cy.get(cesc("#ymax")).should("have.text", String(ymax));
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
-                expect(stateVariables["/_graph1"].stateValues.xmin).eq(xmin);
-                expect(stateVariables["/_graph1"].stateValues.xmax).eq(xmax);
-                expect(stateVariables["/_graph1"].stateValues.ymin).eq(ymin);
-                expect(stateVariables["/_graph1"].stateValues.ymax).eq(ymax);
+                expect(
+                    stateVariables[await win.resolvePath1("graph1")].stateValues
+                        .xmin,
+                ).eq(xmin);
+                expect(
+                    stateVariables[await win.resolvePath1("graph1")].stateValues
+                        .xmax,
+                ).eq(xmax);
+                expect(
+                    stateVariables[await win.resolvePath1("graph1")].stateValues
+                        .ymin,
+                ).eq(ymin);
+                expect(
+                    stateVariables[await win.resolvePath1("graph1")].stateValues
+                        .ymax,
+                ).eq(ymax);
             });
         }
 
@@ -55,61 +67,11 @@ describe("Graph Tag Tests", function () {
 
         checkLimits(xmin, xmax, ymin, ymax);
 
-        cy.get(cesc("#\\/_graph1_navigationbar") + " > :nth-child(6)")
-            .click()
-            .then((_) => {
-                let increment = 0.1 * (ymax - ymin);
-                ymin += increment;
-                ymax += increment;
-                checkLimits(xmin, xmax, ymin, ymax);
-            });
+        // TODO: since longer have pan buttons, cannot pan with navigation bar.
+        // Can we pan with the mouse in cypress?
 
-        cy.get(cesc("#\\/_graph1_navigationbar") + " > :nth-child(6)")
-            .click()
-            .then((_) => {
-                let increment = 0.1 * (ymax - ymin);
-                ymin += increment;
-                ymax += increment;
-                checkLimits(xmin, xmax, ymin, ymax);
-            });
-
-        cy.get(cesc("#\\/_graph1_navigationbar") + " > :nth-child(5)")
-            .click()
-            .then((_) => {
-                let increment = 0.1 * (ymax - ymin);
-                ymin -= increment;
-                ymax -= increment;
-                checkLimits(xmin, xmax, ymin, ymax);
-            });
-
-        cy.get(cesc("#\\/_graph1_navigationbar") + " > :nth-child(4)")
-            .click()
-            .then((_) => {
-                let increment = 0.1 * (xmax - xmin);
-                xmin -= increment;
-                xmax -= increment;
-                checkLimits(xmin, xmax, ymin, ymax);
-            });
-
-        cy.get(cesc("#\\/_graph1_navigationbar") + " > :nth-child(7)")
-            .click()
-            .then((_) => {
-                let increment = 0.1 * (xmax - xmin);
-                xmin += increment;
-                xmax += increment;
-                checkLimits(xmin, xmax, ymin, ymax);
-            });
-
-        cy.get(cesc("#\\/_graph1_navigationbar") + " > :nth-child(7)")
-            .click()
-            .then((_) => {
-                let increment = 0.1 * (xmax - xmin);
-                xmin += increment;
-                xmax += increment;
-                checkLimits(xmin, xmax, ymin, ymax);
-            });
-
-        cy.get(cesc("#\\/_graph1_navigationbar") + " > :nth-child(3)")
+        // Zoom in
+        cy.get(cesc("#graph1_navigationbar") + " > :nth-child(3)")
             .click()
             .then((_) => {
                 let meanx = (xmax + xmin) / 2;
@@ -121,7 +83,8 @@ describe("Graph Tag Tests", function () {
                 checkLimits(xmin, xmax, ymin, ymax);
             });
 
-        cy.get(cesc("#\\/_graph1_navigationbar") + " > :nth-child(3)")
+        // Zoom in
+        cy.get(cesc("#graph1_navigationbar") + " > :nth-child(3)")
             .click()
             .then((_) => {
                 let meanx = (xmax + xmin) / 2;
@@ -133,7 +96,8 @@ describe("Graph Tag Tests", function () {
                 checkLimits(xmin, xmax, ymin, ymax);
             });
 
-        cy.get(cesc("#\\/_graph1_navigationbar") + " > :nth-child(1)")
+        // Zoom out
+        cy.get(cesc("#graph1_navigationbar") + " > :nth-child(1)")
             .click()
             .then((_) => {
                 let meanx = (xmax + xmin) / 2;
@@ -145,49 +109,57 @@ describe("Graph Tag Tests", function () {
                 checkLimits(xmin, xmax, ymin, ymax);
             });
 
-        cy.get(cesc("#\\/xminInput") + " textarea")
+        cy.get(cesc("#xminInput") + " textarea")
             .type(`{end}{backspace}{backspace}-8{enter}`, { force: true })
             .then((_) => {
                 xmin = -8;
                 checkLimits(xmin, xmax, ymin, ymax);
             });
 
-        cy.get(cesc("#\\/xmaxInput") + " textarea")
+        cy.get(cesc("#xmaxInput") + " textarea")
             .type(`{end}{backspace}{backspace}12{enter}`, { force: true })
             .then((_) => {
                 xmax = 12;
                 checkLimits(xmin, xmax, ymin, ymax);
             });
 
-        cy.get(cesc("#\\/yminInput") + " textarea")
+        cy.get(cesc("#yminInput") + " textarea")
             .type(`{end}{backspace}{backspace}-4{enter}`, { force: true })
             .then((_) => {
                 ymin = -4;
                 checkLimits(xmin, xmax, ymin, ymax);
             });
 
-        cy.get(cesc("#\\/ymaxInput") + " textarea")
+        cy.get(cesc("#ymaxInput") + " textarea")
             .type(`{end}{backspace}{backspace}16{enter}`, { force: true })
             .then((_) => {
                 ymax = 16;
                 checkLimits(xmin, xmax, ymin, ymax);
             });
 
-        cy.get(cesc("#\\/_graph1_navigationbar") + " > :nth-child(5)")
+        // Zoom out
+        cy.get(cesc("#graph1_navigationbar") + " > :nth-child(1)")
             .click()
             .then((_) => {
-                let increment = 0.1 * (ymax - ymin);
-                ymin -= increment;
-                ymax -= increment;
+                let meanx = (xmax + xmin) / 2;
+                xmin = meanx + (xmin - meanx) / 0.8;
+                xmax = meanx + (xmax - meanx) / 0.8;
+                let meany = (ymax + ymin) / 2;
+                ymin = meany + (ymin - meany) / 0.8;
+                ymax = meany + (ymax - meany) / 0.8;
                 checkLimits(xmin, xmax, ymin, ymax);
             });
 
-        cy.get(cesc("#\\/_graph1_navigationbar") + " > :nth-child(4)")
+        // Zoom in
+        cy.get(cesc("#graph1_navigationbar") + " > :nth-child(3)")
             .click()
             .then((_) => {
-                let increment = 0.1 * (xmax - xmin);
-                xmin -= increment;
-                xmax -= increment;
+                let meanx = (xmax + xmin) / 2;
+                xmin = meanx + 0.8 * (xmin - meanx);
+                xmax = meanx + 0.8 * (xmax - meanx);
+                let meany = (ymax + ymin) / 2;
+                ymin = meany + 0.8 * (ymin - meany);
+                ymax = meany + 0.8 * (ymax - meany);
                 checkLimits(xmin, xmax, ymin, ymax);
             });
     });
@@ -197,24 +169,24 @@ describe("Graph Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <text>a</text>
+    <text name="a">a</text>
 
     <graph name="none" />
 
     <graph name="xpi" xTickScaleFactor="pi" />
     <graph name="ypi" yTickScaleFactor="pi" />
-    <graph name="bothpi" xTickScaleFactor="pi" yTickScaleFactor="pi" />
+    <graph name="bothPi" xTickScaleFactor="pi" yTickScaleFactor="pi" />
 
     <graph name="xe" xTickScaleFactor="e" />
     <graph name="ye" yTickScaleFactor="e" />
-    <graph name="bothe" xTickScaleFactor="e" yTickScaleFactor="e" />
+    <graph name="bothE" xTickScaleFactor="e" yTickScaleFactor="e" />
 
-    <graph name="ignorebad" xTickScaleFactor="x" yTickScaleFactor="/" displayDigits="5" />
+    <graph name="ignoreBad" xTickScaleFactor="x" yTickScaleFactor="/" displayDigits="5" />
 
-    $ignorebad.xmin{assignNames="xmin"}
-    $ignorebad.xmax{assignNames="xmax"}
-    $ignorebad.ymin{assignNames="ymin"}
-    $ignorebad.ymax{assignNames="ymax"}
+    <number extend="$ignoreBad.xmin" name="xmin" />
+    <number extend="$ignoreBad.xmax" name="xmax" />
+    <number extend="$ignoreBad.ymin" name="ymin" />
+    <number extend="$ignoreBad.ymax" name="ymax" />
 
 
 
@@ -224,171 +196,169 @@ describe("Graph Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
         // Note: these are brittle tests and could start failing if internals of jsxgraph changes
 
-        cy.get(cesc("#\\/none")).should("not.contain.text", "π");
-        cy.get(cesc("#\\/none")).should("not.contain.text", "e");
-        cy.get(cesc("#\\/none")).should("contain.text", "68");
-        cy.get(cesc("#\\/none")).should("contain.text", "−2−4−6−8");
+        cy.get(cesc("#none")).should("not.contain.text", "π");
+        cy.get(cesc("#none")).should("not.contain.text", "e");
+        cy.get(cesc("#none")).should("contain.text", "68");
+        cy.get(cesc("#none")).should("contain.text", "−2−4−6−8");
 
-        cy.get(cesc("#\\/xpi")).should("contain.text", "π2π3π");
-        cy.get(cesc("#\\/xpi")).should("contain.text", "−π−2π−3π");
-        cy.get(cesc("#\\/xpi")).should("contain.text", "24");
-        cy.get(cesc("#\\/xpi")).should("contain.text", "68");
-        cy.get(cesc("#\\/xpi")).should("contain.text", "−2−4−6−8");
+        cy.get(cesc("#xpi")).should("contain.text", "π2π3π");
+        cy.get(cesc("#xpi")).should("contain.text", "−π−2π−3π");
+        cy.get(cesc("#xpi")).should("contain.text", "24");
+        cy.get(cesc("#xpi")).should("contain.text", "68");
+        cy.get(cesc("#xpi")).should("contain.text", "−2−4−6−8");
 
-        cy.get(cesc("#\\/ypi")).should("contain.text", "π2π3π");
-        cy.get(cesc("#\\/ypi")).should("contain.text", "−π−2π−3π");
-        cy.get(cesc("#\\/ypi")).should("contain.text", "24");
-        cy.get(cesc("#\\/ypi")).should("contain.text", "68");
-        cy.get(cesc("#\\/ypi")).should("contain.text", "−2−4−6−8");
+        cy.get(cesc("#ypi")).should("contain.text", "π2π3π");
+        cy.get(cesc("#ypi")).should("contain.text", "−π−2π−3π");
+        cy.get(cesc("#ypi")).should("contain.text", "24");
+        cy.get(cesc("#ypi")).should("contain.text", "68");
+        cy.get(cesc("#ypi")).should("contain.text", "−2−4−6−8");
 
-        cy.get(cesc("#\\/bothpi")).should("contain.text", "π2π3π");
-        cy.get(cesc("#\\/bothpi")).should("contain.text", "−π−2π−3π");
-        cy.get(cesc("#\\/bothpi")).should("not.contain.text", "24");
-        cy.get(cesc("#\\/bothpi")).should("not.contain.text", "68");
-        cy.get(cesc("#\\/bothpi")).should("not.contain.text", "−2−4−6−8");
+        cy.get(cesc("#bothPi")).should("contain.text", "π2π3π");
+        cy.get(cesc("#bothPi")).should("contain.text", "−π−2π−3π");
+        cy.get(cesc("#bothPi")).should("not.contain.text", "24");
+        cy.get(cesc("#bothPi")).should("not.contain.text", "68");
+        cy.get(cesc("#bothPi")).should("not.contain.text", "−2−4−6−8");
 
-        cy.get(cesc("#\\/xe")).should("contain.text", "e2e3e");
-        cy.get(cesc("#\\/xe")).should("contain.text", "−e−2e−3e");
-        cy.get(cesc("#\\/xe")).should("contain.text", "24");
-        cy.get(cesc("#\\/xe")).should("contain.text", "68");
-        cy.get(cesc("#\\/xe")).should("contain.text", "−2−4−6−8");
+        cy.get(cesc("#xe")).should("contain.text", "e2e3e");
+        cy.get(cesc("#xe")).should("contain.text", "−e−2e−3e");
+        cy.get(cesc("#xe")).should("contain.text", "24");
+        cy.get(cesc("#xe")).should("contain.text", "68");
+        cy.get(cesc("#xe")).should("contain.text", "−2−4−6−8");
 
-        cy.get(cesc("#\\/ye")).should("contain.text", "e2e3e");
-        cy.get(cesc("#\\/ye")).should("contain.text", "−e−2e−3e");
-        cy.get(cesc("#\\/ye")).should("contain.text", "24");
-        cy.get(cesc("#\\/ye")).should("contain.text", "68");
-        cy.get(cesc("#\\/ye")).should("contain.text", "−2−4−6−8");
+        cy.get(cesc("#ye")).should("contain.text", "e2e3e");
+        cy.get(cesc("#ye")).should("contain.text", "−e−2e−3e");
+        cy.get(cesc("#ye")).should("contain.text", "24");
+        cy.get(cesc("#ye")).should("contain.text", "68");
+        cy.get(cesc("#ye")).should("contain.text", "−2−4−6−8");
 
-        cy.get(cesc("#\\/bothe")).should("contain.text", "e2e3e");
-        cy.get(cesc("#\\/bothe")).should("contain.text", "−e−2e−3e");
-        cy.get(cesc("#\\/bothe")).should("not.contain.text", "24");
-        cy.get(cesc("#\\/bothe")).should("not.contain.text", "68");
-        cy.get(cesc("#\\/bothe")).should("not.contain.text", "−2−4−6−8");
+        cy.get(cesc("#bothE")).should("contain.text", "e2e3e");
+        cy.get(cesc("#bothE")).should("contain.text", "−e−2e−3e");
+        cy.get(cesc("#bothE")).should("not.contain.text", "24");
+        cy.get(cesc("#bothE")).should("not.contain.text", "68");
+        cy.get(cesc("#bothE")).should("not.contain.text", "−2−4−6−8");
 
-        cy.get(cesc("#\\/ignorebad")).should("not.contain.text", "π");
-        cy.get(cesc("#\\/ignorebad")).should("not.contain.text", "e");
-        cy.get(cesc("#\\/ignorebad")).should("contain.text", "68");
-        cy.get(cesc("#\\/ignorebad")).should("contain.text", "−2−4−6−8");
+        cy.get(cesc("#ignoreBad")).should("not.contain.text", "π");
+        cy.get(cesc("#ignoreBad")).should("not.contain.text", "e");
+        cy.get(cesc("#ignoreBad")).should("contain.text", "68");
+        cy.get(cesc("#ignoreBad")).should("contain.text", "−2−4−6−8");
 
-        cy.get(cesc("#\\/none_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/xpi_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/ypi_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/bothpi_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/xe_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/ye_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/bothe_navigationbar") + " > :nth-child(1)").click();
-        cy.get(
-            cesc("#\\/ignorebad_navigationbar") + " > :nth-child(1)",
-        ).click();
+        // Zoom out
+        cy.get(cesc("#none_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#xpi_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#ypi_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#bothPi_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#xe_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#ye_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#bothE_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#ignoreBad_navigationbar") + " > :nth-child(1)").click();
 
-        cy.get(cesc("#\\/xmax")).should("have.text", "12.5");
+        cy.get(cesc("#xmax")).should("have.text", "12.5");
 
-        cy.get(cesc("#\\/none")).should("not.contain.text", "π");
-        cy.get(cesc("#\\/none")).should("not.contain.text", "e");
-        cy.get(cesc("#\\/none")).should("contain.text", "10");
-        cy.get(cesc("#\\/none")).should("contain.text", "−10");
+        cy.get(cesc("#none")).should("not.contain.text", "π");
+        cy.get(cesc("#none")).should("not.contain.text", "e");
+        cy.get(cesc("#none")).should("contain.text", "10");
+        cy.get(cesc("#none")).should("contain.text", "−10");
 
-        cy.get(cesc("#\\/xpi")).should("contain.text", "π2π3π");
-        cy.get(cesc("#\\/xpi")).should("contain.text", "−π−2π−3π");
-        cy.get(cesc("#\\/xpi")).should("contain.text", "10");
-        cy.get(cesc("#\\/xpi")).should("contain.text", "−10");
+        cy.get(cesc("#xpi")).should("contain.text", "π2π3π");
+        cy.get(cesc("#xpi")).should("contain.text", "−π−2π−3π");
+        cy.get(cesc("#xpi")).should("contain.text", "10");
+        cy.get(cesc("#xpi")).should("contain.text", "−10");
 
-        cy.get(cesc("#\\/ypi")).should("contain.text", "π2π3π");
-        cy.get(cesc("#\\/ypi")).should("contain.text", "−π−2π−3π");
-        cy.get(cesc("#\\/ypi")).should("contain.text", "10");
-        cy.get(cesc("#\\/ypi")).should("contain.text", "−10");
+        cy.get(cesc("#ypi")).should("contain.text", "π2π3π");
+        cy.get(cesc("#ypi")).should("contain.text", "−π−2π−3π");
+        cy.get(cesc("#ypi")).should("contain.text", "10");
+        cy.get(cesc("#ypi")).should("contain.text", "−10");
 
-        cy.get(cesc("#\\/bothpi")).should("contain.text", "π2π3π");
-        cy.get(cesc("#\\/bothpi")).should("contain.text", "−π−2π−3π");
-        cy.get(cesc("#\\/bothpi")).should("not.contain.text", "10");
-        cy.get(cesc("#\\/bothpi")).should("not.contain.text", "−10");
+        cy.get(cesc("#bothPi")).should("contain.text", "π2π3π");
+        cy.get(cesc("#bothPi")).should("contain.text", "−π−2π−3π");
+        cy.get(cesc("#bothPi")).should("not.contain.text", "10");
+        cy.get(cesc("#bothPi")).should("not.contain.text", "−10");
 
-        cy.get(cesc("#\\/xe")).should("contain.text", "e2e3e4e");
-        cy.get(cesc("#\\/xe")).should("contain.text", "−e−2e");
-        cy.get(cesc("#\\/xe")).should("contain.text", "−3e−4e");
-        cy.get(cesc("#\\/xe")).should("contain.text", "10");
-        cy.get(cesc("#\\/xe")).should("contain.text", "−10");
+        cy.get(cesc("#xe")).should("contain.text", "e2e3e4e");
+        cy.get(cesc("#xe")).should("contain.text", "−e−2e");
+        cy.get(cesc("#xe")).should("contain.text", "−3e−4e");
+        cy.get(cesc("#xe")).should("contain.text", "10");
+        cy.get(cesc("#xe")).should("contain.text", "−10");
 
-        cy.get(cesc("#\\/ye")).should("contain.text", "e2e3e4e");
-        cy.get(cesc("#\\/ye")).should("contain.text", "−e−2e");
-        cy.get(cesc("#\\/ye")).should("contain.text", "−3e−4e");
-        cy.get(cesc("#\\/ye")).should("contain.text", "10");
-        cy.get(cesc("#\\/ye")).should("contain.text", "−10");
+        cy.get(cesc("#ye")).should("contain.text", "e2e3e4e");
+        cy.get(cesc("#ye")).should("contain.text", "−e−2e");
+        cy.get(cesc("#ye")).should("contain.text", "−3e−4e");
+        cy.get(cesc("#ye")).should("contain.text", "10");
+        cy.get(cesc("#ye")).should("contain.text", "−10");
 
-        cy.get(cesc("#\\/bothe")).should("contain.text", "e2e3e4e");
-        cy.get(cesc("#\\/bothe")).should("contain.text", "−e−2e");
-        cy.get(cesc("#\\/bothe")).should("contain.text", "−3e−4e");
-        cy.get(cesc("#\\/bothe")).should("not.contain.text", "10");
-        cy.get(cesc("#\\/bothe")).should("not.contain.text", "−10");
+        cy.get(cesc("#bothE")).should("contain.text", "e2e3e4e");
+        cy.get(cesc("#bothE")).should("contain.text", "−e−2e");
+        cy.get(cesc("#bothE")).should("contain.text", "−3e−4e");
+        cy.get(cesc("#bothE")).should("not.contain.text", "10");
+        cy.get(cesc("#bothE")).should("not.contain.text", "−10");
 
-        cy.get(cesc("#\\/ignorebad")).should("not.contain.text", "π");
-        cy.get(cesc("#\\/ignorebad")).should("not.contain.text", "e");
-        cy.get(cesc("#\\/ignorebad")).should("contain.text", "10");
-        cy.get(cesc("#\\/ignorebad")).should("contain.text", "−10");
+        cy.get(cesc("#ignoreBad")).should("not.contain.text", "π");
+        cy.get(cesc("#ignoreBad")).should("not.contain.text", "e");
+        cy.get(cesc("#ignoreBad")).should("contain.text", "10");
+        cy.get(cesc("#ignoreBad")).should("contain.text", "−10");
 
-        cy.get(cesc("#\\/none_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/xpi_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/ypi_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/bothpi_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/xe_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/ye_navigationbar") + " > :nth-child(1)").click();
-        cy.get(cesc("#\\/bothe_navigationbar") + " > :nth-child(1)").click();
-        cy.get(
-            cesc("#\\/ignorebad_navigationbar") + " > :nth-child(1)",
-        ).click();
+        // Zoom out
+        cy.get(cesc("#none_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#xpi_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#ypi_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#bothPi_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#xe_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#ye_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#bothE_navigationbar") + " > :nth-child(1)").click();
+        cy.get(cesc("#ignoreBad_navigationbar") + " > :nth-child(1)").click();
 
-        cy.get(cesc("#\\/xmax")).should("have.text", "15.625");
+        cy.get(cesc("#xmax")).should("have.text", "15.625");
 
-        cy.get(cesc("#\\/none")).should("not.contain.text", "π");
-        cy.get(cesc("#\\/none")).should("not.contain.text", "e");
-        cy.get(cesc("#\\/none")).should("contain.text", "10");
-        cy.get(cesc("#\\/none")).should("contain.text", "−10");
+        cy.get(cesc("#none")).should("not.contain.text", "π");
+        cy.get(cesc("#none")).should("not.contain.text", "e");
+        cy.get(cesc("#none")).should("contain.text", "10");
+        cy.get(cesc("#none")).should("contain.text", "−10");
 
-        cy.get(cesc("#\\/xpi")).should("contain.text", "π2π3π4π");
-        cy.get(cesc("#\\/xpi")).should("contain.text", "−π−2π");
-        cy.get(cesc("#\\/xpi")).should("contain.text", "−3π−4π");
-        cy.get(cesc("#\\/xpi")).should("contain.text", "10");
-        cy.get(cesc("#\\/xpi")).should("contain.text", "−10");
+        cy.get(cesc("#xpi")).should("contain.text", "π2π3π4π");
+        cy.get(cesc("#xpi")).should("contain.text", "−π−2π");
+        cy.get(cesc("#xpi")).should("contain.text", "−3π−4π");
+        cy.get(cesc("#xpi")).should("contain.text", "10");
+        cy.get(cesc("#xpi")).should("contain.text", "−10");
 
-        cy.get(cesc("#\\/ypi")).should("contain.text", "π2π3π4π");
-        cy.get(cesc("#\\/ypi")).should("contain.text", "−π−2π");
-        cy.get(cesc("#\\/ypi")).should("contain.text", "−3π−4π");
-        cy.get(cesc("#\\/ypi")).should("contain.text", "10");
-        cy.get(cesc("#\\/ypi")).should("contain.text", "−10");
+        cy.get(cesc("#ypi")).should("contain.text", "π2π3π4π");
+        cy.get(cesc("#ypi")).should("contain.text", "−π−2π");
+        cy.get(cesc("#ypi")).should("contain.text", "−3π−4π");
+        cy.get(cesc("#ypi")).should("contain.text", "10");
+        cy.get(cesc("#ypi")).should("contain.text", "−10");
 
-        cy.get(cesc("#\\/bothpi")).should("contain.text", "π2π3π4π");
-        cy.get(cesc("#\\/bothpi")).should("contain.text", "−π−2π");
-        cy.get(cesc("#\\/bothpi")).should("contain.text", "−3π−4π");
-        cy.get(cesc("#\\/bothpi")).should("not.contain.text", "10");
-        cy.get(cesc("#\\/bothpi")).should("not.contain.text", "−10");
+        cy.get(cesc("#bothPi")).should("contain.text", "π2π3π4π");
+        cy.get(cesc("#bothPi")).should("contain.text", "−π−2π");
+        cy.get(cesc("#bothPi")).should("contain.text", "−3π−4π");
+        cy.get(cesc("#bothPi")).should("not.contain.text", "10");
+        cy.get(cesc("#bothPi")).should("not.contain.text", "−10");
 
-        cy.get(cesc("#\\/xe")).should("contain.text", "e2e3e4e5e");
-        cy.get(cesc("#\\/xe")).should("contain.text", "−e");
-        cy.get(cesc("#\\/xe")).should("contain.text", "−2e−3e");
-        cy.get(cesc("#\\/xe")).should("contain.text", "−4e−5e");
-        cy.get(cesc("#\\/xe")).should("contain.text", "10");
-        cy.get(cesc("#\\/xe")).should("contain.text", "−10");
+        cy.get(cesc("#xe")).should("contain.text", "e2e3e4e5e");
+        cy.get(cesc("#xe")).should("contain.text", "−e");
+        cy.get(cesc("#xe")).should("contain.text", "−2e−3e");
+        cy.get(cesc("#xe")).should("contain.text", "−4e−5e");
+        cy.get(cesc("#xe")).should("contain.text", "10");
+        cy.get(cesc("#xe")).should("contain.text", "−10");
 
-        cy.get(cesc("#\\/ye")).should("contain.text", "e2e3e4e5e");
-        cy.get(cesc("#\\/ye")).should("contain.text", "−e");
-        cy.get(cesc("#\\/ye")).should("contain.text", "−2e−3e");
-        cy.get(cesc("#\\/ye")).should("contain.text", "−4e−5e");
-        cy.get(cesc("#\\/ye")).should("contain.text", "10");
-        cy.get(cesc("#\\/ye")).should("contain.text", "−10");
+        cy.get(cesc("#ye")).should("contain.text", "e2e3e4e5e");
+        cy.get(cesc("#ye")).should("contain.text", "−e");
+        cy.get(cesc("#ye")).should("contain.text", "−2e−3e");
+        cy.get(cesc("#ye")).should("contain.text", "−4e−5e");
+        cy.get(cesc("#ye")).should("contain.text", "10");
+        cy.get(cesc("#ye")).should("contain.text", "−10");
 
-        cy.get(cesc("#\\/bothe")).should("contain.text", "e2e3e4e5e");
-        cy.get(cesc("#\\/bothe")).should("contain.text", "−e−2e");
-        cy.get(cesc("#\\/bothe")).should("contain.text", "−3e−4e−5e");
-        cy.get(cesc("#\\/bothe")).should("not.contain.text", "10");
-        cy.get(cesc("#\\/bothe")).should("not.contain.text", "−10");
+        cy.get(cesc("#bothE")).should("contain.text", "e2e3e4e5e");
+        cy.get(cesc("#bothE")).should("contain.text", "−e−2e");
+        cy.get(cesc("#bothE")).should("contain.text", "−3e−4e−5e");
+        cy.get(cesc("#bothE")).should("not.contain.text", "10");
+        cy.get(cesc("#bothE")).should("not.contain.text", "−10");
 
-        cy.get(cesc("#\\/ignorebad")).should("not.contain.text", "π");
-        cy.get(cesc("#\\/ignorebad")).should("not.contain.text", "e");
-        cy.get(cesc("#\\/ignorebad")).should("contain.text", "10");
-        cy.get(cesc("#\\/ignorebad")).should("contain.text", "−10");
+        cy.get(cesc("#ignoreBad")).should("not.contain.text", "π");
+        cy.get(cesc("#ignoreBad")).should("not.contain.text", "e");
+        cy.get(cesc("#ignoreBad")).should("contain.text", "10");
+        cy.get(cesc("#ignoreBad")).should("contain.text", "−10");
     });
 });

@@ -504,10 +504,6 @@ export function CypressTest() {
                 }}
                 activityId="activityIdFromCypress"
                 render={render}
-                linkSettings={{
-                    viewURL: "/portfolioviewer",
-                    editURL: "/publiceditor",
-                }}
                 darkMode={darkMode}
             />
         );

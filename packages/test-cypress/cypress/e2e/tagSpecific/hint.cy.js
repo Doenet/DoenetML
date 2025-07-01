@@ -16,7 +16,7 @@ describe("Hints Tag Tests", function () {
       </hint>
     
       <hint name="hint2">
-        <title>Hint 2</title>
+        <title name="title1">Hint 2</title>
         <p name="p2">Good day!</p>
       </hint>
 
@@ -26,70 +26,70 @@ describe("Hints Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint",
         );
-        cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint2") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint 2",
         );
 
-        cy.get(cesc("#\\/p1")).should("not.exist");
-        cy.get(cesc("#\\/_title1")).should("have.text", "Hint 2");
-        cy.get(cesc("#\\/p2")).should("not.exist");
+        cy.get(cesc("#p1")).should("not.exist");
+        cy.get(cesc("#title1")).should("have.text", "Hint 2");
+        cy.get(cesc("#p2")).should("not.exist");
 
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").click();
-        cy.get(cesc("#\\/p1")).should("have.text", "Hello");
-        cy.get(cesc("#\\/p2")).should("not.exist");
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").click();
+        cy.get(cesc("#p1")).should("have.text", "Hello");
+        cy.get(cesc("#p2")).should("not.exist");
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint",
         );
-        cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint2") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint 2",
         );
-        cy.get(cesc("#\\/_title1")).should("have.text", "Hint 2");
+        cy.get(cesc("#title1")).should("have.text", "Hint 2");
 
-        cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").click();
-        cy.get(cesc("#\\/p2")).should("have.text", "Good day!");
-        cy.get(cesc("#\\/p1")).should("have.text", "Hello");
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint2") + " [data-test=hint-heading]").click();
+        cy.get(cesc("#p2")).should("have.text", "Good day!");
+        cy.get(cesc("#p1")).should("have.text", "Hello");
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint",
         );
-        cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint2") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint 2",
         );
-        cy.get(cesc("#\\/_title1")).should("have.text", "Hint 2");
+        cy.get(cesc("#title1")).should("have.text", "Hint 2");
 
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").click();
-        cy.get(cesc("#\\/p1")).should("not.exist");
-        cy.get(cesc("#\\/p2")).should("have.text", "Good day!");
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").click();
+        cy.get(cesc("#p1")).should("not.exist");
+        cy.get(cesc("#p2")).should("have.text", "Good day!");
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint",
         );
-        cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint2") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint 2",
         );
-        cy.get(cesc("#\\/_title1")).should("have.text", "Hint 2");
+        cy.get(cesc("#title1")).should("have.text", "Hint 2");
 
-        cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").click();
-        cy.get(cesc("#\\/p1")).should("not.exist");
-        cy.get(cesc("#\\/p2")).should("not.exist");
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint2") + " [data-test=hint-heading]").click();
+        cy.get(cesc("#p1")).should("not.exist");
+        cy.get(cesc("#p2")).should("not.exist");
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint",
         );
-        cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint2") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint 2",
         );
-        cy.get(cesc("#\\/_title1")).should("have.text", "Hint 2");
+        cy.get(cesc("#title1")).should("have.text", "Hint 2");
     });
 
     it("copy and overwrite title", () => {
@@ -97,18 +97,18 @@ describe("Hints Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-      <hint name="hint1" newNamespace>
-        <title>Hint 1</title>
+      <hint name="hint1">
+        <title name="title1">Hint 1</title>
         <p name="p1">Hello</p>
       </hint>
     
-      <hint name="revised" copySource="hint1" newNamespace>
-        <title>Hint 2</title>
+      <hint name="revised" extend="$hint1">
+        <title name="title2">Hint 2</title>
         <p name="p2">Good day!</p>
       </hint>
 
-      <p>Title of original hint: <text copySource="hint1.title" name="title1" /></p>
-      <p>Title of revised hint: <text copySource="revised.title" name="title2" /></p>
+      <p name="p3">Title of original hint: <text extend="$hint1.title" name="title1" /></p>
+      <p name="p4">Title of revised hint: <text extend="$revised.title" name="title2" /></p>
     
     `,
                 },
@@ -116,53 +116,53 @@ describe("Hints Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint 1",
         );
-        cy.get(cesc("#\\/revised") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#revised") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hint 2",
         );
-        cy.get(cesc("#\\/title1")).should("have.text", "Hint 1");
-        cy.get(cesc("#\\/title2")).should("have.text", "Hint 2");
-        cy.get(cesc("#\\/hint1\\/_title1")).should("have.text", "Hint 1");
-        cy.get(cesc("#\\/hint1\\/p1")).should("not.exist");
-        cy.get(cesc("#\\/revised\\/_title1")).should("not.exist");
-        cy.get(cesc("#\\/revised\\/_title2")).should("have.text", "Hint 2");
-        cy.get(cesc("#\\/revised\\/p2")).should("not.exist");
+        cy.get(cesc("#p3.title1")).should("have.text", "Hint 1");
+        cy.get(cesc("#p4.title2")).should("have.text", "Hint 2");
+        cy.get(cesc("#hint1.title1")).should("have.text", "Hint 1");
+        cy.get(cesc("#p1")).should("not.exist");
+        cy.get(cesc("#revised.title1")).should("not.exist");
+        cy.get(cesc("#revised.title2")).should("have.text", "Hint 2");
+        cy.get(cesc("#p2")).should("not.exist");
 
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").click();
-        cy.get(cesc("#\\/hint1\\/p1")).should("have.text", "Hello");
-        cy.get(cesc("#\\/revised\\/p1")).should("not.exist");
-        cy.get(cesc("#\\/revised\\/p2")).should("not.exist");
-        cy.get(cesc("#\\/hint1\\/_title1")).should("have.text", "Hint 1");
-        cy.get(cesc("#\\/revised\\/_title1")).should("not.exist");
-        cy.get(cesc("#\\/revised\\/_title2")).should("have.text", "Hint 2");
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").click();
+        cy.get(cesc("#p1")).should("have.text", "Hello");
+        cy.get(cesc("#revised.p1")).should("not.exist");
+        cy.get(cesc("#p2")).should("not.exist");
+        cy.get(cesc("#hint1.title1")).should("have.text", "Hint 1");
+        cy.get(cesc("#revised.title1")).should("not.exist");
+        cy.get(cesc("#revised.title2")).should("have.text", "Hint 2");
 
-        cy.get(cesc("#\\/revised") + " [data-test=hint-heading]").click();
-        cy.get(cesc("#\\/revised\\/p1")).should("have.text", "Hello");
-        cy.get(cesc("#\\/revised\\/p2")).should("have.text", "Good day!");
-        cy.get(cesc("#\\/hint1\\/p1")).should("have.text", "Hello");
-        cy.get(cesc("#\\/hint1\\/_title1")).should("have.text", "Hint 1");
-        cy.get(cesc("#\\/revised\\/_title1")).should("not.exist");
-        cy.get(cesc("#\\/revised\\/_title2")).should("have.text", "Hint 2");
+        cy.get(cesc("#revised") + " [data-test=hint-heading]").click();
+        cy.get(cesc("#revised.p1")).should("have.text", "Hello");
+        cy.get(cesc("#p2")).should("have.text", "Good day!");
+        cy.get(cesc("#p1")).should("have.text", "Hello");
+        cy.get(cesc("#hint1.title1")).should("have.text", "Hint 1");
+        cy.get(cesc("#revised.title1")).should("not.exist");
+        cy.get(cesc("#revised.title2")).should("have.text", "Hint 2");
 
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").click();
-        cy.get(cesc("#\\/hint1\\/p1")).should("not.exist");
-        cy.get(cesc("#\\/revised\\/p1")).should("have.text", "Hello");
-        cy.get(cesc("#\\/revised\\/p2")).should("have.text", "Good day!");
-        cy.get(cesc("#\\/hint1\\/_title1")).should("have.text", "Hint 1");
-        cy.get(cesc("#\\/revised\\/_title1")).should("not.exist");
-        cy.get(cesc("#\\/revised\\/_title2")).should("have.text", "Hint 2");
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").click();
+        cy.get(cesc("#p1")).should("not.exist");
+        cy.get(cesc("#revised.p1")).should("have.text", "Hello");
+        cy.get(cesc("#p2")).should("have.text", "Good day!");
+        cy.get(cesc("#hint1.title1")).should("have.text", "Hint 1");
+        cy.get(cesc("#revised.title1")).should("not.exist");
+        cy.get(cesc("#revised.title2")).should("have.text", "Hint 2");
 
-        cy.get(cesc("#\\/revised") + " [data-test=hint-heading]").click();
-        cy.get(cesc("#\\/revised\\/p1")).should("not.exist");
-        cy.get(cesc("#\\/revised\\/p2")).should("not.exist");
-        cy.get(cesc("#\\/hint1\\/p1")).should("not.exist");
-        cy.get(cesc("#\\/hint1\\/_title1")).should("have.text", "Hint 1");
-        cy.get(cesc("#\\/revised\\/_title1")).should("not.exist");
-        cy.get(cesc("#\\/revised\\/_title2")).should("have.text", "Hint 2");
+        cy.get(cesc("#revised") + " [data-test=hint-heading]").click();
+        cy.get(cesc("#revised.p1")).should("not.exist");
+        cy.get(cesc("#p2")).should("not.exist");
+        cy.get(cesc("#p1")).should("not.exist");
+        cy.get(cesc("#hint1.title1")).should("have.text", "Hint 1");
+        cy.get(cesc("#revised.title1")).should("not.exist");
+        cy.get(cesc("#revised.title2")).should("have.text", "Hint 2");
     });
 
     it("Can open hint in read only mode", () => {
@@ -177,28 +177,28 @@ describe("Hints Tag Tests", function () {
                     doenetML: `
       <hint name="hint1">
         <title>Hello</title>
-        <p>Content</p>
+        <p name="p1">Content</p>
       </hint>
 
-      <p><textinput name="ti" /></p>
+      <p><textInput name="ti" /></p>
     `,
                 },
                 "*",
             );
         });
 
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").should(
             "contain.text",
             "Hello",
         );
 
-        cy.get(cesc("#\\/_p1")).should("not.exist");
-        cy.get(cesc("#\\/ti_input")).should("be.disabled");
+        cy.get(cesc("#p1")).should("not.exist");
+        cy.get(cesc("#ti_input")).should("be.disabled");
 
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").click();
-        cy.get(cesc("#\\/_p1")).should("have.text", "Content");
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").click();
+        cy.get(cesc("#p1")).should("have.text", "Content");
 
-        cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").click();
-        cy.get(cesc("#\\/_p1")).should("not.exist");
+        cy.get(cesc("#hint1") + " [data-test=hint-heading]").click();
+        cy.get(cesc("#p1")).should("not.exist");
     });
 });

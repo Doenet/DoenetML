@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { cesc, cesc2 } from "@doenet/utils";
+import { cesc } from "@doenet/utils";
 
 describe("Point Tag Tests 2", function () {
     beforeEach(() => {
@@ -20,29 +20,32 @@ describe("Point Tag Tests 2", function () {
   
   <graph>
     <point name="P0" styleNumber="2">(3,4)</point>
-    <map name="mp">
-      <template>
+    <repeatForSequence name="mp" length="20" indexName="i">
         <point fixed>$A
-          <conditionalContent>
+            <conditionalContent>
             <case condition="$i=1">$P0</case>
             <else>$mp[$i-1]</else>
-          </conditionalContent>
+            </conditionalContent>
         </point>
-      </template>
-      <sources indexAlias="i"><sequence length="20" /></sources>
-    </map>
+    </repeatForSequence>
   </graph>
-  <point copySource="P0" name="P0a" />
+  <point extend="$P0" name="P0a" />
     `,
                 },
                 "*",
             );
         });
 
-        cy.get(cesc2("#/P0a")).should("have.text", "(3,4)");
+        cy.get(cesc("#P0a")).should("have.text", "(3,4)");
 
         cy.log("move point using skippable actions to upper right");
         let promises = [];
+
+        let p0Idx;
+        cy.window().then(async (win) => {
+            p0Idx = await win.resolvePath1("P0");
+        });
+
         for (let i = 0; i < 100; i++) {
             cy.window().then(async (win) => {
                 let x = i * 0.1;
@@ -51,7 +54,7 @@ describe("Point Tag Tests 2", function () {
                 promises.push(
                     win.callAction1({
                         actionName: "movePoint",
-                        componentIdx: "/P0",
+                        componentIdx: p0Idx,
                         args: { x, y, skippable: true },
                     }),
                 );
@@ -71,7 +74,7 @@ describe("Point Tag Tests 2", function () {
             });
         });
 
-        cy.get(cesc2("#/P0a")).should("have.text", "(9.9,9.9)");
+        cy.get(cesc("#P0a")).should("have.text", "(9.9,9.9)");
 
         cy.log(
             "move point using skippable and non-skippable actions to upper left",
@@ -85,7 +88,7 @@ describe("Point Tag Tests 2", function () {
                 promises2.push(
                     win.callAction1({
                         actionName: "movePoint",
-                        componentIdx: "/P0",
+                        componentIdx: p0Idx,
                         args: { x, y, skippable: i % 10 !== 5 },
                     }),
                 );
@@ -113,6 +116,6 @@ describe("Point Tag Tests 2", function () {
             });
         });
 
-        cy.get(cesc2("#/P0a")).should("have.text", "(−9.9,9.9)");
+        cy.get(cesc("#P0a")).should("have.text", "(−9.9,9.9)");
     });
 });

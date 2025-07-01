@@ -161,9 +161,7 @@ export function getSchema() {
         let children: string[] = [];
         let acceptsStringChildren = false;
 
-        // All components have the name and copySource attributes,
-        // even though they aren't in the attributes object
-        let attributes = [{ name: "name" }, { name: "copySource" }];
+        let attributes = [];
 
         let cClass = componentClasses[type];
 

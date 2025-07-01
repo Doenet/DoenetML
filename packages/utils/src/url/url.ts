@@ -10,10 +10,3 @@ export function cesc(s: string): string {
     }
     return s;
 }
-
-// In cypress tests, we need to escape the escaped component names
-// for it to find them in the dom.
-// Use it as cy.get(cesc2('#/component_name))
-export function cesc2(s: string): string {
-    return cesc(cesc(s));
-}
