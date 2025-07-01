@@ -299,8 +299,15 @@ export function EditorViewer({
         const { updateSyntaxFromV06toV07 } = await import(
             "@doenet/parser/v06-to-v07"
         );
-        const upgraded = toXml(await updateSyntaxFromV06toV07(source));
+        const update = await updateSyntaxFromV06toV07(source);
+        const upgraded = toXml(update.dast);
         onEditorChange(upgraded);
+        if (update.vfile.messages.length > 0) {
+            console.warn(
+                "There were warnings during syntax update:",
+                update.vfile.messages,
+            );
+        }
         console.log("syntax updated to v0.7");
     }, []);
 
