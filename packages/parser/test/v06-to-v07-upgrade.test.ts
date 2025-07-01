@@ -238,6 +238,22 @@ describe("v06 to v07 update", () => {
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
+    it("can convert function macros", async () => {
+        source = `$$f(2)`;
+        correctSource = `$$f(2)`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+
+        source = `$$(x/f)(2)`;
+        correctSource = `$$x.f(2)`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it("function macros arguments get upgraded", async () => {
+        source = `$$f($(x/y))`;
+        correctSource = `$$f($x.y)`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
     it("can reparse attributes", async () => {
         expect(toXml(reparseAttribute("t"))).toEqual("t");
         expect(toXml(reparseAttribute("$t"))).toEqual("$t");

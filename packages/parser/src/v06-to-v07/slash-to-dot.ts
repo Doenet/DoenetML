@@ -1,5 +1,6 @@
 import { Plugin } from "unified";
 import {
+    DastElementContent,
     DastFunctionMacro,
     DastFunctionMacroV6,
     DastMacro,
@@ -137,9 +138,19 @@ function mergeAttributes(macro: DastMacroV6): DastMacroV6["attributes"] {
  * Convert a v0.6 function macro to a v0.7 function macro.
  */
 function v06FunctionMacroToV07FunctionMacro(
-    macro: DastFunctionMacroV6,
+    funcMacro: DastFunctionMacroV6,
 ): DastFunctionMacro {
-    throw new Error("todo: v06FunctionMacroToV07FunctionMacro");
+    // A function macro is a macro with an input.
+    const macro = v06MacroToV07Macro(funcMacro.macro);
+
+    return {
+        type: "function",
+        path: macro.path,
+        // This cast may be incorrect, but we will leave it to the other processors to upgrade the
+        // the syntax of function arguments.
+        input: funcMacro.input as DastElementContent[][] | null,
+        position: funcMacro.position,
+    };
 }
 
 function v06IndexToV07Index(
