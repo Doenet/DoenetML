@@ -9,6 +9,9 @@ import {
 } from "./extensions/lsp/plugin";
 import { colorTheme, readOnlyColorTheme } from "./extensions/theme";
 
+/**
+ * A CodeMirror instance set up with a language server to provide completions/etc. for DoenetML.
+ */
 export function CodeMirror({
     value,
     onChange,
@@ -16,6 +19,7 @@ export function CodeMirror({
     readOnly,
     onBlur,
     onFocus,
+    languageServerRef,
 }: {
     value: string;
     onChange?: (str: string) => void;
@@ -23,6 +27,14 @@ export function CodeMirror({
     readOnly?: boolean;
     onBlur?: () => void;
     onFocus?: () => void;
+    /**
+     * Optional ref to store the a reference to the language server. This allows
+     * controlling components to send messages to the language server.
+     */
+    languageServerRef?: React.RefObject<{
+        lsp: typeof uniqueLanguageServerInstance;
+        documentUri: string;
+    } | null>;
 }) {
     // Only one language server runs for all documents, so we specify a document id to keep different instances different.
     const [documentId, _] = React.useState(() =>
@@ -41,15 +53,28 @@ export function CodeMirror({
         };
     }, [documentId, readOnly]);
 
-    const extensions: Extension[] = [
-        syntaxHighlightingExtension,
-        readOnly ? readOnlyColorTheme : colorTheme,
-        EditorView.lineWrapping,
-    ];
-    if (!readOnly) {
-        extensions.push(tabExtension);
-        extensions.push(lspPlugin(documentId));
-    }
+    React.useEffect(() => {
+        if (!languageServerRef) {
+            return;
+        }
+        languageServerRef.current = {
+            lsp: uniqueLanguageServerInstance,
+            documentUri: `file:///${documentId}.doenet`,
+        };
+    }, [languageServerRef]);
+
+    const extensions: Extension[] = React.useMemo(() => {
+        const extensions: Extension[] = [
+            syntaxHighlightingExtension,
+            readOnly ? readOnlyColorTheme : colorTheme,
+            EditorView.lineWrapping,
+        ];
+        if (!readOnly) {
+            extensions.push(tabExtension);
+            extensions.push(lspPlugin(documentId));
+        }
+        return extensions;
+    }, [documentId, readOnly]);
 
     return (
         <ReactCodeMirror

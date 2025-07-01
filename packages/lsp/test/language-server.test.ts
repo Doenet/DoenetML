@@ -5,6 +5,7 @@ import "@vitest/web-worker";
 import LSPWorker from "../src/index?worker";
 import util from "util";
 import { initWorker } from "./utils/init-message-connection";
+import { Diagnostic } from "vscode-languageserver-protocol";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -14,7 +15,7 @@ console.log = (...args) => {
 describe("Doenet Language Server", async () => {
     it("can initialize language server as a webworker", async () => {
         const worker: Worker = new LSPWorker();
-        const lspConn = await initWorker(worker);
+        const lspConn = (await initWorker(worker)).lspConn;
         await lspConn.textDocumentOpened({
             textDocument: {
                 uri: "file:///test.doenet",
@@ -52,7 +53,7 @@ describe("Doenet Language Server", async () => {
     });
     it("can get completions", async () => {
         const worker: Worker = new LSPWorker();
-        const lspConn = await initWorker(worker);
+        const lspConn = (await initWorker(worker)).lspConn;
         await lspConn.textDocumentOpened({
             textDocument: {
                 uri: "file:///test.doenet",
@@ -81,7 +82,7 @@ describe("Doenet Language Server", async () => {
     });
     it("can get completions after update", async () => {
         const worker: Worker = new LSPWorker();
-        const lspConn = await initWorker(worker);
+        const lspConn = (await initWorker(worker)).lspConn;
         await lspConn.textDocumentOpened({
             textDocument: {
                 uri: "file:///test.doenet",
@@ -119,5 +120,71 @@ describe("Doenet Language Server", async () => {
             },
           ]
         `);
+    });
+    it("can supply external diagnostics", async () => {
+        const worker: Worker = new LSPWorker();
+        const { lspConn, workerConn } = await initWorker(worker);
+        await lspConn.textDocumentOpened({
+            textDocument: {
+                uri: "file:///test2.doenet",
+                languageId: "doenet",
+                version: 1,
+                text: "<document>\n\n</document>\n",
+            },
+        });
+
+        let numLoops = 0;
+        let diagsPromise = new Promise((resolve) => {
+            lspConn.onDiagnostics((params) => {
+                resolve(params);
+            });
+        });
+        let diags: { uri: string; diagnostics: Diagnostic[] } | undefined =
+            undefined;
+
+        const diagnostic: Diagnostic = {
+            message: "This is an external diagnostic",
+            range: {
+                start: { character: 1, line: 1 },
+                end: { character: 2, line: 2 },
+            },
+            severity: 1,
+        };
+        workerConn.sendRequest("doenet/setAdditionalDiagnostics", {
+            uri: "file:///test2.doenet",
+            additionalDiagnostics: [diagnostic],
+        });
+        // Diagnostics may not be sent back immediately; we loop until we get them
+        while (numLoops < 10 && (diags = (await diagsPromise) as any)) {
+            numLoops++;
+            if (diags.diagnostics.length > 0) {
+                break;
+            }
+            diagsPromise = new Promise((resolve) => {
+                lspConn.onDiagnostics((params) => {
+                    resolve(params);
+                });
+            });
+        }
+
+        expect(diags).toMatchObject({
+            diagnostics: [
+                {
+                    message: "This is an external diagnostic",
+                    range: {
+                        end: {
+                            character: 2,
+                            line: 2,
+                        },
+                        start: {
+                            character: 1,
+                            line: 1,
+                        },
+                    },
+                    severity: 1,
+                },
+            ],
+            uri: "file:///test2.doenet",
+        });
     });
 });

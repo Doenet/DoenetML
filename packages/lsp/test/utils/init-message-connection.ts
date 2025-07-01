@@ -97,5 +97,5 @@ export async function initWorker(worker: Worker) {
     });
 
     await lspConn.initialized();
-    return lspConn;
+    return { lspConn, workerConn };
 }
