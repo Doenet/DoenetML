@@ -71,8 +71,10 @@ describe("Solution tag tests", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[await resolvePathToNodeIdx("title")]).be
-            .undefined;
+        expect(
+            stateVariables[await resolvePathToNodeIdx("title")].stateValues
+                .text,
+        ).eq("Hello");
         expect(stateVariables[await resolvePathToNodeIdx("p")]).be.undefined;
         expect(
             stateVariables[await resolvePathToNodeIdx("ti")].stateValues

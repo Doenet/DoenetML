@@ -13,7 +13,7 @@ import { isDastElement } from "../types-util";
 import { repeatSugar } from "./component-sugar/repeat";
 import { conditionalContentSugar } from "./component-sugar/conditionalContent";
 import { selectSugar } from "./component-sugar/select";
-import { solutionSugar } from "./component-sugar/solution";
+import { postponeRenderSugar } from "./component-sugar/postponeRender";
 import { pluginEnforceValidNames } from "./enforce-valid-names";
 
 /**
@@ -189,7 +189,24 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                     break;
                 case "solution":
                 case "givenAnswer":
-                    solutionSugar(node);
+                    postponeRenderSugar(node);
+                    break;
+                case "aside":
+                case "proof":
+                    // For `<aside>` or `<proof>`, add postpone render sugar
+                    // only if the `postponeRendering` attribute was specified
+                    if (node.attributes.postponeRendering) {
+                        const children =
+                            node.attributes.postponeRendering.children;
+                        if (
+                            children.length === 0 ||
+                            (children.length === 1 &&
+                                children[0].type === "text" &&
+                                children[0].value.toLowerCase() === "true")
+                        ) {
+                            postponeRenderSugar(node);
+                        }
+                    }
                     break;
             }
         });

@@ -298,13 +298,35 @@ export default React.memo(function Section(props) {
     }
 
     if (SVs.asList) {
-        children = (
-            <ol>
-                {children.map((child) => (
+        // If `asList` is specified, then render all children,
+        // except for possibly a beginning introduction or ending conclusion,
+        // as a list.
+
+        const numChildren = children.length;
+        let firstInd = SVs.startsWithIntroduction ? 1 : 0;
+        let lastInd = SVs.endsWithConclusion
+            ? numChildren - 2
+            : numChildren - 1;
+
+        const newChildren = [];
+
+        if (SVs.startsWithIntroduction) {
+            newChildren.push(children[0]);
+        }
+
+        newChildren.push(
+            <ol key="list">
+                {children.slice(firstInd, lastInd + 1).map((child) => (
                     <li key={child.key}>{child}</li>
                 ))}
-            </ol>
+            </ol>,
         );
+
+        if (SVs.endsWithConclusion) {
+            newChildren.push(children[numChildren - 1]);
+        }
+
+        children = newChildren;
     } else if (SVs._compositeReplacementActiveRange) {
         children = addCommasForCompositeRanges({
             children,

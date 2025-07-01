@@ -226,6 +226,29 @@ export class Theorem extends Example {
     static componentType = "theorem";
 }
 
+export class Part extends SectioningComponentNumberWithSiblings {
+    static componentType = "part";
+    static rendererType = "section";
+
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        stateVariableDefinitions.forceList.definition = () => ({
+            setValue: { forceList: true },
+        });
+
+        stateVariableDefinitions.containerTag.definition = () => ({
+            setValue: { containerTag: "div" },
+        });
+
+        return stateVariableDefinitions;
+    }
+}
+
+export class Task extends Part {
+    static componentType = "task";
+}
+
 export class Proof extends UnnumberedSectioningComponent {
     static componentType = "proof";
     static rendererType = "section";
