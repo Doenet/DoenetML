@@ -1172,6 +1172,7 @@ export class ExtractMath extends MathBaseOperatorOneInput {
                 "function",
                 "functionargument",
                 "numoperands",
+                "recursiveoperands",
             ],
         };
         attributes.operandNumber = {
@@ -1351,10 +1352,39 @@ export class ExtractMath extends MathBaseOperatorOneInput {
                             },
                         },
                     };
+                } else if (dependencyValues.type === "recursiveoperands") {
+                    return {
+                        setValue: {
+                            mathOperator: function (value) {
+                                const getAllOperands = (tree) => {
+                                    if (!Array.isArray(tree)) {
+                                        return [tree];
+                                    } else {
+                                        let operator = tree[0];
+                                        if (operator === "apply") {
+                                            return [tree];
+                                        } else {
+                                            return tree
+                                                .slice(1)
+                                                .flatMap(getAllOperands);
+                                        }
+                                    }
+                                };
+
+                                const operands = getAllOperands(value.tree);
+
+                                if (operands.length === 1) {
+                                    return me.fromAst(operands[0]);
+                                } else {
+                                    return me.fromAst(["list", ...operands]);
+                                }
+                            },
+                        },
+                    };
                 } else {
                     return {
                         setValue: {
-                            mathOperator: (_) => me.fromAst("_"),
+                            mathOperator: () => me.fromAst("\uff3f"),
                         },
                     };
                 }
