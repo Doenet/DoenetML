@@ -14,7 +14,7 @@ import { isDastElement } from "../types-util";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { toXml } from "../dast-to-xml/dast-util-to-xml";
 import { reparseAttribute } from "./reparse-attribute";
-import { Path } from "../macros/types";
+import { FunctionMacro, Path } from "../macros/types";
 
 /**
  * Upgrade references with attribute syntax.

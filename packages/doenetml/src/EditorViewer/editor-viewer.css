@@ -263,3 +263,7 @@
         color: white;
     }
 }
+
+.update-syntax-menu {
+    z-index: 100;
+}

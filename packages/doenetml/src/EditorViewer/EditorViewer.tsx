@@ -9,7 +9,7 @@ import { Button, ResizablePanelPair, UiButton } from "@doenet/ui-components";
 import { RxUpdate } from "react-icons/rx";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
-import { CodeMirror } from "@doenet/codemirror";
+import { CodeMirror, LSP } from "@doenet/codemirror";
 import { DocViewer } from "../Viewer/DocViewer";
 import {
     ErrorWarningResponseTabContents,
@@ -33,6 +33,8 @@ import {
     SelectProvider,
     useTabStore,
 } from "@ariakit/react";
+import { vfileMessageToLSPDiagnostic } from "./vfile-message-to-diagnostic";
+import { DiagnosticSeverity } from "vscode-languageserver-protocol";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
@@ -96,6 +98,7 @@ export function EditorViewer({
         showResponses = false;
     }
 
+    const lspRef = useRef<{ lsp: LSP; documentUri: string }>(null);
     const [id, setId] = useState(specifiedId ?? "editor-" + nanoid(5));
     const [activityId, setActivityId] = useState(specifiedActivityId ?? id);
 
@@ -299,9 +302,27 @@ export function EditorViewer({
         const { updateSyntaxFromV06toV07 } = await import(
             "@doenet/parser/v06-to-v07"
         );
-        const upgraded = toXml(await updateSyntaxFromV06toV07(source));
+        const update = await updateSyntaxFromV06toV07(source);
+        const upgraded = toXml(update.dast);
         onEditorChange(upgraded);
-        console.log("syntax updated to v0.7");
+        if (update.vfile.messages.length > 0) {
+            console.warn(
+                "There were warnings during syntax update:",
+                update.vfile.messages,
+            );
+            if (lspRef.current) {
+                lspRef.current.lsp.sendAdditionalDiagnostics(
+                    lspRef.current.documentUri,
+                    update.vfile.messages.map((msg) => {
+                        return vfileMessageToLSPDiagnostic(
+                            msg,
+                            DiagnosticSeverity.Error,
+                        );
+                    }),
+                );
+            }
+        }
+        console.log("Syntax updated to v0.7");
     }, []);
 
     const tabStore = useTabStore();
@@ -321,6 +342,7 @@ export function EditorViewer({
                 updateValueTimer.current = null;
             }}
             onChange={onEditorChange}
+            languageServerRef={lspRef}
         />
     );
 
@@ -423,7 +445,7 @@ export function EditorViewer({
                             </div>
                         }
                     ></MenuButton>
-                    <Menu>
+                    <Menu className="update-syntax-menu">
                         <MenuItem
                             render={
                                 <UiButton>
