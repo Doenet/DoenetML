@@ -4,17 +4,17 @@ import "./AnswerResponseMenu.css";
 
 export function AnswerResponseMenu({
     answerId,
+    answerComponentIdx,
     activityId,
     docId,
     numResponses = 0,
 }: {
-    answerId: number;
+    answerId: string;
+    answerComponentIdx: number;
     activityId: string;
     docId: string;
     numResponses?: number;
 }) {
-    // XXX: we need to send in the actual answer name, as displaying the component index is not useful for instructors
-    const modifiedId = answerId;
     return (
         <MenuProvider>
             <MenuButton className="doenet-button action-button answer-response-menu-trigger">
@@ -26,6 +26,7 @@ export function AnswerResponseMenu({
                     onClick={() => {
                         window.postMessage({
                             subject: "requestAnswerResponses",
+                            answerComponentIdx,
                             answerId,
                             activityId,
                             docId,
@@ -33,7 +34,7 @@ export function AnswerResponseMenu({
                     }}
                 >
                     Show {numResponses} response
-                    {numResponses === 1 ? "" : "s"} to {modifiedId}
+                    {numResponses === 1 ? "" : "s"} to {answerId}
                 </MenuItem>
             </Menu>
         </MenuProvider>

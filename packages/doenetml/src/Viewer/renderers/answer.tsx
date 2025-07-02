@@ -90,7 +90,8 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
     if (showAnswerResponseMenu) {
         answerResponseMenu = (
             <AnswerResponseMenu
-                answerId={componentIdx}
+                answerId={id}
+                answerComponentIdx={componentIdx}
                 docId={docId}
                 activityId={activityId}
                 numResponses={answerResponseCounts?.[componentIdx]}
