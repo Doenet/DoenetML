@@ -6943,4 +6943,24 @@ describe("Point tag tests", async () => {
         await test_items("light");
         await test_items("dark");
     });
+
+    it("labelPosition handles extra spaces", async () => {
+        const doenetML = `
+
+        <graph>
+          <point name="P" labelPosition="  upperLeft   " />
+        </graph>
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                .labelPosition,
+        ).eq(`upperleft`);
+    });
 });

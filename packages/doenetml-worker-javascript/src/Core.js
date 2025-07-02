@@ -13357,7 +13357,8 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
         value = value.toLowerCase();
     }
 
-    if (attributeSpecification.trim) {
+    // `validValues` implies `trim` so that extra spaces don't break the matches
+    if (attributeSpecification.trim || attributeSpecification.validValues) {
         value = value.trim();
     }
 
