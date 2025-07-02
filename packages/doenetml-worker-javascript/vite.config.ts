@@ -16,6 +16,10 @@ export default defineConfig({
             },
             formats: ["es"],
         },
+        rollupOptions: {
+            // `math-expressions` is also pulled in by `doenetml-worker`; we don't need two copies.
+            external: ["math-expressions"],
+        },
     },
     test: {
         testTimeout: 180000,
