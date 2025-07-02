@@ -10291,6 +10291,7 @@ describe("Math operator tests", async () => {
       <p>Second operand: <extractMath type="Operand" name="operand2" operandNumber="2">$expr</extractMath></p>
       <p>Third operand: <extractMath type="Operand" name="operand3" operandNumber="3">$expr</extractMath></p>
       <p>No fourth operand: <extractMath type="Operand" name="blank1" operandNumber="4">$expr</extractMath></p>
+      <p>Recursive operands: <extractMath type="recursiveOperands" name="recursive">$expr</extractMath></p>
       <p>Function from first operand: <extractMath type="function" name="f">$operand1</extractMath></p>
       <p>Function from second operand: <extractMath type="function" name="g">$operand2</extractMath></p>
       <p>No function from third operand: <extractMath type="function" name="blank2">$operand3</extractMath></p>
@@ -10340,6 +10341,16 @@ describe("Math operator tests", async () => {
             stateVariables[await resolvePathToNodeIdx("blank1")].stateValues
                 .value.tree,
         ).eqls("＿");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("recursive")].stateValues
+                .value.tree,
+        ).eqls([
+            "list",
+            ["apply", "f", "x"],
+            ["apply", "g", ["tuple", "y", "z"]],
+            "h",
+            "q",
+        ]);
         expect(
             stateVariables[await resolvePathToNodeIdx("f")].stateValues.value
                 .tree,
@@ -10501,6 +10512,41 @@ describe("Math operator tests", async () => {
             stateVariables[await resolvePathToNodeIdx("argumentN")].stateValues
                 .value.tree,
         ).eqls("＿");
+    });
+
+    it("extract all operands of math expression", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <extractMath type="recursiveOperands" name="expr1">a+b/c</extractMath>
+    <extractMath type="recursiveOperands" name="expr2">f(x)</extractMath>
+    <extractMath type="recursiveOperands" name="expr3">f(x)+a (g(y+z) + bc)/(d+e)</extractMath>
+
+      `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr1")].stateValues
+                .value.tree,
+        ).eqls(["list", "a", "b", "c"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr2")].stateValues
+                .value.tree,
+        ).eqls(["apply", "f", "x"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("expr3")].stateValues
+                .value.tree,
+        ).eqls([
+            "list",
+            ["apply", "f", "x"],
+            "a",
+            ["apply", "g", ["+", "y", "z"]],
+            "b",
+            "c",
+            "d",
+            "e",
+        ]);
     });
 
     it("warning with operand", async () => {
