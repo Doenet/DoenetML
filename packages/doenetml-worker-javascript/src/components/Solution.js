@@ -138,8 +138,8 @@ export class Solution extends BlockComponent {
                     dependencyValues.displayMode === "displayed" ||
                     dependencyValues.displayMode === "none"
                 ) {
-                    // will always be open if displaymode is displayed
-                    // or always closed if displaymode is none
+                    // will always be open if displayMode is displayed
+                    // or always closed if displayMode is none
                     return { success: false };
                 }
 
@@ -186,8 +186,8 @@ export class Solution extends BlockComponent {
                     dependencyValues.displayMode === "displayed" ||
                     dependencyValues.displayMode === "none"
                 ) {
-                    // will always be rendered if displaymode is displayed
-                    // or always closed if displaymode is none
+                    // will always be rendered if displayMode is displayed
+                    // or always closed if displayMode is none
                     return { success: false };
                 }
 

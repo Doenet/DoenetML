@@ -36,7 +36,7 @@ import BooleanComponent from "./components/Boolean";
 import BooleanList from "./components/BooleanList";
 import MathComponent from "./components/Math";
 import Collect from "./components/Collect";
-import Ref from "./components/Ref";
+import Link from "./components/Link";
 import Point from "./components/Point";
 import Coords from "./components/Coords";
 import Line from "./components/Line";
@@ -233,7 +233,7 @@ const componentTypeArray = [
     NumberList,
     Copy,
     Collect,
-    Ref,
+    Link,
     Point,
     Coords,
     Line,

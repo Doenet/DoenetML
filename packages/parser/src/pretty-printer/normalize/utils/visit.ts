@@ -222,6 +222,31 @@ export function visit<Opts extends VisitOptions>(
                     index = result[1] - 1;
                 }
             }
+        } else if (node.type === "function" && node.input) {
+            // Function macros have an array of inputs that should be walked like regular nodes.
+            for (
+                let index = 0;
+                index > -1 && index < node.input.length;
+                index++
+            ) {
+                const item = node.input[index];
+                const result = walk(item, {
+                    key,
+                    index,
+                    parents,
+                    context,
+                    // `node.input` is an array of arrays; the containing array should be, for example, `node.input[0]` so we set it to `undefined` here.
+                    containingArray: undefined,
+                });
+                if (result[0] === EXIT) {
+                    return result;
+                }
+                if (typeof result[1] === "number") {
+                    // The for loop will increment i every pass. However,
+                    // if an index was returned, that's where we want to start next time.
+                    index = result[1] - 1;
+                }
+            }
         } else {
             // Recursively walk all child nodes
             const key = "children";

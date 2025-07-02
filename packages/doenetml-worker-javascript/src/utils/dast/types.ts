@@ -144,6 +144,7 @@ export type ReferencesAttribute = {
     type: "references";
     name: string;
     references: SerializedComponent[];
+    stringChildren: string[];
     position?: Position;
     ignoreFixed?: boolean;
 };

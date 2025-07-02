@@ -33,16 +33,34 @@ export function addValidationSupport(
         documents.all().forEach(validateTextDocument);
     });
 
+    connection.onRequest(
+        "doenet/setAdditionalDiagnostics",
+        (params: { uri: string; additionalDiagnostics: Diagnostic[] }) => {
+            const { uri, additionalDiagnostics } = params;
+            const info = documentInfo.get(uri);
+            if (!info) {
+                return;
+            }
+            info.additionalDiagnostics = additionalDiagnostics;
+            connection.sendDiagnostics({
+                uri: uri,
+                diagnostics: info.additionalDiagnostics,
+            });
+        },
+    );
+
     // The content of a text document has changed. This event is emitted
     // when the text document first opened or when its content has changed.
     documents.onDidChangeContent((change) => {
         let info = documentInfo.get(change.document.uri);
         if (!info) {
             const autoCompleter = new AutoCompleter();
-            info = { autoCompleter };
+            info = { autoCompleter, additionalDiagnostics: [] };
             documentInfo.set(change.document.uri, info);
         }
         info.autoCompleter.setSource(change.document.getText());
+        // Additional diagnostics may no longer be relevant after the contents of the file changes
+        info.additionalDiagnostics.length = 0;
         validateTextDocument(change.document);
     });
 
@@ -76,6 +94,8 @@ export function addValidationSupport(
 
         const schemaErrors = info.autoCompleter.getSchemaViolations();
         diagnostics.push(...schemaErrors);
+
+        diagnostics.push(...info.additionalDiagnostics);
 
         // Send the computed diagnostics to VSCode.
         connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
