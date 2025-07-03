@@ -14,6 +14,14 @@
         ".": {
             "import": "./dist/index.js"
         },
+        "./pretty-printer": {
+            "import": "./dist/pretty-printer.js",
+            "types": "./dist/pretty-printer/index.d.ts"
+        },
+        "./v06": {
+            "import": "./dist/index-v06.js",
+            "types": "./dist/index-v06.d.ts"
+        },
         "./v06-to-v07": {
             "import": "./dist/v06-to-v07.js",
             "types": "./dist/v06-to-v07/index.d.ts"

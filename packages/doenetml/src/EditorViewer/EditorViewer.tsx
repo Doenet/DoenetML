@@ -17,7 +17,8 @@ import {
 } from "./ErrorWarningResponseTabs";
 import { ErrorRecord, nanInfinityReviver, WarningRecord } from "@doenet/utils";
 import { nanoid } from "nanoid";
-import { prettyPrint, toXml } from "@doenet/parser";
+import { toXml } from "@doenet/parser";
+import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { formatResponse } from "../utils/responses";
 import { ResizableCollapsiblePanelPair } from "@doenet/ui-components";
 import { BsArrowBarUp, BsExclamationTriangleFill } from "react-icons/bs";

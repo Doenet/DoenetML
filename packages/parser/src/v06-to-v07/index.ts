@@ -17,7 +17,7 @@ import {
 } from "./normalize-capitalization";
 import { upgradeCollectElement } from "./upgrade-collect-element";
 import { upgradePathSlashesToDots } from "./slash-to-dot";
-import { lezerToDastV6 } from "..";
+import { lezerToDastV6 } from "../lezer-to-dast/lezer-to-dast-v6";
 import { upgradeCopySyntax } from "./upgrade-copy-syntax";
 import { upgradeAttributeSyntax } from "./upgrade-attribute-syntax";
 import { VFile } from "vfile";
