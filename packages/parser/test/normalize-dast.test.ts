@@ -230,9 +230,12 @@ describe("Normalize dast", async () => {
 
         source = "<_foo />";
         dast = lezerToDast(source);
-        expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            `<document><_error message='Invalid component name "_foo". Names must start with a letter.' /></document>`,
-        );
+        expect(extractDastErrors(normalizeDocumentDast(dast))).toMatchObject([
+            {
+                message: `Invalid component name "_foo". Names must start with a letter.`,
+                type: "error",
+            },
+        ]);
 
         source = "<p name='_foo' />";
         dast = lezerToDast(source);
