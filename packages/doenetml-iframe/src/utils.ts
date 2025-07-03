@@ -47,7 +47,7 @@ export function createHtmlForDoenetViewer(
         <script type="module" src="${standaloneUrl}"></script>
         <link rel="stylesheet" href="${cssUrl}">
     </head>
-    <body>
+    <body style="margin:0; background-color:white">
         <script type="module">
             const viewerId = "${id}";
             const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
@@ -96,7 +96,7 @@ export function createHtmlForDoenetEditor(
         <script type="module" src="${standaloneUrl}"></script>
         <link rel="stylesheet" href="${cssUrl}">
     </head>
-    <body>
+    <body style="margin:0"; background-color: white>
         <script type="module">
             const editorId = "${id}";
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};
