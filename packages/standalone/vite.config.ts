@@ -31,6 +31,7 @@ export default defineConfig({
         lib: {
             entry: { "doenet-standalone": "./src/index.tsx" },
             fileName: "doenet-standalone",
+            cssFileName: "style",
             formats: ["es"],
         },
         rollupOptions: {
