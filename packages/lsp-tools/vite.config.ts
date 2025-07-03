@@ -21,7 +21,7 @@ export default defineConfig({
             formats: ["es"],
         },
         rollupOptions: {
-            external: ["@doenet/parser", "@doenet/static-assets"],
+            external: ["@doenet/parser", /@doenet\/static-assets/],
         },
     },
 });

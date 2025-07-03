@@ -1,7 +1,7 @@
 // @ts-ignore
 import me from "math-expressions";
 
-import { mathAssets } from "@doenet/static-assets";
+import { mathAssets } from "@doenet/static-assets/math-assets";
 
 /*************************************************************
  * These functions were copied over from DoenetML version 0.6.
