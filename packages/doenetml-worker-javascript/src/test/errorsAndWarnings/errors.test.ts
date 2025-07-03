@@ -308,8 +308,7 @@ a />
         expect(errorWarnings.errors[6].position.end.column).eq(7);
     });
 
-    // TODO: re-enable once we again handle invalid names. See issue #482.
-    it.skip("Naming errors", async () => {
+    it("Naming errors", async () => {
         let { core } = await createTestCore({
             doenetML: `
 <p name="_p" />
@@ -329,32 +328,31 @@ a />
         expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain(
-            "Invalid component name: _p",
+            "Invalid attribute name='_p'",
         );
         expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.start.column).eq(1);
+        expect(errorWarnings.errors[0].position.start.column).eq(4);
         expect(errorWarnings.errors[0].position.end.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.column).eq(15);
+        expect(errorWarnings.errors[0].position.end.column).eq(13);
 
         expect(errorWarnings.errors[1].message).contain(
-            "Invalid component name: p@",
+            "Invalid attribute name='p@'",
         );
         expect(errorWarnings.errors[1].position.start.line).eq(3);
-        expect(errorWarnings.errors[1].position.start.column).eq(5);
+        expect(errorWarnings.errors[1].position.start.column).eq(8);
         expect(errorWarnings.errors[1].position.end.line).eq(3);
-        expect(errorWarnings.errors[1].position.end.column).eq(19);
+        expect(errorWarnings.errors[1].position.end.column).eq(17);
 
         expect(errorWarnings.errors[2].message).contain(
-            "Cannot have a blank name",
+            "Invalid attribute name=''",
         );
         expect(errorWarnings.errors[2].position.start.line).eq(8);
-        expect(errorWarnings.errors[2].position.start.column).eq(1);
+        expect(errorWarnings.errors[2].position.start.column).eq(4);
         expect(errorWarnings.errors[2].position.end.line).eq(8);
-        expect(errorWarnings.errors[2].position.end.column).eq(22);
+        expect(errorWarnings.errors[2].position.end.column).eq(8);
     });
 
-    // TODO: re-enable once we again handle including abstract component types in DoenetML. See issue #485.
-    it.skip("Abstract component give invalid component type", async () => {
+    it("Abstract component give invalid component type", async () => {
         let { core } = await createTestCore({
             doenetML: `
 <_base />
@@ -368,7 +366,7 @@ a />
         expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain(
-            "Invalid component type: <_base>",
+            'Invalid component name "_base"',
         );
         expect(errorWarnings.errors[0].position.start.line).eq(2);
         expect(errorWarnings.errors[0].position.start.column).eq(1);
@@ -376,7 +374,7 @@ a />
         expect(errorWarnings.errors[0].position.end.column).eq(10);
 
         expect(errorWarnings.errors[1].message).contain(
-            "Invalid component type: <_inline>",
+            'Invalid component name "_inline"',
         );
         expect(errorWarnings.errors[1].position.start.line).eq(3);
         expect(errorWarnings.errors[1].position.start.column).eq(1);
