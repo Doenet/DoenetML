@@ -35,7 +35,7 @@ import {
     useTabStore,
 } from "@ariakit/react";
 import { vfileMessageToLSPDiagnostic } from "./vfile-message-to-diagnostic";
-import { DiagnosticSeverity } from "vscode-languageserver-protocol";
+import { DiagnosticSeverity } from "vscode-languageserver-protocol/browser";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
