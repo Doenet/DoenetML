@@ -10,3 +10,4 @@ export { lezerToDastV6 } from "./lezer-to-dast";
 export { prettyPrint } from "./pretty-printer";
 export { filterPositionInfo } from "./dast-to-xml/utils";
 export { normalizeDocumentDast } from "./dast-normalize/normalize-dast";
+export { expandExternalExtend } from "./expand-external-extend";
