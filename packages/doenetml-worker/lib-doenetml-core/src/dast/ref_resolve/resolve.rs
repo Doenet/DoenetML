@@ -4,7 +4,7 @@ use std::iter;
 use tsify_next::Tsify;
 
 use super::ResolutionError;
-use crate::dast::flat_dast::{FlatNode, FlatPathPart, Index, UntaggedContent};
+use crate::dast::flat_dast::{FlatElement, FlatNode, FlatPathPart, Index, UntaggedContent};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -29,23 +29,53 @@ pub(super) enum Ref {
     Ambiguous(Vec<Index>),
 }
 
+/// The `Visibility` of a node determines how the `name_map` is constructed.
+/// The behavior of each variant is:
+/// - `Visible`: the default behavior where the visibility of the node and its children are not restricted.
+///   If all nodes were `Visible`, then the name of each node could be resolved from any of its ancestors.
+/// - `Invisible`: the node and its descendants cannot be resolved by name from any of the node's ancestors.
+/// - `InvisibleToGrandparents`: the node and its descendants can be resolved by name from the node's immediate parent
+///   but cannot be resolved by name from any more distant ancestor. To resolve a reference to the node or a descendant,
+///   one must include the name of its parent and the append the node's name.
+///   For example, since `<_externalContent>` is tagged with `InvisibleToGrandparents`,
+///   consider the DoenetML
+///   ```xml
+///   <d>
+///       <a name="x">
+///           <_externalContent name="y">
+///               <b name="z" />
+///           </_externalContent>
+///       </a>
+///       <c/>
+///   </d>
+///   ```
+///   - References `$y` and `$z` from `<c>` would fail because the `name_map` of `<d>` would not contain the nodes.
+///   - References `$x.y` and `$x.z` from `<c>` would resolve because the `name_map` of `<a>` would contain the nodes.
+/// - `ChildrenInvisibleToTheirGrandparents`: all the children of the node are treated as though they were marked with `InvisibleToGrandparents`.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-pub(super) enum ResolutionAlgorithm {
-    SearchChildren,
-    DontSearchChildren,
-    Unsearchable,
+pub(super) enum Visibility {
+    Visible,
+    Invisible,
+    InvisibleToGrandparents,
+    ChildrenInvisibleToTheirGrandparents,
 }
 
-const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
+const INVISIBLE: [&str; 2] = ["option", "case"];
+const INVISIBLE_TO_GRANDPARENTS: [&str; 1] = ["_externalContent"];
+const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 1] = ["repeat"];
 
-impl ResolutionAlgorithm {
+impl Visibility {
     fn lookup_by_name(name: &str) -> Self {
-        if DONT_SEARCH_CHILDREN.contains(&name) {
-            ResolutionAlgorithm::DontSearchChildren
+        if INVISIBLE.contains(&name) {
+            Visibility::Invisible
+        } else if INVISIBLE_TO_GRANDPARENTS.contains(&name) {
+            Visibility::InvisibleToGrandparents
+        } else if CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS.contains(&name) {
+            Visibility::ChildrenInvisibleToTheirGrandparents
         } else {
-            ResolutionAlgorithm::SearchChildren
+            Visibility::Visible
         }
     }
 
@@ -53,7 +83,59 @@ impl ResolutionAlgorithm {
         if let FlatNode::Element(element) = node {
             Self::lookup_by_name(element.name.as_str())
         } else {
-            ResolutionAlgorithm::Unsearchable
+            Visibility::Invisible
+        }
+    }
+
+    pub(super) fn lookup_by_flat_element(element: &FlatElement) -> Self {
+        Self::lookup_by_name(element.name.as_str())
+    }
+}
+
+/// The `ParentSearchAlgorithm` determines the behavior of the initial `search_parents` stage of ref resolution.
+/// By default, all nodes have `SearchParent` set, which means the `search_parents` algorithm
+/// recurses to the node's parent if a referent to a name was not found in that node's `name_map`.
+/// If `DontSearchParent` is specified for a node, then the search does not recurse to its parent
+/// (with an exception to allow a reference to the node itself).
+/// In this way, references from within a node marked with `DontSearchParent` behave as though
+/// that node were completely isolated.
+///
+/// For example, since `<_externalContent>` is tagged with `DontSearchParent`, consider the DoenetML
+/// ```xml
+/// <a name="x">
+///     <_externalContent name="y">
+///         <b name="z" />
+///         <c/>
+///     </_externalContent>
+///     <d name="q"/>
+/// </a>
+/// ```
+/// If originating from `<c>`, references `$y` and `$z` would resolve as they are within the `<_externalContent>`.
+/// However references to `$x` or `$q` from `<c>` would fail because the search would not continue to the `name_map` of `<a>`.
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub(super) enum ParentSearchAlgorithm {
+    SearchParent,
+    DontSearchParent,
+}
+
+const DONT_SEARCH_PARENT: [&str; 1] = ["_externalContent"];
+
+impl ParentSearchAlgorithm {
+    fn lookup_by_name(name: &str) -> Self {
+        if DONT_SEARCH_PARENT.contains(&name) {
+            ParentSearchAlgorithm::DontSearchParent
+        } else {
+            ParentSearchAlgorithm::SearchParent
+        }
+    }
+
+    pub(super) fn lookup_by_flat_node(node: &FlatNode) -> Self {
+        if let FlatNode::Element(element) = node {
+            Self::lookup_by_name(element.name.as_str())
+        } else {
+            ParentSearchAlgorithm::SearchParent
         }
     }
 }
@@ -77,7 +159,7 @@ pub struct NodeResolverData {
     /// - `NodeParent:FlatRoot` corresponds to the parent being the flat root (which isn't a node)
     /// - `NodeParent:Node(i)` corresponds to the parent being node `i`.
     pub(super) node_parent: NodeParent,
-    pub(super) resolution_algorithm: ResolutionAlgorithm,
+    pub(super) parent_search_algorithm: ParentSearchAlgorithm,
     /// Map of all the names that are accessible (as descendants) from the node.
     /// The data structure uses a `FxHashMap` so that iterating over the `name_map` is done in a consistent order.
     pub(super) name_map: FxHashMap<String, Ref>,
@@ -186,22 +268,20 @@ impl Resolver {
             if !part.name.is_empty() {
                 let mut matched_part_name = false;
 
-                if node_data.resolution_algorithm == ResolutionAlgorithm::SearchChildren {
-                    // current_idx specifies the "root" of the search. We try to resolve
-                    // children based on the path part, returning an error if there is an ambiguity.
-                    if let Some(referent) = node_data.name_map.get(&part.name) {
-                        matched_part_name = true;
-                        match referent {
-                            Ref::Unique(idx) => {
-                                current_idx = *idx;
-                                if !nodes_in_resolved_path.contains(&current_idx) {
-                                    nodes_in_resolved_path.push(current_idx);
-                                }
-                                node_data = &self.node_resolver_data[current_idx + 1];
+                // current_idx specifies the "root" of the search. We try to resolve
+                // children based on the path part, returning an error if there is an ambiguity.
+                if let Some(referent) = node_data.name_map.get(&part.name) {
+                    matched_part_name = true;
+                    match referent {
+                        Ref::Unique(idx) => {
+                            current_idx = *idx;
+                            if !nodes_in_resolved_path.contains(&current_idx) {
+                                nodes_in_resolved_path.push(current_idx);
                             }
-                            Ref::Ambiguous(_) => {
-                                return Err(ResolutionError::NonUniqueReferent);
-                            }
+                            node_data = &self.node_resolver_data[current_idx + 1];
+                        }
+                        Ref::Ambiguous(_) => {
+                            return Err(ResolutionError::NonUniqueReferent);
                         }
                     }
                 }
@@ -344,6 +424,8 @@ impl Resolver {
             return Err(ResolutionError::NoReferent);
         }
 
+        let mut child_idx = origin;
+
         loop {
             let parent_plus_1 = match node_data.node_parent {
                 NodeParent::None => break,
@@ -351,17 +433,89 @@ impl Resolver {
                 NodeParent::Node(idx) => idx + 1,
             };
 
+            match node_data.parent_search_algorithm {
+                ParentSearchAlgorithm::SearchParent => {}
+                ParentSearchAlgorithm::DontSearchParent => {
+                    // The purpose of `DontSearchParent` is to prevent references originating inside a node
+                    // from reaching outside that node. The idea is that these references should
+                    // behave as though the node were completely isolated from other nodes.
+                    //
+                    // However, we do allow references to resolve to the node itself,
+                    // which requires that we check the node's parent to see if we hit a reference back ot the node.
+                    //
+                    // The rationale is explained by this DoenetML
+                    // ```
+                    // <section name="s">
+                    //   <_externalContent name="e">
+                    //     <p>Finds _externalContent: $e</p>
+                    //     <p>Does not find section: $s</p>
+                    //   </_externalContent>
+                    //   <p name="e" />
+                    // </section>
+                    // ```
+                    // The `<_externalContent>` has `DontSearchParent` set, indicating references from inside it
+                    // should behave as though content outside the `<_externalContent>` did not exist.
+                    // In particular, the reference `$e` should resolve to the external content.
+                    if let Some(resolved) =
+                        self.node_resolver_data[parent_plus_1].name_map.get(name)
+                    {
+                        match resolved {
+                            Ref::Unique(idx) => {
+                                // We resolve to the name from the parent's name_map only if it is the child itself.
+                                if *idx == child_idx {
+                                    return Ok(*idx);
+                                } else {
+                                    return Err(ResolutionError::NoReferent);
+                                }
+                            }
+                            Ref::Ambiguous(indices) => {
+                                // If one possibility is that we could have resolved back to the child, resolve as though it were a unique reference.
+                                // Otherwise, we have no referent.
+                                if indices.contains(&child_idx) {
+                                    return Ok(child_idx);
+                                } else {
+                                    return Err(ResolutionError::NoReferent);
+                                }
+                            }
+                        }
+                    }
+
+                    return Err(ResolutionError::NoReferent);
+                }
+            }
+
             if let Some(resolved) = self.node_resolver_data[parent_plus_1].name_map.get(name) {
                 match resolved {
                     Ref::Unique(idx) => {
                         return Ok(*idx);
                     }
-                    Ref::Ambiguous(_) => {
-                        return Err(ResolutionError::NonUniqueReferent);
+                    Ref::Ambiguous(indices) => {
+                        if indices.contains(&child_idx) {
+                            // If one possibility is that we could resolve back to the child, we disambiguate the reference to be that child.
+                            //
+                            // For example, for this DoenetML, the reference `$p` from within the first problem
+                            // resolves uniquely to the problem even though the name `p` is not unique among the parent section's descendants.
+                            // ```
+                            // <section>
+                            //     <problem name="p">
+                            //         <p>Credit achieved: $p.creditAchieved</p>
+                            //     </problem>
+                            //     <problem name="p" />
+                            // <section>
+                            // ```
+                            return Ok(child_idx);
+                        } else {
+                            return Err(ResolutionError::NonUniqueReferent);
+                        }
                     }
                 }
             }
             node_data = &self.node_resolver_data[parent_plus_1];
+
+            // Note: if parent_plus_1 == 0, the loop will end as the root has no parent
+            if parent_plus_1 > 0 {
+                child_idx = parent_plus_1 - 1;
+            }
         }
         Err(ResolutionError::NoReferent)
     }

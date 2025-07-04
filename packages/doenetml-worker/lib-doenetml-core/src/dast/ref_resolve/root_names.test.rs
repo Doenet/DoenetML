@@ -87,7 +87,45 @@ fn find_simplest_names_with_index() {
 }
 
 #[test]
-fn option_children_are_ignored() {
+fn repeat_children_require_repeat_name() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <document>
+        <a name="x">
+            <repeat name="y">
+                <b name="z" />
+                <c name="u">
+                  <d name="v" />
+                </c>
+            </repeat>
+        </a>
+        <e name="z"/>
+    </document>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+
+    let doc_idx = find(&flat_root, "document").unwrap();
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+    let e_idx = find(&flat_root, "e").unwrap();
+    let r_idx = find(&flat_root, "repeat").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+    let root_names = calculate_root_names(resolver);
+
+    assert_eq!(root_names[doc_idx], None);
+    assert_eq!(root_names[a_idx], Some("x".to_string()));
+    assert_eq!(root_names[r_idx], Some("y".to_string()));
+    assert_eq!(root_names[b_idx], Some("y.z".to_string()));
+    assert_eq!(root_names[c_idx], Some("y.u".to_string()));
+    assert_eq!(root_names[d_idx], Some("y.v".to_string()));
+    assert_eq!(root_names[e_idx], Some("z".to_string()));
+}
+
+#[test]
+fn options_are_ignored() {
     let dast_root = dast_root_no_position(
         r#"
     <document>
@@ -117,7 +155,7 @@ fn option_children_are_ignored() {
 
     assert_eq!(root_names[doc_idx], None);
     assert_eq!(root_names[a_idx], Some("x".to_string()));
-    assert_eq!(root_names[o_idx], Some("y".to_string()));
+    assert_eq!(root_names[o_idx], None);
     assert_eq!(root_names[b_idx], None);
     assert_eq!(root_names[c_idx], None);
     assert_eq!(root_names[d_idx], None);

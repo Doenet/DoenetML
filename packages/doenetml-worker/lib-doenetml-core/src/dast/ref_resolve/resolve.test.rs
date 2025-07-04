@@ -7,17 +7,19 @@ use crate::{
 #[test]
 fn can_resolve_name_among_parents() {
     let dast_root = dast_root_no_position(
-        r#"<a name="x">
+        r#"
+        <a name="x">
             <b name="y">
                 <c name="z" />
             </b>
         </a>
-        <d name="y" />"#,
+        <d name="y" />
+        <e />"#,
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
     let b_idx = find(&flat_root, "b").unwrap();
     let c_idx = find(&flat_root, "c").unwrap();
-    let d_idx = find(&flat_root, "d").unwrap();
+    let e_idx = find(&flat_root, "e").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
     // Searching from `c` for `y` should find the `b` node
@@ -27,15 +29,52 @@ fn can_resolve_name_among_parents() {
     let referent = resolver.search_parents("y", b_idx);
     assert_eq!(referent, Ok(b_idx));
 
-    // Searching from `d` should fail because there are multiple `y`s that could be referred to.
-    let referent = resolver.search_parents("y", d_idx);
+    // Searching from `e` should fail because there are multiple `y`s that could be referred to.
+    let referent = resolver.search_parents("y", e_idx);
+    assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
+}
+
+#[test]
+fn resolve_to_parent_in_ambiguous_case() {
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="x">
+            <b name="y">
+                <c name="z" />
+            </b>
+        </a>
+        <d name="x" />
+        <e />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+    let e_idx = find(&flat_root, "e").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+    // Searching from `c` or `b` for `x` should find the its parent `<a>`
+    let referent = resolver.search_parents("x", c_idx);
+    assert_eq!(referent, Ok(a_idx));
+
+    let referent = resolver.search_parents("x", b_idx);
+    assert_eq!(referent, Ok(a_idx));
+
+    // Searching from `d` should find itself
+    let referent = resolver.search_parents("x", d_idx);
+    assert_eq!(referent, Ok(d_idx));
+
+    // Searching from `e` should fail because there are multiple `x`s that could be referred to.
+    let referent = resolver.search_parents("x", e_idx);
     assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
 }
 
 #[test]
 fn can_resolve_names() {
     let dast_root = dast_root_no_position(
-        r#"<a name="x">
+        r#"
+        <a name="x">
             <b name="y">
                 <c name="z" />
             </b>
@@ -104,7 +143,8 @@ fn can_resolve_name_at_ref_origin() {
 #[test]
 fn resolve_with_skip_parent_match() {
     let dast_root = dast_root_no_position(
-        r#"<a name="x">
+        r#"
+        <a name="x">
             <b name="y">
                 <c name="z" />
             </b>
@@ -164,9 +204,11 @@ fn resolve_with_skip_parent_match() {
 }
 
 #[test]
-fn elements_with_dont_search_children() {
+fn invisible_elements() {
+    // Note: `<option>` is tagged with `Invisible`
     let dast_root = dast_root_no_position(
-        r#"<a name="x">
+        r#"
+        <a name="x">
             <option name="y">
                 <c name="z" />
             </option>
@@ -175,26 +217,67 @@ fn elements_with_dont_search_children() {
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
     let a_idx = find(&flat_root, "a").unwrap();
-    let option_idx = find(&flat_root, "option").unwrap();
     let c_idx = find(&flat_root, "c").unwrap();
     let d_idx = find(&flat_root, "d").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
 
-    // Since an `<option>` component does not search children,
+    // Since an `<option>` component is invisible,
     // a search for the name `z` starting at `a_idx` fails.
     let referent = resolver.resolve(make_path(["z"]), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
 
-    // Similarly, a search for `y.z` stops at `y` since `y` is an option
+    // Similarly, a search for `y` fails
+    let referent = resolver.resolve(make_path(["y"]), a_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+
+    // Starting at `c`, one can still search outward to find `q`
+    let referent = resolver.resolve(make_path(["q"]), c_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: d_idx,
+            unresolved_path: None,
+            original_path: make_path(["q"]),
+            nodes_in_resolved_path: vec![c_idx, d_idx]
+        })
+    );
+}
+
+#[test]
+fn elements_with_children_invisible_to_their_grandparents() {
+    // Note: `<repeat>` is tagged with `ChildrenInvisibleToTheirGrandparents`
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="x">
+            <repeat name="y">
+                <c name="z" />
+            </repeat>
+        </a>
+        <d name="q" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+    let repeat_idx = find(&flat_root, "repeat").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    // Since a `<repeat>` component has invisible children,
+    // a search for the name `z` starting at `a_idx` fails.
+    let referent = resolver.resolve(make_path(["z"]), a_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+
+    // Similarly, a search for `y.z` finds `<c>`
     let referent = resolver.resolve(make_path(["y", "z"]), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
-            node_idx: option_idx,
-            unresolved_path: Some(make_path(["z"])),
+            node_idx: c_idx,
+            unresolved_path: None,
             original_path: make_path(["y", "z"]),
-            nodes_in_resolved_path: vec![a_idx, option_idx]
+            nodes_in_resolved_path: vec![a_idx, repeat_idx, c_idx]
         })
     );
 
@@ -207,6 +290,141 @@ fn elements_with_dont_search_children() {
             unresolved_path: None,
             original_path: make_path(["q"]),
             nodes_in_resolved_path: vec![c_idx, d_idx]
+        })
+    );
+}
+
+#[test]
+fn elements_invisible_to_grandparents() {
+    // Note: `<_externalContent>` is tagged with `InvisibleToGrandparents`
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="x">
+            <_externalContent name="y">
+                <c name="z" />
+            </_externalContent>
+        </a>
+        <d name="q" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    println!("{:#?}", flat_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let external_idx = find(&flat_root, "_externalContent").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    // Since a `<_externalContent>` is invisible to grandparents,
+    // a search for the names `y` or `z` starting at `a_idx` fails.
+    let referent = resolver.resolve(make_path(["y"]), a_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+    let referent = resolver.resolve(make_path(["z"]), a_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+
+    // A search for `x.y` or `x.z` succeeds as `<_externalContent>` is visible from its parent `<a>`
+    let referent = resolver.resolve(make_path(["x", "y"]), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: external_idx,
+            unresolved_path: None,
+            original_path: make_path(["x", "y"]),
+            nodes_in_resolved_path: vec![a_idx, external_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["x", "z"]), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: c_idx,
+            unresolved_path: None,
+            original_path: make_path(["x", "z"]),
+            nodes_in_resolved_path: vec![a_idx, c_idx]
+        })
+    );
+}
+
+#[test]
+fn dont_search_parent() {
+    // Note: `<_externalContent>` is tagged with `DontSearchParent`
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="r">
+            <_externalContent name="y">
+                <c name="z" />
+                <d name="x" />
+            </_externalContent>
+        </a>
+        <b name="q" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    println!("{:#?}", flat_root);
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+    let external_idx = find(&flat_root, "_externalContent").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    // starting at `c`, one cannot find "r" or "q"
+    let referent = resolver.resolve(make_path(["r"]), c_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+    let referent = resolver.resolve(make_path(["q"]), c_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+
+    // Starting at `c`, one can still find "x"
+    let referent = resolver.resolve(make_path(["x"]), c_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: d_idx,
+            unresolved_path: None,
+            original_path: make_path(["x"]),
+            nodes_in_resolved_path: vec![c_idx, d_idx]
+        })
+    );
+
+    // Starting at `c`, one can still find "y"
+    let referent = resolver.resolve(make_path(["y"]), c_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: external_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"]),
+            nodes_in_resolved_path: vec![c_idx, external_idx]
+        })
+    );
+}
+
+#[test]
+fn dont_search_parent_and_resolve_with_ambiguous_sibling() {
+    // Note: `<_externalContent>` is tagged with `DontSearchParent`
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="x">
+            <_externalContent name="y">
+                <c name="z" />
+            </_externalContent>
+            <e name="y" />
+        </a>
+        <b name="q" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    println!("{:#?}", flat_root);
+    let c_idx = find(&flat_root, "c").unwrap();
+    let external_idx = find(&flat_root, "_externalContent").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    // Starting at `c`, one can still find its parent with "y" despite its sibling also named "y"
+    let referent = resolver.resolve(make_path(["y"]), c_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: external_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"]),
+            nodes_in_resolved_path: vec![c_idx, external_idx]
         })
     );
 }

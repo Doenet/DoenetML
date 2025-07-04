@@ -470,9 +470,9 @@ fn can_expand_a_copy_attribute_to_a_node_ref() {
 }
 
 #[test]
-fn initial_ref_skips_option_children() {
+fn initial_ref_skips_unqualified_repeat_children() {
     let dast_root = dast_root_no_position(
-        r#"<number name="n1" />$n1$n2$o.n2<option name="o"><number name="n2" />$n1$n2</option>"#,
+        r#"<number name="n1" />$n1$n2$o.n2<repeat name="o"><number name="n2" />$n1$n2</repeat>"#,
     );
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
@@ -533,26 +533,26 @@ fn initial_ref_skips_option_children() {
                   },
                   {
                     "type": "element",
-                    "name": "option",
+                    "name": "number",
                     "parent": 0,
                     "children": [],
                     "attributes": [],
                     "idx": 4,
                     "extending": {
                       "Ref": {
-                        "nodeIdx": 5,
-                        "unresolvedPath":  [{ "type": "flatPathPart", "name": "n2", "index": [] }],
+                        "nodeIdx": 6,
+                        "unresolvedPath":  null,
                         "originalPath": [
                           { "type": "flatPathPart", "name": "o", "index": [] },
                           { "type": "flatPathPart", "name": "n2", "index": [] }
                         ],
-                        "nodesInResolvedPath": [4, 5],
+                        "nodesInResolvedPath": [4, 5, 6],
                       }
                     }
                   },
                   {
                     "type": "element",
-                    "name": "option",
+                    "name": "repeat",
                     "parent": 0,
                     "children": [6, 7, 8],
                     "attributes": [
@@ -616,26 +616,152 @@ fn initial_ref_skips_option_children() {
               }
         )
     );
+}
 
+#[test]
+fn initial_ref_skips_option() {
     let dast_root = dast_root_no_position(
-        &r#"<a name="x">
-            <b name="y">
-                <c name="z" />
-                $x.y
-            </b>
-            <f>
-                <e name="w" />
-            </f>
-        </a>
-        $w
-        <d name="y" />"#
-            .replace("\n", "")
-            .replace("  ", ""),
+        r#"<number name="n1" />$n1$n2$o$o.n2<option name="o"><number name="n2" />$n1$n2</option>"#,
     );
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
-    assert_eq!(
-        r#"<document><a name="x"><b name="y"><c name="z" /><b /></b><f><e name="w" /></f></a><e /><d name="y" /></document>"#,
-        flat_root.to_xml()
+
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+            {
+                "type": "flatRoot",
+                "children": [0],
+                "nodes": [
+                  {
+                    "type": "element",
+                    "name": "document",
+                    "children": [1, 2, 3, 4, 5, 6],
+                    "attributes": [],
+                    "idx": 0
+                  },
+                  {
+                    "type": "element",
+                    "name": "number",
+                    "parent": 0,
+                    "children": [],
+                    "attributes": [
+                      {
+                        "type": "attribute",
+                        "name": "name",
+                        "parent": 1,
+                        "children": ["n1"]
+                      }
+                    ],
+                    "idx": 1
+                  },
+                  {
+                    "type": "element",
+                    "name": "number",
+                    "parent": 0,
+                    "children": [],
+                    "attributes": [],
+                    "idx": 2,
+                    "extending": {
+                      "Ref": {
+                        "nodeIdx": 1,
+                        "unresolvedPath": null,
+                        "originalPath": [{ "type": "flatPathPart", "name": "n1", "index": [] }],
+                        "nodesInResolvedPath": [2, 1],
+                      }
+                    }
+                  },
+                  {
+                    "type": "error",
+                    "message": "No referent found for reference: $n2",
+                    "errorType": "warning",
+                    "parent": 0,
+                    "idx": 3,
+                    "unresolvedPath": [{ "type": "flatPathPart", "name": "n2", "index": [] }]
+                  },
+                  {
+                    "type": "error",
+                    "message": "No referent found for reference: $o",
+                    "errorType": "warning",
+                    "parent": 0,
+                    "idx": 4,
+                    "unresolvedPath": [{ "type": "flatPathPart", "name": "o", "index": [] }]
+                  },
+                  {
+                    "type": "error",
+                    "message": "No referent found for reference: $o.n2",
+                    "errorType": "warning",
+                    "parent": 0,
+                    "idx": 5,
+                    "unresolvedPath": [
+                      { "type": "flatPathPart", "name": "o", "index": [] },
+                      { "type": "flatPathPart", "name": "n2", "index": [] }
+                      ]
+                  },
+                  {
+                    "type": "element",
+                    "name": "option",
+                    "parent": 0,
+                    "children": [7, 8, 9],
+                    "attributes": [
+                      {
+                        "type": "attribute",
+                        "name": "name",
+                        "parent": 6,
+                        "children": ["o"]
+                      }
+                    ],
+                    "idx": 6
+                  },
+                  {
+                    "type": "element",
+                    "name": "number",
+                    "parent": 6,
+                    "children": [],
+                    "attributes": [
+                      {
+                        "type": "attribute",
+                        "name": "name",
+                        "parent": 7,
+                        "children": ["n2"]
+                      }
+                    ],
+                    "idx": 7
+                  },
+                  {
+                    "type": "element",
+                    "name": "number",
+                    "parent": 6,
+                    "children": [],
+                    "attributes": [],
+                    "idx": 8,
+                    "extending": {
+                      "Ref": {
+                        "nodeIdx": 1,
+                        "unresolvedPath": null,
+                        "originalPath": [{ "type": "flatPathPart", "name": "n1", "index": [] }],
+                        "nodesInResolvedPath": [8, 1],
+                      }
+                    }
+                  },
+                  {
+                    "type": "element",
+                    "name": "number",
+                    "parent": 6,
+                    "children": [],
+                    "attributes": [],
+                    "idx": 9,
+                    "extending": {
+                      "Ref": {
+                        "nodeIdx": 7,
+                        "unresolvedPath": null,
+                        "originalPath": [{ "type": "flatPathPart", "name": "n2", "index": [] }],
+                        "nodesInResolvedPath": [9, 7],
+                      }
+                    }
+                  },
+                ]
+              }
+        )
     );
 }

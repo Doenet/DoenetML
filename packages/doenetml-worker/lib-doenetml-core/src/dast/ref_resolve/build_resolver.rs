@@ -6,8 +6,8 @@ use crate::dast::flat_dast::{
 };
 
 use super::{
-    IndexResolution, NodeParent, NodeResolverData, Ref, ResolutionAlgorithm, Resolver,
-    CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
+    IndexResolution, NodeParent, NodeResolverData, ParentSearchAlgorithm, Ref, Resolver,
+    Visibility, CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
 };
 
 impl Resolver {
@@ -23,7 +23,7 @@ impl Resolver {
                 if idx_plus_1 == 0 {
                     NodeResolverData {
                         node_parent: NodeParent::None,
-                        resolution_algorithm: ResolutionAlgorithm::SearchChildren,
+                        parent_search_algorithm: ParentSearchAlgorithm::DontSearchParent,
                         name_map: mem::take(&mut name_map[0]),
                         index_resolutions: Vec::new(),
                     }
@@ -34,7 +34,7 @@ impl Resolver {
                             .parent()
                             .map(NodeParent::Node)
                             .unwrap_or(NodeParent::FlatRoot),
-                        resolution_algorithm: ResolutionAlgorithm::lookup_by_flat_node(node),
+                        parent_search_algorithm: ParentSearchAlgorithm::lookup_by_flat_node(node),
                         name_map: mem::take(&mut name_map[idx_plus_1]),
                         index_resolutions: Vec::new(),
                     }
@@ -84,7 +84,7 @@ impl Resolver {
             self.node_resolver_data.extend(iter::repeat_n(
                 NodeResolverData {
                     node_parent: NodeParent::None,
-                    resolution_algorithm: ResolutionAlgorithm::SearchChildren,
+                    parent_search_algorithm: ParentSearchAlgorithm::SearchParent,
                     name_map: FxHashMap::default(),
                     index_resolutions: Vec::new(),
                 },
@@ -92,12 +92,12 @@ impl Resolver {
             ));
         }
 
-        // Add parents and stop_propagation for new nodes
+        // Add parents and parent_search_algorithm for new nodes
         for node in flat_fragment.nodes.iter() {
             self.node_resolver_data[node.idx() + 1].node_parent =
                 node.parent().map(NodeParent::Node).unwrap_or(parent_node);
-            self.node_resolver_data[node.idx() + 1].resolution_algorithm =
-                ResolutionAlgorithm::lookup_by_flat_node(node);
+            self.node_resolver_data[node.idx() + 1].parent_search_algorithm =
+                ParentSearchAlgorithm::lookup_by_flat_node(node);
         }
 
         let mut subtree_name_map =
@@ -246,7 +246,39 @@ impl Resolver {
                 parents.push(idx);
             }
 
+            // We recurse (via a loop) outward through the ancestors of `element`, building the name map of each parent.
+            // We check the `Visibility` of the parent and child to stop recursing to more distant ancestors
+            // if the original `element` becomes invisible to those ancestors.
+            // We stop recursing based on visibility under these conditions:
+            // - if the child is marked `Invisible`, then it and its descendants (including `element`) are not visible to the parent,
+            //   and we stop recursing
+            // - if the child is marked `InvisibleToGrandparents`, then it and its descendants (including `element`)
+            //   are not visible to the parent's parent. We stop recursing after updating the parent's name map.
+            // - the parent: if the parent is marked `ChildrenInvisibleToTheirGrandparents`, then its descendants (including `element`)
+            //   are not visible to the parent's parent. We stop recursing after updating the parent's name map.
+
+            let mut child_visibility = Visibility::lookup_by_flat_element(element);
+
             for parent_idx_plus_1 in parents {
+                // if child is invisible, then do not add `element` (which is the child or its descendant)
+                // to the name map of parent or more distant ancestors
+                if matches!(child_visibility, Visibility::Invisible) {
+                    break;
+                }
+
+                let parent_visibility = if Some(parent_idx_plus_1) == base_parent_idx_plus_1
+                    || parent_idx_plus_1 == 0
+                {
+                    // Always treat the flat fragment root or the flat root as visible
+                    Visibility::Visible
+                } else {
+                    Visibility::lookup_by_flat_node(
+                        flat_root_or_fragment.get_node(parent_idx_plus_1 - 1),
+                    )
+                };
+
+                // Add `element` to the name map of `parent`, creating an ambiguous reference
+                // if its name is already in the name map
                 descendant_names[parent_idx_plus_1]
                     .get_mut(&name)
                     .map(|x| {
@@ -266,17 +298,23 @@ impl Resolver {
                             .insert(name.clone(), Ref::Unique(element.idx));
                     });
 
-                // Stop if we've reached a parent that isn't the base parent
-                // and is a type where we don't search children
-                if Some(parent_idx_plus_1) != base_parent_idx_plus_1 && parent_idx_plus_1 > 0 {
-                    match ResolutionAlgorithm::lookup_by_flat_node(
-                        flat_root_or_fragment.get_node(parent_idx_plus_1 - 1),
-                    ) {
-                        ResolutionAlgorithm::SearchChildren => {}
-                        ResolutionAlgorithm::DontSearchChildren => break,
-                        ResolutionAlgorithm::Unsearchable => break,
-                    }
+                // if parent's children are invisible to grandparents, do not add `element` (which is the child or its descendant)
+                // to the name map of the parent's parent or more distant ancestors.
+                if matches!(
+                    parent_visibility,
+                    Visibility::ChildrenInvisibleToTheirGrandparents
+                ) {
+                    break;
                 }
+
+                // If the child is `InvisibleToGrandparents` do not add `element` (which is the child or its descendant)
+                // to the name map of the parent's parent or more distant ancestors.
+                if matches!(child_visibility, Visibility::InvisibleToGrandparents) {
+                    break;
+                }
+
+                // The previous parent becomes the child for the next iteration
+                child_visibility = parent_visibility;
             }
         }
 

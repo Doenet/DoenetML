@@ -1,6 +1,6 @@
 import { unified, Plugin } from "unified";
 import { DastAttribute, DastElement, DastNodes, DastRoot } from "./types";
-import { visit, VisitInfo } from "./pretty-printer/normalize/utils/visit";
+import { visit } from "./pretty-printer/normalize/utils/visit";
 import { isDastElement } from "./types-util";
 import { toXml } from "./dast-to-xml/dast-util-to-xml";
 import { lezerToDast } from "./lezer-to-dast";
