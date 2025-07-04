@@ -1,5 +1,4 @@
-//import { ENTITY_MAP } from "./entity-map";
-import { ENTITY_MAP } from "@doenet/static-assets";
+import { ENTITY_MAP } from "@doenet/static-assets/entity-map";
 
 export function entityStringToRawString(entityStr: string): string {
     if (!entityStr.startsWith("&")) {

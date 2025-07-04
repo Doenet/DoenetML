@@ -1,5 +1,5 @@
 import { Connection } from "vscode-languageserver/browser";
-import { prettyPrint } from "@doenet/parser";
+import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { DocumentInfo, getDocumentSettings } from "../globals";
 import { doenetToMarkdown } from "@doenet/lsp-tools";
 

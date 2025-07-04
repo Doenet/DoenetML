@@ -3,7 +3,7 @@ import util from "util";
 
 import { filterPositionInfo, DastMacro, DastElement } from "@doenet/parser";
 import { DoenetSourceObject, isOldMacro } from "../src/doenet-source-object";
-import { doenetSchema } from "@doenet/static-assets";
+import { doenetSchema } from "@doenet/static-assets/schema";
 import { AutoCompleter } from "../src";
 
 const origLog = console.log;

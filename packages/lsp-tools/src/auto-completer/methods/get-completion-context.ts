@@ -1,6 +1,6 @@
 import { RowCol } from "../../doenet-source-object";
-import { DastMacro, showCursor } from "@doenet/parser";
-import { AutoCompleter } from "..";
+import type { DastMacro } from "@doenet/parser";
+import { AutoCompleter } from "../index";
 
 export type CompletionContext =
     | { cursorPos: "body" }

@@ -1,4 +1,4 @@
-import { atomDatabase } from "@doenet/static-assets";
+import { atomDatabase } from "@doenet/static-assets/atom-database";
 //@ts-ignore
 import me from "math-expressions";
 

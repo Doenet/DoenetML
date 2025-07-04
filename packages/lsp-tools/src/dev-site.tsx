@@ -6,12 +6,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { CodeMirror } from "@doenet/codemirror";
-import {
-    lezerToDast,
-    parse,
-    filterPositionInfo,
-    lezerToDastV6,
-} from "@doenet/parser";
+import { lezerToDast, parse, filterPositionInfo } from "@doenet/parser";
+import { lezerToDastV6 } from "@doenet/parser/v06";
 import JsonView from "react18-json-view";
 import "react18-json-view/src/style.css";
 import { DoenetSourceObject } from "./doenet-source-object";

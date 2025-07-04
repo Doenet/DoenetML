@@ -1,4 +1,4 @@
-import { doenetSchema } from "@doenet/static-assets";
+import { doenetSchema } from "@doenet/static-assets/schema";
 import { AttrInfo, PropAttrType, PropInfo } from "../components";
 
 const SCHEMA: {

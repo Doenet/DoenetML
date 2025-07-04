@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
-import { atomDatabase } from "@doenet/static-assets";
+import { atomDatabase } from "@doenet/static-assets/atom-database";
 //@ts-ignore
 import me from "math-expressions";
 import { superSubscriptsToUnicode } from "../../utils/math";

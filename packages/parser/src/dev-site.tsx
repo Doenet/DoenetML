@@ -9,7 +9,8 @@ import { CodeMirror } from "@doenet/codemirror";
 import JsonView from "react18-json-view";
 import "react18-json-view/src/style.css";
 import { filterPositionInfo } from "./dast-to-xml/utils";
-import { lezerToDast, lezerToDastV6 } from "./lezer-to-dast";
+import { lezerToDast } from "./lezer-to-dast";
+import { lezerToDastV6 } from "./index-v06";
 
 const INITIAL_DOENET_SOURCE = `
 <p>Use this to test DoenetML</p>
