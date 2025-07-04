@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { lezerToDast, lezerToDastV6 } from "../src/lezer-to-dast";
+import { lezerToDast } from "../src/lezer-to-dast";
+import { lezerToDastV6 } from "../src/lezer-to-dast/lezer-to-dast-v6";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import util from "util";
 import { DastRoot } from "../src/types";
