@@ -14,7 +14,8 @@ type RemoteSource = {
 };
 
 /**
- * Find any `extend` or `copy` attributes that are not references and attempt to look them up via `retrieveDoenetML`.
+ * Find any `copy` attribute that is not accompanied by a `extend` attribute and is not a reference
+ * and attempt to look up its associated by passing its value to `retrieveDoenetML`.
  * If the returned DoenetML matches the type of the parent, add a `_externalContent` to the children of the parent
  * and add the new dast children to the `_externalContent`.
  */
@@ -31,23 +32,20 @@ export async function expandExternalExtend(
             const promiseStack: RemoteSource[] = [];
 
             /**
-             * If `node` has an `extend` or `copy` attribute that is not a reference,
-             * then look up the attribute value vai `retrieveDoenetML`,
+             * If `node` has `copy` attribute that is not a reference (and no `extend` attribute),
+             * then look up the attribute value via `retrieveDoenetML`,
              * adding the resulting promise and meta-data to `promiseStack`
              */
             const findExternalExtendAttributes = (node: DastNodes) => {
                 if (
                     !isDastElement(node) ||
-                    !(node.attributes.extend || node.attributes.copy)
+                    node.attributes.extend ||
+                    !node.attributes.copy
                 ) {
                     return;
                 }
 
-                const sourceAttribute = node.attributes.extend
-                    ? node.attributes.extend
-                    : node.attributes.copy;
-
-                const sourceUri = toXml(sourceAttribute.children);
+                const sourceUri = toXml(node.attributes.copy.children);
 
                 // If extend/copy attribute is a reference, skip
                 if (sourceUri.charAt(0) === "$") {
@@ -58,7 +56,7 @@ export async function expandExternalExtend(
                     sourceUri,
                     source: retrieveDoenetML(sourceUri),
                     parent: node,
-                    sourceAttribute,
+                    sourceAttribute: node.attributes.copy,
                 });
             };
 
@@ -171,6 +169,9 @@ export async function expandExternalExtend(
                 };
 
                 parent.children.unshift(externalNode);
+
+                // Delete the `copy` attribute
+                delete parent.attributes.copy;
 
                 visit(externalNode, findExternalExtendAttributes);
             }
