@@ -204,8 +204,8 @@ fn resolve_with_skip_parent_match() {
 }
 
 #[test]
-fn invisible_elements() {
-    // Note: `<option>` is tagged with `Invisible`
+fn elements_with_children_invisible_to_their_grandparents() {
+    // Note: `<option>` is tagged with `ChildrenInvisibleToTheirGrandparents`
     let dast_root = dast_root_no_position(
         r#"
         <a name="x">
@@ -219,52 +219,11 @@ fn invisible_elements() {
     let a_idx = find(&flat_root, "a").unwrap();
     let c_idx = find(&flat_root, "c").unwrap();
     let d_idx = find(&flat_root, "d").unwrap();
+    let option_idx = find(&flat_root, "option").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
 
-    // Since an `<option>` component is invisible,
-    // a search for the name `z` starting at `a_idx` fails.
-    let referent = resolver.resolve(make_path(["z"]), a_idx, false);
-    assert_eq!(referent, Err(ResolutionError::NoReferent));
-
-    // Similarly, a search for `y` fails
-    let referent = resolver.resolve(make_path(["y"]), a_idx, false);
-    assert_eq!(referent, Err(ResolutionError::NoReferent));
-
-    // Starting at `c`, one can still search outward to find `q`
-    let referent = resolver.resolve(make_path(["q"]), c_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: d_idx,
-            unresolved_path: None,
-            original_path: make_path(["q"]),
-            nodes_in_resolved_path: vec![c_idx, d_idx]
-        })
-    );
-}
-
-#[test]
-fn elements_with_children_invisible_to_their_grandparents() {
-    // Note: `<repeat>` is tagged with `ChildrenInvisibleToTheirGrandparents`
-    let dast_root = dast_root_no_position(
-        r#"
-        <a name="x">
-            <repeat name="y">
-                <c name="z" />
-            </repeat>
-        </a>
-        <d name="q" />"#,
-    );
-    let flat_root = FlatRoot::from_dast(&dast_root);
-    let a_idx = find(&flat_root, "a").unwrap();
-    let c_idx = find(&flat_root, "c").unwrap();
-    let d_idx = find(&flat_root, "d").unwrap();
-    let repeat_idx = find(&flat_root, "repeat").unwrap();
-
-    let resolver = Resolver::from_flat_root(&flat_root);
-
-    // Since a `<repeat>` component has invisible children,
+    // Since a `<option>` component has invisible children,
     // a search for the name `z` starting at `a_idx` fails.
     let referent = resolver.resolve(make_path(["z"]), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
@@ -277,7 +236,7 @@ fn elements_with_children_invisible_to_their_grandparents() {
             node_idx: c_idx,
             unresolved_path: None,
             original_path: make_path(["y", "z"]),
-            nodes_in_resolved_path: vec![a_idx, repeat_idx, c_idx]
+            nodes_in_resolved_path: vec![a_idx, option_idx, c_idx]
         })
     );
 

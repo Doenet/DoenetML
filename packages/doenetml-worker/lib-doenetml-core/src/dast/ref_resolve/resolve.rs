@@ -62,15 +62,12 @@ pub(super) enum Visibility {
     ChildrenInvisibleToTheirGrandparents,
 }
 
-const INVISIBLE: [&str; 2] = ["option", "case"];
 const INVISIBLE_TO_GRANDPARENTS: [&str; 1] = ["_externalContent"];
-const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 1] = ["repeat"];
+const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 3] = ["repeat", "option", "case"];
 
 impl Visibility {
     fn lookup_by_name(name: &str) -> Self {
-        if INVISIBLE.contains(&name) {
-            Visibility::Invisible
-        } else if INVISIBLE_TO_GRANDPARENTS.contains(&name) {
+        if INVISIBLE_TO_GRANDPARENTS.contains(&name) {
             Visibility::InvisibleToGrandparents
         } else if CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS.contains(&name) {
             Visibility::ChildrenInvisibleToTheirGrandparents
