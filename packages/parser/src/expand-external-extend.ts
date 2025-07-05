@@ -11,6 +11,7 @@ type RemoteSource = {
     source: Promise<string>;
     parent: DastElement;
     sourceAttribute: DastAttribute;
+    recursionLevel: number;
 };
 
 /**
@@ -31,6 +32,9 @@ export async function expandExternalExtend(
         return async (tree, file) => {
             const promiseStack: RemoteSource[] = [];
 
+            let maxRecursion = 10;
+            let counter = 0;
+
             /**
              * If `node` has `copy` attribute that is not a reference (and no `extend` attribute),
              * then look up the attribute value via `retrieveDoenetML`,
@@ -47,7 +51,7 @@ export async function expandExternalExtend(
 
                 const sourceUri = toXml(node.attributes.copy.children);
 
-                // If extend/copy attribute is a reference, skip
+                // If copy attribute is a reference, skip
                 if (sourceUri.charAt(0) === "$") {
                     return;
                 }
@@ -57,10 +61,11 @@ export async function expandExternalExtend(
                     source: retrieveDoenetML(sourceUri),
                     parent: node,
                     sourceAttribute: node.attributes.copy,
+                    recursionLevel: counter,
                 });
             };
 
-            // Find any `extend` or `copy` attributes in the dast and append the results to `promiseStack`
+            // Find any `copy` attributes in the dast and append the results to `promiseStack`
             visit(tree, findExternalExtendAttributes);
 
             // Process any DoenetML returned by the promises in `promiseStack`,
@@ -68,6 +73,17 @@ export async function expandExternalExtend(
             // and recurse on the `_externalContent`
             let unresolved: RemoteSource | undefined;
             while ((unresolved = promiseStack.pop())) {
+                if (unresolved.recursionLevel > maxRecursion) {
+                    file.message(
+                        `Unable to retrieve external DoenetML due to too many levels of recursion. Is there a circular reference?`,
+                        {
+                            place: unresolved.sourceAttribute.position,
+                            source: unresolved.sourceUri,
+                        },
+                    );
+                    break;
+                }
+
                 let externalDoenetML;
 
                 try {
@@ -154,7 +170,7 @@ export async function expandExternalExtend(
                     children: [{ type: "text", value: externalDoenetML }],
                 };
 
-                // For any `extend`/`copy` attributes found when recursing, treat the `_externalContent` as its parent's type.
+                // For any `copy` attributes found when recursing, treat the `_externalContent` as its parent's type.
                 externalContentAttributes.forType = {
                     type: "attribute",
                     name: "forType",
@@ -173,6 +189,7 @@ export async function expandExternalExtend(
                 // Delete the `copy` attribute
                 delete parent.attributes.copy;
 
+                counter = unresolved.recursionLevel + 1;
                 visit(externalNode, findExternalExtendAttributes);
             }
         };
