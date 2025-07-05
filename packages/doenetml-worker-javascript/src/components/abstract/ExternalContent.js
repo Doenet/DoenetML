@@ -24,6 +24,18 @@ export default class ExternalContent extends CompositeComponent {
         }
     }
 
+    static createAttributesObject() {
+        let attributes = super.createAttributesObject();
+        attributes.doenetMLSource = {
+            createPrimitiveOfType: "string",
+        };
+        attributes.forType = {
+            createPrimitiveOfType: "string",
+        };
+
+        return attributes;
+    }
+
     // don't need child groups
     // as all children will remain serialized
 

@@ -18,6 +18,7 @@ export type UseDoenetRendererProps = {
     callAction: (argObj: Record<string, any>) => void;
     doenetViewerUrl?: string;
     scrollableContainer?: HTMLDivElement | Window;
+    retrieveDoenetML?: (arg: string) => Promise<string>;
 };
 
 // TODO: potentially remove initializeChildrenOnConstruction
@@ -95,6 +96,7 @@ export default function useDoenetRenderer(
             docId: props.docId,
             activityId: props.activityId,
             callAction: props.callAction,
+            retrieveDoenetML: props.retrieveDoenetML,
         };
 
         let rendererClass =
@@ -150,5 +152,6 @@ export default function useDoenetRenderer(
         callAction,
         doenetViewerUrl: props.doenetViewerUrl,
         scrollableContainer: props.scrollableContainer,
+        retrieveDoenetML: props.retrieveDoenetML,
     };
 }

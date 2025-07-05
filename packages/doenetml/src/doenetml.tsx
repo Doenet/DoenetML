@@ -95,6 +95,7 @@ export function DoenetViewer({
     answerResponseCounts = {},
     includeVariantSelector = false,
     initializeCounters = {},
+    retrieveDoenetML,
     onInit = () => {},
 }: {
     doenetML: string;
@@ -126,6 +127,7 @@ export function DoenetViewer({
     answerResponseCounts?: Record<string, number>;
     includeVariantSelector?: boolean;
     initializeCounters?: Record<string, number>;
+    retrieveDoenetML?: (arg: string) => Promise<string>;
     /**
      * Called when React has initialized and passed the DOM node that is a parent of
      * the DoenetML UI.
@@ -239,6 +241,7 @@ export function DoenetViewer({
             showAnswerResponseMenu={showAnswerResponseMenu}
             answerResponseCounts={answerResponseCounts}
             initializeCounters={initializeCounters}
+            retrieveDoenetML={retrieveDoenetML}
         />
     );
 
@@ -298,6 +301,7 @@ export function DoenetEditor({
     border = "1px solid",
     initialErrors = [],
     initialWarnings = [],
+    retrieveDoenetML,
 }: {
     doenetML: string;
     activityId?: string;
@@ -324,6 +328,7 @@ export function DoenetEditor({
     border?: string;
     initialErrors?: ErrorRecord[];
     initialWarnings?: WarningRecord[];
+    retrieveDoenetML?: (arg: string) => Promise<string>;
 }) {
     const editor = (
         <EditorViewer
@@ -349,6 +354,7 @@ export function DoenetEditor({
             border={border}
             initialErrors={initialErrors}
             initialWarnings={initialWarnings}
+            retrieveDoenetML={retrieveDoenetML}
         />
     );
 
