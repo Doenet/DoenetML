@@ -20,11 +20,11 @@ type RemoteSource = {
  * If the returned DoenetML matches the type of the parent, add a `_externalContent` to the children of the parent
  * and add the new dast children to the `_externalContent`.
  */
-export async function expandExternalExtend(
+export async function expandExternalReferences(
     dast: DastRoot,
     retrieveDoenetML: (arg: string) => Promise<string>,
 ) {
-    const pluginSubstituteExternalExtend: Plugin<
+    const pluginSubstituteExternalReferences: Plugin<
         [],
         DastRoot,
         DastRoot
@@ -40,7 +40,7 @@ export async function expandExternalExtend(
              * then look up the attribute value via `retrieveDoenetML`,
              * adding the resulting promise and meta-data to `promiseStack`
              */
-            const findExternalExtendAttributes = (node: DastNodes) => {
+            const findExternalCopyAttributes = (node: DastNodes) => {
                 if (
                     !isDastElement(node) ||
                     node.attributes.extend ||
@@ -66,7 +66,7 @@ export async function expandExternalExtend(
             };
 
             // Find any `copy` attributes in the dast and append the results to `promiseStack`
-            visit(tree, findExternalExtendAttributes);
+            visit(tree, findExternalCopyAttributes);
 
             // Process any DoenetML returned by the promises in `promiseStack`,
             // add any matching results to an `_externalContent` child of the parent,
@@ -190,13 +190,13 @@ export async function expandExternalExtend(
                 delete parent.attributes.copy;
 
                 counter = unresolved.recursionLevel + 1;
-                visit(externalNode, findExternalExtendAttributes);
+                visit(externalNode, findExternalCopyAttributes);
             }
         };
     };
 
     const vFile = new VFile();
-    let processor = unified().use(pluginSubstituteExternalExtend);
+    let processor = unified().use(pluginSubstituteExternalReferences);
     const processedDast = await processor.run(dast, vFile);
     return { processedDast, errors: vFile.messages };
 }

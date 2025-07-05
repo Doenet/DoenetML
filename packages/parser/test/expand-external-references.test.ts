@@ -5,7 +5,7 @@ import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import { normalizeDocumentDast } from "../src/dast-normalize/normalize-dast";
 import {
     DastRoot,
-    expandExternalExtend,
+    expandExternalReferences,
     extractDastErrors,
     filterPositionInfo,
     isDastElement,
@@ -45,7 +45,7 @@ function returnDoenetML(sourceUri: string) {
 describe("Expand external extend", async () => {
     it("load in external content via extend", async () => {
         const source = `<p extend="doenet:abcdef" />`;
-        const result = await expandExternalExtend(
+        const result = await expandExternalReferences(
             lezerToDast(source),
             returnDoenetML,
         );
@@ -89,7 +89,7 @@ describe("Expand external extend", async () => {
 
     it("load in external content recursively via copy", async () => {
         const source = `<p copy="doenet:ghijkl" />`;
-        const result = await expandExternalExtend(
+        const result = await expandExternalReferences(
             lezerToDast(source),
             returnDoenetML,
         );
@@ -154,7 +154,7 @@ describe("Expand external extend", async () => {
 
     it("attempt to load non-existing external content", async () => {
         const source = `<p extend="doenet:bad" />`;
-        const result = await expandExternalExtend(
+        const result = await expandExternalReferences(
             lezerToDast(source),
             returnDoenetML,
         );
@@ -178,7 +178,7 @@ describe("Expand external extend", async () => {
 
     it("attempt to extend external content that does not match type", async () => {
         const source = `<text extend="doenet:abcdef" />`;
-        const result = await expandExternalExtend(
+        const result = await expandExternalReferences(
             lezerToDast(source),
             returnDoenetML,
         );

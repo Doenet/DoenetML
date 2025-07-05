@@ -8,4 +8,4 @@ export { toXml } from "./dast-to-xml/dast-util-to-xml";
 export { lezerToDast, stringToLezer } from "./lezer-to-dast/lezer-to-dast";
 export { filterPositionInfo } from "./dast-to-xml/utils";
 export { normalizeDocumentDast } from "./dast-normalize/normalize-dast";
-export { expandExternalExtend } from "./expand-external-extend";
+export { expandExternalReferences } from "./expand-external-references";
