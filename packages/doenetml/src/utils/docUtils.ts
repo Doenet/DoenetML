@@ -42,13 +42,7 @@ export async function initializeCoreWorker({
     let dast = lezerToDast(doenetML);
 
     if (retrieveDoenetML) {
-        const result = await expandExternalReferences(dast, retrieveDoenetML);
-
-        if (result.errors.length > 0) {
-            console.error("Need to report these errors", result.errors);
-        }
-
-        dast = result.processedDast;
+        dast = await expandExternalReferences(dast, retrieveDoenetML);
     }
 
     dast = normalizeDocumentDast(dast, true);

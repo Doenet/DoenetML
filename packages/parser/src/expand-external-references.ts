@@ -1,10 +1,15 @@
 import { unified, Plugin } from "unified";
-import { DastAttribute, DastElement, DastNodes, DastRoot } from "./types";
+import {
+    DastAttribute,
+    DastElement,
+    DastError,
+    DastNodes,
+    DastRoot,
+} from "./types";
 import { visit } from "./pretty-printer/normalize/utils/visit";
 import { isDastElement } from "./types-util";
 import { toXml } from "./dast-to-xml/dast-util-to-xml";
 import { lezerToDast } from "./lezer-to-dast";
-import { VFile } from "vfile";
 
 type RemoteSource = {
     sourceUri: string;
@@ -29,7 +34,7 @@ export async function expandExternalReferences(
         DastRoot,
         DastRoot
     > = () => {
-        return async (tree, file) => {
+        return async (tree) => {
             const promiseStack: RemoteSource[] = [];
 
             let maxRecursion = 10;
@@ -74,14 +79,16 @@ export async function expandExternalReferences(
             let unresolved: RemoteSource | undefined;
             while ((unresolved = promiseStack.pop())) {
                 if (unresolved.recursionLevel > maxRecursion) {
-                    file.message(
-                        `Unable to retrieve external DoenetML due to too many levels of recursion. Is there a circular reference?`,
-                        {
-                            place: unresolved.sourceAttribute.position,
-                            source: unresolved.sourceUri,
-                        },
-                    );
-                    break;
+                    const dastError: DastError = {
+                        type: "error",
+                        message: `Unable to retrieve external DoenetML due to too many levels of recursion. Is there a circular reference?`,
+                        position: unresolved.sourceAttribute.position,
+                    };
+
+                    const parent = unresolved.parent;
+                    parent.children.unshift(dastError);
+
+                    continue;
                 }
 
                 let externalDoenetML;
@@ -89,13 +96,14 @@ export async function expandExternalReferences(
                 try {
                     externalDoenetML = await unresolved.source;
                 } catch (_e) {
-                    file.message(
-                        `Unable to retrieve DoenetML from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}"`,
-                        {
-                            place: unresolved.sourceAttribute.position,
-                            source: unresolved.sourceUri,
-                        },
-                    );
+                    const dastError: DastError = {
+                        type: "error",
+                        message: `Unable to retrieve DoenetML from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}"`,
+                        position: unresolved.sourceAttribute.position,
+                    };
+                    const parent = unresolved.parent;
+                    parent.children.unshift(dastError);
+
                     continue;
                 }
 
@@ -150,13 +158,14 @@ export async function expandExternalReferences(
                 }
 
                 if (child === null) {
-                    file.message(
-                        `Invalid DoenetML retrieved from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}": it did not match the component type "${parentType}"`,
-                        {
-                            place: unresolved.sourceAttribute.position,
-                            source: unresolved.sourceUri,
-                        },
-                    );
+                    const dastError: DastError = {
+                        type: "error",
+                        message: `Invalid DoenetML retrieved from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}": it did not match the component type "${parentType}"`,
+                        position: unresolved.sourceAttribute.position,
+                    };
+                    const parent = unresolved.parent;
+                    parent.children.unshift(dastError);
+
                     continue;
                 }
 
@@ -195,8 +204,6 @@ export async function expandExternalReferences(
         };
     };
 
-    const vFile = new VFile();
     let processor = unified().use(pluginSubstituteExternalReferences);
-    const processedDast = await processor.run(dast, vFile);
-    return { processedDast, errors: vFile.messages };
+    return await processor.run(dast);
 }
