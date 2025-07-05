@@ -87,7 +87,7 @@ fn find_simplest_names_with_index() {
 }
 
 #[test]
-fn option_children_are_ignored() {
+fn option_children_require_option_name() {
     let dast_root = dast_root_no_position(
         r#"
     <document>
@@ -118,9 +118,9 @@ fn option_children_are_ignored() {
     assert_eq!(root_names[doc_idx], None);
     assert_eq!(root_names[a_idx], Some("x".to_string()));
     assert_eq!(root_names[o_idx], Some("y".to_string()));
-    assert_eq!(root_names[b_idx], None);
-    assert_eq!(root_names[c_idx], None);
-    assert_eq!(root_names[d_idx], None);
+    assert_eq!(root_names[b_idx], Some("y.z".to_string()));
+    assert_eq!(root_names[c_idx], Some("y.u".to_string()));
+    assert_eq!(root_names[d_idx], Some("y.v".to_string()));
     assert_eq!(root_names[e_idx], Some("z".to_string()));
 }
 

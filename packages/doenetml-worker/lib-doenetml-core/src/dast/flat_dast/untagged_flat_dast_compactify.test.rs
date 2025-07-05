@@ -218,7 +218,7 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
           "node_resolver_data": [
             {
               "node_parent": "None",
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "DontSearchParent",
               "name_map": {
                 "t": { "Unique": 1 },
                 "ti": { "Unique": 3 },
@@ -228,7 +228,7 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
             },
             {
               "node_parent": "FlatRoot",
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {
                 "t": { "Unique": 1 },
                 "ti": { "Unique": 3 },
@@ -238,25 +238,25 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {},
               "index_resolutions": [],
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {},
               "index_resolutions": [],
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {},
               "index_resolutions": [],
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {
                 "tiv": { "Unique": 5 }
               },
@@ -264,7 +264,7 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
             },
             {
               "node_parent": { "Node": 4 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {},
               "index_resolutions": [],
             },
@@ -393,7 +393,7 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
           "node_resolver_data": [
             {
               "node_parent": "None",
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "DontSearchParent",
               "name_map": {
                 "t": { "Unique": 1 },
                 "ti": { "Unique": 3 },
@@ -403,7 +403,7 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
             },
             {
               "node_parent": "FlatRoot",
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {
                 "t": { "Unique": 1 },
                 "ti": { "Unique": 3 },
@@ -413,25 +413,25 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {},
               "index_resolutions": [],
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {},
               "index_resolutions": [],
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {},
               "index_resolutions": [],
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {
                 "tiv": { "Unique": 5 }
               },
@@ -439,7 +439,7 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
             },
             {
               "node_parent": { "Node": 4 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {},
               "index_resolutions": [],
             },
@@ -528,7 +528,7 @@ fn compactify_adjusts_refs_to_document() {
           "node_resolver_data": [
             {
               "node_parent": "None",
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "DontSearchParent",
               "name_map": {
                 "doc": { "Unique": 0 },
               },
@@ -536,19 +536,19 @@ fn compactify_adjusts_refs_to_document() {
             },
             {
               "node_parent": "FlatRoot",
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {},
               "index_resolutions": [],
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {},
               "index_resolutions": [],
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
+              "parent_search_algorithm": "SearchParent",
               "name_map": {},
               "index_resolutions": [],
             },

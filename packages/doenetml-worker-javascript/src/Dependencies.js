@@ -7527,6 +7527,25 @@ class RefResolutionDependency extends Dependency {
             };
         }
 
+        if (extendedComponent.constructor.resolveToParent) {
+            // replace the extended component with its parent
+            this.extendIdx = extendedComponent.parentIdx;
+
+            extendedComponent =
+                this.dependencyHandler._components[this.extendIdx];
+
+            if (!extendedComponent) {
+                this.addUpdateTriggerForMissingComponent(this.extendIdx);
+                this.missingComponentBlockers.push(this.extendIdx);
+
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+        }
+
         return {
             success: true,
             downstreamComponentIndices: [this.extendIdx],
