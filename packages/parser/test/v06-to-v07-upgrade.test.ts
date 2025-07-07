@@ -77,6 +77,18 @@ describe("v06 to v07 update", () => {
         ).toEqual(correctSource);
     });
 
+    it("copy source slashes get turned into dots", async () => {
+        source = `<copy source="foo/bar[3][4][$(b/c).d].baz"/>`;
+        correctSource = `<copy source="foo.bar[3][4][$b.c.d].baz" />`;
+        expect(
+            toXml(
+                await updateSyntax(source, {
+                    doNotUpgradeCopyTags: true,
+                }),
+            ),
+        ).toEqual(correctSource);
+    });
+
     it(".. in macro path with slashes gets removed", async () => {
         source = `<p foo="$(x/../bar)" />`;
         correctSource = `<p foo="$bar" />`;
@@ -173,9 +185,38 @@ describe("v06 to v07 update", () => {
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
+    it("collect with prop gets converted to its new format", async () => {
+        source = `<collect componentTypes="point" name="xs" source="panel" prop="x" assignNames="x1 x2 x3 x4 x5" />`;
+        correctSource = `<setup><collect componentType="point" name="collect_xs" from="$panel" /></setup><mathList name="xs" extend="$collect_xs.x" />`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+
+        // References to the old `assignNames` get updated
+        source = `<collect componentTypes="point" name="xs" source="panel" prop="x" assignNames="x1 x2 x3 x4 x5" /> $x1 $x4`;
+        correctSource = `<setup><collect componentType="point" name="collect_xs" from="$panel" /></setup><mathList name="xs" extend="$collect_xs.x" />$xs[1] $xs[4]`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
     it("can resolve the referent of a copy tag", async () => {
         source = `<math name="m">5</math><copy source="m" name="k" />$k`;
         correctSource = `<math name="m">5</math><math extend="$m" name="k" />$k`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it("can convert an unlinked copy tag", async () => {
+        source = `<math name="m">5</math><copy source="m" name="k" link="false" />$k`;
+        correctSource = `<math name="m">5</math><math copy="$m" name="k" />$k`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it("can convert a prop in a copy tag", async () => {
+        source = `<point name="P">(1,2)</point><copy source="P" prop="x" name="k" />$k`;
+        correctSource = `<point name="P">(1,2)</point><point extend="$P.x" name="k" />$k`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it("can convert a prop in a copy tag with assignNames", async () => {
+        source = `<point name="P">(1,2)</point><copy source="P" prop="x" assignNames="k" />$k`;
+        correctSource = `<point name="P">(1,2)</point><point extend="$P.x" name="k" />$k`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
@@ -258,5 +299,87 @@ describe("v06 to v07 update", () => {
     it("can reparse attributes", async () => {
         expect(toXml(reparseAttribute("t"))).toEqual("t");
         expect(toXml(reparseAttribute("$t"))).toEqual("$t");
+    });
+
+    it("map of sequence gets converted to a repeatForSequence", async () => {
+        source = `
+        <map assignNames="item1 item2" name="items">
+            <template newNamespace><math name="m">$v^2</math><number name="n">$i^2</number></template>
+            <sources alias="v" indexAlias="i">
+               <sequence from="3" to="4" />
+            </sources>
+        </map>`;
+        correctSource = `
+        <repeatForSequence from="3" to="4" name="items" itemName="v" indexName="i">
+            <math name="m">$v^2</math><number name="n">$i^2</number>
+        </repeatForSequence>`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+
+        // References to the old `assignNames` get updated
+        source = `
+        <map assignNames="item1 item2" name="items">
+            <template newNamespace><math name="m">$v^2</math><number name="n">$i^2</number></template>
+            <sources alias="v" indexAlias="i">
+               <sequence from="3" to="4" />
+            </sources>
+        </map>
+        $(item1/m) $(items[1]/n) $(items[2]/m) $(item2/n)`;
+        correctSource = `
+        <repeatForSequence from="3" to="4" name="items" itemName="v" indexName="i">
+            <math name="m">$v^2</math><number name="n">$i^2</number>
+        </repeatForSequence>
+        $items[1].m $items[1].n $items[2].m $items[2].n`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it("map of non-sequence gets converted to a repeat over a group", async () => {
+        source = `
+        <map assignNames="item1 item2" name="items">
+            <template newNamespace><math name="m">$v^2</math><number name="n">$i^2</number></template>
+            <sources alias="v" indexAlias="i">
+               <number>3</number><number>4</number>
+            </sources>
+        </map>`;
+        correctSource = `
+        <setup><group name="items_group"><number>3</number><number>4</number></group></setup>
+        <repeat for="$items_group" name="items" itemName="v" indexName="i">
+            <math name="m">$v^2</math><number name="n">$i^2</number>
+        </repeat>`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+
+        // References to the old `assignNames` get updated
+        source = `
+        <map assignNames="item1 item2" name="items">
+            <template newNamespace><math name="m">$v^2</math><number name="n">$i^2</number></template>
+            <sources alias="v" indexAlias="i">
+               <number>3</number><number>4</number>
+            </sources>
+        </map>
+        $(item1/m) $(items[1]/n) $(items[2]/m) $(item2/n)`;
+        correctSource = `
+        <setup><group name="items_group"><number>3</number><number>4</number></group></setup>
+        <repeat for="$items_group" name="items" itemName="v" indexName="i">
+            <math name="m">$v^2</math><number name="n">$i^2</number>
+        </repeat>
+        $items[1].m $items[1].n $items[2].m $items[2].n`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it("module gets converted to its new format", async () => {
+        source = `
+        <module name="m">
+            <setup>
+                <customAttribute componentType="number" attribute="a" assignNames="a" defaultValue="1" />
+            </setup>
+            <number name="twoa">2$a</number>
+        </module>`;
+        correctSource = `
+        <module name="m">
+            <moduleAttributes>
+                <number name="a">1</number>
+            </moduleAttributes>
+            <number name="twoa">2$a</number>
+        </module>`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 });
