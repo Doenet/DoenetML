@@ -1,5 +1,5 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
-import { doenetSchema } from "@doenet/static-assets";
+import { doenetSchema } from "@doenet/static-assets/schema";
 import { DastAttributeV6, DastElementV6 } from "@doenet/parser";
 import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";

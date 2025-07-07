@@ -21,7 +21,13 @@ export default defineConfig({
             formats: ["es"],
         },
         rollupOptions: {
-            external: ["@doenet/parser", "@doenet/static-assets"],
+            external: [
+                /@doenet\/parser/,
+                /@doenet\/static-assets/,
+                /vscode-languageserver-protocol/,
+                /vscode-languageserver/,
+                /vscode-jsonrpc/,
+            ],
         },
     },
 });

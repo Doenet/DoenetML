@@ -34,7 +34,11 @@ export default defineConfig({
         sourcemap: true,
         lib: {
             entry: {
-                index: "./src/index.ts",
+                "atom-database": "./src/atom-database.ts",
+                "entity-map": "./src/entity-map.ts",
+                "math-assets": "./src/math-assets.ts",
+                "relaxng-schema": "./src/relaxng-schema.ts",
+                schema: "./src/schema.ts",
             },
             formats: ["es"],
         },

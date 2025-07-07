@@ -22,13 +22,13 @@ import type {
     Node as UnistNode,
     Parent as UnistParent,
 } from "unist";
-import {
+import type {
     FunctionMacro as _FunctionMacro,
     Macro as _Macro,
     PathPart as _PathPart,
     PropIndex as _PropIndex,
 } from "./macros/types";
-import {
+import type {
     FunctionMacro as _FunctionMacroV6,
     Macro as _MacroV6,
     PathPart as _PathPartV6,

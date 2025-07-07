@@ -11,8 +11,20 @@
         "/dist"
     ],
     "exports": {
-        ".": {
-            "import": "./dist/index.js"
+        "./math-assets": {
+            "import": "./dist/math-assets.js"
+        },
+        "./relaxng-schema": {
+            "import": "./dist/relaxng-schema.js"
+        },
+        "./atom-database": {
+            "import": "./dist/atom-database.js"
+        },
+        "./entity-map": {
+            "import": "./dist/entity-map.js"
+        },
+        "./schema": {
+            "import": "./dist/schema.js"
         },
         "./*json": {
             "import": "./dist/generated/*json"

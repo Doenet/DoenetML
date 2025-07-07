@@ -2,11 +2,11 @@ import {
     DastElementV6,
     DastNodesV6,
     DastRootV6,
-    lezerToDastV6,
     stringToLezer,
     toXml,
     visit,
 } from "@doenet/parser";
+import { lezerToDastV6 } from "@doenet/parser/v06";
 import type { TreeCursor } from "@lezer/common";
 import { DoenetSourceObject, OffsetToPositionMap } from "./index";
 

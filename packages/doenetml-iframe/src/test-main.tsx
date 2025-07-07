@@ -48,19 +48,15 @@ function App() {
             />
 
             <h4>DoenetML {STANDALONE_VERSION} (locally-built copy):</h4>
-            <DoenetViewer
+            <DoenetEditor
                 doenetML={`<mathInput /><p><mathInput />Use this to test DoenetML<mathInput /></p>
                 <graph />
                 <graph />
                 <graph />
                <mathInput />`}
-                generatedVariantCallback={(variant: any) =>
-                    console.log("found variant", variant)
-                }
                 standaloneUrl={STANDALONE_BLOB_URL}
                 cssUrl={STANDALONE_CSS_BLOB_URL}
                 activityId={"a"}
-                docId={"2"}
             />
         </React.Fragment>
     );

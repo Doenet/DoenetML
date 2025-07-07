@@ -56,7 +56,7 @@ import type {
     MarkupContent,
     MarkedString,
 } from "vscode-languageserver-protocol";
-import { CompletionItemKind } from "vscode-languageserver-protocol";
+import { CompletionItemKind } from "vscode-languageserver-protocol/browser";
 import "./tooltip.css";
 
 const completionItemKindMap = Object.fromEntries(

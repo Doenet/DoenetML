@@ -9,7 +9,7 @@ import { VscRefresh, VscWarning, VscCloudDownload } from "react-icons/vsc";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./editor-viewer.css";
-import { prettyPrint } from "@doenet/parser";
+import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { DownloadMarkdownDropdownItem } from "./components/download-markdown";
 import { Provider } from "react-redux";
 import { store } from "../state/store";

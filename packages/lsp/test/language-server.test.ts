@@ -5,7 +5,7 @@ import "@vitest/web-worker";
 import LSPWorker from "../src/index?worker";
 import util from "util";
 import { initWorker } from "./utils/init-message-connection";
-import { Diagnostic } from "vscode-languageserver-protocol";
+import type { Diagnostic } from "vscode-languageserver-protocol";
 
 const origLog = console.log;
 console.log = (...args) => {
