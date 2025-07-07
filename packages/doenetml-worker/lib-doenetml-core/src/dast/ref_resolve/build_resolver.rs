@@ -266,17 +266,6 @@ impl Resolver {
                     break;
                 }
 
-                let parent_visibility = if Some(parent_idx_plus_1) == base_parent_idx_plus_1
-                    || parent_idx_plus_1 == 0
-                {
-                    // Always treat the flat fragment root or the flat root as visible
-                    Visibility::Visible
-                } else {
-                    Visibility::lookup_by_flat_node(
-                        flat_root_or_fragment.get_node(parent_idx_plus_1 - 1),
-                    )
-                };
-
                 // Add `element` to the name map of `parent`, creating an ambiguous reference
                 // if its name is already in the name map
                 descendant_names[parent_idx_plus_1]
@@ -297,6 +286,17 @@ impl Resolver {
                         descendant_names[parent_idx_plus_1]
                             .insert(name.clone(), Ref::Unique(element.idx));
                     });
+
+                let parent_visibility = if Some(parent_idx_plus_1) == base_parent_idx_plus_1
+                    || parent_idx_plus_1 == 0
+                {
+                    // Always treat the flat fragment root or the flat root as visible
+                    Visibility::Visible
+                } else {
+                    Visibility::lookup_by_flat_node(
+                        flat_root_or_fragment.get_node(parent_idx_plus_1 - 1),
+                    )
+                };
 
                 // if parent's children are invisible to grandparents, do not add `element` (which is the child or its descendant)
                 // to the name map of the parent's parent or more distant ancestors.

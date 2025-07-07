@@ -20,10 +20,10 @@ type RemoteSource = {
 };
 
 /**
- * Find any `copy` attribute that is not accompanied by a `extend` attribute and is not a reference
- * and attempt to look up its associated by passing its value to `retrieveDoenetML`.
+ * Find any `copy` attribute that is not accompanied by a `extend` attribute and is not a reference.
+ * Attempt to look up its associated DoenetML by passing its value to `retrieveDoenetML`.
  * If the returned DoenetML matches the type of the parent, add a `_externalContent` to the children of the parent
- * and add the new dast children to the `_externalContent`.
+ * and add the new dast children parsed from the retrieved DoenetML to the `_externalContent`.
  */
 export async function expandExternalReferences(
     dast: DastRoot,
@@ -46,15 +46,27 @@ export async function expandExternalReferences(
              * adding the resulting promise and meta-data to `promiseStack`
              */
             const findExternalCopyAttributes = (node: DastNodes) => {
-                if (
-                    !isDastElement(node) ||
-                    node.attributes.extend ||
-                    !node.attributes.copy
-                ) {
+                if (!isDastElement(node)) {
                     return;
                 }
 
-                const sourceUri = toXml(node.attributes.copy.children);
+                let copyAttribute: DastAttribute | null = null;
+
+                for (const attrName in node.attributes) {
+                    if (attrName.toLowerCase() === "extend") {
+                        // If the component as an `extend` attribute, we ignore it
+                        return;
+                    } else if (attrName.toLowerCase() === "copy") {
+                        // Note if a component has multiple copy attributes, we just use the last one encountered
+                        copyAttribute = node.attributes[attrName];
+                    }
+                }
+
+                if (copyAttribute === null) {
+                    return;
+                }
+
+                const sourceUri = toXml(copyAttribute.children);
 
                 // If copy attribute is a reference, skip
                 if (sourceUri.charAt(0) === "$") {
@@ -65,7 +77,7 @@ export async function expandExternalReferences(
                     sourceUri,
                     source: retrieveDoenetML(sourceUri),
                     parent: node,
-                    sourceAttribute: node.attributes.copy,
+                    sourceAttribute: copyAttribute,
                     recursionLevel: counter,
                 });
             };
@@ -78,6 +90,8 @@ export async function expandExternalReferences(
             // and recurse on the `_externalContent`
             let unresolved: RemoteSource | undefined;
             while ((unresolved = promiseStack.pop())) {
+                const parent = unresolved.parent;
+
                 if (unresolved.recursionLevel > maxRecursion) {
                     const dastError: DastError = {
                         type: "error",
@@ -85,7 +99,6 @@ export async function expandExternalReferences(
                         position: unresolved.sourceAttribute.position,
                     };
 
-                    const parent = unresolved.parent;
                     parent.children.unshift(dastError);
 
                     continue;
@@ -101,14 +114,12 @@ export async function expandExternalReferences(
                         message: `Unable to retrieve DoenetML from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}"`,
                         position: unresolved.sourceAttribute.position,
                     };
-                    const parent = unresolved.parent;
                     parent.children.unshift(dastError);
 
                     continue;
                 }
 
                 const externalDast = lezerToDast(externalDoenetML);
-                const parent = unresolved.parent;
 
                 // In case we are recursing, a component may have been turned into an `_externalContent`,
                 // in which case we want the type of its parent, which is stored in its `forType` attribute.
@@ -163,7 +174,6 @@ export async function expandExternalReferences(
                         message: `Invalid DoenetML retrieved from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}": it did not match the component type "${parentType}"`,
                         position: unresolved.sourceAttribute.position,
                     };
-                    const parent = unresolved.parent;
                     parent.children.unshift(dastError);
 
                     continue;

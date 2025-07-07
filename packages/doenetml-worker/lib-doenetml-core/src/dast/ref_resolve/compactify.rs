@@ -1,4 +1,4 @@
-use super::{NodeParent, NodeResolverData, Ref, Resolver};
+use super::{NodeParent, NodeResolverData, ParentSearchAlgorithm, Ref, Resolver};
 
 impl Resolver {
     /// Compactify the resolver so that it corresponds to the new indices
@@ -36,7 +36,7 @@ impl Resolver {
                 if idx_plus_1 == 0 {
                     NodeResolverData {
                         node_parent: NodeParent::None,
-                        parent_search_algorithm: super::ParentSearchAlgorithm::DontSearchParent,
+                        parent_search_algorithm: ParentSearchAlgorithm::DontSearchParent,
                         name_map,
                         index_resolutions,
                     }

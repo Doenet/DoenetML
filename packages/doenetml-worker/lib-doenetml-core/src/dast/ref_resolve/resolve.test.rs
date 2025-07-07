@@ -223,7 +223,7 @@ fn elements_with_children_invisible_to_their_grandparents() {
 
     let resolver = Resolver::from_flat_root(&flat_root);
 
-    // Since a `<option>` component has invisible children,
+    // Since an `<option>` component has invisible children,
     // a search for the name `z` starting at `a_idx` fails.
     let referent = resolver.resolve(make_path(["z"]), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
@@ -273,7 +273,7 @@ fn elements_invisible_to_grandparents() {
 
     let resolver = Resolver::from_flat_root(&flat_root);
 
-    // Since a `<_externalContent>` is invisible to grandparents,
+    // Since an `<_externalContent>` is invisible to grandparents,
     // a search for the names `y` or `z` starting at `a_idx` fails.
     let referent = resolver.resolve(make_path(["y"]), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
