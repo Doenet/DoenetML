@@ -285,4 +285,71 @@ $fi.iterates
                 cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: 2, 2");
             });
     });
+
+    it("render commas around repeat inside document", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<mathList name="mL">a b c</mathList>
+
+<repeat name="doublingLoop" for="$mL" itemName="v">
+   <math>2 $v</math>
+</repeat>
+
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(".doenet-viewer").should(
+            "contain.text",
+            "a, b, c\n\n2a, 2b, 2c",
+        );
+    });
+
+    it("render commas around repeat inside section", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<section name="s">
+    <mathList name="mL">a b c</mathList>
+
+    <repeat name="doublingLoop" for="$mL" itemName="v">
+    <math>2 $v</math>
+    </repeat>
+</section>
+
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#s")).should("contain.text", "a, b, c\n\n    2a, 2b, 2c");
+    });
+
+    it("render commas around repeat inside paragraph", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<p name="p">
+    <mathList name="mL">a b c</mathList>
+
+    <repeat name="doublingLoop" for="$mL" itemName="v">
+    <math>2 $v</math>
+    </repeat>
+</p>
+
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#p")).should("contain.text", "a, b, c\n\n    2a, 2b, 2c");
+    });
 });
