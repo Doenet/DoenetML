@@ -302,6 +302,8 @@ export default React.memo(function Section(props) {
         // except for possibly a beginning introduction or ending conclusion,
         // as a list.
 
+        children = children.filter((child) => child !== null);
+
         const numChildren = children.length;
         let firstInd = SVs.startsWithIntroduction ? 1 : 0;
         let lastInd = SVs.endsWithConclusion
