@@ -302,6 +302,8 @@ export default React.memo(function Section(props) {
         // except for possibly a beginning introduction or ending conclusion,
         // as a list.
 
+        children = children.filter((child) => child !== null);
+
         const numChildren = children.length;
         let firstInd = SVs.startsWithIntroduction ? 1 : 0;
         let lastInd = SVs.endsWithConclusion
@@ -316,12 +318,9 @@ export default React.memo(function Section(props) {
 
         newChildren.push(
             <ol key="list">
-                {children
-                    .slice(firstInd, lastInd + 1)
-                    .filter((child) => child !== null)
-                    .map((child) => (
-                        <li key={child.key}>{child}</li>
-                    ))}
+                {children.slice(firstInd, lastInd + 1).map((child) => (
+                    <li key={child.key}>{child}</li>
+                ))}
             </ol>,
         );
 

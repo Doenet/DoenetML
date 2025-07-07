@@ -1489,4 +1489,106 @@ describe("Problem Tag Tests", function () {
             cy.get(cesc("#ca")).should("have.text", "1");
         });
     });
+
+    it("tasks render as list", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problem name="problem">
+            <introduction>List of tasks</introduction>
+            <task>Do this</task>
+            <task>Do that</task>
+            <conclusion>Finished</conclusion>
+        </problem>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#problem")).should(
+            "contain.text",
+            "Problem 1List of tasks Do this  Do that Finished",
+        );
+
+        cy.get(cesc("#problem") + " ol > li:nth-child(1)").should(
+            "have.text",
+            " Do this ",
+        );
+
+        cy.get(cesc("#problem") + " ol > li:nth-child(2)").should(
+            "have.text",
+            " Do that ",
+        );
+    });
+
+    it("parts render as list", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problem name="problem">
+            <introduction>List of parts</introduction>
+            <part>Do this</part>
+            <part>Do that</part>
+            <conclusion>Finished</conclusion>
+        </problem>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#problem")).should(
+            "contain.text",
+            "Problem 1List of parts Do this  Do that Finished",
+        );
+
+        cy.get(cesc("#problem") + " ol > li:nth-child(1)").should(
+            "have.text",
+            " Do this ",
+        );
+
+        cy.get(cesc("#problem") + " ol > li:nth-child(2)").should(
+            "have.text",
+            " Do that ",
+        );
+    });
+
+    it("problems render children as list", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problem">
+            <introduction>List of problems</introduction>
+            <part>Do this</part>
+            <part>Do that</part>
+            <conclusion>Finished</conclusion>
+        </problems>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#problem")).should(
+            "contain.text",
+            "Problems 1List of problems Do this  Do that Finished",
+        );
+
+        cy.get(cesc("#problem") + " ol > li:nth-child(1)").should(
+            "have.text",
+            " Do this ",
+        );
+
+        cy.get(cesc("#problem") + " ol > li:nth-child(2)").should(
+            "have.text",
+            " Do that ",
+        );
+    });
 });
