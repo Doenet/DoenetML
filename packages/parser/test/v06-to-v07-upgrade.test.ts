@@ -202,7 +202,7 @@ describe("v06 to v07 update", () => {
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
-    it.skip("can convert an unlinked copy tag", async () => {
+    it("can convert an unlinked copy tag", async () => {
         source = `<math name="m">5</math><copy source="m" name="k" link="false" />$k`;
         correctSource = `<math name="m">5</math><math copy="$m" name="k" />$k`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);

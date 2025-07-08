@@ -83,14 +83,25 @@ export const upgradeCopySyntax: Plugin<[], DastRoot, DastRoot> = () => {
             try {
                 const referentType = await referentPromise;
 
+                const targetTag =
+                    toXml(
+                        node.attributes["link"]?.children || [],
+                    ).toLowerCase() === "false"
+                        ? "copy"
+                        : "extend";
+                // If there is a `link` attribute, delete it as it is no longer needed
+                if (node.attributes["link"]) {
+                    delete node.attributes["link"];
+                }
+
                 // Rename the `copy` tag to the same type as the referent
-                renameAttrInPlace(node, "source", "extend");
+                renameAttrInPlace(node, "source", targetTag);
                 // Make sure that the `extend` attribute is prefixed with `$`
                 const extendName = toXml(
-                    node.attributes["extend"]?.children,
+                    node.attributes[targetTag]?.children,
                 ).trim();
                 if (!extendName.startsWith("$")) {
-                    node.attributes["extend"].children = reparseAttribute(
+                    node.attributes[targetTag].children = reparseAttribute(
                         `$${extendName}`,
                     );
                 }
