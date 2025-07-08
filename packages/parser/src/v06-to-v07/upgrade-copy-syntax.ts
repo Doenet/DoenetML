@@ -55,18 +55,38 @@ export const upgradeCopySyntax: Plugin<[], DastRoot, DastRoot> = () => {
         }[] = [];
 
         visit(tree, (node) => {
-            if (!isDastElement(node)) {
+            if (!isDastElement(node) || node.name !== "copy") {
                 return;
             }
-            if (node.name !== "copy") {
-                // No affected attributes, nothing to do
-                return;
-            }
-            const referentName = toXml(node.attributes["source"]?.children);
+            let referentName = toXml(node.attributes["source"]?.children);
             if (!referentName) {
                 // No source, nothing to do
                 return;
             }
+            // There may be a `prop` attribute which specifies which prop from `source` to copy.
+            // In the new syntax, this is always accessed with a `.<prop name>` suffix.
+            if (node.attributes["prop"]) {
+                const propName = toXml(node.attributes["prop"].children).trim();
+                if (propName) {
+                    referentName += `.${propName}`;
+                }
+                // Remove the `prop` attribute, as it is no longer needed
+                delete node.attributes["prop"];
+            }
+
+            // If there is an `assignNames` attribute and no `name` attribute,
+            // then `assignNames` becomes `name`.
+            if (node.attributes["assignNames"]) {
+                if (node.attributes["name"]) {
+                    file.message(
+                        `The <copy> tag with source="${referentName}" has both "name" and "assignNames" attributes. "name" will be ignored.`,
+                        node.position?.start,
+                    );
+                    delete node.attributes["name"];
+                }
+                renameAttrInPlace(node, "assignNames", "name");
+            }
+
             referenced.push({
                 node,
                 referentType: findReferentType(core, referentName),
@@ -75,7 +95,7 @@ export const upgradeCopySyntax: Plugin<[], DastRoot, DastRoot> = () => {
         });
 
         // Go through everything we've found and match the references up to their referent type
-        for (const {
+        for (let {
             node,
             referentType: referentPromise,
             referentName,
@@ -97,14 +117,11 @@ export const upgradeCopySyntax: Plugin<[], DastRoot, DastRoot> = () => {
                 // Rename the `copy` tag to the same type as the referent
                 renameAttrInPlace(node, "source", targetTag);
                 // Make sure that the `extend` attribute is prefixed with `$`
-                const extendName = toXml(
-                    node.attributes[targetTag]?.children,
-                ).trim();
-                if (!extendName.startsWith("$")) {
-                    node.attributes[targetTag].children = reparseAttribute(
-                        `$${extendName}`,
-                    );
+                if (!referentName.startsWith("$")) {
+                    referentName = `$${referentName}`;
                 }
+                node.attributes[targetTag].children =
+                    reparseAttribute(referentName);
                 node.name = referentType;
             } catch (e) {
                 file.message(

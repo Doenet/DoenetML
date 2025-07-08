@@ -208,15 +208,15 @@ describe("v06 to v07 update", () => {
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
-    it.skip("can convert a prop in a copy tag", async () => {
+    it("can convert a prop in a copy tag", async () => {
         source = `<point name="P">(1,2)</point><copy source="P" prop="x" name="k" />$k`;
-        correctSource = `<point name="P">(1,2)</point><point extend="$P.x" name="k" />$k`;
+        correctSource = `<point name="P">(1,2)</point><math extend="$P.x" name="k" />$k`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
-    it.skip("can convert a prop in a copy tag with assignNames", async () => {
+    it("can convert a prop in a copy tag with assignNames", async () => {
         source = `<point name="P">(1,2)</point><copy source="P" prop="x" assignNames="k" />$k`;
-        correctSource = `<point name="P">(1,2)</point><point extend="$P.x" name="k" />$k`;
+        correctSource = `<point name="P">(1,2)</point><math extend="$P.x" name="k" />$k`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
