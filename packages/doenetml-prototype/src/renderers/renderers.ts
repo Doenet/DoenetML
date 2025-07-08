@@ -8,6 +8,7 @@ import {
     Math,
     P,
     PointInGraph,
+    PointInText,
     Problem,
     Division,
     Text,
@@ -21,10 +22,9 @@ import {
     Li,
     Ul,
     ChoiceInput,
+    Em,
 } from "./doenet";
 import * as PretextComponent from "./pretext-xml";
-import { PointInText } from "./doenet/text-point";
-import { Em } from "./doenet/em";
 
 export type CommonProps = {
     monitorVisibility?: boolean;
