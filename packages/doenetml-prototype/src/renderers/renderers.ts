@@ -24,6 +24,7 @@ import {
 } from "./doenet";
 import * as PretextComponent from "./pretext-xml";
 import { PointInText } from "./doenet/text-point";
+import { Em } from "./doenet/em";
 
 export type CommonProps = {
     monitorVisibility?: boolean;
@@ -85,6 +86,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     ol: { component: Ol, passthroughChildren: true },
     ul: { component: Ul, passthroughChildren: true },
     li: { component: Li, passthroughChildren: true },
+    em: { component: Em, passthroughChildren: true },
 
     // For PreTeXt compatibility
     pretext: { component: _Fragment, passthroughChildren: true },
