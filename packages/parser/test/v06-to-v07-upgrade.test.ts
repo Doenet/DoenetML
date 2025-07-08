@@ -77,7 +77,7 @@ describe("v06 to v07 update", () => {
         ).toEqual(correctSource);
     });
 
-    it.skip("copy source slashes get turned into dots", async () => {
+    it("copy source slashes get turned into dots", async () => {
         source = `<copy source="foo/bar[3][4][$(b/c).d].baz"/>`;
         correctSource = `<copy source="foo.bar[3][4][$b.c.d].baz" />`;
         expect(
