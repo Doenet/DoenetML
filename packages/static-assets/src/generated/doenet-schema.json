@@ -18437,7 +18437,8 @@
                         "operand",
                         "function",
                         "functionargument",
-                        "numoperands"
+                        "numoperands",
+                        "recursiveoperands"
                     ]
                 },
                 {
@@ -56015,16 +56016,16 @@
                     "name": "copy"
                 },
                 {
-                    "name": "xmin"
+                    "name": "xMin"
                 },
                 {
-                    "name": "xmax"
+                    "name": "xMax"
                 },
                 {
-                    "name": "ymin"
+                    "name": "yMin"
                 },
                 {
-                    "name": "ymax"
+                    "name": "yMax"
                 },
                 {
                     "name": "width"
@@ -56344,22 +56345,22 @@
                     "isArray": false
                 },
                 {
-                    "name": "xmin",
+                    "name": "xMin",
                     "type": "number",
                     "isArray": false
                 },
                 {
-                    "name": "xmax",
+                    "name": "xMax",
                     "type": "number",
                     "isArray": false
                 },
                 {
-                    "name": "ymin",
+                    "name": "yMin",
                     "type": "number",
                     "isArray": false
                 },
                 {
-                    "name": "ymax",
+                    "name": "yMax",
                     "type": "number",
                     "isArray": false
                 },
@@ -72954,10 +72955,10 @@
                     "name": "copy"
                 },
                 {
-                    "name": "xmin"
+                    "name": "xMin"
                 },
                 {
-                    "name": "xmax"
+                    "name": "xMax"
                 },
                 {
                     "name": "width"
@@ -73015,12 +73016,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "xmin",
+                    "name": "xMin",
                     "type": "number",
                     "isArray": false
                 },
                 {
-                    "name": "xmax",
+                    "name": "xMax",
                     "type": "number",
                     "isArray": false
                 },

@@ -255,21 +255,21 @@ export default React.memo(function Image(props) {
                 dragged.current = true;
             }
 
-            let [xmin, ymax, xmax, ymin] = board.getBoundingBox();
+            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
             let xminAdjusted =
-                xmin +
-                0.01 * (xmax - xmin) -
+                xMin +
+                0.01 * (xMax - xMin) -
                 currentOffset.current[0] -
                 currentSize.current[0];
             let xmaxAdjusted =
-                xmax - 0.01 * (xmax - xmin) - currentOffset.current[0];
+                xMax - 0.01 * (xMax - xMin) - currentOffset.current[0];
             let yminAdjusted =
-                ymin +
-                0.01 * (ymax - ymin) -
+                yMin +
+                0.01 * (yMax - yMin) -
                 currentOffset.current[1] -
                 currentSize.current[1];
             let ymaxAdjusted =
-                ymax - 0.01 * (ymax - ymin) - currentOffset.current[1];
+                yMax - 0.01 * (yMax - yMin) - currentOffset.current[1];
 
             if (viaPointer) {
                 // the reason we calculate point position with this algorithm,

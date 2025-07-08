@@ -50,12 +50,12 @@ export default React.memo(function Pegboard(props) {
     }, []);
 
     function createPegboardJXG() {
-        let [xmin, ymax, xmax, ymin] = board.getBoundingBox();
+        let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
 
-        let xind1 = (xmin - xoffset.current) / dx.current;
-        let xind2 = (xmax - xoffset.current) / dx.current;
-        let yind1 = (ymin - yoffset.current) / dy.current;
-        let yind2 = (ymax - yoffset.current) / dy.current;
+        let xind1 = (xMin - xoffset.current) / dx.current;
+        let xind2 = (xMax - xoffset.current) / dx.current;
+        let yind1 = (yMin - yoffset.current) / dy.current;
+        let yind2 = (yMax - yoffset.current) / dy.current;
 
         // Note: use round from mathjs so that it rounds -0.5 to -1, not 0.
         let minXind = me.math.round(Math.min(xind1, xind2) + 1);
@@ -92,12 +92,12 @@ export default React.memo(function Pegboard(props) {
         }
 
         board.on("boundingbox", () => {
-            let [xmin, ymax, xmax, ymin] = board.getBoundingBox();
+            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
 
-            let xind1 = (xmin - xoffset.current) / dx.current;
-            let xind2 = (xmax - xoffset.current) / dx.current;
-            let yind1 = (ymin - yoffset.current) / dy.current;
-            let yind2 = (ymax - yoffset.current) / dy.current;
+            let xind1 = (xMin - xoffset.current) / dx.current;
+            let xind2 = (xMax - xoffset.current) / dx.current;
+            let yind1 = (yMin - yoffset.current) / dy.current;
+            let yind2 = (yMax - yoffset.current) / dy.current;
 
             // Note: use round from mathjs so that it rounds -0.5 to -1, not 0.
             let minXind = me.math.round(Math.min(xind1, xind2) + 1);
@@ -218,12 +218,12 @@ export default React.memo(function Pegboard(props) {
         if (pegboardJXG.current === null) {
             createPegboardJXG();
         } else {
-            let [xmin, ymax, xmax, ymin] = board.getBoundingBox();
+            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
 
-            let xind1 = (xmin - xoffset.current) / dx.current;
-            let xind2 = (xmax - xoffset.current) / dx.current;
-            let yind1 = (ymin - yoffset.current) / dy.current;
-            let yind2 = (ymax - yoffset.current) / dy.current;
+            let xind1 = (xMin - xoffset.current) / dx.current;
+            let xind2 = (xMax - xoffset.current) / dx.current;
+            let yind1 = (yMin - yoffset.current) / dy.current;
+            let yind2 = (yMax - yoffset.current) / dy.current;
 
             // Note: use round from mathjs so that it rounds -0.5 to -1, not 0.
             let minXind = me.math.round(Math.min(xind1, xind2) + 1);

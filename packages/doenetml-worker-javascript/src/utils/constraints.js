@@ -80,7 +80,7 @@ export function returnConstraintGraphInfoDefinitions() {
                 graphAncestor: {
                     dependencyType: "ancestor",
                     componentType: "graph",
-                    variableNames: ["xmin", "xmax", "ymin", "ymax"],
+                    variableNames: ["xMin", "xMax", "yMin", "yMax"],
                 },
                 shadowedConstraints: {
                     dependencyType: "shadowSource",
@@ -122,10 +122,10 @@ export function returnConstraintGraphInfoDefinitions() {
                     }
                 }
 
-                let graphXmin = dependencyValues.graphAncestor.stateValues.xmin;
-                let graphXmax = dependencyValues.graphAncestor.stateValues.xmax;
-                let graphYmin = dependencyValues.graphAncestor.stateValues.ymin;
-                let graphYmax = dependencyValues.graphAncestor.stateValues.ymax;
+                let graphXmin = dependencyValues.graphAncestor.stateValues.xMin;
+                let graphXmax = dependencyValues.graphAncestor.stateValues.xMax;
+                let graphYmin = dependencyValues.graphAncestor.stateValues.yMin;
+                let graphYmax = dependencyValues.graphAncestor.stateValues.yMax;
 
                 if (
                     [graphXmin, graphXmax, graphYmin, graphYmax].every(

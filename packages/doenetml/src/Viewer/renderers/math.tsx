@@ -238,7 +238,7 @@ export default React.memo(function MathComponent(
                 dragged.current = true;
             }
 
-            let [xmin, ymax, xmax, ymin] = board.getBoundingBox();
+            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
             let width = newMathJXG.size[0] / board.unitX;
             let height = newMathJXG.size[1] / board.unitY;
 
@@ -258,10 +258,10 @@ export default React.memo(function MathComponent(
                 offsety = -height;
             }
 
-            let xminAdjusted = xmin + 0.04 * (xmax - xmin) - offsetx - width;
-            let xmaxAdjusted = xmax - 0.04 * (xmax - xmin) - offsetx;
-            let yminAdjusted = ymin + 0.04 * (ymax - ymin) - offsety - height;
-            let ymaxAdjusted = ymax - 0.04 * (ymax - ymin) - offsety;
+            let xminAdjusted = xMin + 0.04 * (xMax - xMin) - offsetx - width;
+            let xmaxAdjusted = xMax - 0.04 * (xMax - xMin) - offsetx;
+            let yminAdjusted = yMin + 0.04 * (yMax - yMin) - offsety - height;
+            let ymaxAdjusted = yMax - 0.04 * (yMax - yMin) - offsety;
 
             if (viaPointer && pointAtDown.current && pointerAtDown.current) {
                 // the reason we calculate point position with this algorithm,
