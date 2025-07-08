@@ -37,7 +37,7 @@ async function test_no_overwritten_attributes({
     expect(
         stateVariables[
             await resolvePathToNodeIdx(`${parentPrefix}${graphNamePostfix}`)
-        ].stateValues.xmax,
+        ].stateValues.xMax,
     ).eq(5);
     expect(
         stateVariables[
@@ -60,7 +60,7 @@ async function test_no_overwritten_attributes({
     expect(
         stateVariables[
             await resolvePathToNodeIdx(`${parentPrefix}2${graphNamePostfix}`)
-        ].stateValues.xmax,
+        ].stateValues.xMax,
     ).eq(5);
     expect(
         stateVariables[
@@ -83,7 +83,7 @@ async function test_no_overwritten_attributes({
     expect(
         stateVariables[
             await resolvePathToNodeIdx(`${parentPrefix}3${graphNamePostfix}`)
-        ].stateValues.xmax,
+        ].stateValues.xMax,
     ).eq(5);
     expect(
         stateVariables[
@@ -112,10 +112,10 @@ async function test_linked_copy_overwrites_attributes({
     resolvePathToNodeIdx: ResolvePathToNodeIdx;
 }) {
     let stateVariables = await core.returnAllStateVariables(false, true);
-    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmin).eq(
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xMin).eq(
         -10,
     );
-    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmax).eq(
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xMax).eq(
         5,
     );
     expect(
@@ -138,10 +138,10 @@ async function test_linked_copy_overwrites_attributes({
     ).eq(1);
 
     expect(
-        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmin,
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xMin,
     ).eq(-3);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmax,
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xMax,
     ).eq(7);
     expect(
         stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues.xs.map(
@@ -163,10 +163,10 @@ async function test_linked_copy_overwrites_attributes({
     ).eq(3);
 
     expect(
-        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmin,
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xMin,
     ).eq(-3);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmax,
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xMax,
     ).eq(7);
     expect(
         stateVariables[await resolvePathToNodeIdx("g3.A")].stateValues.xs.map(
@@ -197,13 +197,13 @@ async function test_unlinked_copy_overwrites_attributes({
 }) {
     // TODO: overwriting attributes of unlinked copy of linked copy isn't working as we'd like.
     let stateVariables = await core.returnAllStateVariables(false, true);
-    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmin).eq(
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xMin).eq(
         -10,
     );
-    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmax).eq(
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xMax).eq(
         5,
     );
-    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.ymax).eq(
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.yMax).eq(
         10,
     );
     expect(
@@ -226,13 +226,13 @@ async function test_unlinked_copy_overwrites_attributes({
     ).eqls(1);
 
     expect(
-        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmax,
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xMax,
     ).eq(5);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmin,
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xMin,
     ).eq(-3);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.ymax,
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.yMax,
     ).eq(10);
     expect(
         stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues.xs.map(
@@ -254,13 +254,13 @@ async function test_unlinked_copy_overwrites_attributes({
     ).eqls(1);
 
     expect(
-        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmax,
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xMax,
     ).eq(7);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmin,
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xMin,
     ).eq(-5);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.ymax,
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.yMax,
     ).eq(8);
     expect(
         stateVariables[await resolvePathToNodeIdx("g3.A")].stateValues.xs.map(
