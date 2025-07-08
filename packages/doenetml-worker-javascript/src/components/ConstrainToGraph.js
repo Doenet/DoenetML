@@ -71,27 +71,27 @@ export default class ConstrainToGraph extends ConstraintComponent {
                                 return {};
                             }
 
-                            let xmin =
+                            let xMin =
                                 dependencyValues.constraintAncestor.stateValues
                                     .graphXmin;
-                            let xmax =
+                            let xMax =
                                 dependencyValues.constraintAncestor.stateValues
                                     .graphXmax;
 
                             if (
                                 !(
-                                    Number.isFinite(xmin) &&
-                                    Number.isFinite(xmax)
+                                    Number.isFinite(xMin) &&
+                                    Number.isFinite(xMax)
                                 )
                             ) {
                                 return {};
                             }
 
-                            let lowerBound = xmin;
-                            let upperBound = xmax;
+                            let lowerBound = xMin;
+                            let upperBound = xMax;
                             let buffer = dependencyValues.buffer;
                             if (buffer > 0) {
-                                let bufferAdjust = buffer * (xmax - xmin);
+                                let bufferAdjust = buffer * (xMax - xMin);
                                 lowerBound += bufferAdjust;
                                 upperBound -= bufferAdjust;
                             }
@@ -115,27 +115,27 @@ export default class ConstrainToGraph extends ConstraintComponent {
                                 return {};
                             }
 
-                            let ymin =
+                            let yMin =
                                 dependencyValues.constraintAncestor.stateValues
                                     .graphYmin;
-                            let ymax =
+                            let yMax =
                                 dependencyValues.constraintAncestor.stateValues
                                     .graphYmax;
 
                             if (
                                 !(
-                                    Number.isFinite(ymin) &&
-                                    Number.isFinite(ymax)
+                                    Number.isFinite(yMin) &&
+                                    Number.isFinite(yMax)
                                 )
                             ) {
                                 return {};
                             }
 
-                            let lowerBound = ymin;
-                            let upperBound = ymax;
+                            let lowerBound = yMin;
+                            let upperBound = yMax;
                             let buffer = dependencyValues.buffer;
                             if (buffer > 0) {
-                                let bufferAdjust = buffer * (ymax - ymin);
+                                let bufferAdjust = buffer * (yMax - yMin);
                                 lowerBound += bufferAdjust;
                                 upperBound -= bufferAdjust;
                             }

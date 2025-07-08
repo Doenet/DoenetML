@@ -15,18 +15,18 @@ export function getEffectiveBoundingBox(board: JXGObject) {
     let flippedX = false;
     let flippedY = false;
 
-    let [xmin, ymax, xmax, ymin] = board.getBoundingBox();
+    let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
 
-    if (xmax < xmin) {
+    if (xMax < xMin) {
         flippedX = true;
-        [xmax, xmin] = [xmin, xmax];
+        [xMax, xMin] = [xMin, xMax];
     }
-    if (ymax < ymin) {
+    if (yMax < yMin) {
         flippedY = true;
-        [ymax, ymin] = [ymin, ymax];
+        [yMax, yMin] = [yMin, yMax];
     }
 
-    return { flippedX, flippedY, xmin, xmax, ymin, ymax };
+    return { flippedX, flippedY, xMin, xMax, yMin, yMax };
 }
 
 export function getGraphCornerWithBuffer(
@@ -34,19 +34,19 @@ export function getGraphCornerWithBuffer(
     direction: [number, number],
     buffer = 0.01,
 ): [number, number] {
-    let { flippedX, flippedY, xmin, xmax, ymin, ymax } =
+    let { flippedX, flippedY, xMin, xMax, yMin, yMax } =
         getEffectiveBoundingBox(board);
 
     let xSign = flippedX ? -1 : 1;
     let ySign = flippedY ? -1 : 1;
 
-    let xscale = xmax - xmin;
-    let yscale = ymax - ymin;
+    let xscale = xMax - xMin;
+    let yscale = yMax - yMin;
 
-    let xminAdjusted = xmin + xscale * buffer;
-    let xmaxAdjusted = xmax - xscale * buffer;
-    let yminAdjusted = ymin + yscale * buffer;
-    let ymaxAdjusted = ymax - yscale * buffer;
+    let xminAdjusted = xMin + xscale * buffer;
+    let xmaxAdjusted = xMax - xscale * buffer;
+    let yminAdjusted = yMin + yscale * buffer;
+    let ymaxAdjusted = yMax - yscale * buffer;
 
     let x = direction[0] * xSign === 1 ? xmaxAdjusted : xminAdjusted;
     let y = direction[1] * ySign === 1 ? ymaxAdjusted : yminAdjusted;

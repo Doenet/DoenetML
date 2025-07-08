@@ -358,7 +358,7 @@ export default class CobwebPolyline extends Polyline {
                     graphAncestor: {
                         dependencyType: "ancestor",
                         componentType: "graph",
-                        variableNames: ["xmin", "xmax", "ymin", "ymax"],
+                        variableNames: ["xMin", "xMax", "yMin", "yMax"],
                     },
                     defaultPoint: {
                         dependencyType: "attributeComponent",
@@ -385,21 +385,21 @@ export default class CobwebPolyline extends Polyline {
                             }
                             if (globalDependencyValues.graphAncestor) {
                                 if (arrayIndices[1] === 0) {
-                                    let xmin =
+                                    let xMin =
                                         globalDependencyValues.graphAncestor
-                                            .stateValues.xmin;
-                                    let xmax =
+                                            .stateValues.xMin;
+                                    let xMax =
                                         globalDependencyValues.graphAncestor
-                                            .stateValues.xmax;
-                                    return me.fromAst((xmin + xmax) / 2);
+                                            .stateValues.xMax;
+                                    return me.fromAst((xMin + xMax) / 2);
                                 } else if (arrayIndices[1] === 1) {
-                                    let ymin =
+                                    let yMin =
                                         globalDependencyValues.graphAncestor
-                                            .stateValues.ymin;
-                                    let ymax =
+                                            .stateValues.yMin;
+                                    let yMax =
                                         globalDependencyValues.graphAncestor
-                                            .stateValues.ymax;
-                                    return me.fromAst((ymin + ymax) / 2);
+                                            .stateValues.yMax;
+                                    return me.fromAst((yMin + yMax) / 2);
                                 }
                             }
                             return me.fromAst(0);
