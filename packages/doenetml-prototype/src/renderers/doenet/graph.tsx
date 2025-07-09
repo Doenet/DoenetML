@@ -273,9 +273,9 @@ function NavButtons({ board }: { board: JSG.Board | null }) {
                     className="button center"
                     title="Center"
                     onClick={() => {
-                        const [xmin, ymax, xmax, ymin] = board.getBoundingBox();
-                        const width = xmax - xmin;
-                        const height = ymax - ymin;
+                        const [xMin, yMax, xMax, yMin] = board.getBoundingBox();
+                        const width = xMax - xMin;
+                        const height = yMax - yMin;
 
                         board.setBoundingBox([
                             -width / 2,

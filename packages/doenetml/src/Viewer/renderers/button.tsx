@@ -170,7 +170,7 @@ export default React.memo(function ButtonComponent(
                 dragged.current = true;
             }
 
-            let [xmin, ymax, xmax, ymin] = board.getBoundingBox();
+            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
             let width = newButtonJXG.size[0] / board.unitX;
             let height = newButtonJXG.size[1] / board.unitY;
 
@@ -190,10 +190,10 @@ export default React.memo(function ButtonComponent(
                 offsety = -height;
             }
 
-            let xminAdjusted = xmin + 0.04 * (xmax - xmin) - offsetx - width;
-            let xmaxAdjusted = xmax - 0.04 * (xmax - xmin) - offsetx;
-            let yminAdjusted = ymin + 0.04 * (ymax - ymin) - offsety - height;
-            let ymaxAdjusted = ymax - 0.04 * (ymax - ymin) - offsety;
+            let xminAdjusted = xMin + 0.04 * (xMax - xMin) - offsetx - width;
+            let xmaxAdjusted = xMax - 0.04 * (xMax - xMin) - offsetx;
+            let yminAdjusted = yMin + 0.04 * (yMax - yMin) - offsety - height;
+            let ymaxAdjusted = yMax - 0.04 * (yMax - yMin) - offsety;
 
             if (viaPointer && pointerAtDown.current && pointAtDown.current) {
                 // the reason we calculate point position with this algorithm,

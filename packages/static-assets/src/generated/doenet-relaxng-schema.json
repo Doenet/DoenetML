@@ -27283,7 +27283,8 @@
                         "operand",
                         "function",
                         "functionargument",
-                        "numoperands"
+                        "numoperands",
+                        "recursiveoperands"
                     ]
                 },
                 "operandNumber": {
@@ -90065,25 +90066,25 @@
                         "string"
                     ]
                 },
-                "xmin": {
+                "xMin": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "xmax": {
+                "xMax": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "ymin": {
+                "yMin": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "ymax": {
+                "yMax": {
                     "optional": true,
                     "type": [
                         "string"
@@ -90809,22 +90810,22 @@
                     "isArray": false
                 },
                 {
-                    "name": "xmin",
+                    "name": "xMin",
                     "type": "number",
                     "isArray": false
                 },
                 {
-                    "name": "xmax",
+                    "name": "xMax",
                     "type": "number",
                     "isArray": false
                 },
                 {
-                    "name": "ymin",
+                    "name": "yMin",
                     "type": "number",
                     "isArray": false
                 },
                 {
-                    "name": "ymax",
+                    "name": "yMax",
                     "type": "number",
                     "isArray": false
                 },
@@ -119298,13 +119299,13 @@
                         "string"
                     ]
                 },
-                "xmin": {
+                "xMin": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "xmax": {
+                "xMax": {
                     "optional": true,
                     "type": [
                         "string"
@@ -119389,12 +119390,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "xmin",
+                    "name": "xMin",
                     "type": "number",
                     "isArray": false
                 },
                 {
-                    "name": "xmax",
+                    "name": "xMax",
                     "type": "number",
                     "isArray": false
                 },
