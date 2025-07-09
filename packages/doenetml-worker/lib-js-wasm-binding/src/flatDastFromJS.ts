@@ -3,6 +3,15 @@ import {
     FlatDastElement,
     FlatDastRootWithErrors,
 } from "./CoreWorker";
+import { pointJsToRust } from "./jsRustConversions/point";
+import { sectionJsToRust } from "./jsRustConversions/section";
+import { textJsToRust } from "./jsRustConversions/text";
+
+declare module "./CoreWorker" {
+    interface ElementData {
+        props?: Record<string, any>;
+    }
+}
 
 // types for the output of the JS core
 export type ComponentInstruction = {
@@ -114,77 +123,23 @@ export function flatDastFromJS(
 
     // Make transformations for JS data to rust data specific to particular elements
     for (const element of elements) {
-        if (element?.type === "element") {
-            if (element.name === "text") {
-                element.data.props.value = element.data.props.text;
-            } else if (element.name === "section") {
-                element.data.props.divisionType = element.name;
-                element.data.props.divisionDepth = element.data.props.level;
-                element.name = "division";
+        if (element?.type !== "element" || !element.data.props) {
+            continue;
+        }
 
-                let title = element.data.props.title;
-                element.data.props.title = null;
-
-                // Hack to try to get `xrefLabel` info from JS state variables
-                let label = title;
-                let codeNumber = "";
-                let ident = "1";
-
-                const match = label.match(/^(.*)\s+(\d+)$/);
-
-                if (match) {
-                    label = match[1];
-                    codeNumber = match[2];
-                    ident = codeNumber;
-                }
-
-                element.data.props.xrefLabel = {
-                    label,
-                    global_ident: ident,
-                    local_ident: ident,
-                    preferred_form: "Global",
-                };
-                element.data.props.codeNumber = codeNumber;
-
-                if (element.data.props.titleChildName) {
-                    const titleChildIdx = Number(
-                        element.data.props.titleChildName,
-                    );
-                    if (Number.isInteger(titleChildIdx)) {
-                        element.data.props.title = titleChildIdx;
-
-                        const titleChild = element.children.findIndex(
-                            (child) =>
-                                typeof child !== "string" &&
-                                child.id === titleChildIdx,
-                        );
-                        if (titleChild !== -1) {
-                            element.children.splice(titleChild, 1);
-                            element.data.props.xrefLabel.label = "";
-                        }
-                    }
-                }
-            } else if (element.name === "point") {
-                const numericalXs = element.data.props.numericalXs;
-
-                element.data.props.x = {
-                    math_object: numericalXs[0].toString(),
-                };
-
-                if (numericalXs.length >= 2) {
-                    element.data.props.y = {
-                        math_object: numericalXs[1].toString(),
-                    };
-                }
-                if (numericalXs.length >= 3) {
-                    element.data.props.z = {
-                        math_object: numericalXs[2].toString(),
-                    };
-                }
-                element.data.props.coordsLatex = element.data.props.latex;
-            } else if (element.name === "coords") {
+        switch (element.name) {
+            case "text":
+                textJsToRust(element.data.props);
+                break;
+            case "section":
+                sectionJsToRust(element.data.props, element);
+                break;
+            case "point":
+                pointJsToRust(element.data.props);
+                break;
+            case "coords":
                 element.name = "math";
-            }
+                break;
         }
     }
 

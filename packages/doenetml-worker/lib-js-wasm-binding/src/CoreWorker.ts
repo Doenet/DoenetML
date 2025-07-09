@@ -399,7 +399,7 @@ export class CoreWorker {
             return Promise.resolve({ allowView: true });
         };
 
-        const coreResult = await this.javascriptCore?.createCoreGenerateDast(
+        const coreResult = await this.javascriptCore.createCoreGenerateDast(
             args,
             updateRenderersCallback,
             reportScoreAndStateCallback,
