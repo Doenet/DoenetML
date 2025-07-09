@@ -1100,6 +1100,60 @@ describe("Answer tag tests", async () => {
         });
     });
 
+    it("answer sugar from one m", async () => {
+        const doenetML = `
+    <answer name="answer1"><m>x+y</m></answer>
+  `;
+        await test_math_answer({
+            doenetML,
+            answers: [
+                { latex: "x+y", credit: 1 },
+                { latex: "x", credit: 0 },
+            ],
+        });
+    });
+
+    it("answer sugar from one macro of an m", async () => {
+        const doenetML = `
+    <m name="xy" hide>x+y</m>
+    <answer name="answer1">$xy</answer>`;
+
+        await test_math_answer({
+            doenetML,
+            answers: [
+                { latex: "x+y", credit: 1 },
+                { latex: "x", credit: 0 },
+            ],
+        });
+    });
+
+    it("answer sugar from one me", async () => {
+        const doenetML = `
+    <answer name="answer1"><me>x+y</me></answer>
+  `;
+        await test_math_answer({
+            doenetML,
+            answers: [
+                { latex: "x+y", credit: 1 },
+                { latex: "x", credit: 0 },
+            ],
+        });
+    });
+
+    it("answer sugar from one macro of an me", async () => {
+        const doenetML = `
+    <me name="xy" hide>x+y</me>
+    <answer name="answer1">$xy</answer>`;
+
+        await test_math_answer({
+            doenetML,
+            answers: [
+                { latex: "x+y", credit: 1 },
+                { latex: "x", credit: 0 },
+            ],
+        });
+    });
+
     it("answer sugar from macros and string", async () => {
         const doenetML = `
     <setup><math name="x">x</math><math name="y">y</math></setup>

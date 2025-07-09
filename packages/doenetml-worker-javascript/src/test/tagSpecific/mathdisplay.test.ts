@@ -1958,4 +1958,35 @@ describe("Displayed math tag tests", async () => {
             ),
         ).eq("(-5,-4)");
     });
+
+    it("m adapts into math, text", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <m name="m">x^2+y</m>
+        <math name="math">$m</math>
+        <text name="text">$m</text>
+            `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ast = ["+", ["^", "x", 2], "y"];
+        const text = "x² + y";
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.math
+                .tree,
+        ).eqls(ast);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.text,
+        ).eqls(text);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("math")].stateValues.value
+                .tree,
+        ).eqls(ast);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("text")].stateValues
+                .value,
+        ).eqls(text);
+    });
 });

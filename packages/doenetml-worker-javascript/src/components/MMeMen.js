@@ -9,7 +9,7 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import { latexToText } from "../utils/math";
+import { latexToMathFactory, latexToText } from "../utils/math";
 import { createInputStringFromChildren } from "../utils/parseMath";
 
 export class M extends InlineComponent {
@@ -74,8 +74,6 @@ export class M extends InlineComponent {
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
-
-        let componentClass = this;
 
         stateVariableDefinitions.latex = {
             public: true,
@@ -203,8 +201,34 @@ export class M extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.math = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "math",
+            },
+            returnDependencies: () => ({
+                latex: {
+                    dependencyType: "stateVariable",
+                    variableName: "latex",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                const latexToMath = latexToMathFactory();
+
+                try {
+                    return {
+                        setValue: { math: latexToMath(dependencyValues.latex) },
+                    };
+                } catch (e) {
+                    return { setValue: { math: me.fromAst("\uff3f") } };
+                }
+            },
+        };
+
         return stateVariableDefinitions;
     }
+
+    static adapters = ["math", "text"];
 
     async moveMath({
         x,
