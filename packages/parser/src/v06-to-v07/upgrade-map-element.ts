@@ -1,21 +1,11 @@
 import { Plugin, unified } from "unified";
-import {
-    DastAttribute,
-    DastElement,
-    DastElementContent,
-    DastMacro,
-    DastMacroPathPart,
-    DastRoot,
-    DastRootContent,
-} from "../types";
+import { DastElement, DastMacro, DastRoot } from "../types";
 import { visit } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
-import { renameAttrInPlace } from "./rename-attr-in-place";
 import { toXml } from "../dast-to-xml/dast-util-to-xml";
 import { reparseAttribute } from "./reparse-attribute";
 import { replaceNode } from "../pretty-printer/normalize/utils/replace-node";
 import { getUniqueName } from "./utils";
-import { determinePropType } from "./core-info/determine-prop-type";
 
 /**
  * Upgrade the `<map>` element to the new syntax.
@@ -176,8 +166,6 @@ export const upgradeMapElement: Plugin<[], DastRoot, DastRoot> = () => {
                         children: reparseAttribute(indexName),
                     };
                 }
-
-                console.log(toXml([setupTag, templateNode]));
 
                 return [setupTag, templateNode];
             }

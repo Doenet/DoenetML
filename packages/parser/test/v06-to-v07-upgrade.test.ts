@@ -355,7 +355,7 @@ describe("v06 to v07 update", () => {
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
-    it.skip("module gets converted to its new format", async () => {
+    it("module gets converted to its new format", async () => {
         source = `
         <module name="m">
             <setup>
@@ -365,9 +365,7 @@ describe("v06 to v07 update", () => {
         </module>`;
         correctSource = `
         <module name="m">
-            <moduleAttributes>
-                <number name="a">1</number>
-            </moduleAttributes>
+            <moduleAttributes><number name="a">1</number></moduleAttributes>
             <number name="twoa">2$a</number>
         </module>`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);

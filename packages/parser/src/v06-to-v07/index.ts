@@ -22,6 +22,7 @@ import { lezerToDastV6 } from "../lezer-to-dast/lezer-to-dast-v6";
 import { upgradeCopySyntax } from "./upgrade-copy-syntax";
 import { upgradeAttributeSyntax } from "./upgrade-attribute-syntax";
 import { upgradeMapElement } from "./upgrade-map-element";
+import { upgradeModuleElement } from "./upgrade-module-element";
 
 export type Options = {
     doNotUpgradeCopyTags?: boolean;
@@ -48,7 +49,8 @@ export async function updateSyntaxFromV06toV07_root(
         .use(ensureDollarBeforeNamesOnSpecificAttributes)
         .use(copySourceToExtendOrCopy)
         .use(upgradeCollectElement)
-        .use(upgradeMapElement);
+        .use(upgradeMapElement)
+        .use(upgradeModuleElement);
     if (!options.doNotUpgradeAttributeSyntax) {
         processor = processor.use(upgradeAttributeSyntax);
     }
