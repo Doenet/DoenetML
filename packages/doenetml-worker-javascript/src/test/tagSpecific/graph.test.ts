@@ -209,19 +209,19 @@ describe("Graph tag tests", async () => {
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                    .xmin,
+                    .xMin,
             ).eq(xmin);
             expect(
                 stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                    .xmax,
+                    .xMax,
             ).eq(xmax);
             expect(
                 stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                    .ymin,
+                    .yMin,
             ).eq(ymin);
             expect(
                 stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                    .ymax,
+                    .yMax,
             ).eq(ymax);
         }
 
@@ -353,10 +353,10 @@ describe("Graph tag tests", async () => {
     <graph name="g" identicalAxisScales />
 
 
-    <p>Change xmin: <mathInput name="xminInput" bindValueTo="$g.xmin" /></p>
-    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>
-    <p>Change ymin: <mathInput name="yminInput" bindValueTo="$g.ymin" /></p>
-    <p>Change ymax: <mathInput name="ymaxInput" bindValueTo="$g.ymax" /></p>
+    <p>Change xmin: <mathInput name="xminInput" bindValueTo="$g.xMin" /></p>
+    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xMax" /></p>
+    <p>Change ymin: <mathInput name="yminInput" bindValueTo="$g.yMin" /></p>
+    <p>Change ymax: <mathInput name="ymaxInput" bindValueTo="$g.yMax" /></p>
 
     `,
         });
@@ -368,19 +368,19 @@ describe("Graph tag tests", async () => {
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                    .xmin,
+                    .xMin,
             ).eq(xmin);
             expect(
                 stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                    .xmax,
+                    .xMax,
             ).eq(xmax);
             expect(
                 stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                    .ymin,
+                    .yMin,
             ).eq(ymin);
             expect(
                 stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                    .ymax,
+                    .yMax,
             ).eq(ymax);
 
             expect(
@@ -1185,19 +1185,19 @@ describe("Graph tag tests", async () => {
     <graph name="gdg3b" displayDigits="5" extend="$gdc5a" />
     <graph name="gdc5b" displayDecimals="5" extend="$gdg3a" />
 
-    <p name="p">$g.xmin, $g.xmax, $g.ymin, $g.ymax</p>
+    <p name="p">$g.xMin, $g.xMax, $g.yMin, $g.yMax</p>
 
-    <p name="pdg3">$gdg3.xmin, $gdg3.xmax, $gdg3.ymin, $gdg3.ymax</p>
-    <p name="pdg3a">$gdg3a.xmin, $gdg3a.xmax, $gdg3a.ymin, $gdg3a.ymax</p>
-    <p name="pdg3b">$gdg3b.xmin, $gdg3b.xmax, $gdg3b.ymin, $gdg3b.ymax</p>
-    <p name="pdg3c"><setup><graph extend="$g" name="g5" displayDigits="5" /></setup>$g5.xmin, $g5.xmax, $g5.ymin, $g5.ymax</p>
-    <p name="pdg3d"><setup><graph extend="$gdc5" name="gdc55" displayDigits="5" /></setup>$gdc55.xmin, $gdc55.xmax, $gdc55.ymin, $gdc55.ymax</p>
+    <p name="pdg3">$gdg3.xMin, $gdg3.xMax, $gdg3.yMin, $gdg3.yMax</p>
+    <p name="pdg3a">$gdg3a.xMin, $gdg3a.xMax, $gdg3a.yMin, $gdg3a.yMax</p>
+    <p name="pdg3b">$gdg3b.xMin, $gdg3b.xMax, $gdg3b.yMin, $gdg3b.yMax</p>
+    <p name="pdg3c"><setup><graph extend="$g" name="g5" displayDigits="5" /></setup>$g5.xMin, $g5.xMax, $g5.yMin, $g5.yMax</p>
+    <p name="pdg3d"><setup><graph extend="$gdc5" name="gdc55" displayDigits="5" /></setup>$gdc55.xMin, $gdc55.xMax, $gdc55.yMin, $gdc55.yMax</p>
 
-    <p name="pdc5">$gdc5.xmin, $gdc5.xmax, $gdc5.ymin, $gdc5.ymax</p>
-    <p name="pdc5a">$gdc5a.xmin, $gdc5a.xmax, $gdc5a.ymin, $gdc5a.ymax</p>
-    <p name="pdc5b">$gdc5b.xmin, $gdc5b.xmax, $gdc5b.ymin, $gdc5b.ymax</p>
-    <p name="pdc5c"><setup><graph extend="$g" name="g5" displayDecimals="5" /></setup>$g5.xmin, $g5.xmax, $g5.ymin, $g5.ymax</p>
-    <p name="pdc5d"><setup><graph extend="$gdg3" name="gdg35" displayDecimals="5" /></setup>$gdg35.xmin, $gdg35.xmax, $gdg35.ymin, $gdg35.ymax</p>
+    <p name="pdc5">$gdc5.xMin, $gdc5.xMax, $gdc5.yMin, $gdc5.yMax</p>
+    <p name="pdc5a">$gdc5a.xMin, $gdc5a.xMax, $gdc5a.yMin, $gdc5a.yMax</p>
+    <p name="pdc5b">$gdc5b.xMin, $gdc5b.xMax, $gdc5b.yMin, $gdc5b.yMax</p>
+    <p name="pdc5c"><setup><graph extend="$g" name="g5" displayDecimals="5" /></setup>$g5.xMin, $g5.xMax, $g5.yMin, $g5.yMax</p>
+    <p name="pdc5d"><setup><graph extend="$gdg3" name="gdg35" displayDecimals="5" /></setup>$gdg35.xMin, $gdg35.xMax, $gdg35.yMin, $gdg35.yMax</p>
 
     `,
         });
@@ -1342,19 +1342,19 @@ describe("Graph tag tests", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("g1inner")].stateValues
-                .xmin,
+                .xMin,
         ).eq(-10);
         expect(
             stateVariables[await resolvePathToNodeIdx("g1inner")].stateValues
-                .xmax,
+                .xMax,
         ).eq(10);
         expect(
             stateVariables[await resolvePathToNodeIdx("g1inner")].stateValues
-                .ymin,
+                .yMin,
         ).eq(-10);
         expect(
             stateVariables[await resolvePathToNodeIdx("g1inner")].stateValues
-                .ymax,
+                .yMax,
         ).eq(10);
     });
 });
