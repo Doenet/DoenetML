@@ -185,14 +185,14 @@ describe("v06 to v07 update", () => {
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
-    it.skip("collect with prop gets converted to its new format", async () => {
+    it("collect with prop gets converted to its new format", async () => {
         source = `<collect componentTypes="point" name="xs" source="panel" prop="x" assignNames="x1 x2 x3 x4 x5" />`;
         correctSource = `<setup><collect componentType="point" name="collect_xs" from="$panel" /></setup><mathList name="xs" extend="$collect_xs.x" />`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
 
         // References to the old `assignNames` get updated
         source = `<collect componentTypes="point" name="xs" source="panel" prop="x" assignNames="x1 x2 x3 x4 x5" /> $x1 $x4`;
-        correctSource = `<setup><collect componentType="point" name="collect_xs" from="$panel" /></setup><mathList name="xs" extend="$collect_xs.x" />$xs[1] $xs[4]`;
+        correctSource = `<setup><collect componentType="point" name="collect_xs" from="$panel" /></setup><mathList name="xs" extend="$collect_xs.x" /> $xs[1] $xs[4]`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
