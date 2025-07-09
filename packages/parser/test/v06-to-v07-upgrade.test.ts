@@ -301,7 +301,7 @@ describe("v06 to v07 update", () => {
         expect(toXml(reparseAttribute("$t"))).toEqual("$t");
     });
 
-    it.skip("map of sequence gets converted to a repeatForSequence", async () => {
+    it("map of sequence gets converted to a repeatForSequence", async () => {
         source = `
         <map assignNames="item1 item2" name="items">
             <template newNamespace><math name="m">$v^2</math><number name="n">$i^2</number></template>
@@ -310,9 +310,7 @@ describe("v06 to v07 update", () => {
             </sources>
         </map>`;
         correctSource = `
-        <repeatForSequence from="3" to="4" name="items" itemName="v" indexName="i">
-            <math name="m">$v^2</math><number name="n">$i^2</number>
-        </repeatForSequence>`;
+        <repeatForSequence from="3" to="4" name="items" itemName="v" indexName="i"><math name="m">$v^2</math><number name="n">$i^2</number></repeatForSequence>`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
 
         // References to the old `assignNames` get updated
@@ -325,14 +323,12 @@ describe("v06 to v07 update", () => {
         </map>
         $(item1/m) $(items[1]/n) $(items[2]/m) $(item2/n)`;
         correctSource = `
-        <repeatForSequence from="3" to="4" name="items" itemName="v" indexName="i">
-            <math name="m">$v^2</math><number name="n">$i^2</number>
-        </repeatForSequence>
+        <repeatForSequence from="3" to="4" name="items" itemName="v" indexName="i"><math name="m">$v^2</math><number name="n">$i^2</number></repeatForSequence>
         $items[1].m $items[1].n $items[2].m $items[2].n`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
-    it.skip("map of non-sequence gets converted to a repeat over a group", async () => {
+    it("map of non-sequence gets converted to a repeat over a group", async () => {
         source = `
         <map assignNames="item1 item2" name="items">
             <template newNamespace><math name="m">$v^2</math><number name="n">$i^2</number></template>
@@ -341,26 +337,20 @@ describe("v06 to v07 update", () => {
             </sources>
         </map>`;
         correctSource = `
-        <setup><group name="items_group"><number>3</number><number>4</number></group></setup>
-        <repeat for="$items_group" name="items" itemName="v" indexName="i">
-            <math name="m">$v^2</math><number name="n">$i^2</number>
-        </repeat>`;
+        <setup><group name="group">
+               <number>3</number><number>4</number>
+            </group></setup><repeat for="$group" name="items" itemName="v" indexName="i"><math name="m">$v^2</math><number name="n">$i^2</number></repeat>`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
 
         // References to the old `assignNames` get updated
         source = `
         <map assignNames="item1 item2" name="items">
             <template newNamespace><math name="m">$v^2</math><number name="n">$i^2</number></template>
-            <sources alias="v" indexAlias="i">
-               <number>3</number><number>4</number>
-            </sources>
+            <sources alias="v" indexAlias="i"><number>3</number><number>4</number></sources>
         </map>
         $(item1/m) $(items[1]/n) $(items[2]/m) $(item2/n)`;
         correctSource = `
-        <setup><group name="items_group"><number>3</number><number>4</number></group></setup>
-        <repeat for="$items_group" name="items" itemName="v" indexName="i">
-            <math name="m">$v^2</math><number name="n">$i^2</number>
-        </repeat>
+        <setup><group name="group"><number>3</number><number>4</number></group></setup><repeat for="$group" name="items" itemName="v" indexName="i"><math name="m">$v^2</math><number name="n">$i^2</number></repeat>
         $items[1].m $items[1].n $items[2].m $items[2].n`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });

@@ -1,4 +1,5 @@
 import { Plugin, unified } from "unified";
+import { VFile } from "vfile";
 import {
     DastAttribute,
     DastElement,
@@ -20,7 +21,7 @@ import { upgradePathSlashesToDots } from "./slash-to-dot";
 import { lezerToDastV6 } from "../lezer-to-dast/lezer-to-dast-v6";
 import { upgradeCopySyntax } from "./upgrade-copy-syntax";
 import { upgradeAttributeSyntax } from "./upgrade-attribute-syntax";
-import { VFile } from "vfile";
+import { upgradeMapElement } from "./upgrade-map-element";
 
 export type Options = {
     doNotUpgradeCopyTags?: boolean;
@@ -46,7 +47,8 @@ export async function updateSyntaxFromV06toV07_root(
         .use(removeNewNamespaceAttribute)
         .use(ensureDollarBeforeNamesOnSpecificAttributes)
         .use(copySourceToExtendOrCopy)
-        .use(upgradeCollectElement);
+        .use(upgradeCollectElement)
+        .use(upgradeMapElement);
     if (!options.doNotUpgradeAttributeSyntax) {
         processor = processor.use(upgradeAttributeSyntax);
     }
