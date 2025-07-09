@@ -7,7 +7,7 @@ type CompositeReplacementRange = {
 };
 
 // concatenate strings with a numbered code for each non-string child
-// (that will be parsed to form express}ion with codes)
+// (that will be parsed to form expression with codes)
 // Add commas between the components that are all from one composite,
 // if that composite has asList set to true.
 // Put parens around that list in some cases, as described below.
