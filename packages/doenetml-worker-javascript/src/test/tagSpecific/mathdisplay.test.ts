@@ -1990,7 +1990,7 @@ describe("Displayed math tag tests", async () => {
         ).eqls(text);
     });
 
-    it.only("can invert adapted math", async () => {
+    it("can invert adapted math", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <m name="m">x^2+y</m>
