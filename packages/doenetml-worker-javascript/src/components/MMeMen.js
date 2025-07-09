@@ -223,6 +223,18 @@ export class M extends InlineComponent {
                     return { setValue: { math: me.fromAst("\uff3f") } };
                 }
             },
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "latex",
+                            desiredValue:
+                                desiredStateVariableValues.math.toLatex(),
+                        },
+                    ],
+                };
+            },
         };
 
         return stateVariableDefinitions;

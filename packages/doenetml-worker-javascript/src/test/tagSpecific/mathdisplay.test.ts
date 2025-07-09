@@ -1989,4 +1989,33 @@ describe("Displayed math tag tests", async () => {
                 .value,
         ).eqls(text);
     });
+
+    it.only("can invert adapted math", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <m name="m">x^2+y</m>
+        <mathInput name="mi">$m</mathInput>
+            `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
+        ).eqls(["+", ["^", "x", 2], "y"]);
+
+        await updateMathInputValue({
+            latex: "x^2y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
+        ).eqls(["*", ["^", "x", 2], "y"]);
+    });
 });
