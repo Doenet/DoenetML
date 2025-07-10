@@ -15,7 +15,7 @@ describe("RepeatForSequence tag tests", async () => {
     it("defaults to number sequence", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p"><repeatForSequence from="6" to="9" itemName="n" name="r">
+    <p name="p"><repeatForSequence from="6" to="9" valueName="n" name="r">
       <math name="m" simplify>$n^2</math>
     </repeatForSequence></p>
     `,
@@ -38,7 +38,7 @@ describe("RepeatForSequence tag tests", async () => {
     it("explicit number sequence", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p"><repeatForSequence type="number" from="2" to="8" step="2" exclude="4" itemName="n" name="r">
+    <p name="p"><repeatForSequence type="number" from="2" to="8" step="2" exclude="4" valueName="n" name="r">
       <math name="m" simplify>$n^2</math>
     </repeatForSequence></p>
     `,
@@ -68,7 +68,7 @@ describe("RepeatForSequence tag tests", async () => {
     it("letters sequence", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p"><repeatForSequence asList="false" type="letters" from="f" to="l" step="3" exclude="i" itemName="l" name="r">
+    <p name="p"><repeatForSequence asList="false" type="letters" from="f" to="l" step="3" exclude="i" valueName="l" name="r">
       <text name="t">We have $l. </text>
     </repeatForSequence></p>
     `,
@@ -94,7 +94,7 @@ describe("RepeatForSequence tag tests", async () => {
     it("math sequence", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p"><repeatForSequence type="math" from="x" step="h" length="3" itemName="x" name="r">
+    <p name="p"><repeatForSequence type="math" from="x" step="h" length="3" valueName="x" name="r">
       <math name="m" simplify>$x - h</math>
     </repeatForSequence></p>
     `,
@@ -123,8 +123,8 @@ describe("RepeatForSequence tag tests", async () => {
     it("two nested repeatForSequences", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p"><repeatForSequence from="-10" to="10" step="15" itemName="n" indexName="j">
-      <repeatForSequence from="1" to="2" itemName="m" indexName="i">
+    <p name="p"><repeatForSequence from="-10" to="10" step="15" valueName="n" indexName="j">
+      <repeatForSequence from="1" to="2" valueName="m" indexName="i">
           <math simplify>$m+$n</math> and <math simplify>$i+2$j</math>
         </repeatForSequence>
     </repeatForSequence></p>
@@ -156,10 +156,10 @@ describe("RepeatForSequence tag tests", async () => {
     it("three nested repeatForSequences with graphs and copied", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <repeatForSequence name="repeat1" from="-10" to="5" step="15" itemName="n" indexName="k">
+    <repeatForSequence name="repeat1" from="-10" to="5" step="15" valueName="n" indexName="k">
       <graph>
-        <repeatForSequence from="-5" to="5" step="10" itemName="m" indexName="j">
-          <repeatForSequence from="1" to="2" itemName="l" indexName="i">
+        <repeatForSequence from="-5" to="5" step="10" valueName="m" indexName="j">
+          <repeatForSequence from="1" to="2" valueName="l" indexName="i">
               <point>($l+$n, $m)</point><point>($i+2*$k, $j)</point>
             </repeatForSequence>
         </repeatForSequence>
@@ -246,10 +246,10 @@ describe("RepeatForSequence tag tests", async () => {
     it.skip("three nested repeats with graphs and referenced coords", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <repeatForSequence  from="-10" to="5" step="15" name="r1" itemName="n">
+    <repeatForSequence  from="-10" to="5" step="15" name="r1" valueName="n">
       <graph name="graph1">
-        <repeatForSequence from="-5" to="5" step="10" name="r2" itemName="m">
-            <repeatForSequence from="1" to="2" name="r3" itemName="l">
+        <repeatForSequence from="-5" to="5" step="10" name="r2" valueName="m">
+            <repeatForSequence from="1" to="2" name="r3" valueName="l">
                 <point name="A">($l+$n, $m)</point>
             </repeatForSequence>
         </repeatForSequence>
@@ -329,7 +329,7 @@ describe("RepeatForSequence tag tests", async () => {
     it("repeatForSequence with copies", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><repeatForSequence name="repeat1" from="3" to="4" itemName="n" indexName="j">
+    <p name="p1"><repeatForSequence name="repeat1" from="3" to="4" valueName="n" indexName="j">
     <math simplify>
         <number extend="$n" name="b" /> + <number extend="$j" name="i" /> + $a 
         + <math name="q">z</math> + $q + $b +$i
@@ -367,7 +367,7 @@ describe("RepeatForSequence tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <number name="length">1</number>
-    <p name="p1"><repeatForSequence name="repeat1" from="3" length="$length" itemName="n" indexName="j">
+    <p name="p1"><repeatForSequence name="repeat1" from="3" length="$length" valueName="n" indexName="j">
     <math simplify>
         <number extend="$n" name="b" /> + <number extend="$j" name="i" /> + $a 
         + <math name="q">z</math> + $q + $b +$i
@@ -450,10 +450,10 @@ describe("RepeatForSequence tag tests", async () => {
     it("repeatForSequence copying value from other repeat", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <repeatForSequence name="r1" from="1" to="3" itemName="n">
+    <repeatForSequence name="r1" from="1" to="3" valueName="n">
       <math name="math">($n, $r2[3].n2)</math>
     </repeatForSequence>
-    <repeatForSequence name="r2" from="4" to="6" itemName="n">
+    <repeatForSequence name="r2" from="4" to="6" valueName="n">
       <math name="math">sin(<number extend="$n" name="n2" />)</math>
     </repeatForSequence>
     `,
@@ -485,7 +485,7 @@ describe("RepeatForSequence tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     
-    <p name="p"><repeatForSequence from="1" to="3" itemName="b"><repeatForSequence from="1" to="$b" itemName="a">
+    <p name="p"><repeatForSequence from="1" to="3" valueName="b"><repeatForSequence from="1" to="$b" valueName="a">
             <math>($a, $b)</math>
         </repeatForSequence>
     </repeatForSequence></p>
@@ -511,7 +511,7 @@ describe("RepeatForSequence tag tests", async () => {
     it("repeatForSequence begins zero length, copied multiple times", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><repeatForSequence name="repeat1" from="$sequenceFrom" to="$sequenceTo" length="$sequenceCount" itemName="n">
+    <p name="p1"><repeatForSequence name="repeat1" from="$sequenceFrom" to="$sequenceTo" length="$sequenceCount" valueName="n">
         <math simplify>$n^2</math>
     </repeatForSequence></p>
 
@@ -623,7 +623,7 @@ describe("RepeatForSequence tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
-      <repeatForSequence from="2" to="4"  itemName="n" name="repeat">
+      <repeatForSequence from="2" to="4"  valueName="n" name="repeat">
         <point name="P1">
             ($q$n^2,
             $P2.x)
@@ -794,12 +794,12 @@ describe("RepeatForSequence tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g1">
-      <repeatForSequence name="repeat1" from="$sequenceFrom" to="$sequenceTo" length="$sequenceCount" itemName="n">
+      <repeatForSequence name="repeat1" from="$sequenceFrom" to="$sequenceTo" length="$sequenceCount" valueName="n">
         <point name="P">
             (-$n, $n($repeat2[1].P.x))
           </point>
       </repeatForSequence>
-      <repeatForSequence name="repeat2" from="$sequenceFrom" to="$sequenceTo" length="$sequenceCount" itemName="n">
+      <repeatForSequence name="repeat2" from="$sequenceFrom" to="$sequenceTo" length="$sequenceCount" valueName="n">
         <point name="P">
             ($n, $n($repeat1[1].P.x))
           </point>
@@ -963,7 +963,7 @@ describe("RepeatForSequence tag tests", async () => {
     <p>Step size: <mathInput name="step" /></p>
     
     <math name="math1">
-      <repeatForSequence from="2" length="$number" step="$step"  itemName="n">
+      <repeatForSequence from="2" length="$number" step="$step"  valueName="n">
         <point>($n, sin($n))</point>
       </repeatForSequence>
     </math>
@@ -1173,10 +1173,10 @@ describe("RepeatForSequence tag tests", async () => {
     <p>Length of repeat 1: <mathInput name="n1" prefill="4" /></p>
     <p>Length of repeat 2: <mathInput name="n2" prefill="4" /></p>
 
-    <p name="m1">repeat 1: <repeatForSequence hide="$h1" length="$n1" itemName="a">
+    <p name="m1">repeat 1: <repeatForSequence hide="$h1" length="$n1" valueName="a">
         hi$a
     </repeatForSequence></p>
-    <p name="m2">repeat 2: <repeatForSequence hide="$h2" length="$n2" itemName="a">
+    <p name="m2">repeat 2: <repeatForSequence hide="$h2" length="$n2" valueName="a">
         hi$a
     </repeatForSequence></p>
     `,
@@ -1296,17 +1296,17 @@ describe("RepeatForSequence tag tests", async () => {
     function create_as_list_template(inner_content: string) {
         return `
       <p name="pdefault">
-        <repeatForSequence name="default" itemName="v">
+        <repeatForSequence name="default" valueName="v">
             ${inner_content}
         </repeatForSequence>
       </p>
       <p name="pnocommas">
-        <repeatForSequence name="nocommas" asList="false" itemName="v">
+        <repeatForSequence name="nocommas" asList="false" valueName="v">
             ${inner_content}
         </repeatForSequence>
       </p>
       <p name="pwithcommas">
-        <repeatForSequence name="withcommas" asList itemName="v">
+        <repeatForSequence name="withcommas" asList valueName="v">
             ${inner_content}
         </repeatForSequence>
       </p>
@@ -1425,16 +1425,16 @@ describe("RepeatForSequence tag tests", async () => {
     it("repeat will display as list even if if has non-inline components with canBeInList set", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-      <p name="p1"><repeatForSequence to="3" itemName="v">
+      <p name="p1"><repeatForSequence to="3" valueName="v">
         <point>($v, $v^2)</point>
       </repeatForSequence></p>
-      <p name="p2"><repeatForSequence to="3" itemName="v">
+      <p name="p2"><repeatForSequence to="3" valueName="v">
         <vector>($v, $v^2)</vector>
       </repeatForSequence></p>
-      <p name="p3"><repeatForSequence to="3" itemName="v">
+      <p name="p3"><repeatForSequence to="3" valueName="v">
         <line>y=$v</line>
       </repeatForSequence></p>
-      <p name="p4"><repeatForSequence to="3" itemName="v">
+      <p name="p4"><repeatForSequence to="3" valueName="v">
         <angle>2$v</angle>
       </repeatForSequence></p>
     `,
@@ -1458,10 +1458,10 @@ describe("RepeatForSequence tag tests", async () => {
     it("isResponse", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <repeatForSequence isResponse itemName="v" length="2" name="r">
+    <repeatForSequence isResponse valueName="v" length="2" name="r">
         <p name="p">hi $v</p>
     </repeatForSequence>
-    <repeatForSequence itemName="v" length="2" name="r2">
+    <repeatForSequence valueName="v" length="2" name="r2">
         <p name="p">hi $v</p>
     </repeatForSequence>
     `,

@@ -127,18 +127,18 @@ describe("Normalize dast", async () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;
 
-        // nothing added with no itemName or indexName
+        // nothing added with no valueName or indexName
         source = "<repeat>x</repeat>";
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
             "<document><repeat>x</repeat></document>",
         );
 
-        // with itemName
-        source = "<repeat itemName='q'>x</repeat>";
+        // with valueName
+        source = "<repeat valueName='q'>x</repeat>";
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><repeat itemName="q">x<_repeatSetup><_placeholder name="q" /></_repeatSetup></repeat></document>',
+            '<document><repeat valueName="q">x<_repeatSetup><_placeholder name="q" /></_repeatSetup></repeat></document>',
         );
 
         // with indexName
@@ -148,11 +148,11 @@ describe("Normalize dast", async () => {
             '<document><repeat indexName="i">x<_repeatSetup><integer name="i" /></_repeatSetup></repeat></document>',
         );
 
-        // with itemName and indexName
-        source = "<repeat itemName='v' indexName='j'>x</repeat>";
+        // with valueName and indexName
+        source = "<repeat valueName='v' indexName='j'>x</repeat>";
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><repeat itemName="v" indexName="j">x<_repeatSetup><_placeholder name="v" /><integer name="j" /></_repeatSetup></repeat></document>',
+            '<document><repeat valueName="v" indexName="j">x<_repeatSetup><_placeholder name="v" /><integer name="j" /></_repeatSetup></repeat></document>',
         );
     });
 

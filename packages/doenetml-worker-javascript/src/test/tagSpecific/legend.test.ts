@@ -189,7 +189,7 @@ describe("Legend tag tests", async () => {
     <textInput name="pos" />
     <graph>
       <setup><sequence name="s" length="$n" /></setup>
-      <repeat for="$s" itemName="v">
+      <repeat for="$s" valueName="v">
         <function styleNumber="floor($v/2+1/2)">sin(x)+$v</function>
       </repeat>
       <legend name="legend1" position="$pos">

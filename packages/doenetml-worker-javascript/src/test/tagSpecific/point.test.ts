@@ -2480,7 +2480,7 @@ describe("Point tag tests", async () => {
     <line name="l1" hide>y = x + 7</line>
     <line name="l2" hide>y = x - 3</line>
     <setup><sequence name="s" from="-10" to="10"/></setup>
-    <repeat name="repeat" for="$s" itemName="n">
+    <repeat name="repeat" for="$s" valueName="n">
         <point hide>($n,$n+2)</point>
     </repeat>
 
@@ -2574,7 +2574,7 @@ describe("Point tag tests", async () => {
     <line name="l1" hide>y = x + 7</line>
     <line name="l2" hide>y = x - 3</line>
     <setup><sequence name="s" from="-10" to="10"/></setup>
-    <repeat name="repeat" for="$s" itemName="n">
+    <repeat name="repeat" for="$s" valueName="n">
         <point hide>($n,$n+2)</point>
     </repeat>
 

@@ -1338,7 +1338,7 @@ describe("Unique variant tests", async () => {
         let doenetML = `
     <selectFromSequence name="x" length="3" />
     <setup><sequence name="seq" type="letters" length="$n" /></setup>
-    <repeat for="$seq" name="r" itemName="v">
+    <repeat for="$seq" name="r" valueName="v">
         <p name="p">letter: $v</p>
     </repeat>
     <p>N: <mathInput name="n" prefill="1" /></p>

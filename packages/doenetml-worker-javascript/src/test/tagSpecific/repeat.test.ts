@@ -18,7 +18,7 @@ describe("Repeat tag tests", async () => {
     <setup>
       <mathList name="s">x y</mathList>
     </setup>
-    <p name="p"><repeat name="repeat1" for="$s" itemName="x" indexName="i">
+    <p name="p"><repeat name="repeat1" for="$s" valueName="x" indexName="i">
       <math>sin(2$x) + $i</math>
     </repeat></p>
     `,
@@ -57,7 +57,7 @@ describe("Repeat tag tests", async () => {
     <setup>
       <textList name="s">squirrel bat</textList>
     </setup>
-    <p name="p"><repeat name="repeat1" for="$s" itemName="animal" asList="false">
+    <p name="p"><repeat name="repeat1" for="$s" valueName="animal" asList="false">
       <text>You are a $animal!</text>
     </repeat></p>
     `,
@@ -93,7 +93,7 @@ describe("Repeat tag tests", async () => {
     <setup>
         <sequence name="s" from="1" to="5"/>
     </setup>
-    <p name="p"><repeat for="$s" itemName="n" name="repeat1">
+    <p name="p"><repeat for="$s" valueName="n" name="repeat1">
       <math simplify>$n^2</math>
     </repeat></p>
     `,
@@ -169,9 +169,9 @@ describe("Repeat tag tests", async () => {
       <sequence name="s2" from="21" to="23" step="2"/>
       <sequence name="s3" from="-5" to="-8" step="-3"/>
     </setup>
-    <p name="p"><repeat for="$s1" itemName="l" indexName="i">
-      <repeat for="$s2" itemName="m" indexName="j">
-        <repeat for="$s3" itemName="n" indexName="k">
+    <p name="p"><repeat for="$s1" valueName="l" indexName="i">
+      <repeat for="$s2" valueName="m" indexName="j">
+        <repeat for="$s3" valueName="n" indexName="k">
           <math>($l, $m, $n)</math>: <math>($i, $j, $k)</math></template>
         </repeat>
       </repeat>
@@ -212,8 +212,8 @@ describe("Repeat tag tests", async () => {
         <group name="s1"><number>-10</number><number>5</number></group>
         <sequence name="s2" from="1" to="2"/>
     </setup>
-    <p name="p"><repeat for="$s1" itemName="n" indexName="j">
-      <repeat for="$s2" itemName="m" indexName="i">
+    <p name="p"><repeat for="$s1" valueName="n" indexName="j">
+      <repeat for="$s2" valueName="m" indexName="i">
           <math simplify>$m+$n</math> and <math simplify>$i+2$j</math>
         </repeat>
     </repeat></p>
@@ -250,10 +250,10 @@ describe("Repeat tag tests", async () => {
        <sequence name="s2" from="-5" to="5" step="10"/>
        <sequence name="s3" from="1" to="2"/>
     </setup>
-    <repeat name="repeat1" for="$s1" itemName="n" indexName="k">
+    <repeat name="repeat1" for="$s1" valueName="n" indexName="k">
       <graph>
-        <repeat for="$s2" itemName="m" indexName="j">
-          <repeat for="$s3" itemName="l" indexName="i">
+        <repeat for="$s2" valueName="m" indexName="j">
+          <repeat for="$s3" valueName="l" indexName="i">
               <point>($l+$n, $m)</point><point>($i+2*$k, $j)</point>
             </repeat>
         </repeat>
@@ -345,10 +345,10 @@ describe("Repeat tag tests", async () => {
         <sequence name="s2" from="-5" to="5" step="10"/>
         <sequence name="s3" from="1" to="2"/>
     </setup>
-    <repeat for="$s1" name="r1" itemName="n">
+    <repeat for="$s1" name="r1" valueName="n">
       <graph name="graph1">
-        <repeat for="$s2" name="r2" itemName="m">
-            <repeat for="$s3" name="r3" itemName="l">
+        <repeat for="$s2" name="r2" valueName="m">
+            <repeat for="$s3" name="r3" valueName="l">
                 <point name="A">($l+$n, $m)</point>
             </repeat>
         </repeat>
@@ -432,7 +432,7 @@ describe("Repeat tag tests", async () => {
     <setup>
         <sequence name="s" from="3" to="4" />
     </setup>
-    <p name="p1"><repeat name="repeat1" for="$s" itemName="n" indexName="j">
+    <p name="p1"><repeat name="repeat1" for="$s" valueName="n" indexName="j">
     <math simplify>
         <number extend="$n" name="b" /> + <number extend="$j" name="i" /> + $a 
         + <math name="q">z</math> + $q + $b +$i
@@ -473,7 +473,7 @@ describe("Repeat tag tests", async () => {
     <setup>
       <sequence name="s" from="3" length="$length"/>
     </setup>
-    <p name="p1"><repeat name="repeat1" for="$s" itemName="n" indexName="j">
+    <p name="p1"><repeat name="repeat1" for="$s" valueName="n" indexName="j">
     <math simplify>
         <number extend="$n" name="b" /> + <number extend="$j" name="i" /> + $a 
         + <math name="q">z</math> + $q + $b +$i
@@ -573,7 +573,7 @@ describe("Repeat tag tests", async () => {
     it.skip("copy repeat and change for", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><repeat for="x y" name="repeat1" itemName="x" indexName="i">
+    <p name="p1"><repeat for="x y" name="repeat1" valueName="x" indexName="i">
        <math simplify="full">sin($i$x)</math>
     </repeat></p>
   
@@ -602,10 +602,10 @@ describe("Repeat tag tests", async () => {
     it("repeat copying value from other repeat", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <repeat name="r1" for="1 2 3" itemName="n">
+    <repeat name="r1" for="1 2 3" valueName="n">
       <math name="math">($n, $r2[3].n2)</math>
     </repeat>
-    <repeat name="r2" for="4 5 6" itemName="n">
+    <repeat name="r2" for="4 5 6" valueName="n">
       <math name="math">sin(<number extend="$n" name="n2" />)</math>
     </repeat>
     `,
@@ -640,9 +640,9 @@ describe("Repeat tag tests", async () => {
     <setup>
       <sequence name="s1" from="1" to="3"/>
     </setup>
-    <p name="p"><repeat for="$s1" itemName="b"><setup>
+    <p name="p"><repeat for="$s1" valueName="b"><setup>
            <sequence name="s2" from="1" to="$b" />
-        </setup><repeat for="$s2" itemName="a">
+        </setup><repeat for="$s2" valueName="a">
             <math>($a, $b)</math>
         </repeat>
     </repeat></p>
@@ -671,7 +671,7 @@ describe("Repeat tag tests", async () => {
     <setup>
         <sequence name="s" from="$sequenceFrom" to="$sequenceTo" length="$sequenceCount" />
     </setup>
-    <p name="p1"><repeat name="repeat1" for="$s" itemName="n">
+    <p name="p1"><repeat name="repeat1" for="$s" valueName="n">
         <math simplify>$n^2</math>
     </repeat></p>
 
@@ -787,7 +787,7 @@ describe("Repeat tag tests", async () => {
         <sequence name="s" from="2" to="4" />
     </setup>
     <graph>
-      <repeat for="$s" itemName="n" name="repeat">
+      <repeat for="$s" valueName="n" name="repeat">
         <point name="P1">
             ($q$n^2,
             $P2.x)
@@ -961,12 +961,12 @@ describe("Repeat tag tests", async () => {
         <sequence name="s" from="$sequenceFrom" to="$sequenceTo" length="$sequenceCount" />
     </setup>
     <graph name="g1">
-      <repeat name="repeat1" for="$s" itemName="n">
+      <repeat name="repeat1" for="$s" valueName="n">
         <point name="P">
             (-$n, $n($repeat2[1].P.x))
           </point>
       </repeat>
-      <repeat name="repeat2" for="$s" itemName="n">
+      <repeat name="repeat2" for="$s" valueName="n">
         <point name="P">
             ($n, $n($repeat1[1].P.x))
           </point>
@@ -1133,7 +1133,7 @@ describe("Repeat tag tests", async () => {
         <sequence name="s" from="2" length="$number" step="$step" />
     </setup>
     <math name="math1">
-      <repeat for="$s" itemName="n">
+      <repeat for="$s" valueName="n">
         <point>($n, sin($n))</point>
       </repeat>
     </math>
@@ -1261,11 +1261,11 @@ describe("Repeat tag tests", async () => {
     <setup>
       <sequence name="s" length="$number" />
     </setup>
-    <repeat name="m1" for="$s" itemName="n">
+    <repeat name="m1" for="$s" valueName="n">
       <point name="pt">($n, 2$n)</point>
     </repeat>
 
-    <repeat name="m2" for="$m1" itemName="p">
+    <repeat name="m2" for="$m1" valueName="p">
       <point name="pt">($p.x^2, $p.y^2)</point>
     </repeat>
 
@@ -1470,10 +1470,10 @@ describe("Repeat tag tests", async () => {
         <sequence name="s1" length="$n1" />
         <sequence name="s2" length="$n2" />
     </setup>
-    <p name="m1">repeat 1: <repeat hide="$h1" for="$s1" itemName="a">
+    <p name="m1">repeat 1: <repeat hide="$h1" for="$s1" valueName="a">
         hi$a
     </repeat></p>
-    <p name="m2">repeat 2: <repeat hide="$h2" for="$s2" itemName="a">
+    <p name="m2">repeat 2: <repeat hide="$h2" for="$s2" valueName="a">
         hi$a
     </repeat></p>
     `,
@@ -1596,17 +1596,17 @@ describe("Repeat tag tests", async () => {
         <sequence name="s" />
       </setup>
       <p name="pdefault">
-        <repeat name="default" for="$s" itemName="v">
+        <repeat name="default" for="$s" valueName="v">
             ${inner_content}
         </repeat>
       </p>
       <p name="pnocommas">
-        <repeat name="nocommas" asList="false" for="$s" itemName="v">
+        <repeat name="nocommas" asList="false" for="$s" valueName="v">
             ${inner_content}
         </repeat>
       </p>
       <p name="pwithcommas">
-        <repeat name="withcommas" asList for="$s" itemName="v">
+        <repeat name="withcommas" asList for="$s" valueName="v">
             ${inner_content}
         </repeat>
       </p>
@@ -1728,16 +1728,16 @@ describe("Repeat tag tests", async () => {
       <setup>
         <sequence to="3" name="s" />
       </setup>
-      <p name="p1"><repeat for="$s" itemName="v">
+      <p name="p1"><repeat for="$s" valueName="v">
         <point>($v, $v^2)</point>
       </repeat></p>
-      <p name="p2"><repeat for="$s" itemName="v">
+      <p name="p2"><repeat for="$s" valueName="v">
         <vector>($v, $v^2)</vector>
       </repeat></p>
-      <p name="p3"><repeat for="$s" itemName="v">
+      <p name="p3"><repeat for="$s" valueName="v">
         <line>y=$v</line>
       </repeat></p>
-      <p name="p4"><repeat for="$s" itemName="v">
+      <p name="p4"><repeat for="$s" valueName="v">
         <angle>2$v</angle>
       </repeat></p>
     `,
@@ -1762,10 +1762,10 @@ describe("Repeat tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup><sequence name="s" length="2" /></setup>
-    <repeat isResponse itemName="v" for="$s" name="r">
+    <repeat isResponse valueName="v" for="$s" name="r">
         <p name="p">hi $v</p>
     </repeat>
-    <repeat itemName="v" for="$s" name="r2">
+    <repeat valueName="v" for="$s" name="r2">
         <p name="p">hi $v</p>
     </repeat>
     `,
@@ -1816,16 +1816,16 @@ describe("Repeat tag tests", async () => {
     <numberList name="nl">1 2</numberList>
     <booleanList name="bl">true false</booleanList>
 
-    <repeat name="m" itemName="v" for="$ml">
+    <repeat name="m" valueName="v" for="$ml">
         <math name="math">2$v</math>
     </repeat>
-    <repeat name="n" itemName="v" for="$nl">
+    <repeat name="n" valueName="v" for="$nl">
         <number name="number">2$v</number>
     </repeat>
-    <repeat name="t" itemName="v" for="$tl">
+    <repeat name="t" valueName="v" for="$tl">
         <text name="text">Hello $v!</text>
     </repeat>
-    <repeat name="b" itemName="v" for="$bl">
+    <repeat name="b" valueName="v" for="$bl">
         <boolean name="boolean">not$v</boolean>
     </repeat>
     `,
@@ -1880,7 +1880,7 @@ describe("Repeat tag tests", async () => {
         <number name="n7">7</number>
         <math name="m8">8</math>
     </setup>
-    <repeat for="$ml $g $s $n7 $m8 9" itemName="n" name="r">
+    <repeat for="$ml $g $s $n7 $m8 9" valueName="n" name="r">
         <number name="number">$n^2</number>
     </repeat>
     `,
@@ -1899,16 +1899,16 @@ describe("Repeat tag tests", async () => {
     it("type attribute wraps string", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <repeat for="x^2 y^2" itemName="x" name="rDefault">
+    <repeat for="x^2 y^2" valueName="x" name="rDefault">
         $x
     </repeat>
-    <repeat type="math" for="ab cd" itemName="x" name="rMath">
+    <repeat type="math" for="ab cd" valueName="x" name="rMath">
         $x
     </repeat>
-    <repeat type="number" for="5 6" itemName="x" name="rNumber">
+    <repeat type="number" for="5 6" valueName="x" name="rNumber">
         $x
     </repeat>
-    <repeat type="text" for="hello there" itemName="x" name="rText">
+    <repeat type="text" for="hello there" valueName="x" name="rText">
         $x
     </repeat>
     `,

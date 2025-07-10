@@ -403,37 +403,37 @@ describe("Label tests", async () => {
             doenetML: `
   <setup><sequence name="s" from="-2" to="2" /></setup>
   <graph name="g1">
-    <repeat name="r" for="$s" itemName="v">
+    <repeat name="r" for="$s" valueName="v">
       <point name="P" labelIsName>($v,1)</point>
     </repeat>
   </graph>
 
   <graph name="g2">
-    <repeat name="r" for="$s" itemName="v">
+    <repeat name="r" for="$s" valueName="v">
       <vector name="P" labelIsName>($v,1)</vector>
     </repeat>
   </graph>
 
   <graph name="g3">
-    <repeat name="r" for="$s" itemName="v">
+    <repeat name="r" for="$s" valueName="v">
       <circle name="P" labelIsName center="($v,1)" />
     </repeat>
   </graph>
 
   <graph name="g4">
-    <repeat name="r" for="$s" itemName="v">
+    <repeat name="r" for="$s" valueName="v">
       <line name="P" labelIsName through="($v,1)" />
     </repeat>
   </graph>
 
   <graph name="g5">
-    <repeat name="r" for="$s" itemName="v">
+    <repeat name="r" for="$s" valueName="v">
       <triangle name="P" labelIsName vertices="($v,1)" />
     </repeat>
   </graph>
 
   <graph name="g6">
-    <repeat name="r" for="$s" itemName="v">
+    <repeat name="r" for="$s" valueName="v">
       <lineSegment name="P" labelIsName endPoints="($v,1)" />
     </repeat>
   </graph>
