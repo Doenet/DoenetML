@@ -19,7 +19,7 @@ describe("Math Display Tag Tests", function () {
     <men name="e3">\\tan(x)</men>
     <lorem generateParagraphs="2" />
 
-    <p name="p1">We have equation <link to="$e1" name="re1" />, equation <link to="$e2" name="re2" />, and equation <link to="$e3" name="re3" />.</p>
+    <p name="p1">We have equation <ref to="$e1" name="re1" />, equation <ref to="$e2" name="re2" />, and equation <ref to="$e3" name="re3" />.</p>
     <p name="p2">From copying properties: <text extend="$e1.equationTag" name="te1" />, <text extend="$e2.equationTag" name="te2" />, and <text extend="$e3.equationTag" name="te3" />.</p>
 
     <lorem generateParagraphs="8" />
@@ -90,21 +90,21 @@ describe("Math Display Tag Tests", function () {
     </repeatForSequence>
     <men name="z">z</men>
     
-    <p name="px">x: <text name="etx" extend="$x.equationTag" />, equation <link to="$x" name="rx" /></p>
-    <p name="pm1">m1: <text name="etm1" extend="$rm[1].eq.equationTag" />, equation <link to="$rm[1].eq" name="rm1" /></p>
-    <p name="pm2">m2: <text name="etm2" extend="$rm[2].eq.equationTag" />, equation <link to="$rm[2].eq" name="rm2" /></p>
-    <p name="pm3">m3: <text name="etm3" extend="$rm[3].eq.equationTag" />, equation <link to="$rm[3].eq" name="rm3" /></p>
-    <p name="pm4">m4: <text name="etm4" extend="$rm[4].eq.equationTag" />, equation <link to="$rm[4].eq" name="rm4" /></p>
-    <p name="pm5">m5: <text name="etm5" extend="$rm[5].eq.equationTag" />, equation <link to="$rm[5].eq" name="rm5" /></p>
-    <p name="pm6">m6: <text name="etm6" extend="$rm[6].eq.equationTag" />, equation <link to="$rm[6].eq" name="rm6" /></p>
-    <p name="py">y: <text name="ety" extend="$y.equationTag" />, equation <link to="$y" name="ry" /></p>
-    <p name="pn1">n1: <text name="etn1" extend="$rn[1].eq.equationTag" />, equation <link to="$rn[1].eq" name="rn1" /></p>
-    <p name="pn2">n2: <text name="etn2" extend="$rn[2].eq.equationTag" />, equation <link to="$rn[2].eq" name="rn2" /></p>
-    <p name="pn3">n3: <text name="etn3" extend="$rn[3].eq.equationTag" />, equation <link to="$rn[3].eq" name="rn3" /></p>
-    <p name="pn4">n4: <text name="etn4" extend="$rn[4].eq.equationTag" />, equation <link to="$rn[4].eq" name="rn4" /></p>
-    <p name="pn5">n5: <text name="etn5" extend="$rn[5].eq.equationTag" />, equation <link to="$rn[5].eq" name="rn5" /></p>
-    <p name="pn6">n6: <text name="etn6" extend="$rn[6].eq.equationTag" />, equation <link to="$rn[6].eq" name="rn6" /></p>
-    <p name="pz">z: <text name="etz" extend="$z.equationTag" />, equation <link to="$z" name="rz" /></p>
+    <p name="px">x: <text name="etx" extend="$x.equationTag" />, equation <ref to="$x" name="rx" /></p>
+    <p name="pm1">m1: <text name="etm1" extend="$rm[1].eq.equationTag" />, equation <ref to="$rm[1].eq" name="rm1" /></p>
+    <p name="pm2">m2: <text name="etm2" extend="$rm[2].eq.equationTag" />, equation <ref to="$rm[2].eq" name="rm2" /></p>
+    <p name="pm3">m3: <text name="etm3" extend="$rm[3].eq.equationTag" />, equation <ref to="$rm[3].eq" name="rm3" /></p>
+    <p name="pm4">m4: <text name="etm4" extend="$rm[4].eq.equationTag" />, equation <ref to="$rm[4].eq" name="rm4" /></p>
+    <p name="pm5">m5: <text name="etm5" extend="$rm[5].eq.equationTag" />, equation <ref to="$rm[5].eq" name="rm5" /></p>
+    <p name="pm6">m6: <text name="etm6" extend="$rm[6].eq.equationTag" />, equation <ref to="$rm[6].eq" name="rm6" /></p>
+    <p name="py">y: <text name="ety" extend="$y.equationTag" />, equation <ref to="$y" name="ry" /></p>
+    <p name="pn1">n1: <text name="etn1" extend="$rn[1].eq.equationTag" />, equation <ref to="$rn[1].eq" name="rn1" /></p>
+    <p name="pn2">n2: <text name="etn2" extend="$rn[2].eq.equationTag" />, equation <ref to="$rn[2].eq" name="rn2" /></p>
+    <p name="pn3">n3: <text name="etn3" extend="$rn[3].eq.equationTag" />, equation <ref to="$rn[3].eq" name="rn3" /></p>
+    <p name="pn4">n4: <text name="etn4" extend="$rn[4].eq.equationTag" />, equation <ref to="$rn[4].eq" name="rn4" /></p>
+    <p name="pn5">n5: <text name="etn5" extend="$rn[5].eq.equationTag" />, equation <ref to="$rn[5].eq" name="rn5" /></p>
+    <p name="pn6">n6: <text name="etn6" extend="$rn[6].eq.equationTag" />, equation <ref to="$rn[6].eq" name="rn6" /></p>
+    <p name="pz">z: <text name="etz" extend="$z.equationTag" />, equation <ref to="$z" name="rz" /></p>
     <p>
       <math extend="$m" name="ma" />
       <math extend="$n" name="na" />
@@ -315,21 +315,21 @@ describe("Math Display Tag Tests", function () {
     </mdn>
     <men name="z">z</men>
     
-    <p name="px">x: <text name="etx" extend="$x.equationTag" />, equation <link to="$x" name="rx" /></p>
-    <p name="pm1">m1: <text name="etm1" extend="$rm[1].eq.equationTag" />, equation <link to="$rm[1].eq" name="rm1" /></p>
-    <p name="pm2">m2: <text name="etm2" extend="$rm[2].eq.equationTag" />, equation <link to="$rm[2].eq" name="rm2" /></p>
-    <p name="pm3">m3: <text name="etm3" extend="$rm[3].eq.equationTag" />, equation <link to="$rm[3].eq" name="rm3" /></p>
-    <p name="pm4">m4: <text name="etm4" extend="$rm[4].eq.equationTag" />, equation <link to="$rm[4].eq" name="rm4" /></p>
-    <p name="pm5">m5: <text name="etm5" extend="$rm[5].eq.equationTag" />, equation <link to="$rm[5].eq" name="rm5" /></p>
-    <p name="pm6">m6: <text name="etm6" extend="$rm[6].eq.equationTag" />, equation <link to="$rm[6].eq" name="rm6" /></p>
-    <p name="py">y: <text name="ety" extend="$y.equationTag" />, equation <link to="$y" name="ry" /></p>
-    <p name="pn1">n1: <text name="etn1" extend="$rn[1].eq.equationTag" />, equation <link to="$rn[1].eq" name="rn1" /></p>
-    <p name="pn2">n2: <text name="etn2" extend="$rn[2].eq.equationTag" />, equation <link to="$rn[2].eq" name="rn2" /></p>
-    <p name="pn3">n3: <text name="etn3" extend="$rn[3].eq.equationTag" />, equation <link to="$rn[3].eq" name="rn3" /></p>
-    <p name="pn4">n4: <text name="etn4" extend="$rn[4].eq.equationTag" />, equation <link to="$rn[4].eq" name="rn4" /></p>
-    <p name="pn5">n5: <text name="etn5" extend="$rn[5].eq.equationTag" />, equation <link to="$rn[5].eq" name="rn5" /></p>
-    <p name="pn6">n6: <text name="etn6" extend="$rn[6].eq.equationTag" />, equation <link to="$rn[6].eq" name="rn6" /></p>
-    <p name="pz">z: <text name="etz" extend="$z.equationTag" />, equation <link to="$z" name="rz" /></p>
+    <p name="px">x: <text name="etx" extend="$x.equationTag" />, equation <ref to="$x" name="rx" /></p>
+    <p name="pm1">m1: <text name="etm1" extend="$rm[1].eq.equationTag" />, equation <ref to="$rm[1].eq" name="rm1" /></p>
+    <p name="pm2">m2: <text name="etm2" extend="$rm[2].eq.equationTag" />, equation <ref to="$rm[2].eq" name="rm2" /></p>
+    <p name="pm3">m3: <text name="etm3" extend="$rm[3].eq.equationTag" />, equation <ref to="$rm[3].eq" name="rm3" /></p>
+    <p name="pm4">m4: <text name="etm4" extend="$rm[4].eq.equationTag" />, equation <ref to="$rm[4].eq" name="rm4" /></p>
+    <p name="pm5">m5: <text name="etm5" extend="$rm[5].eq.equationTag" />, equation <ref to="$rm[5].eq" name="rm5" /></p>
+    <p name="pm6">m6: <text name="etm6" extend="$rm[6].eq.equationTag" />, equation <ref to="$rm[6].eq" name="rm6" /></p>
+    <p name="py">y: <text name="ety" extend="$y.equationTag" />, equation <ref to="$y" name="ry" /></p>
+    <p name="pn1">n1: <text name="etn1" extend="$rn[1].eq.equationTag" />, equation <ref to="$rn[1].eq" name="rn1" /></p>
+    <p name="pn2">n2: <text name="etn2" extend="$rn[2].eq.equationTag" />, equation <ref to="$rn[2].eq" name="rn2" /></p>
+    <p name="pn3">n3: <text name="etn3" extend="$rn[3].eq.equationTag" />, equation <ref to="$rn[3].eq" name="rn3" /></p>
+    <p name="pn4">n4: <text name="etn4" extend="$rn[4].eq.equationTag" />, equation <ref to="$rn[4].eq" name="rn4" /></p>
+    <p name="pn5">n5: <text name="etn5" extend="$rn[5].eq.equationTag" />, equation <ref to="$rn[5].eq" name="rn5" /></p>
+    <p name="pn6">n6: <text name="etn6" extend="$rn[6].eq.equationTag" />, equation <ref to="$rn[6].eq" name="rn6" /></p>
+    <p name="pz">z: <text name="etz" extend="$z.equationTag" />, equation <ref to="$z" name="rz" /></p>
     <p>
       <math extend="$m" name="ma" />
       <math extend="$n" name="na" />
@@ -551,21 +551,21 @@ describe("Math Display Tag Tests", function () {
     </mdn>
     <men name="z">z</men>
     
-    <p name="px">x: <text name="etx" extend="$x.equationTag" />, equation <link to="$x" name="rx" /></p>
-    <p name="pm1">m1: <text name="etm1" extend="$rm[1].eq.equationTag" />, equation <link to="$rm[1].eq" name="rm1" /></p>
-    <p name="pm2">m2: <text name="etm2" extend="$rm[2].eq.equationTag" />, equation <link to="$rm[2].eq" name="rm2" /></p>
-    <p name="pm3">m3: <text name="etm3" extend="$rm[3].eq.equationTag" />, equation <link to="$rm[3].eq" name="rm3" /></p>
-    <p name="pm4">m4: <text name="etm4" extend="$rm[4].eq.equationTag" />, equation <link to="$rm[4].eq" name="rm4" /></p>
-    <p name="pm5">m5: <text name="etm5" extend="$rm[5].eq.equationTag" />, equation <link to="$rm[5].eq" name="rm5" /></p>
-    <p name="pm6">m6: <text name="etm6" extend="$rm[6].eq.equationTag" />, equation <link to="$rm[6].eq" name="rm6" /></p>
-    <p name="py">y: <text name="ety" extend="$y.equationTag" />, equation <link to="$y" name="ry" /></p>
-    <p name="pn1">n1: <text name="etn1" extend="$rn[1].eq.equationTag" />, equation <link to="$rn[1].eq" name="rn1" /></p>
-    <p name="pn2">n2: <text name="etn2" extend="$rn[2].eq.equationTag" />, equation <link to="$rn[2].eq" name="rn2" /></p>
-    <p name="pn3">n3: <text name="etn3" extend="$rn[3].eq.equationTag" />, equation <link to="$rn[3].eq" name="rn3" /></p>
-    <p name="pn4">n4: <text name="etn4" extend="$rn[4].eq.equationTag" />, equation <link to="$rn[4].eq" name="rn4" /></p>
-    <p name="pn5">n5: <text name="etn5" extend="$rn[5].eq.equationTag" />, equation <link to="$rn[5].eq" name="rn5" /></p>
-    <p name="pn6">n6: <text name="etn6" extend="$rn[6].eq.equationTag" />, equation <link to="$rn[6].eq" name="rn6" /></p>
-    <p name="pz">z: <text name="etz" extend="$z.equationTag" />, equation <link to="$z" name="rz" /></p>
+    <p name="px">x: <text name="etx" extend="$x.equationTag" />, equation <ref to="$x" name="rx" /></p>
+    <p name="pm1">m1: <text name="etm1" extend="$rm[1].eq.equationTag" />, equation <ref to="$rm[1].eq" name="rm1" /></p>
+    <p name="pm2">m2: <text name="etm2" extend="$rm[2].eq.equationTag" />, equation <ref to="$rm[2].eq" name="rm2" /></p>
+    <p name="pm3">m3: <text name="etm3" extend="$rm[3].eq.equationTag" />, equation <ref to="$rm[3].eq" name="rm3" /></p>
+    <p name="pm4">m4: <text name="etm4" extend="$rm[4].eq.equationTag" />, equation <ref to="$rm[4].eq" name="rm4" /></p>
+    <p name="pm5">m5: <text name="etm5" extend="$rm[5].eq.equationTag" />, equation <ref to="$rm[5].eq" name="rm5" /></p>
+    <p name="pm6">m6: <text name="etm6" extend="$rm[6].eq.equationTag" />, equation <ref to="$rm[6].eq" name="rm6" /></p>
+    <p name="py">y: <text name="ety" extend="$y.equationTag" />, equation <ref to="$y" name="ry" /></p>
+    <p name="pn1">n1: <text name="etn1" extend="$rn[1].eq.equationTag" />, equation <ref to="$rn[1].eq" name="rn1" /></p>
+    <p name="pn2">n2: <text name="etn2" extend="$rn[2].eq.equationTag" />, equation <ref to="$rn[2].eq" name="rn2" /></p>
+    <p name="pn3">n3: <text name="etn3" extend="$rn[3].eq.equationTag" />, equation <ref to="$rn[3].eq" name="rn3" /></p>
+    <p name="pn4">n4: <text name="etn4" extend="$rn[4].eq.equationTag" />, equation <ref to="$rn[4].eq" name="rn4" /></p>
+    <p name="pn5">n5: <text name="etn5" extend="$rn[5].eq.equationTag" />, equation <ref to="$rn[5].eq" name="rn5" /></p>
+    <p name="pn6">n6: <text name="etn6" extend="$rn[6].eq.equationTag" />, equation <ref to="$rn[6].eq" name="rn6" /></p>
+    <p name="pz">z: <text name="etz" extend="$z.equationTag" />, equation <ref to="$z" name="rz" /></p>
     <p>
       <math extend="$m" name="ma" />
       <math extend="$n" name="na" />

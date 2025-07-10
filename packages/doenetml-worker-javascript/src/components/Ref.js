@@ -1,6 +1,6 @@
 import InlineComponent from "./abstract/InlineComponent";
 
-export default class Link extends InlineComponent {
+export default class Ref extends InlineComponent {
     constructor(args) {
         super(args);
 
@@ -8,7 +8,7 @@ export default class Link extends InlineComponent {
             navigateToTarget: this.navigateToTarget.bind(this),
         });
     }
-    static componentType = "link";
+    static componentType = "ref";
     static renderChildren = true;
 
     static createAttributesObject() {
