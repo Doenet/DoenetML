@@ -72,7 +72,7 @@ export const upgradeMapElement: Plugin<[], DastRoot, DastRoot> = () => {
                 return;
             }
 
-            const itemName = toXml(
+            const valueName = toXml(
                 sourcesNode.attributes["alias"]?.children,
             ).trim();
             const indexName = toXml(
@@ -96,11 +96,11 @@ export const upgradeMapElement: Plugin<[], DastRoot, DastRoot> = () => {
                     };
                 }
                 sequenceNode.name = "repeatForSequence";
-                if (itemName) {
-                    sequenceNode.attributes["itemName"] = {
+                if (valueName) {
+                    sequenceNode.attributes["valueName"] = {
                         type: "attribute",
-                        name: "itemName",
-                        children: reparseAttribute(itemName),
+                        name: "valueName",
+                        children: reparseAttribute(valueName),
                     };
                 }
                 if (indexName) {
@@ -152,11 +152,11 @@ export const upgradeMapElement: Plugin<[], DastRoot, DastRoot> = () => {
                         children: reparseAttribute(name),
                     };
                 }
-                if (itemName) {
-                    templateNode.attributes["itemName"] = {
+                if (valueName) {
+                    templateNode.attributes["valueName"] = {
                         type: "attribute",
-                        name: "itemName",
-                        children: reparseAttribute(itemName),
+                        name: "valueName",
+                        children: reparseAttribute(valueName),
                     };
                 }
                 if (indexName) {
