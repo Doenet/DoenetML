@@ -2,27 +2,32 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { AttrDisplay, PropDisplay } from "../../components"
 
-## Attributes and Properties 
- <AttrDisplay name='nbsp'/> 
- <PropDisplay name='nbsp'/>
-
 # `<nbsp/>{:dn}`
 
 
-` <nbsp/>{:dn}` renders white space in a paragraph.
+` <nbsp/>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types) 
+component that renders white space in a paragraph.
+
+
+## Attributes and Properties 
+The `<nbsp/>{:dn}` component does not have attributes.
+ <PropDisplay name='nbsp'/>
+
 
 ---
 
-### Example: <tage>nbsp</tage> in a paragraph
+### Example: `<nbsp/>{:dn}` in a paragraph
 
 
 ```doenet-editor-horiz
 <p>The time has come, the Walrus said, to talk of many things,</p>
 <p>Of shoes,</p>
 <p><nbsp/><nbsp/><nbsp/>and ships,</p>
-<p><nbsp/><nbsp/><nbsp/><nbsp/><nbsp/>and ceiling wax...</p>
+<p><nbsp/><nbsp/><nbsp/><nbsp/><nbsp/>
+    and ceiling wax...</p>
 <p>Of carpenters,</p>
-<p><nbsp/><nbsp/><nbsp/><nbsp/><nbsp/>and kings.</p>
+<p><nbsp/><nbsp/><nbsp/><nbsp/><nbsp/>
+    and kings.</p>
 ```
 
 

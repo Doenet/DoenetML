@@ -6,7 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <not>{:dn}`
 
-` <not>{:dn}` can be used in place of typing `not` or using the symbol `!` to construct boolean conditions.
+` <not>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types) 
+component that can be used in place of typing `not` or using the symbol `!` to construct boolean conditions.
 
 ## Attributes and Properties 
  <AttrDisplay name='not'/> 
@@ -44,10 +45,11 @@ The ` <not>{:dn}` component functions as the boolean operator `not` or `!`.
     </constraints>
   </point>
 </graph>
+
 <answer>
   <award>
     <when>
-      <not>$p{isResponse} = (0,0)</not>
+      <not>$p = (0,0)</not>
     </when>
   </award>
 </answer>

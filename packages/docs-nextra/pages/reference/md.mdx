@@ -5,7 +5,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <md>{:dn}`
 
-` <md>{:dn}` renders a block of aligned display mathematics when used in combination with the ` <<ref uri="doenet:activityId=_IDfY5djdaYLObbEv5yWrT">mrow</ref>>{:dn}` component.
+` <md>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
+component that renders a block of aligned display mathematics when used in combination 
+with the ` <mrow>{:dn}` component.
 
 ## Attributes and Properties 
  <AttrDisplay name='md'/> 
@@ -28,13 +30,15 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-The data contained within an ` <md>{:dn}` block must be contained in an [` <mrow>{:dn}`](mrow.mdx).  Equations and content will align vertically where the `&` symbol is entered in each row. 
+The data contained within an ` <md>{:dn}` block must be contained in 
+an [` <mrow>{:dn}`](mrow.mdx).  Equations and content will align vertically where 
+the `&` symbol is entered in each row. 
 
 
 
 ---
 
-### Example: ` <md>{:dn}` cannot contain ` <answer>{:dn}` or <tage>mathInput</tage>
+### Example: ` <md>{:dn}` cannot contain ` <answer>{:dn}` or `<mathInput/>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -47,7 +51,7 @@ The data contained within an ` <md>{:dn}` block must be contained in an [` <mrow
 
 
 
-An ` <md>{:dn}` block cannot contain an ` <answer>{:dn}` or a ` <mathInput/>{:dn}` at this time.
+An ` <md>{:dn}` block cannot contain an ` <answer>{:dn}` or a ` <mathInput/>{:dn}`.
 
 
 
@@ -56,10 +60,11 @@ An ` <md>{:dn}` block cannot contain an ` <answer>{:dn}` or a ` <mathInput/>{:dn
 ### Example: ` <md>{:dn}` with referenced ` <math>{:dn}`
 
 
-```doenet-editor-horiz
+```doenet-example
 <p><m>f(x) = <function name="f" variables="x">x^2</function></m></p>
 <p><m>g(y) = <function name="g" variables="y">sqrt(y)</function></m></p>
 <p><m>h(z) = <function name="h" variables="z">sin(z)</function></m></p>
+
 <p>The first derivatives of functions <m>f(x)</m>, <m>g(y)</m> and <m>h(z)</m> are:
   <md>
     <mrow>\frac{df}{dx} &= 
@@ -77,10 +82,12 @@ An ` <md>{:dn}` block cannot contain an ` <answer>{:dn}` or a ` <mathInput/>{:dn
 
 
 
-Computational DoenetML components, such as ` <math>{:dn}`, or ` <derivative>{:dn}`, can be nested within or referenced within an ` <md>{:dn}` block.
+Computational DoenetML components, such as ` <math>{:dn}`, or ` <derivative>{:dn}`, can be nested within or 
+referenced within an ` <md>{:dn}` block.
 
 
-Exceptions: The ` <answer>{:dn}` component, the ` <mathInput/>{:dn}` component, and other ` <md>{:dn}` components cannot be nested within an ` <md>{:dn}` block.
+Exceptions: The ` <answer>{:dn}` component, the ` <mathInput/>{:dn}` component, and other ` <md>{:dn}` 
+components cannot be nested within an ` <md>{:dn}` block.
 
 
 
@@ -94,6 +101,7 @@ Exceptions: The ` <answer>{:dn}` component, the ` <mathInput/>{:dn}` component, 
   <line name="line1">2x - y = 3</line>
   <line name="line2">x + y = 5</line>
   <intersection>$line1 $line2</intersection>
+
 <md anchor="(-6,4)">
   <mrow>$line1.equation</mrow>
   <mrow>$line2.equation</mrow>
@@ -103,13 +111,14 @@ Exceptions: The ` <answer>{:dn}` component, the ` <mathInput/>{:dn}` component, 
 
 
 
-An ` <md>{:dn}` block can be placed on a ` <graph>{:dn}`. The `anchor` attribute can be used to specify its initial location.
+An ` <md>{:dn}` block can be placed on a ` <graph>{:dn}`. The `anchor` attribute 
+can be used to specify its initial location.
 
 
 
 ---
 
-### Example: Standard graphical attributes
+### Attribute Example: Standard graphical attributes
 
 
 ```doenet-editor-horiz
@@ -121,19 +130,22 @@ An ` <md>{:dn}` block can be placed on a ` <graph>{:dn}`. The `anchor` attribute
   <line name="line1">2x - y = 3</line>
   <line name="line2">x + y = 5</line>
   <intersection>$line1 $line2</intersection>
-<md name="eqBlock" anchor="(-6,4)" 
-                   draggable="$canDrag" 
-                   hide="$hideEq"
-                   styleNumber="2">
-  <mrow>$line1.equation</mrow>
-  <mrow>$line2.equation</mrow>
+<md 
+  name="eqBlock" 
+  anchor="(-6,4)" 
+  draggable="$canDrag" 
+  hide="$hideEq"
+  styleNumber="2">
+    <mrow>$line1.equation</mrow>
+    <mrow>$line2.equation</mrow>
 </md>
 </graph>     
 ```
 
 
 
-Since an ` <md>{:dn}` block can be placed on a graph, the standard graphical attributes `draggable`, `hide`, and `styleNumber` can be used to control its appearance and behavior.
+Since an ` <md>{:dn}` block can be placed on a graph, the standard graphical 
+attributes `draggable`, `hide`, and `styleNumber` can be used to control its appearance and behavior.
 
 
 
@@ -166,6 +178,7 @@ The `latex` property returns the LaTeX code for rendering the equation block.
   <mrow>\frac{x}{2} &= 4</mrow>
   <mrow>x + \sqrt{y} &= 3</mrow>
 </md>
+
 <p><c>text</c> = $eqBlock.text</p>  
 ```
 

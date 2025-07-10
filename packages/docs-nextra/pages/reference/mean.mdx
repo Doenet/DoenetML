@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <mean>{:dn}`
 
-` <mean>{:dn}` is a Math Operator component which renders the arithmetic mean of the enclosed values.
+` <mean>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
+component which renders the arithmetic mean of the enclosed values.
 
 ## Attributes and Properties 
  <AttrDisplay name='mean'/> 
@@ -13,23 +14,26 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
-### Example: ` <mean>{:dn}` of a sugared list of numbers
+### Example: ` <mean>{:dn}` of a nested list of numbers
 
 
 ```doenet-editor-horiz
 <p><m>\mathbb{A} = \{1, 2, 3, -1\}</m></p>
-<p>The mean of <m>\mathbb{A}= <mean>1 2 3 -1</mean></m></p>
+
+<p>The mean of <m>\mathbb{A}= 
+  <mean>1 2 3 -1</mean></m>
+</p>
 ```
 
 
-
-Numbers are listed directly within opening and closing tags of the ` <mean>{:dn}` component. The [` <m>{:dn}`](m.mdx) component is used for mathematical desplay.
+Numbers are listed directly within opening and closing tags of the ` <mean>{:dn}` 
+component. The ` <m>{:dn}` component is used for mathematical desplay.
 
 
 
 ---
 
-### Example: ` <mean>{:dn}` of named <tage>mathInput</tage>s
+### Example: ` <mean>{:dn}` of named ` <mathInput/>{:dn}` components
 
 
 ```doenet-editor-horiz
@@ -38,11 +42,17 @@ Numbers are listed directly within opening and closing tags of the ` <mean>{:dn}
 <p><m>y = </m> <mathInput name="y"/></p> 
 <p><m>z = </m> <mathInput name="z"/></p>
 <p>  
-The mean of your three numbers <m>\{$x, $y, $z\}</m> is:  <number><mean>$x $y $z</mean></number>
+The mean of your three numbers <m>\{$x, $y, $z\}</m> is:  
+  <m>
+    <number>
+      <mean>$x $y $z</mean>
+    </number>
+  </m>
 </p>
 ```
 
 
 
-In this example, three <ref uri="doenet:activityId=_p_qPrnY-jhcqqrG2LcodH">` <mathInput/>{:dn}`</ref>s are referenced using the `$name` notation within the ` <mean>{:dn}` component.
+In this example, three ` <mathInput/>{:dn}` components 
+are referenced using the `$name` notation within the ` <mean>{:dn}` component.
 

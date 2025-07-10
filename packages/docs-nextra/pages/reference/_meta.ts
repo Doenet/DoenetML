@@ -116,6 +116,8 @@ export default {
     men: { title: "men" },
     min: { title: "min" },
     mod: { title: "mod" },
+    module: { title: "module" },
+    moduleAttributes: { title: "moduleAttributes" },
     mrow: { title: "mrow" },
     nbsp: { title: "nbsp" },
     not: { title: "not" },

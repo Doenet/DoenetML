@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <matrix>{:dn}`
 
-` <matrix>{:dn}` defines/renders a matrix for use in computations.
+` <matrix>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+component that defines/renders a matrix for use in computations.
 
 ## Attributes and Properties 
  <AttrDisplay name='matrix'/> 
@@ -30,7 +31,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-Matrices can be quickly defined by listing row entries within nested ` <row>{:dn}` components. Individual entries can be accessed using array notation with the `matrix` property.
+Matrices can be quickly defined by listing row entries within nested ` <row>{:dn}` components. 
+Individual entries can be accessed using array notation with the `matrix` property.
 
 
 
@@ -52,7 +54,8 @@ Matrices can be quickly defined by listing row entries within nested ` <row>{:dn
 
 
 
-Matrices can be quickly defined by listing column entries within nested ` <column>{:dn}` components. Individual entries can be accessed using array notation with the `matrix` property.
+Matrices can be quickly defined by listing column entries within nested ` <column>{:dn}` components. Individual 
+entries can be accessed using array notation with the `matrix` property.
 
 
 
@@ -77,7 +80,8 @@ Matrices can be quickly defined by listing column entries within nested ` <colum
 
 
 
-A ` <matrix>{:dn}` of a given size can be generated using the `numRows` and the `numColumns` attributes. By default, a zero matrix will be defined; to modify this use the `defaultEntry` attribute.
+A ` <matrix>{:dn}` of a given size can be generated using the `numRows` and the `numColumns` attributes. By 
+default, a zero matrix will be defined; to modify this use the `defaultEntry` attribute.
 
 
 
@@ -90,6 +94,7 @@ A ` <matrix>{:dn}` of a given size can be generated using the `numRows` and the 
 <p>Enter the rows of your matrix (separate entries with commas)</p>
 <p>First row: 
   <mathInput name="row1"/></p>
+
 <p>Second row: <mathInput name="row2"/></p>
 <p><m>A = </m>
   <matrix name="A">
@@ -102,7 +107,8 @@ A ` <matrix>{:dn}` of a given size can be generated using the `numRows` and the 
 
 
 
-This example shows one method of populating the entries of a ` <matrix>{:dn}` from user-input. See also, ` <matrixInput>{:dn}`.
+This example shows one method of populating the entries of a ` <matrix>{:dn}` from user-input. See 
+also, ` <matrixInput>{:dn}`.
 
 
 
@@ -161,7 +167,8 @@ The ` <math>{:dn}` component with the `simplify` attribute performs matrix addit
 
 
 
-The ` <math>{:dn}` component, along with both the `simplify` and `expand` attributes, performs matrix multiplication.
+The ` <math>{:dn}` component, along with both the `simplify` and `expand` attributes, 
+performs matrix multiplication.
 
 
 
@@ -205,12 +212,12 @@ The ` <math>{:dn}` component with the `simplify` attribute performs matrix multi
 <p><m>A = </m>
   <matrix>
     <column>
-      ($v1.displacement[1]) 
-      ($v1.displacement[2])
+      ($v1[1]) 
+      ($v1[2])
     </column>
     <column>
-      ($v2.displacement[1]) 
-      ($v2.displacement[2])
+      ($v2[1]) 
+      ($v2[2])
     </column>
   </matrix>
 </p>
@@ -218,16 +225,18 @@ The ` <math>{:dn}` component with the `simplify` attribute performs matrix multi
 
 
 
-A coefficient matrix can be constructed from vectors or other geometric objects by referencing properties of the objects within the ` <row>{:dn}` or ` <column>{:dn}` components. The property references should be enclosed in parentheses.
+A coefficient matrix can be constructed from vectors or other 
+geometric objects by referencing the objects within the ` <row>{:dn}` or ` <column>{:dn}` 
+components. The references should be enclosed in parentheses.
 
 
 
 ---
 
-### Example: numRows / numColumns
+### Attribute Example: numRows / numColumns
 
 
-```doenet-editor-horiz
+```doenet-example
 <p><m>A = </m>
   <matrix name="A" 
           numRows="2"     
@@ -243,10 +252,10 @@ With `numRows` and `numColumns`, a zero matrix of a given size can be defined.
 
 ---
 
-### Example: defaultEntry
+### Attribute Example: defaultEntry
 
 
-```doenet-editor-horiz
+```doenet-example
 <p><m>A = </m>
   <matrix name="A" 
           defaultEntry="1"
@@ -257,13 +266,14 @@ With `numRows` and `numColumns`, a zero matrix of a given size can be defined.
 
 
 
-Use the `defaultEntry` attribute to change the prefilled value for a matrix of a specified size; the default value is $0$.
+Use the `defaultEntry` attribute to change the prefilled value for a matrix 
+of a specified size; the default value is $0$.
 
 
 
 ---
 
-### Example: Attributes as properties
+### Property Example: Attributes as properties
 
 
 ```doenet-editor-horiz

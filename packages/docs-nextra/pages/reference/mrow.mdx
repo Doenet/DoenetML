@@ -5,7 +5,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <mrow>{:dn}`
 
-` <mrow>{:dn}` renders a single line within a block of aligned display mathematics when nested within the ` <md>{:dn}` or the ` <mdn>{:dn}` component.
+` <mrow>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
+component that renders a single line within a block of aligned display mathematics when 
+nested within the ` <md>{:dn}` or the ` <mdn>{:dn}` component.
 
 ## Attributes and Properties 
  <AttrDisplay name='mrow'/> 
@@ -28,7 +30,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-The data contained within an ` <md>{:dn}` block must be contained in an ` <mrow>{:dn}`.  Equations and content will align vertically where the `&` symbol is entered in each row. 
+The data contained within an ` <md>{:dn}` block must be contained in 
+an ` <mrow>{:dn}`.  Equations and content will align vertically 
+where the `&` symbol is entered in each row. 
 
 
 
@@ -49,13 +53,14 @@ The data contained within an ` <md>{:dn}` block must be contained in an ` <mrow>
 
 
 
-The data contained within an ` <mdn>{:dn}` block must be contained in an ` <mrow>{:dn}`.  Equations and content will align vertically where the `&` symbol is entered in each row. 
+The data contained within an ` <mdn>{:dn}` block must be contained in 
+an ` <mrow>{:dn}`.  Equations and content will align vertically where the `&` symbol is entered in each row. 
 
 
 
 ---
 
-### Example: ` <mrow>{:dn}` cannot contain ` <answer>{:dn}` or <tage>mathInput</tage>
+### Example: ` <mrow>{:dn}` cannot contain ` <answer>{:dn}` or ` <mathInput/>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -68,7 +73,7 @@ The data contained within an ` <mdn>{:dn}` block must be contained in an ` <mrow
 
 
 
-An ` <mrow>{:dn}` component cannot contain an ` <answer>{:dn}` or a ` <mathInput/>{:dn}` at this time.
+An ` <mrow>{:dn}` component cannot contain an ` <answer>{:dn}` or a ` <mathInput/>{:dn}`.
 
 
 
@@ -77,10 +82,11 @@ An ` <mrow>{:dn}` component cannot contain an ` <answer>{:dn}` or a ` <mathInput
 ### Example: ` <mrow>{:dn}` with referenced ` <math>{:dn}`
 
 
-```doenet-editor-horiz
+```doenet-example
 <p><m>f(x) = <function name="f" variables="x">x^2</function></m></p>
 <p><m>g(y) = <function name="g" variables="y">sqrt(y)</function></m></p>
 <p><m>h(z) = <function name="h" variables="z">sin(z)</function></m></p>
+
 <p>The first derivatives of functions <m>f(x)</m>, <m>g(y)</m> and <m>h(z)</m> are:
   <md>
     <mrow>\frac{df}{dx} &= 
@@ -107,7 +113,7 @@ Exceptions: The ` <answer>{:dn}` component, the ` <mathInput/>{:dn}` component, 
 
 ---
 
-### Example: number
+### Attribute Example: number
 
 
 ```doenet-editor-horiz
@@ -126,7 +132,7 @@ The `number` attribute can be set to `false` to prevent the default numbering of
 
 ---
 
-### Example: latex
+### Attribute Example: latex
 
 
 ```doenet-editor-horiz
@@ -134,6 +140,7 @@ The `number` attribute can be set to `false` to prevent the default numbering of
   <mrow>\frac{x}{2} &= 4</mrow>
   <mrow>x + \sqrt{y} &= 3</mrow>
 </md>
+
 <p><c>latex</c> = $_mrow1.latex</p>      
 ```
 
@@ -145,7 +152,7 @@ The `latex` property returns the LaTeX code for rendering the ` <mrow>{:dn}`.
 
 ---
 
-### Example: text
+### Attribute Example: text
 
 
 ```doenet-editor-horiz
@@ -153,6 +160,7 @@ The `latex` property returns the LaTeX code for rendering the ` <mrow>{:dn}`.
   <mrow>\frac{x}{2} &= 4</mrow>
   <mrow>x + \sqrt{y} &= 3</mrow>
 </md>
+
 <p><c>text</c> = $_mrow1.text</p>  
 ```
 

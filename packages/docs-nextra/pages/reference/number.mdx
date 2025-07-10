@@ -6,10 +6,12 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <number>{:dn}`
 
 
-` <number>{:dn}` stores the numerical value of the enclosed argument, and renders a numerical approximation of the argument to a specified precision.
+` <number>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+component that calculates a numerical (floating point) value from its contents
+and displays the result as text.
 
-
-The default precision for display is either: (1) rounded to three significant digits or (2) rounded two decimal places, whichever has more digits.
+The default precision for display is either: (1) rounded to three significant digits or (2) rounded 
+two decimal places, whichever has more digits.
 
 ## Attributes and Properties 
  <AttrDisplay name='number'/> 
@@ -33,24 +35,32 @@ The default precision for display is either (1)rounded to three significant digi
 
 ---
 
-### Example: renderAsMath
+### Attribute Example: renderAsMath
 
 
 ```doenet-editor-horiz
 <p><math>pi</math></p>
 <p><number>pi</number></p>
+
 <p><number renderAsMath>pi</number></p>
+
+<p>An easy alternative to using this attribute:
+  <m><number>pi</number></m>
+</p>
 ```
 
 
 
-The `renderAsMath` attribute adjusts the default font for a ` <number>{:dn}` in order for it to appear the same as that of a ` <math>{:dn}`.
+The `renderAsMath` attribute adjusts the default font for a ` <number>{:dn}` in order 
+for it to appear the same as that of a ` <math>{:dn}`.
+The same effect can be achieved by placing the ` <number>{:dn}` inside a ` <m>{:dn}` component, 
+as shown in the last paragraph of the example above.
 
 
 
 ---
 
-### Example: convertBoolean
+### Attribute Example: convertBoolean
 
 
 ```doenet-editor-horiz
@@ -66,31 +76,40 @@ The `convertBoolean` attribute renders or stores a boolean that evaluates to `tr
 
 ---
 
-### Example: valueOnNaN
+### Attribute Example: valueOnNaN
 
 
 ```doenet-editor-horiz
 <p>Enter a number other than 0: <mathInput name="userN"/></p>
 <p><number>$userN</number></p>
-<p><number valueOnNaN="0" name="numN">$userN</number></p>
+
+<p>
+  <number
+     valueOnNaN="0" 
+     name="numN">
+      $userN
+  </number>
+</p>
 <p hide="$numN = 0">You've entered a number</p>
 ```
 
 
 
-The `valueOnNaN` attribute allows for temporary values (which can be used in boolean conditions) to be stored by Doenet until a new number is assigned
+The `valueOnNaN` attribute allows for temporary values (which can be used in boolean conditions) to 
+be stored by Doenet until a new number is assigned
 
 
 
 ---
 
-### Example: anchor
+### Attribute Example: anchor
 
 
 ```doenet-editor-horiz
 <graph size="small">
   <number name="n1" anchor="(5,5)">5/3</number>
 </graph>    
+
 <p><c>anchor</c> = $n1.anchor</p>
 ```
 
@@ -102,7 +121,7 @@ The `anchor` attribute sets the location of a ` <number>{:dn}` placed within a `
 
 ---
 
-### Example: draggable
+### Attribute Example: draggable
 
 
 ```doenet-editor-horiz
@@ -110,90 +129,143 @@ The `anchor` attribute sets the location of a ` <number>{:dn}` placed within a `
 <graph size="small">
   <number name="n1" anchor="(5,5)">53</number>
   <number name="n2" draggable="false" anchor="(-5,-5)">21</number>
-</graph>      
+</graph>     
+
 <p>53 is <c>draggable</c> = $n1.draggable</p>
 <p>21 is <c>draggable</c> = $n2.draggable</p>     
 ```
 
 
 
-The `draggable` attribute determines whether the ` <point>{:dn}` can be dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+The `draggable` attribute determines whether the ` <point>{:dn}` can be 
+dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
 
 
 
 ---
 
-### Example: displayDigits/displayDecimals
+### Attribute Example: displayDigits/displayDecimals
 
 
 ```doenet-editor-horiz
 <p>By default, display three digits or two decimals places, whichever is greater.</p>
-<p><m>\frac{8}{7} \approx </m> 
-  <number>8/7</number></p>
-<p><m>\frac{2}{3} \approx </m>
-  <number>2/3</number></p>
+<p><m>\frac{\pi}{2} \approx 
+  <number>3.14159/2</number></m>
+</p> 
+<p><m>\frac{\sqrt{2}}{2} \approx 
+  <number>1.41214/2</number></m>
+</p>
+
 <p>User specifies number of digits to display; default number of decimal places is ignored</p>
-<p><m>\frac{8}{7} \approx </m>
-  <number displayDigits="2">8/7</number></p>
-<p>User specifies number of decimal places to display; default number of digits is ignored</p>
-<p><m>\frac{2}{3} \approx </m>
-  <number displayDecimals="2">2/3</number></p>
+<p><m>\frac{\pi}{2} \approx 
+  <number 
+    displayDigits="2">
+      3.14159/2
+  </number>
+</m></p> 
+
+<p>User specifies number of digits to display; default number of decimal places is ignored</p>        
+<p><m>\frac{\sqrt{2}}{2} \approx 
+  <number 
+    displayDigits="2">
+      1.41214/2
+  </number>
+</m></p>
 ```
 
 
 
-By default, numbers will be displayed as rounded to three digits or to two decimal places, whichever includes more digits.  The `displayDigits` attribute will change the number of digits, and the `displayDecimals` attribute will change the number of decimal places.
+By default, numbers will be displayed as rounded to three digits or to two 
+decimal places, whichever includes more digits.  The `displayDigits` attribute will 
+change the number of digits, and the `displayDecimals` attribute will 
+change the number of decimal places.
 
 
-Note: these display rounding settings do not affect the actual value of the numbers in the expression.  All available digits will be used if the expression is used in another calculation unless one uses the ` <round>{:dn}` component to explicitly round numbers.
+Note: these display rounding settings do not affect the actual value of the 
+numbers in the expression.  All available digits will be used if the expression 
+is used in another calculation unless one uses the ` <round>{:dn}` component to explicitly round numbers.
 
 
 
 ---
 
-### Example: displaySmallAsZero
+### Attribute Example: displaySmallAsZero
 
 
 ```doenet-editor-horiz
 <p>The exact number is: <m>1 \times 10^{-21}</m></p>
-<p>By default, small numbers (with absolute value smaller than <m>10^{-14}</m>) are displayed as zero.</p>
-<number name="n1">10^(-21)</number>
+  <number name="m1">10.1^(-21)</number>
+
+<p>By default, small numbers (with absolute value 
+smaller than <m>10^{-14}</m>) 
+are displayed as zero.</p>
+  <number name="m1">10.1^(-21)</number>
+
 <p>Don't display small numbers as zero.</p>
-<number name="n2" displaySmallAsZero="false" >10^(-21)</number>
-<p>Display numbers smaller than <m>10^{-20}</m> in absolute value as zero.</p>
-<p><number name="n3" displaySmallAsZero="10^(-20)">10^(-19)</number></p>
-<p><number name="n4" displaySmallAsZero="10^(-20)">10^(-21)</number></p>
+  <number name="m2" 
+    displaySmallAsZero="false">
+      10.1^(-21)
+  </number>
+
+<p>Display numbers smaller than <m>10^{-20}</m> 
+in absolute value as zero.</p>
+<p>
+  <number name="m3" 
+    displaySmallAsZero="10^(-20)" >
+      10.1^(-19)
+  </number>
+</p>
+
+<p>
+  <number name="m4" 
+    displaySmallAsZero="10.1^(-20)">
+      10.1^(-21)
+  </number>
+</p>
 ```
 
 
 
-The default value of the `displaySmallAsZero` attribute is $10^{-14}$, which means that numerical values smaller than that value will appear as zero.  This behavior can be altered by changing the value of `displaySmallAsZero` to a different number, or even setting it to "false".
+The default value of the `displaySmallAsZero` attribute is $10^{-14}$, which means that 
+numerical values smaller than that value will appear as zero.  This behavior can be 
+altered by changing the value of `displaySmallAsZero` to a different number, or even setting it to "false".
 
 
 
 ---
 
-### Example: padZeros
+### Attribute Example: padZeros
 
 
 ```doenet-editor-horiz
-<p><number displayDecimals="2">1/10</number></p>
-<p><number displayDecimals="2" padZeros>1/10</number></p>
+<p>
+  <number displayDecimals="2">
+    1/10
+  </number>
+</p>
+
+<p>
+  <number displayDecimals="2" padZeros>
+    1/10
+  </number>
+</p>
 ```
 
 
 
-If the `padZeros` is set, then numbers will be displayed padded with zeros so that all the digits from the combination of `displayDigits` and `displayDecimals` will be shown.
+If the `padZeros` is set, then numbers will be displayed padded with zeros so 
+that all the digits from the combination of `displayDigits` and `displayDecimals` will be shown.
 
 
 
 ---
 
-### Example: value
+### Property Example: value
 
 
 ```doenet-editor-horiz
 <number name="n1">pi/3</number>
+
 <p><c>value</c> = $n1.value</p>
 ```
 
@@ -205,11 +277,12 @@ The `value` property renders the value stored in the ` <number>{:dn}`.
 
 ---
 
-### Example: text
+### Property Example: text
 
 
 ```doenet-editor-horiz
 <number name="n1">pi/3</number>
+
 <p><c>text</c> = $n1.text</p>
 ```
 
@@ -221,7 +294,7 @@ The `text` property renders the text value stored in the ` <number>{:dn}`.
 
 ---
 
-### Example: latex
+### Property Example: latex
 
 
 ```doenet-editor-horiz

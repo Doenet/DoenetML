@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <matrixInput/>{:dn}`
 
-` <matrixInput/>{:dn}` renders an empty matrix with blanks for user-input of entries.
+` <matrixInput/>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
+component renders an empty matrix with blanks for user-input of entries.
 
 ## Attributes and Properties 
  <AttrDisplay name='matrixInput'/> 
@@ -13,105 +14,144 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
-### Example: Default <tage>matrixInput</tage>
+### Example: Default `<matrixInput/>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>Fill in the entries of the matrix. Click (r+) or (c+) to add a row or a column, and (r-) or (c-) to delete a row or a column.</p>
+<p>Fill in the entries of the matrix. 
+Click (r+) or (c+) to add a row or a column, 
+and (r-) or (c-) to delete a row or a column.</p>
+
 <matrixInput name="userMatrix"/>
 <p>userMatrix = $userMatrix</p>
 ```
 
 
 
-The default ` <matrixInput/>{:dn}` contains a single input blank. Additional rows and columns are added with rendered size control buttons.
+The default ` <matrixInput/>{:dn}` contains a single input blank. Additional 
+rows and columns are added with rendered size control buttons.
 
 
 
 ---
 
-### Example: A blank 2x3 <tage>matrixInput</tage>
+### Example: A blank 2x3 ` <matrixInput/>{:dn}`
 
 
 ```doenet-editor-horiz
-<matrixInput name="userMatrix" numRows="2" numColumns="3" showSizeControls="false"/>
+<matrixInput 
+  name="userMatrix" 
+  numRows="2" 
+  numColumns="3" 
+  showSizeControls="false"
+/>
+
 <p>userMatrix = $userMatrix</p>
 ```
 
 
 
-To show a ` <matrixInput/>{:dn}` of a specific, unchangeable size, use the `numRows` and the `numColumns` attributes. Set the `showSizeControls` attribute to `false` to prevent the user from altering the size.
+To show a ` <matrixInput/>{:dn}` of a specific, unchangeable size, 
+use the `numRows` and the `numColumns` attributes. Set the `showSizeControls` 
+attribute to `false` to prevent the user from altering the size.
 
 
 
 ---
 
-### Example: Retrieving an entry from a <tage>matrixInput</tage>
+### Example: Retrieving an entry from a ` <matrixInput/>{:dn}`
 
 
 ```doenet-editor-horiz
-<matrixInput name="inputA"/>
-<p>Define the matrix as: 
-<m>A = </m>
-  <matrix name="A">$inputA</matrix>
-</p>
+<matrixInput name="A" numRows="2"/>
+
 <p><c>A.matrix[2][1]</c> = $A.matrix[2][1]</p>  
 ```
 
 
-
-A ` <matrix>{:dn}` can be defined by referencing a ` <matrixInput/>{:dn}` between the opening and closing tags. Individual entries of the matrix can then be accessed using array notation with the `matrix` property.
+Individual entries of the matrix can be accessed using array 
+notation with the `matrix` property.
 
 
 
 ---
 
-### Example: Operations with <tage>matrixInput</tage> - defined matrices
+### Example: Operations with ` <matrixInput/>{:dn}` - defined matrices
 
 
 ```doenet-editor-horiz
 <p><m>A = </m>
-  <matrixInput name="A" numRows="2" numColumns="2" showSizeControls="false"/></p>
+  <matrixInput 
+    name="A" 
+    numRows="2" 
+    numColumns="2" 
+    showSizeControls="false"
+    defaultEntry="2"
+  />
+</p>
+
 <p><m>B = </m>
-  <matrixInput name="B" numRows="2" numColumns="2" showSizeControls="false"/></p>
-<p><m>A + B = <math name="sum">$A + $B</math></m></p>
-<p><m>A + B = <math simplify>$sum</math></m></p> 
-<p><m>A B = <math name="product">$A $B</math></m></p>
-<p><m>A + B = <math expand simplify>$product</math></m></p> 
-<p><m>2 B = <math name="scalarMult">2 $B</math></m></p>
-<p><m>2 B = <math expand simplify>$scalarMult</math></m></p>
+  <matrixInput 
+    name="B" 
+    numRows="2" 
+    numColumns="2" 
+    showSizeControls="false"
+    defaultEntry="3"
+    />
+  </p>
+
+<p><m>A + B = 
+  <math name="sum" simplify>$A + $B</math>
+</m></p>
+<p><m>A B = 
+  <math name="product" simplify expand>$A $B</math>
+</m></p>
+<p><m>2 B = 
+  <math name="scalarMult" simplify>2 $B</math>
+</m></p>
 ```
 
 
 
-Basic matrix operations can be performed with named ` <matrixInput/>{:dn}` components. See the ` <matrix>{:dn}` component for additional examples.
+Basic matrix operations can be performed with named ` <matrixInput/>{:dn}` components. See 
+the ` <matrix>{:dn}` component for additional examples.
 
 
 
 ---
 
-### Example: Prefill a <tage>matrixInput</tage> with a ` <matrix>{:dn}`
+### Example: Prefill a ` <matrixInput/>{:dn}` with a ` <matrix>{:dn}`
 
 
 ```doenet-editor-horiz
-<slider name="a" labelIsName/>
-<matrix name="prefillMatrix" numRows="2" numColumns="3" defaultEntry="$a"/>
-<matrixInput name="A" prefill="$prefillMatrix"/>
-<p><m>A = $A</m></p>
+<setup>
+  <matrix name="A">
+    <row>1 2 3</row>
+    <row>4 5 6</row>
+    <row>7 8 9</row>
+  </matrix>
+</setup>
+
+<p>Adjust the given matrix so that it is symmetric: 
+  <m>B = </m>
+  <matrixInput name="B" prefill="$A"/>
+</p>
 ```
 
 
 
-To easily prefill a ` <matrixInput/>{:dn}` with specific entries, first define a ` <matrix>{:dn}` and reference it by name within the `prefill` attribute of the ` <matrixInput/>{:dn}`.
+To easily prefill a ` <matrixInput/>{:dn}` with specific entries, first 
+define a ` <matrix>{:dn}` and reference it by name within the `prefill` attribute 
+of the ` <matrixInput/>{:dn}`.
 
 
 
 ---
 
-### Example: numRows / numColumns
+### Attribute Example: numRows / numColumns
 
 
-```doenet-editor-horiz
+```doenet-example
 <matrixInput name="A" numRows="2" numColumns="3"/>
 <p><m>A = $A</m></p>
 ```
@@ -124,14 +164,25 @@ A ` <matrixInput/>{:dn}` of a specific size can be initialized with the `numRows
 
 ---
 
-### Example: showSizeControls
+### Attribute Example: showSizeControls
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Show size controls: 
-  <booleanInput name="buttonsOn" prefill="true"/> $buttonsOn</p>
-<matrixInput name="A" numRows="2" numColumns="3" showSizeControls="$buttonsOn"/>
-<p><m>A = $A</m></p>
+  <booleanInput 
+    name="buttonsOn" 
+    prefill="true"
+  /> $buttonsOn 
+</p>
+
+<p><m>A = </m>
+  <matrixInput 
+    name="A" 
+    numRows="2" 
+    numColumns="3" 
+    showSizeControls="$buttonsOn"
+  />
+</p>
 ```
 
 
@@ -142,18 +193,19 @@ The default size control buttons can be hidden by setting the `showSizeControls`
 
 ---
 
-### Example: prefill
+### Attribute Example: prefill
 
 
-```doenet-editor-horiz
+```doenet-example
+<matrix name="prefillMatrix">
+  <row>1 2 3</row>
+  <row>4 5 6</row>
+</matrix>
 
-  <matrix name="prefillMatrix">
-    <row>1 2 3</row>
-    <row>4 5 6</row>
-  </matrix>
 
-<matrixInput name="A" prefill="$prefillMatrix"/>
-<p><m>A = $A</m></p>      
+<p><m>A = </m>
+  <matrixInput name="A" prefill="$prefillMatrix"/>
+</p>      
 ```
 
 
@@ -164,11 +216,17 @@ To easily prefill a ` <matrixInput/>{:dn}` with specific entries, first define a
 
 ---
 
-### Example: defaultEntry
+### Attribute Example: defaultEntry
 
 
-```doenet-editor-horiz
-<matrixInput name="A" numRows="2" numColumns="3" defaultEntry="1"/>
+```doenet-example
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="3" 
+  defaultEntry="1"
+/>
+
 <p><m>A = $A</m></p>    
 ```
 
@@ -180,11 +238,18 @@ Use the `defaultEntry` attribute to change the prefilled value for a matrix of a
 
 ---
 
-### Example: format
+### Attribute Example: format
 
 
 ```doenet-editor-horiz
-<matrixInput name="A" numRows="2" numColumns="2" format="latex" prefill="\begin{matrix}a & b\\c & d\end{matrix}" />
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="2" 
+  format="latex" 
+  prefill="\begin{matrix}a & b\\c & d\end{matrix}" 
+/>
+
 <p><m>A = $A</m></p>    
 ```
 
@@ -196,17 +261,21 @@ The `format` attribute gives the option for prefilled ` <matrixInput/>{:dn}` com
 
 ---
 
-### Example: functionSymbols
+### Attribute Example: functionSymbols
 
 
 ```doenet-editor-horiz
-<p>Construct a matrix using function symbols <m>f, g, h</m>:</p>
-<p>
-<matrixInput name="A"
-             showSizeControls="false"
-             numRows="2" 
-             numColumns="2" 
-      functionSymbols="f g h"/>
+<p>Construct a matrix using function symbols <m>f(x), g(x), h(x)</m>:</p>
+
+<p>With attribute:
+<matrixInput 
+  name="A"
+  showSizeControls="false"
+  numRows="2" 
+  numColumns="2"
+  functionSymbols="f g h"
+  prefill="$prefillA"
+/>
 </p>
 <p><m>A^2 = 
   <math simplify expand>$A $A</math></m></p>
@@ -223,7 +292,7 @@ Try deleting the specification `functionSymbols="f g h"` from the example above 
 
 ---
 
-### Example: splitSymbols
+### Attribute Example: splitSymbols
 
 
 ```doenet-editor-horiz
@@ -233,11 +302,25 @@ Try deleting the specification `functionSymbols="f g h"` from the example above 
     <row>xy xyz</row>
   </matrix>
 </p>
+
 <p>Step 1: Enter the matrix shown above in the input box below.</p>
-<matrixInput name="A" numRows="2" numColumns="2" splitSymbols="false" showSizeControls="false"/>
-<p>Step 2: Add spaces in between some of the entries in the input boxes above.</p>
-<p><m>A^2 = <math simplify expand>$A $A</math></m></p> 
-<p>Step 3: To compare to the default behavior, delete the <c>splitSymbols="false"</c> specification in the code to the right.</p>
+  <matrixInput 
+    name="A" 
+    numRows="2" 
+    numColumns="2" 
+    splitSymbols="false" 
+    showSizeControls="false"/>
+
+<p>Step 2: Add spaces in between some of 
+the entries in the input boxes above.</p>
+
+<p><m>A^2 = 
+  <math simplify expand>$A $A</math>
+</m></p> 
+
+<p>Step 3: To compare to the default behavior, delete 
+the <c>splitSymbols="false"</c> specification 
+in the code to the right.</p>
 ```
 
 
@@ -248,21 +331,7 @@ The `splitSymbols` attribute is used to modify the default mathematical simplifi
 
 ---
 
-### Example: parseScientificNotation *
-
-
-```doenet-editor-horiz
-```
-
-
-
-
-
-
-
----
-
-### Example: bindValueTo
+### Attribute Example: bindValueTo
 
 
 ```doenet-editor-horiz
@@ -270,7 +339,13 @@ The `splitSymbols` attribute is used to modify the default mathematical simplifi
 <graph>
   <vector name="v">(5,6)</vector>
 </graph>
-<matrixInput name="A" bindValueTo="$v" showSizeControls="false"/>
+
+<matrixInput 
+  name="A" 
+  bindValueTo="$v" 
+  showSizeControls="false"
+/>
+
 <p><m>A = $A</m></p>    
 ```
 
@@ -282,21 +357,7 @@ The `bindValueTo` attribute is used to create a bidirectional link between the v
 
 ---
 
-### Example: unionFromU *
-
-
-```doenet-editor-horiz
-```
-
-
-
-
-
-
-
----
-
-### Example: minComponentWidth
+### Attribute Example: minComponentWidth
 
 
 ```doenet-editor-horiz
@@ -304,7 +365,14 @@ The `bindValueTo` attribute is used to create a bidirectional link between the v
 <slider name="m" from="10" to="100" step="10">
   <label>minComponentWidth</label>
 </slider>
-<matrixInput name="A" numRows="2" numColumns="3" defaultEntry="1" minComponentWidth="$m"/>
+
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="3" 
+  defaultEntry="1" 
+  minComponentWidth="$m"
+/>
 <p><m>A = $A</m></p>    
 ```
 
@@ -316,7 +384,7 @@ The `minComponentWidth` attribute adjusts the width of the individual ` <mathInp
 
 ---
 
-### Example: Attributes as properties
+### Property Example: Attributes as properties
 
 
 ```doenet-editor-horiz
@@ -324,7 +392,14 @@ The `minComponentWidth` attribute adjusts the width of the individual ` <mathInp
   <row>1 2</row>
   <row>3 4</row>
 </matrix>
-<matrixInput name="A" numRows="2" numColumns="2" prefill="$prefill"/>
+
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="2" 
+  prefill="$prefill"
+/>
+
 <p><c>numRows</c> = $A.numRows</p>
 <p><c>numColumns</c> = $A.numColumns</p>
 <p><c>showSizeControls</c> = $A.showSizeControls</p>      
@@ -339,24 +414,9 @@ The `minComponentWidth` attribute adjusts the width of the individual ` <mathInp
 The attributes shown above are also accessible as properties.
 
 
-
 ---
 
-### Example: matrix *
-
-
-```doenet-editor-horiz
-```
-
-
-
-
-
-
-
----
-
-### Example: valueChanged / immediateValueChanged
+### Property Example: valueChanged / immediateValueChanged
 
 
 ```doenet-editor-horiz
@@ -364,7 +424,13 @@ The attributes shown above are also accessible as properties.
   <row>1 2</row>
   <row>3 4</row>
 </matrix>
-<matrixInput name="A" numRows="2" numColumns="2" prefill="$prefill"/>
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="2" 
+  prefill="$prefill"
+/>
+
 <p><c>valueChanged</c> = $A.valueChanged</p>
 <p><c>immediateValueChanged</c> = $A.immediateValueChanged</p>
 ```
@@ -380,7 +446,7 @@ The `immediateValueChanged` property returns the boolean value of whether the ` 
 
 ---
 
-### Example: value / immediateValue
+### Property Example: value / immediateValue
 
 
 ```doenet-editor-horiz
@@ -388,7 +454,14 @@ The `immediateValueChanged` property returns the boolean value of whether the ` 
   <row>1 2</row>
   <row>3 4</row>
 </matrix>
-<matrixInput name="A" numRows="2" numColumns="2" prefill="$prefill"/>
+
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="2" 
+  prefill="$prefill"
+/>
+
 <p><c>value</c> = $A.value</p>
 <p><c>immediateValue</c> = $A.immediateValue</p>
 ```

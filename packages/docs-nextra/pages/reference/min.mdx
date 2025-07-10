@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <min>{:dn}`
 
-` <min>{:dn}` renders the minimum value in a list of numbers separated by spaces.
+` <min>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+component that renders the minimum value in a list of numbers separated by spaces.
 
 ## Attributes and Properties 
  <AttrDisplay name='min'/> 
@@ -13,7 +14,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
-### Example: ` <min>{:dn}` of a sugared list of numbers
+### Example: ` <min>{:dn}` of a nested list of numbers
 
 
 ```doenet-editor-horiz
@@ -32,7 +33,10 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ```doenet-editor-horiz
-<numberList name="numList">1.2 9.9 17.3</numberList>
+<numberList name="numList">
+  1.2 9.9 17.3
+</numberList>
+
 <p>Min = <min>$numList</min></p> 
 ```
 
@@ -48,15 +52,25 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ```doenet-editor-horiz
+<selectRandomNumbers 
+  numToSelect="7" 
+  from="-500" 
+  to="500" 
+  type="discreteUniform" 
+  name="randomNumberList"
+/>
 
-<selectRandomNumbers numToSelect="7" from="-500" to="500" type="discreteUniform" name="randomNumberList"/>
-
-<p>The list of random numbers selected is: <convertSetToList>$randomNumberList</convertSetToList></p>
-<p>Minimum Number selected: <min>$randomNumberList</min></p>
+<p>The list of random numbers selected is: 
+  $randomNumberList
+</p>
+<p>Minimum Number selected: 
+  <min>$randomNumberList</min>
+</p>
 ```
 
 
 
-` <min>{:dn}` renders the minimum value in a list of numbers that are generated with the <ref uri="doenet:activityId=_HFhH7id_K4u5E1OiZTTby">` <selectRandomNumbers/>{:dn}`</ref> component. 
+` <min>{:dn}` renders the minimum value in a list of numbers 
+that are generated with the ` <selectRandomNumbers/>{:dn}` component. 
 
 
