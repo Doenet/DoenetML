@@ -193,20 +193,20 @@ export default React.memo(function Curve(props) {
         } else {
             let f = createFunctionFromDefinition(SVs.fDefinitions[0]);
             if (SVs.flipFunction) {
-                let ymin = SVs.graphYmin;
-                let ymax = SVs.graphYmax;
-                let minForF = Math.max(ymin - (ymax - ymin) * 0.1, SVs.parMin);
-                let maxForF = Math.min(ymax + (ymax - ymin) * 0.1, SVs.parMax);
+                let yMin = SVs.graphYmin;
+                let yMax = SVs.graphYmax;
+                let minForF = Math.max(yMin - (yMax - yMin) * 0.1, SVs.parMin);
+                let maxForF = Math.min(yMax + (yMax - yMin) * 0.1, SVs.parMax);
                 newCurveJXG = board.create(
                     "curve",
                     [f, (x) => x, minForF, maxForF],
                     curveAttributes,
                 );
             } else {
-                let xmin = SVs.graphXmin;
-                let xmax = SVs.graphXmax;
-                let minForF = Math.max(xmin - (xmax - xmin) * 0.1, SVs.parMin);
-                let maxForF = Math.min(xmax + (xmax - xmin) * 0.1, SVs.parMax);
+                let xMin = SVs.graphXmin;
+                let xMax = SVs.graphXmax;
+                let minForF = Math.max(xMin - (xMax - xMin) * 0.1, SVs.parMin);
+                let maxForF = Math.min(xMax + (xMax - xMin) * 0.1, SVs.parMax);
                 newCurveJXG = board.create(
                     "functiongraph",
                     [f, minForF, maxForF],
@@ -808,28 +808,28 @@ export default React.memo(function Curve(props) {
                 let f = createFunctionFromDefinition(SVs.fDefinitions[0]);
                 if (SVs.flipFunction) {
                     curveJXG.current.X = f;
-                    let ymin = SVs.graphYmin;
-                    let ymax = SVs.graphYmax;
+                    let yMin = SVs.graphYmin;
+                    let yMax = SVs.graphYmax;
                     let minForF = Math.max(
-                        ymin - (ymax - ymin) * 0.1,
+                        yMin - (yMax - yMin) * 0.1,
                         SVs.parMin,
                     );
                     let maxForF = Math.min(
-                        ymax + (ymax - ymin) * 0.1,
+                        yMax + (yMax - yMin) * 0.1,
                         SVs.parMax,
                     );
                     curveJXG.current.minX = () => minForF;
                     curveJXG.current.maxX = () => maxForF;
                 } else {
                     curveJXG.current.Y = f;
-                    let xmin = SVs.graphXmin;
-                    let xmax = SVs.graphXmax;
+                    let xMin = SVs.graphXmin;
+                    let xMax = SVs.graphXmax;
                     let minForF = Math.max(
-                        xmin - (xmax - xmin) * 0.1,
+                        xMin - (xMax - xMin) * 0.1,
                         SVs.parMin,
                     );
                     let maxForF = Math.min(
-                        xmax + (xmax - xmin) * 0.1,
+                        xMax + (xMax - xMin) * 0.1,
                         SVs.parMax,
                     );
                     curveJXG.current.minX = () => minForF;

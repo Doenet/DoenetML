@@ -23,6 +23,7 @@ import { upgradeCopySyntax } from "./upgrade-copy-syntax";
 import { upgradeAttributeSyntax } from "./upgrade-attribute-syntax";
 import { upgradeMapElement } from "./upgrade-map-element";
 import { upgradeModuleElement } from "./upgrade-module-element";
+import { renameAttrInPlace } from "./rename-attr-in-place";
 
 export type Options = {
     doNotUpgradeCopyTags?: boolean;
@@ -46,6 +47,7 @@ export async function updateSyntaxFromV06toV07_root(
         .use(correctElementCapitalization)
         .use(correctAttributeCapitalization)
         .use(removeNewNamespaceAttribute)
+        .use(upgradeRefElement)
         .use(ensureDollarBeforeNamesOnSpecificAttributes)
         .use(copySourceToExtendOrCopy)
         .use(upgradeCollectElement)
@@ -179,6 +181,20 @@ const removeNewNamespaceAttribute: Plugin<[], DastRoot, DastRoot> = () => {
             if (node.attributes["newNamespace"]) {
                 delete node.attributes["newNamespace"];
             }
+        });
+    };
+};
+
+/**
+ * Upgrade `<ref>`. In particular, rename the `target` attribute to `to`.
+ */
+const upgradeRefElement: Plugin<[], DastRoot, DastRoot> = () => {
+    return (tree) => {
+        visit(tree, (node) => {
+            if (!isDastElement(node) || node.name !== "ref") {
+                return;
+            }
+            renameAttrInPlace(node, "target", "to");
         });
     };
 };

@@ -37,7 +37,7 @@ async function test_no_overwritten_attributes({
     expect(
         stateVariables[
             await resolvePathToNodeIdx(`${parentPrefix}${graphNamePostfix}`)
-        ].stateValues.xmax,
+        ].stateValues.xMax,
     ).eq(5);
     expect(
         stateVariables[
@@ -60,7 +60,7 @@ async function test_no_overwritten_attributes({
     expect(
         stateVariables[
             await resolvePathToNodeIdx(`${parentPrefix}2${graphNamePostfix}`)
-        ].stateValues.xmax,
+        ].stateValues.xMax,
     ).eq(5);
     expect(
         stateVariables[
@@ -83,7 +83,7 @@ async function test_no_overwritten_attributes({
     expect(
         stateVariables[
             await resolvePathToNodeIdx(`${parentPrefix}3${graphNamePostfix}`)
-        ].stateValues.xmax,
+        ].stateValues.xMax,
     ).eq(5);
     expect(
         stateVariables[
@@ -112,10 +112,10 @@ async function test_linked_copy_overwrites_attributes({
     resolvePathToNodeIdx: ResolvePathToNodeIdx;
 }) {
     let stateVariables = await core.returnAllStateVariables(false, true);
-    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmin).eq(
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xMin).eq(
         -10,
     );
-    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmax).eq(
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xMax).eq(
         5,
     );
     expect(
@@ -138,10 +138,10 @@ async function test_linked_copy_overwrites_attributes({
     ).eq(1);
 
     expect(
-        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmin,
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xMin,
     ).eq(-3);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmax,
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xMax,
     ).eq(7);
     expect(
         stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues.xs.map(
@@ -163,10 +163,10 @@ async function test_linked_copy_overwrites_attributes({
     ).eq(3);
 
     expect(
-        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmin,
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xMin,
     ).eq(-3);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmax,
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xMax,
     ).eq(7);
     expect(
         stateVariables[await resolvePathToNodeIdx("g3.A")].stateValues.xs.map(
@@ -197,13 +197,13 @@ async function test_unlinked_copy_overwrites_attributes({
 }) {
     // TODO: overwriting attributes of unlinked copy of linked copy isn't working as we'd like.
     let stateVariables = await core.returnAllStateVariables(false, true);
-    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmin).eq(
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xMin).eq(
         -10,
     );
-    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xmax).eq(
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.xMax).eq(
         5,
     );
-    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.ymax).eq(
+    expect(stateVariables[await resolvePathToNodeIdx("g")].stateValues.yMax).eq(
         10,
     );
     expect(
@@ -226,13 +226,13 @@ async function test_unlinked_copy_overwrites_attributes({
     ).eqls(1);
 
     expect(
-        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmax,
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xMax,
     ).eq(5);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xmin,
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.xMin,
     ).eq(-3);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.ymax,
+        stateVariables[await resolvePathToNodeIdx("g2")].stateValues.yMax,
     ).eq(10);
     expect(
         stateVariables[await resolvePathToNodeIdx("g2.A")].stateValues.xs.map(
@@ -254,13 +254,13 @@ async function test_unlinked_copy_overwrites_attributes({
     ).eqls(1);
 
     expect(
-        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmax,
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xMax,
     ).eq(7);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xmin,
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.xMin,
     ).eq(-5);
     expect(
-        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.ymax,
+        stateVariables[await resolvePathToNodeIdx("g3")].stateValues.yMax,
     ).eq(8);
     expect(
         stateVariables[await resolvePathToNodeIdx("g3.A")].stateValues.xs.map(
@@ -1071,7 +1071,7 @@ describe("Unlinked Copying Tests", async () => {
             doenetML: `
     <group name="g">
       <textInput name="ti" prefill="hello" />
-      <repeat name="a" for="$ti" itemName="x">
+      <repeat name="a" for="$ti" valueName="x">
           <text extend="$x" name="w" />
           <point name="P">
             <label>$x</label>
@@ -1465,7 +1465,7 @@ describe("Unlinked Copying Tests", async () => {
         <label>Remove P</label>
       </updateValue>
       <setup><sequence name="seq" length="$n" from="11" /></setup>
-      <repeat name="r" for="$seq" indexName="i" itemName="v">
+      <repeat name="r" for="$seq" indexName="i" valueName="v">
         <p>i=$i, v=$v</p>
       </repeat>
     </section>
@@ -1503,7 +1503,7 @@ describe("Unlinked Copying Tests", async () => {
       <updateValue name="removeP" target="$n" newValue="$n-1" >
         <label>Remove P</label>
       </updateValue>
-      <repeatForSequence name="r" length="$n" from="11" indexName="i" itemName="v">
+      <repeatForSequence name="r" length="$n" from="11" indexName="i" valueName="v">
         <p>i=$i, v=$v</p>
       </repeatForSequence>
     </section>
@@ -1535,7 +1535,7 @@ describe("Unlinked Copying Tests", async () => {
     <graph>
     
       <setup><sequence name="s" from="1" to="$n" /></setup>
-      <repeat name="r" for="$s" itemName="i">
+      <repeat name="r" for="$s" valueName="i">
       <setup>
         <number copy="$i" name="i2" />
         <number copy="$i.value" name="i2value" />
@@ -2198,7 +2198,7 @@ describe("Unlinked Copying Tests", async () => {
             doenetML: `
     <graph name="graph1">
         <setup><sequence name="s" length="2" /></setup>
-        <repeat name="mp" for="$s" itemName="i">
+        <repeat name="mp" for="$s" valueName="i">
             <point>(1, <number copy="$i" />)</point>
         </repeat>
         <setup>
@@ -2233,7 +2233,7 @@ describe("Unlinked Copying Tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
-        <repeatForSequence name="mp" length="2" itemName="i">
+        <repeatForSequence name="mp" length="2" valueName="i">
             <point>(1, <number copy="$i" />)</point>
         </repeatForSequence>
         <setup>
@@ -2267,7 +2267,7 @@ describe("Unlinked Copying Tests", async () => {
             doenetML: `
     <graph name="graph1">
         <group name="gr">
-            <repeatForSequence name="mp" length="2" itemName="i">
+            <repeatForSequence name="mp" length="2" valueName="i">
                 <point>(1, <number copy="$i" />)</point>
             </repeatForSequence>
             <setup>
@@ -2306,7 +2306,7 @@ describe("Unlinked Copying Tests", async () => {
     <graph name="graph1">
         <group name="gr">
             <setup><sequence name="s" length="2" /></setup>
-            <repeat name="mp" for="$s" itemName="i">
+            <repeat name="mp" for="$s" valueName="i">
                 <point>(1, <number copy="$i" />)</point>
             </repeat>
             <setup>
@@ -2340,7 +2340,7 @@ describe("Unlinked Copying Tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
-        <repeatForSequence name="mp" length="2" itemName="i">
+        <repeatForSequence name="mp" length="2" valueName="i">
             <group>
                 <point>(1, <number copy="$i" />)</point>
             </group>
@@ -2374,7 +2374,7 @@ describe("Unlinked Copying Tests", async () => {
         });
     });
 
-    it("unlinked copy inside a repeat with source and index depending on itemName and indexName", async () => {
+    it("unlinked copy inside a repeat with source and index depending on valueName and indexName", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="graph1">
@@ -2382,7 +2382,7 @@ describe("Unlinked Copying Tests", async () => {
         <sequence name="s1" from="2" to="3" />
         <sequence name="s2" from="4" to="5" />
       </setup>
-      <repeat name="r" for="$s1" itemName="v" indexName="i">
+      <repeat name="r" for="$s1" valueName="v" indexName="i">
          <point name="P">(<number copy="$s2[$i]" />, <number copy="$v" />)</point>
       </repeat>
     </graph>

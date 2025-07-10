@@ -1100,6 +1100,60 @@ describe("Answer tag tests", async () => {
         });
     });
 
+    it("answer sugar from one m", async () => {
+        const doenetML = `
+    <answer name="answer1"><m>x+y</m></answer>
+  `;
+        await test_math_answer({
+            doenetML,
+            answers: [
+                { latex: "x+y", credit: 1 },
+                { latex: "x", credit: 0 },
+            ],
+        });
+    });
+
+    it("answer sugar from one macro of an m", async () => {
+        const doenetML = `
+    <m name="xy" hide>x+y</m>
+    <answer name="answer1">$xy</answer>`;
+
+        await test_math_answer({
+            doenetML,
+            answers: [
+                { latex: "x+y", credit: 1 },
+                { latex: "x", credit: 0 },
+            ],
+        });
+    });
+
+    it("answer sugar from one me", async () => {
+        const doenetML = `
+    <answer name="answer1"><me>x+y</me></answer>
+  `;
+        await test_math_answer({
+            doenetML,
+            answers: [
+                { latex: "x+y", credit: 1 },
+                { latex: "x", credit: 0 },
+            ],
+        });
+    });
+
+    it("answer sugar from one macro of an me", async () => {
+        const doenetML = `
+    <me name="xy" hide>x+y</me>
+    <answer name="answer1">$xy</answer>`;
+
+        await test_math_answer({
+            doenetML,
+            answers: [
+                { latex: "x+y", credit: 1 },
+                { latex: "x", credit: 0 },
+            ],
+        });
+    });
+
     it("answer sugar from macros and string", async () => {
         const doenetML = `
     <setup><math name="x">x</math><math name="y">y</math></setup>
@@ -2415,7 +2469,7 @@ Enter enter number larger than 5 or less than 2:
 
     it("answer inside repeat", async () => {
         const doenetML = `
-    <repeat name="r" for="1 2 3" itemName="n">
+    <repeat name="r" for="1 2 3" valueName="n">
         <p>Enter <m>x^$n</m>: <answer name="answer1"><award><math>x^$n</math></award></answer></p>
     </repeat>
   `;
@@ -2681,7 +2735,7 @@ The animal is a <answer name="answer1">
 
     <answer name="answer1">
     <choiceInput shuffleOrder>
-      <repeatForSequence from="0" to="$num-1" itemName="m">
+      <repeatForSequence from="0" to="$num-1" valueName="m">
           <choice credit="$m/($num-1)">Get <number displayDigits="3">$m/($num-1)</number></choice>
       </repeatForSequence>
     </choiceInput>

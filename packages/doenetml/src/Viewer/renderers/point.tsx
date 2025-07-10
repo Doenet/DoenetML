@@ -296,17 +296,17 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                     dragged.current = true;
                 }
 
-                let [xmin, ymax, xmax, ymin] = board.getBoundingBox();
+                let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
 
-                let xminAdjusted = xmin;
-                let xmaxAdjusted = xmax;
-                let yminAdjusted = ymin;
-                let ymaxAdjusted = ymax;
+                let xminAdjusted = xMin;
+                let xmaxAdjusted = xMax;
+                let yminAdjusted = yMin;
+                let ymaxAdjusted = yMax;
 
-                if (xmax < xmin) {
+                if (xMax < xMin) {
                     [xmaxAdjusted, xminAdjusted] = [xminAdjusted, xmaxAdjusted];
                 }
-                if (ymax < ymin) {
+                if (yMax < yMin) {
                     [ymaxAdjusted, yminAdjusted] = [yminAdjusted, ymaxAdjusted];
                 }
 
@@ -461,25 +461,25 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         let flippedX = false;
         let flippedY = false;
 
-        let [xmin, ymax, xmax, ymin] = board.getBoundingBox();
+        let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
 
-        if (xmax < xmin) {
+        if (xMax < xMin) {
             flippedX = true;
-            [xmax, xmin] = [xmin, xmax];
+            [xMax, xMin] = [xMin, xMax];
         }
-        if (ymax < ymin) {
+        if (yMax < yMin) {
             flippedY = true;
-            [ymax, ymin] = [ymin, ymax];
+            [yMax, yMin] = [yMin, yMax];
         }
 
-        let xscale = xmax - xmin;
-        let yscale = ymax - ymin;
+        let xscale = xMax - xMin;
+        let yscale = yMax - yMin;
 
         // TODO: use a measure of label width rather than 0.05 for x
-        let xminAdjusted = xmin + xscale * 0.05;
-        let xmaxAdjusted = xmax - xscale * 0.05;
-        let yminAdjusted = ymin + yscale * 0.05;
-        let ymaxAdjusted = ymax - yscale * 0.05;
+        let xminAdjusted = xMin + xscale * 0.05;
+        let xmaxAdjusted = xMax - xscale * 0.05;
+        let yminAdjusted = yMin + yscale * 0.05;
+        let ymaxAdjusted = yMax - yscale * 0.05;
 
         if (
             Number.isFinite(lastPositionFromCore.current[0]) &&

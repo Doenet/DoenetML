@@ -295,7 +295,7 @@ describe("Polygon tag tests", async () => {
   <mathInput name="length" prefill="0" />
   <graph name="g1">
     <setup><sequence from="0" length="$length" name="s" /></setup>
-    <repeat for="$s" itemName="x">
+    <repeat for="$s" valueName="x">
       <point>($x, 5sin($x))</point>
     </repeat>
     <polygon vertices="$_repeat1" name="pg" />
@@ -367,7 +367,7 @@ describe("Polygon tag tests", async () => {
   <mathInput name="length" prefill="0" />
   <graph name="g1">
     <setup><sequence from="0" length="$length" name="s" /></setup>
-    <repeat for="$s" itemName="x">
+    <repeat for="$s" valueName="x">
       <point>($x, 5sin($x))</point>
     </repeat>
     <polygon vertices="$_repeat1" name="pg" />
@@ -440,7 +440,7 @@ describe("Polygon tag tests", async () => {
             doenetML: `
   <graph name="g1">
     <setup><sequence from="-5" to="5" name="s"/></setup>
-    <repeat hide for="$s" name="mps" itemName="x">
+    <repeat hide for="$s" name="mps" valueName="x">
       <point>($x, 5sin($x))</point>
     </repeat>
     <polygon vertices="$mps" name="pg" />
@@ -520,7 +520,7 @@ describe("Polygon tag tests", async () => {
             doenetML: `
   <graph name="g1">
     <setup><sequence from="-5" to="5" name="s"/></setup>
-    <repeat hide name="mps" for="$s" itemName="x">
+    <repeat hide name="mps" for="$s" valueName="x">
       <point>($x + <math>0</math>, 5sin($x) + <math>0</math>)</point>
     </repeat>
     <polygon vertices="$mps" name="pg" />
@@ -810,7 +810,7 @@ describe("Polygon tag tests", async () => {
     <mathInput prefill="7" name="transy" />
     <graph>
     <polygon vertices=" (0,0) (3,-4) (1,-6) (-5,-6) " />
-    <repeat hide for="$_polygon1.vertices" itemName="x">
+    <repeat hide for="$_polygon1.vertices" valueName="x">
         <point>(<math extend="$x.x" fixed="false" />+
           <math modifyIndirectly="false" extend="$transx" />,
           <math extend="$x.y" fixed="false" />+

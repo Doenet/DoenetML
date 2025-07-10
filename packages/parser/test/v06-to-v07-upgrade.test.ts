@@ -141,6 +141,12 @@ describe("v06 to v07 update", () => {
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
+    it("ref element target attribute becomes to", async () => {
+        source = `<ref target="$foo" />`;
+        correctSource = `<ref to="$foo" />`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
     it("copySource gets converted to extend or copy", async () => {
         source = `<point copySource="P" name="P2" />`;
         correctSource = `<point extend="$P" name="P2" />`;

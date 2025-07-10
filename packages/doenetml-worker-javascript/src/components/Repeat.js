@@ -41,9 +41,9 @@ export default class Repeat extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.itemName = {
+        attributes.valueName = {
             createPrimitiveOfType: "string",
-            createStateVariable: "itemName",
+            createStateVariable: "valueName",
             defaultValue: null,
         };
 
@@ -797,19 +797,19 @@ async function addAndLinkAliasComponents(
         children: [],
     };
 
-    const itemName = await component.stateValues.itemName;
+    const valueName = await component.stateValues.valueName;
 
     // a mapping from the dummy or value component indices to the new alias components we're creating
     const extendIdxMapping = {};
 
-    if (itemName) {
+    if (valueName) {
         const valueComponentIdx = nComponents++;
         const valueDummyIdx = await component.stateValues.valueDummyIdx;
         if (valueDummyIdx != null) {
             extendIdxMapping[valueDummyIdx] = valueComponentIdx;
         }
 
-        // Create reference with name `itemName` that will link to sources
+        // Create reference with name `valueName` that will link to sources
         setupComponent.children.push({
             type: "serialized",
             componentType: "_copy",
@@ -823,7 +823,7 @@ async function addAndLinkAliasComponents(
                 createComponentName: {
                     type: "primitive",
                     name: "createComponentName",
-                    primitive: { type: "string", value: itemName },
+                    primitive: { type: "string", value: valueName },
                 },
             },
             doenetAttributes: {},

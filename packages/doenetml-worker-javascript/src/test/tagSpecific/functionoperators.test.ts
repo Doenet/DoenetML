@@ -33,10 +33,10 @@ describe("Function Operator tag tests", async () => {
     ${f2Markup}
 
     <setup><sequence name="s" step="0.4" from="-2" to="2" /></setup>
-    <p><repeat for="$s" itemName="x" name="repeat1">
+    <p><repeat for="$s" valueName="x" name="repeat1">
       <evaluate function="$f1" input="$x" />
     </repeat></p>
-    <p><repeat for="$s" itemName="x" name="repeat2">
+    <p><repeat for="$s" valueName="x" name="repeat2">
       $$f2($x)
     </repeat></p>
     <p><repeat extend="$repeat1" name="repeat1a" /></p>
@@ -1870,7 +1870,7 @@ describe("Function Operator tag tests", async () => {
         $df4yza
       </graph>
 
-      <repeat for ="-2 0 2" itemName="v" name="ts">
+      <repeat for ="-2 0 2" valueName="v" name="ts">
           <p><evaluate function="$fs.df1" input="$v 0 0" name="df1" />
           <evaluate function="$fs.df2a" input="$v" name="df2a" />
           <evaluate function="$fs.df3zy" input="$v 0 0" name="df3zy" />
@@ -2891,7 +2891,7 @@ describe("Function Operator tag tests", async () => {
 
       <number name="dx">0.0001</number>
       <setup><sequence name="s" from="-10.02412412" to="10" step="3.1" /></setup>
-      <repeat for="$s" itemName="x" name="ts">
+      <repeat for="$s" valueName="x" name="ts">
           <p><evaluate function="$(f)" input="$x" name="f_0" />
           <evaluate function="$(df1)" input="$x+$(dx)/2" name="df1_05" />
           <evaluate function="$(df1b)" input="$x+$(dx)/2" name="df1b_05" />
