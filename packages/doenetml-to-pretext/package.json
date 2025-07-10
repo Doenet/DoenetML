@@ -1,0 +1,88 @@
+{
+    "name": "@doenet/doenetml-to-pretext",
+    "type": "module",
+    "description": "Conversion of DoenetML to PreTeXt format",
+    "version": "0.9.0-alpha1",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./*": {
+            "import": "./dist/*"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "wireit",
+        "preview": "vite preview",
+        "test:before": "npm run build:test2",
+        "build:test1": "wireit",
+        "build:test2": "wireit",
+        "test": "npm run build:test1 && vitest"
+    },
+    "wireit": {
+        "build:test1": {
+            "command": "cd test/utils && vite build -c vite.dast-to-flat-dast.config.ts",
+            "files": [
+                "test/utils/dast-to-flat-dast.ts",
+                "test/utils/vite.dast-to-flat-dast.config.ts"
+            ],
+            "output": [
+                "test/utils/dist/dast-to-flat-dast/**/*.js"
+            ],
+            "dependencies": [
+                "../doenetml-worker:build",
+                "../parser:build"
+            ]
+        },
+        "build:test2": {
+            "command": "cd test/utils && vite build -c vite.run.config.ts",
+            "files": [
+                "test/utils/run.ts",
+                "test/utils/vite.run.config.ts"
+            ],
+            "output": [
+                "test/utils/dist/run/**/*.js"
+            ],
+            "dependencies": [
+                "build:test1"
+            ]
+        },
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "src/**/*.tsx",
+                "src/**/*.css",
+                "tsconfig.json",
+                "vite.config.ts"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.css",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../doenetml-worker:build",
+                "../parser:build",
+                "../codemirror:build"
+            ]
+        }
+    },
+    "peerDependencies": {
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0"
+    },
+    "prettier": {
+        "tabWidth": 4
+    }
+}
