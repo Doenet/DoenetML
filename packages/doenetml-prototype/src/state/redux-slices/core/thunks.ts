@@ -37,7 +37,7 @@ export const coreThunks = {
             // We need to load a new worker
 
             const worker = createWrappedCoreWorker();
-            await worker.setCoreType("rust");
+            await worker.setCoreType("javascript");
             const key = workerCache.length;
             workerCache[key] = { worker };
             dispatch(_coreReducerActions._setWorkerCacheKey(key));
