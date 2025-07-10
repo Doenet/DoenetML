@@ -2,7 +2,7 @@
 //! element/ref/etc. nodes are replaced with untagged references to their location in the nodes list.
 //! `UntaggedFlatDast` allows elements to change type without having to find all places where they are referenced.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 use tsify_next::{declare, Tsify};
@@ -18,6 +18,27 @@ pub use super::parent_iterator::ParentIterator;
 
 #[declare]
 pub type Index = usize;
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct SourceDoc(u16);
+
+impl From<Option<SourceDoc>> for SourceDoc {
+    fn from(value: Option<SourceDoc>) -> Self {
+        value.unwrap_or(SourceDoc(0))
+    }
+}
+
+impl From<u16> for SourceDoc {
+    fn from(value: u16) -> Self {
+        SourceDoc(value)
+    }
+}
+
+impl Display for SourceDoc {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -139,6 +160,8 @@ pub struct FlatElement {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// The position of the vector of child nodes
     pub children_position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
     pub idx: Index,
     /// Information about the referent that this element extends (e.g., as specified by the `extend` attribute).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -156,6 +179,8 @@ pub struct FlatAttribute {
     pub children: Vec<UntaggedContent>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Copy, Default)]
@@ -182,6 +207,8 @@ pub struct FlatError {
     pub unresolved_path: Option<Vec<FlatPathPart>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
     pub idx: Index,
 }
 
@@ -193,6 +220,7 @@ impl FlatError {
             error_type: ErrorType::Error,
             unresolved_path: None,
             position: None,
+            source_doc: None,
             idx,
         }
     }
@@ -211,6 +239,8 @@ pub struct FlatPathPart {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 /// An index into a ref path
@@ -222,6 +252,8 @@ pub struct FlatIndex {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -234,6 +266,8 @@ pub struct FlatRef {
     pub path: Vec<FlatPathPart>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
     pub idx: Index,
 }
 
@@ -248,6 +282,8 @@ pub struct FlatFunctionRef {
     pub input: Option<Vec<Vec<UntaggedContent>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
     pub idx: Index,
 }
 
@@ -270,6 +306,7 @@ impl Default for FlatNode {
             error_type: ErrorType::Error,
             unresolved_path: None,
             position: None,
+            source_doc: None,
             idx: 0,
         })
     }

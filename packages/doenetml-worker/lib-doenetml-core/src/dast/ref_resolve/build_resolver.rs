@@ -5,10 +5,7 @@ use crate::dast::flat_dast::{
     FlatElement, FlatFragment, FlatNode, FlatRoot, FlatRootOrFragment, UntaggedContent,
 };
 
-use super::{
-    IndexResolution, NodeParent, NodeResolverData, ParentSearchAlgorithm, Ref, Resolver,
-    Visibility, CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
-};
+use super::*;
 
 impl Resolver {
     pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
@@ -24,7 +21,7 @@ impl Resolver {
                     NodeResolverData {
                         node_parent: NodeParent::None,
                         parent_search_algorithm: ParentSearchAlgorithm::DontSearchParent,
-                        name_map: mem::take(&mut name_map[0]),
+                        name_map: NameMap(mem::take(&mut name_map[0])),
                         index_resolutions: Vec::new(),
                     }
                 } else {
@@ -35,7 +32,7 @@ impl Resolver {
                             .map(NodeParent::Node)
                             .unwrap_or(NodeParent::FlatRoot),
                         parent_search_algorithm: ParentSearchAlgorithm::lookup_by_flat_node(node),
-                        name_map: mem::take(&mut name_map[idx_plus_1]),
+                        name_map: NameMap(mem::take(&mut name_map[idx_plus_1])),
                         index_resolutions: Vec::new(),
                     }
                 }
@@ -85,7 +82,7 @@ impl Resolver {
                 NodeResolverData {
                     node_parent: NodeParent::None,
                     parent_search_algorithm: ParentSearchAlgorithm::SearchParent,
-                    name_map: FxHashMap::default(),
+                    name_map: NameMap::default(),
                     index_resolutions: Vec::new(),
                 },
                 padding,
@@ -138,15 +135,19 @@ impl Resolver {
 
     /// Delete `nodes` from the resolver
     pub fn delete_nodes(&mut self, nodes: &[FlatNode]) {
-        for (name, node_idx) in nodes.iter().filter_map(|node| {
+        for (name, node_idx, source_doc) in nodes.iter().filter_map(|node| {
             if let FlatNode::Element(element) = node {
                 if let Some(name) = get_element_name(element) {
-                    return Some((name, node.idx()));
+                    return Some((name, node.idx(), element.source_doc));
                 }
             }
             None
         }) {
             let mut prev_parent_idx_plus_1 = node_idx + 1;
+            let name_with_doenetml_id = NameWithDoenetMLId {
+                name,
+                source_doc: source_doc.into(),
+            };
 
             loop {
                 let parent_idx_plus_1 =
@@ -160,7 +161,7 @@ impl Resolver {
 
                 let name_map = &mut self.node_resolver_data[parent_idx_plus_1].name_map;
 
-                let references = name_map.remove(&name);
+                let references = name_map.remove(&name_with_doenetml_id);
 
                 match references {
                     Some(Ref::Unique(idx)) => {
@@ -171,7 +172,7 @@ impl Resolver {
                         // In this case, the unique index found might not match the deleted node `node_idx`,
                         // add we add the name back to the name map
                         if idx != node_idx {
-                            name_map.insert(name.clone(), Ref::Unique(idx));
+                            name_map.insert(name_with_doenetml_id.clone(), Ref::Unique(idx));
                         }
                     }
                     Some(Ref::Ambiguous(indices)) => {
@@ -181,9 +182,11 @@ impl Resolver {
                             .filter(|idx| *idx != node_idx)
                             .collect::<Vec<_>>();
                         if new_indices.len() == 1 {
-                            name_map.insert(name.clone(), Ref::Unique(new_indices[0]));
+                            name_map
+                                .insert(name_with_doenetml_id.clone(), Ref::Unique(new_indices[0]));
                         } else {
-                            name_map.insert(name.clone(), Ref::Ambiguous(new_indices));
+                            name_map
+                                .insert(name_with_doenetml_id.clone(), Ref::Ambiguous(new_indices));
                         }
                     }
                     None => {}
@@ -206,7 +209,9 @@ impl Resolver {
 
     /// Build a map of all the names that are accessible from a given node
     /// and the indices of the referents.
-    fn build_name_map(flat_root_or_fragment: &FlatRootOrFragment) -> Vec<FxHashMap<String, Ref>> {
+    fn build_name_map(
+        flat_root_or_fragment: &FlatRootOrFragment,
+    ) -> Vec<FxHashMap<NameWithDoenetMLId, Ref>> {
         // Pre-populate with empty hashmaps for each element
         let mut descendant_names = iter::repeat_with(FxHashMap::default)
             .take(flat_root_or_fragment.len() + 1)
@@ -233,7 +238,10 @@ impl Resolver {
             if name.is_none() {
                 continue;
             }
-            let name = name.unwrap();
+            let name_with_origin = NameWithDoenetMLId {
+                name: name.unwrap(),
+                source_doc: element.source_doc.into(),
+            };
 
             // Iterate through all ancestors of element,
             // including the base parent, if it exists
@@ -269,7 +277,7 @@ impl Resolver {
                 // Add `element` to the name map of `parent`, creating an ambiguous reference
                 // if its name is already in the name map
                 descendant_names[parent_idx_plus_1]
-                    .get_mut(&name)
+                    .get_mut(&name_with_origin)
                     .map(|x| {
                         *x = match x {
                             // There is already something sharing the name `name` with the current element
@@ -284,7 +292,7 @@ impl Resolver {
                     .unwrap_or_else(|| {
                         // There is no current match for the name `name`, so we have a unique reference
                         descendant_names[parent_idx_plus_1]
-                            .insert(name.clone(), Ref::Unique(element.idx));
+                            .insert(name_with_origin.clone(), Ref::Unique(element.idx));
                     });
 
                 let parent_visibility = if Some(parent_idx_plus_1) == base_parent_idx_plus_1

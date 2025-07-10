@@ -1,7 +1,8 @@
 use crate::{
     dast::{
         flat_dast::{
-            FlatFragment, FlatIndex, FlatNode, FlatPathPart, FlatRoot, Index, UntaggedContent,
+            FlatFragment, FlatIndex, FlatNode, FlatPathPart, FlatRoot, Index, SourceDoc,
+            UntaggedContent,
         },
         DastElementContent, DastRoot,
     },
@@ -21,7 +22,10 @@ pub fn find(flat_root: &FlatRoot, tag_name: &str) -> Option<Index> {
     })
 }
 
-pub fn make_path<'a, T: AsRef<[&'a str]>>(path_str: T) -> Vec<FlatPathPart> {
+pub fn make_path<'a, T: AsRef<[&'a str]>>(
+    path_str: T,
+    source_doc: Option<SourceDoc>,
+) -> Vec<FlatPathPart> {
     let path_str = path_str.as_ref();
     path_str
         .iter()
@@ -29,11 +33,15 @@ pub fn make_path<'a, T: AsRef<[&'a str]>>(path_str: T) -> Vec<FlatPathPart> {
             name: s.to_string(),
             index: Vec::new(),
             position: None,
+            source_doc,
         })
         .collect()
 }
 
-pub fn make_path_with_indices(test_path: &[TestPathPart]) -> Vec<FlatPathPart> {
+pub fn make_path_with_indices(
+    test_path: &[TestPathPart],
+    source_doc: Option<SourceDoc>,
+) -> Vec<FlatPathPart> {
     test_path
         .iter()
         .map(|pp| FlatPathPart {
@@ -44,9 +52,11 @@ pub fn make_path_with_indices(test_path: &[TestPathPart]) -> Vec<FlatPathPart> {
                 .map(|index| FlatIndex {
                     value: vec![UntaggedContent::Text((*index).into())],
                     position: None,
+                    source_doc,
                 })
                 .collect(),
             position: None,
+            source_doc,
         })
         .collect()
 }

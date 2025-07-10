@@ -1,3 +1,5 @@
+use crate::dast::ref_resolve::NameMap;
+
 use super::{NodeParent, NodeResolverData, ParentSearchAlgorithm, Ref, Resolver};
 
 impl Resolver {
@@ -13,19 +15,23 @@ impl Resolver {
                 *idx_plus_1 == 0 || node_is_referenced[idx_plus_1 - 1]
             })
             .map(|(idx_plus_1, node_data)| {
-                let name_map = node_data
-                    .name_map
-                    .iter()
-                    .map(|(key, ref_)| match ref_ {
-                        Ref::Unique(idx) => (key.clone(), Ref::Unique(old_to_new_indices[*idx])),
-                        Ref::Ambiguous(vec_idx) => (
-                            key.clone(),
-                            Ref::Ambiguous(
-                                vec_idx.iter().map(|idx| old_to_new_indices[*idx]).collect(),
+                let name_map = NameMap(
+                    node_data
+                        .name_map
+                        .iter()
+                        .map(|(key, ref_)| match ref_ {
+                            Ref::Unique(idx) => {
+                                (key.clone(), Ref::Unique(old_to_new_indices[*idx]))
+                            }
+                            Ref::Ambiguous(vec_idx) => (
+                                key.clone(),
+                                Ref::Ambiguous(
+                                    vec_idx.iter().map(|idx| old_to_new_indices[*idx]).collect(),
+                                ),
                             ),
-                        ),
-                    })
-                    .collect();
+                        })
+                        .collect(),
+                );
 
                 let index_resolutions = node_data
                     .index_resolutions

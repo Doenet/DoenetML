@@ -75,21 +75,21 @@ impl Resolver {
             for edge in current_data
                 .name_map
                 .iter()
-                .filter_map(|(name, ref_)| match ref_ {
+                .filter_map(|(name_with_origin, ref_)| match ref_ {
                     Ref::Unique(idx) => {
                         // TODO: the check to ignore names than begin with `'_'` is only due to
                         // adding `pluginAddCompatibilityNames` in `normalize-dast.ts` of the parser.
                         // This plugin creates automatically generated names of the from `_componentType1`,
                         // which we do not want to include in root names.
                         // When we remove `pluginAddCompatibilityNames`, we should remove the check for `'_'`.
-                        if visited[*idx] || name.starts_with('_') {
+                        if visited[*idx] || name_with_origin.name.starts_with('_') {
                             None
                         } else {
                             visited[*idx] = true;
                             Some(ResolverEdge {
                                 origin,
                                 referent: *idx,
-                                edge_type: ResolverEdgeType::Name(name.clone()),
+                                edge_type: ResolverEdgeType::Name(name_with_origin.name.clone()),
                             })
                         }
                     }

@@ -236,6 +236,7 @@ impl DocumentRenderer {
                                         value: s.clone(),
                                         data: None,
                                         position: None,
+                                        source_doc: None.into(),
                                     }))
                                 }
                                 // Refs have been expanded during processing to actual components. Since XML is not allowed
@@ -245,6 +246,7 @@ impl DocumentRenderer {
                             })
                             .collect(),
                         position: flat_attr.position.clone(),
+                        source_doc: flat_attr.source_doc,
                     },
                 )
             })
@@ -269,6 +271,7 @@ impl DocumentRenderer {
                 message,
             },
             position: component.common.position,
+            source_doc: None.into(),
         }
     }
 

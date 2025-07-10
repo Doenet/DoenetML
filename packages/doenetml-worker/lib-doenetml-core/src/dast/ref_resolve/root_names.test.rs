@@ -205,7 +205,7 @@ fn ties_are_handled_consistently_even_as_document_changes() {
     let resolver = Resolver::from_flat_root(&flat_root);
     let root_names = calculate_root_names(resolver);
 
-    assert_eq!(root_names[d_idx], Some("u.y".to_string()));
+    assert_eq!(root_names[d_idx], Some("x.y".to_string()));
 
     // similar document with addition of more nodes
     let dast_root = dast_root_no_position(
@@ -234,5 +234,5 @@ fn ties_are_handled_consistently_even_as_document_changes() {
     let resolver = Resolver::from_flat_root(&flat_root);
     let root_names = calculate_root_names(resolver);
 
-    assert_eq!(root_names[d_idx], Some("u.y".to_string()));
+    assert_eq!(root_names[d_idx], Some("x.y".to_string()));
 }

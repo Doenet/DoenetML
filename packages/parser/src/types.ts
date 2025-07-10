@@ -188,6 +188,8 @@ export interface DastAbstractNode extends UnistNode {
      * Info from the ecosystem.
      */
     data?: Data | undefined;
+
+    source_doc?: number;
 }
 
 /**
@@ -405,6 +407,7 @@ export type PrintOptions = {
 export type DastMacro = Omit<_Macro, "attributes" | "path"> & {
     attributes: Record<string, DastAttribute>;
     path: DastMacroPathPart[];
+    source_doc?: number;
 };
 export type DastMacroPathPart = Omit<_PathPart, "index"> & {
     index: (Omit<_PropIndex, "value"> & { value: (DastText | DastMacro)[] })[];
@@ -413,6 +416,7 @@ export type DastMacroFullPath = DastMacroPathPart[];
 export type DastFunctionMacro = Omit<_FunctionMacro, "input" | "path"> & {
     input: DastElementContent[][] | null;
     path: DastMacroPathPart[];
+    source_doc?: number;
 };
 
 //

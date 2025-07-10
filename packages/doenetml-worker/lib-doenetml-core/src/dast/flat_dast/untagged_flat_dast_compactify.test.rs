@@ -220,9 +220,9 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
               "node_parent": "None",
               "parent_search_algorithm": "DontSearchParent",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t;0": { "Unique": 1 },
+                "ti;0": { "Unique": 3 },
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
             },
@@ -230,9 +230,9 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
               "node_parent": "FlatRoot",
               "parent_search_algorithm": "SearchParent",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t;0": { "Unique": 1 },
+                "ti;0": { "Unique": 3 },
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
             },
@@ -258,7 +258,7 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
               "node_parent": { "Node": 0 },
               "parent_search_algorithm": "SearchParent",
               "name_map": {
-                "tiv": { "Unique": 5 }
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
             },
@@ -395,9 +395,9 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
               "node_parent": "None",
               "parent_search_algorithm": "DontSearchParent",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t;0": { "Unique": 1 },
+                "ti;0": { "Unique": 3 },
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
             },
@@ -405,9 +405,9 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
               "node_parent": "FlatRoot",
               "parent_search_algorithm": "SearchParent",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t;0": { "Unique": 1 },
+                "ti;0": { "Unique": 3 },
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
             },
@@ -433,7 +433,7 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
               "node_parent": { "Node": 0 },
               "parent_search_algorithm": "SearchParent",
               "name_map": {
-                "tiv": { "Unique": 5 }
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
             },
@@ -530,7 +530,7 @@ fn compactify_adjusts_refs_to_document() {
               "node_parent": "None",
               "parent_search_algorithm": "DontSearchParent",
               "name_map": {
-                "doc": { "Unique": 0 },
+                "doc;0": { "Unique": 0 },
               },
               "index_resolutions": [],
             },

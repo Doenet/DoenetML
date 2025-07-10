@@ -1,10 +1,12 @@
-use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use std::iter;
 use tsify_next::Tsify;
 
-use super::ResolutionError;
-use crate::dast::flat_dast::{FlatElement, FlatNode, FlatPathPart, Index, UntaggedContent};
+use super::{NameMap, ResolutionError};
+use crate::dast::{
+    flat_dast::{FlatElement, FlatNode, FlatPathPart, Index, UntaggedContent},
+    ref_resolve::NameWithDoenetMLId,
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -24,7 +26,7 @@ pub struct RefResolution {
 
 /// Status of a pointer referring to children of an element.
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub(super) enum Ref {
+pub enum Ref {
     Unique(Index),
     Ambiguous(Vec<Index>),
 }
@@ -159,7 +161,7 @@ pub struct NodeResolverData {
     pub(super) parent_search_algorithm: ParentSearchAlgorithm,
     /// Map of all the names that are accessible (as descendants) from the node.
     /// The data structure uses a `FxHashMap` so that iterating over the `name_map` is done in a consistent order.
-    pub(super) name_map: FxHashMap<String, Ref>,
+    pub(super) name_map: NameMap,
     /// Map of resolutions of indices that follow a match to the node.
     /// If `index_resolutions[i] = Some(j)` and the reference `$node_reference` matches the node,
     /// then the reference `$node_reference[i+1]` resolves to node `k`
@@ -236,7 +238,13 @@ impl Resolver {
 
         if !skip_parent_search {
             let first_path_part = path.next().ok_or(ResolutionError::NoReferent)?;
-            current_idx = self.search_parents(&first_path_part.name, current_idx)?;
+            current_idx = self.search_parents(
+                &NameWithDoenetMLId {
+                    name: first_path_part.name.clone(),
+                    source_doc: first_path_part.source_doc.into(),
+                },
+                current_idx,
+            )?;
             if current_idx != origin {
                 nodes_in_resolved_path.push(current_idx);
             }
@@ -251,6 +259,7 @@ impl Resolver {
                     name: "".into(),
                     index: first_path_part.index.clone(),
                     position: first_path_part.position.clone(),
+                    source_doc: first_path_part.source_doc,
                 })
                 .chain(path.cloned())
                 .collect();
@@ -267,7 +276,10 @@ impl Resolver {
 
                 // current_idx specifies the "root" of the search. We try to resolve
                 // children based on the path part, returning an error if there is an ambiguity.
-                if let Some(referent) = node_data.name_map.get(&part.name) {
+                if let Some(referent) = node_data.name_map.get(&NameWithDoenetMLId {
+                    name: part.name.clone(),
+                    source_doc: part.source_doc.into(),
+                }) {
                     matched_part_name = true;
                     match referent {
                         Ref::Unique(idx) => {
@@ -339,6 +351,7 @@ impl Resolver {
                                                         .cloned()
                                                         .collect(),
                                                     position: part.position.clone(),
+                                                    source_doc: part.source_doc,
                                                 })
                                                 .chain(path.cloned())
                                                 .collect();
@@ -373,6 +386,7 @@ impl Resolver {
                     name: "".into(),
                     index: part.index.iter().skip(index_idx).cloned().collect(),
                     position: part.position.clone(),
+                    source_doc: part.source_doc,
                 })
                 .chain(path.cloned())
                 .collect();
@@ -399,7 +413,7 @@ impl Resolver {
     /// Return the referent of `name`.
     pub(super) fn search_parents(
         &self,
-        name: &str,
+        name_with_doenetml_id: &NameWithDoenetMLId,
         origin: usize,
     ) -> Result<Index, ResolutionError> {
         let mut node_data = &self.node_resolver_data[origin + 1];
@@ -407,7 +421,7 @@ impl Resolver {
         // if passed in a node without a parent, then search from that node itself
         // TODO: don't duplicate code with case where have parent, below
         if matches!(node_data.node_parent, NodeParent::None) {
-            if let Some(resolved) = node_data.name_map.get(name) {
+            if let Some(resolved) = node_data.name_map.get(name_with_doenetml_id) {
                 match resolved {
                     Ref::Unique(idx) => {
                         return Ok(*idx);
@@ -453,8 +467,9 @@ impl Resolver {
                     // The `<_externalContent>` has `DontSearchParent` set, indicating references from inside it
                     // should behave as though content outside the `<_externalContent>` did not exist.
                     // In particular, the reference `$e` should resolve to the external content.
-                    if let Some(resolved) =
-                        self.node_resolver_data[parent_plus_1].name_map.get(name)
+                    if let Some(resolved) = self.node_resolver_data[parent_plus_1]
+                        .name_map
+                        .get(name_with_doenetml_id)
                     {
                         match resolved {
                             Ref::Unique(idx) => {
@@ -481,7 +496,10 @@ impl Resolver {
                 }
             }
 
-            if let Some(resolved) = self.node_resolver_data[parent_plus_1].name_map.get(name) {
+            if let Some(resolved) = self.node_resolver_data[parent_plus_1]
+                .name_map
+                .get(name_with_doenetml_id)
+            {
                 match resolved {
                     Ref::Unique(idx) => {
                         return Ok(*idx);

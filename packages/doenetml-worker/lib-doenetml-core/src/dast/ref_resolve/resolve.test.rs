@@ -23,14 +23,18 @@ fn can_resolve_name_among_parents() {
 
     let resolver = Resolver::from_flat_root(&flat_root);
     // Searching from `c` for `y` should find the `b` node
-    let referent = resolver.search_parents("y", c_idx);
+    let y_name = NameWithDoenetMLId {
+        name: "y".to_string(),
+        source_doc: None.into(),
+    };
+    let referent = resolver.search_parents(&y_name, c_idx);
     assert_eq!(referent, Ok(b_idx));
 
-    let referent = resolver.search_parents("y", b_idx);
+    let referent = resolver.search_parents(&y_name, b_idx);
     assert_eq!(referent, Ok(b_idx));
 
     // Searching from `e` should fail because there are multiple `y`s that could be referred to.
-    let referent = resolver.search_parents("y", e_idx);
+    let referent = resolver.search_parents(&y_name, e_idx);
     assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
 }
 
@@ -55,18 +59,22 @@ fn resolve_to_parent_in_ambiguous_case() {
 
     let resolver = Resolver::from_flat_root(&flat_root);
     // Searching from `c` or `b` for `x` should find the its parent `<a>`
-    let referent = resolver.search_parents("x", c_idx);
+    let x_name = NameWithDoenetMLId {
+        name: "x".to_string(),
+        source_doc: None.into(),
+    };
+    let referent = resolver.search_parents(&x_name, c_idx);
     assert_eq!(referent, Ok(a_idx));
 
-    let referent = resolver.search_parents("x", b_idx);
+    let referent = resolver.search_parents(&x_name, b_idx);
     assert_eq!(referent, Ok(a_idx));
 
     // Searching from `d` should find itself
-    let referent = resolver.search_parents("x", d_idx);
+    let referent = resolver.search_parents(&x_name, d_idx);
     assert_eq!(referent, Ok(d_idx));
 
     // Searching from `e` should fail because there are multiple `x`s that could be referred to.
-    let referent = resolver.search_parents("x", e_idx);
+    let referent = resolver.search_parents(&x_name, e_idx);
     assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
 }
 
@@ -88,30 +96,30 @@ fn can_resolve_names() {
     let resolver = Resolver::from_flat_root(&flat_root);
 
     // Searching from `c` for `y` should find the `b` node
-    let referent = resolver.resolve(make_path(["y"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["y"], None), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: b_idx,
             unresolved_path: None,
-            original_path: make_path(["y"]),
+            original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
 
-    let referent = resolver.resolve(make_path(["y", "z"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["y", "z"], None), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
             unresolved_path: None,
-            original_path: make_path(["y", "z"]),
+            original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
 
     // Unused path part is left intact
-    let referent = resolver.resolve(make_path(["y", "z", "w"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["y", "z", "w"], None), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
@@ -119,9 +127,10 @@ fn can_resolve_names() {
             unresolved_path: Some(vec![FlatPathPart {
                 name: "w".into(),
                 index: vec![],
-                position: None
+                position: None,
+                source_doc: None.into()
             }]),
-            original_path: make_path(["y", "z", "w"]),
+            original_path: make_path(["y", "z", "w"], None),
             nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
@@ -136,7 +145,12 @@ fn can_resolve_name_at_ref_origin() {
     let resolver = Resolver::from_flat_root(&flat_root);
     // The ref `$b` should be right after the `a` node
     let b_idx = a_idx + 1;
-    let referent = resolver.search_parents("x", b_idx);
+
+    let x_name = NameWithDoenetMLId {
+        name: "x".to_string(),
+        source_doc: None.into(),
+    };
+    let referent = resolver.search_parents(&x_name, b_idx);
     assert_eq!(referent, Ok(a_idx));
 }
 
@@ -160,46 +174,46 @@ fn resolve_with_skip_parent_match() {
 
     // When `skip_parent_match` is set,
     // searching from `c` for `y` should not find the `b` node but stay at the `c` node and leave everything as unresolved
-    let referent = resolver.resolve(make_path(["y"]), c_idx, true);
+    let referent = resolver.resolve(make_path(["y"], None), c_idx, true);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
-            unresolved_path: Some(make_path(["y"])),
-            original_path: make_path(["y"]),
+            unresolved_path: Some(make_path(["y"], None)),
+            original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx]
         })
     );
 
     // When `skip_parent_match` is not set,
     // searching from `c` for `y` should find the `b` node
-    let referent = resolver.resolve(make_path(["y"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["y"], None), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: b_idx,
             unresolved_path: None,
-            original_path: make_path(["y"]),
+            original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
 
     // When `skip_parent_match` is set,
     // searching from `x` for `y` should find `b`
-    let referent = resolver.resolve(make_path(["y"]), a_idx, true);
+    let referent = resolver.resolve(make_path(["y"], None), a_idx, true);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: b_idx,
             unresolved_path: None,
-            original_path: make_path(["y"]),
+            original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx]
         })
     );
 
     // When `skip_parent_match` is not set,
     // searching from `x` for `y` should get an ambiguous result
-    let referent = resolver.resolve(make_path(["y"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["y"], None), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
 }
 
@@ -225,29 +239,29 @@ fn elements_with_children_invisible_to_their_grandparents() {
 
     // Since an `<option>` component has invisible children,
     // a search for the name `z` starting at `a_idx` fails.
-    let referent = resolver.resolve(make_path(["z"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["z"], None), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
 
     // Similarly, a search for `y.z` finds `<c>`
-    let referent = resolver.resolve(make_path(["y", "z"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["y", "z"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
             unresolved_path: None,
-            original_path: make_path(["y", "z"]),
+            original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![a_idx, option_idx, c_idx]
         })
     );
 
     // Starting at `c`, one can still search outward to find `q`
-    let referent = resolver.resolve(make_path(["q"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["q"], None), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: d_idx,
             unresolved_path: None,
-            original_path: make_path(["q"]),
+            original_path: make_path(["q"], None),
             nodes_in_resolved_path: vec![c_idx, d_idx]
         })
     );
@@ -275,29 +289,29 @@ fn elements_invisible_to_grandparents() {
 
     // Since an `<_externalContent>` is invisible to grandparents,
     // a search for the names `y` or `z` starting at `a_idx` fails.
-    let referent = resolver.resolve(make_path(["y"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["y"], None), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
-    let referent = resolver.resolve(make_path(["z"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["z"], None), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
 
     // A search for `x.y` or `x.z` succeeds as `<_externalContent>` is visible from its parent `<a>`
-    let referent = resolver.resolve(make_path(["x", "y"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["x", "y"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: external_idx,
             unresolved_path: None,
-            original_path: make_path(["x", "y"]),
+            original_path: make_path(["x", "y"], None),
             nodes_in_resolved_path: vec![a_idx, external_idx]
         })
     );
-    let referent = resolver.resolve(make_path(["x", "z"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["x", "z"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
             unresolved_path: None,
-            original_path: make_path(["x", "z"]),
+            original_path: make_path(["x", "z"], None),
             nodes_in_resolved_path: vec![a_idx, c_idx]
         })
     );
@@ -325,31 +339,31 @@ fn dont_search_parent() {
     let resolver = Resolver::from_flat_root(&flat_root);
 
     // starting at `c`, one cannot find "r" or "q"
-    let referent = resolver.resolve(make_path(["r"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["r"], None), c_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
-    let referent = resolver.resolve(make_path(["q"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["q"], None), c_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
 
     // Starting at `c`, one can still find "x"
-    let referent = resolver.resolve(make_path(["x"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["x"], None), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: d_idx,
             unresolved_path: None,
-            original_path: make_path(["x"]),
+            original_path: make_path(["x"], None),
             nodes_in_resolved_path: vec![c_idx, d_idx]
         })
     );
 
     // Starting at `c`, one can still find "y"
-    let referent = resolver.resolve(make_path(["y"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["y"], None), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: external_idx,
             unresolved_path: None,
-            original_path: make_path(["y"]),
+            original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx, external_idx]
         })
     );
@@ -376,13 +390,13 @@ fn dont_search_parent_and_resolve_with_ambiguous_sibling() {
     let resolver = Resolver::from_flat_root(&flat_root);
 
     // Starting at `c`, one can still find its parent with "y" despite its sibling also named "y"
-    let referent = resolver.resolve(make_path(["y"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["y"], None), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: external_idx,
             unresolved_path: None,
-            original_path: make_path(["y"]),
+            original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx, external_idx]
         })
     );
