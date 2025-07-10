@@ -303,13 +303,13 @@ describe("Math Display Tag Tests", function () {
     
     <men name="x">x</men>
     <mdn name="ms">
-      <repeatForSequence name="rm" length="$m" from="11" indexName="i" itemName="v">
+      <repeatForSequence name="rm" length="$m" from="11" indexName="i" valueName="v">
         <mrow name='eq'>$i m &amp;= $v</mrow>
       </repeatForSequence>
     </mdn>
     <men name="y">y</men>
     <mdn name="ns">
-      <repeatForSequence name="rn" length="$n" from="11" indexName="i" itemName="v">
+      <repeatForSequence name="rn" length="$n" from="11" indexName="i" valueName="v">
         <mrow name="eq">$i n &= $v</mrow>
       </repeatForSequence>
     </mdn>
@@ -539,13 +539,13 @@ describe("Math Display Tag Tests", function () {
     
     <men name="x">x</men>
     <mdn name="ms">
-      <repeatForSequence name="rm" length="$m" from="11" indexName="i" itemName="v">
+      <repeatForSequence name="rm" length="$m" from="11" indexName="i" valueName="v">
         <mrow name='eq' number="mod($i,2)=1">$i m &amp;= $v</mrow>
       </repeatForSequence>
     </mdn>
     <men name="y">y</men>
     <mdn name="ns">
-      <repeatForSequence name="rn" length="$n" from="11" indexName="i" itemName="v">
+      <repeatForSequence name="rn" length="$n" from="11" indexName="i" valueName="v">
         <mrow name="eq" number="(-1)^$i = 1">$i n &= $v</mrow>
       </repeatForSequence>
     </mdn>

@@ -195,7 +195,7 @@ describe("Collect tag tests", async () => {
       <setup>
         <sequence name="seq" to="$length" />
       </setup>
-      <repeat name="repeat1" for="$seq" itemName="x">
+      <repeat name="repeat1" for="$seq" valueName="x">
         <point name="p">($x, $mult$x)</point>
       </repeat>
       <line>y=x/3</line>
@@ -205,7 +205,7 @@ describe("Collect tag tests", async () => {
       <setup>
         <collect componentType="point" from="$repeat1" name="collect1" />
       </setup>
-      <repeat name="repeat2" itemName="pt" for="$collect1">
+      <repeat name="repeat2" valueName="pt" for="$collect1">
         <point name="p">($pt.x+1, 1.5*$pt.y)</point>
       </repeat>
 
@@ -740,7 +740,7 @@ describe("Collect tag tests", async () => {
       <setup>
         <sequence name="seq" to="$length" />
       </setup>
-      <repeat name="repeat1" for="$seq" itemName="x">
+      <repeat name="repeat1" for="$seq" valueName="x">
         <point name="p">($x, $mult$x)</point>
       </repeat>
       <line>y=x/3</line>
@@ -750,7 +750,7 @@ describe("Collect tag tests", async () => {
     <setup>
         <collect componentType="point" from="$repeat1" name="collect1" />
       </setup>
-      <repeat name="repeat2" itemName="pt" for="$collect1">
+      <repeat name="repeat2" valueName="pt" for="$collect1">
         <point name="p">($pt.x+1, 1.5*$pt.y)</point>
       </repeat>
 
@@ -1285,7 +1285,7 @@ describe("Collect tag tests", async () => {
       <setup>
         <sequence name="seq" to="$length" />
       </setup>
-      <repeat name="repeat1" for="$seq" itemName="x">
+      <repeat name="repeat1" for="$seq" valueName="x">
         <point name="p">($x, $mult$x)</point>
       </repeat>
       <line>y=x/3</line>
@@ -1295,7 +1295,7 @@ describe("Collect tag tests", async () => {
       <setup>
         <collect componentType="point" from="$repeat1" name="collect1" maxNumber="$maxnumber"  />
       </setup>
-      <repeat name="repeat2" itemName="pt" for="$collect1">
+      <repeat name="repeat2" valueName="pt" for="$collect1">
         <point name="p">($pt.x+1, 1.5*$pt.y)</point>
       </repeat>
 
@@ -2369,7 +2369,7 @@ describe("Collect tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1">
-      <repeatForSequence type="letters" from="a" length="$n" itemName="l">
+      <repeatForSequence type="letters" from="a" length="$n" valueName="l">
         <text>Hello, $l! </text>
       </repeatForSequence>
     </p>
@@ -2532,7 +2532,7 @@ describe("Collect tag tests", async () => {
     <p name="p1">
       begin
       <point name="A">(1,2)</point>
-      <repeatForSequence name="repeat1" length="$n" itemName="x" indexName="i">
+      <repeatForSequence name="repeat1" length="$n" valueName="x" indexName="i">
         <point>($x, $i)</point>
       </repeatForSequence>
       <point name="B">(3,4)</point>

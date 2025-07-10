@@ -153,11 +153,11 @@ describe("Displayed math tag tests", async () => {
     </setup>
 
     <men name="x">x</men>
-    <repeat for="$s1" indexName="i" itemName="v" name="rm">
+    <repeat for="$s1" indexName="i" valueName="v" name="rm">
       <men name='eq'>$i m</men>
     </repeat>
     <men name="y">y</men>
-    <repeat for="$s2" indexName="i" itemName="v" name="rn">
+    <repeat for="$s2" indexName="i" valueName="v" name="rn">
       <men name="eq">$i n</men>
     </repeat>
     <men name="z">z</men>
@@ -555,13 +555,13 @@ describe("Displayed math tag tests", async () => {
 
     <men name="x">x</men>
     <mdn name="ms">
-      <repeat for="$s1" indexName="i" itemName="v" name="rm">
+      <repeat for="$s1" indexName="i" valueName="v" name="rm">
         <mrow name='eq'>$i m &amp;= $v</mrow>
       </repeat>
     </mdn>
     <men name="y">y</men>
     <mdn name="ns">
-      <repeat for="$s2" indexName="i" itemName="v" name="rn">
+      <repeat for="$s2" indexName="i" valueName="v" name="rn">
         <mrow name="eq">$i n &= $v</mrow>
       </repeat>
     </mdn>
@@ -812,13 +812,13 @@ describe("Displayed math tag tests", async () => {
 
     <men name="x">x</men>
     <mdn name="ms">
-      <repeat for="$s1" indexName="i" itemName="v" name="rm">
+      <repeat for="$s1" indexName="i" valueName="v" name="rm">
         <mrow name='eq' number="mod($i,2)=1">$i m &amp;= $v</mrow>
       </repeat>
     </mdn>
     <men name="y">y</men>
     <mdn name="ns">
-      <repeat for="$s2" indexName="i" itemName="v" name="rn">
+      <repeat for="$s2" indexName="i" valueName="v" name="rn">
         <mrow name="eq" number="(-1)^$i = 1">$i n &= $v</mrow>
       </repeat>
     </mdn>

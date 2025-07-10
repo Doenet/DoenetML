@@ -1390,7 +1390,7 @@ describe("Specifying single variant tests", async () => {
     `;
 
         let nonRandom3 = `
-      <repeat for="1 2 3 4" itemName="v" indexName="i" name='ps'>
+      <repeat for="1 2 3 4" valueName="v" indexName="i" name='ps'>
         <p>$i, $v</p>
       </repeat>
     `;

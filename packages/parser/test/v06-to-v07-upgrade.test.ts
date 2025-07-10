@@ -310,7 +310,7 @@ describe("v06 to v07 update", () => {
             </sources>
         </map>`;
         correctSource = `
-        <repeatForSequence from="3" to="4" name="items" itemName="v" indexName="i">
+        <repeatForSequence from="3" to="4" name="items" valueName="v" indexName="i">
             <math name="m">$v^2</math><number name="n">$i^2</number>
         </repeatForSequence>`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
@@ -325,7 +325,7 @@ describe("v06 to v07 update", () => {
         </map>
         $(item1/m) $(items[1]/n) $(items[2]/m) $(item2/n)`;
         correctSource = `
-        <repeatForSequence from="3" to="4" name="items" itemName="v" indexName="i">
+        <repeatForSequence from="3" to="4" name="items" valueName="v" indexName="i">
             <math name="m">$v^2</math><number name="n">$i^2</number>
         </repeatForSequence>
         $items[1].m $items[1].n $items[2].m $items[2].n`;
@@ -342,7 +342,7 @@ describe("v06 to v07 update", () => {
         </map>`;
         correctSource = `
         <setup><group name="items_group"><number>3</number><number>4</number></group></setup>
-        <repeat for="$items_group" name="items" itemName="v" indexName="i">
+        <repeat for="$items_group" name="items" valueName="v" indexName="i">
             <math name="m">$v^2</math><number name="n">$i^2</number>
         </repeat>`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
@@ -358,7 +358,7 @@ describe("v06 to v07 update", () => {
         $(item1/m) $(items[1]/n) $(items[2]/m) $(item2/n)`;
         correctSource = `
         <setup><group name="items_group"><number>3</number><number>4</number></group></setup>
-        <repeat for="$items_group" name="items" itemName="v" indexName="i">
+        <repeat for="$items_group" name="items" valueName="v" indexName="i">
             <math name="m">$v^2</math><number name="n">$i^2</number>
         </repeat>
         $items[1].m $items[1].n $items[2].m $items[2].n`;

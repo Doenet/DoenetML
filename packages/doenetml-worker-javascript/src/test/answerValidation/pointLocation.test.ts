@@ -428,7 +428,7 @@ describe("point location validation tests", async () => {
     <p>Number of points: <mathInput prefill="0" name="n" /></p>
     <graph>
       <setup><sequence fixed='false' from="1" to="$n" name="seq" /></setup>
-      <repeat name="r" for="$seq" itemName="i">
+      <repeat name="r" for="$seq" valueName="i">
         <point x='$i' y='1' name="P">
           <constraints>
             <attractTo>$goal1</attractTo>
@@ -519,7 +519,7 @@ describe("point location validation tests", async () => {
     <p>Number of points 2: <mathInput prefill="0" name="m" /></p>
     <graph>
       <setup><sequence name="seq1" fixed='false' from="1" to="$n" /></setup>
-      <repeat name="r" for="$seq1" itemName="i">
+      <repeat name="r" for="$seq1" valueName="i">
         <point x='$i' y='1' name="P">
           <constraints>
             <attractTo>$goal1</attractTo>
@@ -527,7 +527,7 @@ describe("point location validation tests", async () => {
           </constraints>
         </point>
         <setup><sequence name="seq2" fixed='false' from="1" to="$m" /></setup>
-        <repeat name="r2" for="$seq2" itemName="j">
+        <repeat name="r2" for="$seq2" valueName="j">
           <point x='$j' y='2' name="Q">
             <constraints>
               <attractTo>$goal1</attractTo>

@@ -78,7 +78,7 @@ describe("callAction tag tests", async () => {
       <label>roll dice</label>
     </callAction></p>
     <p>Sum: <number name="sum"><sum>
-      <repeat for="$s" itemName="v" indexName="i">
+      <repeat for="$s" valueName="v" indexName="i">
         <number>$v*10^($i-1)</number>
       </repeat>
     </sum></number></p>
@@ -2470,7 +2470,7 @@ describe("callAction tag tests", async () => {
     <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
     <p><callAction target="$s" actionName="reSamplE" name="rs"><label>roll dice</label></callAction></p>
     <p>Sum: <number name="sum"><sum>
-      <repeat for="$s" itemName="v" indexName="i">
+      <repeat for="$s" valueName="v" indexName="i">
         <number>$v*10^($i-1)</number>
       </repeat>
     </sum></number></p>

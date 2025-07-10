@@ -2205,7 +2205,7 @@ describe("Select tag tests", async () => {
             doenetML: `
     <p><asList name="list1">
     <select name="o" numToSelect="3" withReplacement>
-    <option><repeat name="r" for="x y" itemName="x">
+    <option><repeat name="r" for="x y" valueName="x">
         <select numToSelect="2" name="s">
           <option><math name="p">$x^2</math><math name="q">$x^6</math></option>
           <option><math name="p">$x^3</math><math name="q">$x^7</math></option>
@@ -2213,7 +2213,7 @@ describe("Select tag tests", async () => {
           <option><math name="p">$x^5</math><math name="q">$x^9</math></option>
         </select>
     </repeat></option>
-    <option><repeat name="r" for="u v" itemName="x">
+    <option><repeat name="r" for="u v" valueName="x">
         <select numToSelect="2" name="s">
           <option><math name="p">$x 2</math><math name="q">$x 6</math></option>
           <option><math name="p">$x 3</math><math name="q">$x 7</math></option>

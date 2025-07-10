@@ -260,6 +260,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -325,11 +329,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -2700,6 +2700,10 @@
                 "xLabel",
                 "yLabel",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -3559,6 +3563,11 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false
+                },
+                {
+                    "name": "math",
+                    "type": "math",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -3876,6 +3885,11 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false
+                },
+                {
+                    "name": "math",
+                    "type": "math",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -4192,6 +4206,11 @@
                 {
                     "name": "text",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "math",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -4886,6 +4905,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "math",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
                     "name": "equationTag",
                     "type": "text",
                     "isArray": false
@@ -4899,6 +4923,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -6029,6 +6057,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -6349,6 +6381,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -6669,6 +6705,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -7009,6 +7049,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -7547,6 +7591,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -8085,6 +8133,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -8150,11 +8202,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -8619,6 +8667,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -8684,11 +8736,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -9153,6 +9201,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -9218,11 +9270,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -9687,6 +9735,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -9752,11 +9804,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -10213,6 +10261,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -10278,11 +10330,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -10719,6 +10767,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -10784,11 +10836,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -11237,6 +11285,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -11302,11 +11354,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -11755,6 +11803,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -11820,11 +11872,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -12273,6 +12321,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -12338,11 +12390,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -12791,6 +12839,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -13329,6 +13381,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -13867,6 +13923,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -14417,6 +14477,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -14967,6 +15031,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -15505,6 +15573,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -16043,6 +16115,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -16581,6 +16657,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -17119,6 +17199,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -17657,6 +17741,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -18195,6 +18283,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -18260,11 +18352,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -18739,6 +18827,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -19316,6 +19408,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -19893,6 +19989,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -20478,6 +20578,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -35221,6 +35325,10 @@
                 "pluralize",
                 "lorem",
                 "latex",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -35598,6 +35706,10 @@
                 "label",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -36029,6 +36141,10 @@
                 "bezierControls",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -37246,6 +37362,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -37311,11 +37431,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -37766,6 +37882,10 @@
                 "orbitalDiagram",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -39356,6 +39476,10 @@
                 "xLabel",
                 "yLabel",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -39700,6 +39824,10 @@
                 "xLabel",
                 "yLabel",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -42638,6 +42766,10 @@
                 "xLabel",
                 "yLabel",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -42978,6 +43110,10 @@
                 "xLabel",
                 "yLabel",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -43406,6 +43542,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -43865,6 +44005,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -43930,11 +44074,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -44383,6 +44523,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -44622,6 +44766,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -44908,6 +45056,10 @@
                 "subsetOfReals",
                 "matrix",
                 "latex",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -45533,6 +45685,10 @@
                 "pluralize",
                 "lorem",
                 "latex",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -45883,6 +46039,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -45948,11 +46108,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -46397,6 +46553,10 @@
                 "label",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -49277,6 +49437,10 @@
                 "label",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -49766,6 +49930,10 @@
                 "label",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -50224,6 +50392,10 @@
                 "bezierControls",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -50812,6 +50984,10 @@
                 "controlVectors",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -51034,6 +51210,10 @@
                 "subsetOfReals",
                 "matrix",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -51269,6 +51449,10 @@
                 "pluralize",
                 "lorem",
                 "latex",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -51689,6 +51873,10 @@
                 "subsetOfReals",
                 "matrix",
                 "latex",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -51975,6 +52163,10 @@
                 "considerAsResponses",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -52577,6 +52769,10 @@
                 "when",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -53013,6 +53209,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -53374,6 +53574,10 @@
                 "label",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -53820,6 +54024,10 @@
                 "label",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -54184,6 +54392,10 @@
                 "matchesPattern",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -55223,6 +55435,10 @@
                 "subsetOfReals",
                 "matrix",
                 "latex",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -55554,6 +55770,10 @@
                 "subsetOfReals",
                 "matrix",
                 "latex",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -55922,6 +56142,10 @@
                 "stickyGroup",
                 "image",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -55954,10 +56178,6 @@
                 "ionicCompound",
                 "matrixInput",
                 "mathInput",
-                "m",
-                "me",
-                "men",
-                "mrow",
                 "md",
                 "mdn",
                 "updateValue",
@@ -56387,6 +56607,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -57415,6 +57639,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -57480,11 +57708,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -58451,6 +58675,10 @@
                 "latex",
                 "xLabel",
                 "yLabel",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -58993,6 +59221,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -59068,12 +59300,8 @@
                 "conclusion",
                 "br",
                 "hr",
-                "m",
-                "me",
-                "men",
                 "md",
                 "mdn",
-                "mrow",
                 "not",
                 "and",
                 "or",
@@ -60708,6 +60936,10 @@
                 "xLabel",
                 "yLabel",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -61167,7 +61399,7 @@
                     "name": "copy"
                 },
                 {
-                    "name": "itemName"
+                    "name": "valueName"
                 },
                 {
                     "name": "indexName"
@@ -61515,7 +61747,7 @@
                     "name": "exclude"
                 },
                 {
-                    "name": "itemName"
+                    "name": "valueName"
                 },
                 {
                     "name": "indexName"
@@ -67409,6 +67641,10 @@
                 "xLabel",
                 "yLabel",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -67754,6 +67990,10 @@
                 "xLabel",
                 "yLabel",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -71632,6 +71872,10 @@
                 "pluralize",
                 "lorem",
                 "latex",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -72679,6 +72923,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -73151,6 +73399,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -73216,11 +73468,7 @@
                 "subsetOfReals",
                 "bestFitLine",
                 "matrix",
-                "latex",
-                "m",
-                "me",
-                "men",
-                "mrow"
+                "latex"
             ],
             "attributes": [
                 {
@@ -75374,6 +75622,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -76615,6 +76867,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -77481,6 +77737,10 @@
             "children": [
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -77725,6 +77985,10 @@
                 "xLabel",
                 "yLabel",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "not",
                 "and",
                 "or",
@@ -77821,10 +78085,6 @@
                 "piecewiseFunction",
                 "endpoint",
                 "bestFitLine",
-                "m",
-                "me",
-                "men",
-                "mrow",
                 "md",
                 "mdn"
             ],
@@ -78720,6 +78980,10 @@
                 "subsetOfReals",
                 "matrix",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -78876,6 +79140,10 @@
                 "interval",
                 "rightHandSide",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "sum",
                 "product",
                 "clampNumber",
@@ -79101,6 +79369,10 @@
                 "subsetOfReals",
                 "matrix",
                 "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",

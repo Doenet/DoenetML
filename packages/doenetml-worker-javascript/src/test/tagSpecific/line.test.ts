@@ -3236,7 +3236,7 @@ describe("Line tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup><sequence length="$mi" name="s" /></setup>
-  <repeat hide name="repeat1" itemName="x" for="$s">
+  <repeat hide name="repeat1" valueName="x" for="$s">
       <point>
         ($x + <math>0</math>,
         2$x + <math>0</math>)
@@ -3391,7 +3391,7 @@ describe("Line tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup><sequence length="$mi" name="s" /></setup>
-  <repeat hide name="repeat1" itemName="x" for="$s">
+  <repeat hide name="repeat1" valueName="x" for="$s">
       <point>
         ($x, 2$x)
       </point>
