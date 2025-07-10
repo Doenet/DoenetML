@@ -109,7 +109,7 @@ export type PropIndex = {
     type: "index";
     value: (FunctionMacro | Macro | TextWithoutClosingSquareBrace)[];
 } & {
-    position: {
+    position?: {
         start: { offset: number; line: number; column: number };
         end: { offset: number; line: number; column: number };
     };
