@@ -24,22 +24,22 @@ export default React.memo(function Legend(props) {
     }, []);
 
     function createLegend() {
-        let { xmin, xmax, ymin, ymax } = SVs.graphLimits;
+        let { xMin, xMax, yMin, yMax } = SVs.graphLimits;
 
-        let legendDy = (ymax - ymin) * 0.06;
-        let legendLineLength = (xmax - xmin) * 0.05;
-        let legendDx = (xmax - xmin) * 0.02;
+        let legendDy = (yMax - yMin) * 0.06;
+        let legendLineLength = (xMax - xMin) * 0.05;
+        let legendDx = (xMax - xMin) * 0.02;
 
-        let legendX = xmin + (xmax - xmin) * 0.05;
+        let legendX = xMin + (xMax - xMin) * 0.05;
 
         let legendY;
 
         if (SVs.position.slice(0, 5) === "upper") {
-            legendY = ymin + (ymax - ymin) * 0.95;
+            legendY = yMin + (yMax - yMin) * 0.95;
         } else {
             legendY =
-                ymin +
-                (ymax - ymin) * 0.05 +
+                yMin +
+                (yMax - yMin) * 0.05 +
                 legendDy * SVs.legendElements.length;
         }
 
@@ -90,7 +90,7 @@ export default React.memo(function Legend(props) {
         if (atRight) {
             legendX = Math.max(
                 legendX,
-                xmax - legendLineLength - 3 * legendDx - maxTextWidth,
+                xMax - legendLineLength - 3 * legendDx - maxTextWidth,
             );
         }
 
@@ -183,7 +183,7 @@ export default React.memo(function Legend(props) {
 
                 legendX = Math.max(
                     legendX,
-                    xmax - legendLineLength - 3 * legendDx - maxTextWidth,
+                    xMax - legendLineLength - 3 * legendDx - maxTextWidth,
                 );
 
                 for (let [ind, swatch] of swatches.current.entries()) {

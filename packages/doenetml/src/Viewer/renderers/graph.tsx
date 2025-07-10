@@ -56,7 +56,7 @@ export default React.memo(function Graph(props) {
             return;
         }
 
-        let boundingbox = [SVs.xmin, SVs.ymax, SVs.xmax, SVs.ymin];
+        let boundingbox = [SVs.xMin, SVs.yMax, SVs.xMax, SVs.yMin];
         previousBoundingbox.current = boundingbox;
 
         JXG.Options.layer.numlayers = 100;
@@ -92,11 +92,11 @@ export default React.memo(function Graph(props) {
                 )
             ) {
                 let newBoundingbox = newBoard.getBoundingBox();
-                let [xmin, ymax, xmax, ymin] = newBoundingbox;
+                let [xMin, yMax, xMax, yMin] = newBoundingbox;
 
                 // look for a change in bounding box that isn't due to roundoff error
-                let xscale = Math.abs(xmax - xmin);
-                let yscale = Math.abs(ymax - ymin);
+                let xscale = Math.abs(xMax - xMin);
+                let yscale = Math.abs(yMax - yMin);
                 let diffs = newBoundingbox.map((v, i) =>
                     Math.abs(v - previousBoundingbox.current[i]),
                 );
@@ -111,7 +111,7 @@ export default React.memo(function Graph(props) {
                     previousBoundingbox.current = newBoundingbox;
                     callAction({
                         action: actions.changeAxisLimits,
-                        args: { xmin, xmax, ymin, ymax },
+                        args: { xMin, xMax, yMin, yMax },
                         baseVariableValue: newBoundingbox,
                     });
                 }
@@ -413,7 +413,7 @@ export default React.memo(function Graph(props) {
         // since baseStateVariable is boundingbox,
         // ignoreUpdate means ignore change in boundingbox
         if (!ignoreUpdate) {
-            let boundingbox = [SVs.xmin, SVs.ymax, SVs.xmax, SVs.ymin];
+            let boundingbox = [SVs.xMin, SVs.yMax, SVs.xMax, SVs.yMin];
 
             if (
                 boundingbox.some((v, i) => v !== previousBoundingbox.current[i])

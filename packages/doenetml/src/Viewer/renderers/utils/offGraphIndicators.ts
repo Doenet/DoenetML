@@ -2,16 +2,16 @@ import { JXGObject } from "../jsxgraph-distrib/types";
 import { getEffectiveBoundingBox } from "./graph";
 
 export function characterizeOffGraphPoint(coords: number[], board: JXGObject) {
-    let { flippedX, flippedY, xmin, xmax, ymin, ymax } =
+    let { flippedX, flippedY, xMin, xMax, yMin, yMax } =
         getEffectiveBoundingBox(board);
 
-    let xscale = xmax - xmin;
-    let yscale = ymax - ymin;
+    let xscale = xMax - xMin;
+    let yscale = yMax - yMin;
 
-    let xminAdjusted = xmin + xscale * 0.01;
-    let xmaxAdjusted = xmax - xscale * 0.01;
-    let yminAdjusted = ymin + yscale * 0.01;
-    let ymaxAdjusted = ymax - yscale * 0.01;
+    let xminAdjusted = xMin + xscale * 0.01;
+    let xmaxAdjusted = xMax - xscale * 0.01;
+    let yminAdjusted = yMin + yscale * 0.01;
+    let ymaxAdjusted = yMax - yscale * 0.01;
 
     let indicatorCoords = [...coords] as [number, number];
     let indicatorSides: [number, number] = [0, 0];
@@ -61,19 +61,19 @@ export function characterizeOffGraphCircleArc({
     // check to see if the arc of the circle (determine by directionToCheck)
     // intersects the edge of the graph (adjusted inward by a buffer)
 
-    let { flippedX, flippedY, xmin, xmax, ymin, ymax } =
+    let { flippedX, flippedY, xMin, xMax, yMin, yMax } =
         getEffectiveBoundingBox(board);
 
     let xSign = flippedX ? -1 : 1;
     let ySign = flippedY ? -1 : 1;
 
-    let xscale = xmax - xmin;
-    let yscale = ymax - ymin;
+    let xscale = xMax - xMin;
+    let yscale = yMax - yMin;
 
-    let xminAdjusted = xmin + xscale * 0.01;
-    let xmaxAdjusted = xmax - xscale * 0.01;
-    let yminAdjusted = ymin + yscale * 0.01;
-    let ymaxAdjusted = ymax - yscale * 0.01;
+    let xminAdjusted = xMin + xscale * 0.01;
+    let xmaxAdjusted = xMax - xscale * 0.01;
+    let yminAdjusted = yMin + yscale * 0.01;
+    let ymaxAdjusted = yMax - yscale * 0.01;
 
     let xToCheck =
         directionToCheck[0] * xSign === 1 ? xmaxAdjusted : xminAdjusted;

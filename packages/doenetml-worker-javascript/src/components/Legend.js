@@ -364,7 +364,7 @@ export default class Legend extends GraphicalComponent {
                 graphAncestor: {
                     dependencyType: "ancestor",
                     componentType: "graph",
-                    variableNames: ["xmin", "xmax", "ymin", "ymax"],
+                    variableNames: ["xMin", "xMax", "yMin", "yMax"],
                 },
             }),
             definition({ dependencyValues }) {
