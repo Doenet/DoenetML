@@ -31,13 +31,13 @@ fn resolution_stops_at_path_index_with_no_index_resolutions() {
             name: "y".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
         FlatPathPart {
             name: "z".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
     ];
     let referent = resolver.resolve(path.clone(), c_idx, false);
@@ -54,7 +54,7 @@ fn resolution_stops_at_path_index_with_no_index_resolutions() {
     let index = vec![FlatIndex {
         value: vec![UntaggedContent::Text("2".into())],
         position: None,
-        source_doc: None.into(),
+        source_doc: None,
     }];
 
     // `$y[2].z`
@@ -63,13 +63,13 @@ fn resolution_stops_at_path_index_with_no_index_resolutions() {
             name: "y".into(),
             index: index.clone(),
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
         FlatPathPart {
             name: "z".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
     ];
     let referent = resolver.resolve(path.clone(), c_idx, false);
@@ -82,13 +82,13 @@ fn resolution_stops_at_path_index_with_no_index_resolutions() {
                     name: "".into(),
                     index: index.clone(),
                     position: None,
-                    source_doc: None.into(),
+                    source_doc: None,
                 },
                 FlatPathPart {
                     name: "z".into(),
                     index: vec![],
                     position: None,
-                    source_doc: None.into(),
+                    source_doc: None,
                 }
             ]),
             original_path: path,
@@ -123,13 +123,13 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
             name: "g".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
         FlatPathPart {
             name: "z".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
     ];
     let referent = resolver.resolve(path.clone(), a_idx, false);
@@ -138,17 +138,17 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
     let index1 = vec![FlatIndex {
         value: vec![UntaggedContent::Text("1".into())],
         position: None,
-        source_doc: None.into(),
+        source_doc: None,
     }];
     let index2 = vec![FlatIndex {
         value: vec![UntaggedContent::Text("2".into())],
         position: None,
-        source_doc: None.into(),
+        source_doc: None,
     }];
     let index3 = vec![FlatIndex {
         value: vec![UntaggedContent::Text("3".into())],
         position: None,
-        source_doc: None.into(),
+        source_doc: None,
     }];
 
     // `$g[1]`
@@ -156,7 +156,7 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
         name: "g".into(),
         index: index1.clone(),
         position: None,
-        source_doc: None.into(),
+        source_doc: None,
     }];
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -175,13 +175,13 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
             name: "x".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
         FlatPathPart {
             name: "g".into(),
             index: index2.clone(),
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
     ];
     let referent = resolver.resolve(path.clone(), a_idx, false);
@@ -201,13 +201,13 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
             name: "g".into(),
             index: index2.clone(),
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
         FlatPathPart {
             name: "z".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
     ];
 
@@ -228,19 +228,19 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
             name: "x".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
         FlatPathPart {
             name: "g".into(),
             index: index1.clone(),
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
         FlatPathPart {
             name: "z".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
     ];
 
@@ -261,13 +261,13 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
             name: "g".into(),
             index: index3.clone(),
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
         FlatPathPart {
             name: "z".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
     ];
     let unresolved_path = vec![
@@ -275,13 +275,13 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
             name: "".into(),
             index: index3.clone(),
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
         FlatPathPart {
             name: "z".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
     ];
 
@@ -316,7 +316,7 @@ fn resolution_matches_largest_possible_when_index_present() {
     let index = vec![FlatIndex {
         value: vec![UntaggedContent::Text("2".into())],
         position: None,
-        source_doc: None.into(),
+        source_doc: None,
     }];
     // `$y.z[2]`
     let path = vec![
@@ -324,13 +324,13 @@ fn resolution_matches_largest_possible_when_index_present() {
             name: "y".into(),
             index: vec![],
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
         FlatPathPart {
             name: "z".into(),
             index: index.clone(),
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
         },
     ];
 
@@ -343,7 +343,7 @@ fn resolution_matches_largest_possible_when_index_present() {
                 name: "".into(),
                 index: index.clone(),
                 position: None,
-                source_doc: None.into(),
+                source_doc: None,
             },]),
             original_path: path,
             nodes_in_resolved_path: vec![c_idx, b_idx]
@@ -401,7 +401,7 @@ fn add_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -425,7 +425,7 @@ fn add_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -450,7 +450,7 @@ fn add_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
 
@@ -465,7 +465,7 @@ fn add_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     assert_eq!(
         referent,
@@ -483,7 +483,7 @@ fn add_nodes_with_index_resolutions() {
             name: "s",
             indices: vec!["2"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -507,7 +507,7 @@ fn add_nodes_with_index_resolutions() {
                 indices: vec!["1"],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -565,7 +565,7 @@ fn replace_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -589,7 +589,7 @@ fn replace_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -614,7 +614,7 @@ fn replace_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
 
@@ -629,7 +629,7 @@ fn replace_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     assert_eq!(
         referent,
@@ -675,7 +675,7 @@ fn replace_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -699,7 +699,7 @@ fn replace_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -724,7 +724,7 @@ fn replace_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
 
@@ -739,7 +739,7 @@ fn replace_nodes_with_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     assert_eq!(
         referent,
@@ -772,7 +772,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             name: "g",
             indices: vec!["1"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -793,14 +793,14 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             name: "g",
             indices: vec!["2"],
         }],
-        None.into(),
+        None,
     );
     let unresolved_path = make_path_with_indices(
         &[TestPathPart {
             name: "__invalid_index",
             indices: vec!["2"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -819,14 +819,14 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             name: "g",
             indices: vec!["3"],
         }],
-        None.into(),
+        None,
     );
     let unresolved_path = make_path_with_indices(
         &[TestPathPart {
             name: "",
             indices: vec!["3"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -863,7 +863,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             name: "g",
             indices: vec!["1"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -882,7 +882,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             name: "g",
             indices: vec!["2"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -903,14 +903,14 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             name: "g",
             indices: vec!["3"],
         }],
-        None.into(),
+        None,
     );
     let unresolved_path = make_path_with_indices(
         &[TestPathPart {
             name: "__invalid_index",
             indices: vec!["3"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -947,7 +947,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             name: "g",
             indices: vec!["1"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -966,7 +966,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             name: "g",
             indices: vec!["2"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -985,7 +985,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             name: "g",
             indices: vec!["3"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -1022,7 +1022,7 @@ fn replace_index_resolutions() {
             name: "g",
             indices: vec!["1"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -1041,7 +1041,7 @@ fn replace_index_resolutions() {
             name: "g",
             indices: vec!["2"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -1069,7 +1069,7 @@ fn replace_index_resolutions() {
             name: "g",
             indices: vec!["1"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -1088,7 +1088,7 @@ fn replace_index_resolutions() {
             name: "g",
             indices: vec!["2"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -1131,7 +1131,7 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -1155,7 +1155,7 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -1174,7 +1174,7 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
             name: "g",
             indices: vec!["2"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
 
@@ -1183,7 +1183,7 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
             name: "",
             indices: vec!["2"],
         }],
-        None.into(),
+        None,
     );
     assert_eq!(
         referent,
@@ -1226,7 +1226,7 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
                 indices: vec![],
             },
         ],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
     assert_eq!(
@@ -1258,7 +1258,7 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
             name: "g",
             indices: vec!["3"],
         }],
-        None.into(),
+        None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
 
@@ -1267,7 +1267,7 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
             name: "",
             indices: vec!["3"],
         }],
-        None.into(),
+        None,
     );
     assert_eq!(
         referent,

@@ -240,7 +240,7 @@ impl TestCore {
                     name: name.to_string(),
                     index: vec![],
                     position: None,
-                    source_doc: None.into(),
+                    source_doc: None,
                 }],
                 1,
                 false,

@@ -24,7 +24,7 @@ impl Default for NormalizedNode {
             error_type: ErrorType::Error,
             unresolved_path: None,
             position: None,
-            source_doc: None.into(),
+            source_doc: None,
             idx: 0,
         })
     }

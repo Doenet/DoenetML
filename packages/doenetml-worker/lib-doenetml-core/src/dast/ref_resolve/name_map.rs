@@ -32,13 +32,13 @@ pub struct NameMap(pub FxHashMap<NameWithDoenetMLId, Ref>);
 impl Deref for NameMap {
     type Target = FxHashMap<NameWithDoenetMLId, Ref>;
 
-    fn deref(self: &'_ Self) -> &'_ Self::Target {
+    fn deref(&'_ self) -> &'_ Self::Target {
         &self.0
     }
 }
 
 impl DerefMut for NameMap {
-    fn deref_mut(self: &'_ mut Self) -> &'_ mut Self::Target {
+    fn deref_mut(&'_ mut self) -> &'_ mut Self::Target {
         &mut self.0
     }
 }
