@@ -1,0 +1,13 @@
+<section name="fun">
+  <title>My cool section $ti.immediateValue</title>
+  <p>Some content</p>
+  <p>Go ahead and edit the title: <textInput prefill="_sample_" name="ti" /></p>
+</section>
+<section>
+  <title>My other part</title>
+  <p>Some content</p>
+
+  <graph>
+    <point x="3" y="1" />
+  </graph>
+</section>
