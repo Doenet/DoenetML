@@ -1,6 +1,6 @@
 use crate::dast::ref_resolve::NameMap;
 
-use super::{NodeParent, NodeResolverData, ParentSearchAlgorithm, Ref, Resolver};
+use super::{NodeParent, NodeResolverData, Ref, Resolver};
 
 impl Resolver {
     /// Compactify the resolver so that it corresponds to the new indices
@@ -42,9 +42,9 @@ impl Resolver {
                 if idx_plus_1 == 0 {
                     NodeResolverData {
                         node_parent: NodeParent::None,
-                        parent_search_algorithm: ParentSearchAlgorithm::DontSearchParent,
                         name_map,
                         index_resolutions,
+                        source_sequence: node_data.source_sequence.clone(),
                     }
                 } else {
                     NodeResolverData {
@@ -52,9 +52,9 @@ impl Resolver {
                             NodeParent::None | NodeParent::FlatRoot => node_data.node_parent,
                             NodeParent::Node(idx) => NodeParent::Node(old_to_new_indices[idx]),
                         },
-                        parent_search_algorithm: node_data.parent_search_algorithm,
                         name_map,
                         index_resolutions,
+                        source_sequence: node_data.source_sequence.clone(),
                     }
                 }
             })

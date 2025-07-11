@@ -19,7 +19,7 @@ use crate::dast::{flat_dast::SourceDoc, ref_resolve::Ref};
 /// of that document in the list of source documents.
 // TODO: update this comment when determine where this list of source documents is stored
 #[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq)]
-pub struct NameWithDoenetMLId {
+pub struct NameWithSource {
     pub name: String,
     pub source_doc: SourceDoc,
 }
@@ -27,10 +27,10 @@ pub struct NameWithDoenetMLId {
 /// Map of all the names and source_doc combinations that are accessible (as descendants) from the node.
 /// The data structure uses a `FxHashMap` so that iterating over the `name_map` is done in a consistent order.
 #[derive(Debug, Default, Clone)]
-pub struct NameMap(pub FxHashMap<NameWithDoenetMLId, Ref>);
+pub struct NameMap(pub FxHashMap<NameWithSource, Ref>);
 
 impl Deref for NameMap {
-    type Target = FxHashMap<NameWithDoenetMLId, Ref>;
+    type Target = FxHashMap<NameWithSource, Ref>;
 
     fn deref(&'_ self) -> &'_ Self::Target {
         &self.0
@@ -49,11 +49,11 @@ impl Serialize for NameMap {
         S: serde::Serializer,
     {
         let mut map = serializer.serialize_map(Some(self.0.len()))?;
-        for (name_with_doenetml_id, ref_) in &self.0 {
+        for (name_with_source_doc, ref_) in &self.0 {
             map.serialize_entry(
                 &format!(
                     "{};{}",
-                    name_with_doenetml_id.name, name_with_doenetml_id.source_doc
+                    name_with_source_doc.name, name_with_source_doc.source_doc
                 ),
                 ref_,
             )?;
@@ -87,7 +87,7 @@ impl<'de> Visitor<'de> for NameMapVisitor {
             let mut split = key.split(";");
             let name = split.next().unwrap().to_string();
             let source_doc = split.next().unwrap().parse::<u16>().unwrap().into();
-            map.0.insert(NameWithDoenetMLId { name, source_doc }, value);
+            map.0.insert(NameWithSource { name, source_doc }, value);
         }
 
         Ok(map)

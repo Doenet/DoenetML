@@ -121,13 +121,6 @@ export async function expandExternalReferences(
 
                 const externalDast = lezerToDast(externalDoenetML);
 
-                // In case we are recursing, a component may have been turned into an `_externalContent`,
-                // in which case we want the type of its parent, which is stored in its `forType` attribute.
-                const parentType =
-                    parent.name === "_externalContent"
-                        ? toXml(parent.attributes.forType.children)
-                        : parent.name;
-
                 // An `externalDast` matches a parent only its root contains a single child of the same type as `parent`,
                 // or if it is a `document` with a single child of the same type as `parent`.
                 // We ignore any blank text elements.
@@ -145,7 +138,7 @@ export async function expandExternalReferences(
                 ) {
                     // Check if the single root child matches the parent type
                     child = rootChildren[0];
-                    if (child.name !== parentType) {
+                    if (child.name !== parent.name) {
                         if (child.name === "document") {
                             // if child is a document, check if it has one non-blank child that matches the parent type
                             const documentChildren = child.children.filter(
@@ -156,7 +149,7 @@ export async function expandExternalReferences(
                             if (
                                 documentChildren.length === 1 &&
                                 isDastElement(documentChildren[0]) &&
-                                child.name === parentType
+                                child.name === parent.name
                             ) {
                                 child = documentChildren[0];
                             } else {
@@ -171,7 +164,7 @@ export async function expandExternalReferences(
                 if (child === null) {
                     const dastError: DastError = {
                         type: "error",
-                        message: `Invalid DoenetML retrieved from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}": it did not match the component type "${parentType}"`,
+                        message: `Invalid DoenetML retrieved from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}": it did not match the component type "${parent.name}"`,
                         position: unresolved.sourceAttribute.position,
                     };
                     parent.children.unshift(dastError);
@@ -231,8 +224,26 @@ export async function expandExternalReferences(
 
                 // Delete the `copy` attribute
                 delete parent.attributes[unresolved.sourceAttribute.name];
+
                 Object.assign(parentAttributes, parent.attributes);
                 parent.attributes = parentAttributes;
+
+                if (!parent.attributes[`source:sequence`]) {
+                    parent.attributes[`source:sequence`] = {
+                        type: "attribute",
+                        name: "source:sequence",
+                        children: [
+                            {
+                                type: "text",
+                                value: parent.source_doc?.toString() ?? "0",
+                            },
+                        ],
+                    };
+                }
+                parent.attributes["source:sequence"].children.push({
+                    type: "text",
+                    value: source_doc.toString(),
+                });
 
                 counter = unresolved.recursionLevel + 1;
 

@@ -4,8 +4,8 @@ use tsify_next::Tsify;
 
 use super::{NameMap, ResolutionError};
 use crate::dast::{
-    flat_dast::{FlatElement, FlatNode, FlatPathPart, Index, UntaggedContent},
-    ref_resolve::NameWithDoenetMLId,
+    flat_dast::{FlatElement, FlatNode, FlatPathPart, Index, SourceDoc, UntaggedContent},
+    ref_resolve::NameWithSource,
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -36,42 +36,38 @@ pub enum Ref {
 /// - `Visible`: the default behavior where the visibility of the node and its children are not restricted.
 ///   If all nodes were `Visible`, then the name of each node could be resolved from any of its ancestors.
 /// - `Invisible`: the node and its descendants cannot be resolved by name from any of the node's ancestors.
-/// - `InvisibleToGrandparents`: the node and its descendants can be resolved by name from the node's immediate parent
-///   but cannot be resolved by name from any more distant ancestor. To resolve a reference to the node or a descendant,
-///   one must include the name of its parent and the append the node's name.
-///   For example, since `<_externalContent>` is tagged with `InvisibleToGrandparents`,
+/// - `ChildrenInvisibleToTheirGrandparents`: all the children of the node (and their descendants) can be resolved by name
+///   from the node itself but cannot be resolved by name from any of the node's ancestors.
+///   To resolve a reference to a child (or a descendant),
+///   one must preface the name with the name of the node.
+///   For example, since `<option>` is tagged with `ChildrenInvisibleToTheirGrandparents`,
 ///   consider the DoenetML
 ///   ```xml
 ///   <d>
-///       <a name="x">
-///           <_externalContent name="y">
+///       <option name="x">
+///           <a name="y">
 ///               <b name="z" />
-///           </_externalContent>
-///       </a>
+///           </a>
+///       </option>
 ///       <c/>
 ///   </d>
 ///   ```
 ///   - References `$y` and `$z` from `<c>` would fail because the `name_map` of `<d>` would not contain the nodes.
-///   - References `$x.y` and `$x.z` from `<c>` would resolve because the `name_map` of `<a>` would contain the nodes.
-/// - `ChildrenInvisibleToTheirGrandparents`: all the children of the node are treated as though they were marked with `InvisibleToGrandparents`.
+///   - References `$x.y` and `$x.z` from `<c>` would resolve because the `name_map` of `<option>` would contain the nodes.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub(super) enum Visibility {
     Visible,
     Invisible,
-    InvisibleToGrandparents,
     ChildrenInvisibleToTheirGrandparents,
 }
 
-const INVISIBLE_TO_GRANDPARENTS: [&str; 1] = ["_externalContent"];
 const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 3] = ["repeat", "option", "case"];
 
 impl Visibility {
     fn lookup_by_name(name: &str) -> Self {
-        if INVISIBLE_TO_GRANDPARENTS.contains(&name) {
-            Visibility::InvisibleToGrandparents
-        } else if CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS.contains(&name) {
+        if CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS.contains(&name) {
             Visibility::ChildrenInvisibleToTheirGrandparents
         } else {
             Visibility::Visible
@@ -88,54 +84,6 @@ impl Visibility {
 
     pub(super) fn lookup_by_flat_element(element: &FlatElement) -> Self {
         Self::lookup_by_name(element.name.as_str())
-    }
-}
-
-/// The `ParentSearchAlgorithm` determines the behavior of the initial `search_parents` stage of ref resolution.
-/// By default, all nodes have `SearchParent` set, which means the `search_parents` algorithm
-/// recurses to the node's parent if a referent to a name was not found in that node's `name_map`.
-/// If `DontSearchParent` is specified for a node, then the search does not recurse to its parent
-/// (with an exception to allow a reference to the node itself).
-/// In this way, references from within a node marked with `DontSearchParent` behave as though
-/// that node were completely isolated.
-///
-/// For example, since `<_externalContent>` is tagged with `DontSearchParent`, consider the DoenetML
-/// ```xml
-/// <a name="x">
-///     <_externalContent name="y">
-///         <b name="z" />
-///         <c/>
-///     </_externalContent>
-///     <d name="q"/>
-/// </a>
-/// ```
-/// If originating from `<c>`, references `$y` and `$z` would resolve as they are within the `<_externalContent>`.
-/// However references to `$x` or `$q` from `<c>` would fail because the search would not continue to the `name_map` of `<a>`.
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-pub(super) enum ParentSearchAlgorithm {
-    SearchParent,
-    DontSearchParent,
-}
-
-const DONT_SEARCH_PARENT: [&str; 1] = ["_externalContent"];
-
-impl ParentSearchAlgorithm {
-    fn lookup_by_name(name: &str) -> Self {
-        if DONT_SEARCH_PARENT.contains(&name) {
-            ParentSearchAlgorithm::DontSearchParent
-        } else {
-            ParentSearchAlgorithm::SearchParent
-        }
-    }
-
-    pub(super) fn lookup_by_flat_node(node: &FlatNode) -> Self {
-        if let FlatNode::Element(element) = node {
-            Self::lookup_by_name(element.name.as_str())
-        } else {
-            ParentSearchAlgorithm::SearchParent
-        }
     }
 }
 
@@ -158,7 +106,6 @@ pub struct NodeResolverData {
     /// - `NodeParent:FlatRoot` corresponds to the parent being the flat root (which isn't a node)
     /// - `NodeParent:Node(i)` corresponds to the parent being node `i`.
     pub(super) node_parent: NodeParent,
-    pub(super) parent_search_algorithm: ParentSearchAlgorithm,
     /// Map of all the names that are accessible (as descendants) from the node.
     /// The data structure uses a `FxHashMap` so that iterating over the `name_map` is done in a consistent order.
     pub(super) name_map: NameMap,
@@ -169,6 +116,17 @@ pub struct NodeResolverData {
     /// Note: `index_resolutions[i] = None` indicates that `$node_reference[i+1]` would resolve to a text node,
     /// which is not a valid ref resolution.
     pub(super) index_resolutions: Vec<Option<Index>>,
+    /// If a node extends an external document, then `source_sequence` is a list of the node's original source doc
+    /// and the source doc from which it extended.
+    ///
+    /// For example, imagine that for this DoenetML `<section extend="doenet:abc" />` that `doenet:abc`
+    /// resolved to the document with source number 3 containing `<section/>`. Then `source_sequence`
+    /// for the `<section>` would be `[0, 3]`.
+    ///
+    /// If, on the other hand, `doenet:abc` resolved to source number 3 containing `<section extend="doenet:def" />` and
+    /// `doenet:def` resolved to source number 1 containing `<section>`, then `source_sequence` for the `<section>`
+    /// would be `[0, 3, 1]`.
+    pub(super) source_sequence: Option<Vec<SourceDoc>>,
 }
 
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
@@ -239,7 +197,7 @@ impl Resolver {
         if !skip_parent_search {
             let first_path_part = path.next().ok_or(ResolutionError::NoReferent)?;
             current_idx = self.search_parents(
-                &NameWithDoenetMLId {
+                &NameWithSource {
                     name: first_path_part.name.clone(),
                     source_doc: first_path_part.source_doc.into(),
                 },
@@ -276,7 +234,7 @@ impl Resolver {
 
                 // current_idx specifies the "root" of the search. We try to resolve
                 // children based on the path part, returning an error if there is an ambiguity.
-                if let Some(referent) = node_data.name_map.get(&NameWithDoenetMLId {
+                if let Some(referent) = node_data.name_map.get(&NameWithSource {
                     name: part.name.clone(),
                     source_doc: part.source_doc.into(),
                 }) {
@@ -296,7 +254,50 @@ impl Resolver {
                 }
 
                 if !matched_part_name {
-                    // If we cannot find an appropriate child, the remaining path parts might be
+                    // If we cannot match a descendant to the next part name,
+                    // we check if the current node was extended from an external document.
+                    // If so, then we look up the next document in its `source_sequence`
+                    // and attempt to match the name using that source.
+                    //
+                    // For example, given the DoenetML `<section name="s" extend="doenet:abc" />$s.t`,
+                    // the reference `$s` will match the `<section>` but `.t` will not match a descendant.
+                    // Imagine that `doenet:abc` resolves to the DoenetML `<section><text name="t" /></section>`.
+                    // This source will be the next in `source_sequence`, so we search for a descendant
+                    // of the `<section>` named `t` from that second source. In this case,
+                    // the reference `$s.t` will resolve to the `<text>` node.
+                    if let Some(source_sequence) = &node_data.source_sequence {
+                        // Since we have a `source_sequence`, the node must have extended an external document
+                        let mut sources = source_sequence.iter();
+
+                        // In the list of sources, find the source that matches the source of the `part`
+                        if sources.any(|source| *source == part.source_doc.into()) {
+                            // If there is a subsequent source, search that one for the same name matched with the new source.
+                            if let Some(next_source) = sources.next() {
+                                if let Some(referent) = node_data.name_map.get(&NameWithSource {
+                                    name: part.name.clone(),
+                                    source_doc: *next_source,
+                                }) {
+                                    matched_part_name = true;
+                                    match referent {
+                                        Ref::Unique(idx) => {
+                                            current_idx = *idx;
+                                            if !nodes_in_resolved_path.contains(&current_idx) {
+                                                nodes_in_resolved_path.push(current_idx);
+                                            }
+                                            node_data = &self.node_resolver_data[current_idx + 1];
+                                        }
+                                        Ref::Ambiguous(_) => {
+                                            return Err(ResolutionError::NonUniqueReferent);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if !matched_part_name {
+                    // If we cannot find an appropriate descendant, the remaining path parts might be
                     // prop references. Return them and consider `current_idx` the match.
                     // This also handles the case where we don't search children.
                     let remaining_path: Vec<FlatPathPart> =
@@ -413,7 +414,7 @@ impl Resolver {
     /// Return the referent of `name`.
     pub(super) fn search_parents(
         &self,
-        name_with_doenetml_id: &NameWithDoenetMLId,
+        name_with_source_doc: &NameWithSource,
         origin: usize,
     ) -> Result<Index, ResolutionError> {
         let mut node_data = &self.node_resolver_data[origin + 1];
@@ -421,7 +422,7 @@ impl Resolver {
         // if passed in a node without a parent, then search from that node itself
         // TODO: don't duplicate code with case where have parent, below
         if matches!(node_data.node_parent, NodeParent::None) {
-            if let Some(resolved) = node_data.name_map.get(name_with_doenetml_id) {
+            if let Some(resolved) = node_data.name_map.get(name_with_source_doc) {
                 match resolved {
                     Ref::Unique(idx) => {
                         return Ok(*idx);
@@ -444,61 +445,9 @@ impl Resolver {
                 NodeParent::Node(idx) => idx + 1,
             };
 
-            match node_data.parent_search_algorithm {
-                ParentSearchAlgorithm::SearchParent => {}
-                ParentSearchAlgorithm::DontSearchParent => {
-                    // The purpose of `DontSearchParent` is to prevent references originating inside a node
-                    // from reaching outside that node. The idea is that these references should
-                    // behave as though the node were completely isolated from other nodes.
-                    //
-                    // However, we do allow references to resolve to the node itself,
-                    // which requires that we check the node's parent to see if we hit a reference back ot the node.
-                    //
-                    // The rationale is explained by this DoenetML
-                    // ```
-                    // <section name="s">
-                    //   <_externalContent name="e">
-                    //     <p>Finds _externalContent: $e</p>
-                    //     <p>Does not find section: $s</p>
-                    //   </_externalContent>
-                    //   <p name="e" />
-                    // </section>
-                    // ```
-                    // The `<_externalContent>` has `DontSearchParent` set, indicating references from inside it
-                    // should behave as though content outside the `<_externalContent>` did not exist.
-                    // In particular, the reference `$e` should resolve to the external content.
-                    if let Some(resolved) = self.node_resolver_data[parent_plus_1]
-                        .name_map
-                        .get(name_with_doenetml_id)
-                    {
-                        match resolved {
-                            Ref::Unique(idx) => {
-                                // We resolve to the name from the parent's name_map only if it is the child itself.
-                                if *idx == child_idx {
-                                    return Ok(*idx);
-                                } else {
-                                    return Err(ResolutionError::NoReferent);
-                                }
-                            }
-                            Ref::Ambiguous(indices) => {
-                                // If one possibility is that we could have resolved back to the child, resolve as though it were a unique reference.
-                                // Otherwise, we have no referent.
-                                if indices.contains(&child_idx) {
-                                    return Ok(child_idx);
-                                } else {
-                                    return Err(ResolutionError::NoReferent);
-                                }
-                            }
-                        }
-                    }
-
-                    return Err(ResolutionError::NoReferent);
-                }
-            }
-
             if let Some(resolved) = self.node_resolver_data[parent_plus_1]
                 .name_map
-                .get(name_with_doenetml_id)
+                .get(name_with_source_doc)
             {
                 match resolved {
                     Ref::Unique(idx) => {
