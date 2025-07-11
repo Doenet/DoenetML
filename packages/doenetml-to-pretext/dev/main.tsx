@@ -7,6 +7,7 @@ import "@doenet/ui-components/style.css";
 import doenetMLstring from "./testCode.doenet?raw";
 
 import "./main.css";
+import { getStaticDast } from "../src";
 
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
@@ -18,8 +19,10 @@ function App() {
         <div className="container">
             <div className="banner">
                 <UiButton
-                    onClick={() => {
+                    onClick={async () => {
                         console.log("Converting to PreTeXt", source);
+                        const ret = await getStaticDast(source);
+                        console.log("Conversion result:", ret);
                     }}
                 >
                     Convert to PreTeXt
