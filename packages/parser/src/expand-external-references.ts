@@ -179,37 +179,74 @@ export async function expandExternalReferences(
                     continue;
                 }
 
-                // copy the child attributes onto the external node
-                const externalContentAttributes = { ...child.attributes };
-
                 // Add a `doenetMLSource` for future lookup of DoenetML content from positions calculated when parsing
-                externalContentAttributes.doenetMLSource = {
-                    type: "attribute",
-                    name: "doenetMLSource",
-                    children: [{ type: "text", value: externalDoenetML }],
+                if (!dast.sources) {
+                    dast.sources = [""];
+                }
+                const source_doc = dast.sources.length;
+                dast.sources.push(externalDoenetML);
+
+                const addDocSource = (node: DastNodes) => {
+                    node.source_doc = source_doc;
+
+                    switch (node.type) {
+                        case "element":
+                            // need to also visit the attributes
+                            for (const attrName in node.attributes) {
+                                for (const attrChild of node.attributes[
+                                    attrName
+                                ].children) {
+                                    visit(attrChild, addDocSource);
+                                }
+                            }
+                            break;
+                        case "macro":
+                        case "function":
+                            for (const path of node.path) {
+                                path.source_doc = source_doc;
+                                for (const index of path.index) {
+                                    index.source_doc = source_doc;
+                                    for (const value of index.value) {
+                                        visit(value, addDocSource);
+                                    }
+                                }
+                            }
+                            break;
+                    }
                 };
 
-                // For any `copy` attributes found when recursing, treat the `_externalContent` as its parent's type.
-                externalContentAttributes.forType = {
-                    type: "attribute",
-                    name: "forType",
-                    children: [{ type: "text", value: parentType }],
-                };
+                visit(child, addDocSource);
 
-                const externalNode: DastElement = {
-                    type: "element",
-                    name: "_externalContent",
-                    children: child.children,
-                    attributes: externalContentAttributes,
-                };
+                // copy the child attributes to the parent
+                const parentAttributes = { ...child.attributes };
+                if (parentAttributes.name) {
+                    const annotated_name = `name:${source_doc}`;
+                    parentAttributes[annotated_name] = parentAttributes.name;
+                    parentAttributes[annotated_name].name = annotated_name;
+                    delete parentAttributes.name;
+                }
 
-                parent.children.unshift(externalNode);
+                // The original attributes from the parent take precedence
+                // TODO: handle duplicates due to capitalization differences
 
                 // Delete the `copy` attribute
-                delete parent.attributes.copy;
+                delete parent.attributes[unresolved.sourceAttribute.name];
+                Object.assign(parentAttributes, parent.attributes);
+                parent.attributes = parentAttributes;
 
                 counter = unresolved.recursionLevel + 1;
-                visit(externalNode, findExternalCopyAttributes);
+
+                // in case the parent itself had an external copy
+                // check just the parent
+                // (but not its children with `visit` because don't want to original children that might already be in the queue)
+                findExternalCopyAttributes(parent);
+
+                // check for external copies and add doc source for just the new children
+                for (const newChild of child.children) {
+                    visit(newChild, findExternalCopyAttributes);
+                }
+
+                parent.children.unshift(...child.children);
             }
         };
     };

@@ -16,7 +16,9 @@ console.log = (...args) => {
 
 const DoenetMLs = {
     abcdef: `<p name="par">hi</p>`,
-    ghijkl: `<p copy="doenet:abcdef"> there</p>`,
+    ghijkl: `<p copy="doenet:abcdef" name="par2"> there</p>`,
+    mnopqr: `<p copy="doenet:ghijkl" name="p1"><p copy="doenet:ghijkl" name="p2"> more</p> text</p>`,
+    stuvwx: `<section name="s">$s.creditAchieved<number name="n"/><point name="P" y="$s.creditAchieved"/><math extend="$P[$n]" /></section>`,
 };
 
 /**
@@ -51,36 +53,25 @@ describe("Expand external references", async () => {
             ),
         ) as DastRoot;
 
+        expect(dast.sources).eqls([
+            `<p copy="doenet:abcdef" />`,
+            `<p name="par">hi</p>`,
+        ]);
+
         expect(dast.children.length).eq(1);
         const p = dast.children[0];
-        if (!isDastElement(p)) {
-            throw Error("Something went wrong");
-        }
 
-        expect(p.children.length).eq(1);
-        const externalContent = p.children[0];
-
-        expect(externalContent).toMatchObject({
+        expect(p).eqls({
             type: "element",
-            name: "_externalContent",
+            name: "p",
             attributes: {
-                name: {
+                "name:1": {
                     type: "attribute",
-                    name: "name",
-                    children: [{ type: "text", value: "par" }],
-                },
-                doenetMLSource: {
-                    type: "attribute",
-                    name: "doenetMLSource",
-                    children: [{ type: "text", value: DoenetMLs.abcdef }],
-                },
-                forType: {
-                    type: "attribute",
-                    name: "forType",
-                    children: [{ type: "text", value: "p" }],
+                    name: "name:1",
+                    children: [{ type: "text", value: "par", source_doc: 1 }],
                 },
             },
-            children: [{ type: "text", value: "hi" }],
+            children: [{ type: "text", value: "hi", source_doc: 1 }],
         });
     });
 
@@ -94,41 +85,29 @@ describe("Expand external references", async () => {
             ),
         ) as DastRoot;
 
+        expect(dast.sources).eqls([
+            `<p cOpY="doenet:abcdef" />`,
+            `<p name="par">hi</p>`,
+        ]);
+
         expect(dast.children.length).eq(1);
         const p = dast.children[0];
-        if (!isDastElement(p)) {
-            throw Error("Something went wrong");
-        }
-
-        expect(p.children.length).eq(1);
-        const externalContent = p.children[0];
-
-        expect(externalContent).toMatchObject({
+        expect(p).eqls({
             type: "element",
-            name: "_externalContent",
+            name: "p",
             attributes: {
-                name: {
+                "name:1": {
                     type: "attribute",
-                    name: "name",
-                    children: [{ type: "text", value: "par" }],
-                },
-                doenetMLSource: {
-                    type: "attribute",
-                    name: "doenetMLSource",
-                    children: [{ type: "text", value: DoenetMLs.abcdef }],
-                },
-                forType: {
-                    type: "attribute",
-                    name: "forType",
-                    children: [{ type: "text", value: "p" }],
+                    name: "name:1",
+                    children: [{ type: "text", value: "par", source_doc: 1 }],
                 },
             },
-            children: [{ type: "text", value: "hi" }],
+            children: [{ type: "text", value: "hi", source_doc: 1 }],
         });
     });
 
     it("load in external content recursively via copy", async () => {
-        const source = `<p copy="doenet:ghijkl" />`;
+        const source = `<p copy="doenet:ghijkl" name="p1" />`;
 
         const dast = filterPositionInfo(
             await expandExternalReferences(
@@ -137,56 +116,301 @@ describe("Expand external references", async () => {
             ),
         ) as DastRoot;
 
+        expect(dast.sources).eqls([
+            `<p copy="doenet:ghijkl" name="p1" />`,
+            `<p copy="doenet:abcdef" name="par2"> there</p>`,
+            `<p name="par">hi</p>`,
+        ]);
+
         expect(dast.children.length).eq(1);
         const p = dast.children[0];
-        if (!isDastElement(p)) {
-            throw Error("Something went wrong");
-        }
-
-        expect(p.children.length).eq(1);
-        const externalContent = p.children[0];
-
-        expect(externalContent).toMatchObject({
+        expect(p).eqls({
             type: "element",
-            name: "_externalContent",
+            name: "p",
             attributes: {
-                doenetMLSource: {
+                "name:2": {
                     type: "attribute",
-                    name: "doenetMLSource",
-                    children: [{ type: "text", value: DoenetMLs.ghijkl }],
+                    name: "name:2",
+                    children: [{ type: "text", value: "par", source_doc: 2 }],
                 },
-                forType: {
+                "name:1": {
                     type: "attribute",
-                    name: "forType",
-                    children: [{ type: "text", value: "p" }],
+                    name: "name:1",
+                    children: [{ type: "text", value: "par2", source_doc: 1 }],
+                },
+                name: {
+                    type: "attribute",
+                    name: "name",
+                    children: [{ type: "text", value: "p1" }],
                 },
             },
             children: [
+                { type: "text", value: "hi", source_doc: 2 },
+                { type: "text", value: " there", source_doc: 1 },
+            ],
+        });
+    });
+
+    it("load in external content recursively and in parallel", async () => {
+        const source = `<p copy="doenet:mnopqr" name="p1"><p copy="doenet:abcdef">ok</p></p>`;
+
+        const dast = filterPositionInfo(
+            await expandExternalReferences(
+                lezerToDast(source),
+                retrieveDoenetML,
+            ),
+        ) as DastRoot;
+
+        expect(dast.sources).eqls([
+            '<p copy="doenet:mnopqr" name="p1"><p copy="doenet:abcdef">ok</p></p>',
+            '<p name="par">hi</p>',
+            '<p copy="doenet:ghijkl" name="p1"><p copy="doenet:ghijkl" name="p2"> more</p> text</p>',
+            '<p copy="doenet:abcdef" name="par2"> there</p>',
+            '<p name="par">hi</p>',
+            '<p copy="doenet:abcdef" name="par2"> there</p>',
+            '<p name="par">hi</p>',
+        ]);
+
+        expect(dast.children.length).eq(1);
+        const p = dast.children[0];
+        expect(p).eqls({
+            type: "element",
+            name: "p",
+            attributes: {
+                name: {
+                    type: "attribute",
+                    name: "name",
+                    children: [{ type: "text", value: "p1" }],
+                },
+                "name:2": {
+                    type: "attribute",
+                    name: "name:2",
+                    children: [{ type: "text", value: "p1", source_doc: 2 }],
+                },
+                "name:5": {
+                    type: "attribute",
+                    name: "name:5",
+                    children: [{ type: "text", value: "par2", source_doc: 5 }],
+                },
+                "name:6": {
+                    type: "attribute",
+                    name: "name:6",
+                    children: [{ type: "text", value: "par", source_doc: 6 }],
+                },
+            },
+            children: [
+                { type: "text", value: "hi", source_doc: 6 },
+                { type: "text", value: " there", source_doc: 5 },
                 {
                     type: "element",
-                    name: "_externalContent",
+                    name: "p",
                     attributes: {
                         name: {
                             type: "attribute",
                             name: "name",
-                            children: [{ type: "text", value: "par" }],
-                        },
-                        doenetMLSource: {
-                            type: "attribute",
-                            name: "doenetMLSource",
                             children: [
-                                { type: "text", value: DoenetMLs.abcdef },
+                                { type: "text", value: "p2", source_doc: 2 },
                             ],
                         },
-                        forType: {
+                        "name:3": {
                             type: "attribute",
-                            name: "forType",
-                            children: [{ type: "text", value: "p" }],
+                            name: "name:3",
+                            children: [
+                                { type: "text", value: "par2", source_doc: 3 },
+                            ],
+                        },
+                        "name:4": {
+                            type: "attribute",
+                            name: "name:4",
+                            children: [
+                                { type: "text", value: "par", source_doc: 4 },
+                            ],
                         },
                     },
-                    children: [{ type: "text", value: "hi" }],
+                    children: [
+                        { type: "text", value: "hi", source_doc: 4 },
+                        { type: "text", value: " there", source_doc: 3 },
+                        { type: "text", value: " more", source_doc: 2 },
+                    ],
+                    source_doc: 2,
                 },
-                { type: "text", value: " there" },
+                { type: "text", value: " text", source_doc: 2 },
+                {
+                    type: "element",
+                    name: "p",
+                    attributes: {
+                        "name:1": {
+                            type: "attribute",
+                            name: "name:1",
+                            children: [
+                                { type: "text", value: "par", source_doc: 1 },
+                            ],
+                        },
+                    },
+                    children: [
+                        { type: "text", value: "hi", source_doc: 1 },
+                        { type: "text", value: "ok" },
+                    ],
+                },
+            ],
+        });
+    });
+
+    it("source doc is added to attributes and macro indices", async () => {
+        const source = `<section copy="doenet:stuvwx" name="s2">$s2.creditAchieved</section>`;
+
+        const dast = filterPositionInfo(
+            await expandExternalReferences(
+                lezerToDast(source),
+                retrieveDoenetML,
+            ),
+        ) as DastRoot;
+
+        expect(dast.sources).eqls([
+            `<section copy="doenet:stuvwx" name="s2">$s2.creditAchieved</section>`,
+            `<section name="s">$s.creditAchieved<number name="n"/><point name="P" y="$s.creditAchieved"/><math extend="$P[$n]" /></section>`,
+        ]);
+
+        expect(dast.children.length).eq(1);
+        const section = dast.children[0];
+
+        const creditAchievedRef = {
+            type: "macro",
+            attributes: {},
+            source_doc: 1,
+            path: [
+                {
+                    type: "pathPart",
+                    name: "s",
+                    index: [],
+                    source_doc: 1,
+                },
+                {
+                    type: "pathPart",
+                    name: "creditAchieved",
+                    index: [],
+                    source_doc: 1,
+                },
+            ],
+        };
+
+        const creditAchievedRef2 = {
+            type: "macro",
+            attributes: {},
+            path: [
+                {
+                    type: "pathPart",
+                    name: "s2",
+                    index: [],
+                },
+                {
+                    type: "pathPart",
+                    name: "creditAchieved",
+                    index: [],
+                },
+            ],
+        };
+
+        const PnRef = {
+            type: "macro",
+            attributes: {},
+            source_doc: 1,
+            path: [
+                {
+                    type: "pathPart",
+                    name: "P",
+                    source_doc: 1,
+                    index: [
+                        {
+                            type: "index",
+                            source_doc: 1,
+                            value: [
+                                {
+                                    type: "macro",
+                                    attributes: {},
+                                    source_doc: 1,
+                                    path: [
+                                        {
+                                            type: "pathPart",
+                                            name: "n",
+                                            source_doc: 1,
+                                            index: [],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+
+        expect(section).eqls({
+            type: "element",
+            name: "section",
+            attributes: {
+                name: {
+                    type: "attribute",
+                    name: "name",
+                    children: [{ type: "text", value: "s2" }],
+                },
+                "name:1": {
+                    type: "attribute",
+                    name: "name:1",
+                    children: [{ type: "text", value: "s", source_doc: 1 }],
+                },
+            },
+            children: [
+                creditAchievedRef,
+                {
+                    type: "element",
+                    name: "number",
+                    attributes: {
+                        name: {
+                            type: "attribute",
+                            name: "name",
+                            children: [
+                                { type: "text", value: "n", source_doc: 1 },
+                            ],
+                        },
+                    },
+                    children: [],
+                    source_doc: 1,
+                },
+                {
+                    type: "element",
+                    name: "point",
+                    attributes: {
+                        name: {
+                            type: "attribute",
+                            name: "name",
+                            children: [
+                                { type: "text", value: "P", source_doc: 1 },
+                            ],
+                        },
+                        y: {
+                            type: "attribute",
+                            name: "y",
+                            children: [creditAchievedRef],
+                        },
+                    },
+                    children: [],
+                    source_doc: 1,
+                },
+                {
+                    type: "element",
+                    name: "math",
+                    attributes: {
+                        extend: {
+                            type: "attribute",
+                            name: "extend",
+                            children: [PnRef],
+                        },
+                    },
+                    children: [],
+                    source_doc: 1,
+                },
+                creditAchievedRef2,
             ],
         });
     });
