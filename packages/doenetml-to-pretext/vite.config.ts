@@ -8,9 +8,7 @@ const EXTERNAL_DEPS = ["react", "react-dom", "styled-components"];
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [
-        dts({ rollupTypes: true }),
-    ],
+    plugins: [dts({ rollupTypes: true })],
     server: {
         port: 8012,
     },

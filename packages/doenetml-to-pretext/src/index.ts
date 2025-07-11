@@ -4,6 +4,19 @@ import { doenetGlobalConfig } from "./global-config";
 import * as Comlink from "comlink";
 import "./index-inline-worker";
 
+const defaultFlags = {
+    showCorrectness: true,
+    readOnly: false,
+    solutionDisplayMode: "button",
+    showFeedback: true,
+    showHints: true,
+    allowLoadState: false,
+    allowSaveState: false,
+    allowLocalState: false,
+    allowSaveEvents: false,
+    autoSubmit: false,
+};
+
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
  */
@@ -35,11 +48,9 @@ export async function getStaticDast(
     await worker.setCoreType("javascript");
     const dast = normalizeDocumentDast(lezerToDast(source));
     await worker.setSource({ dast, source });
-
-    console.log("the dast", dast);
+    await worker.setFlags({ flags: defaultFlags });
 
     const flatDast = await worker.returnDast();
 
-    console.log("the flatDast", flatDast);
     return flatDast;
 }
