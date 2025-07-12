@@ -376,6 +376,7 @@ impl FlatNode {
 pub struct FlatRoot {
     pub children: Vec<UntaggedContent>,
     pub nodes: Vec<FlatNode>,
+    pub sources: Vec<String>,
 }
 
 impl FlatRoot {
@@ -383,6 +384,7 @@ impl FlatRoot {
         Self {
             children: Vec::new(),
             nodes: Vec::new(),
+            sources: Vec::new(),
         }
     }
 
@@ -396,6 +398,7 @@ impl FlatRoot {
                 .into_iter()
                 .map(|n| NormalizedNode::from_flat_node(&n))
                 .collect(),
+            sources: self.sources.clone(),
         }
     }
 }

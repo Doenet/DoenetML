@@ -70,6 +70,14 @@ describe("Expand external references", async () => {
                     name: "name:1",
                     children: [{ type: "text", value: "par", source_doc: 1 }],
                 },
+                "source:sequence": {
+                    type: "attribute",
+                    name: "source:sequence",
+                    children: [
+                        { type: "text", value: "0" },
+                        { type: "text", value: "1" },
+                    ],
+                },
             },
             children: [{ type: "text", value: "hi", source_doc: 1 }],
         });
@@ -100,6 +108,14 @@ describe("Expand external references", async () => {
                     type: "attribute",
                     name: "name:1",
                     children: [{ type: "text", value: "par", source_doc: 1 }],
+                },
+                "source:sequence": {
+                    type: "attribute",
+                    name: "source:sequence",
+                    children: [
+                        { type: "text", value: "0" },
+                        { type: "text", value: "1" },
+                    ],
                 },
             },
             children: [{ type: "text", value: "hi", source_doc: 1 }],
@@ -142,6 +158,15 @@ describe("Expand external references", async () => {
                     type: "attribute",
                     name: "name",
                     children: [{ type: "text", value: "p1" }],
+                },
+                "source:sequence": {
+                    type: "attribute",
+                    name: "source:sequence",
+                    children: [
+                        { type: "text", value: "0" },
+                        { type: "text", value: "1" },
+                        { type: "text", value: "2" },
+                    ],
                 },
             },
             children: [
@@ -197,6 +222,16 @@ describe("Expand external references", async () => {
                     name: "name:6",
                     children: [{ type: "text", value: "par", source_doc: 6 }],
                 },
+                "source:sequence": {
+                    type: "attribute",
+                    name: "source:sequence",
+                    children: [
+                        { type: "text", value: "0" },
+                        { type: "text", value: "2" },
+                        { type: "text", value: "5" },
+                        { type: "text", value: "6" },
+                    ],
+                },
             },
             children: [
                 { type: "text", value: "hi", source_doc: 6 },
@@ -226,6 +261,15 @@ describe("Expand external references", async () => {
                                 { type: "text", value: "par", source_doc: 4 },
                             ],
                         },
+                        "source:sequence": {
+                            type: "attribute",
+                            name: "source:sequence",
+                            children: [
+                                { type: "text", value: "2" },
+                                { type: "text", value: "3" },
+                                { type: "text", value: "4" },
+                            ],
+                        },
                     },
                     children: [
                         { type: "text", value: "hi", source_doc: 4 },
@@ -244,6 +288,14 @@ describe("Expand external references", async () => {
                             name: "name:1",
                             children: [
                                 { type: "text", value: "par", source_doc: 1 },
+                            ],
+                        },
+                        "source:sequence": {
+                            type: "attribute",
+                            name: "source:sequence",
+                            children: [
+                                { type: "text", value: "0" },
+                                { type: "text", value: "1" },
                             ],
                         },
                     },
@@ -358,6 +410,14 @@ describe("Expand external references", async () => {
                     type: "attribute",
                     name: "name:1",
                     children: [{ type: "text", value: "s", source_doc: 1 }],
+                },
+                "source:sequence": {
+                    type: "attribute",
+                    name: "source:sequence",
+                    children: [
+                        { type: "text", value: "0" },
+                        { type: "text", value: "1" },
+                    ],
                 },
             },
             children: [

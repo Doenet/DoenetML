@@ -22,8 +22,10 @@ type RemoteSource = {
 /**
  * Find any `copy` attribute that is not accompanied by a `extend` attribute and is not a reference.
  * Attempt to look up its associated DoenetML by passing its value to `retrieveDoenetML`.
- * If the returned DoenetML matches the type of the parent, add a `_externalContent` to the children of the parent
- * and add the new dast children parsed from the retrieved DoenetML to the `_externalContent`.
+ * If the returned DoenetML matches the type of the parent,
+ * - add the DoenetML to the `sources` of the `dast`, setting `source_doc` to its index in the `sources` array,
+ * - set the `source_doc` of the new components to the `source_doc` of the retrieved DoenetML, and
+ * - and add the new dast children parsed from the retrieved DoenetML to the parent.
  */
 export async function expandExternalReferences(
     dast: DastRoot,
@@ -86,8 +88,8 @@ export async function expandExternalReferences(
             visit(tree, findExternalCopyAttributes);
 
             // Process any DoenetML returned by the promises in `promiseStack`,
-            // add any matching results to an `_externalContent` child of the parent,
-            // and recurse on the `_externalContent`
+            // add any matching results to to the parent,
+            // and recurse on the result
             let unresolved: RemoteSource | undefined;
             while ((unresolved = promiseStack.pop())) {
                 const parent = unresolved.parent;

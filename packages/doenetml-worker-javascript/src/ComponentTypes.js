@@ -193,7 +193,6 @@ import ListOfNumberLists from "./components/abstract/ListOfNumberLists";
 import DirectionComponent from "./components/abstract/DirectionComponent";
 import ErrorComponent from "./components/abstract/Error";
 import Comment from "./components/abstract/Comment";
-import ExternalContent from "./components/abstract/ExternalContent";
 
 const componentTypeArray = [
     ...Object.values(Aliases),
@@ -389,7 +388,6 @@ const componentTypeArray = [
     DirectionComponent,
     ErrorComponent,
     Comment,
-    ExternalContent,
 ];
 
 export function allComponentClasses() {

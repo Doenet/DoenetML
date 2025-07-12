@@ -161,6 +161,7 @@ export class PublicDoenetMLCore {
             nComponents: nComponentsInit,
             errors,
             warnings,
+            sources,
         } = await normalizedDastToSerializedComponents(
             normalizedRoot,
             componentInfoObjects,
@@ -175,7 +176,7 @@ export class PublicDoenetMLCore {
             attemptNumber,
             serializedDocument: root,
             nComponentsInit,
-            allDoenetMLs: [this.doenetML],
+            allDoenetMLs: sources,
             preliminaryErrors: errors,
             preliminaryWarnings: warnings,
             componentInfoObjects,

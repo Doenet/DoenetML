@@ -89,6 +89,7 @@ impl NormalizedNode {
 pub struct NormalizedRoot {
     pub children: Vec<UntaggedContent>,
     pub nodes: Vec<NormalizedNode>,
+    pub sources: Vec<String>,
 }
 
 impl NormalizedRoot {
@@ -96,6 +97,7 @@ impl NormalizedRoot {
         Self {
             children: Vec::new(),
             nodes: Vec::new(),
+            sources: Vec::new(),
         }
     }
     pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
@@ -106,6 +108,7 @@ impl NormalizedRoot {
                 .iter()
                 .map(NormalizedNode::from_flat_node)
                 .collect(),
+            sources: flat_root.sources.clone(),
         }
     }
 }

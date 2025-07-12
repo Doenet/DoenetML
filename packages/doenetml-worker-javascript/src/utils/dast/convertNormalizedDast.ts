@@ -44,6 +44,7 @@ export async function normalizedDastToSerializedComponents(
     nComponents: number;
     errors: ErrorRecord[];
     warnings: WarningRecord[];
+    sources: string[];
 }> {
     /**
      * Unflatten the normalized dast node so that
@@ -298,6 +299,7 @@ export async function normalizedDastToSerializedComponents(
         nComponents,
         errors,
         warnings,
+        sources: [...normalized_root.sources],
     };
 }
 
@@ -612,7 +614,7 @@ export function expandAllUnflattenedAttributes({
             attributes[attr] = res.attribute;
             errors.push(...res.errors);
             nComponents = res.nComponents;
-        } else {
+        } else if (!attr.includes(":")) {
             throw Error(
                 `Invalid attribute "${attr}" for a component of type <${componentClass.componentType}>.`,
             );

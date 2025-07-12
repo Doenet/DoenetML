@@ -12,6 +12,7 @@ impl FlatRoot {
     /// Create a new `FlatRoot` from a `DastRoot`.
     pub fn from_dast(dast: &DastRoot) -> Self {
         let mut flat = Self::new();
+        flat.sources = dast.sources.clone();
         flat.merge_dast_root(dast);
         flat
     }

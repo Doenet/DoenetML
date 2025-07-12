@@ -74,6 +74,7 @@ pub fn flat_fragment_from_str(
         Some(DastElementContent::Element(dast_element)) => DastRoot {
             children: dast_element.children,
             position: None,
+            sources: vec![],
         },
         _ => unreachable!(),
     };

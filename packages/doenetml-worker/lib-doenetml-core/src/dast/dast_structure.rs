@@ -27,6 +27,8 @@ pub struct DastRoot {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    pub sources: Vec<String>,
 }
 
 /// Allowed children of an element node or the root node

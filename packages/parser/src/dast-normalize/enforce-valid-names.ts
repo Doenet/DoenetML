@@ -27,11 +27,7 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
             }
 
             // Ensure component names cannot start with `_`
-            if (
-                startsWithNonLetter(node.name) &&
-                node.name !== "_error" &&
-                node.name !== "_externalContent"
-            ) {
+            if (startsWithNonLetter(node.name) && node.name !== "_error") {
                 const name = node.name;
                 // Convert this element into an error element
                 const dastError: DastError = {
