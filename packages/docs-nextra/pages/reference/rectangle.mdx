@@ -4,15 +4,13 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <rectangle>{:dn}`
 
+
+` <rectangle>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
+component that renders a rectangle when nested inside a [` <graph>{:dn}`](graph.mdx) component.
+
 ## Attributes and Properties 
  <AttrDisplay name='rectangle'/> 
  <PropDisplay name='rectangle'/>
-
-
-
-
-` <rectangle>{:dn}` component renders a rectangle when nested inside a [` <graph>{:dn}`](graph.mdx) component.
-
 
 ---
 
@@ -20,14 +18,21 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
-  <rectangle/>
+<graph 
+  size="small" 
+  xmin="-3" 
+  xmax="3" 
+  ymin="-3" 
+  ymax="3">
+    <rectangle/>
 </graph>
 ```
 
 
 
-This is a default ` <rectangle>{:dn}` without additional attributes. The vertices can be dragged to change its shape, and the rectangle itself can be repositioned by clicking and dragging on any side.
+This is a default ` <rectangle>{:dn}` without additional attributes. The vertices 
+can be dragged to change its shape, and the rectangle itself can be repositioned by 
+clicking and dragging on any side.
 
 
 
@@ -37,14 +42,21 @@ This is a default ` <rectangle>{:dn}` without additional attributes. The vertice
 
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
-  <rectangle name="rect1" center='(0,0)' width="4" height="2"/>
+<graph 
+  size="small" 
+  xmin="-3" 
+  xmax="3" 
+  ymin="-3" 
+  ymax="3">
+    <rectangle name="rect1" center='(0,0)' width="4" height="2"/>
 </graph>
 ```
 
 
 
-A ` <rectangle>{:dn}` can be described by specifying its `center`, `width` and `height` with attributes. The vertices can be dragged to change its shape, and the rectangle itself can be repositioned by clicking and dragging on any side.
+A ` <rectangle>{:dn}` can be described by specifying its `center`, `width` and `height` 
+with attributes. The vertices can be dragged to change its shape, and the rectangle 
+itself can be repositioned by clicking and dragging on any side.
 
 
 
@@ -77,18 +89,21 @@ The `filled` attribute renders the rectangle with default shading to match the s
 
 ```doenet-editor-horiz
 <p>Drag the corners of the rectangle to change its shape.</p>
+
 <graph size="small" grid>
   <rectangle vertices="(-3,-4) (5,6)" name="rect"/>
   <rectangle styleNumber="2" name="default"/>
   $rect.vertices[1]
   $rect.vertices[3]
-</graph>      
-<p><c>vertices</c> = <asList>$rect.vertices</asList></p>
+</graph>  
+
+<p><c>vertices</c> = $rect.vertices</p>
 ```
 
 
 
-Use the `vertices` attribute to specify a list of the two opposite corner points of the rectangle (lower left and upper right); default: vertices="(0,0) (1,1)"
+Use the `vertices` attribute to specify a list of the two opposite corner 
+points of the rectangle (lower left and upper right); default: vertices="(0,0) (1,1)"
 
 
 
@@ -99,6 +114,7 @@ Use the `vertices` attribute to specify a list of the two opposite corner points
 
 ```doenet-editor-horiz
 <p>Drag the corners of the rectangle to change its shape.</p>
+
 <graph size="small" grid>
   <point name="v1">(-2,-2)
     <constraints>
@@ -116,63 +132,70 @@ Use the `vertices` attribute to specify a list of the two opposite corner points
 
 
 
-A rectangle is effectively constrained to an integer grid by referencing two constrained points in the `vertices` attribute.
+A rectangle is effectively constrained to an integer grid by referencing two 
+constrained points in the `vertices` attribute.
 
 
 
 ---
 
-### Example: center
+### Attribute Example: center
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Drag the center point to shift the rectangle's position</p>
+
 <graph size="small" xmin="-2" xmax="2" ymin="-2" ymax="2">
   <rectangle center="(0,0)" name="rect"/>
-  <point copySource="rect.center" styleNumber="2"/>
+  <point extend="$rect.center" styleNumber="2"/>
 </graph>
-<p><c>center</c> = <asList>$rect.center</asList></p>
+<p><c>center</c> = $rect.center</p>
 ```
 
 
 
-Use the `center` attribute to specify the center point of the rectangle; default: center="(0.5, 0.5)"
+Use the `center` attribute to specify the center point of the rectangle. If not specified,
+the default center position is $(0.5, 0.5)$.
 
 
 
 ---
 
-### Example: width, height
+### Attribute Example: width, height
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Drag the corners of the rectangle to change its shape.</p>
 <graph size="small">
   <rectangle height="4" width="7" name="rect"/>
 </graph>
+
 <p><c>width</c> = $rect.width</p>
 <p><c>height</c> = $rect.height</p>
 ```
 
 
 
-Use the `width` and `height` attributes to specify the proportions of the ` <rectangle>{:dn}` directly; default: width="1", height="1"
+Use the `width` and `height` attributes to specify the proportions of the ` <rectangle>{:dn}` directly. 
+If not specified, the default values for `width` and `height` are both $1$.
 
 
 
 ---
 
-### Example: vertices
+### Attribute Example: vertices
 
 
 ```doenet-editor-horiz
 <p>Drag the corners of the rectangle to change its shape.</p>
+
 <graph>
   <rectangle vertices="(-3,-4) (5,6)" name="rect"/>
-  <point copySource="rect.vertices[1]"/>
-  <point copySource="rect.vertices[3]"/>
+  <point extend="$rect.vertices[1]"/>
+  <point extend="$rect.vertices[3]"/>
 </graph>
-<p><c>vertices</c> = <asList>$rect.vertices</asList></p>
+
+<p><c>vertices</c> = $rect.vertices</p>
 ```
 
 
@@ -183,36 +206,58 @@ Use the `vertices` attribute to specify a list of the two opposite corner points
 
 ---
 
-### Example: verticesDraggable
+### Attribute Example: verticesDraggable
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Drag the rectangle around the graph.</p>
+
 <graph>
   <rectangle vertices="(-3,-4) (5,6)" name="rect" verticesDraggable="false"/>
 </graph>
-<p><c>vertices</c> = <asList>$rect.vertices</asList></p>
+
+<p><c>vertices</c> = $rect.vertices</p>
 <p><c>width</c> = $rect.width</p>
 <p><c>height</c> = $rect.height</p>
 ```
 
 
 
-Vertices are draggable by default. Use the `verticesDraggable` attribute set to false to disable users from changing the proportions of the ` <rectangle>{:dn}`. The rectangle as a whole can still be repositioned on the ` <graph>{:dn}`.
+Vertices are draggable by default. Use the `verticesDraggable` attribute set to `false` to 
+disable users from changing the proportions of the ` <rectangle>{:dn}`. The rectangle as a 
+whole can still be repositioned on the ` <graph>{:dn}`.
 
 
 
 ---
 
-### Example: Standard graphical attributes
+### Attribute Example: Standard graphical attributes
 
 
 ```doenet-editor-horiz
 <graph size="small">
   <circle styleNumber="5" filled radius="6" fixed/>
-  <rectangle name="A" layer="1" styleNumber="3" applyStyleToLabel labelIsName hide="$hideRectangleA" draggable="false" filled width="2" height="5"/>
-  <rectangle name="B" applyStyleToLabel styleNumber="2" labelIsName vertices="(-8,-8) (-3,0)"/>
+  <rectangle 
+    name="A" 
+    layer="1" 
+    styleNumber="3" 
+    applyStyleToLabel 
+    labelIsName 
+    hide="$hideRectangleA" 
+    draggable="false" 
+    filled 
+    width="2" 
+    height="5"
+  />
+  <rectangle 
+    name="B" 
+    applyStyleToLabel 
+    styleNumber="2" 
+    labelIsName 
+    vertices="(-8,-8) (-3,0)"
+  />
 </graph>
+
 <booleanInput name="hideRectangleA" labelIsName/>
 <p>Standard graphical attributes:</p>
     <ul>
@@ -233,18 +278,19 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 ---
 
-### Example: Attributes as properties
+### Property Example: Attributes as properties
 
 
 ```doenet-editor-horiz
 <graph size="small">
   <rectangle vertices="(-3,-4) (7,6)" name="rect"/>
 </graph>
+
 <p><c>center</c> = $rect.center</p>
 <p><c>center[2]</c> = $rect.center[2]</p>
 <p><c>width</c> = $rect.width</p>
 <p><c>height</c> = $rect.height</p>
-<p><c>vertices</c> = <asList>$rect.vertices</asList></p>
+<p><c>vertices</c> = $rect.vertices</p>
 <p><c>vertices[2]</c> = $rect.vertices[2]</p>
 <p><c>vertices[2][1]</c> = $rect.vertices[2][1]</p>
 <p><c>verticesDraggable</c> = $rect.verticesDraggable</p>
