@@ -7346,14 +7346,14 @@ class RefResolutionDependency extends Dependency {
             const startOffset = originalPath[0].position?.start.offset;
             const endOffset =
                 originalPath[originalPath.length - 1].position?.end.offset;
+            const sourceDoc = originalPath[0].sourceDoc ?? 0;
 
             let doenetMLString = "";
             if (startOffset != undefined && endOffset != undefined) {
                 doenetMLString =
-                    this.dependencyHandler.core.allDoenetMLs?.[0]?.substring(
-                        startOffset,
-                        endOffset,
-                    ) ?? "";
+                    this.dependencyHandler.core.allDoenetMLs?.[
+                        sourceDoc
+                    ]?.substring(startOffset, endOffset) ?? "";
             }
             return doenetMLString;
         };
@@ -7394,6 +7394,7 @@ class RefResolutionDependency extends Dependency {
                     type: "warning",
                     message,
                     position: composite.position,
+                    sourceDoc: composite.sourceDoc,
                 });
 
                 this.extendIdx = -1;
@@ -7491,6 +7492,7 @@ class RefResolutionDependency extends Dependency {
                 type: "warning",
                 message: `No referent found for reference: $${referenceText}`,
                 position: composite.position,
+                sourceDoc: composite.sourceDoc,
             });
 
             this.compositeReplacementDependencies.push(
@@ -7620,6 +7622,7 @@ class RefResolutionDependency extends Dependency {
                             ].toString(),
                         ],
                         position: index_part.position,
+                        sourceDoc: index_part.sourceDoc,
                     });
                 }
             }
@@ -7628,6 +7631,7 @@ class RefResolutionDependency extends Dependency {
                 name: path_part.name,
                 index,
                 position: path_part.position,
+                sourceDoc: path_part.sourceDoc,
             });
         }
 

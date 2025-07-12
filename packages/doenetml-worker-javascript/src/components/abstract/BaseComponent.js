@@ -86,6 +86,9 @@ export default class BaseComponent {
         if (serializedComponent.position) {
             this.position = serializedComponent.position;
         }
+        if (serializedComponent.sourceDoc !== undefined) {
+            this.sourceDoc = serializedComponent.sourceDoc;
+        }
 
         if (serializedComponent.childrenPosition) {
             this.childrenPosition = serializedComponent.childrenPosition;

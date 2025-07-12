@@ -149,6 +149,7 @@ impl Source<RefResolution> {
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatElement {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -172,6 +173,7 @@ pub struct FlatElement {
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[serde(tag = "type")]
 #[serde(rename = "attribute")]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatAttribute {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -233,6 +235,7 @@ impl FlatError {
 #[serde(rename = "flatPathPart")]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi))]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatPathPart {
     pub name: String,
     pub index: Vec<FlatIndex>,
@@ -247,6 +250,7 @@ pub struct FlatPathPart {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatIndex {
     pub value: Vec<UntaggedContent>,
 
@@ -260,6 +264,7 @@ pub struct FlatIndex {
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[serde(tag = "type")]
 #[serde(rename = "ref")]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatRef {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<Index>,
@@ -275,6 +280,7 @@ pub struct FlatRef {
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[serde(tag = "type")]
 #[serde(rename = "functionRef")]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatFunctionRef {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<Index>,

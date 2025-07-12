@@ -187,6 +187,8 @@ impl Resolver {
 
         let mut path = path.iter();
 
+        // the initial `source_doc` is determined from the initial path segment,
+        // defaulting to `0` if there is no path
         let mut source_doc: SourceDoc = original_path
             .first()
             .and_then(|path_part| path_part.source_doc)
