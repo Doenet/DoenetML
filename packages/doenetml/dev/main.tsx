@@ -21,6 +21,9 @@ function App() {
 const doenetMLs: Record<string, string> = {
     abcdef: `<problem name="p"><title>A problem</title><p>What is 1+1? <answer name="ans">2</answer></p><p>Credit achieved: $p.creditAchieved</p></problem>`,
     defghi: `<problem name="loop" copy="doenet:defghi" />`,
+    abc: `<section name="s1" copy="doenet:def"><p name="p1">Hello</p></section>`,
+    def: `<section name="s2" copy="doenet:ghi"><p name="p2">Bye</p></section>`,
+    ghi: `<section name="s3"><p name="p3">How</p></section>`,
 };
 
 function retrieveDoenetML(sourceUri: string) {

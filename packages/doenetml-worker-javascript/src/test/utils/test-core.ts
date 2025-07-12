@@ -9,7 +9,11 @@ import init, {
     FlatIndex,
     RefResolution,
 } from "lib-doenetml-worker";
-import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
+import {
+    expandExternalReferences,
+    lezerToDast,
+    normalizeDocumentDast,
+} from "@doenet/parser";
 import util from "util";
 
 const origLog = console.log;
@@ -60,6 +64,7 @@ export async function createTestCore({
     theme,
     initializeCounters = {},
     requestSolutionView = async () => ({ allowView: true }),
+    externalDoenetMLs = {},
 }: {
     doenetML: string;
     requestedVariantIndex?: number;
@@ -69,6 +74,7 @@ export async function createTestCore({
     requestSolutionView?: (componentIdx: number) => Promise<{
         allowView: boolean;
     }>;
+    externalDoenetMLs?: Record<string, string>;
 }) {
     const wasmBuffer = fs.readFileSync(
         path.resolve(
@@ -81,7 +87,31 @@ export async function createTestCore({
 
     const rustCore = PublicDoenetMLCoreRust.new();
 
-    const dast = normalizeDocumentDast(lezerToDast(doenetML), true);
+    /**
+     * A mock function for retrieving DoenetML source from a URI,
+     * using the URI `doenet:[code]`.
+     */
+    function retrieveDoenetML(sourceUri: string) {
+        return new Promise<string>((resolve, reject) => {
+            setTimeout(() => {
+                const match = sourceUri.match(/^doenet:(\w+)/);
+
+                if (match) {
+                    const doenetML = externalDoenetMLs[match[1]];
+
+                    if (doenetML) {
+                        return resolve(doenetML);
+                    }
+                }
+                reject(`DoenetML for "${sourceUri}" not found.`);
+            });
+        });
+    }
+
+    const dast = normalizeDocumentDast(
+        await expandExternalReferences(lezerToDast(doenetML), retrieveDoenetML),
+        true,
+    );
     rustCore.set_source(dast as DastRootInCore, doenetML);
 
     const { normalizedRoot, resolver } = rustCore.return_normalized_dast_root();
