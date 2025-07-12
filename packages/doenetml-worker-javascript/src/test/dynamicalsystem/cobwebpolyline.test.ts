@@ -51,7 +51,7 @@ describe("cobwebPolyline Tag Tests", async () => {
     <title>Result of cobweb sketch</title>
 
     <md name="md1">
-    <repeat for="$graph1.cobweb.iterateValues" itemName="x" indexName="i">
+    <repeat for="$graph1.cobweb.iterateValues" valueName="x" indexName="i">
         <mrow>
           x_{<number>$i-1</number>} & = <math extend="$x" displayDigits="5" />
         </mrow>

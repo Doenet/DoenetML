@@ -1,12 +1,12 @@
 import { cesc } from "@doenet/utils";
 
-describe("link Tag Tests", function () {
+describe("ref Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");
     });
 
-    it("link to sections", () => {
+    it("ref to sections", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -22,10 +22,10 @@ describe("link Tag Tests", function () {
       <p>Paragraph seven</p>
       <p>Paragraph eight</p>
       <p>Goto:
-      <link name="toTwo" to="$section2" />,
-      <link name="toThree" to="$section3">Section 3</link>
-      <link name="toFour" to="$section4">Section 4</link>
-      <link name="toThreeii" to="$section3.p2">Second paragraph of Section 3</link>
+      <ref name="toTwo" to="$section2" />,
+      <ref name="toThree" to="$section3">Section 3</ref>
+      <ref name="toFour" to="$section4">Section 4</ref>
+      <ref name="toThreeii" to="$section3.p2">Second paragraph of Section 3</ref>
       </p>
 
     </section>
@@ -40,9 +40,9 @@ describe("link Tag Tests", function () {
       <p>Paragraph g</p>
       <p>Paragraph h</p>
       <p>Goto:
-      <link name="toOne" to="$section1">Section 1</link>,
-      <link name="toThree" to="$section3" />
-      <link name="toFour" to="$section4">Section 4</link>
+      <ref name="toOne" to="$section1">Section 1</ref>,
+      <ref name="toThree" to="$section3" />
+      <ref name="toFour" to="$section4">Section 4</ref>
       </p>
     </section>
 
@@ -57,9 +57,9 @@ describe("link Tag Tests", function () {
       <p>Paragraph vii</p>
       <p>Paragraph viii</p>
       <p>Goto:
-      <link name="toOne" to="$section1">Section 1</link>
-      <link name="toTwo" to="$section2">Section 2</link>,
-      <link name="toFour" to="$section4" />
+      <ref name="toOne" to="$section1">Section 1</ref>
+      <ref name="toTwo" to="$section2">Section 2</ref>,
+      <ref name="toFour" to="$section4" />
       </p>
     </section>
 
@@ -74,11 +74,11 @@ describe("link Tag Tests", function () {
       <p>Paragraph G</p>
       <p>Paragraph H</p>
       <p>Goto:
-      <link to="$section1">Section 1</link>,
-      <link name="toOne" to="$section1">Section 1</link>,
-      <link name="toTwo" to="$section2">Section 2</link>,
-      <link name="toThree" to="$section3">Section 3</link>
-      <link name="toTwoe" to="$section2.p5">Fifth paragraph of Section 2</link>
+      <ref to="$section1">Section 1</ref>,
+      <ref name="toOne" to="$section1">Section 1</ref>,
+      <ref name="toTwo" to="$section2">Section 2</ref>,
+      <ref name="toThree" to="$section3">Section 3</ref>
+      <ref name="toTwoe" to="$section2.p5">Fifth paragraph of Section 2</ref>
       </p>
     </section>
 
@@ -93,11 +93,11 @@ describe("link Tag Tests", function () {
     <p>Paragraph VII</p>
     <p>Paragraph VII</p>
     <p>Goto:
-    <link to="$section1">Section 1</link>,
-    <link name="toOne" to="$section1">Section 1</link>,
-    <link name="toTwo" to="$section2">Section 2</link>,
-    <link name="toThree" to="$section3">Section 3</link>
-    <link name="toTwoe" to="$section2.p5">Fifth paragraph of Section 2</link>
+    <ref to="$section1">Section 1</ref>,
+    <ref name="toOne" to="$section1">Section 1</ref>,
+    <ref name="toTwo" to="$section2">Section 2</ref>,
+    <ref name="toThree" to="$section3">Section 3</ref>
+    <ref name="toTwoe" to="$section2.p5">Fifth paragraph of Section 2</ref>
     </p>
   </section>
 
@@ -128,16 +128,16 @@ describe("link Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <p name="p1">A link to <link name="link1" to="http://doenet.org">Doenet</link>.</p>
+  <p name="p1">A ref to <ref name="ref1" to="http://doenet.org">Doenet</ref>.</p>
   `,
                 },
                 "*",
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", "A link to Doenet.");
+        cy.get(cesc("#p1")).should("have.text", "A ref to Doenet.");
 
-        cy.get(cesc("#link1"))
+        cy.get(cesc("#ref1"))
             .should("have.text", "Doenet")
             .invoke("attr", "href")
             .then((href) => expect(href).eq("http://doenet.org"));
@@ -148,36 +148,36 @@ describe("link Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <p name="p1">A link to <link name="link1" to="http://doenet.org/#a&amp;b">Doenet</link>.</p>
+  <p name="p1">A ref to <ref name="ref1" to="http://doenet.org/#a&amp;b">Doenet</ref>.</p>
   `,
                 },
                 "*",
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", "A link to Doenet.");
+        cy.get(cesc("#p1")).should("have.text", "A ref to Doenet.");
 
-        cy.get(cesc("#link1"))
+        cy.get(cesc("#ref1"))
             .should("have.text", "Doenet")
             .invoke("attr", "href")
             .then((href) => expect(href).eq("http://doenet.org/#a&b"));
     });
 
-    it("link to doenet doc", () => {
+    it("ref to doenet doc", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-  <p name="p1">A link to <link name="link1" to="doenet:abcdefg">a Doenet doc</link>.</p>
+  <p name="p1">A ref to <ref name="ref1" to="doenet:abcdefg">a Doenet doc</ref>.</p>
   `,
                 },
                 "*",
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", "A link to a Doenet doc.");
+        cy.get(cesc("#p1")).should("have.text", "A ref to a Doenet doc.");
 
-        cy.get(cesc("#link1"))
+        cy.get(cesc("#ref1"))
             .should("have.text", "a Doenet doc")
             .invoke("attr", "href")
             .then((href) =>
@@ -185,45 +185,45 @@ describe("link Tag Tests", function () {
             );
     });
 
-    it("url with no link text", () => {
+    it("url with no ref text", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-  <p name="p1">A link to <link name="link1" to="http://doenet.org"/>.</p>
+  <p name="p1">A ref to <ref name="ref1" to="http://doenet.org"/>.</p>
   `,
                 },
                 "*",
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", "A link to http://doenet.org.");
+        cy.get(cesc("#p1")).should("have.text", "A ref to http://doenet.org.");
 
-        cy.get(cesc("#link1"))
+        cy.get(cesc("#ref1"))
             .should("have.text", "http://doenet.org")
             .invoke("attr", "href")
             .then((href) => expect(href).eq("http://doenet.org"));
     });
 
-    it("referencing links", () => {
+    it("referencing refs", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-  <p name="p1">A link to <link name="link1" to="http://doenet.org" />.</p>
-  <p name="p2">Repeat url: <link extend="$link1" name="link2" />.</p>
-  <p name="p3">The link address is: $link1.url.</p>
-  <p name="p4">The text linked is: $link1.linkText.</p>
+  <p name="p1">A ref to <ref name="ref1" to="http://doenet.org" />.</p>
+  <p name="p2">Repeat url: <ref extend="$ref1" name="ref2" />.</p>
+  <p name="p3">The ref address is: $ref1.url.</p>
+  <p name="p4">The text reffed is: $ref1.refText.</p>
 
-  <p name="p5">A link to <link name="link3" to="$p1">the first paragraph</link>.</p>
-  <p name="p6">Repeat url: <link extend="$link3" name="link4" />.</p>
-  <p name="p7">The link address is: $link3.url.</p>
-  <p name="p8">The text linked is: $link3.linkText.</p>
+  <p name="p5">A ref to <ref name="ref3" to="$p1">the first paragraph</ref>.</p>
+  <p name="p6">Repeat url: <ref extend="$ref3" name="ref4" />.</p>
+  <p name="p7">The ref address is: $ref3.url.</p>
+  <p name="p8">The text reffed is: $ref3.refText.</p>
 
-  <p name="p9">A link to <link name="link5" to="doenet:abc">another doc</link>.</p>
-  <p name="p10">Repeat url: <link extend="$link5" name="link6" />.</p>
-  <p name="p11">The link address is: $link5.url.</p>
-  <p name="p12">The text linked is: $link5.linkText.</p>
+  <p name="p9">A ref to <ref name="ref5" to="doenet:abc">another doc</ref>.</p>
+  <p name="p10">Repeat url: <ref extend="$ref5" name="ref6" />.</p>
+  <p name="p11">The ref address is: $ref5.url.</p>
+  <p name="p12">The text reffed is: $ref5.refText.</p>
 
   `,
                 },
@@ -231,50 +231,50 @@ describe("link Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", "A link to http://doenet.org.");
-        cy.get(cesc("#link1"))
+        cy.get(cesc("#p1")).should("have.text", "A ref to http://doenet.org.");
+        cy.get(cesc("#ref1"))
             .should("have.text", "http://doenet.org")
             .invoke("attr", "href")
             .then((href) => expect(href).eq("http://doenet.org"));
-        cy.get(cesc("#link2"))
+        cy.get(cesc("#ref2"))
             .should("have.text", "http://doenet.org")
             .invoke("attr", "href")
             .then((href) => expect(href).eq("http://doenet.org"));
         cy.get(cesc("#p3")).should(
             "have.text",
-            "The link address is: http://doenet.org.",
+            "The ref address is: http://doenet.org.",
         );
         cy.get(cesc("#p4")).should(
             "have.text",
-            "The text linked is: http://doenet.org.",
+            "The text reffed is: http://doenet.org.",
         );
 
         cy.get(cesc("#p5")).should(
             "have.text",
-            "A link to the first paragraph.",
+            "A ref to the first paragraph.",
         );
-        cy.get(cesc("#link3"))
+        cy.get(cesc("#ref3"))
             .should("have.text", "the first paragraph")
             .invoke("attr", "href")
             .then((href) => expect(href).eq("#p1"));
-        cy.get(cesc("#link4"))
+        cy.get(cesc("#ref4"))
             .should("have.text", "the first paragraph")
             .invoke("attr", "href")
             .then((href) => expect(href).eq("#p1"));
-        cy.get(cesc("#p7")).should("have.text", "The link address is: #p1.");
+        cy.get(cesc("#p7")).should("have.text", "The ref address is: #p1.");
         cy.get(cesc("#p8")).should(
             "have.text",
-            "The text linked is: the first paragraph.",
+            "The text reffed is: the first paragraph.",
         );
 
-        cy.get(cesc("#p9")).should("have.text", "A link to another doc.");
-        cy.get(cesc("#link5"))
+        cy.get(cesc("#p9")).should("have.text", "A ref to another doc.");
+        cy.get(cesc("#ref5"))
             .should("have.text", "another doc")
             .invoke("attr", "href")
             .then((href) =>
                 expect(href).eq("https://doenet.org/activityViewer/abc"),
             );
-        cy.get(cesc("#link6"))
+        cy.get(cesc("#ref6"))
             .should("have.text", "another doc")
             .invoke("attr", "href")
             .then((href) =>
@@ -282,11 +282,11 @@ describe("link Tag Tests", function () {
             );
         cy.get(cesc("#p11")).should(
             "have.text",
-            "The link address is: doenet:abc.",
+            "The ref address is: doenet:abc.",
         );
         cy.get(cesc("#p12")).should(
             "have.text",
-            "The text linked is: another doc.",
+            "The text reffed is: another doc.",
         );
     });
 
@@ -295,7 +295,7 @@ describe("link Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <p><link to="http://doenet.org" name="toDoenet" createButton>Go to Doenet</link>.</p>
+  <p><ref to="http://doenet.org" name="toDoenet" createButton>Go to Doenet</ref>.</p>
   `,
                 },
                 "*",
@@ -307,13 +307,13 @@ describe("link Tag Tests", function () {
 
     // Note: the next 5 test currently do not work as we have not fixed the navigate to target action
 
-    it.skip("link opens aside", () => {
+    it.skip("ref opens aside", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
     <p>Goto:
-    <link name="toAside" to="$aside">Aside</link>
+    <ref name="toAside" to="$aside">Aside</ref>
     </p>
     <p>Paragraph one</p>
     <p>Paragraph two</p>
@@ -355,7 +355,7 @@ describe("link Tag Tests", function () {
             ).eq(false);
         });
 
-        cy.log("clicking link opens aside");
+        cy.log("clicking ref opens aside");
         cy.get(cesc("#toAside")).click();
 
         cy.get(cesc("#inside")).should("have.text", "Inside the aside");
@@ -367,13 +367,13 @@ describe("link Tag Tests", function () {
         });
     });
 
-    it.skip("link into descendant of aside opens aside", () => {
+    it.skip("ref into descendant of aside opens aside", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
     <p>Goto:
-    <link name="toAside" to="$inside">Paragraph inside aside</link>
+    <ref name="toAside" to="$inside">Paragraph inside aside</ref>
     </p>
     <lorem generateParagraphs="10" />
 
@@ -406,7 +406,7 @@ describe("link Tag Tests", function () {
             ).eq(false);
         });
 
-        cy.log("clicking link opens aside");
+        cy.log("clicking ref opens aside");
         cy.get(cesc("#toAside")).click();
 
         cy.get(cesc("#inside")).should(
@@ -432,7 +432,7 @@ describe("link Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <link name="toAside" to="$aside" hide>Aside</link>
+    <ref name="toAside" to="$aside" hide>Aside</ref>
     <p>
     <callAction target="$toAside" actionName="navigateToTarget" name="go"><label>Go to aside</label></callAction>
     </p>
@@ -480,7 +480,7 @@ describe("link Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <link name="toAside" to="$inside" hide>Aside</link>
+    <ref name="toAside" to="$inside" hide>Aside</ref>
     <p>
     <callAction target="$toAside" actionName="navigateToTarget" name="go"><label>Go to aside</label></callAction>
     </p>
@@ -543,7 +543,7 @@ describe("link Tag Tests", function () {
                 {
                     doenetML: `
     <setup>
-      <link to="$countAside" name="refCountAside" />
+      <ref to="$countAside" name="refCountAside" />
       <animateFromSequence target="$n" from="1" to="5" animationinterval="500" animationmode="increase once" name="count" />
     </setup>
 
@@ -551,7 +551,7 @@ describe("link Tag Tests", function () {
       <label>Start counting</label>
     </callAction>
     <callAction target="$count" actionName="startAnimation" triggerWith="startCount" />
-    <link name="toAside" to="$aside" hide>Aside</link>
+    <ref name="toAside" to="$aside" hide>Aside</ref>
     <p>
     <callAction target="$toAside" actionName="navigateToTarget" name="go"><label>Go to aside</label></callAction>
     </p>

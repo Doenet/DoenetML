@@ -13,6 +13,9 @@ import { isDastElement } from "../types-util";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { toXml } from "../dast-to-xml/dast-util-to-xml";
 import { reparseAttribute } from "./reparse-attribute";
+import { replaceNode } from "../pretty-printer/normalize/utils/replace-node";
+import { getUniqueName } from "./utils";
+import { determinePropType } from "./core-info/determine-prop-type";
 
 /**
  * Upgrade the `<collect>` element to the new syntax.
@@ -27,7 +30,7 @@ import { reparseAttribute } from "./reparse-attribute";
  * ```
  */
 export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
-    return (tree) => {
+    return (tree, file) => {
         // If `assignNames` is present, we need to rename a bunch of references
         const refsToRename: Record<string, DastMacro["path"]> = {};
 
@@ -73,6 +76,81 @@ export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
                 }
                 refsToRename[name] = attr.path;
             });
+        });
+
+        // If the `<collect>` has a `prop` attribute, it needs to be hoisted into a `<setup>` tag
+        // and a `mathList` needs to extend the hoisted tag. E.g.
+        // ```xml
+        //   <collect componentType="point" name="points" from="$panel1"
+        //     prop="x" assignNames="q1 q2 q3 q4 q5" />
+        // ```
+        // becomes
+        // ```xml
+        //   <setup>
+        //     <collect componentType="point" name="collect_points" from="$panel1" />
+        //   </setup>
+        //   <mathList name="points" extend="$collect_points.x" />
+        // ```
+        replaceNode(tree, (node) => {
+            if (!isDastElement(node) || node.name !== "collect") {
+                return;
+            }
+
+            const propAttr = node.attributes["prop"];
+            const propName = toXml(propAttr?.children).trim();
+            if (!propName) {
+                return;
+            }
+            delete node.attributes["prop"];
+            // Create a new `<setup>` element
+            const setup: DastElement = {
+                type: "element",
+                name: "setup",
+                attributes: {},
+                children: [node],
+            };
+            const componentType = toXml(
+                node.attributes["componentType"]?.children,
+            ).trim();
+            // The `mathList` will have the name originally given to the `collect`
+            // We need a new name for the collect.
+            const listName = toXml(node.attributes["name"].children);
+            const collectName = getUniqueName(tree, `collect_${listName}`);
+            node.attributes["name"] = {
+                type: "attribute",
+                name: "name",
+                children: [{ type: "text", value: collectName }],
+            };
+            let listType = determinePropType(componentType, propName);
+            if (!listType) {
+                file.message(
+                    `Could not determine type for prop "${propName}" of component type "${componentType}". Using "math" as default.`,
+                    { place: node.position },
+                );
+                listType = "math";
+            }
+            const list: DastElement = {
+                type: "element",
+                // We assume there is a corresponding `*List` type. (E.g., `mathList`, `pointList`, etc.)
+                // If there is not, it is the author's responsibility to fix it.
+                name: `${listType}List`,
+                attributes: {
+                    name: {
+                        type: "attribute",
+                        name: "name",
+                        children: [{ type: "text", value: listName }],
+                    },
+                    extend: {
+                        type: "attribute",
+                        name: "extend",
+                        children: reparseAttribute(
+                            `$${collectName}.${propName}`,
+                        ),
+                    },
+                },
+                children: [],
+            };
+            return [setup, list];
         });
 
         // Now that we have collected all of the renames, we walk the tree again and

@@ -2469,7 +2469,7 @@ Enter enter number larger than 5 or less than 2:
 
     it("answer inside repeat", async () => {
         const doenetML = `
-    <repeat name="r" for="1 2 3" itemName="n">
+    <repeat name="r" for="1 2 3" valueName="n">
         <p>Enter <m>x^$n</m>: <answer name="answer1"><award><math>x^$n</math></award></answer></p>
     </repeat>
   `;
@@ -2735,7 +2735,7 @@ The animal is a <answer name="answer1">
 
     <answer name="answer1">
     <choiceInput shuffleOrder>
-      <repeatForSequence from="0" to="$num-1" itemName="m">
+      <repeatForSequence from="0" to="$num-1" valueName="m">
           <choice credit="$m/($num-1)">Get <number displayDigits="3">$m/($num-1)</number></choice>
       </repeatForSequence>
     </choiceInput>

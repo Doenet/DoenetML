@@ -268,7 +268,7 @@ describe("Group tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup><sequence from="$from" to="$to" length="$count" name="s" /></setup>
-    <p name="p1"><group asList name="group1"><repeat for="$s" itemName="x">
+    <p name="p1"><group asList name="group1"><repeat for="$s" valueName="x">
         <math simplify>$x^2</math>
     </repeat></group></p>
 

@@ -27,7 +27,7 @@ describe("UpdateValue tag tests", async () => {
     <number name="count">2</number>
     <graph>
     <setup><sequence name="s" from="-10" to="10-$step" length="$count" /></setup>
-    <repeat name="l" for="$s" itemName="x">
+    <repeat name="l" for="$s" valueName="x">
     <lineSegment name="ls" endpoints="($x, sin($x)) ($x+$step, sin($x+$step))" />
     </repeat>
     </graph>
