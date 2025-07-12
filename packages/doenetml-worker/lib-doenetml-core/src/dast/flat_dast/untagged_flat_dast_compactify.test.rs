@@ -218,55 +218,55 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
           "node_resolver_data": [
             {
               "node_parent": "None",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t;0": { "Unique": 1 },
+                "ti;0": { "Unique": 3 },
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": "FlatRoot",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t;0": { "Unique": 1 },
+                "ti;0": { "Unique": 3 },
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "tiv": { "Unique": 5 }
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 4 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
           ]
         })
@@ -393,55 +393,55 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
           "node_resolver_data": [
             {
               "node_parent": "None",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t;0": { "Unique": 1 },
+                "ti;0": { "Unique": 3 },
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": "FlatRoot",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t;0": { "Unique": 1 },
+                "ti;0": { "Unique": 3 },
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "tiv": { "Unique": 5 }
+                "tiv;0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 4 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
           ]
         })
@@ -528,29 +528,29 @@ fn compactify_adjusts_refs_to_document() {
           "node_resolver_data": [
             {
               "node_parent": "None",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "doc": { "Unique": 0 },
+                "doc;0": { "Unique": 0 },
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": "FlatRoot",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
           ]
         })

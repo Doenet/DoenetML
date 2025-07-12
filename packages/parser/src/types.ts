@@ -188,6 +188,8 @@ export interface DastAbstractNode extends UnistNode {
      * Info from the ecosystem.
      */
     data?: Data | undefined;
+
+    source_doc?: number;
 }
 
 /**
@@ -351,6 +353,8 @@ export interface DastRoot extends DastParent {
      * Data associated with the xast root.
      */
     data?: RootData | undefined;
+
+    sources?: string[];
 }
 
 /**
@@ -405,14 +409,20 @@ export type PrintOptions = {
 export type DastMacro = Omit<_Macro, "attributes" | "path"> & {
     attributes: Record<string, DastAttribute>;
     path: DastMacroPathPart[];
+    source_doc?: number;
 };
 export type DastMacroPathPart = Omit<_PathPart, "index"> & {
-    index: (Omit<_PropIndex, "value"> & { value: (DastText | DastMacro)[] })[];
+    index: (Omit<_PropIndex, "value"> & {
+        value: (DastText | DastMacro)[];
+        source_doc?: number;
+    })[];
+    source_doc?: number;
 };
 export type DastMacroFullPath = DastMacroPathPart[];
 export type DastFunctionMacro = Omit<_FunctionMacro, "input" | "path"> & {
     input: DastElementContent[][] | null;
     path: DastMacroPathPart[];
+    source_doc?: number;
 };
 
 //

@@ -16,7 +16,8 @@ fn can_parse_dast_via_node() {
                     "attributes": {},
                     "children": []
                 }
-            ]
+            ],
+            "sources": ["<document />"]
         }),
         evaluate_dast_via_node("<document />", true).unwrap()
     );
@@ -32,7 +33,8 @@ fn can_parse_dast_via_node() {
                 "children":[],
                 "position":{"start":{"line":1,"column":1,"offset":0},"end":{"line":1,"column":13,"offset":12}}
             }],
-            "position":{"start":{"line":1,"column":1,"offset":0},"end":{"line":1,"column":13,"offset":12}}
+            "position":{"start":{"line":1,"column":1,"offset":0},"end":{"line":1,"column":13,"offset":12}},
+            "sources": ["<document />"]
         }),
         evaluate_dast_via_node("<document />", false).unwrap()
     );
@@ -51,7 +53,8 @@ fn can_parse_dast_via_macro() {
                     "attributes": {},
                     "children": []
                 }
-            ]
+            ],
+            "sources": ["<document />"]
         }),
         dast_no_position_as_serde_value("<document />")
     );
@@ -67,7 +70,8 @@ fn can_parse_dast_via_macro() {
                 "children":[],
                 "position":{"start":{"line":1,"column":1,"offset":0},"end":{"line":1,"column":13,"offset":12}}
             }],
-            "position":{"start":{"line":1,"column":1,"offset":0},"end":{"line":1,"column":13,"offset":12}}
+            "position":{"start":{"line":1,"column":1,"offset":0},"end":{"line":1,"column":13,"offset":12}},
+            "sources": ["<document />"]
         }),
         dast_as_serde_value("<document />")
     );

@@ -12,6 +12,7 @@ impl FlatRoot {
     /// Create a new `FlatRoot` from a `DastRoot`.
     pub fn from_dast(dast: &DastRoot) -> Self {
         let mut flat = Self::new();
+        flat.sources = dast.sources.clone();
         flat.merge_dast_root(dast);
         flat
     }
@@ -74,6 +75,7 @@ impl FlatRoot {
                             parent: Some(idx),
                             children,
                             position: attr.position.clone(),
+                            source_doc: attr.source_doc,
                         }
                     })
                     .collect();
@@ -166,7 +168,7 @@ impl FlatRoot {
         }
     }
 
-    /// Set the node at `idx` to be an element with the same name and position as `node`.
+    /// Set the node at `idx` to be an element with the same name, position and source_doc as `node`.
     /// The element will be initialized with empty children and attributes.
     fn set_element(&mut self, node: &DastElement, idx: Index, parent: Option<Index>) -> usize {
         self.nodes[idx] = FlatNode::Element(FlatElement {
@@ -174,6 +176,7 @@ impl FlatRoot {
             children: Vec::new(),
             attributes: Vec::new(),
             position: node.position.clone(),
+            source_doc: node.source_doc,
             // Calculate the position of the vector of children before the position of text nodes is discarded
             children_position: node.children.iter().fold(None::<Position>, |acc, x| {
                 if let Some(pos) = acc {
@@ -201,6 +204,7 @@ impl FlatRoot {
             unresolved_path: None,
             error_type: node.error_type.unwrap_or_default(),
             position: node.position.clone(),
+            source_doc: node.source_doc,
             parent,
             idx,
         });
@@ -242,6 +246,7 @@ impl FlatRoot {
                         FlatIndex {
                             value,
                             position: dast_index.position.clone(),
+                            source_doc: dast_index.source_doc,
                         }
                     })
                     .collect();
@@ -249,6 +254,7 @@ impl FlatRoot {
                     name: path_part.name.clone(),
                     index,
                     position: path_part.position.clone(),
+                    source_doc: path_part.source_doc,
                 }
             })
             .collect()
@@ -259,6 +265,7 @@ impl FlatRoot {
         self.nodes[idx] = FlatNode::Ref(FlatRef {
             path: self.dast_path_to_flat_path(&node.path, idx),
             position: node.position.clone(),
+            source_doc: node.source_doc,
             parent,
             idx,
         });
@@ -276,6 +283,7 @@ impl FlatRoot {
             path: self.dast_path_to_flat_path(&node.path, idx),
             input: None,
             position: node.position.clone(),
+            source_doc: node.source_doc,
             parent,
             idx,
         });

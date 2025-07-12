@@ -55,14 +55,20 @@ export function lezerToDast(
     if (typeof node === "string") {
         const tree = parser.parse(node);
         source = node;
-        return _lezerToDast(tree.topNode, source);
+
+        const dastRoot = _lezerToDast(tree.topNode, source);
+        dastRoot.sources = [source];
+        return dastRoot;
     }
     if (source == null) {
         throw new Error(
             `If you provide a SyntaxNode, you must also provide the source string`,
         );
     }
-    return _lezerToDast(node, source);
+
+    const dastRoot = _lezerToDast(node, source);
+    dastRoot.sources = [source];
+    return dastRoot;
 }
 
 function _lezerToDast(node: SyntaxNode, source: string): DastRoot {

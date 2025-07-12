@@ -61,6 +61,7 @@ impl Expander {
                                 children: Vec::new(),
                                 name,
                                 position: ref_.position.clone(),
+                                source_doc: ref_.source_doc,
                                 children_position: None,
                                 extending: Some(Source::Ref(ref_resolution)),
                             })
@@ -76,6 +77,7 @@ impl Expander {
                                 None
                             },
                             position: ref_.position.clone(),
+                            source_doc: ref_.source_doc,
                         }),
                     }
                 }
@@ -92,6 +94,7 @@ impl Expander {
                                     children: Vec::new(),
                                     name: "evaluate".to_string(),
                                     position: function_ref.position.clone(),
+                                    source_doc: function_ref.source_doc,
                                     children_position: None,
                                     extending: Some(Source::Ref(ref_resolution)),
                                 };
@@ -109,6 +112,7 @@ impl Expander {
                                             .map(|_| DastElementContent::element_with_name("li"))
                                             .collect(),
                                         position: function_ref.position.clone(),
+                                        source_doc: function_ref.source_doc,
                                         data: None,
                                     };
                                     // Insert the `ol` into `flat_root`
@@ -156,6 +160,7 @@ impl Expander {
                                     None
                                 },
                                 position: function_ref.position.clone(),
+                                source_doc: function_ref.source_doc,
                             }),
                         };
 
@@ -215,6 +220,7 @@ impl Expander {
                         error_type: Some(ErrorType::Error),
                         message: "Duplicate `extend` or `copy` attributes".to_string(),
                         position: element.position.clone(),
+                        source_doc: element.source_doc,
                     }),
                     Some(element.idx),
                 ));
@@ -298,6 +304,7 @@ impl Expander {
                         message,
                         error_type: Some(error_type),
                         position: extend_or_copy.position.clone(),
+                        source_doc: extend_or_copy.source_doc,
                     }),
                     extend_or_copy.parent,
                 ));

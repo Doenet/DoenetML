@@ -94,22 +94,29 @@ function findLineCharInfo(pos: number, allNewlines: number[]) {
 // Assign position to components or to error/warnings objects
 export function assignDoenetMLRange(
     components: any[],
-    position: position,
+    position: Position,
+    sourceDoc: number,
     init = true,
 ) {
     for (let comp of components) {
         if (typeof comp === "object") {
             if (!comp.position || init) {
                 comp.position = position;
+                comp.sourceDoc = sourceDoc;
             }
             if (comp.children) {
-                assignDoenetMLRange(comp.children, position, false);
+                assignDoenetMLRange(comp.children, position, sourceDoc, false);
             }
             if (comp.attributes) {
                 for (let attrName in comp.attributes) {
                     let attrComp = comp.attributes[attrName].component;
                     if (attrComp) {
-                        assignDoenetMLRange([attrComp], position, false);
+                        assignDoenetMLRange(
+                            [attrComp],
+                            position,
+                            sourceDoc,
+                            false,
+                        );
                     }
                 }
             }

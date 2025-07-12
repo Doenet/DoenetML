@@ -35,51 +35,51 @@ fn add_nodes() {
     resolver.add_nodes(&flat_fragment, IndexResolution::None);
 
     // Since `z` and `w` were added to parent with name `y`, they cannot be found directly from `a`
-    let referent = resolver.resolve(make_path(["z"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["z"], None), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
-    let referent = resolver.resolve(make_path(["w"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["w"], None), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
 
     // Prefacing the added components with the fragment parent `y` allows them to be found as `y.z` and `y.w`.
-    let referent = resolver.resolve(make_path(["y", "z"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["y", "z"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
             unresolved_path: None,
-            original_path: make_path(["y", "z"]),
+            original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, c_idx]
         })
     );
-    let referent = resolver.resolve(make_path(["y", "w"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["y", "w"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: g_idx,
             unresolved_path: None,
-            original_path: make_path(["y", "w"]),
+            original_path: make_path(["y", "w"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, g_idx]
         })
     );
 
     // Starting at newly added nodes, one can still search outward to find `y` and `q`
-    let referent = resolver.resolve(make_path(["y"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["y"], None), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: b_idx,
             unresolved_path: None,
-            original_path: make_path(["y"]),
+            original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
-    let referent = resolver.resolve(make_path(["q"]), g_idx, false);
+    let referent = resolver.resolve(make_path(["q"], None), g_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: f_idx,
             unresolved_path: None,
-            original_path: make_path(["q"]),
+            original_path: make_path(["q"], None),
             nodes_in_resolved_path: vec![g_idx, f_idx]
         })
     );
@@ -107,25 +107,25 @@ fn add_nodes_does_not_make_previous_resolution_ambiguous() {
     resolver.add_nodes(&flat_fragment, IndexResolution::None);
 
     // searching for `x.y` finds the original component `b`. The addition of `c` to `a` did not make that ambiguous.
-    let referent = resolver.resolve(make_path(["x", "y"]), d_idx, false);
+    let referent = resolver.resolve(make_path(["x", "y"], None), d_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: b_idx,
             unresolved_path: None,
-            original_path: make_path(["x", "y"]),
+            original_path: make_path(["x", "y"], None),
             nodes_in_resolved_path: vec![d_idx, a_idx, b_idx]
         })
     );
 
     // searching for `x.z` does find the added component `e`
-    let referent = resolver.resolve(make_path(["x", "z"]), d_idx, false);
+    let referent = resolver.resolve(make_path(["x", "z"], None), d_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: e_idx,
             unresolved_path: None,
-            original_path: make_path(["x", "z"]),
+            original_path: make_path(["x", "z"], None),
             nodes_in_resolved_path: vec![d_idx, a_idx, e_idx]
         })
     );
@@ -158,28 +158,28 @@ fn add_nodes_with_no_parent() {
     resolver.add_nodes(&flat_fragment, IndexResolution::None);
 
     // Since `z` and `w` were added without a parent, they cannot be found directly from `a`
-    let referent = resolver.resolve(make_path(["z"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["z"], None), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
-    let referent = resolver.resolve(make_path(["w"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["w"], None), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
 
     // Starting at `z`, one can find `w`
-    let referent = resolver.resolve(make_path(["w"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["w"], None), c_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: g_idx,
             unresolved_path: None,
-            original_path: make_path(["w"]),
+            original_path: make_path(["w"], None),
             nodes_in_resolved_path: vec![c_idx, g_idx]
         })
     );
 
     // Starting at newly added nodes, one cannot search outward to find `y` or `q`
-    let referent = resolver.resolve(make_path(["y"]), c_idx, false);
+    let referent = resolver.resolve(make_path(["y"], None), c_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
 
-    let referent = resolver.resolve(make_path(["q"]), g_idx, false);
+    let referent = resolver.resolve(make_path(["q"], None), g_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
 }
 
@@ -211,48 +211,48 @@ fn delete_nodes() {
     resolver.add_nodes(&flat_fragment, IndexResolution::None);
 
     // Prefacing the added components with the fragment parent `y` allows them to be found as `y.z` and `y.w`.
-    let referent = resolver.resolve(make_path(["y", "z"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["y", "z"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
             unresolved_path: None,
-            original_path: make_path(["y", "z"]),
+            original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, c_idx]
         })
     );
 
-    let referent = resolver.resolve(make_path(["y", "w"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["y", "w"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: g_idx,
             unresolved_path: None,
-            original_path: make_path(["y", "w"]),
+            original_path: make_path(["y", "w"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, g_idx]
         })
     );
 
     resolver.delete_nodes(&flat_fragment.nodes[1..]);
 
-    let referent = resolver.resolve(make_path(["y", "z"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["y", "z"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
             unresolved_path: None,
-            original_path: make_path(["y", "z"]),
+            original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, c_idx]
         })
     );
 
-    let referent = resolver.resolve(make_path(["y", "w"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["y", "w"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: b_idx,
-            unresolved_path: Some(make_path(["w"])),
-            original_path: make_path(["y", "w"]),
+            unresolved_path: Some(make_path(["w"], None)),
+            original_path: make_path(["y", "w"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx]
         })
     );
@@ -260,23 +260,23 @@ fn delete_nodes() {
     resolver.delete_nodes(&flat_fragment.nodes[0..1]);
 
     // when the nodes are removed, then `y.z` and `y.w` stop at `y`
-    let referent = resolver.resolve(make_path(["y", "z"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["y", "z"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: b_idx,
-            unresolved_path: Some(make_path(["z"])),
-            original_path: make_path(["y", "z"]),
+            unresolved_path: Some(make_path(["z"], None)),
+            original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx]
         })
     );
-    let referent = resolver.resolve(make_path(["y", "w"]), a_idx, false);
+    let referent = resolver.resolve(make_path(["y", "w"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: b_idx,
-            unresolved_path: Some(make_path(["w"])),
-            original_path: make_path(["y", "w"]),
+            unresolved_path: Some(make_path(["w"], None)),
+            original_path: make_path(["y", "w"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx]
         })
     );

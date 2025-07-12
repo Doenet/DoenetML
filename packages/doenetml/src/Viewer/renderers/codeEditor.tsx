@@ -8,9 +8,8 @@ import { useInView } from "framer-motion";
 import { EditorViewer } from "../../EditorViewer/EditorViewer";
 
 export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
-    let { id, SVs, actions, ignoreUpdate, callAction } = useDoenetRenderer(
-        props,
-    ) as any;
+    let { id, SVs, actions, ignoreUpdate, callAction, retrieveDoenetML } =
+        useDoenetRenderer(props) as any;
 
     // @ts-ignore
     CodeEditor.baseStateVariable = "immediateValue";
@@ -93,6 +92,7 @@ export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
                     immediateDoenetmlChangeCallback
                 }
                 doenetmlChangeCallback={doenetmlChangeCallback}
+                retrieveDoenetML={retrieveDoenetML}
             />
         </div>
     );

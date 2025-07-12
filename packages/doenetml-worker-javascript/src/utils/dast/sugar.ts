@@ -122,6 +122,7 @@ export function applySugar({
                             ...sugarResults.warnings.map((w: WarningRecord) => {
                                 const w2 = { ...w };
                                 w2.position = component.position;
+                                w2.sourceDoc = component.sourceDoc;
                                 return w2;
                             }),
                         );
@@ -338,6 +339,7 @@ export function applySugar({
                 type: "error",
                 message: convertResult.message,
                 position: component.position,
+                sourceDoc: component.sourceDoc,
             });
         }
     }

@@ -15,6 +15,7 @@ export type SerializedComponent = {
     children: (SerializedComponent | string)[];
     attributes: Record<string, SerializedAttribute>;
     position?: Position;
+    sourceDoc?: number;
     childrenPosition?: Position;
     extending?: Source<SerializedRefResolution>;
     originalIdx?: number;
@@ -62,11 +63,13 @@ export interface SerializedRefResolutionPathPart {
     name: string;
     index: SerializedPathIndex[];
     position?: Position;
+    sourceDoc?: number;
 }
 
 export interface SerializedPathIndex {
     value: (SerializedComponent | string)[];
     position?: Position;
+    sourceDoc?: number;
 }
 
 /** The allowable data types for primitive attributes */
@@ -146,6 +149,7 @@ export type ReferencesAttribute = {
     references: SerializedComponent[];
     stringChildren: string[];
     position?: Position;
+    sourceDoc?: number;
     ignoreFixed?: boolean;
 };
 
@@ -174,6 +178,7 @@ export type UnresolvedAttribute = {
     name: string;
     children: (UnflattenedComponent | string)[];
     position?: Position;
+    sourceDoc?: number;
     ignoreFixed?: boolean;
 };
 

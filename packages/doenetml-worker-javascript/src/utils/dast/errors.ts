@@ -30,6 +30,7 @@ export function convertToErrorComponent(
         attributes: {},
         doenetAttributes: {},
         position: component.position,
+        sourceDoc: component.sourceDoc,
     };
 
     if (component.attributes.name) {

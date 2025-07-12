@@ -178,6 +178,7 @@ export function convertRefsToCopies({
                             return {
                                 value: [comp],
                                 position: index.position,
+                                sourceDoc: index.sourceDoc,
                             };
                         } else if (
                             comp.componentType === "number" ||
@@ -188,6 +189,7 @@ export function convertRefsToCopies({
                             return {
                                 value: [comp],
                                 position: index.position,
+                                sourceDoc: index.sourceDoc,
                             };
                         } else if (
                             comp.componentType === "_copy" &&
@@ -200,6 +202,7 @@ export function convertRefsToCopies({
                             return {
                                 value: [comp],
                                 position: index.position,
+                                sourceDoc: index.sourceDoc,
                             };
                         }
                     }
@@ -216,9 +219,11 @@ export function convertRefsToCopies({
                                 children: res.components,
                                 state: {},
                                 position: index.position,
+                                sourceDoc: index.sourceDoc,
                             },
                         ],
                         position: index.position,
+                        sourceDoc: index.sourceDoc,
                     };
                 },
             );
@@ -227,6 +232,7 @@ export function convertRefsToCopies({
                 index: new_index,
                 name: path_part.name,
                 position: path_part.position,
+                sourceDoc: path_part.sourceDoc,
             };
         };
 
