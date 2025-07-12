@@ -189,6 +189,9 @@ export interface DastAbstractNode extends UnistNode {
      */
     data?: Data | undefined;
 
+    /**
+     * The index in `DastRoot.sources` giving the DoenetML source from which this node was generated.
+     */
     source_doc?: number;
 }
 
@@ -354,6 +357,12 @@ export interface DastRoot extends DastParent {
      */
     data?: RootData | undefined;
 
+    /**
+     * A list of the DoenetML sources that generated the dast.
+     *
+     * The first source is the DoenetML initially parsed.
+     * Later sources are those loaded when referencing external content.
+     */
     sources?: string[];
 }
 

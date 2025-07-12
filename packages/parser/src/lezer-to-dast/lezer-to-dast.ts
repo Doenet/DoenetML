@@ -66,9 +66,7 @@ export function lezerToDast(
         );
     }
 
-    const dastRoot = _lezerToDast(node, source);
-    dastRoot.sources = [source];
-    return dastRoot;
+    return _lezerToDast(node, source);
 }
 
 function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
@@ -77,6 +75,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
         type: "root",
         children: gobbleFunctionArguments(lezerNodeToDastNode(node)),
         position: lezerNodeToPosition(node, offsetMap),
+        sources: [source],
     };
 
     function lezerNodeToDastNode(node: SyntaxNode): DastRootContent[] {
