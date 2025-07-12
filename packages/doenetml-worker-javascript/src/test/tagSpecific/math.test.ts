@@ -3618,7 +3618,7 @@ describe("Math tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   
-  <repeat name="repeat" itemName="v" for="1 2 3">
+  <repeat name="repeat" valueName="v" for="1 2 3">
 
       <number>$v^2</number>
 

@@ -12,7 +12,7 @@ describe("Map Tag Tests", function () {
                 {
                     doenetML: `
       <setup><sequence name="s" to="3" /></setup>
-      <repeat asList for="$s" itemName="v">
+      <repeat asList for="$s" valueName="v">
           <p>Hello $v</p>
       </repeat>
 
@@ -33,7 +33,7 @@ describe("Map Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-      <repeatForSequence asList to="3" itemName="v">
+      <repeatForSequence asList to="3" valueName="v">
           <p>Hello $v</p>
       </repeatForSequence>
 

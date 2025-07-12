@@ -185,10 +185,6 @@ export default class MathComponent extends InlineComponent {
                 group: "strings",
                 componentTypes: ["string"],
             },
-            {
-                group: "displayedMaths",
-                componentTypes: ["m", "me", "men"],
-            },
         ];
     }
 
@@ -385,11 +381,6 @@ export default class MathComponent extends InlineComponent {
                 mathChildren: {
                     dependencyType: "child",
                     childGroups: ["maths"],
-                },
-                displayedMathChildren: {
-                    dependencyType: "child",
-                    childGroups: ["displayedMaths"],
-                    variableNames: ["latex"],
                 },
                 format: {
                     dependencyType: "stateVariable",
@@ -973,10 +964,6 @@ export default class MathComponent extends InlineComponent {
                     childGroups: ["maths"],
                     variableNames: ["canBeModified"],
                 },
-                displayedMathChildren: {
-                    dependencyType: "child",
-                    childGroups: ["displayedMaths"],
-                },
                 expressionWithCodes: {
                     dependencyType: "stateVariable",
                     variableName: "expressionWithCodes",
@@ -1164,7 +1151,6 @@ function calculateExpressionWithCodes({ dependencyValues, changes }) {
         !(
             ("stringMathChildren" in changes &&
                 changes.stringMathChildren.componentIdentitiesChanged) ||
-            "displayedMathChildren" in changes ||
             "format" in changes ||
             "splitSymbols" in changes ||
             "parseScientificNotation" in changes ||
@@ -1181,28 +1167,13 @@ function calculateExpressionWithCodes({ dependencyValues, changes }) {
     }
 
     if (dependencyValues.stringMathChildren.length === 0) {
-        if (dependencyValues.displayedMathChildren.length > 0) {
-            let expr;
-            try {
-                expr = me.fromLatex(
-                    dependencyValues.displayedMathChildren[0].stateValues.latex,
-                );
-            } catch (e) {
-                expr = me.fromAst("\uff3f");
-            }
-            return {
-                setValue: { expressionWithCodes: expr },
-                setEssentialValue: { expressionWithCodes: expr },
-            };
-        } else {
-            // if don't have any string or math children,
-            // set expressionWithCodes to be null,
-            // which will indicate that value should use valueShadow
-            return {
-                setValue: { expressionWithCodes: null },
-                setEssentialValue: { expressionWithCodes: null },
-            };
-        }
+        // if don't have any string or math children,
+        // set expressionWithCodes to be null,
+        // which will indicate that value should use valueShadow
+        return {
+            setValue: { expressionWithCodes: null },
+            setEssentialValue: { expressionWithCodes: null },
+        };
     }
 
     let functionSymbols = [...dependencyValues.functionSymbols];
@@ -1362,32 +1333,18 @@ function determineCanBeModified({ dependencyValues }) {
     }
 
     if (dependencyValues.mathChildrenModifiable.length === 0) {
-        if (dependencyValues.displayedMathChildren.length > 0) {
-            // don't invert displayed math children
-            return {
-                setValue: {
-                    canBeModified: false,
-                    constantChildIndices: null,
-                    codeForExpression: null,
-                    inverseMaps: null,
-                    template: null,
-                    mathChildrenMapped: null,
-                },
-            };
-        } else {
-            // if have no math children, then can directly set value
-            // to any specified expression
-            return {
-                setValue: {
-                    canBeModified: true,
-                    constantChildIndices: null,
-                    codeForExpression: null,
-                    inverseMaps: null,
-                    template: null,
-                    mathChildrenMapped: null,
-                },
-            };
-        }
+        // if have no math children, then can directly set value
+        // to any specified expression
+        return {
+            setValue: {
+                canBeModified: true,
+                constantChildIndices: null,
+                codeForExpression: null,
+                inverseMaps: null,
+                template: null,
+                mathChildrenMapped: null,
+            },
+        };
     }
 
     // determine if can calculate value of activeChildren from

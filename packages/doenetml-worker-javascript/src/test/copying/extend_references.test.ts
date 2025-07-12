@@ -1354,7 +1354,7 @@ describe("Extend and references tests", async () => {
     <p>Number of points: <mathInput name="n" /></p>
 
     <graph name='g1'>
-      <repeatForSequence name="r" from="1" to="$n" itemName="i">
+      <repeatForSequence name="r" from="1" to="$n" valueName="i">
           <point name="A">
             (<number copy="$i" />,1)
           </point>
@@ -3154,7 +3154,7 @@ describe("Extend and references tests", async () => {
     <p>Value 2: <number extend="$n2" name="n3" /></p>
 
     <setup><sequence name="s" from="1" to="$n" /></setup>
-    <repeat name="r1" for="$s" itemName="v">
+    <repeat name="r1" for="$s" valueName="v">
       <p name="p">Hello <number name="n1" extend="$v" />!  <mathInput name="x" /> <math name="m1" extend="$x" /></p>
     </repeat>
 
@@ -3177,7 +3177,7 @@ describe("Extend and references tests", async () => {
     <p>Value: <math extend="$n" name="n2" /></p>
     <p>Value 2: <number extend="$n2" name="n3" /></p>
 
-    <repeatForSequence name="r1" from="1" to="$n" itemName="v">
+    <repeatForSequence name="r1" from="1" to="$n" valueName="v">
       <p name="p">Hello <number name="n1" extend="$v" />!  <mathInput name="x" /> <math name="m1" extend="$x" /></p>
     </repeatForSequence>
 
@@ -5768,7 +5768,7 @@ describe("Extend and references tests", async () => {
             doenetML: `
     <p>n: <mathInput name="n" prefill="2" /></p>
 
-    <repeatForSequence name="myRepeat" from="1" to="$n" itemName="v">
+    <repeatForSequence name="myRepeat" from="1" to="$n" valueName="v">
         <p>The line through 
           <m>P=<point name="P">($v+1,$v+2)</point></m> and <m>Q=<point name="Q">($v+4, $v-1)</point></m>
           is <line name="l" through="$P $Q" />.</p>
@@ -6199,7 +6199,7 @@ describe("Extend and references tests", async () => {
     it("copies of composites with subnames do not ignore implicitProp", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <repeat name="repeat" for="x y" itemName="v">
+    <repeat name="repeat" for="x y" valueName="v">
       <mathInput name="mi" prefill="$v" />
     </repeat>
 

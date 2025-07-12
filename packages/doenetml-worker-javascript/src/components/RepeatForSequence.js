@@ -41,9 +41,9 @@ export default class RepeatForSequence extends CompositeComponent {
         const sequenceAttributes = returnStandardSequenceAttributes();
         Object.assign(attributes, sequenceAttributes);
 
-        attributes.itemName = {
+        attributes.valueName = {
             createPrimitiveOfType: "string",
-            createStateVariable: "itemName",
+            createStateVariable: "valueName",
             defaultValue: null,
         };
 
@@ -727,14 +727,14 @@ async function addAndLinkAliasComponents(
         children: [],
     };
 
-    const itemName = await component.stateValues.itemName;
+    const valueName = await component.stateValues.valueName;
 
     // a mapping from the dummy or value component indices to the new alias components we're creating
     const extendIdxMapping = {};
 
     let valueComponentIdx;
 
-    if (itemName) {
+    if (valueName) {
         valueComponentIdx = nComponents++;
         const valueDummyIdx = await component.stateValues.valueDummyIdx;
         if (valueDummyIdx != null) {
@@ -746,7 +746,7 @@ async function addAndLinkAliasComponents(
             type = "text";
         }
 
-        // Create reference with name `itemName` that will link to sources
+        // Create reference with name `valueName` that will link to sources
         setupComponent.children.push({
             type: "serialized",
             componentType: type,
@@ -755,7 +755,7 @@ async function addAndLinkAliasComponents(
                 name: {
                     type: "primitive",
                     name: "name",
-                    primitive: { type: "string", value: itemName },
+                    primitive: { type: "string", value: valueName },
                 },
             },
             doenetAttributes: {},

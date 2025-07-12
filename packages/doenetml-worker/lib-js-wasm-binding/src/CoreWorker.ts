@@ -35,6 +35,7 @@ import {
 // we import it as a string and create a blob URL from it.
 // @ts-ignore
 import WASM_BYTES_DATA_URL from "lib-doenetml-worker/lib_doenetml_worker_bg.wasm?url";
+import { flatDastFromJS } from "./flatDastFromJS";
 let wasmBlobUrl: string = WASM_BYTES_DATA_URL;
 try {
     // If the URL starts with `data:*;base64,`, then it is a data URL and we want to get
@@ -317,14 +318,113 @@ export class CoreWorker {
         }
 
         try {
-            let flat_dast = this.doenetCore.return_dast();
-            return flat_dast;
+            if (this.core_type === "javascript") {
+                return await this.returnFlatDastFromJS();
+            } else {
+                let flat_dast = this.doenetCore.return_dast();
+
+                console.log("flat_data from rust core", flat_dast);
+                return flat_dast;
+            }
         } catch (err) {
             console.error(err);
             throw err;
         } finally {
             resolve();
         }
+    }
+
+    /**
+     * Transform the initial output of the JavaScript core into the flat data structure
+     * produces by the rust core and expected by the `doenetml-prototype`
+     */
+    private async returnFlatDastFromJS() {
+        if (!this.javascriptCore || !this.doenetCore) {
+            throw Error("Cannot return dast before setting source and flags");
+        }
+
+        let { normalizedRoot, resolver } =
+            this.doenetCore.return_normalized_dast_root();
+
+        await this.javascriptCore.initializeWorker({
+            activityId: "a",
+            docId: "a",
+            requestedVariantIndex: 1,
+            attemptNumber: 1,
+            normalizedRoot,
+            resolver,
+            addNodesToResolver: PublicDoenetMLCore.add_nodes_to_resolver,
+            replaceIndexResolutionsInResolver:
+                PublicDoenetMLCore.replace_index_resolutions_in_resolver,
+            deleteNodesFromResolver:
+                PublicDoenetMLCore.delete_nodes_from_resolver,
+            resolvePath: PublicDoenetMLCore.resolve_path,
+            calculateRootNames: PublicDoenetMLCore.calculate_root_names,
+        });
+        this.javascript_initialized = true;
+
+        const args = {
+            coreId: "a",
+            cid: null,
+            initializeCounters: {},
+        };
+
+        let updateInstructions = null;
+
+        // JS core sends most of the dast data with `updateRendersCallback` with `{ init: true }`
+        const updateRenderersCallback = (args: any) => {
+            if (args.init) {
+                updateInstructions = args.updateInstructions;
+            }
+        };
+
+        // Stub these callbacks for now, which aren't needed if we don't have interactivity
+        const reportScoreAndStateCallback = (args: any) => {
+            console.log("reportScoreAndStateCallback", args);
+        };
+        const requestAnimationFrame = (args: any) => {
+            console.log("requestAnimationFrame", args);
+        };
+        const cancelAnimationFrame = (args: any) => {
+            console.log("cancelAnimationFrame", args);
+        };
+        const copyToClipboard = (args: any) => {
+            console.log("copyToClipboard", args);
+        };
+        const sendEvent = (args: any) => {
+            console.log("sendEvent", args);
+        };
+        const requestSolutionView = (args: any) => {
+            console.log("requestSolutionView", args);
+            return Promise.resolve({ allowView: true });
+        };
+
+        const coreResult = await this.javascriptCore.createCoreGenerateDast(
+            args,
+            updateRenderersCallback,
+            reportScoreAndStateCallback,
+            requestAnimationFrame,
+            cancelAnimationFrame,
+            copyToClipboard,
+            sendEvent,
+            requestSolutionView,
+        );
+
+        if (!coreResult.success) {
+            console.error(coreResult.errMsg);
+            throw Error(coreResult.errMsg);
+        }
+
+        if (updateInstructions === null) {
+            throw Error(
+                "Need to address case where do not get updateRenderersCallback before dast",
+            );
+        }
+
+        const documentToRender = coreResult.coreInfo.documentToRender;
+
+        const flat_dast = flatDastFromJS(documentToRender, updateInstructions);
+        return flat_dast;
     }
 
     /**

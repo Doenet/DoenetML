@@ -1,4 +1,5 @@
 import { Plugin, unified } from "unified";
+import { VFile } from "vfile";
 import {
     DastAttribute,
     DastElement,
@@ -20,7 +21,9 @@ import { upgradePathSlashesToDots } from "./slash-to-dot";
 import { lezerToDastV6 } from "../lezer-to-dast/lezer-to-dast-v6";
 import { upgradeCopySyntax } from "./upgrade-copy-syntax";
 import { upgradeAttributeSyntax } from "./upgrade-attribute-syntax";
-import { VFile } from "vfile";
+import { upgradeMapElement } from "./upgrade-map-element";
+import { upgradeModuleElement } from "./upgrade-module-element";
+import { renameAttrInPlace } from "./rename-attr-in-place";
 
 export type Options = {
     doNotUpgradeCopyTags?: boolean;
@@ -44,9 +47,12 @@ export async function updateSyntaxFromV06toV07_root(
         .use(correctElementCapitalization)
         .use(correctAttributeCapitalization)
         .use(removeNewNamespaceAttribute)
+        .use(upgradeRefElement)
         .use(ensureDollarBeforeNamesOnSpecificAttributes)
         .use(copySourceToExtendOrCopy)
-        .use(upgradeCollectElement);
+        .use(upgradeCollectElement)
+        .use(upgradeMapElement)
+        .use(upgradeModuleElement);
     if (!options.doNotUpgradeAttributeSyntax) {
         processor = processor.use(upgradeAttributeSyntax);
     }
@@ -175,6 +181,20 @@ const removeNewNamespaceAttribute: Plugin<[], DastRoot, DastRoot> = () => {
             if (node.attributes["newNamespace"]) {
                 delete node.attributes["newNamespace"];
             }
+        });
+    };
+};
+
+/**
+ * Upgrade `<ref>`. In particular, rename the `target` attribute to `to`.
+ */
+const upgradeRefElement: Plugin<[], DastRoot, DastRoot> = () => {
+    return (tree) => {
+        visit(tree, (node) => {
+            if (!isDastElement(node) || node.name !== "ref") {
+                return;
+            }
+            renameAttrInPlace(node, "target", "to");
         });
     };
 };

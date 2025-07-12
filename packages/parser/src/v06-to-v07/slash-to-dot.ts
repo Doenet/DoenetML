@@ -13,6 +13,8 @@ import {
 import { visit } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
 import { macroToString as v06macroToString } from "../macros-v6/macro-to-string";
+import { toXml } from "../dast-to-xml/dast-util-to-xml";
+import { parseMacrosV06 } from "../macros-v6";
 
 /**
  * Upgrade namespace path syntax.
@@ -94,7 +96,44 @@ export const upgradePathSlashesToDots: Plugin<
                 }
             },
         );
-        // Macros can also appear in attributes
+
+        // There may be slashes in a macro path that hasn't been parsed as a macro in the `source` attribute of
+        // a copy tag. E.g. `<copy source="foo/bar" />`.
+        visit(tree, (node) => {
+            if (!isDastElement(node)) {
+                return;
+            }
+            const sourceAttr = node.attributes["source"];
+            if (!sourceAttr) {
+                return;
+            }
+            const sourceName = toXml(sourceAttr.children).trim();
+            if (!sourceName.includes("/")) {
+                return; // No slashes, nothing to do
+            }
+            // We need to reparse the source name as a macro to remove the slashes.
+            const reparsedSource = parseMacrosV06(`$(${sourceName})`);
+            if (
+                reparsedSource.length !== 1 ||
+                reparsedSource[0].type !== "macro"
+            ) {
+                file.message(
+                    `Could not reparse "source" attribute that contains a slash: "${sourceName}".`,
+                    { place: node.position },
+                );
+                return;
+            }
+            const upgradedSource = v06MacroToV07Macro(reparsedSource[0]);
+            // Source attributes are not parsed as macros, so we turn back into a string and remove the dollar sign.
+            const newSourceName = toXml(upgradedSource.path);
+            sourceAttr.children = [
+                {
+                    type: "text",
+                    value: newSourceName,
+                    position: upgradedSource.position,
+                },
+            ];
+        });
     };
 };
 

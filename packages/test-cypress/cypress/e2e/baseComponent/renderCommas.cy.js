@@ -293,7 +293,7 @@ $fi.iterates
                     doenetML: `
 <mathList name="mL">a b c</mathList>
 
-<repeat name="doublingLoop" for="$mL" itemName="v">
+<repeat name="doublingLoop" for="$mL" valueName="v">
    <math>2 $v</math>
 </repeat>
 
@@ -317,7 +317,7 @@ $fi.iterates
 <section name="s">
     <mathList name="mL">a b c</mathList>
 
-    <repeat name="doublingLoop" for="$mL" itemName="v">
+    <repeat name="doublingLoop" for="$mL" valueName="v">
     <math>2 $v</math>
     </repeat>
 </section>
@@ -339,7 +339,7 @@ $fi.iterates
 <p name="p">
     <mathList name="mL">a b c</mathList>
 
-    <repeat name="doublingLoop" for="$mL" itemName="v">
+    <repeat name="doublingLoop" for="$mL" valueName="v">
     <math>2 $v</math>
     </repeat>
 </p>

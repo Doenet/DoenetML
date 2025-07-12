@@ -406,7 +406,7 @@ export default class Curve extends GraphicalComponent {
                 graphAncestor: {
                     dependencyType: "ancestor",
                     componentType: "graph",
-                    variableNames: ["xmin", "xmax", "ymin", "ymax"],
+                    variableNames: ["xMin", "xMax", "yMin", "yMax"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -414,13 +414,13 @@ export default class Curve extends GraphicalComponent {
                     return {
                         setValue: {
                             graphXmin:
-                                dependencyValues.graphAncestor.stateValues.xmin,
+                                dependencyValues.graphAncestor.stateValues.xMin,
                             graphXmax:
-                                dependencyValues.graphAncestor.stateValues.xmax,
+                                dependencyValues.graphAncestor.stateValues.xMax,
                             graphYmin:
-                                dependencyValues.graphAncestor.stateValues.ymin,
+                                dependencyValues.graphAncestor.stateValues.yMin,
                             graphYmax:
-                                dependencyValues.graphAncestor.stateValues.ymax,
+                                dependencyValues.graphAncestor.stateValues.yMax,
                         },
                     };
                 } else {

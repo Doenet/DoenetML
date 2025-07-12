@@ -24,16 +24,16 @@ export default class SubsetOfRealsInput extends BlockComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        attributes.xmin = {
+        attributes.xMin = {
             createComponentOfType: "number",
-            createStateVariable: "xmin",
+            createStateVariable: "xMin",
             defaultValue: -10,
             public: true,
             forRenderer: true,
         };
-        attributes.xmax = {
+        attributes.xMax = {
             createComponentOfType: "number",
-            createStateVariable: "xmax",
+            createStateVariable: "xMax",
             defaultValue: 10,
             public: true,
             forRenderer: true,
@@ -338,8 +338,8 @@ export default class SubsetOfRealsInput extends BlockComponent {
         let roundedValue =
             Math.round(
                 Math.max(
-                    await this.stateValues.xmin,
-                    Math.min(await this.stateValues.xmax, value),
+                    await this.stateValues.xMin,
+                    Math.min(await this.stateValues.xMax, value),
                 ) / dx,
             ) * dx;
 
@@ -697,8 +697,8 @@ export default class SubsetOfRealsInput extends BlockComponent {
         let roundedValue =
             Math.round(
                 Math.max(
-                    await this.stateValues.xmin,
-                    Math.min(await this.stateValues.xmax, value),
+                    await this.stateValues.xMin,
+                    Math.min(await this.stateValues.xMax, value),
                 ) / dx,
             ) * dx;
 

@@ -8,6 +8,7 @@ import {
     Math,
     P,
     PointInGraph,
+    PointInText,
     Problem,
     Division,
     Text,
@@ -21,9 +22,9 @@ import {
     Li,
     Ul,
     ChoiceInput,
+    Em,
 } from "./doenet";
 import * as PretextComponent from "./pretext-xml";
-import { PointInText } from "./doenet/text-point";
 
 export type CommonProps = {
     monitorVisibility?: boolean;
@@ -85,6 +86,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     ol: { component: Ol, passthroughChildren: true },
     ul: { component: Ul, passthroughChildren: true },
     li: { component: Li, passthroughChildren: true },
+    em: { component: Em, passthroughChildren: true },
 
     // For PreTeXt compatibility
     pretext: { component: _Fragment, passthroughChildren: true },
