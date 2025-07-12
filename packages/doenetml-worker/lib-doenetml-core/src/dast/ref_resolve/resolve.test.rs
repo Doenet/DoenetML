@@ -281,13 +281,15 @@ fn cannot_reference_elements_from_other_source_doc_without_parent_reference() {
         <e name="q" />"#,
     );
     let mut flat_root = FlatRoot::from_dast(&dast_root);
-    println!("{:#?}", flat_root);
 
     let a_idx = find(&flat_root, "a").unwrap();
     let s_idx = find(&flat_root, "sourceSwitch").unwrap();
     let c_idx = find(&flat_root, "c").unwrap();
     let d_idx = find(&flat_root, "d").unwrap();
 
+    // Add a source doc to `<sourceSwitch>`,
+    // which is mimics the case of `<sourceSwitch>` extending an external document,
+    // and being name `y2` in that document.
     add_source_doc_to_descendants(
         &mut flat_root,
         s_idx,
@@ -307,14 +309,24 @@ fn cannot_reference_elements_from_other_source_doc_without_parent_reference() {
     let referent = resolver.resolve(make_path(["u"], None), a_idx, false);
     assert_eq!(referent, Err(ResolutionError::NoReferent));
 
-    // A search for `y.z` or `y.u` succeeds as the children of `<sourceSwitch>` are visible from `s_idx`
-    let referent = resolver.resolve(make_path(["y", "z"], None), a_idx, false);
+    // A search for `y.y2`,`y.y2.z`, `y.u`, and `y.z.u` succeeds as the children of `<sourceSwitch>` are visible from `s_idx`
+    let referent = resolver.resolve(make_path(["y", "y2"], None), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: s_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "y2"], None),
+            nodes_in_resolved_path: vec![a_idx, s_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["y", "y2", "z"], None), a_idx, false);
     assert_eq!(
         referent,
         Ok(RefResolution {
             node_idx: c_idx,
             unresolved_path: None,
-            original_path: make_path(["y", "z"], None),
+            original_path: make_path(["y", "y2", "z"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx, c_idx]
         })
     );
@@ -326,6 +338,16 @@ fn cannot_reference_elements_from_other_source_doc_without_parent_reference() {
             unresolved_path: None,
             original_path: make_path(["y", "u"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx, d_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["y", "z", "u"], None), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: d_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "z", "u"], None),
+            nodes_in_resolved_path: vec![a_idx, s_idx, c_idx, d_idx]
         })
     );
 }
@@ -344,12 +366,14 @@ fn elements_from_other_source_doc_cannot_reference_outside_doc() {
         <e name="q" />"#,
     );
     let mut flat_root = FlatRoot::from_dast(&dast_root);
-    println!("{:#?}", flat_root);
 
     let s_idx = find(&flat_root, "sourceSwitch").unwrap();
     let c_idx = find(&flat_root, "c").unwrap();
     let d_idx = find(&flat_root, "d").unwrap();
 
+    // Add a source doc to `<sourceSwitch>`,
+    // which is mimics the case of `<sourceSwitch>` extending an external document,
+    // and being name `y2` in that document.
     add_source_doc_to_descendants(
         &mut flat_root,
         s_idx,
@@ -388,6 +412,121 @@ fn elements_from_other_source_doc_cannot_reference_outside_doc() {
             unresolved_path: None,
             original_path: make_path(["u"], Some(1.into())),
             nodes_in_resolved_path: vec![c_idx, d_idx]
+        })
+    );
+}
+
+#[test]
+fn references_can_span_three_source_documents() {
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="x">
+            <sourceSwitch name="y">
+                <c name="z">
+                   <d name="u" />
+                </c>
+            </sourceSwitch>
+        </a>
+        <e name="q" />"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+
+    let a_idx = find(&flat_root, "a").unwrap();
+    let s_idx = find(&flat_root, "sourceSwitch").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+
+    // Add two source docs to `<sourceSwitch>`,
+    // which is mimics the case of `<sourceSwitch>` extending an external document
+    // which itself extends a third document.
+    add_source_doc_to_descendants(
+        &mut flat_root,
+        s_idx,
+        Some(1.into()),
+        Some("y2".to_string()),
+    );
+
+    add_source_doc_to_descendants(
+        &mut flat_root,
+        s_idx,
+        Some(2.into()),
+        Some("y3".to_string()),
+    );
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    // Name of `<sourceSwitch>` from the second doc is not searchable starting from `a_idx`.
+    let referent = resolver.resolve(make_path(["y2"], None), a_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+    // Since the children of `<sourceSwitch>` are from a different doc
+    // a search for the names `z` or `u` starting at `a_idx` fails.
+    let referent = resolver.resolve(make_path(["z"], None), a_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+    let referent = resolver.resolve(make_path(["u"], None), a_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+
+    // A search for `y.y2` succeeds as `y2` is the second name of `<sourceSwitch>`
+    let referent = resolver.resolve(make_path(["y", "y2"], None), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: s_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "y2"], None),
+            nodes_in_resolved_path: vec![a_idx, s_idx]
+        })
+    );
+    // Searches for `y.z` and `y.u` stop at `y` as we added a second layer of source documents
+    let referent = resolver.resolve(make_path(["y", "z"], None), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: s_idx,
+            unresolved_path: Some(make_path(["z"], None)),
+            original_path: make_path(["y", "z"], None),
+            nodes_in_resolved_path: vec![a_idx, s_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["y", "u"], None), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: s_idx,
+            unresolved_path: Some(make_path(["u"], None)),
+            original_path: make_path(["y", "u"], None),
+            nodes_in_resolved_path: vec![a_idx, s_idx]
+        })
+    );
+
+    // A search for `y.y2.y3`,`y.y2.z` or `y.y2.u` succeeds as we have drilled down to the third document.
+    let referent = resolver.resolve(make_path(["y", "y2", "y3"], None), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: s_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "y2", "y3"], None),
+            nodes_in_resolved_path: vec![a_idx, s_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["y", "y2", "z"], None), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: c_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "y2", "z"], None),
+            nodes_in_resolved_path: vec![a_idx, s_idx, c_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["y", "y2", "u"], None), a_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: d_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "y2", "u"], None),
+            nodes_in_resolved_path: vec![a_idx, s_idx, d_idx]
         })
     );
 }

@@ -127,7 +127,7 @@ pub fn add_source_doc_to_descendants(
                 .position(|attr| attr.name == "source:sequence");
 
             let source_sequence = match source_sequence_idx {
-                Some(idx) => flat_element.attributes.iter_mut().take(idx).next().unwrap(),
+                Some(idx) => flat_element.attributes.iter_mut().skip(idx).next().unwrap(),
                 None => {
                     let element_source: SourceDoc = flat_element.source_doc.into();
                     flat_element.attributes.push(FlatAttribute {
