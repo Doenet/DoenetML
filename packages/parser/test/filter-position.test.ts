@@ -79,6 +79,7 @@ describe("DAST", async () => {
                     offset: 14,
                 },
             },
+            sources: ["some doenetml"],
         };
         const withoutPos = {
             type: "root",
@@ -101,6 +102,7 @@ describe("DAST", async () => {
                     children: [],
                 },
             ],
+            sources: ["some doenetml"],
         };
 
         filterPositionInfo(withPos);

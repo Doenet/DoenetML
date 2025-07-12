@@ -363,7 +363,7 @@ export interface DastRoot extends DastParent {
      * The first source is the DoenetML initially parsed.
      * Later sources are those loaded when referencing external content.
      */
-    sources?: string[];
+    sources: string[];
 }
 
 /**
@@ -495,6 +495,7 @@ export interface DastElementV6 extends DastParentV6 {
 export interface DastRootV6 extends DastParentV6 {
     type: "root";
     data?: RootData | undefined;
+    sources: string[];
 }
 export interface DastParentV6 extends DastAbstractNode {
     children: DastRootContentV6[];
