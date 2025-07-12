@@ -4,19 +4,19 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <ray>{:dn}`
 
+
+` <ray>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a geometrical ray (one endpoint; the opposite side continuous), when 
+nested inside a [` <graph>{:dn}`](graph.mdx).
+
+A ` <ray>{:dn}` may be specified with: 
+
+1. the `endpoint` and the `through` attributes
+2. the `endpoint` and the `direction` attributes
+
 ## Attributes and Properties 
  <AttrDisplay name='ray'/> 
  <PropDisplay name='ray'/>
-
-
-` <ray>{:dn}` is a Graphical Component that renders a geometrical ray (one endpoint; the opposite side continuous), when nested inside a [` <graph>{:dn}`](graph.mdx).
-
-
-A ` <ray>{:dn}` may be specified with: 
-<ol>
-<li>the `endpoint` and the `through` attributes</li>
-<li>the `endpoint` and the `direction` attributes</li>
-</ol>
 
 
 ---
@@ -25,18 +25,26 @@ A ` <ray>{:dn}` may be specified with:
 
 
 ```doenet-editor-horiz
-<p>Ray <m>AB</m> begins at point $rayAB.endpoint and extends in the direction $rayAB.direction, passing through point <m>B</m> at $rayAB.through.</p>
+<p>Ray <m>AB</m> begins at point $rayAB.endpoint and extends in the 
+direction $rayAB.direction, passing through point <m>B</m> at $rayAB.through.</p>
+
 <graph size="small">
-  <ray name="rayAB" endpoint="(-1,-1)" through="(3,5)"/>
+  <ray 
+    name="rayAB" 
+    endpoint="(-1,-1)" 
+    through="(3,5)"
+  />
 </graph>
 ```
 
 
 
-The ` <ray>{:dn}` component is defined directly by specifying coordinates within the `endpoint` and `through` attributes. (Alternatively, a tuple may be directly specified in the `direction` attribute). 
+The ` <ray>{:dn}` component is defined directly by specifying coordinates within 
+the `endpoint` and `through` attributes. (Alternatively, a tuple may be directly 
+specified in the `direction` attribute). 
 
-
-The user can manipulate the position of the `ray` by dragging the ray itself, but the direction remains constant.
+The user can manipulate the position of the `ray` by dragging the ray itself, but 
+the direction remains constant.
 
 
 
@@ -46,11 +54,28 @@ The user can manipulate the position of the `ray` by dragging the ray itself, bu
 
 
 ```doenet-editor-horiz
-<p>Ray <m>AB</m> begins at point $rayAB.endpoint and extends in the direction $rayAB.direction, passing through point <m>B</m> at $rayAB.through.</p>
+<p>Ray <m>AB</m> begins at point $rayAB.endpoint and extends 
+in the direction $rayAB.direction, passing through point <m>B</m> 
+at $rayAB.through.</p>
+
 <graph size="small">
-  <point name="A" labelIsName labelPosition="upperleft">(-3,-4)</point>
-  <point name="B" labelIsName styleNumber="2">(2,5)</point>
-  <ray endpoint="$A" through="$B" name="rayAB"/>
+  <point 
+    name="A" 
+    labelIsName 
+    labelPosition="upperleft">
+      (-3,-4)
+  </point>
+  <point 
+    name="B" 
+    labelIsName 
+    styleNumber="2">
+      (2,5)
+  </point>
+  <ray 
+    name="rayAB"
+    endpoint="$A" 
+    through="$B" 
+  />
 </graph>
 ```
 
@@ -69,10 +94,21 @@ The user can manipulate both the direction and the endpoint of the ` <ray>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>Ray <m>AB</m> begins at point $rayAB.endpoint and extends in the direction $rayAB.direction.</p>
+<p>Ray <m>AB</m> begins at point $rayAB.endpoint and 
+extends in the direction $rayAB.direction.</p>
+
 <graph size="small">
-  <point name="A" labelIsName labelPosition="upperleft">(-3,-4)</point>
-  <ray endpoint="$A" direction="(1,1)" name="rayAB"/>
+  <point 
+    name="A" 
+    labelIsName 
+    labelPosition="upperleft">
+      (-3,-4)
+  </point>
+  <ray 
+    name="rayAB"
+    endpoint="$A" 
+    direction="(1,1)" 
+  />
 </graph>
 ```
 
@@ -88,15 +124,32 @@ If both the `through` and `direction` attributes are specified and not consisten
 
 
 ```doenet-editor-horiz
-<p>Ray <m>AB</m> begins at point $rayAB.endpoint and extends in the direction $rayAB.direction. Adjust the direction vector or type in a direction vector below, to adjust the line segment's direction</p>
+<p>Ray <m>AB</m> begins at point $rayAB.endpoint and extends in the 
+direction $rayAB.direction. Adjust the direction vector or type in a 
+direction vector below, to adjust the line segment's direction</p>
+
 <p><m>\langle x_1, x_2 \rangle = \langle</m>
   <mathInput bindValueTo="$dirVector.x1"/>, 
   <mathInput bindValueTo="$dirVector.x2"/> <m>\rangle</m>
 </p>
+
 <graph size="small">
-  <point name="A" labelIsName labelPosition="upperleft">(-3,-4)</point>
-  <vector name="dirVector" styleNumber="2">(-1,1)</vector>
-  <ray name="rayAB" endpoint="$A" direction="$dirVector"/>
+  <point 
+    name="A" 
+    labelIsName 
+    labelPosition="upperleft">
+      (-3,-4)
+    </point>
+  <vector 
+    name="dirVector" 
+    styleNumber="2">
+      (-1,1)
+  </vector>
+  <ray 
+    name="rayAB" 
+    endpoint="$A" 
+    direction="$dirVector"
+  />
 </graph>
 ```
 

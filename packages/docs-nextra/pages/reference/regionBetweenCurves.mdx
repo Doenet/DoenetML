@@ -1,0 +1,167 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <regionBetweenCurves>{:dn}`
+
+
+ ` <regionBetweenCurves>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
+ component that renders a shaded region on a graph between a specified function and the $x$-axis.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='regionBetweenCurves'/> 
+ <PropDisplay name='regionBetweenCurves'/>
+
+
+---
+
+### Example: Render shading between two functions
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function name="f">x</function>
+  <function name="g">
+    1/4(x - 4)^2 - 4
+  </function>
+  <regionBetweenCurves 
+    boundaryValues="0 8">
+    $f $g
+  </regionBetweenCurves>
+</graph>
+```
+
+
+
+The ` <regionBetweenCurves>{:dn}` component shades in the region between two functions
+$f$ and $g$ over a specified interval.
+
+
+
+---
+
+
+### Attribute Example: flipFunctions
+
+
+```doenet-editor
+<p>Graph the function and flip the region.</p>
+<graph size="small" xmin="-6" xmax="14" ymin="-6" ymax="14">
+  <function name="f">x</function>
+  <function name="g">
+    1/4(x - 4)^2 - 4
+  </function>
+  <regionBetweenCurves name="region" 
+    boundaryValues="0 12"
+    flipFunctions>
+    $f $g
+  </regionBetweenCurves>
+</graph>
+
+<p>Graph the flipped function as a curve, and flip the region.</p>
+<graph size="small" xmin="-6" xmax="14" ymin="-6" ymax="14">
+  <curve flipFunction styleNumber="2">
+    $g
+  </curve>
+  <regionBetweenCurves extend="$region" styleNumber="2"/>
+</graph>
+```
+
+
+
+The `flipFunctions` attribute reflects the functions considered for the shading of the 
+region about the line $y=x$. The original functions remain unchanged.
+
+*Note:* In order to render the reference function as "flipped", you must use the `<curve>{:dn}`
+component with the `flipFunction` attribute, as shown in the second graph. 
+
+
+---
+
+### Attribute Example: boundaryValues
+
+
+```doenet-example
+<slider name="upperLimit" from="-2pi" to="2pi" step="pi/8"/>
+
+<graph size="small" xmin="-2pi" xmax="2pi" ymin="-2" ymax="2" xTickScaleFactor="pi">
+  <function name="f" variable="t">sin(t)</function>
+  <function name="g" variable="t">-sin(t)</function>
+  <regionBetweenCurves 
+    name="shadedRegion"
+    boundaryValues="-2pi $upperLimit">
+    $f $g
+  </regionBetweenCurves>
+</graph>     
+
+<p><c>boundaryValues</c> = $shadedRegion.boundaryValues</p>
+```
+
+
+
+The `boundaryValues` attribute accepts a list of $x$-values or numerical references that 
+define the endpoints of the shaded interval.
+
+
+
+---
+
+### Attribute Example: styleNumber
+
+
+```doenet-editor-horiz
+<slider name="styleNum" from="1" to="6" step="1"/>
+
+<graph size="small" xmin="-1" ymin="-1">
+  <function name="f" styleNumber="$styleNum">
+    -1/8(x-4)^2 + 6
+  </function>
+  <function name="g" styleNumber="$styleNum">
+    -1/8(x-4)^2 + 2
+  </function>
+  <regionBetweenCurves 
+    boundaryValues="0 8" 
+    styleNumber="$styleNum">
+    $f $g
+  </regionBetweenCurves>
+</graph>      
+```
+
+
+
+The ` <regionBetweenCurves>{:dn}` component accepts the `styleNumber` attribute. Default styleNumbers range from $1$ to $6$.
+
+
+
+---
+
+### Property Example: styleDescription/ styleDescriptionWithNoun
+
+
+```doenet-editor-horiz
+<slider name="styleNum" from="1" to="6" step="1"/>
+
+<graph size="small" xmin="-1" ymin="-1">
+  <function name="f" styleNumber="$styleNum">
+    -1/8(x-4)^2 + 6
+  </function>
+  <function name="g" styleNumber="$styleNum">
+    -1/8(x-4)^2 + 2
+  </function>
+  <regionBetweenCurves
+    name="styledRegion" 
+    boundaryValues="0 8" 
+    styleNumber="$styleNum">
+    $f $g
+  </regionBetweenCurves>
+</graph>  
+
+<p><c>styleDescription</c> = $styledRegion.styleDescription</p>
+<p><c>styleDescriptionWithNoun</c> = $styledRegion.styleDescriptionWithNoun</p>
+```
+
+
+
+Since users can override styles and so may see different colors and line styles, don't directly refer to the colors and line styles you create.  Instead, use the properties `styleDescription` and `styleDescriptionWithNoun`.  With those properties, the text will change to match the displayed styles.
+

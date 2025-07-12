@@ -2,16 +2,18 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { AttrDisplay, PropDisplay } from "../../components"
 
-## Attributes and Properties 
- <AttrDisplay name='problem'/> 
- <PropDisplay name='problem'/>
-
 # ` <problem>{:dn}`
 
 
+` <problem>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders an auto-numbered block of content. Inline components such as paragraphs 
+(`<p>{:dn}`) and other components can be nested within an ` <problem>{:dn}` to group and order 
+content. Some examples are: another ` <problem>{:dn}`, a ` <section>{:dn}`, a ` <figure>{:dn}`, or 
+an ` <example>{:dn}`.
 
-` <problem>{:dn}` renders an auto-numbered block of content. Inline components such as paragraphs (` <p>{:dn}`) and other components can be nested within an ` <problem>{:dn}` to group and order content. Some examples are: another ` <problem>{:dn}`, a ` <section>{:dn}`, a ` <figure>{:dn}`, or an ` <example>{:dn}`.
-
+## Attributes and Properties 
+ <AttrDisplay name='problem'/> 
+ <PropDisplay name='problem'/>
 
 ---
 
@@ -22,9 +24,11 @@ import { AttrDisplay, PropDisplay } from "../../components"
 <problem>
   <p><answer>42</answer></p>
 </problem>
+
 <section>
   <p><lorem generateWords="10"/></p>
 </section>
+
 <exercise>
   <p>Build a water rocket.</p>
 </exercise>
@@ -32,7 +36,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-Within a DoenetML document, default titles for sectional components are auto-numbered. Each sectional component is on the same counter.
+Within a DoenetML document, default titles for sectional components are auto-numbered. 
+Each sectional component is on the same counter.
 
 
 
@@ -42,19 +47,28 @@ Within a DoenetML document, default titles for sectional components are auto-num
 
 
 ```doenet-editor-horiz
-<problem><title>Factor the trinomial</title>
-  <p><m>x^2 + 3x + 2 = </m>
-    <answer symbolicEquality>
-      <award>(x+2)(x+1)</award>
-      <award>(x+1)(x+2)</award>
-    </answer>
-  </p>
+<problem>
+  <title>Factor the trinomial</title>
+    <p><m>x^2 + 3x + 2 = </m>
+      <answer symbolicEquality>
+        <mathInput name="userInput"/>
+        <award>
+          <when>
+            <hasSameFactoring>
+              <math>(x+2)(x+1)</math>
+              $userInput
+            </hasSameFactoring>
+          </when>
+        </award>
+      </answer>
+    </p>
 </problem>
 ```
 
 
 
-A custom ` <problem>{:dn}` title is creating by providing a ` <title>{:dn}` tag within the ` <problem>{:dn}`.
+A custom ` <problem>{:dn}` title is creating by providing a ` <title>{:dn}` tag 
+within the ` <problem>{:dn}`.
 
 
 
@@ -64,20 +78,19 @@ A custom ` <problem>{:dn}` title is creating by providing a ` <title>{:dn}` tag 
 
 
 ```doenet-editor-horiz
-<problem><title>This is the main problem.</title>
-  <p>Move the point.</p>
-  <graph size="tiny">
-    <point name="p"/>
-  </graph>
-  <answer>
-    <award><when>$p != (0,0)</when></award>
-  </answer>
+<problem>
+  <title>This is the main problem.</title>
+    <p>Move the point.</p>
+    <graph size="tiny">
+      <point name="p"/>
+    </graph>
+    <answer>
+      <award><when>$p != (0,0)</when></award>
+    </answer>
 
----
-
+  <example><title>Nested example</title>
     <p><lorem generateWords="10"/></p>
-
-
+  </example>
 </problem>
 ```
 
@@ -86,44 +99,18 @@ A custom ` <problem>{:dn}` title is creating by providing a ` <title>{:dn}` tag 
 A hierarchy is created by nesting one or more sectional components within an ` <problem>{:dn}`.
 
 
-
 ---
 
-### Example: newNameSpace
+### Attribute Example: includeParentNumber
 
 
-```doenet-editor-horiz
-<problem boxed>
-  <p>This is the same namespace as the larger document.</p>
-  <number name="x">sqrt(2)</number>  
-  <p><m>x = $x</m></p>
-</problem>
-<problem newNameSpace name="secondProblem" boxed>
-  <p>This is a separate, distinct namespace.</p>
-  <number name="x">3/4</number>  
-  <p><m>x = $x</m></p>
-</problem>  
-<p>General document: <m>x = $x</m></p>
-<p>Second problem: <m>x</m> = $(secondProblem/x)</p>
-```
-
-
-
-The `newNameSpace` attribute defines a separate namespace within the sectional component. Values corresponding to that namespace can be accessed outside the namespace by prepending the name of the problem.
-
-
-
----
-
-### Example: includeParentNumber
-
-
-```doenet-editor-horiz
+```doenet-example
 <section boxed>
   <problem>
     <p>This problem is nested inside a section. The default number does not include the parent number.</p>
   </problem>
 </section>
+
 <section boxed>
   <problem includeParentNumber="true">
     <p>This exercise is nested inside a section. Rendering of the parent section number has been included.</p>
@@ -142,18 +129,19 @@ In order to include the number of the parent sectional component, set `includePa
 
 ---
 
-### Example: includeAutoNumber
+### Attribute Example: includeAutoNumber
 
 
-```doenet-editor-horiz
-  <problem boxed><title>Custom title</title>
+```doenet-example
+<problem boxed>
+  <title>Custom title</title>
     <p>In this problem, the custom title overrides the default numbering of the problem.</p>
-  </problem>
-  <problem boxed includeAutoNumber="true">
-### Example: Special title
+</problem>
 
+<problem boxed includeAutoNumber="true">
+  <title>Special title</title>
     <p>In this problem, the number of the problem is still rendered in addition to the custom title.</p>
-  </problem>
+</problem>
 ```
 
 
@@ -167,14 +155,15 @@ In order to display the problem number in addition to the custom ` <title>{:dn}`
 
 ---
 
-### Example: aggregateScores and sectionWideCheckWork
+### Attribute Example: aggregateScores and sectionWideCheckWork
 
 
-```doenet-editor-horiz
-<problem sectionWideCheckWork aggregateScores><title>Multiple questions</title>
-  <p>Enter <m>x</m>: <answer>x</answer></p>
-  <p>Enter <m>y</m>: <answer>y</answer></p>
-  <p>Enter <m>z</m>: <answer>z</answer></p>
+```doenet-example
+<problem sectionWideCheckWork aggregateScores>
+  <title>Multiple questions</title>
+    <p>Enter <m>x</m>: <answer>x</answer></p>
+    <p>Enter <m>y</m>: <answer>y</answer></p>
+    <p>Enter <m>z</m>: <answer>z</answer></p>
 </problem>
 ```
 
@@ -183,35 +172,22 @@ In order to display the problem number in addition to the custom ` <title>{:dn}`
 The `aggregateScores` and `sectionWideCheckWork` attributes together combine validation for all ` <answer>{:dn}` components within the ` <problem>{:dn}` under a single "Check Work" button.
 
 
-
 ---
 
-### Example: weight *
+### Attribute Example: boxed
 
 
-```doenet-editor-horiz
-```
+```doenet-example
+<problem boxed>
+  <title>Boxed problem</title>
+    <p>Move the point.</p>
+    <graph size="tiny">
+      <point name="p"/>
+    </graph>
 
-
-
-. 
-
-
-
----
-
-### Example: boxed
-
-
-```doenet-editor-horiz
-<problem boxed><title>Boxed problem</title>
-<p>Move the point.</p>
-  <graph size="tiny">
-    <point name="p"/>
-  </graph>
-  <answer>
-    <award><when>$p != (0,0)</when></award>
-  </answer>  
+    <answer>
+      <award><when>$p != (0,0)</when></award>
+    </answer>  
 </problem>
 ```
 
@@ -223,15 +199,19 @@ The `boxed` attribute changes the default formatting for a sectional component t
 
 ---
 
-### Example: hide
+### Attribute Example: hide
 
 
-```doenet-editor-horiz
+```doenet-example
 <booleanInput name="hideProblem">
   <label>Click here to hide the problem</label>
 </booleanInput>
-<problem hide="$hideProblem"><title>Now you see me...</title>
-  <p>Type "sassafras" <answer type="text">sassafras</answer>.</p>
+
+<problem hide="$hideProblem">
+  <title>Now you see me...</title>
+    <p>Type "sassafras" 
+      <answer type="text">sassafras</answer>.
+    </p>
 </problem>
 ```
 

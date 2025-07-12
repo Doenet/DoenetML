@@ -4,7 +4,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <point>{:dn}`
 
-` <point>{:dn}` renders a point on a ` <graph>{:dn}`.
+` <point>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a point on a ` <graph>{:dn}`.
 
 
 ## Attributes and Properties 
@@ -17,9 +18,12 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ```doenet-editor-horiz
+<p>Drag the point to change its location.</p>
 <graph size="small">
-  <point/>
+  <point name="p"/>
 </graph>
+
+<p><m>P = $p</m></p>
 ```
 
 
@@ -30,14 +34,16 @@ Here a default ` <point>{:dn}` is illustrated without any additional attributes.
 
 ---
 
-### Example: ` <point>{:dn}` with sugared coordinates
+### Example: ` <point>{:dn}` with nested coordinates
 
 
 ```doenet-editor-horiz
-<p><m>p = $p</m></p>
+<p>Drag the point to change its location.</p>
 <graph size="small">
   <point name="p">(2,3)</point>
 </graph>
+
+<p><m>P = $p</m></p>
 ```
 
 
@@ -57,8 +63,16 @@ The initial coordinates of a ` <point>{:dn}` may be specified between opening an
 <p><m>p3 = $p3</m></p>
 <graph size="small">
   <point name="p1" x="4" y="0" labelIsName/>
-  <point name="p2" coords="(-4,0)" labelIsName/>
-  <point name="p3" xs="0 -4" labelIsName/>
+  <point 
+    name="p2" 
+    coords="(-4,0)" 
+    labelIsName
+  />
+  <point 
+    name="p3" 
+    xs="0 -4" 
+    labelIsName
+  />
 </graph>
 ```
 
@@ -77,7 +91,11 @@ Three different ways to specify the coordinates of a ` <point>{:dn}` using its a
 <p><m>A = $A</m></p>
 <p><m>B = $B</m></p>
 <graph size="small">
-  <point name="A" labelIsName>(-5,5)</point>
+  <point 
+    name="A" 
+    labelIsName>
+      (-5,5)
+  </point>
   <point name="B">(5,5)
     <label><m>B</m></label>
   </point>
@@ -86,7 +104,8 @@ Three different ways to specify the coordinates of a ` <point>{:dn}` using its a
 
 
 
-Point labels can be created either with the shortcut attribute `labelIsName` or by giving the ` <point>{:dn}` a ` <label>{:dn}` child.
+Point labels can be created either with the shortcut attribute `labelIsName` or by 
+giving the ` <point>{:dn}` a ` <label>{:dn}` child.
 
 
 
@@ -120,7 +139,8 @@ Point labels can be created either with the shortcut attribute `labelIsName` or 
 
 
 
-Points with standard styleNumbers one through six are illustrated. If unspecified, `styleNumber = 1` is the default value.
+Points with standard styleNumbers one through six are illustrated. If unspecified, 
+`styleNumber = 1` is the default value.
 
 
 
@@ -212,12 +232,12 @@ A ` <point>{:dn}` is animated by paraterizing its coordinates with respect to th
   <point name="B" labelIsName>($A.y, -2)</point>
   <point name="C" labelIsName>($B.y, 5)</point>
 </graph>
-<p><m>A_x = </m> <mathinput bindValueTo="$A.x" />,
-  <m>A_y = </m> <mathinput bindValueTo="$A.y" /></p>
-<p><m>B_x = </m> <mathinput bindValueTo="$B.x" />,
-  <m>B_y = </m> <mathinput bindValueTo="$B.y" /></p>
-<p><m>C_x = </m> <mathinput bindValueTo="$C.x" />,
-  <m>C_y = </m> <mathinput bindValueTo="$C.y" /></p>
+<p><m>A_x = </m> <mathInput bindValueTo="$A.x" />,
+  <m>A_y = </m> <mathInput bindValueTo="$A.y" /></p>
+<p><m>B_x = </m> <mathInput bindValueTo="$B.x" />,
+  <m>B_y = </m> <mathInput bindValueTo="$B.y" /></p>
+<p><m>C_x = </m> <mathInput bindValueTo="$C.x" />,
+  <m>C_y = </m> <mathInput bindValueTo="$C.y" /></p>
 ```
 
 
@@ -231,11 +251,11 @@ This example also illustrates how one can change a point either by dragging it o
 
 ---
 
-### Example: draggable
+### Attribute Example: draggable
 
 
-```doenet-editor-horiz
-<graph size="small" displayXAxis="false" displayYAxis="false">
+```doenet-example
+<graph size="small">
   <point>(-6,0)
     <label>I'm free!</label>
   </point>
@@ -254,11 +274,12 @@ The `draggable` attribute determines whether the ` <point>{:dn}` can be dragged 
 
 ---
 
-### Example: x, y
+### Attribute Example: x, y
 
 
-```doenet-editor-horiz
+```doenet-example
 <p><m>p = $p</m></p>
+
 <graph size="small">
   <point name="p" x="3" y="2"/>
 </graph>
@@ -272,11 +293,12 @@ The `x` and `y` attributes are used to specify isolated ` <point>{:dn}` coordina
 
 ---
 
-### Example: coords
+### Attribute Example: coords
 
 
-```doenet-editor-horiz
+```doenet-example
 <p><m>p = $p</m></p>
+
 <graph size="small">
   <point name="p" coords="(2,3)"/>
 </graph>
@@ -290,11 +312,12 @@ The `coords` attribute specifies the ` <point>{:dn}` coordinates.
 
 ---
 
-### Example: xs
+### Attribute Example: xs
 
 
-```doenet-editor-horiz
+```doenet-example
 <p><m>p = $p</m></p>
+
 <graph size="small">
   <point name="p" xs="2 3"/>
 </graph>
@@ -308,10 +331,10 @@ The `xs` attribute specifies the point's location as a list of displacements.
 
 ---
 
-### Example: labelPosition
+### Attribute Example: labelPosition
 
 
-```doenet-editor-horiz
+```doenet-example
 <graph size="small" displayYAxis="false" displayXAxis="false">
   <point name="A" labelPosition="upperleft" coords="(-4,4)" labelIsName/>
   <point name="B" labelPosition="upperright" coords="(4,4)" labelIsName/>
@@ -332,10 +355,10 @@ The `labelPosition` attribute specifies the location of the point's label. Valid
 
 ---
 
-### Example: showCoordsWhenDragging
+### Attribute Example: showCoordsWhenDragging
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Drag each of the points to observe the difference.</p>
 <graph size="small">
   <point name="A" coords="(-6,4)">
@@ -355,10 +378,10 @@ By default, a light-grey set of coordinates is shown while the user drags the po
 
 ---
 
-### Example: hideOffGraphIndicator
+### Attribute Example: hideOffGraphIndicator
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>To see both points A and B, use the (-) button at the bottom of the graph to zoom out.</p>
 <graph size="small">
   <point name="A" labelIsName coords="(-15,4)" hideOffGraphIndicator/>
@@ -377,15 +400,27 @@ In this example, only one indicator appears initially, since point A has the `hi
 
 ---
 
-### Example: Standard graphical attributes
+### Attribute Example: Standard graphical attributes
 
 
 ```doenet-editor-horiz
 <graph size="small">
   <circle styleNumber="5" filled radius="6" fixed/>
-  <point name="A" layer="1" styleNumber="3" applyStyleToLabel labelIsName hide="$hidePointA"/>
-  <point name="B" applyStyleToLabel styleNumber="2" labelIsName coords="(3,3)"/>
+  <point 
+    name="A" layer="1" 
+    styleNumber="3" 
+    applyStyleToLabel 
+    labelIsName 
+    hide="$hidePointA"
+  />
+  <point 
+    name="B" 
+    applyStyleToLabel 
+    styleNumber="2" 
+    labelIsName coords="(3,3)"
+  />
 </graph>
+
 <booleanInput name="hidePointA" labelIsName/>
 <p>Standard graphical attributes:</p>
     <ul>
@@ -405,16 +440,17 @@ The uses of the following standard graphical attributes are illustrated: `hide`,
 
 ---
 
-### Example: Attributes as properties
+### Property Example: Attributes as properties
 
 
 ```doenet-editor-horiz
 <graph size="small">
   <point name="p" labelIsName>(2,3)</point>
 </graph>
+
 <p><c>x, y</c> = $p.x , $p.y</p>
 <p><c>coords</c> = $p.coords</p>
-<p><c>xs</c> = <asList>$p.xs</asList></p>
+<p><c>xs</c> = $p.xs</p>
 <p><c>labelPosition</c> = $p.labelPosition</p>
 <p><c>showCoordsWhenDragging</c> = $p.showCoordsWhenDragging</p>
 ```
@@ -427,13 +463,14 @@ The above listed ` <point>{:dn}` attributes are also accessible as properties.
 
 ---
 
-### Example: numDimensions *
+### Property Example: numDimensions
 
 
 ```doenet-editor-horiz
 <graph size="small">
-  <point name="p" labelIsName>(0,3)</point>
+  <point name="p" labelIsName>(5,5)</point>
 </graph>
+
 <p><c>numDimensions</c> = $p.numDimensions</p>
 ```
 
@@ -445,13 +482,14 @@ The `numDimensions` property renders the number of dimensions required to define
 
 ---
 
-### Example: latex
+### Property Example: latex
 
 
 ```doenet-editor-horiz
 <graph size="small">
   <point name="p" labelIsName>(0,3)</point>
 </graph>
+
 <p><c>latex</c> = $p.latex</p>
 ```
 
@@ -463,13 +501,15 @@ The `latex` property renders the latex code associated with rendering the coordi
 
 ---
 
-### Example: constraintUsed
+### Property Example: constraintUsed
 
 
 ```doenet-editor-horiz
 <p>Move the point on and off the grid to observe changes to the property.</p>
 <p><m>p = $p</m></p>
+
 <p><c>constraintUsed</c> = $p.constraintUsed</p>
+
 <graph size="small" grid="2 2">
   <point name="p">(1.5,1.5)
     <constraints>

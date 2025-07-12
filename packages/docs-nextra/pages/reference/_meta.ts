@@ -3,12 +3,6 @@ import { split } from "postcss/lib/list";
 export default {
     componentIndex: "Alphabetical Index",
     componentTypes: "Index by Component Type",
-    Sample_Component: {
-        display: "hidden",
-    },
-    archive: {
-        display: "hidden",
-    },
     abs: { title: "abs" },
     alert: { title: "alert" },
     and: { title: "and" },
@@ -142,9 +136,12 @@ export default {
     ray: { title: "ray" },
     rectangle: { title: "rectangle" },
     ref: { title: "ref" },
+    regionBetweenCurves: { title: "regionBetweenCurves" },
     regionBetweenCurveXAxis: { title: "regionBetweenCurveXAxis" },
-    regularPolygon: { title: "regularPolygon" },
+    regularPolygon: { title: "regularPolygon (Page 1)" },
+    regularPolygon2: { title: "regularPolygon (Page 2)" },
     repeat: { title: "repeat" },
+    repeatForSequence: { title: "repeatForSequence" },
     round: { title: "round" },
     row_matrix: { title: "row (for `<matrix>{:dn}`" },
     row_table: { title: "row (for `<table>{:dn}`)" },
@@ -197,4 +194,7 @@ export default {
     xLabel: { title: "xLabel" },
     xor: { title: "xor" },
     yLabel: { title: "yLabel" },
+    Sample_Component: {
+        display: "hidden",
+    },
 };

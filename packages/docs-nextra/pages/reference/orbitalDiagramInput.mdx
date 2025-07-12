@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <orbitalDiagramInput/>{:dn}`
 
-` <orbitalDiagramInput/>{:dn}` renders an interactive tool for student entry of orbital diagrams.
+` <orbitalDiagramInput/>{:dn}` is a [Subject-Specific](../document_structure/essentialConcepts#component-types)
+component that renders an interactive tool for student entry of orbital diagrams.
 
 ## Attributes and Properties 
  <AttrDisplay name='orbitalDiagramInput'/> 
@@ -14,21 +15,22 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
-### Example: Default <tage>orbitalDiagramInput</tage>
+### Example: Default ` <orbitalDiagramInput/>{:dn}`
 
 
-```doenet-editor-horiz
-
-  <atom atomicNumber="6" name="carbon"/>
+```doenet-example
+<atom atomicNumber="6" name="carbon"/>
 
 <p>Draw the orbital diagram for <alert>carbon</alert>. At the left side of each row, include the label for the sublevel shown (1s, 2s, 2p, etc.)</p>
 <orbitalDiagramInput name="userDiagram"/>
+
 <answer>
   <award>
     <when>$userDiagram = $carbon.orbitalDiagram
     </when>
   </award>
 </answer>
+
 <solution>
 $carbon.orbitalDiagram
 </solution>
@@ -36,28 +38,33 @@ $carbon.orbitalDiagram
 
 
 
-The default ` <orbitalDiagramInput/>{:dn}` contains one row with an empty label. Students complete the diagram by typing in the correct sublevel into the label, and using the buttons to add "box" entry fields and arrows to complete the diagram. Additional rows are also added/removed with the buttons shown above the diagram. Check the solution provided and experiment with the buttons to get a feel for how the tool behaves.
+The default ` <orbitalDiagramInput/>{:dn}` contains one row with an empty label. Students 
+complete the diagram by typing in the correct sublevel into the label, and using 
+the buttons to add "box" entry fields and arrows to complete the diagram. Additional 
+rows are also added/removed with the buttons shown above the diagram. Check the 
+solution provided and experiment with the buttons to get a feel for how the tool behaves.
 
 
 
 ---
 
-### Example: prefill
+### Attribute Example: prefill
 
 
-```doenet-editor-horiz
-
-  <atom atomicNumber="5" name="boron"/>
-  <atom atomicNumber="9" name="fluorine"/>
+```doenet-example
+<atom atomicNumber="5" name="boron"/>
+<atom atomicNumber="9" name="fluorine"/>
 
 <p>Add electrons to the orbital diagram for boron shown below in order to make the orbital diagram for fluorine.</p>
 <orbitalDiagramInput name="userDiagram" prefill="(ud) (ud) (u, , )" prefillLabel="1s 2s 2p"/>
+
 <answer>
   <award>
     <when>$userDiagram = $fluorine.orbitalDiagram
     </when>
   </award>
 </answer>
+
 <solution>
 <p>The orbital diagram for <alert>fluorine</alert></p>
 $fluorine.orbitalDiagram
@@ -75,13 +82,12 @@ To enter the array of arrow directions, use "`u`" for an up arrow and "`d`" for 
 
 ---
 
-### Example: prefill (2nd method)
+### Attribute Example: prefill (2nd method)
 
 
-```doenet-editor-horiz
-
-  <atom atomicNumber="5" name="boron"/>
-  <atom atomicNumber="9" name="fluorine"/>
+```doenet-example
+<atom atomicNumber="5" name="boron"/>
+<atom atomicNumber="9" name="fluorine"/>
 
 <p>Add electrons to the orbital diagram for boron shown below in order to make the orbital diagram for fluorine.</p>
 <orbitalDiagramInput name="userDiagram" prefill="$boron.orbitalDiagram"/>
@@ -105,12 +111,11 @@ The `prefill` attribute of the ` <orbitalDiagramInput/>{:dn}` component takes as
 
 ---
 
-### Example: prefillLabel
+### Attribute Example: prefillLabel
 
 
-```doenet-editor-horiz
-
-  <atom atomicNumber="9" name="fluorine"/>
+```doenet-example
+<atom atomicNumber="9" name="fluorine"/>
 
 <p>Add electrons to the blank orbital diagram shown below in order to make the orbital diagram for fluorine.</p>      
 <orbitalDiagramInput name="userDiagram" prefill="() () ( , , )" prefillLabel="1s 2s 2p"/>
@@ -134,15 +139,18 @@ The `prefillLabel` attribute can be used to specify a prefill of the labels for 
 
 ---
 
-### Example: value
+### PropertyExample: value
 
 
 ```doenet-editor-horiz
-
-  <atom atomicNumber="6" name="carbon"/>
+<atom atomicNumber="6" name="carbon"/>
 
 <p>Complete the orbital diagram for <alert>carbon</alert>.</p>
-<orbitalDiagramInput name="userDiagram" prefill="$carbon.orbitalDiagram"/>
+<orbitalDiagramInput 
+  name="userDiagram" 
+  prefill="$carbon.orbitalDiagram"
+/>
+
 <p><c>value</c> = $userDiagram.value</p>
 ```
 
@@ -154,15 +162,18 @@ The `value` property of the ` <orbitalDiagramInput/>{:dn}` returns a static copy
 
 ---
 
-### Example: rows
+### Property Example: rows
 
 
 ```doenet-editor-horiz
-
-  <atom atomicNumber="6" name="carbon"/>
+<atom atomicNumber="6" name="carbon"/>
 
 <p>Complete the orbital diagram for <alert>carbon</alert>.</p>
-<orbitalDiagramInput name="userDiagram" prefill="$carbon.orbitalDiagram"/>
+<orbitalDiagramInput 
+  name="userDiagram" 
+  prefill="$carbon.orbitalDiagram"
+/>
+
 <p><c>rows</c> = $userDiagram.rows</p>
 ```
 
@@ -174,15 +185,18 @@ The `rows` property of the ` <orbitalDiagramInput/>{:dn}` returns the row values
 
 ---
 
-### Example: numRows
+### Property Example: numRows
 
 
 ```doenet-editor-horiz
-
-  <atom atomicNumber="6" name="carbon"/>
+<atom atomicNumber="6" name="carbon"/>
 
 <p>Complete the orbital diagram for <alert>carbon</alert>.</p>
-<orbitalDiagramInput name="userDiagram" prefill="$carbon.orbitalDiagram"/>
+<orbitalDiagramInput 
+  name="userDiagram" 
+  prefill="$carbon.orbitalDiagram"
+/>
+
 <p><c>numRows</c> = $userDiagram.numRows</p>
 ```
 
@@ -198,11 +212,14 @@ The `numRows` property of the ` <orbitalDiagramInput/>{:dn}` returns the number 
 
 
 ```doenet-editor-horiz
-
-  <atom atomicNumber="6" name="carbon"/>
+<atom atomicNumber="6" name="carbon"/>
 
 <p>Complete the orbital diagram for <alert>carbon</alert>.</p>
-<orbitalDiagramInput name="userDiagram" prefill="$carbon.orbitalDiagram"/>
+<orbitalDiagramInput 
+  name="userDiagram" 
+  prefill="$carbon.orbitalDiagram"
+/>
+
 <p><c>selectedBoxIndex</c> = $userDiagram.selectedBoxIndex</p>
 ```
 

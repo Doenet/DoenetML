@@ -1,0 +1,267 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <regularPolygon>{:dn}`
+
+
+` <regularPolygon>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a regular polygon on a ` <graph>{:dn}`.
+
+
+## Examples Page 2
+
+
+
+### Attribute Example: area
+
+
+```doenet-editor-horiz
+<p>What area are you trying to cover?</p>
+<p>
+  <m>\text{Area} = </m>
+  <mathInput name="cover" prefill="75"/>
+</p>
+
+<graph size="small">
+  <regularPolygon name="hexagon" numSides="6" area="$cover" filled/>
+</graph> 
+
+<p><c>area</c> = $hexagon.area</p>
+```
+
+
+
+The `area` attribute can be used to adjust the size of the regular polygon. 
+(Note that the `vertices` attribute takes precedence in the case of overconstraint.)
+
+
+
+---
+
+### Attribute Example: verticesDraggable
+
+
+```doenet-example
+<p>Try dragging the vertices of the polygon.</p>
+
+<booleanInput name="isDraggable" prefill="true">
+  <label>Draggable vertices?</label>
+</booleanInput>
+
+<graph size="small">
+  <regularPolygon 
+    name="hexagon" 
+    verticesDraggable="$isDraggable" 
+    numSides="6" 
+    sideLength="3" 
+    filled
+  />
+</graph> 
+
+<p><c>verticesDraggable</c> = $hexagon.verticesDraggable</p>
+```
+
+
+
+Vertices are draggable by default. Use the `verticesDraggable` attribute set to 
+false to disable users from changing the size and rotation of the ` <regularPolygon>{:dn}`. The 
+polygon as a whole can still be repositioned on the ` <graph>{:dn}`.
+
+
+
+---
+
+### Attribute Example: fixed / fixLocation
+
+
+```doenet-editor-horiz
+<p>Triangle A has <attr>fixLocation</attr></p>
+<p>Triangle B has <attr>fixed</attr></p>
+
+<graph size="small" displayXAxis="false" displayYAxis="false">
+  <regularPolygon 
+    name="fixLocationTri" 
+    fixLocation 
+    center="(-5,0)" 
+    sideLength="5">
+      <label>A</label>
+  </regularPolygon>
+  
+  <regularPolygon 
+    name="fullyFixedTri" 
+    fixed center="(5,0)" 
+    sideLength="5" 
+    styleNumber="2">
+      <label>B</label>
+  </regularPolygon>
+</graph> 
+
+<updateValue target="$fixLocationTri.hide" newValue="true" type="boolean" disabled="$fixLocationTri.hide = true">
+  <label>Hide polygon A</label>
+</updateValue>
+
+<updateValue target="$fixLocationTri.hide" newValue="false" type="boolean" disabled="$fixLocationTri.hide = false">
+  <label>Show polygon A</label>
+</updateValue>
+
+<updateValue target="$fullyFixedTri.hide" newValue="true" type="boolean">
+  <label>Hide polygon B</label>
+</updateValue>
+
+<p><c>fixLocation (A)</c> = $fixLocationTri.fixLocation</p>
+<p><c>fixed (B)</c> = $fullyFixedTri.fixed</p>    
+```
+
+
+
+This example illustrates the difference between the `fixed` and the `fixLocation` attributes. If 
+an object is `fixed` it cannot be moved or changed in any way. The `styleNumber`, `hide`, and `filled` 
+attributes, for example, cannot be changed or updated. This is why the ` <updateValue>{:dn}` button 
+for polygon B is ineffective. 
+
+
+With `fixLocation`, by contrast, the object cannot be moved or resized (i.e. it automatically 
+makes vertices not draggable), but other characteristics of the object can still be changed.
+
+
+
+---
+
+### Attribute Example: Standard graphical attributes
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle styleNumber="5" filled radius="6" fixed/>
+  <regularPolygon 
+    name="A" 
+    layer="1" 
+    styleNumber="3" 
+    applyStyleToLabel 
+    labelIsName 
+    hide="$hidePolygonA" 
+    draggable="false" 
+    filled 
+    sideLength="4" 
+    numSides="8" 
+    center="(-3,-4)"
+  />
+  <regularPolygon 
+    name="B" 
+    applyStyleToLabel 
+    styleNumber="2" 
+    labelIsName 
+    sideLength="2" 
+    numSides="8" 
+    center="(6,4)"
+  />
+</graph>
+
+<booleanInput name="hidePolygonA" labelIsName/>
+<p>Standard graphical attributes:</p>
+    <ul>
+      <li><attr>hide</attr></li>
+      <li><attr>draggable</attr></li>
+      <li><attr>layer</attr> (0) is default value.</li>
+      <li><attr>styleNumber</attr> 1 - 6</li>
+      <li><attr>applyStyleToLabel</attr></li>
+      <li><attr>labelIsName</attr></li>
+    </ul>
+```
+
+
+
+The uses of the following standard graphical attributes are illustrated: `hide`, `draggable`, `layer`, `styleNumber`, `applyStyleToLabel` and `labelIsName`.
+
+
+Layers: By adjusting the `layer` attribute number, geometry can be placed in front of or behind other geometry. The default `layer` number is 0; all higher numbers are placed in front. Due to the fact that the default styleNumbers all involve a degree of transparency, this distinction may not be readily visible.
+
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <regularPolygon 
+    name="heptagon" 
+    numSides="7" 
+    sideLength="7"
+  />
+</graph>
+
+
+<p><c>numVertices</c> = $heptagon.numVertices</p>
+<p><c>numSides</c> = $heptagon.numSides</p>   
+<p><c>center</c> = $heptagon.center</p>
+<p><c>radius</c> = $heptagon.radius</p>
+<p><c>circumRadius</c> = $heptagon.circumRadius</p>
+<p><c>inRadius</c> = $heptagon.inRadius</p>
+<p><c>apothem</c> = $heptagon.apothem</p>
+<p><c>sideLength</c> = $heptagon.sideLength</p>
+<p><c>perimeter</c> = $heptagon.perimeter</p>
+<p><c>area</c> = $heptagon.area</p>
+```
+
+
+
+The above-listed attributes of the ` <regularPolygon>{:dn}` component are also accessible as properties.
+
+
+
+---
+
+### Property Example: vertices
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <regularPolygon 
+    name="largePoly" 
+    numSides="13" 
+    vertices="(-4,-2) (-2,-4)"
+  />
+  <pointList extend="$largePoly.vertices" styleNumber="5"/>
+</graph>
+
+<p><c>vertices</c> = $largePoly.vertices</p>
+<p><c>vertices[3]</c> = $largePoly.vertices[3]</p>
+<p><c>vertices[3].y</c> = $largePoly.vertices[3].y</p>
+```
+
+
+
+The `vertices` property stores/renders all the computed vertices of the regular polygon in an array. Array notation can be used to access an individual vertex or a coordinate of a vertex.
+
+
+
+---
+
+### Property Example: Style properties
+
+
+```doenet-editor-horiz
+<graph  size="small">
+  <regularPolygon 
+    name="square" 
+    numSides="4" 
+    sideLength="10" 
+    filled 
+    styleNumber="2"
+  />
+</graph>
+
+<p><c>styleDescription</c> = $square.styleDescription</p>
+<p><c>styleDescriptionWithNoun</c> = $square.styleDescriptionWithNoun</p>
+<p><c>fillStyleDescription</c> = $square.fillStyleDescription</p>
+<p><c>borderStyleDescription</c> = $square.borderStyleDescription</p>
+```
+
+
+
+The `styleDescription`, `styleDescriptionWithNoun`, `fillStyleDescription`, and `borderStyleDescription` properties render a text description corresponding to the `styleNumber` of the component.
+
