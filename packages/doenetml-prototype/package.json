@@ -73,6 +73,7 @@
             ],
             "dependencies": [
                 "../doenetml-worker:build",
+                "../doenetml-to-pretext:build",
                 "../parser:build",
                 "../codemirror:build"
             ]

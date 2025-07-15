@@ -2,7 +2,7 @@ import { describe, expect, it, afterAll, beforeAll } from "vitest";
 import util from "util";
 import { toXml as xastToXml } from "xast-util-to-xml";
 import { FlatDastRoot } from "@doenet/doenetml-worker";
-import { renderToPretext } from "../src/utils/pretext/render-to-pretext";
+import { renderFlatDastToPretext } from "../src/utils/pretext/render-to-pretext";
 import { RunThroughCore } from "./utils/run-through-core";
 
 const origLog = console.log;
@@ -55,7 +55,9 @@ const SIMPLE_FLAT_DAST = {
 const coreRunner = new RunThroughCore();
 
 function renderToPretextString(flatDast: FlatDastRoot) {
-    return xastToXml(renderToPretext(flatDast), { closeEmptyElements: true });
+    return xastToXml(renderFlatDastToPretext(flatDast), {
+        closeEmptyElements: true,
+    });
 }
 
 afterAll(async () => {
@@ -64,7 +66,7 @@ afterAll(async () => {
 
 beforeAll(async () => {
     await coreRunner.processToFatDast(`<p>Hi</p>`);
-});
+}, 20000);
 
 describe("Pretext export", async () => {
     let source: string;

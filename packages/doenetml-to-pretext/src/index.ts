@@ -4,7 +4,7 @@ import { doenetGlobalConfig } from "./global-config";
 import * as Comlink from "comlink";
 import * as Xast from "xast";
 import "./index-inline-worker";
-import { renderToPretext } from "./utils/pretext/render-to-pretext";
+import { renderFlatDastToPretext } from "./utils/pretext/render-to-pretext";
 import { toXml as xastToXml } from "xast-util-to-xml";
 
 const defaultFlags = {
@@ -47,7 +47,7 @@ export async function doenetMLToPretext(doenetML: string): Promise<string> {
 export async function flatDastToPretext(
     flatDast: FlatDastRootWithErrors,
 ): Promise<Xast.Root> {
-    return renderToPretext(flatDast);
+    return renderFlatDastToPretext(flatDast);
 }
 
 /**

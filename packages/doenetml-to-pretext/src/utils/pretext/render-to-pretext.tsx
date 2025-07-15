@@ -23,7 +23,7 @@ import { normalizeAttrs } from "./normalize-attrs";
  * Use React's rendering pipeline to render the FlatDast to PreTeXt in the form of a XAST
  * XML Abstract Syntax Tree. This can be turned into a string using `xast-util-to-xml`.
  */
-export function renderToPretext(
+export function renderFlatDastToPretext(
     flatDast: FlatDastRoot | FlatDastRootWithErrors,
 ): Xast.Root {
     if (typeof flatDast !== "object" || !Array.isArray(flatDast.elements)) {
