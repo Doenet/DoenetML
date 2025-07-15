@@ -2633,8 +2633,9 @@ export default class Core {
 
         // If `createComponentIdx` was specified, the one replacement is already in the resolver,
         // so we just add its children and attribute components/references.
-        // Otherwise all all replacements.
+        // Otherwise add all replacements.
         const fragmentChildren = [];
+        let parentSourceSequence = null;
         if (component.attributes.createComponentIdx != null) {
             if (serializedReplacements[0]?.children) {
                 fragmentChildren.push(...serializedReplacements[0].children);
@@ -2647,6 +2648,23 @@ export default class Core {
                 } else if (attribute.type === "references") {
                     fragmentChildren.push(...attribute.references);
                 }
+            }
+
+            // if the replacement that is the fragment parent has a source sequence,
+            // then add that as the `parentSourceSequence` of the flat fragment
+            let sourceSequence =
+                serializedReplacements[0].attributes["source:sequence"];
+            if (sourceSequence) {
+                parentSourceSequence = {
+                    type: "attribute",
+                    name: "source:sequence",
+                    parent: component.attributes.createComponentIdx.primitive
+                        .number,
+                    children: sourceSequence.children.filter(
+                        (child) => typeof child === "string",
+                    ),
+                    sourceDoc: sourceSequence.sourceDoc,
+                };
             }
         } else {
             fragmentChildren.push(...serializedReplacements);
@@ -2661,6 +2679,7 @@ export default class Core {
             ),
             nodes: [],
             parentIdx,
+            parentSourceSequence,
             idxMap: {},
         };
 

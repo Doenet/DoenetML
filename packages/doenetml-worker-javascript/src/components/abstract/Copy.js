@@ -894,6 +894,22 @@ export default class Copy extends CompositeComponent {
                     };
                 }
 
+                if (
+                    stateValues.extendedComponent &&
+                    stateValues.unresolvedPath === null
+                ) {
+                    // since `generatedVariantInfo` may be accessed when serializing a component,
+                    // make sure it is resolved so we don't end up resolving it while expanding
+                    // (which could change `nComponents` and cause overlapping component)
+                    dependencies.extendedVariantInfo = {
+                        dependencyType: "stateVariable",
+                        componentIdx:
+                            stateValues.extendedComponent.componentIdx,
+                        variableName: "generatedVariantInfo",
+                        variablesOptional: true,
+                    };
+                }
+
                 // since will be creating complete replacement when expand,
                 // make sure all replacement sources are resolved
                 if (!stateValues.link) {
@@ -2376,7 +2392,8 @@ export async function replacementFromProp({
 
             let unresolvedPropName = "";
             if (startOffset != undefined && endOffset != undefined) {
-                unresolvedPropName = allDoenetMLs?.[0]?.substring(
+                const sourceDoc = unresolvedPath[0].sourceDoc ?? 0;
+                unresolvedPropName = allDoenetMLs?.[sourceDoc]?.substring(
                     startOffset,
                     endOffset,
                 );

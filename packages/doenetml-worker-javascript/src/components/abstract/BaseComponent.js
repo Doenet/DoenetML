@@ -1221,6 +1221,7 @@ export default class BaseComponent {
             attributes: {},
             doenetAttributes: {},
             state: {},
+            sourceDoc: this.sourceDoc,
         };
 
         let serializedChildren = [];
@@ -1308,6 +1309,7 @@ export default class BaseComponent {
                         component: await attribute.component.serialize(
                             parametersForChildren,
                         ),
+                        sourceDoc: attribute.component.sourceDoc,
                     };
                 }
             } else if (attribute.references) {
@@ -1323,6 +1325,7 @@ export default class BaseComponent {
                     type: "references",
                     references,
                     stringChildren: attribute.stringChildren,
+                    sourceDoc: attribute.sourceDoc,
                 };
             } else {
                 // copy others if copy all or not set to be ignored
@@ -1470,12 +1473,14 @@ export default class BaseComponent {
             const newPathPart = {
                 name: pathPart.name,
                 position: pathPart.position,
+                sourceDoc: pathPart.sourceDoc,
                 index: [],
             };
 
             for (const index of pathPart.index) {
                 const newIndex = {
                     position: index.position,
+                    sourceDoc: index.sourceDoc,
                     value: [],
                 };
                 for (let comp of index.value) {
@@ -1518,6 +1523,7 @@ export default class BaseComponent {
             state: {},
             doenetAttributes: {},
             attributes: {},
+            sourceDoc: serializedComponent.sourceDoc,
         };
 
         if (serializedComponent.doenetAttributes != undefined) {
@@ -1555,6 +1561,7 @@ export default class BaseComponent {
         return serializedCopy;
     }
 
+    // TODO: this function is not being used (7/13/2025). Delete it?
     copySerializedComponentToDast(serializedComponent) {
         if (typeof serializedComponent !== "object") {
             return { type: "text", value: serializedComponent };

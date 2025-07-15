@@ -188,9 +188,9 @@ export async function expandExternalReferences(
                         case "element":
                             // need to also visit the attributes
                             for (const attrName in node.attributes) {
-                                for (const attrChild of node.attributes[
-                                    attrName
-                                ].children) {
+                                const attribute = node.attributes[attrName];
+                                attribute.source_doc = source_doc;
+                                for (const attrChild of attribute.children) {
                                     visit(attrChild, addDocSource);
                                 }
                             }

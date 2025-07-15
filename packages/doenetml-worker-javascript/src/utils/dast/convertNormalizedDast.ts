@@ -604,7 +604,7 @@ export function expandAllUnflattenedAttributes({
             attributes[attrName] = res.attribute;
             errors.push(...res.errors);
             nComponents = res.nComponents;
-        } else if (componentClass.acceptAnyAttribute) {
+        } else if (componentClass.acceptAnyAttribute || attr.includes(":")) {
             let res = expandAttribute({
                 attribute: unflattenedAttributes[attr],
                 allUnflattenedAttributes: unflattenedAttributes,
@@ -614,7 +614,7 @@ export function expandAllUnflattenedAttributes({
             attributes[attr] = res.attribute;
             errors.push(...res.errors);
             nComponents = res.nComponents;
-        } else if (!attr.includes(":")) {
+        } else {
             throw Error(
                 `Invalid attribute "${attr}" for a component of type <${componentClass.componentType}>.`,
             );
@@ -767,6 +767,7 @@ export function expandAttribute({
                 res.components,
                 componentInfoObjects,
             )[0] as SerializedComponent,
+            sourceDoc: attribute.sourceDoc,
         };
         if (attrDef.ignoreFixed) {
             // set the component to ignore the fixed of its parent
@@ -785,6 +786,7 @@ export function expandAttribute({
                 type: "primitive",
                 name: attribute.name,
                 primitive: primitiveValue,
+                sourceDoc: attribute.sourceDoc,
             },
             errors,
             nComponents,
@@ -866,6 +868,7 @@ function createInitialComponentFromAttribute({
                     attributes: {},
                     children: [],
                     state: { value: attrDef.valueForTrue },
+                    sourceDoc: attribute.sourceDoc,
                 },
                 nComponents,
             };
@@ -883,6 +886,7 @@ function createInitialComponentFromAttribute({
                     attributes: {},
                     children: [],
                     state: { value: true },
+                    sourceDoc: attribute.sourceDoc,
                 },
                 nComponents,
             };
@@ -910,6 +914,7 @@ function createInitialComponentFromAttribute({
                         attributes: {},
                         children: [],
                         state: { value: attrDef.valueForTrue },
+                        sourceDoc: attribute.sourceDoc,
                     },
                     nComponents,
                 };
@@ -925,6 +930,7 @@ function createInitialComponentFromAttribute({
                         attributes: {},
                         children: [],
                         state: { value: attrDef.valueForFalse },
+                        sourceDoc: attribute.sourceDoc,
                     },
                     nComponents,
                 };
@@ -943,6 +949,7 @@ function createInitialComponentFromAttribute({
                         attributes: {},
                         children: [],
                         state: { value: valueTrimLower === "true" },
+                        sourceDoc: attribute.sourceDoc,
                     },
                     nComponents,
                 };
@@ -957,6 +964,7 @@ function createInitialComponentFromAttribute({
         attributes: {},
         children: [],
         state: {},
+        sourceDoc: attribute.sourceDoc,
     };
 
     component.children = [...attribute.children];
