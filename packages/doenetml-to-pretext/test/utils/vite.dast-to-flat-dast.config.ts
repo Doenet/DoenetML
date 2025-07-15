@@ -4,6 +4,10 @@ import { defineConfig } from "vite";
 export default defineConfig({
     base: "./",
     plugins: [],
+    define: {
+        // 2025-07-11: Needed to prevent React import errors for some reason...
+        "process.env": "{}",
+    },
     build: {
         outDir: "./dist/dast-to-flat-dast/",
         minify: false,

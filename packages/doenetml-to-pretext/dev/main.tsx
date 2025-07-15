@@ -7,13 +7,14 @@ import "@doenet/ui-components/style.css";
 import doenetMLstring from "./testCode.doenet?raw";
 
 import "./main.css";
-import { getStaticDast } from "../src";
+import { doenetMLToPretext, getStaticDast } from "../src";
 
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
 
 function App() {
     const [source, setSource] = React.useState<string>(doenetMLstring);
+    const [pretextOutput, setPretextOutput] = React.useState<string>("");
 
     return (
         <div className="container">
@@ -21,8 +22,9 @@ function App() {
                 <UiButton
                     onClick={async () => {
                         console.log("Converting to PreTeXt", source);
-                        const ret = await getStaticDast(source);
+                        const ret = await doenetMLToPretext(source);
                         console.log("Conversion result:", ret);
+                        setPretextOutput(ret);
                     }}
                 >
                     Convert to PreTeXt
@@ -35,7 +37,15 @@ function App() {
                 panelB={
                     <div style={{ padding: "1em" }}>
                         <h1>PreTeXt Output</h1>
-                        <p>Your converted PreTeXt content will appear here.</p>
+                        {pretextOutput ? (
+                            <pre className="pretext-output">
+                                {pretextOutput}
+                            </pre>
+                        ) : (
+                            <p>
+                                Your converted PreTeXt content will appear here.
+                            </p>
+                        )}
                     </div>
                 }
             />

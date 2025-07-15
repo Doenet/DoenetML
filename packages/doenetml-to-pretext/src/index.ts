@@ -2,7 +2,10 @@ import { CoreWorker, FlatDastRootWithErrors } from "@doenet/doenetml-worker";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { doenetGlobalConfig } from "./global-config";
 import * as Comlink from "comlink";
+import * as Xast from "xast";
 import "./index-inline-worker";
+import { renderToPretext } from "./utils/pretext/render-to-pretext";
+import { toXml as xastToXml } from "xast-util-to-xml";
 
 const defaultFlags = {
     showCorrectness: true,
@@ -20,7 +23,7 @@ const defaultFlags = {
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
  */
-export function createWrappedCoreWorker() {
+export async function createWrappedCoreWorker() {
     const worker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
         type: "classic",
     });
@@ -29,12 +32,22 @@ export function createWrappedCoreWorker() {
 }
 
 /**
- * Convert DoenetML to static PreTeXt.
+ * Convert a DoenetML string into a static PreTeXt representation.
  */
-export async function doenetmlToPretext() {
-    // This function is a placeholder for the main export of the package.
-    // It can be used to initialize or export functionalities related to DoenetML to PreTeXt conversion.
-    console.log("DoenetML to PreTeXt conversion initialized.");
+export async function doenetMLToPretext(doenetML: string): Promise<string> {
+    const flatDast = await getStaticDast(doenetML);
+    const xastRoot = await flatDastToPretext(flatDast);
+
+    return xastToXml(xastRoot);
+}
+
+/**
+ * Convert FlatDast to static PreTeXt.
+ */
+export async function flatDastToPretext(
+    flatDast: FlatDastRootWithErrors,
+): Promise<Xast.Root> {
+    return renderToPretext(flatDast);
 }
 
 /**
@@ -44,7 +57,7 @@ export async function doenetmlToPretext() {
 export async function getStaticDast(
     source: string,
 ): Promise<FlatDastRootWithErrors> {
-    const worker = createWrappedCoreWorker();
+    const worker = await createWrappedCoreWorker();
     await worker.setCoreType("javascript");
     const dast = normalizeDocumentDast(lezerToDast(source));
     await worker.setSource({ dast, source });

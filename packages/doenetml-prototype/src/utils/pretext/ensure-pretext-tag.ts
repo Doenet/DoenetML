@@ -41,7 +41,7 @@ export function ensurePretextTag(
     }
 
     if (!pretextElement.children) {
-        console.log(pretextElement);
+        console.log("No children", pretextElement);
     }
     // Ensure that a <book> or <article> tag is immediately inside the <pretext> tag
     // There may be a <docinfo> tag that is a sibling of the division tag.

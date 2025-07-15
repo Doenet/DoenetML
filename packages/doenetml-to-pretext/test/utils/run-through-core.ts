@@ -5,7 +5,8 @@
 import { remote } from "webdriverio";
 import type { FlatDastRoot } from "../../../doenetml-worker/dist";
 // @ts-ignore
-import convertScript from "./dist/dast-to-flat-dast/index.js?raw";
+import _convertScript from "./dist/dast-to-flat-dast/index.js?raw";
+const convertScript: string = _convertScript;
 
 /**
  * A processor that allows calls to be made to core via a headless browser.
@@ -42,11 +43,15 @@ export class RunThroughCore {
                 },
                 logLevel: "error",
             });
+            // Set up logging of console.log messages from scripts the browser is executing
+            await this.browser.sessionSubscribe({ events: ["log.entryAdded"] });
+            this.browser.on("log.entryAdded", (entry) => this.onLog(entry));
+
             // Load in the web worker script
-            await this.browser.execute((scriptContent) => {
+            await this.browser.execute((source) => {
                 const scriptElement = document.createElement("script");
                 scriptElement.type = "module";
-                scriptElement.textContent = scriptContent;
+                scriptElement.textContent = source;
                 document.head.appendChild(scriptElement);
             }, convertScript);
         } catch (e) {
@@ -55,6 +60,12 @@ export class RunThroughCore {
             this.initRunning = false;
             this.initRunningPromiseResolve();
         }
+    }
+    async onLog(message: unknown) {
+        console.log(
+            "[webdriverio browser]",
+            ...(message as any).args.map((a: any) => a.value),
+        ); // (message as any).text, "args:", (message as any).args);
     }
     async close() {
         if (this.browser) {
@@ -71,18 +82,24 @@ export class RunThroughCore {
         if (!this.browser) {
             throw new Error("Failed to initialize browser");
         }
-        const result = await this.browser.executeAsync(async (source, done) => {
-            window.setTimeout(() => {
-                done("" + new Error("Took too long to execute script"));
-            }, 5000);
-            try {
-                // @ts-ignore
-                const dast = await getFlatDast(source);
-                done(dast);
-            } catch (e) {
-                done("" + e);
-            }
-        }, input);
+        const result = await this.browser.execute(
+            async (source) =>
+                new Promise(async (resolve, reject) => {
+                    window.setTimeout(() => {
+                        resolve(
+                            "" + new Error("Took too long to execute script"),
+                        );
+                    }, 5000);
+                    try {
+                        // @ts-ignore
+                        const dast = await doenetMLToPretext(source);
+                        resolve(dast);
+                    } catch (e) {
+                        resolve("" + e);
+                    }
+                }),
+            input,
+        );
 
         return result as FlatDastRoot;
     }

@@ -3,7 +3,11 @@ import {
     filterPositionInfo,
     normalizeDocumentDast,
 } from "@doenet/parser";
-import type { CoreWorker, FlatDastRoot } from "@doenet/doenetml-worker";
+import type {
+    CoreWorker,
+    FlatDastRoot,
+    FlatDastRootWithErrors,
+} from "@doenet/doenetml-worker";
 import * as Comlink from "comlink";
 import { doenetGlobalConfig } from "../../src/global-config";
 
@@ -37,7 +41,9 @@ export function toDast(source: string) {
 /**
  * Filter out position information from FlatDast
  */
-function flatDastFilterPositionInfo(flatDast: FlatDastRoot): FlatDastRoot {
+function flatDastFilterPositionInfo(
+    flatDast: FlatDastRoot | FlatDastRootWithErrors,
+): FlatDastRoot {
     return filterPositionInfo(flatDast as any) as any as FlatDastRoot;
 }
 
@@ -45,7 +51,7 @@ function flatDastFilterPositionInfo(flatDast: FlatDastRoot): FlatDastRoot {
  * Create a worker initialized with empty flags and the source `source`.
  */
 async function workerWithSource(source: string) {
-    const worker = createWrappedCoreWorker();
+    const worker = await createWrappedCoreWorker();
     await worker.setFlags({ flags: {} });
     await worker.setSource({
         source,
@@ -65,3 +71,7 @@ async function getFlatDast(source: string) {
 }
 
 (globalThis as any).getFlatDast = getFlatDast;
+
+// Load all of our conversion functions into the global scope
+import * as ConvertFunctions from "../../src/index";
+Object.assign(globalThis, ConvertFunctions);

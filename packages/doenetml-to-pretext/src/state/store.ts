@@ -1,6 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { dastReducer } from "./redux-slices/dast";
-import { coreReducer } from "./redux-slices/core";
 import { globalReducer } from "./redux-slices/global";
 
 /**
@@ -9,7 +8,6 @@ import { globalReducer } from "./redux-slices/global";
 export const store = configureStore({
     reducer: {
         dast: dastReducer,
-        core: coreReducer,
         global: globalReducer,
     },
 });
