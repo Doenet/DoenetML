@@ -77,7 +77,7 @@ export class RunThroughCore {
             this._initPromise();
         }
     }
-    async processToFatDast(input: string): Promise<FlatDastRoot> {
+    async processToFlatDast(input: string): Promise<FlatDastRoot> {
         if (!this.browser) {
             await this.init();
         }
