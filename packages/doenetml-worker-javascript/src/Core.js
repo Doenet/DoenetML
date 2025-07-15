@@ -9782,6 +9782,11 @@ export default class Core {
                 let comp = component.attributes[attrName].component;
                 if (comp) {
                     componentsToRecurse.push(comp);
+                } else {
+                    let references = component.attributes[attrName].references;
+                    if (references) {
+                        componentsToRecurse.push(...references);
+                    }
                 }
             }
 
