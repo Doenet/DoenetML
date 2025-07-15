@@ -21,7 +21,7 @@ export default defineConfig({
         lib: {
             entry: {
                 index: "./src/index.ts",
-                "doenetml-inline-worker": "./src/index-inline-worker.ts",
+                "pretext-xml": "./src/pretext-xml.ts",
             },
             formats: ["es"],
             cssFileName: "style",
