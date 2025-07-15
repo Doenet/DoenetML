@@ -43,19 +43,19 @@ describe("Graph Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables[await win.resolvePath1("graph1")].stateValues
-                        .xmin,
+                        .xMin,
                 ).eq(xmin);
                 expect(
                     stateVariables[await win.resolvePath1("graph1")].stateValues
-                        .xmax,
+                        .xMax,
                 ).eq(xmax);
                 expect(
                     stateVariables[await win.resolvePath1("graph1")].stateValues
-                        .ymin,
+                        .yMin,
                 ).eq(ymin);
                 expect(
                     stateVariables[await win.resolvePath1("graph1")].stateValues
-                        .ymax,
+                        .yMax,
                 ).eq(ymax);
             });
         }

@@ -49,13 +49,16 @@ export function CypressTest() {
         );
     }
 
-    const [{ doenetMLstring, attemptNumber }, setBaseState] = useState<{
-        doenetMLstring: string | null;
-        attemptNumber: number;
-    }>({
-        doenetMLstring: null,
-        attemptNumber: testSettings.attemptNumber,
-    });
+    const [{ doenetMLstring, attemptNumber, externalDoenetMLs }, setBaseState] =
+        useState<{
+            doenetMLstring: string | null;
+            attemptNumber: number;
+            externalDoenetMLs: Record<string, string>;
+        }>({
+            doenetMLstring: null,
+            attemptNumber: testSettings.attemptNumber,
+            externalDoenetMLs: {},
+        });
 
     const [updateNumber, setUpdateNumber] = useState(testSettings.updateNumber);
     const [controlsVisible, setControlsVisible] = useState(
@@ -99,8 +102,9 @@ export function CypressTest() {
 
     //For Cypress Test Use
     window.onmessage = (e) => {
-        let newDoenetMLstring: string | null = null,
-            newAttemptNumber = attemptNumber;
+        let newDoenetMLstring: string | null = null;
+        let newAttemptNumber = attemptNumber;
+        let newExternalDoenetMLs: Record<string, string> = {};
 
         if (e.data.doenetML !== undefined) {
             newDoenetMLstring = e.data.doenetML;
@@ -115,6 +119,10 @@ export function CypressTest() {
             localStorage.setItem("test settings", JSON.stringify(testSettings));
         }
 
+        if (e.data.externalDoenetMLs !== undefined) {
+            newExternalDoenetMLs = e.data.externalDoenetMLs;
+        }
+
         // don't do anything if receive a message from another source (like the youtube player)
         if (
             typeof newDoenetMLstring === "string" ||
@@ -123,6 +131,7 @@ export function CypressTest() {
             setBaseState({
                 doenetMLstring: newDoenetMLstring,
                 attemptNumber: newAttemptNumber,
+                externalDoenetMLs: newExternalDoenetMLs,
             });
         }
     };
@@ -462,6 +471,27 @@ export function CypressTest() {
         );
     }
 
+    /**
+     * A mock function for retrieving DoenetML source from a URI,
+     * using the URI `doenet:[code]`.
+     */
+    function retrieveDoenetML(sourceUri: string) {
+        return new Promise<string>((resolve, reject) => {
+            setTimeout(() => {
+                const match = sourceUri.match(/^doenet:(\w+)/);
+
+                if (match) {
+                    const doenetML = externalDoenetMLs[match[1]];
+
+                    if (doenetML) {
+                        return resolve(doenetML);
+                    }
+                }
+                reject(`DoenetML for "${sourceUri}" not found.`);
+            });
+        });
+    }
+
     let editorOrViewer: React.JSX.Element | null = null;
 
     if (typeof doenetMLstring === "string") {
@@ -473,6 +503,7 @@ export function CypressTest() {
                 height="calc(100vh - 94px)"
                 width="100%"
                 viewerLocation={viewerLocation}
+                retrieveDoenetML={retrieveDoenetML}
             />
         );
         const viewer = (
@@ -505,6 +536,7 @@ export function CypressTest() {
                 activityId="activityIdFromCypress"
                 render={render}
                 darkMode={darkMode}
+                retrieveDoenetML={retrieveDoenetML}
             />
         );
 
