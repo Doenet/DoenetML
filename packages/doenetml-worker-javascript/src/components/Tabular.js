@@ -15,14 +15,14 @@ export default class Tabular extends BlockComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.width = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: { size: 100, isAbsolute: false },
             public: true,
             forRenderer: true,
         };
         attributes.height = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
             createStateVariable: "height",
             defaultValue: null,
             public: true,
@@ -152,7 +152,7 @@ export default class Tabular extends BlockComponent {
 
         // stateVariableDefinitions.height = {
         //   public: true,
-        //   componentType: "_componentSize",
+        //   componentType: "componentSize",
         //   forRenderer: true,
         //   returnDependencies: () => ({
         //     heightAttr: {

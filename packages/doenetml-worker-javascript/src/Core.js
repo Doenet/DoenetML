@@ -2653,7 +2653,7 @@ export default class Core {
             // if the replacement that is the fragment parent has a source sequence,
             // then add that as the `parentSourceSequence` of the flat fragment
             let sourceSequence =
-                serializedReplacements[0].attributes["source:sequence"];
+                serializedReplacements[0]?.attributes["source:sequence"];
             if (sourceSequence) {
                 parentSourceSequence = {
                     type: "attribute",

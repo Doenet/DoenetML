@@ -23,7 +23,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.width = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: { size: 100, isAbsolute: false },
             public: true,
@@ -44,7 +44,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
             forRenderer: true,
         };
         attributes.height = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
         };
 
         attributes.columnHeaders = {
@@ -256,7 +256,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
         stateVariableDefinitions.height = {
             public: true,
             shadowingInstructions: {
-                createComponentOfType: "_componentSize",
+                createComponentOfType: "componentSize",
             },
             forRenderer: true,
             returnDependencies: () => ({

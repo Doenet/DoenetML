@@ -48,7 +48,7 @@ export default class Graph extends BlockComponent {
             defaultValue: 10,
         };
         attributes.width = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
         };
         attributes.size = {
             createComponentOfType: "text",
@@ -556,7 +556,7 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
             shadowingInstructions: {
-                createComponentOfType: "_componentSize",
+                createComponentOfType: "componentSize",
             },
             returnDependencies: () => ({
                 size: {

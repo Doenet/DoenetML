@@ -39,14 +39,14 @@ export default class SubsetOfRealsInput extends BlockComponent {
             forRenderer: true,
         };
         attributes.width = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: 800,
             public: true,
             forRenderer: true,
         };
         attributes.height = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
             createStateVariable: "height",
             defaultValue: 300,
             public: true,

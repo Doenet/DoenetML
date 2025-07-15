@@ -29,7 +29,7 @@ export default class Video extends BlockComponent {
         let attributes = super.createAttributesObject();
 
         attributes.width = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
         };
         attributes.size = {
             createComponentOfType: "text",
@@ -159,7 +159,7 @@ export default class Video extends BlockComponent {
             public: true,
             forRenderer: true,
             shadowingInstructions: {
-                createComponentOfType: "_componentSize",
+                createComponentOfType: "componentSize",
             },
             returnDependencies: () => ({
                 size: {
