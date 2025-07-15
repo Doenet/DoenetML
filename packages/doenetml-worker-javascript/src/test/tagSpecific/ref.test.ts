@@ -177,7 +177,7 @@ describe("ref tag tests", async () => {
         ).eq("https://doenet.org");
     });
 
-    it.only("referencing refs", async () => {
+    it("referencing refs", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <p name="p1">A ref to <ref name="ref1" to="https://doenet.org" />.</p>

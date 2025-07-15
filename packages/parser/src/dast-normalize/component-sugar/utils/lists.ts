@@ -106,6 +106,7 @@ export function groupTextAndReferencesBySpacesOutsideParens({
                                 createNewTextNode(
                                     currentText,
                                     currentTextStartPos,
+                                    child.source_doc,
                                 ),
                             );
                         }
@@ -117,6 +118,7 @@ export function groupTextAndReferencesBySpacesOutsideParens({
                                     componentType,
                                     currentGroup,
                                     wrapSingleNonTextNodes,
+                                    child.source_doc,
                                 ),
                             );
 
@@ -134,7 +136,11 @@ export function groupTextAndReferencesBySpacesOutsideParens({
                 // Add any remaining substring to the current group.
                 if (currentText.length > 0) {
                     currentGroup.push(
-                        createNewTextNode(currentText, currentTextStartPos),
+                        createNewTextNode(
+                            currentText,
+                            currentTextStartPos,
+                            child.source_doc,
+                        ),
                     );
                 }
 
@@ -175,6 +181,7 @@ function createElementFromChildren(
     name: string,
     children: (DastText | DastMacro | DastFunctionMacro | DastElement)[],
     wrapSingleNonTextNodes: boolean,
+    source_doc?: number,
 ) {
     if (
         !wrapSingleNonTextNodes &&
@@ -189,6 +196,7 @@ function createElementFromChildren(
         name,
         children,
         attributes: {},
+        source_doc,
     };
 
     const startPos = children[0].position?.start;
@@ -206,10 +214,15 @@ function createElementFromChildren(
 /**
  * Create a text node with value `text` and starting position `startPos`.
  */
-function createNewTextNode(text: string, startPos?: Point) {
+function createNewTextNode(
+    text: string,
+    startPos?: Point,
+    source_doc?: number,
+) {
     const newNode: DastText = {
         type: "text",
         value: text,
+        source_doc: source_doc,
     };
 
     if (startPos) {
@@ -233,7 +246,11 @@ function splitAtParensOrSpace(node: DastText) {
     const splitText: DastText[] = [];
 
     for (const match of node.value.matchAll(/([()]|\s+|[^()\s]+)/g)) {
-        const newNode: DastText = { type: "text", value: match[0] };
+        const newNode: DastText = {
+            type: "text",
+            value: match[0],
+            source_doc: node.source_doc,
+        };
         if (startPos) {
             newNode.position = {
                 start: startPos,

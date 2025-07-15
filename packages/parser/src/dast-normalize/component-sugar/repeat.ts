@@ -4,7 +4,7 @@ import { groupTextAndReferencesBySpacesOutsideParens } from "./utils/lists";
 /**
  * Two transformations to the repeat children are made
  * 1. All children are wrapped in a `<template>` tag.
- * 1. If the `"valueName"` and/or `"indexName"` attribute contain a single text child,
+ * 2. If the `"valueName"` and/or `"indexName"` attribute contain a single text child,
  * then add a `<_repeatSetup>` child to the `<repeat>` that contains children
  * named by the values of those attributes.
  * (These children will not be rendered, but they create targets for references to `valueName` and `indexName`.
@@ -52,6 +52,7 @@ export function repeatSugar(node: DastElement) {
                         ],
                     },
                 },
+                source_doc: node.source_doc,
             });
         }
     }
@@ -71,6 +72,7 @@ export function repeatSugar(node: DastElement) {
                         ],
                     },
                 },
+                source_doc: node.source_doc,
             });
         }
     }
@@ -81,6 +83,7 @@ export function repeatSugar(node: DastElement) {
             name: "_repeatSetup",
             children: setupChildren,
             attributes: {},
+            source_doc: node.source_doc,
         });
     }
 
@@ -105,12 +108,6 @@ export function repeatSugar(node: DastElement) {
             });
 
             if (groupResult.success) {
-                groupResult.newChildren.map((child) => ({
-                    type: "element" as const,
-                    name: "option",
-                    children: [child],
-                    attributes: {},
-                }));
                 node.attributes.for.children = groupResult.newChildren;
             }
         }

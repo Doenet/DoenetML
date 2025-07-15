@@ -539,4 +539,25 @@ describe("External References Tests", async () => {
                 .sectionWideCheckWork,
         ).eq(true);
     });
+
+    it("external content with repeat", async () => {
+        const doenetMLs = {
+            rep: `<problem><p name="p"><repeat for="3 2" valueName="v" indexName="i"><number>$v^2+$i</number></repeat></p></problem>`,
+        };
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <problem copy="doenet:rep" name="problem" />
+
+    `,
+            externalDoenetMLs: doenetMLs,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("problem.p")].stateValues
+                .text,
+        ).eq("10, 6");
+    });
 });
