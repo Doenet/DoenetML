@@ -2,7 +2,7 @@
 //! returning a description of the edges encountered.
 
 use super::*;
-use crate::dast::flat_dast::Index;
+use crate::dast::flat_dast::{Index, SourceDoc};
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone, Copy)]
@@ -35,6 +35,7 @@ pub(super) enum ResolverEdgeType {
 #[derive(Debug)]
 pub(super) struct ResolverEdge {
     pub(super) origin: NodeOrRoot,
+    pub(super) origin_source: SourceDoc,
     pub(super) referent: Index,
     pub(super) edge_type: ResolverEdgeType,
 }
@@ -55,15 +56,15 @@ impl Resolver {
 
         let mut edges_encountered = Vec::new();
 
-        let mut queue = VecDeque::new();
-        queue.push_back(NodeOrRoot::Root);
+        let mut queue: VecDeque<(NodeOrRoot, SourceDoc)> = VecDeque::new();
+        queue.push_back((NodeOrRoot::Root, None.into()));
 
         let mut visited = vec![false; self.node_resolver_data.len() - 1];
 
         let mut counter = 0;
         let max_count = self.node_resolver_data.len();
 
-        while let Some(origin) = queue.pop_front() {
+        while let Some((origin, origin_source)) = queue.pop_front() {
             counter += 1;
             if counter > max_count {
                 panic!("Cycles detected in references")
@@ -84,19 +85,45 @@ impl Resolver {
                         // When we remove `pluginAddCompatibilityNames`, we should remove the check for `'_'`.
                         if visited[*idx] || name_with_source.name.starts_with('_') {
                             None
-                        } else {
+                        } else if name_with_source.source_doc == origin_source {
                             visited[*idx] = true;
                             Some(ResolverEdge {
                                 origin,
+                                origin_source,
                                 referent: *idx,
                                 edge_type: ResolverEdgeType::Name(name_with_source.name.clone()),
                             })
+                        } else {
+                            // If `name_with_source` has a different origin, check to see if the node extended an external document,
+                            // and if `name_with_source` matches the source that was extended
+                            if let Some(source_sequence) = &current_data.source_sequence {
+                                // Since we have a `source_sequence`, the node must have extended an external document
+                                let mut sources = source_sequence.iter();
+
+                                if sources.any(|source| *source == origin_source) {
+                                    // If there is a subsequent source, determine if `name_with_source` matches the new source.
+                                    if let Some(next_source) = sources.next() {
+                                        if name_with_source.source_doc == *next_source {
+                                            visited[*idx] = true;
+                                            return Some(ResolverEdge {
+                                                origin,
+                                                origin_source: *next_source,
+                                                referent: *idx,
+                                                edge_type: ResolverEdgeType::Name(
+                                                    name_with_source.name.clone(),
+                                                ),
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                            None
                         }
                     }
                     Ref::Ambiguous(_) => None,
                 })
             {
-                queue.push_back(NodeOrRoot::Node(edge.referent));
+                queue.push_back((NodeOrRoot::Node(edge.referent), edge.origin_source));
                 edges_encountered.push(edge)
             }
 
@@ -114,6 +141,7 @@ impl Resolver {
                             visited[*res_index] = true;
                             Some(ResolverEdge {
                                 origin,
+                                origin_source,
                                 referent: *res_index,
                                 edge_type: ResolverEdgeType::Index(index),
                             })
@@ -121,7 +149,7 @@ impl Resolver {
                     }
                 })
             {
-                queue.push_back(NodeOrRoot::Node(edge.referent));
+                queue.push_back((NodeOrRoot::Node(edge.referent), origin_source));
                 edges_encountered.push(edge)
             }
         }
