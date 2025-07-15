@@ -3,7 +3,8 @@ use rustc_hash::FxHashMap;
 use std::{iter, mem, ops::Range};
 
 use crate::dast::flat_dast::{
-    FlatElement, FlatFragment, FlatNode, FlatRoot, FlatRootOrFragment, SourceDoc, UntaggedContent,
+    FlatAttribute, FlatElement, FlatFragment, FlatNode, FlatRoot, FlatRootOrFragment, SourceDoc,
+    UntaggedContent,
 };
 
 use super::*;
@@ -72,7 +73,13 @@ impl Resolver {
         let new_num_nodes = flat_fragment.len() + 1;
 
         let parent_node = match flat_fragment.parent_idx {
-            Some(idx) => NodeParent::Node(idx),
+            Some(idx) => {
+                if let Some(source_sequence) = &flat_fragment.parent_source_sequence {
+                    self.node_resolver_data[idx + 1].source_sequence =
+                        Some(extract_source_sequence_from_attribute(source_sequence));
+                }
+                NodeParent::Node(idx)
+            }
             None => NodeParent::None,
         };
 
@@ -372,18 +379,20 @@ fn extract_source_sequence(node: &FlatNode) -> Option<Vec<SourceDoc>> {
             .attributes
             .iter()
             .find(|attr| attr.name == "source:sequence")
-            .map(|attr| {
-                attr.children
-                    .iter()
-                    .filter_map(|child| match child {
-                        UntaggedContent::Ref(_) => None,
-                        UntaggedContent::Text(source_string) => {
-                            Some(source_string.parse::<u16>().unwrap().into())
-                        }
-                    })
-                    .collect()
-            }),
+            .map(extract_source_sequence_from_attribute),
     }
+}
+
+fn extract_source_sequence_from_attribute(attr: &FlatAttribute) -> Vec<SourceDoc> {
+    attr.children
+        .iter()
+        .filter_map(|child| match child {
+            UntaggedContent::Ref(_) => None,
+            UntaggedContent::Text(source_string) => {
+                Some(source_string.parse::<u16>().unwrap().into())
+            }
+        })
+        .collect()
 }
 
 #[cfg(test)]

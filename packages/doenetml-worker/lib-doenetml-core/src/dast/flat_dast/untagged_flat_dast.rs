@@ -423,6 +423,9 @@ pub struct FlatFragment {
     pub nodes: Vec<FlatNode>,
     /// The index of the fragment's parent (e.g., from a `FlatRoot`)
     pub parent_idx: Option<Index>,
+    /// If `source:sequence` attribute of the fragment parent, if it exist.
+    /// Used to create the `NodeResolverData::source_sequence` of the parent.
+    pub parent_source_sequence: Option<FlatAttribute>,
     /// A map of the a node's index into its index in the array `nodes`
     idx_map: HashMap<usize, usize>,
 }
@@ -498,6 +501,7 @@ impl FlatFragment {
             children: flat_root.children,
             nodes: flat_root.nodes,
             parent_idx,
+            parent_source_sequence: None,
             idx_map,
         }
     }

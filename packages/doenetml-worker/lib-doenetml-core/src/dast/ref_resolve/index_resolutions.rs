@@ -86,9 +86,11 @@ impl Resolver {
                 self.node_resolver_data[parent + 1].index_resolutions = new_resolutions;
             }
             IndexResolution::ReplaceRange { parent, range } => {
-                self.node_resolver_data[parent + 1]
-                    .index_resolutions
-                    .splice(range, new_resolutions);
+                let parent_index_resolutions =
+                    &mut self.node_resolver_data[parent + 1].index_resolutions;
+                if range.start <= range.end && range.end <= parent_index_resolutions.len() {
+                    parent_index_resolutions.splice(range, new_resolutions);
+                }
             }
             IndexResolution::None => unreachable!(),
         }

@@ -7,9 +7,8 @@ use crate::{
 
 #[test]
 fn can_create_normalized_dast_after_expanding_refs() {
-    let dast_root = dast_root_no_position(
-        r#"<point name="p"/><function name="f" />$$f(1,2, $p)<foo bar="$p"/>"#,
-    );
+    let source = r#"<point name="p"/><function name="f" />$$f(1,2, $p)<foo bar="$p"/>"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     flat_root.compactify(None);
@@ -20,6 +19,7 @@ fn can_create_normalized_dast_after_expanding_refs() {
           {
             "type": "normalizedRoot",
             "children": [0],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",

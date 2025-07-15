@@ -267,8 +267,8 @@ impl Resolver {
                     // and attempt to match the name using that source.
                     //
                     // For example, given the DoenetML `<section name="s" extend="doenet:abc" />$s.t`,
-                    // the reference `$s` will match the `<section name="s2">` but `.t` will not match a descendant.
-                    // Imagine that `doenet:abc` resolves to the DoenetML `<section><text name="t" /></section>`.
+                    // the reference `$s` will match the `<section name="s">` but `.t` will not match a descendant.
+                    // Imagine that `doenet:abc` resolves to the DoenetML `<section name="s2"><text name="t" /></section>`.
                     // This source will be the next in `source_sequence`, so we search for a `<section>` descendant
                     // named `t` from that second source. In this case,
                     // the reference `$s.t` will resolve to the `<text>` node.
@@ -280,17 +280,6 @@ impl Resolver {
                         if sources.any(|source| *source == source_doc) {
                             // If there is a subsequent source, search that one for the same name matched with the new source.
                             if let Some(next_source) = sources.next() {
-                                // In order to allow a reference to the node itself using the name from the second source,
-                                // we have to make up to the node's parent.
-                                // This allows a reference to `$s.s2` to work given the above example.
-                                let parent_plus_1 = match node_data.node_parent {
-                                    NodeParent::None => unreachable!(),
-                                    NodeParent::FlatRoot => 0,
-                                    NodeParent::Node(idx) => idx + 1,
-                                };
-
-                                node_data = &self.node_resolver_data[parent_plus_1];
-
                                 if let Some(referent) = node_data.name_map.get(&NameWithSource {
                                     name: part.name.clone(),
                                     source_doc: *next_source,
@@ -310,6 +299,45 @@ impl Resolver {
                                         }
                                         Ref::Ambiguous(_) => {
                                             return Err(ResolutionError::NonUniqueReferent);
+                                        }
+                                    }
+                                } else {
+                                    // In order to allow a reference to the node itself (or a node it is extending)
+                                    // using the name from the second source,
+                                    // we fall back to check the name in the parent's map.
+                                    //
+                                    // In the above example, this allows a reference to `$s.s2` to resolve back to the section,
+                                    // given that its name was `s2` in the second source document.
+                                    let parent_plus_1 = match node_data.node_parent {
+                                        NodeParent::None => unreachable!(),
+                                        NodeParent::FlatRoot => 0,
+                                        NodeParent::Node(idx) => idx + 1,
+                                    };
+
+                                    if let Some(referent) = self.node_resolver_data[parent_plus_1]
+                                        .name_map
+                                        .get(&NameWithSource {
+                                            name: part.name.clone(),
+                                            source_doc: *next_source,
+                                        })
+                                    {
+                                        matched_part_name = true;
+                                        match referent {
+                                            Ref::Unique(idx) => {
+                                                current_idx = *idx;
+
+                                                // search from this source doc from now on
+                                                source_doc = *next_source;
+
+                                                if !nodes_in_resolved_path.contains(&current_idx) {
+                                                    nodes_in_resolved_path.push(current_idx);
+                                                }
+                                                node_data =
+                                                    &self.node_resolver_data[current_idx + 1];
+                                            }
+                                            Ref::Ambiguous(_) => {
+                                                return Err(ResolutionError::NonUniqueReferent);
+                                            }
                                         }
                                     }
                                 }
