@@ -10,48 +10,6 @@ console.log = (...args) => {
     origLog(...args.map((x) => util.inspect(x, false, 10, true)));
 };
 
-// <p>
-//   Hi
-// </p>
-const SIMPLE_FLAT_DAST = {
-    type: "root",
-    children: [
-        {
-            id: 0,
-            annotation: "original",
-        },
-    ],
-    elements: [
-        {
-            type: "element",
-            name: "document",
-            attributes: {},
-            children: [
-                {
-                    id: 1,
-                    annotation: "original",
-                },
-            ],
-            data: {
-                id: 0,
-                action_names: [],
-                props: {},
-            },
-        },
-        {
-            type: "element",
-            name: "p",
-            attributes: {},
-            children: ["\n  Hi\n"],
-            data: {
-                id: 1,
-                action_names: [],
-            },
-        },
-    ],
-    warnings: [],
-} as FlatDastRoot;
-
 const coreRunner = new RunThroughCore();
 
 function renderToPretextString(flatDast: FlatDastRoot) {
