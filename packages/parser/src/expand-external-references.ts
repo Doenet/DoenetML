@@ -70,8 +70,8 @@ export async function expandExternalReferences(
 
                 const sourceUri = toXml(copyAttribute.children);
 
-                // If copy attribute is a reference, skip
-                if (sourceUri.charAt(0) === "$") {
+                // If attribute does not begin with "doenet", skip
+                if (!sourceUri.startsWith("doenet:")) {
                     return;
                 }
 
@@ -107,10 +107,10 @@ export async function expandExternalReferences(
                 }
 
                 let externalDoenetML;
-
                 try {
                     externalDoenetML = await unresolved.source;
-                } catch (_e) {
+                } catch (e) {
+                    console.error(e);
                     const dastError: DastError = {
                         type: "error",
                         message: `Unable to retrieve DoenetML from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}"`,
@@ -123,47 +123,16 @@ export async function expandExternalReferences(
 
                 const externalDast = lezerToDast(externalDoenetML);
 
-                // An `externalDast` matches a parent only its root contains a single child of the same type as `parent`,
-                // or if it is a `document` with a single child of the same type as `parent`.
-                // We ignore any blank text elements.
+                // For `externalDast` to be extended by `parent`, it must be a single element of the same type as `parent`.
+                // Alternatively, it could be a `<document>` tag with a single child that matches the type `parent`.
+                // (We ignore any blank text elements.)
 
-                // Filter out any blank text children
-                const rootChildren = externalDast.children.filter(
-                    (node) => node.type !== "text" || node.value.trim() !== "",
+                const matchResult = findMatchingChild(
+                    externalDast,
+                    parent.name,
                 );
 
-                let child: DastElement | null = null;
-
-                if (
-                    rootChildren.length === 1 &&
-                    isDastElement(rootChildren[0])
-                ) {
-                    // Check if the single root child matches the parent type
-                    child = rootChildren[0];
-                    if (child.name !== parent.name) {
-                        if (child.name === "document") {
-                            // if child is a document, check if it has one non-blank child that matches the parent type
-                            const documentChildren = child.children.filter(
-                                (node) =>
-                                    node.type !== "text" ||
-                                    node.value.trim() !== "",
-                            );
-                            if (
-                                documentChildren.length === 1 &&
-                                isDastElement(documentChildren[0]) &&
-                                child.name === parent.name
-                            ) {
-                                child = documentChildren[0];
-                            } else {
-                                child = null;
-                            }
-                        } else {
-                            child = null;
-                        }
-                    }
-                }
-
-                if (child === null) {
+                if (!matchResult.success) {
                     const dastError: DastError = {
                         type: "error",
                         message: `Invalid DoenetML retrieved from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}": it did not match the component type "${parent.name}"`,
@@ -173,6 +142,8 @@ export async function expandExternalReferences(
 
                     continue;
                 }
+
+                const child = matchResult.child;
 
                 // Add a `doenetMLSource` for future lookup of DoenetML content from positions calculated when parsing
                 if (!dast.sources) {
@@ -266,4 +237,50 @@ export async function expandExternalReferences(
 
     let processor = unified().use(pluginSubstituteExternalReferences);
     return await processor.run(dast);
+}
+
+/**
+ * If `dastRoot` has a child that is an element with name `elementName`, return that child.
+ * Alternatively, if it has a single `<document>` child that, in turn,
+ * has a child that is an element with name `elementName`, return that child.
+ *
+ * Blank text children are ignored.
+ *
+ * Returns:
+ * - `success`: `true` if matching child was found, else `false`.
+ * - `child`: the `child` found
+ */
+function findMatchingChild(
+    dastRoot: DastRoot,
+    elementName: string,
+): { success: true; child: DastElement } | { success: false } {
+    // Filter out any blank text children
+    const rootChildren = dastRoot.children.filter(
+        (node) => node.type !== "text" || node.value.trim() !== "",
+    );
+
+    if (rootChildren.length === 1 && isDastElement(rootChildren[0])) {
+        // Check if the single root child matches `elementName`
+        let child = rootChildren[0];
+        if (child.name === elementName) {
+            return { success: true, child };
+        }
+        if (child.name === "document") {
+            // if child is a document, check if it has one non-blank child that matches`elementName`
+            const documentChildren = child.children.filter(
+                (node) => node.type !== "text" || node.value.trim() !== "",
+            );
+            if (
+                documentChildren.length === 1 &&
+                isDastElement(documentChildren[0])
+            ) {
+                child = documentChildren[0];
+                if (child.name === elementName) {
+                    return { success: true, child };
+                }
+            }
+        }
+    }
+
+    return { success: false };
 }
