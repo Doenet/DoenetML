@@ -23,7 +23,7 @@ afterAll(async () => {
 });
 
 beforeAll(async () => {
-    await coreRunner.processToFatDast(`<p>Hi</p>`);
+    await coreRunner.processToFlatDast(`<p>Hi</p>`);
 }, 20000);
 
 describe("Pretext export", async () => {
@@ -31,11 +31,11 @@ describe("Pretext export", async () => {
 
     it("Can process doenet code run through core", async () => {
         source = `<p>hello world</p>`;
-        const res = await coreRunner.processToFatDast(source);
+        const res = await coreRunner.processToFlatDast(source);
     });
     it("Wraps root in <pretext> tag", async () => {
         source = `<p>Hi</p>`;
-        expect(await coreRunner.processToFatDast(source))
+        expect(await coreRunner.processToFlatDast(source))
             .toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
@@ -54,7 +54,7 @@ describe("Pretext export", async () => {
                <p>How about foo?</p>
            </division>
        `;
-        expect(await coreRunner.processToFatDast(source))
+        expect(await coreRunner.processToFlatDast(source))
             .toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
@@ -74,7 +74,7 @@ describe("Pretext export", async () => {
     //     source = `
     //        <myCustomTag withAttr="foo">Hi</myCustomTag>
     //    `;
-    //     expect(await coreRunner.processToFatDast(source))
+    //     expect(await coreRunner.processToFlatDast(source))
     //         .toMatchInlineSnapshot(`
     //       "<?xml version="1.0" encoding="UTF-8"?>
     //       <pretext>
@@ -90,7 +90,7 @@ describe("Pretext export", async () => {
     //     source = `
     //        <myCustomTag ref="foo"><p ref="hi" />Hi</myCustomTag>
     //    `;
-    //     expect(await coreRunner.processToFatDast(source))
+    //     expect(await coreRunner.processToFlatDast(source))
     //         .toMatchInlineSnapshot(`
     //       "<?xml version="1.0" encoding="UTF-8"?>
     //       <pretext>
@@ -106,7 +106,7 @@ describe("Pretext export", async () => {
         source = `
            <book>Hi</book>
        `;
-        expect(await coreRunner.processToFatDast(source))
+        expect(await coreRunner.processToFlatDast(source))
             .toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
@@ -122,7 +122,7 @@ describe("Pretext export", async () => {
         source = `
            <pretext>   <book>Hi</book> Z </pretext>
        `;
-        expect(await coreRunner.processToFatDast(source))
+        expect(await coreRunner.processToFlatDast(source))
             .toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
@@ -137,7 +137,7 @@ describe("Pretext export", async () => {
     //     source = `
     //        <docinfo>Hi</docinfo> <section>Foo</section>
     //    `;
-    //     expect(await coreRunner.processToFatDast(source)).toMatchInlineSnapshot(`
+    //     expect(await coreRunner.processToFlatDast(source)).toMatchInlineSnapshot(`
     //       "<?xml version="1.0" encoding="UTF-8"?>
     //       <pretext>
     //       <docinfo>Hi</docinfo><article>
@@ -152,7 +152,7 @@ describe("Pretext export", async () => {
         source = `
            <pretext><article><p name="foo">hi</p><p pretext:name="foo">there</p></article></pretext>
        `;
-        expect(await coreRunner.processToFatDast(source))
+        expect(await coreRunner.processToFlatDast(source))
             .toMatchInlineSnapshot(`
           "<?xml version="1.0" encoding="UTF-8"?>
           <pretext>
