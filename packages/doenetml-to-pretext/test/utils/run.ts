@@ -48,7 +48,7 @@ const input: string = argv.input ?? fs.readFileSync(argv.fileInput, "utf8");
         scriptElement.type = "module";
         scriptElement.textContent = scriptContent;
         document.head.appendChild(scriptElement);
-    }, convertScript);
+    }, convertScript as string);
     const result = await browser.executeAsync(async (source, done) => {
         window.setTimeout(() => {
             done("" + new Error("Took too long to execute script"));

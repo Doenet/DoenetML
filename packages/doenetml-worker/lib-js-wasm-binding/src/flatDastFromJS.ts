@@ -152,7 +152,5 @@ export function flatDastFromJS(
         warnings: [],
     };
 
-    console.log({ flat_root });
-
     return flat_root;
 }
