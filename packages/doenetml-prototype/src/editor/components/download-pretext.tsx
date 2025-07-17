@@ -7,10 +7,12 @@ import {
     flatDastSelector,
 } from "../../state/redux-slices/dast";
 import { _globalReducerActions } from "../../state/redux-slices/global";
-import { renderToPretext } from "../../utils/pretext/render-to-pretext";
+import {
+    renderFlatDastToPretext,
+    extractImages,
+} from "@doenet/doenetml-to-pretext/pretext-xml";
 import { VscCode } from "react-icons/vsc";
 import { FlatDastRoot } from "../../../../doenetml-worker/dist/CoreWorker";
-import { extractImages } from "../../utils/pretext/extract-images";
 
 export function DownloadPretextDropdownItem({
     setFiles,
@@ -35,7 +37,7 @@ export function DownloadPretextDropdownItem({
                     return;
                 }
                 try {
-                    const rendered = renderToPretext(flatDast);
+                    const rendered = renderFlatDastToPretext(flatDast);
                     const fileList = extractImages(rendered);
 
                     setFiles(fileList);
