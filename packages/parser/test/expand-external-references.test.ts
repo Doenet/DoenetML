@@ -84,6 +84,47 @@ describe("Expand external references", async () => {
         });
     });
 
+    it("load in external content via extend", async () => {
+        const source = `<p extend="doenet:abcdef" />`;
+
+        const dast = filterPositionInfo(
+            await expandExternalReferences(
+                lezerToDast(source),
+                fetchExternalDoenetML,
+            ),
+        ) as DastRoot;
+
+        expect(dast.sources).eqls([
+            `<p extend="doenet:abcdef" />`,
+            `<p name="par">hi</p>`,
+        ]);
+
+        expect(dast.children.length).eq(1);
+        const p = dast.children[0];
+
+        expect(p).eqls({
+            type: "element",
+            name: "p",
+            attributes: {
+                "source-1:name": {
+                    type: "attribute",
+                    name: "source-1:name",
+                    source_doc: 1,
+                    children: [{ type: "text", value: "par", source_doc: 1 }],
+                },
+                "source:sequence": {
+                    type: "attribute",
+                    name: "source:sequence",
+                    children: [
+                        { type: "text", value: "0" },
+                        { type: "text", value: "1" },
+                    ],
+                },
+            },
+            children: [{ type: "text", value: "hi", source_doc: 1 }],
+        });
+    });
+
     it("load in external content via copy, case-insensitive match", async () => {
         const source = `<p cOpY="doenet:abcdef" />`;
 
@@ -549,62 +590,5 @@ describe("Expand external references", async () => {
                 'Invalid DoenetML retrieved from copy="doenet:abcdef": it did not match the component type "text"',
             type: "error",
         });
-    });
-
-    it("cannot load in external content via extend", async () => {
-        const source = `<p extend="doenet:abcdef" />`;
-
-        const dast = filterPositionInfo(
-            await expandExternalReferences(
-                lezerToDast(source),
-                fetchExternalDoenetML,
-            ),
-        ) as DastRoot;
-
-        expect(dast.children.length).eq(1);
-        const p = dast.children[0];
-        if (!isDastElement(p)) {
-            throw Error("Something went wrong");
-        }
-
-        expect(p.children.length).eq(0);
-    });
-
-    it("presence of extend attribute prevents loading of external content", async () => {
-        const source = `<p copy="doenet:abcdef" extend="$q" />`;
-
-        const dast = filterPositionInfo(
-            await expandExternalReferences(
-                lezerToDast(source),
-                fetchExternalDoenetML,
-            ),
-        ) as DastRoot;
-
-        expect(dast.children.length).eq(1);
-        const p = dast.children[0];
-        if (!isDastElement(p)) {
-            throw Error("Something went wrong");
-        }
-
-        expect(p.children.length).eq(0);
-    });
-
-    it("presence of extend attribute prevents loading of external content, case-insensitive match", async () => {
-        const source = `<p copy="doenet:abcdef" eXTend="$q" />`;
-
-        const dast = filterPositionInfo(
-            await expandExternalReferences(
-                lezerToDast(source),
-                fetchExternalDoenetML,
-            ),
-        ) as DastRoot;
-
-        expect(dast.children.length).eq(1);
-        const p = dast.children[0];
-        if (!isDastElement(p)) {
-            throw Error("Something went wrong");
-        }
-
-        expect(p.children.length).eq(0);
     });
 });

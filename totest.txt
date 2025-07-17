@@ -1,0 +1,46 @@
+<selectFromSequence />
+<selectFromSequence />
+<selectFromSequence />
+<variantControl variantNames="hello" numVariants="11" uniqueVariants="true" />
+
+
+----
+
+<document type="activity">
+  <page>
+    <section />
+    <text>a</text>
+    <variantControl uniqueVariants />
+    <selectFromSequence from="1" to="2" assignNames="n" />
+    <map>
+      <template>$v</template>
+      <sources alias="v">
+        <sequence length="10" />
+      </sources>
+    </map>
+  </page>
+  <page>
+    <section />
+    <text>b</text>
+    <variantControl uniqueVariants />
+    <selectFromSequence type="letters" from="a" to="c" assignNames="l" />
+    <map>
+      <template>$v</template>
+      <sources alias="v">
+        <sequence length="10" />
+      </sources>
+    </map>
+  </page>
+  <page>
+    <section />
+    <text>b</text>
+    <variantControl uniqueVariants />
+    <selectFromSequence type="letters" from="a" to="c" assignNames="l" />
+    <map>
+      <template>$v</template>
+      <sources alias="v">
+        <sequence length="10" />
+      </sources>
+    </map>
+  </page>
+</document>

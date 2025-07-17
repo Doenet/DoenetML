@@ -1,20 +1,17 @@
-<selectFromSequence />
-Hello this is: <m>\cancel{x}</m>!
-<point name="p">
-  <constraints>
-    <constrainToGrid />
-  </constraints>
-</point>
+<booleanInput name="bi" />
 
-<textInput>$p.x</textInput>
+<conditionalContent>
+     <case condition="$bi">A</case>
 
-<mathInput>x</mathInput>
-<mathInput>y</mathInput>
+    <else>
+        <p>
+            <updateValue
+                name="addPoint1"
+                target="$bi"
+                newValue="true"
+                type="boolean"
+            />
+        </p>
+    </else>
 
-<graph>
-    <point x="3" y="1" />
-    $p
-</graph>
-<answer>
-  xx
-</answer>
+</conditionalContent>

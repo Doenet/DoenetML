@@ -3,7 +3,6 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use regex::Regex;
 use rustc_hash::FxHashMap;
 use serde::{
     de::{MapAccess, Visitor},
@@ -30,13 +29,14 @@ pub struct NameWithSource {
 impl TryFrom<&str> for NameWithSource {
     type Error = anyhow::Error;
 
+    /// Attempt to convert `value` to a `NameWithSource` assuming it is of the form
+    /// `name:source_doc`, where `source_doc` is an integer.
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let name_source_re = Regex::new(r"^([^:]+):(\d+)$")?;
-        let captures = name_source_re
-            .captures(value)
-            .ok_or(anyhow::anyhow!("Invalid name with source: {value}"))?;
-        let name = captures.get(1).unwrap().as_str().to_string();
-        let source_doc = captures.get(2).unwrap().as_str().try_into().unwrap();
+        // Note: we assume there is exactly one `:` in `value`.
+        // Any piece after a second `:` is ignored.
+        let mut split = value.split(":");
+        let name = split.next().unwrap().to_string();
+        let source_doc: SourceDoc = split.next().unwrap().try_into().unwrap();
         Ok(NameWithSource { name, source_doc })
     }
 }

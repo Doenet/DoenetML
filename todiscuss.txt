@@ -1,0 +1,84 @@
+Macros:
+  - references versus copies
+  - idea:
+    - references when in attributes
+    - copies when children
+  - alternative idea: always references and components could decide to sugar copies around them
+  - attributes on macros allowed only at end
+  - why do we need attributes on macros?
+    - reference with link="false" or fixed="true", which don't actually change identity
+    - option: a few special cases, and we add properties so can get them like $x.fixed $x.initial, $x.initialValue, $x.unlinked
+    - are there cases where want to add attributes to macros that actually change object?
+    - could always use a full component in those cases
+  - do we require `$` in all references to components?
+    - <updateValue triggerWhenObjectsClicked="$a $b" /> versus <updateValue triggerWhenObjectsClicked = "a b" />
+
+
+Rename them as reference?
+make it longer? Object reference or Doenet reference
+
+
+Possibility:
+- no attributes on references
+- special properties for a few cases where currently use attributes
+- use a $ everywhere for references
+
+$x
+$x.clone
+
+Change copySource to extend (or other name)
+extend, extends, inherit, copy, copyFrom, derivedFrom
+default linked or not?
+option: two keywords. extend(linked) clone (unlinked) 
+<point extend="$P" />
+<point extend="$P" link="false" />
+
+Proposal:
+<point extend="$P" x="3" />
+<point clone="$P" x="3" />
+
+Not this:
+<point extend="$P" link="false" />
+<point clone="$P" link />
+
+ 
+<point initial="($x,$y)" />
+<point x="$x.initial" y="$y.initial" />
+
+add timezone, or steps, phases,
+have time be a variable that you can include when you clone, etc.
+
+
+clone rather than copy
+
+
+  <graph extend="$mygraph">
+    <point>(3,4)</point>
+
+
+  </graph>
+
+
+  
+Testing or variant explorer
+
+
+
+
+
+
+------
+
+Fix this:
+
+Check this: {x} was an element of x,y,z
+
+<p><boolean><math>x</math> = <math>{x}</math></boolean></p>
+
+<boolean><math>{x}</math> elementof <math>{x,y,z}</math></boolean>
+
+<boolean><math>x</math> elementof <math>{x,y,z}</math></boolean>
+
+<boolean><math>{x}</math> subset <math>{x,y,z}</math></boolean>
+
+<boolean><math>x</math> subset <math>{x,y,z}</math></boolean>
