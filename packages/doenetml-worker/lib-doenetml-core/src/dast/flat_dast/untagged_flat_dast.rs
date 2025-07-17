@@ -2,7 +2,7 @@
 //! element/ref/etc. nodes are replaced with untagged references to their location in the nodes list.
 //! `UntaggedFlatDast` allows elements to change type without having to find all places where they are referenced.
 
-use std::{collections::HashMap, fmt::Display};
+use std::{collections::HashMap, fmt::Display, num::ParseIntError};
 
 use serde::{Deserialize, Serialize};
 use tsify_next::{declare, Tsify};
@@ -31,6 +31,14 @@ impl From<Option<SourceDoc>> for SourceDoc {
 impl From<u16> for SourceDoc {
     fn from(value: u16) -> Self {
         SourceDoc(value)
+    }
+}
+
+impl TryFrom<&str> for SourceDoc {
+    type Error = ParseIntError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Ok(value.parse::<u16>()?.into())
     }
 }
 

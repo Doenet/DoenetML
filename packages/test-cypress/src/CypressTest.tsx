@@ -475,7 +475,7 @@ export function CypressTest() {
      * A mock function for retrieving DoenetML source from a URI,
      * using the URI `doenet:[code]`.
      */
-    function retrieveDoenetML(sourceUri: string) {
+    function fetchExternalDoenetML(sourceUri: string) {
         return new Promise<string>((resolve, reject) => {
             setTimeout(() => {
                 const match = sourceUri.match(/^doenet:(\w+)/);
@@ -503,7 +503,7 @@ export function CypressTest() {
                 height="calc(100vh - 94px)"
                 width="100%"
                 viewerLocation={viewerLocation}
-                retrieveDoenetML={retrieveDoenetML}
+                fetchExternalDoenetML={fetchExternalDoenetML}
             />
         );
         const viewer = (
@@ -536,7 +536,7 @@ export function CypressTest() {
                 activityId="activityIdFromCypress"
                 render={render}
                 darkMode={darkMode}
-                retrieveDoenetML={retrieveDoenetML}
+                fetchExternalDoenetML={fetchExternalDoenetML}
             />
         );
 

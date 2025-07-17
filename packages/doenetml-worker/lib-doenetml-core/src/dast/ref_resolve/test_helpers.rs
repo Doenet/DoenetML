@@ -108,7 +108,7 @@ pub fn add_source_doc_to_descendants(
         if let FlatNode::Element(flat_element) = node {
             let source: SourceDoc = source_doc.into();
             flat_element.attributes.push(FlatAttribute {
-                name: format!("name:{source}"),
+                name: format!("source-{source}:name"),
                 parent: Some(node_idx),
                 children: vec![UntaggedContent::Text(new_name)],
                 position: None,

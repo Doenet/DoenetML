@@ -328,13 +328,13 @@ impl Resolver {
 /// Get a vector of the possible `NameWithSource` representations of the element.
 /// The `source_doc` for a `NameWithSource` is determined in two possible ways:
 /// - from the element's `name` attribute, in which case the `source_doc` is retrieved from the element itself, or
-/// - from the element's attribute with a name of the form `name:n`, where `n` is a number,
+/// - from the element's attribute with a name of the form `source-n:name`, where `n` is a number,
 ///   in which case `n` is the `source_doc`.
 ///
 /// For each such attribute, the value of the name is determined from the attribute's children.
 /// The attribute must have exactly one text child to be considered valid.
 fn get_element_names_with_source(element: &FlatElement) -> Vec<NameWithSource> {
-    let name_re = Regex::new(r"^name(:(?<source_doc>\d+))?$").unwrap();
+    let name_re = Regex::new(r"^(source-(?<source_doc>\d+):)?name$").unwrap();
     let names_with_source = element
         .attributes
         .iter()
@@ -344,20 +344,17 @@ fn get_element_names_with_source(element: &FlatElement) -> Vec<NameWithSource> {
                 let source_doc: SourceDoc = match caps.name("source_doc") {
                     // if the attribute is `name`, then get `source_doc` from the element itself
                     None => element.source_doc.into(),
-                    // if the attribute is `name:n`, where `n` is number, then `n` is the `source_doc`
-                    Some(source_match) => source_match.as_str().parse::<u16>().unwrap().into(),
+                    // if the attribute is `source-n:name`, where `n` is number, then `n` is the `source_doc`
+                    Some(source_match) => source_match.as_str().try_into().unwrap(),
                 };
-                Some((source_doc, &attr.children))
-            }
-        })
-        .filter_map(|(source_doc, children)| {
-            match (children.len(), children.first()) {
-                // A name attribute should have exactly one text child. Otherwise it is considered invalid.
-                (1, Some(UntaggedContent::Text(name))) => Some(NameWithSource {
-                    name: name.to_string(),
-                    source_doc,
-                }),
-                _ => None,
+                match (attr.children.len(), attr.children.first()) {
+                    // A name attribute should have exactly one text child. Otherwise it is considered invalid.
+                    (1, Some(UntaggedContent::Text(name))) => Some(NameWithSource {
+                        name: name.to_string(),
+                        source_doc,
+                    }),
+                    _ => None,
+                }
             }
         })
         .collect::<Vec<_>>();
@@ -389,7 +386,7 @@ fn extract_source_sequence_from_attribute(attr: &FlatAttribute) -> Vec<SourceDoc
         .filter_map(|child| match child {
             UntaggedContent::Ref(_) => None,
             UntaggedContent::Text(source_string) => {
-                Some(source_string.parse::<u16>().unwrap().into())
+                Some(source_string.as_str().try_into().unwrap())
             }
         })
         .collect()

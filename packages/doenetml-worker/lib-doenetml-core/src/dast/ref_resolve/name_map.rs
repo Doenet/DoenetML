@@ -3,6 +3,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+use regex::Regex;
 use rustc_hash::FxHashMap;
 use serde::{
     de::{MapAccess, Visitor},
@@ -22,6 +23,29 @@ use crate::dast::{flat_dast::SourceDoc, ref_resolve::Ref};
 pub struct NameWithSource {
     pub name: String,
     pub source_doc: SourceDoc,
+}
+
+/// Try to create a `NameWithSource` from a string slice of the form
+/// `name:source_doc`, where `name` is a string and `source_doc` is an integer.
+impl TryFrom<&str> for NameWithSource {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let name_source_re = Regex::new(r"^([^:]+):(\d+)$")?;
+        let captures = name_source_re
+            .captures(value)
+            .ok_or(anyhow::anyhow!("Invalid name with source: {value}"))?;
+        let name = captures.get(1).unwrap().as_str().to_string();
+        let source_doc = captures.get(2).unwrap().as_str().try_into().unwrap();
+        Ok(NameWithSource { name, source_doc })
+    }
+}
+
+/// Create a string of the form `name:source_doc` from a `NameSource`
+impl From<&NameWithSource> for String {
+    fn from(value: &NameWithSource) -> Self {
+        format!("{}:{}", value.name, value.source_doc)
+    }
 }
 
 /// Map of all the names and source_doc combinations that are accessible (as descendants) from the node.
@@ -50,13 +74,8 @@ impl Serialize for NameMap {
     {
         let mut map = serializer.serialize_map(Some(self.0.len()))?;
         for (name_with_source_doc, ref_) in &self.0 {
-            map.serialize_entry(
-                &format!(
-                    "{};{}",
-                    name_with_source_doc.name, name_with_source_doc.source_doc
-                ),
-                ref_,
-            )?;
+            let key: String = name_with_source_doc.into();
+            map.serialize_entry(&key, ref_)?;
         }
         map.end()
     }
@@ -84,10 +103,8 @@ impl<'de> Visitor<'de> for NameMapVisitor {
         let mut map = NameMap::default();
 
         while let Some((key, value)) = access.next_entry::<String, Ref>()? {
-            let mut split = key.split(";");
-            let name = split.next().unwrap().to_string();
-            let source_doc = split.next().unwrap().parse::<u16>().unwrap().into();
-            map.0.insert(NameWithSource { name, source_doc }, value);
+            let name_with_source: NameWithSource = key.as_str().try_into().unwrap();
+            map.0.insert(name_with_source, value);
         }
 
         Ok(map)

@@ -60,7 +60,7 @@ export function EditorViewer({
     border = "1px solid",
     initialErrors = [],
     initialWarnings = [],
-    retrieveDoenetML,
+    fetchExternalDoenetML,
 }: {
     doenetML: string;
     activityId?: string;
@@ -84,7 +84,7 @@ export function EditorViewer({
     border?: string;
     initialErrors?: ErrorRecord[];
     initialWarnings?: WarningRecord[];
-    retrieveDoenetML?: (arg: string) => Promise<string>;
+    fetchExternalDoenetML?: (arg: string) => Promise<string>;
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -597,7 +597,7 @@ export function EditorViewer({
                     darkMode={darkMode}
                     showAnswerResponseMenu={showAnswerResponseMenu}
                     answerResponseCounts={answerResponseCounts}
-                    retrieveDoenetML={retrieveDoenetML}
+                    fetchExternalDoenetML={fetchExternalDoenetML}
                 />
             </div>
         </div>

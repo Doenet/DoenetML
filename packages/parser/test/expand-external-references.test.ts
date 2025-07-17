@@ -25,7 +25,7 @@ const DoenetMLs = {
  * A mock function for retrieving DoenetML source from a URI,
  * using the URI `doenet:[code]`.
  */
-function retrieveDoenetML(sourceUri: string) {
+function fetchExternalDoenetML(sourceUri: string) {
     return new Promise<string>((resolve, reject) => {
         setTimeout(() => {
             const match = sourceUri.match(/^doenet:(\w+)/);
@@ -49,7 +49,7 @@ describe("Expand external references", async () => {
         const dast = filterPositionInfo(
             await expandExternalReferences(
                 lezerToDast(source),
-                retrieveDoenetML,
+                fetchExternalDoenetML,
             ),
         ) as DastRoot;
 
@@ -65,9 +65,9 @@ describe("Expand external references", async () => {
             type: "element",
             name: "p",
             attributes: {
-                "name:1": {
+                "source-1:name": {
                     type: "attribute",
-                    name: "name:1",
+                    name: "source-1:name",
                     source_doc: 1,
                     children: [{ type: "text", value: "par", source_doc: 1 }],
                 },
@@ -90,7 +90,7 @@ describe("Expand external references", async () => {
         const dast = filterPositionInfo(
             await expandExternalReferences(
                 lezerToDast(source),
-                retrieveDoenetML,
+                fetchExternalDoenetML,
             ),
         ) as DastRoot;
 
@@ -105,9 +105,9 @@ describe("Expand external references", async () => {
             type: "element",
             name: "p",
             attributes: {
-                "name:1": {
+                "source-1:name": {
                     type: "attribute",
-                    name: "name:1",
+                    name: "source-1:name",
                     source_doc: 1,
                     children: [{ type: "text", value: "par", source_doc: 1 }],
                 },
@@ -130,7 +130,7 @@ describe("Expand external references", async () => {
         const dast = filterPositionInfo(
             await expandExternalReferences(
                 lezerToDast(source),
-                retrieveDoenetML,
+                fetchExternalDoenetML,
             ),
         ) as DastRoot;
 
@@ -146,15 +146,15 @@ describe("Expand external references", async () => {
             type: "element",
             name: "p",
             attributes: {
-                "name:2": {
+                "source-2:name": {
                     type: "attribute",
-                    name: "name:2",
+                    name: "source-2:name",
                     source_doc: 2,
                     children: [{ type: "text", value: "par", source_doc: 2 }],
                 },
-                "name:1": {
+                "source-1:name": {
                     type: "attribute",
-                    name: "name:1",
+                    name: "source-1:name",
                     source_doc: 1,
                     children: [{ type: "text", value: "par2", source_doc: 1 }],
                 },
@@ -186,7 +186,7 @@ describe("Expand external references", async () => {
         const dast = filterPositionInfo(
             await expandExternalReferences(
                 lezerToDast(source),
-                retrieveDoenetML,
+                fetchExternalDoenetML,
             ),
         ) as DastRoot;
 
@@ -211,21 +211,21 @@ describe("Expand external references", async () => {
                     name: "name",
                     children: [{ type: "text", value: "p1" }],
                 },
-                "name:2": {
+                "source-2:name": {
                     type: "attribute",
-                    name: "name:2",
+                    name: "source-2:name",
                     source_doc: 2,
                     children: [{ type: "text", value: "p1", source_doc: 2 }],
                 },
-                "name:5": {
+                "source-5:name": {
                     type: "attribute",
-                    name: "name:5",
+                    name: "source-5:name",
                     source_doc: 5,
                     children: [{ type: "text", value: "par2", source_doc: 5 }],
                 },
-                "name:6": {
+                "source-6:name": {
                     type: "attribute",
-                    name: "name:6",
+                    name: "source-6:name",
                     source_doc: 6,
                     children: [{ type: "text", value: "par", source_doc: 6 }],
                 },
@@ -255,17 +255,17 @@ describe("Expand external references", async () => {
                                 { type: "text", value: "p2", source_doc: 2 },
                             ],
                         },
-                        "name:3": {
+                        "source-3:name": {
                             type: "attribute",
-                            name: "name:3",
+                            name: "source-3:name",
                             source_doc: 3,
                             children: [
                                 { type: "text", value: "par2", source_doc: 3 },
                             ],
                         },
-                        "name:4": {
+                        "source-4:name": {
                             type: "attribute",
-                            name: "name:4",
+                            name: "source-4:name",
                             source_doc: 4,
                             children: [
                                 { type: "text", value: "par", source_doc: 4 },
@@ -293,9 +293,9 @@ describe("Expand external references", async () => {
                     type: "element",
                     name: "p",
                     attributes: {
-                        "name:1": {
+                        "source-1:name": {
                             type: "attribute",
-                            name: "name:1",
+                            name: "source-1:name",
                             source_doc: 1,
                             children: [
                                 { type: "text", value: "par", source_doc: 1 },
@@ -325,7 +325,7 @@ describe("Expand external references", async () => {
         const dast = filterPositionInfo(
             await expandExternalReferences(
                 lezerToDast(source),
-                retrieveDoenetML,
+                fetchExternalDoenetML,
             ),
         ) as DastRoot;
 
@@ -417,9 +417,9 @@ describe("Expand external references", async () => {
                     name: "name",
                     children: [{ type: "text", value: "s2" }],
                 },
-                "name:1": {
+                "source-1:name": {
                     type: "attribute",
-                    name: "name:1",
+                    name: "source-1:name",
                     source_doc: 1,
                     children: [{ type: "text", value: "s", source_doc: 1 }],
                 },
@@ -496,7 +496,7 @@ describe("Expand external references", async () => {
         let dast = filterPositionInfo(
             await expandExternalReferences(
                 lezerToDast(source),
-                retrieveDoenetML,
+                fetchExternalDoenetML,
             ),
         ) as DastRoot;
 
@@ -525,7 +525,7 @@ describe("Expand external references", async () => {
         const dast = filterPositionInfo(
             await expandExternalReferences(
                 lezerToDast(source),
-                retrieveDoenetML,
+                fetchExternalDoenetML,
             ),
         ) as DastRoot;
 
@@ -557,7 +557,7 @@ describe("Expand external references", async () => {
         const dast = filterPositionInfo(
             await expandExternalReferences(
                 lezerToDast(source),
-                retrieveDoenetML,
+                fetchExternalDoenetML,
             ),
         ) as DastRoot;
 
@@ -576,7 +576,7 @@ describe("Expand external references", async () => {
         const dast = filterPositionInfo(
             await expandExternalReferences(
                 lezerToDast(source),
-                retrieveDoenetML,
+                fetchExternalDoenetML,
             ),
         ) as DastRoot;
 
@@ -595,7 +595,7 @@ describe("Expand external references", async () => {
         const dast = filterPositionInfo(
             await expandExternalReferences(
                 lezerToDast(source),
-                retrieveDoenetML,
+                fetchExternalDoenetML,
             ),
         ) as DastRoot;
 

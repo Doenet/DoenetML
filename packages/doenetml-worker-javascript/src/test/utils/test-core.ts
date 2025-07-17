@@ -91,7 +91,7 @@ export async function createTestCore({
      * A mock function for retrieving DoenetML source from a URI,
      * using the URI `doenet:[code]`.
      */
-    function retrieveDoenetML(sourceUri: string) {
+    function fetchExternalDoenetML(sourceUri: string) {
         return new Promise<string>((resolve, reject) => {
             setTimeout(() => {
                 const match = sourceUri.match(/^doenet:(\w+)/);
@@ -109,7 +109,10 @@ export async function createTestCore({
     }
 
     const dast = normalizeDocumentDast(
-        await expandExternalReferences(lezerToDast(doenetML), retrieveDoenetML),
+        await expandExternalReferences(
+            lezerToDast(doenetML),
+            fetchExternalDoenetML,
+        ),
         true,
     );
     rustCore.set_source(dast as DastRootInCore, doenetML);

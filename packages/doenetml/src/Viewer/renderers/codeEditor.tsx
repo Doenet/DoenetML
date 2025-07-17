@@ -8,7 +8,7 @@ import { useInView } from "framer-motion";
 import { EditorViewer } from "../../EditorViewer/EditorViewer";
 
 export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
-    let { id, SVs, actions, ignoreUpdate, callAction, retrieveDoenetML } =
+    let { id, SVs, actions, ignoreUpdate, callAction, fetchExternalDoenetML } =
         useDoenetRenderer(props) as any;
 
     // @ts-ignore
@@ -92,7 +92,7 @@ export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
                     immediateDoenetmlChangeCallback
                 }
                 doenetmlChangeCallback={doenetmlChangeCallback}
-                retrieveDoenetML={retrieveDoenetML}
+                fetchExternalDoenetML={fetchExternalDoenetML}
             />
         </div>
     );

@@ -65,7 +65,7 @@ export function DocViewer({
     showAnswerResponseMenu = false,
     answerResponseCounts = {},
     initializeCounters: prescribedInitializeCounters = {},
-    retrieveDoenetML,
+    fetchExternalDoenetML,
 }: {
     doenetML: string;
     userId?: string;
@@ -94,7 +94,7 @@ export function DocViewer({
     showAnswerResponseMenu?: boolean;
     answerResponseCounts?: Record<string, number>;
     initializeCounters?: Record<string, number>;
-    retrieveDoenetML?: (arg: string) => Promise<string>;
+    fetchExternalDoenetML?: (arg: string) => Promise<string>;
 }) {
     // Sometimes components eagerly update before waiting for core to determine their exact state
     // This map from event ids to event values helps keep track of the updates that need to be ignored
@@ -388,7 +388,7 @@ export function DocViewer({
             requestedVariantIndex,
             attemptNumber,
             documentStructureCallback,
-            retrieveDoenetML,
+            fetchExternalDoenetML,
         });
 
         if (initializeResult.success === false) {
@@ -682,7 +682,7 @@ export function DocViewer({
                         callAction,
                         doenetViewerUrl,
                         scrollableContainer,
-                        retrieveDoenetML,
+                        fetchExternalDoenetML,
                     }),
                 );
 
@@ -1016,7 +1016,7 @@ export function DocViewer({
                 requestedVariantIndex,
                 attemptNumber,
                 documentStructureCallback,
-                retrieveDoenetML,
+                fetchExternalDoenetML,
             });
 
             if (initializeResult.success === false) {
@@ -1255,7 +1255,7 @@ export function DocViewer({
             requestedVariantIndex,
             attemptNumber,
             documentStructureCallback,
-            retrieveDoenetML,
+            fetchExternalDoenetML,
         });
         return null;
     }

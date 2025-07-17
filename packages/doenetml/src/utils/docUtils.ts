@@ -27,7 +27,7 @@ export async function initializeCoreWorker({
     requestedVariantIndex,
     attemptNumber,
     documentStructureCallback,
-    retrieveDoenetML,
+    fetchExternalDoenetML,
 }: {
     coreWorker: Comlink.Remote<CoreWorker>;
     doenetML: string;
@@ -37,12 +37,12 @@ export async function initializeCoreWorker({
     requestedVariantIndex: number;
     attemptNumber: number;
     documentStructureCallback?: Function;
-    retrieveDoenetML?: (arg: string) => Promise<string>;
+    fetchExternalDoenetML?: (arg: string) => Promise<string>;
 }) {
     let dast = lezerToDast(doenetML);
 
-    if (retrieveDoenetML) {
-        dast = await expandExternalReferences(dast, retrieveDoenetML);
+    if (fetchExternalDoenetML) {
+        dast = await expandExternalReferences(dast, fetchExternalDoenetML);
     }
 
     dast = normalizeDocumentDast(dast, true);
