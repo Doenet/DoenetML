@@ -87694,7 +87694,7 @@
                 },
                 {
                     "name": "height",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
@@ -87749,7 +87749,7 @@
                 },
                 {
                     "name": "width",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
@@ -91421,7 +91421,7 @@
                 },
                 {
                     "name": "width",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
@@ -94856,12 +94856,12 @@
                 },
                 {
                     "name": "width",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
                     "name": "height",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
@@ -95136,7 +95136,7 @@
                 },
                 {
                     "name": "width",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
@@ -95216,7 +95216,7 @@
                 },
                 {
                     "name": "height",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
@@ -96862,12 +96862,12 @@
                 },
                 {
                     "name": "width",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
                     "name": "height",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
@@ -108021,7 +108021,7 @@
                 },
                 {
                     "name": "width",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
@@ -108224,7 +108224,7 @@
                 },
                 {
                     "name": "width",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
@@ -120105,12 +120105,12 @@
                 },
                 {
                     "name": "width",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
                     "name": "height",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
@@ -123633,12 +123633,12 @@
                 },
                 {
                     "name": "width",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
                     "name": "height",
-                    "type": "_componentSize",
+                    "type": "componentSize",
                     "isArray": false
                 },
                 {
