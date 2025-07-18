@@ -1,14 +1,7 @@
-use std::{
-    fmt,
-    ops::{Deref, DerefMut},
-};
+use std::ops::{Deref, DerefMut};
 
 use rustc_hash::FxHashMap;
-use serde::{
-    de::{MapAccess, Visitor},
-    ser::SerializeMap,
-    Deserialize, Deserializer, Serialize,
-};
+use serde::{ser::SerializeMap, Serialize};
 
 use crate::dast::{flat_dast::SourceDoc, ref_resolve::Ref};
 
@@ -18,7 +11,7 @@ use crate::dast::{flat_dast::SourceDoc, ref_resolve::Ref};
 /// If the element was loaded from external content, `source_doc` will be the index
 /// of that document in the list of source documents.
 // TODO: update this comment when determine where this list of source documents is stored
-#[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Serialize, Clone, Hash, PartialEq, Eq)]
 pub struct NameWithSource {
     pub name: String,
     pub source_doc: SourceDoc,
@@ -78,44 +71,5 @@ impl Serialize for NameMap {
             map.serialize_entry(&key, ref_)?;
         }
         map.end()
-    }
-}
-
-struct NameMapVisitor {}
-
-impl NameMapVisitor {
-    fn new() -> Self {
-        NameMapVisitor {}
-    }
-}
-
-impl<'de> Visitor<'de> for NameMapVisitor {
-    type Value = NameMap;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a name map")
-    }
-
-    fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
-    where
-        M: MapAccess<'de>,
-    {
-        let mut map = NameMap::default();
-
-        while let Some((key, value)) = access.next_entry::<String, Ref>()? {
-            let name_with_source: NameWithSource = key.as_str().try_into().unwrap();
-            map.0.insert(name_with_source, value);
-        }
-
-        Ok(map)
-    }
-}
-
-impl<'de> Deserialize<'de> for NameMap {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_map(NameMapVisitor::new())
     }
 }

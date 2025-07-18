@@ -1,7 +1,6 @@
 //! This file contains utilities for testing DoenetMLCore.
 use doenetml_core::components::types::{Action, ComponentIdx, LocalPropIdx, PropPointer};
 use doenetml_core::dast::flat_dast::FlatPathPart;
-use doenetml_core::dast::ref_resolve::Resolver;
 use doenetml_core::dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot};
 use doenetml_core::props::cache::PropWithMeta;
 use doenetml_core::props::traits::IntoPropView;
@@ -135,22 +134,14 @@ pub fn attach_codelldb_debugger() {
 #[allow(unused)]
 pub struct TestCore {
     pub core: doenetml_core::Core,
-    /// Resolver that can be used to look items up by name.
-    pub resolver: Option<Resolver>,
 }
 #[allow(unused)]
 impl TestCore {
     pub fn new() -> Self {
-        Self {
-            core: Core::new(),
-            resolver: None,
-        }
+        Self { core: Core::new() }
     }
     pub fn new_from(core: doenetml_core::Core) -> Self {
-        Self {
-            core,
-            resolver: None,
-        }
+        Self { core }
     }
     /// Get a prop from the core without tracking it. It will be resolved and calculated
     /// if it hasn't been already. This function internally uses `get_prop_for_render_untracked`.
@@ -230,10 +221,10 @@ impl TestCore {
 
     /// Get the index of a component via its assigned name.
     pub fn get_component_index_by_name(&self, name: &str) -> usize {
-        if self.resolver.is_none() {
+        if self.core.resolver.is_none() {
             panic!("Resolver is not initialized, must call `init_from_dast_root` first");
         }
-        let resolver = self.resolver.as_ref().unwrap();
+        let resolver = self.core.resolver.as_ref().unwrap();
         let resolved = resolver
             .resolve(
                 &[FlatPathPart {
@@ -254,7 +245,7 @@ impl TestCore {
         self.core.to_flat_dast()
     }
     pub fn init_from_dast_root(&mut self, dast_root: &DastRoot) {
-        self.resolver = Some(self.core.init_from_dast_root(dast_root));
+        self.core.init_from_dast_root(dast_root);
     }
 
     pub fn dispatch_action(

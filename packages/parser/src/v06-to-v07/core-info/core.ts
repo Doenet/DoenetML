@@ -1,11 +1,17 @@
 import init, {
     PublicDoenetMLCore as PublicDoenetMLCoreRust,
     DastRoot as DastRootInCore,
+    PathToCheck,
+    RefResolution,
+    FlatFragment,
+    IndexResolution,
+    NodeList,
 } from "lib-doenetml-worker";
 import { normalizeDocumentDast } from "../../dast-normalize/normalize-dast";
 import { PublicDoenetMLCore } from "@doenet/doenetml-worker-javascript";
 import { DastRoot } from "../../types";
 import { toXml } from "../../dast-to-xml/dast-util-to-xml";
+import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
 
 type DoenetMLFlags = {
     showCorrectness: boolean;
@@ -58,11 +64,24 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
     dast = normalizeDocumentDast(structuredClone(dast), true);
     rustCore.set_source(dast as DastRootInCore, toXml(dast));
 
-    const { normalizedRoot, resolver } = rustCore.return_normalized_dast_root();
-    const addNodesToResolver = PublicDoenetMLCoreRust.add_nodes_to_resolver;
-    const deleteNodesFromResolver =
-        PublicDoenetMLCoreRust.delete_nodes_from_resolver;
-    const resolvePath = PublicDoenetMLCoreRust.resolve_path;
+    const normalizedRoot = rustCore.return_normalized_dast_root();
+
+    function resolvePath(
+        path: PathToCheck,
+        origin: number,
+        skip_parent_search: boolean,
+    ): RefResolution {
+        return rustCore.resolve_path(path, origin, skip_parent_search);
+    }
+    function addNodesToResolver(
+        flat_fragment: FlatFragment,
+        index_resolution: IndexResolution,
+    ) {
+        rustCore.add_nodes_to_resolver(flat_fragment, index_resolution);
+    }
+    function deleteNodesFromResolver(node_list: NodeList) {
+        rustCore.delete_nodes_from_resolver(node_list);
+    }
 
     const flags: DoenetMLFlags = { ...defaultFlags };
 
@@ -77,7 +96,6 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
         requestedVariantIndex: 1,
         attemptNumber: 1,
         normalizedRoot,
-        resolver,
         addNodesToResolver,
         deleteNodesFromResolver,
         resolvePath,
@@ -113,7 +131,8 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
         if (name.startsWith("$")) {
             name = name.slice(1);
         }
-        return core.resolvePathImmediatelyToNodeIdx(name, origin);
+
+        return resolvePathImmediatelyToNodeIdx(name, rustCore, core, origin);
     }
 
     return { core, rustCore, resolvePathToNodeIdx };

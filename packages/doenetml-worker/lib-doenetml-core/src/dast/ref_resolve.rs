@@ -17,7 +17,6 @@ pub use errors::*;
 pub use index_resolutions::*;
 pub use name_map::*;
 pub use resolve::*;
-pub use root_names::*;
 
 #[cfg(test)]
 mod test_helpers;

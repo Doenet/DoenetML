@@ -67,7 +67,6 @@ export default class Core {
         prerender = false,
         stateVariableChanges: stateVariableChangesString,
         coreId,
-        resolver,
         addNodesToResolver,
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
@@ -83,7 +82,6 @@ export default class Core {
     }) {
         // console.time('core');
 
-        // console.log("Initial resolver", JSON.parse(JSON.stringify(resolver)));
         // console.log("serialized document", serializedDocument);
 
         this.coreId = coreId;
@@ -96,7 +94,6 @@ export default class Core {
         this.nComponentsInit = nComponentsInit;
         this.createComponentIdxMapping = {};
 
-        this.resolver = resolver;
         this.addNodesToResolver = addNodesToResolver;
         this.replaceIndexResolutionsInResolver =
             replaceIndexResolutionsInResolver;
@@ -104,7 +101,7 @@ export default class Core {
         this.resolvePath = resolvePath;
         this.calculateRootNames = calculateRootNames;
 
-        this.rootNames = this.calculateRootNames?.(this.resolver).names;
+        this.rootNames = this.calculateRootNames?.().names;
 
         this.updateRenderersCallback = updateRenderersCallback;
         this.reportScoreAndStateCallback = reportScoreAndStateCallback;
@@ -2694,18 +2691,12 @@ export default class Core {
             this.addNodesToResolver
         ) {
             // console.log("add nodes to resolver", {
-            //     resolver: JSON.parse(JSON.stringify(this.resolver)),
             //     flatFragment,
             //     indexResolution,
             // });
-            let resolver = this.addNodesToResolver(
-                this.resolver,
-                flatFragment,
-                indexResolution,
-            );
-            this.resolver = resolver;
+            this.addNodesToResolver(flatFragment, indexResolution);
 
-            this.rootNames = this.calculateRootNames?.(this.resolver).names;
+            this.rootNames = this.calculateRootNames?.().names;
 
             let indexParent =
                 indexResolution.ReplaceAll?.parent ??
@@ -2724,11 +2715,6 @@ export default class Core {
                     );
                 }
             }
-
-            // console.log(
-            //     "added nodes",
-            //     JSON.parse(JSON.stringify(this.resolver)),
-            // );
         }
     }
 
@@ -2972,24 +2958,13 @@ export default class Core {
         });
 
         // console.log("add nodes from components to resolver", {
-        //     resolver: JSON.parse(JSON.stringify(this.resolver)),
         //     flatFragment,
         // });
 
         if (this.addNodesToResolver) {
-            let resolver = this.addNodesToResolver(
-                this.resolver,
-                flatFragment,
-                "None",
-            );
-            this.resolver = resolver;
+            this.addNodesToResolver(flatFragment, "None");
 
-            this.rootNames = this.calculateRootNames?.(this.resolver).names;
-
-            // console.log(
-            //     "added nodes",
-            //     JSON.parse(JSON.stringify(this.resolver)),
-            // );
+            this.rootNames = this.calculateRootNames?.().names;
         }
     }
 
@@ -9746,12 +9721,11 @@ export default class Core {
         });
 
         if (this.deleteNodesFromResolver) {
-            let resolver = this.deleteNodesFromResolver(this.resolver, {
+            this.deleteNodesFromResolver({
                 nodes: flatElements,
             });
-            this.resolver = resolver;
 
-            this.rootNames = this.calculateRootNames?.(this.resolver).names;
+            this.rootNames = this.calculateRootNames?.().names;
         }
     }
 
@@ -10873,17 +10847,12 @@ export default class Core {
                                 }
                             });
 
-                        let resolver = this.replaceIndexResolutionsInResolver(
-                            this.resolver,
+                        this.replaceIndexResolutionsInResolver(
                             { content: newContentForIndex },
                             indexResolution,
                         );
 
-                        this.resolver = resolver;
-
-                        this.rootNames = this.calculateRootNames?.(
-                            this.resolver,
-                        );
+                        this.rootNames = this.calculateRootNames?.();
 
                         await this.dependencies.addBlockersFromChangedReplacements(
                             indexParentComposite,

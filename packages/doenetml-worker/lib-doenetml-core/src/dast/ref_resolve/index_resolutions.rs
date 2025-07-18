@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tsify_next::Tsify;
 
 use crate::dast::flat_dast::{FlatNode, FlatRootOrFragment, Index, UntaggedContent};
@@ -9,9 +9,9 @@ use super::Resolver;
 
 /// An enum specifying whether or not nodes that are being added to the resolver should also be added as index resolutions
 /// of the flat fragment parent, and if so, which existing indices they should replace.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub enum IndexResolution {
     /// Do not modify any `index_resolutions`
     None,

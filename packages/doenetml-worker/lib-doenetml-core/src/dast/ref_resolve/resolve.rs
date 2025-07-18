@@ -54,9 +54,7 @@ pub enum Ref {
 ///   ```
 ///   - References `$y` and `$z` from `<c>` would fail because the `name_map` of `<d>` would not contain the nodes.
 ///   - References `$x.y` and `$x.z` from `<c>` would resolve because the `name_map` of `<option>` would contain the nodes.
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) enum Visibility {
     Visible,
     Invisible,
@@ -88,18 +86,14 @@ impl Visibility {
 }
 
 /// The possibilities for the parent of a node in the resolver
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
-#[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[derive(Debug, Serialize, Clone, Copy)]
 pub enum NodeParent {
     None,
     FlatRoot,
     Node(Index),
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[derive(Debug, Serialize, Clone)]
 pub struct NodeResolverData {
     /// The parent of the node. Options are:
     /// - `NodeParent:None` corresponds to no parent
@@ -132,9 +126,7 @@ pub struct NodeResolverData {
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
 /// upon construction. If the underlying `FlatRoot` changes, a new `Resolver` should be
 /// recreated.
-#[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[derive(Debug, Serialize)]
 pub struct Resolver {
     /// List of the node resolver data for a node at a given index shifted by `1`
     /// so that `node_resolver_data[i+1]` gives the data for node `i`

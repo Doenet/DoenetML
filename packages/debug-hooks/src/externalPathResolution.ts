@@ -4,25 +4,36 @@ import {
     FlatPathPart,
     FlatIndex,
     RefResolution,
-    Resolver,
+    PublicDoenetMLCore,
 } from "lib-doenetml-worker";
-import { PublicDoenetMLCore } from "../CoreWorker";
+
+import { PublicDoenetMLCore as PublicDoenetMLCoreJavascript } from "@doenet/doenetml-worker-javascript";
 
 /**
- * Attempts to resolve the component name `name` to a componentIdx,
- * starting the search algorithm at node `origin`.
+ * Attempt to resolve `name` immediately by parsing `name` to a path
+ * and then forcibly resolving any composite components required to determine the ref resolution.
+ * If the path is resolved to a node index without any unresolved path left,
+ * then return the node index. Otherwise return -1.
  *
- * Throws an error if the name is not resolved.
+ * By default, the search for the path begins at the document root, node 0. Specify a node index for `origin`
+ * to change where the search begins.
+ *
+ * This function is implemented only for string indices within the path.
+ * An error is thrown if the index of a path contains any references to other nodes.
+ *
+ * At present this function uses `rustCore` to resolve the names
+ * and `jsCore` to identify and expand components.
  */
 export async function resolvePathImmediatelyToNodeIdx(
     name: string,
-    coreWorker: PublicDoenetMLCore,
+    rustCore: PublicDoenetMLCore,
+    jsCore: PublicDoenetMLCoreJavascript,
     origin = 0,
 ) {
     // This algorithm is not a careful check of the correct form.
     // It assumes all characters of the `name` of each path piece are word characters.
 
-    if (!coreWorker.resolvePath || !coreWorker.core) {
+    if (!jsCore.core) {
         return -1;
     }
 
@@ -58,15 +69,8 @@ export async function resolvePathImmediatelyToNodeIdx(
     }
 
     try {
-        const resolver = coreWorker.getResolver();
-
         // console.log("resolve path", { path, origin });
-        let resolution = coreWorker.resolvePath(
-            resolver,
-            { path },
-            origin,
-            false,
-        );
+        let resolution = rustCore.resolve_path({ path }, origin, false);
 
         while (resolution.unresolvedPath !== null) {
             if (resolution.unresolvedPath[0].name !== "") {
@@ -76,11 +80,10 @@ export async function resolvePathImmediatelyToNodeIdx(
                 return -1;
             }
 
-            const refComponent =
-                coreWorker.core._components![resolution.nodeIdx];
+            const refComponent = jsCore.core._components![resolution.nodeIdx];
 
             const haveComposite =
-                coreWorker.core.componentInfoObjects.isCompositeComponent({
+                jsCore.core.componentInfoObjects.isCompositeComponent({
                     componentType: refComponent.componentType,
                     includeNonStandard: true,
                 });
@@ -109,15 +112,10 @@ export async function resolvePathImmediatelyToNodeIdx(
             // then we force expand it by forcibly resolving `readyToExpandWhenResolved`
             // before calling `expandCompositeComponent`.
             await refComponent.stateValues.readyToExpandWhenResolved;
-            await coreWorker.core.expandCompositeComponent(refComponent);
+            await jsCore.core.expandCompositeComponent(refComponent);
 
             // try resolving again
-            resolution = coreWorker.resolvePath(
-                resolver,
-                { path },
-                origin,
-                false,
-            );
+            resolution = rustCore.resolve_path({ path }, origin, false);
         }
 
         return resolution.nodeIdx;

@@ -33,7 +33,7 @@ fn find_simplest_unique_name() {
     let f_idx = find(&flat_root, "f").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[doc_idx], None);
     assert_eq!(root_names[a_idx], Some("x".to_string()));
@@ -74,7 +74,7 @@ fn find_simplest_names_with_index() {
     let g2_idx = c_idx + 1;
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[doc_idx], None);
     assert_eq!(root_names[a_idx], Some("x".to_string()));
@@ -113,7 +113,7 @@ fn option_children_require_option_name() {
     let o_idx = find(&flat_root, "option").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[doc_idx], None);
     assert_eq!(root_names[a_idx], Some("x".to_string()));
@@ -152,7 +152,7 @@ fn fragments_added_require_parent_or_index() {
         IndexResolution::ReplaceAll { parent: a_idx },
     );
 
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[a_idx], Some("x".to_string()));
     assert_eq!(root_names[b_idx], Some("x:1".to_string()));
@@ -178,7 +178,7 @@ fn sub_names_are_preferred_over_indices() {
         &flat_fragment,
         IndexResolution::ReplaceAll { parent: a_idx },
     );
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[b_idx], Some("x.long".to_string()));
 }
@@ -203,7 +203,7 @@ fn ties_are_handled_consistently_even_as_document_changes() {
     let d_idx = find(&flat_root, "d").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[d_idx], Some("x.y".to_string()));
 
@@ -232,7 +232,7 @@ fn ties_are_handled_consistently_even_as_document_changes() {
     let d_idx = find(&flat_root, "d").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[d_idx], Some("x.y".to_string()));
 }
@@ -270,7 +270,7 @@ fn elements_from_external_source_doc_require_parent() {
 
     let resolver = Resolver::from_flat_root(&flat_root);
 
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[a_idx], Some("x".to_string()));
     assert_eq!(root_names[b_idx], Some("y.z".to_string()));

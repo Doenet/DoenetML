@@ -7364,7 +7364,6 @@ class RefResolutionDependency extends Dependency {
 
         // console.log(
         //     "resolve path",
-        //     this.dependencyHandler.core.resolver,
         //     { path: resolveComponentResult.path },
         //     composite.refResolution.nodesInResolvedPath[0],
         //     skip_parent_search,
@@ -7372,7 +7371,6 @@ class RefResolutionDependency extends Dependency {
 
         try {
             refResolution = this.dependencyHandler.core.resolvePath(
-                this.dependencyHandler.core.resolver,
                 { path: resolveComponentResult.path },
                 composite.refResolution.nodesInResolvedPath[0],
                 skip_parent_search,

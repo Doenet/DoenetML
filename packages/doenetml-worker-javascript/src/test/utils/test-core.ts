@@ -8,12 +8,19 @@ import init, {
     FlatPathPart,
     FlatIndex,
     RefResolution,
+    PathToCheck,
+    FlatFragment,
+    IndexResolution,
+    ContentVector,
+    NodeList,
 } from "lib-doenetml-worker";
 import {
     expandExternalReferences,
     lezerToDast,
     normalizeDocumentDast,
 } from "@doenet/parser";
+import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
+
 import util from "util";
 
 const origLog = console.log;
@@ -117,14 +124,37 @@ export async function createTestCore({
     );
     rustCore.set_source(dast as DastRootInCore, doenetML);
 
-    const { normalizedRoot, resolver } = rustCore.return_normalized_dast_root();
-    const addNodesToResolver = PublicDoenetMLCoreRust.add_nodes_to_resolver;
-    const replaceIndexResolutionsInResolver =
-        PublicDoenetMLCoreRust.replace_index_resolutions_in_resolver;
-    const deleteNodesFromResolver =
-        PublicDoenetMLCoreRust.delete_nodes_from_resolver;
-    const resolvePath = PublicDoenetMLCoreRust.resolve_path;
-    const calculateRootNames = PublicDoenetMLCoreRust.calculate_root_names;
+    const normalizedRoot = rustCore.return_normalized_dast_root();
+
+    function calculateRootNames() {
+        return rustCore.calculate_root_names();
+    }
+
+    function resolvePath(
+        path: PathToCheck,
+        origin: number,
+        skip_parent_search: boolean,
+    ): RefResolution {
+        return rustCore.resolve_path(path, origin, skip_parent_search);
+    }
+    function addNodesToResolver(
+        flat_fragment: FlatFragment,
+        index_resolution: IndexResolution,
+    ) {
+        rustCore.add_nodes_to_resolver(flat_fragment, index_resolution);
+    }
+    function replaceIndexResolutionsInResolver(
+        components: ContentVector,
+        index_resolution: IndexResolution,
+    ) {
+        rustCore.replace_index_resolutions_in_resolver(
+            components,
+            index_resolution,
+        );
+    }
+    function deleteNodesFromResolver(node_list: NodeList) {
+        rustCore.delete_nodes_from_resolver(node_list);
+    }
 
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
@@ -139,7 +169,6 @@ export async function createTestCore({
         requestedVariantIndex,
         attemptNumber: 1,
         normalizedRoot,
-        resolver,
         addNodesToResolver,
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
@@ -174,7 +203,7 @@ export async function createTestCore({
      * Throws an error if the name is not resolved.
      */
     function resolvePathToNodeIdx(name: string, origin = 0) {
-        return core.resolvePathImmediatelyToNodeIdx(name, origin);
+        return resolvePathImmediatelyToNodeIdx(name, rustCore, core, origin);
     }
 
     return { core, rustCore, resolvePathToNodeIdx };
