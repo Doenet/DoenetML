@@ -2,7 +2,7 @@
 //! element/ref/etc. nodes are replaced with untagged references to their location in the nodes list.
 //! `UntaggedFlatDast` allows elements to change type without having to find all places where they are referenced.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display, num::ParseIntError};
 
 use serde::{Deserialize, Serialize};
 use tsify_next::{declare, Tsify};
@@ -18,6 +18,35 @@ pub use super::parent_iterator::ParentIterator;
 
 #[declare]
 pub type Index = usize;
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct SourceDoc(u16);
+
+impl From<Option<SourceDoc>> for SourceDoc {
+    fn from(value: Option<SourceDoc>) -> Self {
+        value.unwrap_or(SourceDoc(0))
+    }
+}
+
+impl From<u16> for SourceDoc {
+    fn from(value: u16) -> Self {
+        SourceDoc(value)
+    }
+}
+
+impl TryFrom<&str> for SourceDoc {
+    type Error = ParseIntError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Ok(value.parse::<u16>()?.into())
+    }
+}
+
+impl Display for SourceDoc {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -128,6 +157,7 @@ impl Source<RefResolution> {
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatElement {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -139,6 +169,8 @@ pub struct FlatElement {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// The position of the vector of child nodes
     pub children_position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
     pub idx: Index,
     /// Information about the referent that this element extends (e.g., as specified by the `extend` attribute).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -149,6 +181,7 @@ pub struct FlatElement {
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[serde(tag = "type")]
 #[serde(rename = "attribute")]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatAttribute {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -156,6 +189,8 @@ pub struct FlatAttribute {
     pub children: Vec<UntaggedContent>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Copy, Default)]
@@ -182,6 +217,8 @@ pub struct FlatError {
     pub unresolved_path: Option<Vec<FlatPathPart>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
     pub idx: Index,
 }
 
@@ -193,6 +230,7 @@ impl FlatError {
             error_type: ErrorType::Error,
             unresolved_path: None,
             position: None,
+            source_doc: None,
             idx,
         }
     }
@@ -205,35 +243,44 @@ impl FlatError {
 #[serde(rename = "flatPathPart")]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi))]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatPathPart {
     pub name: String,
     pub index: Vec<FlatIndex>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 /// An index into a ref path
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatIndex {
     pub value: Vec<UntaggedContent>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[serde(tag = "type")]
 #[serde(rename = "ref")]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatRef {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<Index>,
     pub path: Vec<FlatPathPart>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
     pub idx: Index,
 }
 
@@ -241,6 +288,7 @@ pub struct FlatRef {
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[serde(tag = "type")]
 #[serde(rename = "functionRef")]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct FlatFunctionRef {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<Index>,
@@ -248,6 +296,8 @@ pub struct FlatFunctionRef {
     pub input: Option<Vec<Vec<UntaggedContent>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
     pub idx: Index,
 }
 
@@ -270,6 +320,7 @@ impl Default for FlatNode {
             error_type: ErrorType::Error,
             unresolved_path: None,
             position: None,
+            source_doc: None,
             idx: 0,
         })
     }
@@ -333,6 +384,7 @@ impl FlatNode {
 pub struct FlatRoot {
     pub children: Vec<UntaggedContent>,
     pub nodes: Vec<FlatNode>,
+    pub sources: Vec<String>,
 }
 
 impl FlatRoot {
@@ -340,6 +392,7 @@ impl FlatRoot {
         Self {
             children: Vec::new(),
             nodes: Vec::new(),
+            sources: Vec::new(),
         }
     }
 
@@ -353,6 +406,7 @@ impl FlatRoot {
                 .into_iter()
                 .map(|n| NormalizedNode::from_flat_node(&n))
                 .collect(),
+            sources: self.sources.clone(),
         }
     }
 }
@@ -377,6 +431,9 @@ pub struct FlatFragment {
     pub nodes: Vec<FlatNode>,
     /// The index of the fragment's parent (e.g., from a `FlatRoot`)
     pub parent_idx: Option<Index>,
+    /// If `source:sequence` attribute of the fragment parent, if it exist.
+    /// Used to create the `NodeResolverData::source_sequence` of the parent.
+    pub parent_source_sequence: Option<FlatAttribute>,
     /// A map of the a node's index into its index in the array `nodes`
     idx_map: HashMap<usize, usize>,
 }
@@ -452,6 +509,7 @@ impl FlatFragment {
             children: flat_root.children,
             nodes: flat_root.nodes,
             parent_idx,
+            parent_source_sequence: None,
             idx_map,
         }
     }

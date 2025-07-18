@@ -32,7 +32,7 @@ export default class Image extends BlockComponent {
         let attributes = super.createAttributesObject();
 
         attributes.width = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
             createStateVariable: "specifiedWidth",
             defaultValue: null,
         };
@@ -234,7 +234,7 @@ export default class Image extends BlockComponent {
             public: true,
             forRenderer: true,
             shadowingInstructions: {
-                createComponentOfType: "_componentSize",
+                createComponentOfType: "componentSize",
             },
             returnDependencies: () => ({
                 specifiedSize: {

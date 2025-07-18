@@ -30,6 +30,7 @@ export function postponeRenderSugar(node: DastElement) {
             name: "_postponeRenderContainer",
             children: postponedChildren,
             attributes: {},
+            source_doc: node.source_doc,
         },
     ];
 }

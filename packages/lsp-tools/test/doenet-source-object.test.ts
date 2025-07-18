@@ -69,6 +69,7 @@ describe("DoenetSourceObject", () => {
                     value: source,
                 },
             ],
+            sources: ["abc\nx\nq r s"],
             type: "root",
         });
 
@@ -82,6 +83,7 @@ describe("DoenetSourceObject", () => {
                     value: source,
                 },
             ],
+            sources: ["hi"],
             type: "root",
         });
     });

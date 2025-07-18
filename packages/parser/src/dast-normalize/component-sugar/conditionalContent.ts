@@ -65,6 +65,7 @@ export function conditionalContentSugar(node: DastElement) {
                 name: "case",
                 children: node.children,
                 attributes,
+                source_doc: node.source_doc,
             },
         ];
 

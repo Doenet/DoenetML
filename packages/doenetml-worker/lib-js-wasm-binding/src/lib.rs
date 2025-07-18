@@ -12,10 +12,8 @@ use doenetml_core::{
     components::{prelude::ComponentIdx, types::Action},
     core::core::Core,
     dast::{
-        flat_dast::{
-            FlatFragment, FlatNode, FlatPathPart, FlatRoot, Index, NormalizedRoot, UntaggedContent,
-        },
-        ref_resolve::{IndexResolution, RefResolution, ResolutionError, Resolver},
+        flat_dast::{FlatFragment, FlatNode, FlatPathPart, Index, NormalizedRoot, UntaggedContent},
+        ref_resolve::{IndexResolution, RefResolution, ResolutionError},
         DastRoot, FlatDastElementUpdate, FlatDastRoot,
     },
 };
@@ -40,22 +38,6 @@ pub struct PublicDoenetMLCore {
 #[tsify(into_wasm_abi)]
 pub struct ActionResponse {
     payload: HashMap<ComponentIdx, FlatDastElementUpdate>,
-}
-
-#[derive(Debug, Serialize, Tsify)]
-#[tsify(into_wasm_abi)]
-#[serde(rename_all = "camelCase")]
-pub struct RootResolver {
-    normalized_root: NormalizedRoot,
-    resolver: Resolver,
-}
-
-#[derive(Debug, Serialize, Tsify)]
-#[tsify(into_wasm_abi)]
-#[serde(rename_all = "camelCase")]
-pub struct AddNodesResult {
-    resolver: Resolver,
-    flat_subtree: FlatRoot,
 }
 
 #[derive(Debug, Serialize, Deserialize, Tsify)]
@@ -118,7 +100,7 @@ impl PublicDoenetMLCore {
         self.initialized = false;
     }
 
-    pub fn return_normalized_dast_root(&self) -> Result<RootResolver, String> {
+    pub fn return_normalized_dast_root(&mut self) -> Result<NormalizedRoot, String> {
         let dast_root = match &self.dast_root {
             Some(d) => d,
             None => {
@@ -126,56 +108,46 @@ impl PublicDoenetMLCore {
             }
         };
 
-        let (normalized_root, resolver) = Core::normalized_root_from_dast_root(dast_root);
+        let normalized_root = self.core.normalized_root_from_dast_root(dast_root);
 
-        Ok(RootResolver {
-            normalized_root,
-            resolver,
-        })
+        Ok(normalized_root)
     }
 
     pub fn add_nodes_to_resolver(
-        mut resolver: Resolver,
+        &mut self,
         flat_fragment: FlatFragment,
         index_resolution: IndexResolution,
-    ) -> Resolver {
-        Core::add_nodes_to_resolver(&flat_fragment, &mut resolver, index_resolution);
-
-        resolver
+    ) {
+        self.core
+            .add_nodes_to_resolver(&flat_fragment, index_resolution);
     }
 
     pub fn replace_index_resolutions_in_resolver(
-        mut resolver: Resolver,
+        &mut self,
         components: ContentVector,
         index_resolution: IndexResolution,
-    ) -> Resolver {
-        Core::replace_index_resolutions_in_resolver(
-            &components.content,
-            &mut resolver,
-            index_resolution,
-        );
-
-        resolver
+    ) {
+        self.core
+            .replace_index_resolutions_in_resolver(&components.content, index_resolution);
     }
 
-    pub fn delete_nodes_from_resolver(mut resolver: Resolver, node_list: NodeList) -> Resolver {
-        Core::delete_nodes_from_resolver(&node_list.nodes, &mut resolver);
-
-        resolver
+    pub fn delete_nodes_from_resolver(&mut self, node_list: NodeList) {
+        self.core.delete_nodes_from_resolver(&node_list.nodes);
     }
 
     pub fn resolve_path(
-        resolver: Resolver,
+        &self,
         path: PathToCheck,
         origin: Index,
         skip_parent_search: bool,
     ) -> Result<RefResolution, ResolutionError> {
-        resolver.resolve(&path.path, origin, skip_parent_search)
+        self.core
+            .resolve_path(&path.path, origin, skip_parent_search)
     }
 
-    pub fn calculate_root_names(resolver: Resolver) -> RootNames {
+    pub fn calculate_root_names(&self) -> RootNames {
         RootNames {
-            names: Core::calculate_root_names(resolver),
+            names: self.core.calculate_root_names(),
         }
     }
 

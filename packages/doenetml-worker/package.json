@@ -78,7 +78,8 @@
                 "../parser:build",
                 "../codemirror:build",
                 "../doenetml-worker-javascript:build",
-                "build:rust"
+                "build:rust",
+                "../debug-hooks:build"
             ]
         },
         "build:rust": {

@@ -65,10 +65,10 @@ export default class Textinput extends Input {
             fallBackToParentStateVariable: "expanded",
         };
         attributes.width = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
         };
         attributes.height = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
             createStateVariable: "height",
             defaultValue: { size: 120, isAbsolute: true },
             forRenderer: true,
@@ -132,7 +132,7 @@ export default class Textinput extends Input {
             hasEssential: true,
             public: true,
             shadowingInstructions: {
-                createComponentOfType: "_componentSize",
+                createComponentOfType: "componentSize",
             },
             returnDependencies: () => ({
                 widthAttr: {

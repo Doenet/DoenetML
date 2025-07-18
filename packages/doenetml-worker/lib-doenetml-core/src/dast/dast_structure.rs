@@ -11,7 +11,7 @@ use wasm_bindgen::prelude::*;
 
 use thiserror::Error;
 
-use crate::props::PropValue;
+use crate::{dast::flat_dast::SourceDoc, props::PropValue};
 
 use super::flat_dast::ErrorType;
 
@@ -27,6 +27,8 @@ pub struct DastRoot {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    pub sources: Vec<String>,
 }
 
 /// Allowed children of an element node or the root node
@@ -90,6 +92,9 @@ pub struct DastElement {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 impl DastElement {
@@ -100,6 +105,7 @@ impl DastElement {
             children: Vec::new(),
             data: None,
             position: None,
+            source_doc: None,
         }
     }
 }
@@ -213,6 +219,9 @@ pub struct DastText {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -233,6 +242,9 @@ pub struct DastAttribute {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 impl DastAttribute {
@@ -273,6 +285,9 @@ pub struct DastRef {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 /// A function ref (i.e., starts with `$$`)
@@ -287,6 +302,9 @@ pub struct DastFunctionRef {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 /// A part of a ref path
@@ -301,6 +319,9 @@ pub struct PathPart {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 /// An index into a ref path
@@ -314,6 +335,9 @@ pub struct DastIndex {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 /// An error node that can be inserted into the Dast tree.
@@ -331,6 +355,9 @@ pub struct DastError {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 /// Range in a source string
@@ -443,6 +470,9 @@ pub struct FlatDastElement {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 impl Serialize for FlatDastElement {
@@ -453,9 +483,11 @@ impl Serialize for FlatDastElement {
         S: serde::Serializer,
     {
         let have_position = self.position.is_some();
+        let have_source_doc = self.source_doc.is_some();
 
         if self.name == "_error" {
-            let n_fields = 2 + if have_position { 1 } else { 0 };
+            let n_fields =
+                2 + if have_position { 1 } else { 0 } + if have_source_doc { 1 } else { 0 };
 
             let mut state = serializer.serialize_struct("error", n_fields)?;
             state.serialize_field("type", "error")?;
@@ -470,9 +502,13 @@ impl Serialize for FlatDastElement {
             if have_position {
                 state.serialize_field("position", &self.position)?;
             }
+            if have_source_doc {
+                state.serialize_field("source_doc", &self.source_doc)?;
+            }
             state.end()
         } else {
-            let n_fields = 5 + if have_position { 1 } else { 0 };
+            let n_fields =
+                5 + if have_position { 1 } else { 0 } + if have_source_doc { 1 } else { 0 };
 
             let mut state = serializer.serialize_struct("element", n_fields)?;
 
@@ -483,6 +519,9 @@ impl Serialize for FlatDastElement {
             state.serialize_field("data", &self.data)?;
             if have_position {
                 state.serialize_field("position", &self.position)?;
+            }
+            if have_source_doc {
+                state.serialize_field("source_doc", &self.source_doc)?;
             }
             state.end()
         }
@@ -499,6 +538,9 @@ pub struct DastWarning {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_doc: Option<SourceDoc>,
 }
 
 /// An update to a single element in the Dast tree.

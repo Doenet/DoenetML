@@ -15,14 +15,14 @@ export default class Embed extends BlockComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.width = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: { size: 500, isAbsolute: true },
             public: true,
             forRenderer: true,
         };
         attributes.height = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
             createStateVariable: "height",
             defaultValue: { size: 500, isAbsolute: true },
             public: true,

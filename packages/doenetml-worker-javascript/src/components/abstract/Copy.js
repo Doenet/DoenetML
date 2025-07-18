@@ -2,7 +2,6 @@ import CompositeComponent from "./CompositeComponent";
 import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
-    restrictTNamesToNamespace,
     addAttributesToSingleReplacement,
     addAttributesToSingleReplacementChange,
 } from "../../utils/copy";
@@ -243,38 +242,6 @@ export default class Copy extends CompositeComponent {
                 }
 
                 return { setValue: { cid, doenetId } };
-            },
-        };
-
-        stateVariableDefinitions.serializedComponentsForCid = {
-            returnDependencies: () => ({
-                cid: {
-                    dependencyType: "stateVariable",
-                    variableName: "cid",
-                },
-                serializedChildren: {
-                    dependencyType: "serializedChildren",
-                    doNotProxy: true,
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                if (!dependencyValues.cid) {
-                    return {
-                        setValue: { serializedComponentsForCid: null },
-                    };
-                }
-                if (!(dependencyValues.serializedChildren?.length > 0)) {
-                    return {
-                        setValue: { serializedComponentsForCid: null },
-                    };
-                }
-
-                return {
-                    setValue: {
-                        serializedComponentsForCid:
-                            dependencyValues.serializedChildren,
-                    },
-                };
             },
         };
 
@@ -778,10 +745,6 @@ export default class Copy extends CompositeComponent {
                     dependencyType: "attributePrimitive",
                     attributeName: "link",
                 },
-                serializedComponentsForCid: {
-                    dependencyType: "stateVariable",
-                    variableName: "serializedComponentsForCid",
-                },
                 replacementSourceIdentities: {
                     dependencyType: "stateVariable",
                     variableName: "replacementSourceIdentities",
@@ -791,18 +754,13 @@ export default class Copy extends CompositeComponent {
                 let link;
                 if (dependencyValues.linkAttr === null) {
                     if (
-                        dependencyValues.serializedComponentsForCid ||
-                        (dependencyValues.replacementSourceIdentities &&
-                            dependencyValues.replacementSourceIdentities.some(
-                                (x) =>
-                                    componentInfoObjects.isInheritedComponentType(
-                                        {
-                                            inheritedComponentType:
-                                                x.componentType,
-                                            baseComponentType: "module",
-                                        },
-                                    ),
-                            ))
+                        dependencyValues.replacementSourceIdentities &&
+                        dependencyValues.replacementSourceIdentities.some((x) =>
+                            componentInfoObjects.isInheritedComponentType({
+                                inheritedComponentType: x.componentType,
+                                baseComponentType: "module",
+                            }),
+                        )
                     ) {
                         link = false;
                     } else {
@@ -901,10 +859,6 @@ export default class Copy extends CompositeComponent {
                     //   dependencyType: "stateVariable",
                     //   variableName: "replacementSources",
                     // },
-                    serializedComponentsForCid: {
-                        dependencyType: "stateVariable",
-                        variableName: "serializedComponentsForCid",
-                    },
                     link: {
                         dependencyType: "stateVariable",
                         variableName: "link",
@@ -937,6 +891,22 @@ export default class Copy extends CompositeComponent {
                         componentIdx:
                             stateValues.extendedComponent.componentIdx,
                         variableName: "readyToExpandWhenResolved",
+                    };
+                }
+
+                if (
+                    stateValues.extendedComponent &&
+                    stateValues.unresolvedPath === null
+                ) {
+                    // since `generatedVariantInfo` may be accessed when serializing a component,
+                    // make sure it is resolved so we don't end up resolving it while expanding
+                    // (which could change `nComponents` and cause overlapping component)
+                    dependencies.extendedVariantInfo = {
+                        dependencyType: "stateVariable",
+                        componentIdx:
+                            stateValues.extendedComponent.componentIdx,
+                        variableName: "generatedVariantInfo",
+                        variablesOptional: true,
                     };
                 }
 
@@ -1101,159 +1071,13 @@ export default class Copy extends CompositeComponent {
 
         let compositeAttributesObj = this.createAttributesObject();
 
-        let serializedComponentsForCid =
-            await component.stateValues.serializedComponentsForCid;
-
-        if (serializedComponentsForCid) {
-            let replacements = deepClone([serializedComponentsForCid[0]]);
-
-            let additionalChildren = deepClone(
-                serializedComponentsForCid.slice(1),
-            );
-
-            // XXX: this restricting of sources to namespace won't work
-            // anymore as we've gotten rid of namespaces.
-            // How do we keep references from external components
-            // from reaching outside into the containing doc?
-            if (replacements[0].children) {
-                let namespace;
-                if (replacements[0].componentIdx) {
-                    namespace = replacements[0].componentIdx + "/";
-                } else {
-                    namespace = replacements[0].originalIdx + "/";
-                }
-
-                if (component.doenetAttributes.keptNewNamespaceOfLastChild) {
-                    namespace = namespace.slice(0, namespace.length - 1);
-                    let lastSlash = namespace.lastIndexOf("/");
-                    namespace = namespace.slice(0, lastSlash + 1);
-                }
-
-                restrictTNamesToNamespace({
-                    components: replacements[0].children,
-                    namespace,
-                    invalidateReferencesToBaseNamespace:
-                        component.doenetAttributes.keptNewNamespaceOfLastChild,
-                });
-            }
-
-            if (replacements[0].componentType === "externalContent") {
-                // replacements[0] is externalContent
-                // add any specified attributes to its children
-                for (let repl of replacements[0].children) {
-                    if (typeof repl !== "object") {
-                        continue;
-                    }
-
-                    // add attributes
-                    if (!repl.attributes) {
-                        repl.attributes = {};
-                    }
-                    const res = convertUnresolvedAttributesForComponentType({
-                        attributes: component.attributes,
-                        componentType: repl.componentType,
-                        componentInfoObjects,
-                        compositeAttributesObj,
-                        nComponents,
-                    });
-                    const attributesFromComposite = res.attributes;
-                    nComponents = res.nComponents;
-
-                    for (let attrName in attributesFromComposite) {
-                        let attribute = attributesFromComposite[attrName];
-                        if (attribute.component) {
-                            setTNamesToAbsolute([attribute.component]);
-                        } else if (attribute.childrenForFutureComponent) {
-                            setTNamesToAbsolute(
-                                attribute.childrenForFutureComponent,
-                            );
-                        }
-                    }
-
-                    Object.assign(repl.attributes, attributesFromComposite);
-                }
-            } else {
-                // if replacements[0] is not an externalContent, add attributes to replacements[0] itself
-                if (!replacements[0].attributes) {
-                    replacements[0].attributes = {};
-                }
-                const res = convertUnresolvedAttributesForComponentType({
-                    attributes: component.attributes,
-                    componentType: replacements[0].componentType,
-                    componentInfoObjects,
-                    compositeAttributesObj,
-                    nComponents,
-                });
-
-                const attributesFromComposite = res.attributes;
-                nComponents = res.nComponents;
-
-                for (let attrName in attributesFromComposite) {
-                    let attribute = attributesFromComposite[attrName];
-                    if (attribute.component) {
-                        setTNamesToAbsolute([attribute.component]);
-                    } else if (attribute.childrenForFutureComponent) {
-                        setTNamesToAbsolute(
-                            attribute.childrenForFutureComponent,
-                        );
-                    }
-                }
-
-                Object.assign(
-                    replacements[0].attributes,
-                    attributesFromComposite,
-                );
-            }
-
-            // if have copyFromURI, then add additional children from the composite itself
-            if (
-                component.doenetAttributes.fromCopyFromURI &&
-                additionalChildren.length > 0
-            ) {
-                addChildrenFromComposite({
-                    replacements,
-                    children: additionalChildren,
-                    componentInfoObjects,
-                });
-            }
-
-            let verificationResult = await verifyReplacementsMatchSpecifiedType(
-                {
-                    component,
-                    replacements,
-                    workspace,
-                    componentInfoObjects,
-                    compositeAttributesObj,
-                    components,
-                    nComponents,
-                    publicCaseInsensitiveAliasSubstitutions,
-                },
-            );
-            errors.push(...verificationResult.errors);
-            warnings.push(...verificationResult.warnings);
-            nComponents = verificationResult.nComponents;
-
-            addAttributesToSingleReplacement(
-                verificationResult.replacements,
-                component,
-                componentInfoObjects,
-            );
-
-            return {
-                replacements: verificationResult.replacements,
-                errors,
-                warnings,
-                nComponents,
-            };
-        }
-
         let replacementSourceIdentities =
             await component.stateValues.replacementSourceIdentities;
         if (
             !(await component.stateValues.extendedComponent) ||
             !replacementSourceIdentities
         ) {
-            // no valid target, so no replacements
+            // no valid target, so no replacements other than copied in children
             let replacements = [];
 
             if (component.attributes.copyInChildren?.primitive.value) {
@@ -1575,23 +1399,67 @@ export default class Copy extends CompositeComponent {
             nComponents = results.nComponents;
 
             let serializedReplacements = results.serializedReplacements;
+            let propVariablesCopiedByReplacement =
+                results.propVariablesCopiedByReplacement;
 
-            if (
-                copyInChildren &&
-                serializedReplacements.length === 1 &&
-                component.serializedChildren.length > 0
-            ) {
-                addChildrenFromComposite({
-                    replacements: serializedReplacements,
-                    children: component.serializedChildren,
-                    componentInfoObjects,
-                });
+            if (copyInChildren && component.serializedChildren.length > 0) {
+                if (serializedReplacements.length === 0) {
+                    // even though don't have valid prop,
+                    // if copyInChildren, then include children added directly to component
+
+                    let componentType =
+                        componentInfoObjects.componentTypeLowerCaseMapping[
+                            component.attributes.createComponentOfType.primitive.value.toLowerCase()
+                        ];
+
+                    let componentClass =
+                        componentInfoObjects.allComponentClasses[componentType];
+
+                    const res = convertUnresolvedAttributesForComponentType({
+                        attributes: component.attributes,
+                        componentType,
+                        componentInfoObjects,
+                        compositeAttributesObj,
+                        nComponents,
+                    });
+
+                    const attributesFromComposite = res.attributes;
+                    nComponents = res.nComponents;
+
+                    let children = deepClone(component.serializedChildren);
+                    if (!componentClass.includeBlankStringChildren) {
+                        children = children.filter(
+                            (x) => typeof x !== "string" || x.trim() !== "",
+                        );
+                    }
+
+                    let attributes = attributesFromComposite;
+
+                    serializedReplacements = [
+                        {
+                            type: "serialized",
+                            componentType,
+                            componentIdx: nComponents++,
+                            attributes,
+                            doenetAttributes: {},
+                            state: {},
+                            children,
+                        },
+                    ];
+
+                    propVariablesCopiedByReplacement = [[]];
+                } else if (serializedReplacements.length === 1) {
+                    addChildrenFromComposite({
+                        replacements: serializedReplacements,
+                        children: component.serializedChildren,
+                        componentInfoObjects,
+                    });
+                }
             }
 
             return {
                 serializedReplacements,
-                propVariablesCopiedByReplacement:
-                    results.propVariablesCopiedByReplacement,
+                propVariablesCopiedByReplacement,
                 errors,
                 warnings,
                 nComponents,
@@ -1754,11 +1622,6 @@ export default class Copy extends CompositeComponent {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
         let warnings = [];
-
-        // if copying a cid, no changes
-        if (await component.stateValues.serializedComponentsForCid) {
-            return { replacementChanges: [], nComponents };
-        }
 
         if ((await component.stateValues.link) === false) {
             return { replacementChanges: [], nComponents };
@@ -2529,7 +2392,8 @@ export async function replacementFromProp({
 
             let unresolvedPropName = "";
             if (startOffset != undefined && endOffset != undefined) {
-                unresolvedPropName = allDoenetMLs?.[0]?.substring(
+                const sourceDoc = unresolvedPath[0].sourceDoc ?? 0;
+                unresolvedPropName = allDoenetMLs?.[sourceDoc]?.substring(
                     startOffset,
                     endOffset,
                 );

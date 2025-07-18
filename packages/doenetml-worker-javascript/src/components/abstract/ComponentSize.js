@@ -26,8 +26,10 @@ const unitConversions = {
 };
 
 export class ComponentSize extends InlineComponent {
-    static componentType = "_componentSize";
+    static componentType = "componentSize";
     static rendererType = "text";
+
+    static excludeFromSchema = true;
 
     // used when creating new component via adapter or copy prop
     static primaryStateVariableForDefinition = "componentSize";
@@ -117,7 +119,7 @@ export class ComponentSize extends InlineComponent {
             },
             {
                 group: "componentSizes",
-                componentTypes: ["_componentSize"],
+                componentTypes: ["componentSize"],
             },
         ];
     }
@@ -136,7 +138,7 @@ export class ComponentSize extends InlineComponent {
         stateVariableDefinitions.componentSize = {
             public: true,
             shadowingInstructions: {
-                createComponentOfType: "_componentSize",
+                createComponentOfType: "componentSize",
             },
             hasEssential: true,
             returnDependencies: () => ({
@@ -534,7 +536,7 @@ export class ComponentSizeList extends BaseComponent {
                 if (piece.length > 0) {
                     newChildren.push({
                         type: "serialized",
-                        componentType: "_componentSize",
+                        componentType: "componentSize",
                         componentIdx: nComponents++,
                         children: piece,
                         attributes: {},
@@ -598,7 +600,7 @@ export class ComponentSizeList extends BaseComponent {
         return [
             {
                 group: "componentSizes",
-                componentTypes: ["_componentSize"],
+                componentTypes: ["componentSize"],
             },
             {
                 group: "componentSizeLists",
@@ -687,7 +689,7 @@ export class ComponentSizeList extends BaseComponent {
         stateVariableDefinitions.componentSizes = {
             public: true,
             shadowingInstructions: {
-                createComponentOfType: "_componentSize",
+                createComponentOfType: "componentSize",
             },
             isArray: true,
             entryPrefixes: ["componentSize"],

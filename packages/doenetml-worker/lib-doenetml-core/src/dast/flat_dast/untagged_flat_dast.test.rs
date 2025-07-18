@@ -5,9 +5,8 @@ use crate::test_utils::*;
 
 #[test]
 fn can_flatten_dast_root() {
-    let dast_root = dast_root_no_position(
-        r#"<document>hi<foo my_attr="777 $x.y.z[$a]"/>and$$f(<bar>xxx</bar>)</document>"#,
-    );
+    let source = r#"<document>hi<foo my_attr="777 $x.y.z[$a]"/>and$$f(<bar>xxx</bar>)</document>"#;
+    let dast_root = dast_root_no_position(source);
     let flat_root = FlatRoot::from_dast(&dast_root);
     // It is easier to compare JSON, so we serialize and deserialize for the comparison.
     assert_json_eq!(
@@ -16,6 +15,7 @@ fn can_flatten_dast_root() {
             {
                 "type": "flatRoot",
                 "children": [0],
+                "sources": [source],
                 "nodes": [
                   {
                     "type": "element",
@@ -113,17 +113,18 @@ fn can_print_to_xml() {
 
 #[test]
 fn calculate_children_position() {
-    let dast_root = dast_root(r#"<document>hi <text>bye</text></document>"#);
+    let source = r#"<document>hi <text>bye</text></document>"#;
+    let dast_root = dast_root(source);
     let flat_root = FlatRoot::from_dast(&dast_root);
     // It is easier to compare JSON, so we serialize and deserialize for the comparison.
 
-    println!("{:#?}", serde_json::to_value(&flat_root).unwrap());
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
         json!(
             {
                 "type": "flatRoot",
                 "children": [0],
+                "sources": [source],
                 "nodes": [
                   {
                     "type": "element",
@@ -135,7 +136,7 @@ fn calculate_children_position() {
                       "start": {"line": 1, "column": 1, "offset": 0},
                       "end": {"line": 1, "column": 41, "offset": 40}
                     },
-                    "children_position": {
+                    "childrenPosition": {
                       "start": {"line": 1, "column": 11, "offset": 10},
                       "end": {"line": 1, "column": 30, "offset": 29}
                     }
@@ -151,7 +152,7 @@ fn calculate_children_position() {
                       "start": {"line": 1, "column": 14, "offset": 13},
                       "end": {"line": 1, "column": 30, "offset": 29}
                     },
-                    "children_position": {
+                    "childrenPosition": {
                       "start": {"line": 1, "column": 20, "offset": 19},
                       "end": {"line": 1, "column": 23, "offset": 22}
                     }

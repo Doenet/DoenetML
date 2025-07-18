@@ -1114,7 +1114,8 @@ describe("Paginator Tag Tests", function () {
         cy.get(cesc("#ca")).should("have.text", "0.833");
     });
 
-    it("With external and internal copies", () => {
+    // TODO: enable external copies in our cypress setup?
+    it.skip("With external and internal copies", () => {
         let doenetML = `
     <text>a</text>
     <setup>
@@ -1371,7 +1372,8 @@ describe("Paginator Tag Tests", function () {
         });
     });
 
-    it("External and internal copies, with variantcontrols in document and problem", () => {
+    // TODO: if keep this, move to variant tests?
+    it.skip("External and internal copies, with variantcontrols in document and problem", () => {
         let doenetML = `
     <text>a</text>
     <variantControl numVariants="100" />
@@ -1630,7 +1632,8 @@ describe("Paginator Tag Tests", function () {
         cy.get(cesc("#ti1_submit")).should("be.disabled");
     });
 
-    it("Variants stay consistent with external copies", () => {
+    // TODO: if keep this, move to variant tests?
+    it.skip("Variants stay consistent with external copies", () => {
         let doenetMLWithSelects = `
     <text>a</text>
     <paginatorControls paginator="$pgn" name="pcontrols" />

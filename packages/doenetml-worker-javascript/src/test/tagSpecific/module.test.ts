@@ -13,6 +13,57 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
+const externalDoenetMLs = {
+    abc: `
+<module>          
+<moduleAttributes>
+<text name="title">Find point</text>
+<math name="initialx">0</math>
+<math name="initialy">0</math>
+<math name="goalx">3</math>
+<math name="goaly">4</math>
+<text name="size">medium</text>
+<number name="aspectRatio">1</number>
+</moduleAttributes>
+
+<setup>
+<math name="initialxCopy" copy="$initialx" />
+<math name="initialyCopy" copy="$initialy" />
+</setup>
+
+<problem name="prob"><title>$title</title>
+
+<p>Move the point to <m name="m">($goalx, $goaly)</m>.</p>
+<graph name="graph" size="$size" aspectRatio="$aspectRatio">
+<point x="$initialxCopy" y="$initialyCopy" name="P">
+<constraints>
+  <attractTo><point x="$goalx" y="$goaly" ></point></attractTo>
+</constraints>
+</point>
+</graph>
+
+<answer name="ans">
+<award referencesAreResponses="$P">
+<when>
+  $P = ($goalx, $goaly)
+</when>
+</award>
+</answer>
+</problem>
+</module>`,
+    def: `
+        <module>          
+        <moduleAttributes>
+            <text name="title">Original title</text>
+        </moduleAttributes>
+
+        <problem name="prob"><title>$title</title>
+
+        </problem>
+        </module>
+    `,
+};
+
 describe("Module tag tests", async () => {
     it("module with sentence", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
@@ -779,5 +830,499 @@ describe("Module tag tests", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("ca2")].stateValues.value,
         ).eq(1);
+    });
+
+    it("external module", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section><title>First one</title>
+    <module copy='doenet:abc' name="m1" />
+
+    <p>Submitted response for problem 1: <math name="sr1">$m1.ans.submittedResponse</math></p>
+    <p>Credit for problem 1: <number extend="$m1.prob.creditAchieved" name="ca1" /></p>
+    </section>
+
+    <section><title>Second one</title>
+
+    <p>Now, let's use initial point <m name="coordsa">(<math name="xa">-3</math>, <math name="ya">3</math>)</m> and the goal point <m name="coordsb">(<math name="xb">7</math>, <math name="yb">-5</math>)</m> </p>
+
+    
+    <module copy='doenet:abc' title="Find point again" goalX="$xb" GoaLy="$yb" initialX="$xa" initialy="$ya" size="medium" aspectRatio="1" name="m2" />
+    <p>Submitted response for problem 2: <math name="sr2">$m2.ans.submittedResponse</math></p>
+    <p>Credit for problem 2: <number extend="$m2.prob.creditAchieved" name="ca2" /></p>
+    </section>
+
+    `,
+            externalDoenetMLs,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1.m")].stateValues
+                    .latex,
+            ),
+        ).eq("(3,4)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("coordsa")]
+                    .stateValues.latex,
+            ),
+        ).eq("(-3,3)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("coordsb")]
+                    .stateValues.latex,
+            ),
+        ).eq("(7,-5)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2.m")].stateValues
+                    .latex,
+            ),
+        ).eq("(7,-5)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("sr1")].stateValues
+                    .latex,
+            ),
+        ).eq("＿");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca1")].stateValues.value,
+        ).eq(0);
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("sr2")].stateValues
+                    .latex,
+            ),
+        ).eq("＿");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca2")].stateValues.value,
+        ).eq(0);
+
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("m1.P")
+            ].stateValues.xs.map((v) => v.tree),
+        ).eqls([0, 0]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("m2.P")
+            ].stateValues.xs.map((v) => v.tree),
+        ).eqls([-3, 3]);
+
+        // submit answers
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("m1.ans"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("m2.ans"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("sr1")].stateValues
+                    .latex,
+            ),
+        ).eq("(0,0)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca1")].stateValues.value,
+        ).eq(0);
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("sr2")].stateValues
+                    .latex,
+            ),
+        ).eq("(-3,3)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca2")].stateValues.value,
+        ).eq(0);
+
+        // move near correct answers
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("m1.P"),
+            x: 3.2,
+            y: 3.9,
+            core,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("m2.P"),
+            x: 7.2,
+            y: -4.9,
+            core,
+        });
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1.m")].stateValues
+                    .latex,
+            ),
+        ).eq("(3,4)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("coordsa")]
+                    .stateValues.latex,
+            ),
+        ).eq("(-3,3)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("coordsb")]
+                    .stateValues.latex,
+            ),
+        ).eq("(7,-5)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2.m")].stateValues
+                    .latex,
+            ),
+        ).eq("(7,-5)");
+
+        // submit answers
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("m1.ans"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("m2.ans"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("sr1")].stateValues
+                    .latex,
+            ),
+        ).eq("(3,4)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca1")].stateValues.value,
+        ).eq(1);
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("sr2")].stateValues
+                    .latex,
+            ),
+        ).eq("(7,-5)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ca2")].stateValues.value,
+        ).eq(1);
+    });
+
+    it("get new title when extend external module", async () => {
+        // This test makes sure that the references are resolved correctly when
+        // extending a module that is a copy of external content.
+        // This tests makes sure we don't get a duplicate component index
+        // due to a copy not resolving its source's `generatedVariantInfo` state variable before expanding
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module title="New title" copy="doenet:def" name="g" />
+        <module extend="$g" name="g2" />
+        <module extend="$g" name="g3" title="Newer title" />
+        <p name="gTitle">$g.title</p>
+        <p name="g2Title">$g2.title</p>
+        <p name="g3Title">$g3.title</p>
+    `,
+            externalDoenetMLs,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g.title")].stateValues
+                .value,
+        ).eq("New title");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2.title")].stateValues
+                .value,
+        ).eq("New title");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3.title")].stateValues
+                .value,
+        ).eq("Newer title");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("gTitle")].stateValues
+                .text,
+        ).eq("New title");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2Title")].stateValues
+                .text,
+        ).eq("New title");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3Title")].stateValues
+                .text,
+        ).eq("Newer title");
+    });
+
+    it("external module inside a module", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+
+    <module name="g">
+      <moduleAttributes>
+        <math name="a">1</math>
+        <math name="b">2</math>
+        <math name="c">3</math>
+        <text name="size">medium</text>
+        <number name="aspectRatio">1</number>
+      </moduleAttributes>
+    
+      <p>Make the goal be <m name="m1">($a,$b)</m>.</p>
+      <p>Make the <m>x</m> value of the initial point be <m name="m3">$c</m>.</p>
+      <module size="$size" aspectRatio="$aspectRatio" goalx="$a" goaly="$b" iniTialX="$c" title="Embedded find point" copy="doenet:abc" name="extMod" />
+    
+      <p>Submitted response for problem: <math name="sr">$extMod.ans.submittedResponse</math></p>
+      <p>Credit for problem: <number extend="$extMod.prob.creditAchieved" name="ca" /></p>
+
+    </module>
+    
+    <module extend="$g" b="-5" c="9" size="small" aspectRatio="4/5" name="g2" />
+    <module extend="$g" a="7" c="-3" size="large" aspectRatio="1.2" name="g3" />
+    `,
+            externalDoenetMLs,
+        });
+
+        let smallWidth = 255;
+        let mediumWidth = 425;
+        let largeWidth = 595;
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g.m1")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g.m3")].stateValues
+                    .latex,
+            ),
+        ).eq("3");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g.extMod.m")]
+                    .stateValues.latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g.sr")].stateValues.text,
+        ).eq("＿");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g.ca")].stateValues.text,
+        ).eq("0");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g2.m1")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,-5)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2.m3")].stateValues
+                .latex,
+        ).eq("9");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g2.extMod.m")]
+                    .stateValues.latex,
+            ),
+        ).eq("(1,-5)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2.sr")].stateValues
+                .text,
+        ).eq("＿");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2.ca")].stateValues
+                .text,
+        ).eq("0");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g3.m1")].stateValues
+                    .latex,
+            ),
+        ).eq("(7,2)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3.m3")].stateValues
+                .text,
+        ).eq("-3");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g3.extMod.m")]
+                    .stateValues.latex,
+            ),
+        ).eq("(7,2)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3.sr")].stateValues
+                .text,
+        ).eq("＿");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3.ca")].stateValues
+                .text,
+        ).eq("0");
+
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("g.extMod.P")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([3, 0]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("g2.extMod.P")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([9, 0]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("g3.extMod.P")
+            ].stateValues.xs.map((x) => x.tree),
+        ).eqls([-3, 0]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g.extMod.graph")]
+                .stateValues.size,
+        ).eq("medium");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g.extMod.graph")]
+                .stateValues.width.size,
+        ).eq(mediumWidth);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g.extMod.graph")]
+                .stateValues.aspectRatio,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2.extMod.graph")]
+                .stateValues.size,
+        ).eq("small");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2.extMod.graph")]
+                .stateValues.width.size,
+        ).eq(smallWidth);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2.extMod.graph")]
+                .stateValues.aspectRatio,
+        ).eq(0.8);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3.extMod.graph")]
+                .stateValues.size,
+        ).eq("large");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3.extMod.graph")]
+                .stateValues.width.size,
+        ).eq(largeWidth);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3.extMod.graph")]
+                .stateValues.aspectRatio,
+        ).eq(1.2);
+
+        // submit answers
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("g.extMod.ans"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("g2.extMod.ans"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("g3.extMod.ans"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g.sr")].stateValues
+                    .latex,
+            ),
+        ).eq("(3,0)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g.ca")].stateValues.text,
+        ).eq("0");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g2.sr")].stateValues
+                    .latex,
+            ),
+        ).eq("(9,0)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2.ca")].stateValues
+                .text,
+        ).eq("0");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g3.sr")].stateValues
+                    .latex,
+            ),
+        ).eq("(-3,0)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3.ca")].stateValues
+                .text,
+        ).eq("0");
+
+        // move near correct answers
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("g.extMod.P"),
+            x: 1.2,
+            y: 1.9,
+            core,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("g2.extMod.P"),
+            x: 1.2,
+            y: -4.9,
+            core,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("g3.extMod.P"),
+            x: 7.2,
+            y: 1.9,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("g.extMod.ans"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("g2.extMod.ans"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("g3.extMod.ans"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g.sr")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,2)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g.ca")].stateValues.text,
+        ).eq("1");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g2.sr")].stateValues
+                    .latex,
+            ),
+        ).eq("(1,-5)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2.ca")].stateValues
+                .text,
+        ).eq("1");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("g3.sr")].stateValues
+                    .latex,
+            ),
+        ).eq("(7,2)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3.ca")].stateValues
+                .text,
+        ).eq("1");
     });
 });

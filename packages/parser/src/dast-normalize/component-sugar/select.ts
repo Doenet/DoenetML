@@ -49,12 +49,15 @@ export function selectSugar(node: DastElement) {
     });
 
     if (groupResult.success) {
-        let newChildren = groupResult.newChildren.map((child) => ({
-            type: "element" as const,
-            name: "option",
-            children: [child],
-            attributes: {},
-        }));
+        let newChildren: DastElement[] = groupResult.newChildren.map(
+            (child) => ({
+                type: "element" as const,
+                name: "option",
+                children: [child],
+                attributes: {},
+                source_doc: child.source_doc,
+            }),
+        );
         node.children = newChildren;
     }
 }

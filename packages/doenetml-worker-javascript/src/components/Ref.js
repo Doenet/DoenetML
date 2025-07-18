@@ -188,7 +188,7 @@ export default class Ref extends InlineComponent {
                     };
                 }
 
-                url = dependencyValues.stringsFromAttribute[0] | "#";
+                url = dependencyValues.stringsFromAttribute[0] || "#";
 
                 const result = url.match(/^doenet:([a-zA-Z0-9]+)((\?|#|$).*)/i);
 
@@ -225,9 +225,9 @@ export default class Ref extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "url",
                     },
-                    targetInactive: {
+                    targetRendererId: {
                         dependencyType: "stateVariable",
-                        variableName: "targetInactive",
+                        variableName: "targetRendererId",
                     },
                 };
 
@@ -251,7 +251,7 @@ export default class Ref extends InlineComponent {
             definition: function ({ dependencyValues }) {
                 let linkText = "";
                 if (dependencyValues.allChildren.length === 0) {
-                    if (!dependencyValues.targetInactive) {
+                    if (dependencyValues.targetRendererId) {
                         if (dependencyValues.title !== null) {
                             linkText = dependencyValues.title;
                         } else if (dependencyValues.equationTag !== null) {

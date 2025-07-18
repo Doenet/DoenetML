@@ -17,6 +17,7 @@ export type UnflattenedComponent = {
     attributes: Record<string, UnflattenedAttribute>;
     doenetAttributes?: Record<string, any>;
     position?: Position;
+    sourceDoc?: number;
     childrenPosition?: Position;
     extending?: Source<UnflattenedRefResolution>;
     originalIdx?: number;
@@ -59,11 +60,13 @@ export interface UnflattenedPathPart {
     name: string;
     index: UnflattenedIndex[];
     position?: Position;
+    sourceDoc?: number;
 }
 
 export interface UnflattenedIndex {
     value: (UnflattenedComponent | string)[];
     position?: Position;
+    sourceDoc?: number;
 }
 
 /**
@@ -74,6 +77,7 @@ export type UnflattenedAttribute = {
     name: string;
     children: (UnflattenedComponent | string)[];
     position?: Position;
+    sourceDoc?: number;
 };
 
 export function isUnflattenedAttribute(

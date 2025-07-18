@@ -5,7 +5,8 @@ use crate::test_utils::*;
 
 #[test]
 fn refs_get_expanded_to_their_referents() {
-    let dast_root = dast_root_no_position(r#"<point name="p" />$p"#);
+    let source = r#"<point name="p" />$p"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     assert_json_eq!(
@@ -14,6 +15,7 @@ fn refs_get_expanded_to_their_referents() {
             {
                 "type": "flatRoot",
                 "children": [0],
+                "sources": [source],
                 "nodes": [
                   {
                     "type": "element",
@@ -83,7 +85,8 @@ fn refs_get_expanded_to_their_referents() {
 
 #[test]
 fn leftover_path_parts_are_kept() {
-    let dast_root = dast_root_no_position(r#"<point name="p" />$p.x"#);
+    let source = r#"<point name="p" />$p.x"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     assert_json_eq!(
@@ -92,6 +95,7 @@ fn leftover_path_parts_are_kept() {
             {
                 "type": "flatRoot",
                 "children": [0],
+                "sources": [source],
                 "nodes": [
                   {
                     "type": "element",
@@ -148,7 +152,8 @@ fn leftover_path_parts_are_kept() {
 
 #[test]
 fn references_expanded_in_leftover_path_parts() {
-    let dast_root = dast_root_no_position(r#"<point name="p" /><number name="n" />$p.x[$p.y[$n]]"#);
+    let source = r#"<point name="p" /><number name="n" />$p.x[$p.y[$n]]"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     assert_json_eq!(
@@ -157,6 +162,7 @@ fn references_expanded_in_leftover_path_parts() {
             {
                 "type": "flatRoot",
                 "children": [0],
+                "sources": [source],
                 "nodes": [
                   {
                     "type": "element",
@@ -269,7 +275,8 @@ fn references_expanded_in_leftover_path_parts() {
 
 #[test]
 fn refs_in_attributes_are_expanded() {
-    let dast_root = dast_root_no_position(r#"<point name="p" /><a foo="$p" />"#);
+    let source = r#"<point name="p" /><a foo="$p" />"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     assert_json_eq!(
@@ -278,6 +285,7 @@ fn refs_in_attributes_are_expanded() {
             {
                 "type": "flatRoot",
                 "children": [0],
+                "sources": [source],
                 "nodes": [
                   {
                     "type": "element",
@@ -337,7 +345,8 @@ fn can_expand_function_refs() {
 
 #[test]
 fn can_expand_an_extend_attribute_to_a_node_ref() {
-    let dast_root = dast_root_no_position(r#"<point name="p"/><point extend="$p" foo="bar" />"#);
+    let source = r#"<point name="p"/><point extend="$p" foo="bar" />"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     assert_json_eq!(
@@ -346,6 +355,7 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
           {
             "type": "flatRoot",
             "children": [0],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",
@@ -404,7 +414,8 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
 
 #[test]
 fn can_expand_a_copy_attribute_to_a_node_ref() {
-    let dast_root = dast_root_no_position(r#"<point name="p"/><point copy="$p" foo="bar" />"#);
+    let source = r#"<point name="p"/><point copy="$p" foo="bar" />"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     assert_json_eq!(
@@ -413,6 +424,7 @@ fn can_expand_a_copy_attribute_to_a_node_ref() {
           {
             "type": "flatRoot",
             "children": [0],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",
@@ -470,20 +482,20 @@ fn can_expand_a_copy_attribute_to_a_node_ref() {
 }
 
 #[test]
-fn initial_ref_skips_option_children() {
-    let dast_root = dast_root_no_position(
-        r#"<number name="n1" />$n1$n2$o.n2<option name="o"><number name="n2" />$n1$n2</option>"#,
-    );
+fn initial_ref_skips_unqualified_option_children() {
+    let source =
+        r#"<number name="n1" />$n1$n2$o.n2<option name="o"><number name="n2" />$n1$n2</option>"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
 
-    println!("{:#?}", serde_json::to_value(&flat_root).unwrap());
     assert_json_eq!(
         serde_json::to_value(&flat_root).unwrap(),
         json!(
             {
                 "type": "flatRoot",
                 "children": [0],
+                "sources": [source],
                 "nodes": [
                   {
                     "type": "element",
@@ -533,20 +545,20 @@ fn initial_ref_skips_option_children() {
                   },
                   {
                     "type": "element",
-                    "name": "option",
+                    "name": "number",
                     "parent": 0,
                     "children": [],
                     "attributes": [],
                     "idx": 4,
                     "extending": {
                       "Ref": {
-                        "nodeIdx": 5,
-                        "unresolvedPath":  [{ "type": "flatPathPart", "name": "n2", "index": [] }],
+                        "nodeIdx": 6,
+                        "unresolvedPath":  null,
                         "originalPath": [
                           { "type": "flatPathPart", "name": "o", "index": [] },
                           { "type": "flatPathPart", "name": "n2", "index": [] }
                         ],
-                        "nodesInResolvedPath": [4, 5],
+                        "nodesInResolvedPath": [4, 5, 6],
                       }
                     }
                   },
@@ -615,27 +627,5 @@ fn initial_ref_skips_option_children() {
                 ]
               }
         )
-    );
-
-    let dast_root = dast_root_no_position(
-        &r#"<a name="x">
-            <b name="y">
-                <c name="z" />
-                $x.y
-            </b>
-            <f>
-                <e name="w" />
-            </f>
-        </a>
-        $w
-        <d name="y" />"#
-            .replace("\n", "")
-            .replace("  ", ""),
-    );
-    let mut flat_root = FlatRoot::from_dast(&dast_root);
-    Expander::expand(&mut flat_root);
-    assert_eq!(
-        r#"<document><a name="x"><b name="y"><c name="z" /><b /></b><f><e name="w" /></f></a><e /><d name="y" /></document>"#,
-        flat_root.to_xml()
     );
 }
