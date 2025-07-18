@@ -28,7 +28,7 @@ export default defineConfig({
         lib: {
             entry: "lib-js-wasm-binding/src/index.ts",
             fileName: (_format, _entryName) => "index.js",
-            formats: ["iife"],
+            formats: ["es"],
             name: "doenetmlWorker",
         },
     },
