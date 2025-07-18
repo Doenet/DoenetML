@@ -22,7 +22,7 @@
         "./packages/lsp",
         "./packages/doenetml-worker-javascript",
         "./packages/debug-hooks",
-        "./packages/doenetml-worker/lib-js-wasm-binding/pkg",
+        "./packages/doenetml-worker-rust/lib-js-wasm-binding/pkg",
         "./packages/doenetml-worker",
         "./packages/virtual-keyboard",
         "./packages/codemirror",
