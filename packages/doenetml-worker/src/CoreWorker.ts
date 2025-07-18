@@ -6,7 +6,10 @@ import init, {
     PublicDoenetMLCore,
     DastRoot as DastRootInCore,
 } from "@doenet/doenetml-worker-rust";
-export type * from "@doenet/doenetml-worker-rust";
+// TODO: for some reason `export type * from "@doenet/doenetml-worker-rust";` doesn't work. The generated .d.ts file
+// has an incorrect path. As a workaround, we export the types directly from Rust here. Fix this if you can figure out
+// why the paths are wrong...
+export type * from "lib-doenetml-worker";
 import type {
     FlatDastRoot,
     DastError,
