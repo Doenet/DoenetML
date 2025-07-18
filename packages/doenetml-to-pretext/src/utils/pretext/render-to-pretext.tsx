@@ -7,7 +7,7 @@ import * as Xast from "xast";
 import {
     FlatDastRoot,
     FlatDastRootWithErrors,
-} from "../../../../doenetml-worker/dist/CoreWorker";
+} from "@doenet/doenetml-worker";
 import { configureStore } from "@reduxjs/toolkit";
 import {
     _globalReducerActions,

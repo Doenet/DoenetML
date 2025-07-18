@@ -3,7 +3,7 @@
  * and loads the doenet core worker into that browser.
  */
 import { remote } from "webdriverio";
-import type { FlatDastRoot } from "../../../doenetml-worker/dist";
+import type { FlatDastRoot } from "@doenet/doenetml-worker";
 // @ts-ignore
 import _convertScript from "./dist/dast-to-flat-dast/index.js?raw";
 const convertScript: string = _convertScript;
