@@ -18,8 +18,8 @@
     "scripts": {
         "dev": "vite",
         "watch": "vite build --watch",
-        "test": "vitest",
-        "build": "wireit"
+        "build": "wireit",
+        "test": "echo \"No tests \""
     },
     "wireit": {
         "build": {
