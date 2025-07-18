@@ -75,7 +75,6 @@
             "dependencies": [
                 "../utils:build",
                 "../parser:build",
-                "../codemirror:build",
                 "../doenetml-worker-javascript:build",
                 "build:rust",
                 "../debug-hooks:build"
