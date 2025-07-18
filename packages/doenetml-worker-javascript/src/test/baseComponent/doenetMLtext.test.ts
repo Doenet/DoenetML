@@ -405,4 +405,74 @@ ${theDoenetML1}
             ).eq(p4dml);
         }
     });
+
+    it("doenetML with external copies", async () => {
+        const externalDoenetMLs = {
+            abcdef: `
+        <section>
+            <p name="p1">The <alert>DoenetML</alert> of a graph:</p>
+
+            <p name="p2"><displayDoenetML>
+            <graph>
+                <point name="P" />
+            </graph>
+            </displayDoenetML></p>
+
+            <p name="p3">The DoenetML of the p:</p>
+            <p name="p4">$p1.doenetML</p>
+        </section>`,
+        };
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="s1">
+      <section boxed copy="doenet:abcdef" name="external">
+        <title>Copy in external</title>
+      </section>
+
+      <p name="p1">Grab the DoenetML from external p1:</p>
+      <p name="p2">$external.p1.doenetML</p>
+      
+      <p name="p3">Grab the DoenetML from external p2:</p>
+      <p name="p4">$external.p2.doenetML</p>
+
+    </section>
+
+    <section extend="$s1" name="s2" />
+
+    <section copy="$s1" name="s3" />
+
+`,
+            externalDoenetMLs,
+        });
+
+        let theGraphDoenetML = `<graph>
+    <point name="P" />
+</graph>`;
+
+        let pWithGraphDoenetML = `<p name="p2"><displayDoenetML>
+${theGraphDoenetML}
+</displayDoenetML></p>`;
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        for (let i = 1; i <= 3; i++) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`s${i}.external.p2`)]
+                    .stateValues.text,
+            ).eq(theGraphDoenetML);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`s${i}.external.p4`)]
+                    .stateValues.text,
+            ).eq(`<p name="p1">The <alert>DoenetML</alert> of a graph:</p>`);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`s${i}.p2`)]
+                    .stateValues.text,
+            ).eq(`<p name="p1">The <alert>DoenetML</alert> of a graph:</p>`);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`s${i}.p4`)]
+                    .stateValues.text,
+            ).eq(pWithGraphDoenetML);
+        }
+    });
 });

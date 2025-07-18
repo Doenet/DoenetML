@@ -1,14 +1,13 @@
+use regex::Regex;
 use rustc_hash::FxHashMap;
 use std::{iter, mem, ops::Range};
 
 use crate::dast::flat_dast::{
-    FlatElement, FlatFragment, FlatNode, FlatRoot, FlatRootOrFragment, UntaggedContent,
+    FlatAttribute, FlatElement, FlatFragment, FlatNode, FlatRoot, FlatRootOrFragment, SourceDoc,
+    UntaggedContent,
 };
 
-use super::{
-    IndexResolution, NodeParent, NodeResolverData, Ref, ResolutionAlgorithm, Resolver,
-    CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS,
-};
+use super::*;
 
 impl Resolver {
     pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
@@ -23,9 +22,9 @@ impl Resolver {
                 if idx_plus_1 == 0 {
                     NodeResolverData {
                         node_parent: NodeParent::None,
-                        resolution_algorithm: ResolutionAlgorithm::SearchChildren,
-                        name_map: mem::take(&mut name_map[0]),
+                        name_map: NameMap(mem::take(&mut name_map[0])),
                         index_resolutions: Vec::new(),
+                        source_sequence: None,
                     }
                 } else {
                     let node = &flat_root.nodes[idx_plus_1 - 1];
@@ -34,9 +33,9 @@ impl Resolver {
                             .parent()
                             .map(NodeParent::Node)
                             .unwrap_or(NodeParent::FlatRoot),
-                        resolution_algorithm: ResolutionAlgorithm::lookup_by_flat_node(node),
-                        name_map: mem::take(&mut name_map[idx_plus_1]),
+                        name_map: NameMap(mem::take(&mut name_map[idx_plus_1])),
                         index_resolutions: Vec::new(),
+                        source_sequence: extract_source_sequence(node),
                     }
                 }
             })
@@ -74,7 +73,13 @@ impl Resolver {
         let new_num_nodes = flat_fragment.len() + 1;
 
         let parent_node = match flat_fragment.parent_idx {
-            Some(idx) => NodeParent::Node(idx),
+            Some(idx) => {
+                if let Some(source_sequence) = &flat_fragment.parent_source_sequence {
+                    self.node_resolver_data[idx + 1].source_sequence =
+                        Some(extract_source_sequence_from_attribute(source_sequence));
+                }
+                NodeParent::Node(idx)
+            }
             None => NodeParent::None,
         };
 
@@ -84,20 +89,19 @@ impl Resolver {
             self.node_resolver_data.extend(iter::repeat_n(
                 NodeResolverData {
                     node_parent: NodeParent::None,
-                    resolution_algorithm: ResolutionAlgorithm::SearchChildren,
-                    name_map: FxHashMap::default(),
+                    name_map: NameMap::default(),
                     index_resolutions: Vec::new(),
+                    source_sequence: None,
                 },
                 padding,
             ));
         }
 
-        // Add parents and stop_propagation for new nodes
+        // Add parents and source sequence for new nodes
         for node in flat_fragment.nodes.iter() {
             self.node_resolver_data[node.idx() + 1].node_parent =
                 node.parent().map(NodeParent::Node).unwrap_or(parent_node);
-            self.node_resolver_data[node.idx() + 1].resolution_algorithm =
-                ResolutionAlgorithm::lookup_by_flat_node(node);
+            self.node_resolver_data[node.idx() + 1].source_sequence = extract_source_sequence(node);
         }
 
         let mut subtree_name_map =
@@ -138,13 +142,16 @@ impl Resolver {
 
     /// Delete `nodes` from the resolver
     pub fn delete_nodes(&mut self, nodes: &[FlatNode]) {
-        for (name, node_idx) in nodes.iter().filter_map(|node| {
+        for (name_with_source_doc, node_idx) in nodes.iter().flat_map(|node| {
+            // TODO: can this be done in a better way than collecting into a vector?
             if let FlatNode::Element(element) = node {
-                if let Some(name) = get_element_name(element) {
-                    return Some((name, node.idx()));
-                }
+                get_element_names_with_source(element)
+                    .into_iter()
+                    .map(|name_with_source| (name_with_source, node.idx()))
+                    .collect::<Vec<_>>()
+            } else {
+                vec![]
             }
-            None
         }) {
             let mut prev_parent_idx_plus_1 = node_idx + 1;
 
@@ -160,7 +167,7 @@ impl Resolver {
 
                 let name_map = &mut self.node_resolver_data[parent_idx_plus_1].name_map;
 
-                let references = name_map.remove(&name);
+                let references = name_map.remove(&name_with_source_doc);
 
                 match references {
                     Some(Ref::Unique(idx)) => {
@@ -171,7 +178,7 @@ impl Resolver {
                         // In this case, the unique index found might not match the deleted node `node_idx`,
                         // add we add the name back to the name map
                         if idx != node_idx {
-                            name_map.insert(name.clone(), Ref::Unique(idx));
+                            name_map.insert(name_with_source_doc.clone(), Ref::Unique(idx));
                         }
                     }
                     Some(Ref::Ambiguous(indices)) => {
@@ -181,9 +188,11 @@ impl Resolver {
                             .filter(|idx| *idx != node_idx)
                             .collect::<Vec<_>>();
                         if new_indices.len() == 1 {
-                            name_map.insert(name.clone(), Ref::Unique(new_indices[0]));
+                            name_map
+                                .insert(name_with_source_doc.clone(), Ref::Unique(new_indices[0]));
                         } else {
-                            name_map.insert(name.clone(), Ref::Ambiguous(new_indices));
+                            name_map
+                                .insert(name_with_source_doc.clone(), Ref::Ambiguous(new_indices));
                         }
                     }
                     None => {}
@@ -206,7 +215,9 @@ impl Resolver {
 
     /// Build a map of all the names that are accessible from a given node
     /// and the indices of the referents.
-    fn build_name_map(flat_root_or_fragment: &FlatRootOrFragment) -> Vec<FxHashMap<String, Ref>> {
+    fn build_name_map(
+        flat_root_or_fragment: &FlatRootOrFragment,
+    ) -> Vec<FxHashMap<NameWithSource, Ref>> {
         // Pre-populate with empty hashmaps for each element
         let mut descendant_names = iter::repeat_with(FxHashMap::default)
             .take(flat_root_or_fragment.len() + 1)
@@ -229,53 +240,83 @@ impl Resolver {
                 _ => None,
             })
         {
-            let name = get_element_name(element);
-            if name.is_none() {
-                continue;
-            }
-            let name = name.unwrap();
+            let names_with_source = get_element_names_with_source(element);
 
-            // Iterate through all ancestors of element,
-            // including the base parent, if it exists
+            for name_with_source in names_with_source {
+                // Iterate through all ancestors of element,
+                // including the base parent, if it exists
 
-            let mut parents = flat_root_or_fragment
-                .parent_iter(element.idx)
-                .map(|parent| parent.idx + 1)
-                .collect::<Vec<_>>();
-            if let Some(idx) = base_parent_idx_plus_1 {
-                parents.push(idx);
-            }
+                let mut parents = flat_root_or_fragment
+                    .parent_iter(element.idx)
+                    .map(|parent| parent.idx + 1)
+                    .collect::<Vec<_>>();
+                if let Some(idx) = base_parent_idx_plus_1 {
+                    parents.push(idx);
+                }
 
-            for parent_idx_plus_1 in parents {
-                descendant_names[parent_idx_plus_1]
-                    .get_mut(&name)
-                    .map(|x| {
-                        *x = match x {
-                            // There is already something sharing the name `name` with the current element
-                            // so we mark it as ambiguous
-                            Ref::Unique(idx) => Ref::Ambiguous(vec![*idx, element.idx]),
-                            Ref::Ambiguous(vec) => {
-                                vec.push(element.idx);
-                                Ref::Ambiguous(mem::take(vec))
-                            }
-                        };
-                    })
-                    .unwrap_or_else(|| {
-                        // There is no current match for the name `name`, so we have a unique reference
-                        descendant_names[parent_idx_plus_1]
-                            .insert(name.clone(), Ref::Unique(element.idx));
-                    });
+                // We recurse (via a loop) outward through the ancestors of `element`, building the name map of each parent.
+                // We check the `Visibility` of the parent and child to stop recursing to more distant ancestors
+                // if the original `element` becomes invisible to those ancestors.
+                // We stop recursing based on visibility under these conditions:
+                // - if the child is marked `Invisible`, then it and its descendants (including `element`) are not visible to the parent,
+                //   and we stop recursing
+                // - if the child is marked `InvisibleToGrandparents`, then it and its descendants (including `element`)
+                //   are not visible to the parent's parent. We stop recursing after updating the parent's name map.
+                // - the parent: if the parent is marked `ChildrenInvisibleToTheirGrandparents`, then its descendants (including `element`)
+                //   are not visible to the parent's parent. We stop recursing after updating the parent's name map.
 
-                // Stop if we've reached a parent that isn't the base parent
-                // and is a type where we don't search children
-                if Some(parent_idx_plus_1) != base_parent_idx_plus_1 && parent_idx_plus_1 > 0 {
-                    match ResolutionAlgorithm::lookup_by_flat_node(
-                        flat_root_or_fragment.get_node(parent_idx_plus_1 - 1),
-                    ) {
-                        ResolutionAlgorithm::SearchChildren => {}
-                        ResolutionAlgorithm::DontSearchChildren => break,
-                        ResolutionAlgorithm::Unsearchable => break,
+                let mut child_visibility = Visibility::lookup_by_flat_element(element);
+
+                for parent_idx_plus_1 in parents {
+                    // if child is invisible, then do not add `element` (which is the child or its descendant)
+                    // to the name map of parent or more distant ancestors
+                    if matches!(child_visibility, Visibility::Invisible) {
+                        break;
                     }
+
+                    // Add `element` to the name map of `parent`, creating an ambiguous reference
+                    // if its `name_with_source` is already in the name map
+                    descendant_names[parent_idx_plus_1]
+                        .get_mut(&name_with_source)
+                        .map(|x| {
+                            *x = match x {
+                                // There is already something sharing the `name_with_source` with the current element
+                                // so we mark it as ambiguous
+                                Ref::Unique(idx) => Ref::Ambiguous(vec![*idx, element.idx]),
+                                Ref::Ambiguous(vec) => {
+                                    vec.push(element.idx);
+                                    Ref::Ambiguous(mem::take(vec))
+                                }
+                            };
+                        })
+                        .unwrap_or_else(|| {
+                            // There is no current match for the`name_with_source`, so we have a unique reference
+                            descendant_names[parent_idx_plus_1]
+                                .insert(name_with_source.clone(), Ref::Unique(element.idx));
+                        });
+
+                    let parent_visibility = if Some(parent_idx_plus_1) == base_parent_idx_plus_1
+                        || parent_idx_plus_1 == 0
+                    {
+                        // Always treat the flat fragment root or the flat root as visible
+                        Visibility::Visible
+                    } else {
+                        Visibility::lookup_by_flat_node(
+                            flat_root_or_fragment.get_node(parent_idx_plus_1 - 1),
+                        )
+                    };
+
+                    // if parent's children are invisible to grandparents, do not add `element` (which is the child or its descendant)
+                    // to the name map of the parent's parent or more distant ancestors.
+                    if matches!(
+                        parent_visibility,
+                        Visibility::ChildrenInvisibleToTheirGrandparents
+                    ) {
+                        break;
+                    }
+
+                    // The previous parent becomes the child for the next iteration
+                    child_visibility = parent_visibility;
                 }
             }
         }
@@ -284,21 +325,71 @@ impl Resolver {
     }
 }
 
-/// Get the name of `element` from its `name` attribute,
-/// where the `name` attribute must have exactly one text child to be considered valid.
-fn get_element_name(element: &FlatElement) -> Option<String> {
-    let name = element
+/// Get a vector of the possible `NameWithSource` representations of the element.
+/// The `source_doc` for a `NameWithSource` is determined in two possible ways:
+/// - from the element's `name` attribute, in which case the `source_doc` is retrieved from the element itself, or
+/// - from the element's attribute with a name of the form `source-n:name`, where `n` is a number,
+///   in which case `n` is the `source_doc`.
+///
+/// For each such attribute, the value of the name is determined from the attribute's children.
+/// The attribute must have exactly one text child to be considered valid.
+fn get_element_names_with_source(element: &FlatElement) -> Vec<NameWithSource> {
+    let name_re = Regex::new(r"^(source-(?<source_doc>\d+):)?name$").unwrap();
+    let names_with_source = element
         .attributes
         .iter()
-        .find(|attr| attr.name == "name")
-        .and_then(|attr| {
-            match (attr.children.len(), attr.children.first()) {
-                // A name attribute should have exactly one text child. Otherwise it is considered invalid.
-                (1, Some(UntaggedContent::Text(name))) => Some(name.clone()),
-                _ => None,
+        .filter_map(|attr| match name_re.captures(&attr.name) {
+            None => None,
+            Some(caps) => {
+                let source_doc: SourceDoc = match caps.name("source_doc") {
+                    // if the attribute is `name`, then get `source_doc` from the element itself
+                    None => element.source_doc.into(),
+                    // if the attribute is `source-n:name`, where `n` is number, then `n` is the `source_doc`
+                    Some(source_match) => source_match.as_str().try_into().unwrap(),
+                };
+                match (attr.children.len(), attr.children.first()) {
+                    // A name attribute should have exactly one text child. Otherwise it is considered invalid.
+                    (1, Some(UntaggedContent::Text(name))) => Some(NameWithSource {
+                        name: name.to_string(),
+                        source_doc,
+                    }),
+                    _ => None,
+                }
             }
-        });
-    name
+        })
+        .collect::<Vec<_>>();
+    names_with_source
+}
+
+/// If `node` has an attribute named `source:sequence`,
+/// then parse its text children into `SourceDoc`s
+/// and return the resulting vector.
+///
+/// Panics if `node` has an attribute named `source:sequence`
+/// with text children that don't parse to integers.
+fn extract_source_sequence(node: &FlatNode) -> Option<Vec<SourceDoc>> {
+    match node {
+        FlatNode::Error(_) => None,
+        FlatNode::FunctionRef(_) => None,
+        FlatNode::Ref(_) => None,
+        FlatNode::Element(flat_element) => flat_element
+            .attributes
+            .iter()
+            .find(|attr| attr.name == "source:sequence")
+            .map(extract_source_sequence_from_attribute),
+    }
+}
+
+fn extract_source_sequence_from_attribute(attr: &FlatAttribute) -> Vec<SourceDoc> {
+    attr.children
+        .iter()
+        .filter_map(|child| match child {
+            UntaggedContent::Ref(_) => None,
+            UntaggedContent::Text(source_string) => {
+                Some(source_string.as_str().try_into().unwrap())
+            }
+        })
+        .collect()
 }
 
 #[cfg(test)]

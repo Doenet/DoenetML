@@ -1,10 +1,12 @@
-use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use std::iter;
 use tsify_next::Tsify;
 
-use super::ResolutionError;
-use crate::dast::flat_dast::{FlatNode, FlatPathPart, Index, UntaggedContent};
+use super::{NameMap, ResolutionError};
+use crate::dast::{
+    flat_dast::{FlatElement, FlatNode, FlatPathPart, Index, SourceDoc, UntaggedContent},
+    ref_resolve::NameWithSource,
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -24,28 +26,49 @@ pub struct RefResolution {
 
 /// Status of a pointer referring to children of an element.
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub(super) enum Ref {
+pub enum Ref {
     Unique(Index),
     Ambiguous(Vec<Index>),
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-pub(super) enum ResolutionAlgorithm {
-    SearchChildren,
-    DontSearchChildren,
-    Unsearchable,
+/// The `Visibility` of a node determines how the `name_map` is constructed.
+/// The behavior of each variant is:
+/// - `Visible`: the default behavior where the visibility of the node and its children are not restricted.
+///   If all nodes were `Visible`, then the name of each node could be resolved from any of its ancestors.
+/// - `Invisible`: the node and its descendants cannot be resolved by name from any of the node's ancestors.
+/// - `ChildrenInvisibleToTheirGrandparents`: all the children of the node (and their descendants) can be resolved by name
+///   from the node itself but cannot be resolved by name from any of the node's ancestors.
+///   To resolve a reference to a child (or a descendant),
+///   one must preface the name with the name of the node.
+///   For example, since `<option>` is tagged with `ChildrenInvisibleToTheirGrandparents`,
+///   consider the DoenetML
+///   ```xml
+///   <d>
+///       <option name="x">
+///           <a name="y">
+///               <b name="z" />
+///           </a>
+///       </option>
+///       <c/>
+///   </d>
+///   ```
+///   - References `$y` and `$z` from `<c>` would fail because the `name_map` of `<d>` would not contain the nodes.
+///   - References `$x.y` and `$x.z` from `<c>` would resolve because the `name_map` of `<option>` would contain the nodes.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(super) enum Visibility {
+    Visible,
+    Invisible,
+    ChildrenInvisibleToTheirGrandparents,
 }
 
-const DONT_SEARCH_CHILDREN: [&str; 3] = ["option", "case", "repeat"];
+const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 3] = ["repeat", "option", "case"];
 
-impl ResolutionAlgorithm {
+impl Visibility {
     fn lookup_by_name(name: &str) -> Self {
-        if DONT_SEARCH_CHILDREN.contains(&name) {
-            ResolutionAlgorithm::DontSearchChildren
+        if CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS.contains(&name) {
+            Visibility::ChildrenInvisibleToTheirGrandparents
         } else {
-            ResolutionAlgorithm::SearchChildren
+            Visibility::Visible
         }
     }
 
@@ -53,34 +76,33 @@ impl ResolutionAlgorithm {
         if let FlatNode::Element(element) = node {
             Self::lookup_by_name(element.name.as_str())
         } else {
-            ResolutionAlgorithm::Unsearchable
+            Visibility::Invisible
         }
+    }
+
+    pub(super) fn lookup_by_flat_element(element: &FlatElement) -> Self {
+        Self::lookup_by_name(element.name.as_str())
     }
 }
 
 /// The possibilities for the parent of a node in the resolver
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
-#[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[derive(Debug, Serialize, Clone, Copy)]
 pub enum NodeParent {
     None,
     FlatRoot,
     Node(Index),
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[derive(Debug, Serialize, Clone)]
 pub struct NodeResolverData {
     /// The parent of the node. Options are:
     /// - `NodeParent:None` corresponds to no parent
     /// - `NodeParent:FlatRoot` corresponds to the parent being the flat root (which isn't a node)
     /// - `NodeParent:Node(i)` corresponds to the parent being node `i`.
     pub(super) node_parent: NodeParent,
-    pub(super) resolution_algorithm: ResolutionAlgorithm,
     /// Map of all the names that are accessible (as descendants) from the node.
     /// The data structure uses a `FxHashMap` so that iterating over the `name_map` is done in a consistent order.
-    pub(super) name_map: FxHashMap<String, Ref>,
+    pub(super) name_map: NameMap,
     /// Map of resolutions of indices that follow a match to the node.
     /// If `index_resolutions[i] = Some(j)` and the reference `$node_reference` matches the node,
     /// then the reference `$node_reference[i+1]` resolves to node `k`
@@ -88,14 +110,23 @@ pub struct NodeResolverData {
     /// Note: `index_resolutions[i] = None` indicates that `$node_reference[i+1]` would resolve to a text node,
     /// which is not a valid ref resolution.
     pub(super) index_resolutions: Vec<Option<Index>>,
+    /// If a node extends an external document, then `source_sequence` is a list of the node's original source doc
+    /// and the source doc from which it extended.
+    ///
+    /// For example, imagine that for this DoenetML `<section extend="doenet:abc" />` that `doenet:abc`
+    /// resolved to the document with source number 3 containing `<section/>`. Then `source_sequence`
+    /// for the `<section>` would be `[0, 3]`.
+    ///
+    /// If, on the other hand, `doenet:abc` resolved to source number 3 containing `<section extend="doenet:def" />` and
+    /// `doenet:def` resolved to source number 1 containing `<section>`, then `source_sequence` for the `<section>`
+    /// would be `[0, 3, 1]`.
+    pub(super) source_sequence: Option<Vec<SourceDoc>>,
 }
 
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
 /// upon construction. If the underlying `FlatRoot` changes, a new `Resolver` should be
 /// recreated.
-#[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[derive(Debug, Serialize)]
 pub struct Resolver {
     /// List of the node resolver data for a node at a given index shifted by `1`
     /// so that `node_resolver_data[i+1]` gives the data for node `i`
@@ -148,6 +179,13 @@ impl Resolver {
 
         let mut path = path.iter();
 
+        // the initial `source_doc` is determined from the initial path segment,
+        // defaulting to `0` if there is no path
+        let mut source_doc: SourceDoc = original_path
+            .first()
+            .and_then(|path_part| path_part.source_doc)
+            .into();
+
         // A list of all the nodes involved in resolving
         let mut nodes_in_resolved_path = vec![origin];
 
@@ -157,7 +195,13 @@ impl Resolver {
 
         if !skip_parent_search {
             let first_path_part = path.next().ok_or(ResolutionError::NoReferent)?;
-            current_idx = self.search_parents(&first_path_part.name, current_idx)?;
+            current_idx = self.search_parents(
+                &NameWithSource {
+                    name: first_path_part.name.clone(),
+                    source_doc,
+                },
+                current_idx,
+            )?;
             if current_idx != origin {
                 nodes_in_resolved_path.push(current_idx);
             }
@@ -172,6 +216,7 @@ impl Resolver {
                     name: "".into(),
                     index: first_path_part.index.clone(),
                     position: first_path_part.position.clone(),
+                    source_doc: first_path_part.source_doc,
                 })
                 .chain(path.cloned())
                 .collect();
@@ -186,28 +231,115 @@ impl Resolver {
             if !part.name.is_empty() {
                 let mut matched_part_name = false;
 
-                if node_data.resolution_algorithm == ResolutionAlgorithm::SearchChildren {
-                    // current_idx specifies the "root" of the search. We try to resolve
-                    // children based on the path part, returning an error if there is an ambiguity.
-                    if let Some(referent) = node_data.name_map.get(&part.name) {
-                        matched_part_name = true;
-                        match referent {
-                            Ref::Unique(idx) => {
-                                current_idx = *idx;
-                                if !nodes_in_resolved_path.contains(&current_idx) {
-                                    nodes_in_resolved_path.push(current_idx);
-                                }
-                                node_data = &self.node_resolver_data[current_idx + 1];
+                // current_idx specifies the "root" of the search. We try to resolve
+                // children based on the path part, returning an error if there is an ambiguity.
+                if let Some(referent) = node_data.name_map.get(&NameWithSource {
+                    name: part.name.clone(),
+                    source_doc,
+                }) {
+                    matched_part_name = true;
+                    match referent {
+                        Ref::Unique(idx) => {
+                            current_idx = *idx;
+                            if !nodes_in_resolved_path.contains(&current_idx) {
+                                nodes_in_resolved_path.push(current_idx);
                             }
-                            Ref::Ambiguous(_) => {
-                                return Err(ResolutionError::NonUniqueReferent);
+                            node_data = &self.node_resolver_data[current_idx + 1];
+                        }
+                        Ref::Ambiguous(_) => {
+                            return Err(ResolutionError::NonUniqueReferent);
+                        }
+                    }
+                }
+
+                if !matched_part_name {
+                    // If we cannot match a descendant to the next part name,
+                    // we check if the current node was extended from an external document.
+                    // If so, then we look up the next document in its `source_sequence`
+                    // and attempt to match the name using that source.
+                    //
+                    // For example, given the DoenetML `<section name="s" extend="doenet:abc" />$s.t`,
+                    // the reference `$s` will match the `<section name="s">` but `.t` will not match a descendant.
+                    // Imagine that `doenet:abc` resolves to the DoenetML `<section name="s2"><text name="t" /></section>`.
+                    // This source will be the next in `source_sequence`, so we search for a `<section>` descendant
+                    // named `t` from that second source. In this case,
+                    // the reference `$s.t` will resolve to the `<text>` node.
+                    if let Some(source_sequence) = &node_data.source_sequence {
+                        // Since we have a `source_sequence`, the node must have extended an external document
+                        let mut sources = source_sequence.iter();
+
+                        // In the list of sources, find the source that matches the current `source_doc`
+                        if sources.any(|source| *source == source_doc) {
+                            // If there is a subsequent source, search that one for the same name matched with the new source.
+                            if let Some(next_source) = sources.next() {
+                                if let Some(referent) = node_data.name_map.get(&NameWithSource {
+                                    name: part.name.clone(),
+                                    source_doc: *next_source,
+                                }) {
+                                    matched_part_name = true;
+                                    match referent {
+                                        Ref::Unique(idx) => {
+                                            current_idx = *idx;
+
+                                            // search from this source doc from now on
+                                            source_doc = *next_source;
+
+                                            if !nodes_in_resolved_path.contains(&current_idx) {
+                                                nodes_in_resolved_path.push(current_idx);
+                                            }
+                                            node_data = &self.node_resolver_data[current_idx + 1];
+                                        }
+                                        Ref::Ambiguous(_) => {
+                                            return Err(ResolutionError::NonUniqueReferent);
+                                        }
+                                    }
+                                } else {
+                                    // In order to allow a reference to the node itself (or a node it is extending)
+                                    // using the name from the second source,
+                                    // we fall back to check the name in the parent's map.
+                                    //
+                                    // In the above example, this allows a reference to `$s.s2` to resolve back to the section,
+                                    // given that its name was `s2` in the second source document.
+                                    let parent_plus_1 = match node_data.node_parent {
+                                        NodeParent::None => unreachable!(),
+                                        NodeParent::FlatRoot => 0,
+                                        NodeParent::Node(idx) => idx + 1,
+                                    };
+
+                                    if let Some(referent) = self.node_resolver_data[parent_plus_1]
+                                        .name_map
+                                        .get(&NameWithSource {
+                                            name: part.name.clone(),
+                                            source_doc: *next_source,
+                                        })
+                                    {
+                                        matched_part_name = true;
+                                        match referent {
+                                            Ref::Unique(idx) => {
+                                                current_idx = *idx;
+
+                                                // search from this source doc from now on
+                                                source_doc = *next_source;
+
+                                                if !nodes_in_resolved_path.contains(&current_idx) {
+                                                    nodes_in_resolved_path.push(current_idx);
+                                                }
+                                                node_data =
+                                                    &self.node_resolver_data[current_idx + 1];
+                                            }
+                                            Ref::Ambiguous(_) => {
+                                                return Err(ResolutionError::NonUniqueReferent);
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
 
                 if !matched_part_name {
-                    // If we cannot find an appropriate child, the remaining path parts might be
+                    // If we cannot find an appropriate descendant, the remaining path parts might be
                     // prop references. Return them and consider `current_idx` the match.
                     // This also handles the case where we don't search children.
                     let remaining_path: Vec<FlatPathPart> =
@@ -262,6 +394,7 @@ impl Resolver {
                                                         .cloned()
                                                         .collect(),
                                                     position: part.position.clone(),
+                                                    source_doc: part.source_doc,
                                                 })
                                                 .chain(path.cloned())
                                                 .collect();
@@ -296,6 +429,7 @@ impl Resolver {
                     name: "".into(),
                     index: part.index.iter().skip(index_idx).cloned().collect(),
                     position: part.position.clone(),
+                    source_doc: part.source_doc,
                 })
                 .chain(path.cloned())
                 .collect();
@@ -322,7 +456,7 @@ impl Resolver {
     /// Return the referent of `name`.
     pub(super) fn search_parents(
         &self,
-        name: &str,
+        name_with_source_doc: &NameWithSource,
         origin: usize,
     ) -> Result<Index, ResolutionError> {
         let mut node_data = &self.node_resolver_data[origin + 1];
@@ -330,7 +464,7 @@ impl Resolver {
         // if passed in a node without a parent, then search from that node itself
         // TODO: don't duplicate code with case where have parent, below
         if matches!(node_data.node_parent, NodeParent::None) {
-            if let Some(resolved) = node_data.name_map.get(name) {
+            if let Some(resolved) = node_data.name_map.get(name_with_source_doc) {
                 match resolved {
                     Ref::Unique(idx) => {
                         return Ok(*idx);
@@ -344,6 +478,8 @@ impl Resolver {
             return Err(ResolutionError::NoReferent);
         }
 
+        let mut child_idx = origin;
+
         loop {
             let parent_plus_1 = match node_data.node_parent {
                 NodeParent::None => break,
@@ -351,17 +487,41 @@ impl Resolver {
                 NodeParent::Node(idx) => idx + 1,
             };
 
-            if let Some(resolved) = self.node_resolver_data[parent_plus_1].name_map.get(name) {
+            if let Some(resolved) = self.node_resolver_data[parent_plus_1]
+                .name_map
+                .get(name_with_source_doc)
+            {
                 match resolved {
                     Ref::Unique(idx) => {
                         return Ok(*idx);
                     }
-                    Ref::Ambiguous(_) => {
-                        return Err(ResolutionError::NonUniqueReferent);
+                    Ref::Ambiguous(indices) => {
+                        if indices.contains(&child_idx) {
+                            // If one possibility is that we could resolve back to the child, we disambiguate the reference to be that child.
+                            //
+                            // For example, for this DoenetML, the reference `$p` from within the first problem
+                            // resolves uniquely to the problem even though the name `p` is not unique among the parent section's descendants.
+                            // ```
+                            // <section>
+                            //     <problem name="p">
+                            //         <p>Credit achieved: $p.creditAchieved</p>
+                            //     </problem>
+                            //     <problem name="p" />
+                            // <section>
+                            // ```
+                            return Ok(child_idx);
+                        } else {
+                            return Err(ResolutionError::NonUniqueReferent);
+                        }
                     }
                 }
             }
             node_data = &self.node_resolver_data[parent_plus_1];
+
+            // Note: if parent_plus_1 == 0, the loop will end as the root has no parent
+            if parent_plus_1 > 0 {
+                child_idx = parent_plus_1 - 1;
+            }
         }
         Err(ResolutionError::NoReferent)
     }

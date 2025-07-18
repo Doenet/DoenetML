@@ -17,7 +17,7 @@ export class SideBySide extends BlockComponent {
         let attributes = super.createAttributesObject();
 
         attributes.width = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
         };
         attributes.widths = {
             createComponentOfType: "_componentSizeList",
@@ -1191,7 +1191,7 @@ export class SbsGroup extends BlockComponent {
         let attributes = super.createAttributesObject();
 
         attributes.width = {
-            createComponentOfType: "_componentSize",
+            createComponentOfType: "componentSize",
         };
         attributes.widths = {
             createComponentOfType: "_componentSizeList",

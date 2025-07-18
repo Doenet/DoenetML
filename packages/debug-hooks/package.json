@@ -1,0 +1,46 @@
+{
+    "name": "@doenet/debug-hooks",
+    "type": "module",
+    "description": "DoenetML debugging functions",
+    "version": "1.0.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "watch": "vite build --watch",
+        "build": "wireit",
+        "test": "echo \"No tests \""
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "src/**/*.js",
+                "vite.config.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../doenetml-worker:build:rust",
+                "../doenetml-worker-javascript:build"
+            ]
+        }
+    },
+    "dependencies": {},
+    "devDependencies": {}
+}

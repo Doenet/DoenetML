@@ -15,6 +15,7 @@ export type SerializedComponent = {
     children: (SerializedComponent | string)[];
     attributes: Record<string, SerializedAttribute>;
     position?: Position;
+    sourceDoc?: number;
     childrenPosition?: Position;
     extending?: Source<SerializedRefResolution>;
     originalIdx?: number;
@@ -62,11 +63,13 @@ export interface SerializedRefResolutionPathPart {
     name: string;
     index: SerializedPathIndex[];
     position?: Position;
+    sourceDoc?: number;
 }
 
 export interface SerializedPathIndex {
     value: (SerializedComponent | string)[];
     position?: Position;
+    sourceDoc?: number;
 }
 
 /** The allowable data types for primitive attributes */
@@ -104,6 +107,7 @@ type ComponentAttribute = {
     name: string;
     component: SerializedComponent;
     ignoreFixed?: boolean;
+    sourceDoc?: number;
 };
 
 function isComponentAttribute(obj: unknown): obj is ComponentAttribute {
@@ -115,7 +119,9 @@ function isComponentAttribute(obj: unknown): obj is ComponentAttribute {
         typeof typedObj.name === "string" &&
         isSerializedComponent(typedObj.component) &&
         (typedObj.ignoreFixed === undefined ||
-            typeof typedObj.ignoreFixed === "boolean")
+            typeof typedObj.ignoreFixed === "boolean") &&
+        (typedObj.sourceDoc === undefined ||
+            typeof typedObj.sourceDoc === "number")
     );
 }
 
@@ -125,6 +131,7 @@ type PrimitiveAttribute = {
     name: string;
     primitive: PrimitiveAttributeValue;
     ignoreFixed?: boolean;
+    sourceDoc?: number;
 };
 
 function isPrimitiveAttribute(obj: unknown): obj is PrimitiveAttribute {
@@ -136,7 +143,9 @@ function isPrimitiveAttribute(obj: unknown): obj is PrimitiveAttribute {
         typeof typedObj.name === "string" &&
         isPrimitiveAttributeValue(typedObj.primitive) &&
         (typedObj.ignoreFixed === undefined ||
-            typeof typedObj.ignoreFixed === "boolean")
+            typeof typedObj.ignoreFixed === "boolean") &&
+        (typedObj.sourceDoc === undefined ||
+            typeof typedObj.sourceDoc === "number")
     );
 }
 
@@ -146,6 +155,7 @@ export type ReferencesAttribute = {
     references: SerializedComponent[];
     stringChildren: string[];
     position?: Position;
+    sourceDoc?: number;
     ignoreFixed?: boolean;
 };
 
@@ -161,7 +171,9 @@ function isReferencesAttribute(obj: unknown): obj is ReferencesAttribute {
             isSerializedComponent(reference),
         ) &&
         (typedObj.ignoreFixed === undefined ||
-            typeof typedObj.ignoreFixed === "boolean")
+            typeof typedObj.ignoreFixed === "boolean") &&
+        (typedObj.sourceDoc === undefined ||
+            typeof typedObj.sourceDoc === "number")
     );
 }
 
@@ -174,6 +186,7 @@ export type UnresolvedAttribute = {
     name: string;
     children: (UnflattenedComponent | string)[];
     position?: Position;
+    sourceDoc?: number;
     ignoreFixed?: boolean;
 };
 
@@ -190,7 +203,9 @@ function isUnresolvedAttribute(obj: unknown): obj is UnresolvedAttribute {
                 typeof child === "string" || isUnflattenedComponent(child),
         ) &&
         (typedObj.ignoreFixed === undefined ||
-            typeof typedObj.ignoreFixed === "boolean")
+            typeof typedObj.ignoreFixed === "boolean") &&
+        (typedObj.sourceDoc === undefined ||
+            typeof typedObj.sourceDoc === "number")
     );
 }
 

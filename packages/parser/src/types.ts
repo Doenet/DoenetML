@@ -188,6 +188,11 @@ export interface DastAbstractNode extends UnistNode {
      * Info from the ecosystem.
      */
     data?: Data | undefined;
+
+    /**
+     * The index in `DastRoot.sources` giving the DoenetML source from which this node was generated.
+     */
+    source_doc?: number;
 }
 
 /**
@@ -351,6 +356,14 @@ export interface DastRoot extends DastParent {
      * Data associated with the xast root.
      */
     data?: RootData | undefined;
+
+    /**
+     * A list of the DoenetML sources that generated the dast.
+     *
+     * The first source is the DoenetML initially parsed.
+     * Later sources are those loaded when referencing external content.
+     */
+    sources: string[];
 }
 
 /**
@@ -405,14 +418,20 @@ export type PrintOptions = {
 export type DastMacro = Omit<_Macro, "attributes" | "path"> & {
     attributes: Record<string, DastAttribute>;
     path: DastMacroPathPart[];
+    source_doc?: number;
 };
 export type DastMacroPathPart = Omit<_PathPart, "index"> & {
-    index: (Omit<_PropIndex, "value"> & { value: (DastText | DastMacro)[] })[];
+    index: (Omit<_PropIndex, "value"> & {
+        value: (DastText | DastMacro)[];
+        source_doc?: number;
+    })[];
+    source_doc?: number;
 };
 export type DastMacroFullPath = DastMacroPathPart[];
 export type DastFunctionMacro = Omit<_FunctionMacro, "input" | "path"> & {
     input: DastElementContent[][] | null;
     path: DastMacroPathPart[];
+    source_doc?: number;
 };
 
 //
@@ -476,6 +495,7 @@ export interface DastElementV6 extends DastParentV6 {
 export interface DastRootV6 extends DastParentV6 {
     type: "root";
     data?: RootData | undefined;
+    sources: string[];
 }
 export interface DastParentV6 extends DastAbstractNode {
     children: DastRootContentV6[];

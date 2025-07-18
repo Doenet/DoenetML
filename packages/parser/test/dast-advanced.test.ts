@@ -359,6 +359,9 @@ describe("DAST", async () => {
                 "type": "macro",
               },
             ],
+            "sources": [
+              "$x",
+            ],
             "type": "root",
           }
         `);
@@ -386,6 +389,9 @@ describe("DAST", async () => {
                 "type": "element",
               },
             ],
+            "sources": [
+              "<m>$x</m>",
+            ],
             "type": "root",
           }
         `);
@@ -409,6 +415,9 @@ describe("DAST", async () => {
                 "type": "text",
                 "value": ".",
               },
+            ],
+            "sources": [
+              "$x.",
             ],
             "type": "root",
           }
@@ -442,6 +451,9 @@ describe("DAST", async () => {
                 "name": "m",
                 "type": "element",
               },
+            ],
+            "sources": [
+              "<m z="$x" />",
             ],
             "type": "root",
           }
@@ -481,6 +493,9 @@ describe("DAST", async () => {
                 "type": "macro",
               },
             ],
+            "sources": [
+              "$x{y="$z"}",
+            ],
             "type": "root",
           }
         `);
@@ -513,6 +528,9 @@ describe("DAST", async () => {
                 ],
                 "type": "function",
               },
+            ],
+            "sources": [
+              "$$f(x, y)",
             ],
             "type": "root",
           }
@@ -551,6 +569,9 @@ describe("DAST", async () => {
                 ],
                 "type": "function",
               },
+            ],
+            "sources": [
+              "$$f(<math>alpha</math>)",
             ],
             "type": "root",
           }
@@ -591,6 +612,9 @@ describe("DAST", async () => {
                 ],
                 "type": "function",
               },
+            ],
+            "sources": [
+              "$$f(x, <math>alpha</math>)",
             ],
             "type": "root",
           }
@@ -639,6 +663,9 @@ describe("DAST", async () => {
                 "type": "element",
               },
             ],
+            "sources": [
+              "<p>$$f(x, <math>alpha</math>)</p>",
+            ],
             "type": "root",
           }
         `);
@@ -682,6 +709,9 @@ describe("DAST", async () => {
                 ],
                 "type": "function",
               },
+            ],
+            "sources": [
+              "$$f((x-2), 7)",
             ],
             "type": "root",
           }
@@ -732,6 +762,9 @@ describe("DAST", async () => {
                 "type": "function",
               },
             ],
+            "sources": [
+              "$$f((3,4), (5,6))",
+            ],
             "type": "root",
           }
         `);
@@ -780,6 +813,9 @@ describe("DAST", async () => {
                 "type": "function",
               },
             ],
+            "sources": [
+              "$$f(1,(<math>alpha</math>))",
+            ],
             "type": "root",
           }
         `);
@@ -819,6 +855,9 @@ describe("DAST", async () => {
                 ],
                 "type": "function",
               },
+            ],
+            "sources": [
+              "$$f(x, <math>alpha</math>)",
             ],
             "type": "root",
           }
@@ -875,6 +914,9 @@ describe("DAST", async () => {
                 ],
                 "type": "function",
               },
+            ],
+            "sources": [
+              "$$f((x,y), <math>alpha</math>)",
             ],
             "type": "root",
           }

@@ -100,6 +100,7 @@ describe("DAST", async () => {
                     value: "one&two",
                 },
             ],
+            sources: ["one&two"],
         };
         const formattedXml = toXml(dast);
         const formattedDoenet = toXml(dast, { doenetSyntax: true });
@@ -133,6 +134,7 @@ describe("DAST", async () => {
                     value: "\n",
                 },
             ],
+            sources: [`<a attr="one&two" />`],
         };
         const formattedXml = toXml(dast).trim();
         const formattedDoenet = toXml(dast, { doenetSyntax: true }).trim();
@@ -302,6 +304,9 @@ describe("DAST", async () => {
                 "type": "element",
               },
             ],
+            "sources": [
+              "<m>foo</m>",
+            ],
             "type": "root",
           }
         `);
@@ -316,6 +321,9 @@ describe("DAST", async () => {
                 "name": "m",
                 "type": "element",
               },
+            ],
+            "sources": [
+              "<m />",
             ],
             "type": "root",
           }
@@ -337,6 +345,9 @@ describe("DAST", async () => {
                 "name": "m",
                 "type": "element",
               },
+            ],
+            "sources": [
+              "<m foo />",
             ],
             "type": "root",
           }
@@ -369,6 +380,9 @@ describe("DAST", async () => {
                 "type": "element",
               },
             ],
+            "sources": [
+              "<m foo bar="baz" />",
+            ],
             "type": "root",
           }
         `);
@@ -391,6 +405,9 @@ describe("DAST", async () => {
                 "type": "element",
               },
             ],
+            "sources": [
+              "<m><z /></m>",
+            ],
             "type": "root",
           }
         `);
@@ -410,6 +427,9 @@ describe("DAST", async () => {
                 "name": "m",
                 "type": "element",
               },
+            ],
+            "sources": [
+              "<m><![CDATA[hi there]]></m>",
             ],
             "type": "root",
           }
@@ -441,6 +461,10 @@ describe("DAST", async () => {
                 "name": "m",
                 "type": "element",
               },
+            ],
+            "sources": [
+              "<!DOCTYPE DoenetML>
+          <m>foo</m>",
             ],
             "type": "root",
           }

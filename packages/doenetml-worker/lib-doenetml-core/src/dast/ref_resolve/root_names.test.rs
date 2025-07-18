@@ -33,7 +33,7 @@ fn find_simplest_unique_name() {
     let f_idx = find(&flat_root, "f").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[doc_idx], None);
     assert_eq!(root_names[a_idx], Some("x".to_string()));
@@ -74,7 +74,7 @@ fn find_simplest_names_with_index() {
     let g2_idx = c_idx + 1;
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[doc_idx], None);
     assert_eq!(root_names[a_idx], Some("x".to_string()));
@@ -87,7 +87,7 @@ fn find_simplest_names_with_index() {
 }
 
 #[test]
-fn option_children_are_ignored() {
+fn option_children_require_option_name() {
     let dast_root = dast_root_no_position(
         r#"
     <document>
@@ -113,14 +113,14 @@ fn option_children_are_ignored() {
     let o_idx = find(&flat_root, "option").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[doc_idx], None);
     assert_eq!(root_names[a_idx], Some("x".to_string()));
     assert_eq!(root_names[o_idx], Some("y".to_string()));
-    assert_eq!(root_names[b_idx], None);
-    assert_eq!(root_names[c_idx], None);
-    assert_eq!(root_names[d_idx], None);
+    assert_eq!(root_names[b_idx], Some("y.z".to_string()));
+    assert_eq!(root_names[c_idx], Some("y.u".to_string()));
+    assert_eq!(root_names[d_idx], Some("y.v".to_string()));
     assert_eq!(root_names[e_idx], Some("z".to_string()));
 }
 
@@ -152,7 +152,7 @@ fn fragments_added_require_parent_or_index() {
         IndexResolution::ReplaceAll { parent: a_idx },
     );
 
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[a_idx], Some("x".to_string()));
     assert_eq!(root_names[b_idx], Some("x:1".to_string()));
@@ -178,7 +178,7 @@ fn sub_names_are_preferred_over_indices() {
         &flat_fragment,
         IndexResolution::ReplaceAll { parent: a_idx },
     );
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
     assert_eq!(root_names[b_idx], Some("x.long".to_string()));
 }
@@ -203,9 +203,9 @@ fn ties_are_handled_consistently_even_as_document_changes() {
     let d_idx = find(&flat_root, "d").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
-    assert_eq!(root_names[d_idx], Some("u.y".to_string()));
+    assert_eq!(root_names[d_idx], Some("x.y".to_string()));
 
     // similar document with addition of more nodes
     let dast_root = dast_root_no_position(
@@ -232,7 +232,49 @@ fn ties_are_handled_consistently_even_as_document_changes() {
     let d_idx = find(&flat_root, "d").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    let root_names = calculate_root_names(resolver);
+    let root_names = resolver.calculate_root_names();
 
-    assert_eq!(root_names[d_idx], Some("u.y".to_string()));
+    assert_eq!(root_names[d_idx], Some("x.y".to_string()));
+}
+
+#[test]
+fn elements_from_external_source_doc_require_parent() {
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="x"/>
+        <switchSource name="y">
+            <b name="z">
+                <c name="u" />
+            </b>
+            <d name="r" />
+        </switchSource>
+        "#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+    let s_idx = find(&flat_root, "switchSource").unwrap();
+
+    // Add a source doc to `<sourceSwitch>`,
+    // which is mimics the case of `<sourceSwitch>` extending an external document,
+    // and being name `y2` in that document.
+    add_source_doc_to_descendants(
+        &mut flat_root,
+        s_idx,
+        Some(1.into()),
+        Some("y2".to_string()),
+    );
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    let root_names = resolver.calculate_root_names();
+
+    assert_eq!(root_names[a_idx], Some("x".to_string()));
+    assert_eq!(root_names[b_idx], Some("y.z".to_string()));
+    assert_eq!(root_names[c_idx], Some("y.u".to_string()));
+    assert_eq!(root_names[d_idx], Some("y.r".to_string()));
+    assert_eq!(root_names[s_idx], Some("y".to_string()));
 }

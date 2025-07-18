@@ -44,6 +44,7 @@ export async function normalizedDastToSerializedComponents(
     nComponents: number;
     errors: ErrorRecord[];
     warnings: WarningRecord[];
+    sources: string[];
 }> {
     /**
      * Unflatten the normalized dast node so that
@@ -86,11 +87,13 @@ export async function normalizedDastToSerializedComponents(
                                             warnings,
                                         ),
                                         position: attribute.position,
+                                        sourceDoc: attribute.sourceDoc,
                                     },
                                 ]),
                         ),
                         position: node.position,
-                        childrenPosition: node.children_position,
+                        sourceDoc: node.sourceDoc,
+                        childrenPosition: node.childrenPosition,
                         extending: node.extending
                             ? unFlattenExtending(node.extending, warnings)
                             : undefined,
@@ -111,6 +114,7 @@ export async function normalizedDastToSerializedComponents(
                             type: "warning",
                             message: node.message,
                             position: node.position,
+                            sourceDoc: node.sourceDoc,
                         });
                         if (
                             node.message.includes("No referent") ||
@@ -125,6 +129,7 @@ export async function normalizedDastToSerializedComponents(
                                 componentIdx: idxOrString,
                                 attributes: {},
                                 position: node.position,
+                                sourceDoc: node.sourceDoc,
                                 extending: {
                                     Ref: {
                                         nodeIdx: -1,
@@ -144,6 +149,7 @@ export async function normalizedDastToSerializedComponents(
                             componentIdx: idxOrString,
                             attributes: {},
                             position: node.position,
+                            sourceDoc: node.sourceDoc,
                             state: {
                                 message: node.message,
                                 unresolvedPath: node.unresolvedPath,
@@ -194,6 +200,7 @@ export async function normalizedDastToSerializedComponents(
                 return {
                     value,
                     position: flat_index.position,
+                    sourceDoc: flat_index.sourceDoc,
                 };
             });
 
@@ -201,6 +208,7 @@ export async function normalizedDastToSerializedComponents(
                 index,
                 name: path_part.name,
                 position: path_part.position,
+                sourceDoc: path_part.sourceDoc,
             };
         });
     }
@@ -291,6 +299,7 @@ export async function normalizedDastToSerializedComponents(
         nComponents,
         errors,
         warnings,
+        sources: [...normalized_root.sources],
     };
 }
 
@@ -405,6 +414,7 @@ export function expandUnflattenedToSerializedComponents({
                     type: "error",
                     message: convertResult.message,
                     position: component.position,
+                    sourceDoc: component.sourceDoc,
                 });
             }
         }
@@ -523,6 +533,7 @@ function expandUnflattenedPath({
             return {
                 value: valueComponents,
                 position: flat_index.position,
+                sourceDoc: flat_index.sourceDoc,
             };
         });
 
@@ -530,6 +541,7 @@ function expandUnflattenedPath({
             index,
             name: path_part.name,
             position: path_part.position,
+            sourceDoc: path_part.sourceDoc,
         };
     });
 
@@ -592,7 +604,7 @@ export function expandAllUnflattenedAttributes({
             attributes[attrName] = res.attribute;
             errors.push(...res.errors);
             nComponents = res.nComponents;
-        } else if (componentClass.acceptAnyAttribute) {
+        } else if (componentClass.acceptAnyAttribute || attr.includes(":")) {
             let res = expandAttribute({
                 attribute: unflattenedAttributes[attr],
                 allUnflattenedAttributes: unflattenedAttributes,
@@ -703,6 +715,9 @@ export function expandAttribute({
         if (attribute.position) {
             unflattenedComponent.position = attribute.position;
         }
+        if (attribute.sourceDoc !== undefined) {
+            unflattenedComponent.sourceDoc = attribute.sourceDoc;
+        }
 
         if (
             attrDef.attributesForCreatedComponent ||
@@ -752,6 +767,7 @@ export function expandAttribute({
                 res.components,
                 componentInfoObjects,
             )[0] as SerializedComponent,
+            sourceDoc: attribute.sourceDoc,
         };
         if (attrDef.ignoreFixed) {
             // set the component to ignore the fixed of its parent
@@ -770,6 +786,7 @@ export function expandAttribute({
                 type: "primitive",
                 name: attribute.name,
                 primitive: primitiveValue,
+                sourceDoc: attribute.sourceDoc,
             },
             errors,
             nComponents,
@@ -793,6 +810,7 @@ export function expandAttribute({
                     .filter((child) => typeof child === "string")
                     .filter((child) => child.trim() !== ""),
                 position: attribute.position,
+                sourceDoc: attribute.sourceDoc,
             },
             errors,
             nComponents,
@@ -804,6 +822,7 @@ export function expandAttribute({
                 name: attribute.name,
                 children: attribute.children,
                 position: attribute.position,
+                sourceDoc: attribute.sourceDoc,
             },
             errors,
             nComponents,
@@ -849,6 +868,7 @@ function createInitialComponentFromAttribute({
                     attributes: {},
                     children: [],
                     state: { value: attrDef.valueForTrue },
+                    sourceDoc: attribute.sourceDoc,
                 },
                 nComponents,
             };
@@ -866,6 +886,7 @@ function createInitialComponentFromAttribute({
                     attributes: {},
                     children: [],
                     state: { value: true },
+                    sourceDoc: attribute.sourceDoc,
                 },
                 nComponents,
             };
@@ -893,6 +914,7 @@ function createInitialComponentFromAttribute({
                         attributes: {},
                         children: [],
                         state: { value: attrDef.valueForTrue },
+                        sourceDoc: attribute.sourceDoc,
                     },
                     nComponents,
                 };
@@ -908,6 +930,7 @@ function createInitialComponentFromAttribute({
                         attributes: {},
                         children: [],
                         state: { value: attrDef.valueForFalse },
+                        sourceDoc: attribute.sourceDoc,
                     },
                     nComponents,
                 };
@@ -926,6 +949,7 @@ function createInitialComponentFromAttribute({
                         attributes: {},
                         children: [],
                         state: { value: valueTrimLower === "true" },
+                        sourceDoc: attribute.sourceDoc,
                     },
                     nComponents,
                 };
@@ -940,6 +964,7 @@ function createInitialComponentFromAttribute({
         attributes: {},
         children: [],
         state: {},
+        sourceDoc: attribute.sourceDoc,
     };
 
     component.children = [...attribute.children];

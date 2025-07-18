@@ -742,7 +742,7 @@ describe("Sectioning Tag Tests", function () {
             );
 
         cy.get(cesc("#prob1_title")).should("have.text", "");
-        cy.get(cesc("#exercises.ol")).should(
+        cy.get(cesc("#prob1.ol")).should(
             "have.css",
             "list-style-type",
             "lower-alpha",
@@ -811,7 +811,7 @@ describe("Sectioning Tag Tests", function () {
             );
 
         cy.get(cesc("#prob1_title")).should("have.text", "");
-        cy.get(cesc("#exercises.ol")).should(
+        cy.get(cesc("#prob1.ol")).should(
             "have.css",
             "list-style-type",
             "lower-alpha",

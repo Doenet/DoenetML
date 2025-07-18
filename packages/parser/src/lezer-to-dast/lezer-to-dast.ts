@@ -71,6 +71,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
         type: "root",
         children: gobbleFunctionArguments(lezerNodeToDastNode(node)),
         position: lezerNodeToPosition(node, offsetMap),
+        sources: [source],
     };
 
     function lezerNodeToDastNode(node: SyntaxNode): DastRootContent[] {

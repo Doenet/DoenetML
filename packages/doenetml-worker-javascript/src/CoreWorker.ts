@@ -9,13 +9,11 @@ import {
     PathToCheck,
     NodeList,
     RefResolution,
-    Resolver,
     IndexResolution,
     ContentVector,
     RootNames,
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
-import { resolvePathImmediatelyToNodeIdx } from "./utils/externalPathResolution";
 
 // Type signatures for callbacks
 export type UpdateRenderersCallback = (arg: {
@@ -70,28 +68,21 @@ export class PublicDoenetMLCore {
     initializeResult?: { success: boolean; errMsg?: string };
     doenetML = "";
     flags: Record<string, unknown> = {};
-    initialResolver?: Resolver;
     addNodesToResolver?: (
-        resolver: Resolver,
         flat_fragment: FlatFragment,
         index_resolution: IndexResolution,
-    ) => Resolver;
+    ) => void;
     replaceIndexResolutionsInResolver?: (
-        resolver: Resolver,
         components: ContentVector,
         index_resolution: IndexResolution,
-    ) => Resolver;
-    deleteNodesFromResolver?: (
-        resolver: Resolver,
-        node_list: NodeList,
-    ) => Resolver;
+    ) => void;
+    deleteNodesFromResolver?: (node_list: NodeList) => void;
     resolvePath?: (
-        resolver: Resolver,
         path: PathToCheck,
         origin: number,
         skip_parent_search: boolean,
     ) => RefResolution;
-    calculateRootNames?: (resolver: Resolver) => RootNames;
+    calculateRootNames?: () => RootNames;
 
     setSource(doenetML: string) {
         this.doenetML = doenetML;
@@ -101,17 +92,12 @@ export class PublicDoenetMLCore {
         this.flags = flags;
     }
 
-    getResolver(): Resolver {
-        return this.core?.resolver;
-    }
-
     async initializeWorker({
         activityId,
         docId,
         requestedVariantIndex,
         attemptNumber,
         normalizedRoot,
-        resolver,
         addNodesToResolver,
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
@@ -123,30 +109,22 @@ export class PublicDoenetMLCore {
         requestedVariantIndex: number;
         attemptNumber: number;
         normalizedRoot: NormalizedRoot;
-        resolver: Resolver;
         addNodesToResolver: (
-            resolver: Resolver,
             flat_fragment: FlatFragment,
             index_resolution: IndexResolution,
-        ) => Resolver;
+        ) => void;
         replaceIndexResolutionsInResolver?: (
-            resolver: Resolver,
             components: ContentVector,
             index_resolution: IndexResolution,
-        ) => Resolver;
-        deleteNodesFromResolver: (
-            resolver: Resolver,
-            node_list: NodeList,
-        ) => Resolver;
+        ) => void;
+        deleteNodesFromResolver: (node_list: NodeList) => void;
         resolvePath: (
-            resolver: Resolver,
             path: PathToCheck,
             origin: number,
             skip_parent_search: boolean,
         ) => RefResolution;
-        calculateRootNames?: (resolver: Resolver) => RootNames;
+        calculateRootNames?: () => RootNames;
     }) {
-        this.initialResolver = resolver;
         this.addNodesToResolver = addNodesToResolver;
         this.replaceIndexResolutionsInResolver =
             replaceIndexResolutionsInResolver;
@@ -161,6 +139,7 @@ export class PublicDoenetMLCore {
             nComponents: nComponentsInit,
             errors,
             warnings,
+            sources,
         } = await normalizedDastToSerializedComponents(
             normalizedRoot,
             componentInfoObjects,
@@ -175,7 +154,7 @@ export class PublicDoenetMLCore {
             attemptNumber,
             serializedDocument: root,
             nComponentsInit,
-            allDoenetMLs: [this.doenetML],
+            allDoenetMLs: sources,
             preliminaryErrors: errors,
             preliminaryWarnings: warnings,
             componentInfoObjects,
@@ -236,7 +215,6 @@ export class PublicDoenetMLCore {
         let coreArgs = {
             ...this.coreBaseArgs!,
             ...args,
-            resolver: this.initialResolver,
             addNodesToResolver: this.addNodesToResolver,
             replaceIndexResolutionsInResolver:
                 this.replaceIndexResolutionsInResolver,
@@ -469,21 +447,5 @@ export class PublicDoenetMLCore {
      */
     async saveImmediately() {
         await this.core?.saveImmediately();
-    }
-
-    /**
-     * Attempt to resolve `name` immediately by parsing `name` to a path
-     * and then forcibly resolving any composite components required to determine the ref resolution.
-     * If the path is resolved to a node index without any unresolved path left,
-     * then return the node index. Otherwise return -1.
-     *
-     * By default, the search for the path begins at the document root, node 0. Specify a node index for `origin`
-     * to change where the search begins.
-     *
-     * At present, this function is implemented only for string indices within the path.
-     * An error is thrown if the index of a path contains any references to other nodes.
-     */
-    async resolvePathImmediatelyToNodeIdx(name: string, origin = 0) {
-        return resolvePathImmediatelyToNodeIdx(name, this, origin);
     }
 }

@@ -1,9 +1,11 @@
 //! A version of `Core` based on `DirectedGraph`
 
 use crate::dast::{
-    flat_dast::{FlatFragment, FlatNode, FlatRoot, NormalizedRoot, UntaggedContent},
+    flat_dast::{
+        FlatFragment, FlatNode, FlatPathPart, FlatRoot, Index, NormalizedRoot, UntaggedContent,
+    },
     ref_expand::Expander,
-    ref_resolve::{IndexResolution, Resolver},
+    ref_resolve::{IndexResolution, RefResolution, ResolutionError, Resolver},
     DastRoot, FlatDastRoot,
 };
 
@@ -19,6 +21,7 @@ use super::{
 pub struct Core {
     pub document_model: DocumentModel,
     pub document_renderer: DocumentRenderer,
+    pub resolver: Option<Resolver>,
 }
 
 impl Default for Core {
@@ -32,53 +35,70 @@ impl Core {
         Core {
             document_model: DocumentModel::new_with_root_data_query(),
             document_renderer: DocumentRenderer::new(),
+            resolver: None,
         }
-    }
-
-    /// Create a `FlatRoot` from `dast_root`, which involves creating a `FlatDast`
-    /// and expanding most references to elements (or errors)
-    /// unless the component type specifies to hold its children from resolving
-    pub fn flat_root_from_dast_root(dast_root: &DastRoot) -> (FlatRoot, Resolver) {
-        let mut flat_root = FlatRoot::from_dast(dast_root);
-        let mut resolver = Expander::expand(&mut flat_root);
-        flat_root.compactify(Some(&mut resolver));
-        (flat_root, resolver)
     }
 
     /// Create a `NormalizedRoot` from `dast_root`, which involves creating a `FlatDast`
     /// and expanding all references to elements (or errors).
-    pub fn normalized_root_from_dast_root(dast_root: &DastRoot) -> (NormalizedRoot, Resolver) {
+    /// Sets the `resolver` so that it can be reused if needed.
+    /// Returns the `NormalizedRoot`
+    pub fn normalized_root_from_dast_root(&mut self, dast_root: &DastRoot) -> NormalizedRoot {
         let mut flat_root = FlatRoot::from_dast(dast_root);
         let mut resolver = Expander::expand(&mut flat_root);
         flat_root.compactify(Some(&mut resolver));
-        let normalized_flat_root = flat_root.into_normalized_root();
-        (normalized_flat_root, resolver)
+        self.resolver = Some(resolver);
+        flat_root.into_normalized_root()
     }
 
     pub fn add_nodes_to_resolver(
+        &mut self,
         flat_fragment: &FlatFragment,
-        resolver: &mut Resolver,
         index_resolution: IndexResolution,
     ) {
-        resolver.add_nodes(flat_fragment, index_resolution);
+        self.resolver
+            .as_mut()
+            .expect("Cannot add nodes to resolver before it is created")
+            .add_nodes(flat_fragment, index_resolution);
     }
 
     /// Replace the index resolutions of the parent of `index_resolution` with `components`,
     /// replacing the indices given by `index_resolution`.
     pub fn replace_index_resolutions_in_resolver(
+        &mut self,
         components: &[UntaggedContent],
-        resolver: &mut Resolver,
         index_resolution: IndexResolution,
     ) {
-        resolver.replace_index_resolutions(components, index_resolution);
+        self.resolver
+            .as_mut()
+            .expect("Cannot replace index resolutions in resolver before it is created")
+            .replace_index_resolutions(components, index_resolution);
     }
 
-    pub fn delete_nodes_from_resolver(nodes: &[FlatNode], resolver: &mut Resolver) {
-        resolver.delete_nodes(nodes);
+    pub fn delete_nodes_from_resolver(&mut self, nodes: &[FlatNode]) {
+        self.resolver
+            .as_mut()
+            .expect("Cannot delete noes from resolver before it is created")
+            .delete_nodes(nodes);
     }
 
-    pub fn calculate_root_names(resolver: Resolver) -> Vec<Option<String>> {
-        crate::dast::ref_resolve::calculate_root_names(resolver)
+    pub fn calculate_root_names(&self) -> Vec<Option<String>> {
+        self.resolver
+            .as_ref()
+            .expect("Cannot calculate root names from resolver before it is created")
+            .calculate_root_names()
+    }
+
+    pub fn resolve_path<T: AsRef<[FlatPathPart]>>(
+        &self,
+        path: T,
+        origin: Index,
+        skip_parent_search: bool,
+    ) -> Result<RefResolution, ResolutionError> {
+        self.resolver
+            .as_ref()
+            .expect("Cannot resolve path before resolver is created")
+            .resolve(path, origin, skip_parent_search)
     }
 
     /// Initialize `structure_graph`, `state_graph`, and other data
@@ -87,19 +107,18 @@ impl Core {
     /// This function relies upon the fact that `dast.nodes` will be the same length as `self.components`
     /// and exactly mirror it's structure (i.e., `dast.nodes[i].idx == self.components[i].idx`).
     ///
-    /// A [`Resolver`] is returned. In most cases the resolver is not needed, but it can be used
-    /// to look up a `ComponentIdx` by name (useful for testing).
-    pub fn init_from_dast_root(&mut self, dast_root: &DastRoot) -> Resolver {
-        let (normalized_flat_root, resolver) = Self::normalized_root_from_dast_root(dast_root);
-
+    /// A [`Resolver`] is saved to `core. It can be used to look up a `ComponentIdx` by name (useful for testing).
+    /// One can also add or delete nodes from it.
+    pub fn init_from_dast_root(&mut self, dast_root: &DastRoot) {
         // If we are initializing, we need to make sure that pre-existing data doesn't mess things up.
         // The easiest way is to recreate ourself.
         // TODO: think about whether we can update existing structures.
         *self = Self::new();
 
+        let normalized_flat_root = self.normalized_root_from_dast_root(dast_root);
+
         let component_builder = ComponentBuilder::from_normalized_root(&normalized_flat_root);
         self.document_model.init_from_builder(component_builder);
-        resolver
     }
 
     pub fn to_flat_dast(&mut self) -> FlatDastRoot {

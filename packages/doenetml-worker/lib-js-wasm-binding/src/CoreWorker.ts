@@ -12,10 +12,12 @@ import type {
     DastError,
     FlatDastElement,
     NormalizedRoot,
-    Resolver,
     PathToCheck,
     FlatFragment,
     IndexResolution,
+    RefResolution,
+    ContentVector,
+    NodeList,
 } from "lib-doenetml-worker";
 import type { DastRoot } from "@doenet/parser";
 import {
@@ -36,6 +38,7 @@ import {
 // @ts-ignore
 import WASM_BYTES_DATA_URL from "lib-doenetml-worker/lib_doenetml_worker_bg.wasm?url";
 import { flatDastFromJS } from "./flatDastFromJS";
+import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
 let wasmBlobUrl: string = WASM_BYTES_DATA_URL;
 try {
     // If the URL starts with `data:*;base64,`, then it is a data URL and we want to get
@@ -170,35 +173,6 @@ export class CoreWorker {
         resolve();
     }
 
-    /**
-     * Return the dast of the DoenetML source
-     * where all references that have matched a target have been expanded
-     * to components that extend those targets
-     *
-     * TODO: this function is not yet being used. Delete if it stays unused (May 5, 2025).
-     */
-    async returnNormalizedRoot(): Promise<NormalizedRoot> {
-        const isProcessingPromise = this.isProcessingPromise;
-        let { promise, resolve } = promiseWithResolver();
-        this.isProcessingPromise = promise;
-
-        await isProcessingPromise;
-
-        if (!this.source_set || !this.doenetCore) {
-            throw Error("Cannot return normalized root before setting source");
-        }
-        try {
-            let { normalizedRoot } =
-                this.doenetCore.return_normalized_dast_root();
-            return normalizedRoot;
-        } catch (err) {
-            console.error(err);
-            throw err;
-        } finally {
-            resolve();
-        }
-    }
-
     async initializeJavascriptCore({
         activityId,
         docId,
@@ -228,8 +202,47 @@ export class CoreWorker {
         }
 
         try {
-            let { normalizedRoot, resolver } =
-                this.doenetCore.return_normalized_dast_root();
+            let normalizedRoot = this.doenetCore.return_normalized_dast_root();
+
+            const doenetCore = this.doenetCore;
+
+            function calculateRootNames() {
+                return doenetCore.calculate_root_names();
+            }
+
+            function resolvePath(
+                path: PathToCheck,
+                origin: number,
+                skip_parent_search: boolean,
+            ): RefResolution {
+                return doenetCore.resolve_path(
+                    path,
+                    origin,
+                    skip_parent_search,
+                );
+            }
+            function addNodesToResolver(
+                flat_fragment: FlatFragment,
+                index_resolution: IndexResolution,
+            ) {
+                doenetCore.add_nodes_to_resolver(
+                    flat_fragment,
+                    index_resolution,
+                );
+            }
+            function replaceIndexResolutionsInResolver(
+                components: ContentVector,
+                index_resolution: IndexResolution,
+            ) {
+                doenetCore.replace_index_resolutions_in_resolver(
+                    components,
+                    index_resolution,
+                );
+            }
+            function deleteNodesFromResolver(node_list: NodeList) {
+                doenetCore.delete_nodes_from_resolver(node_list);
+            }
+
             const initializedResult =
                 await this.javascriptCore.initializeWorker({
                     activityId,
@@ -237,15 +250,11 @@ export class CoreWorker {
                     requestedVariantIndex,
                     attemptNumber,
                     normalizedRoot,
-                    resolver,
-                    addNodesToResolver:
-                        PublicDoenetMLCore.add_nodes_to_resolver,
-                    replaceIndexResolutionsInResolver:
-                        PublicDoenetMLCore.replace_index_resolutions_in_resolver,
-                    deleteNodesFromResolver:
-                        PublicDoenetMLCore.delete_nodes_from_resolver,
-                    resolvePath: PublicDoenetMLCore.resolve_path,
-                    calculateRootNames: PublicDoenetMLCore.calculate_root_names,
+                    addNodesToResolver,
+                    replaceIndexResolutionsInResolver,
+                    deleteNodesFromResolver,
+                    resolvePath,
+                    calculateRootNames,
                 });
             this.javascript_initialized = true;
             return initializedResult;
@@ -343,8 +352,38 @@ export class CoreWorker {
             throw Error("Cannot return dast before setting source and flags");
         }
 
-        let { normalizedRoot, resolver } =
-            this.doenetCore.return_normalized_dast_root();
+        let normalizedRoot = this.doenetCore.return_normalized_dast_root();
+        const doenetCore = this.doenetCore;
+
+        function calculateRootNames() {
+            return doenetCore.calculate_root_names();
+        }
+
+        function resolvePath(
+            path: PathToCheck,
+            origin: number,
+            skip_parent_search: boolean,
+        ): RefResolution {
+            return doenetCore.resolve_path(path, origin, skip_parent_search);
+        }
+        function addNodesToResolver(
+            flat_fragment: FlatFragment,
+            index_resolution: IndexResolution,
+        ) {
+            doenetCore.add_nodes_to_resolver(flat_fragment, index_resolution);
+        }
+        function replaceIndexResolutionsInResolver(
+            components: ContentVector,
+            index_resolution: IndexResolution,
+        ) {
+            doenetCore.replace_index_resolutions_in_resolver(
+                components,
+                index_resolution,
+            );
+        }
+        function deleteNodesFromResolver(node_list: NodeList) {
+            doenetCore.delete_nodes_from_resolver(node_list);
+        }
 
         await this.javascriptCore.initializeWorker({
             activityId: "a",
@@ -352,14 +391,11 @@ export class CoreWorker {
             requestedVariantIndex: 1,
             attemptNumber: 1,
             normalizedRoot,
-            resolver,
-            addNodesToResolver: PublicDoenetMLCore.add_nodes_to_resolver,
-            replaceIndexResolutionsInResolver:
-                PublicDoenetMLCore.replace_index_resolutions_in_resolver,
-            deleteNodesFromResolver:
-                PublicDoenetMLCore.delete_nodes_from_resolver,
-            resolvePath: PublicDoenetMLCore.resolve_path,
-            calculateRootNames: PublicDoenetMLCore.calculate_root_names,
+            addNodesToResolver,
+            replaceIndexResolutionsInResolver,
+            deleteNodesFromResolver,
+            resolvePath,
+            calculateRootNames,
         });
         this.javascript_initialized = true;
 
@@ -514,11 +550,12 @@ export class CoreWorker {
         }
 
         try {
-            let nodeIdx =
-                await this.javascriptCore.resolvePathImmediatelyToNodeIdx(
-                    name,
-                    origin,
-                );
+            let nodeIdx = await resolvePathImmediatelyToNodeIdx(
+                name,
+                this.doenetCore,
+                this.javascriptCore,
+                origin,
+            );
             return nodeIdx;
         } catch (err) {
             console.error(err);
@@ -526,19 +563,6 @@ export class CoreWorker {
         } finally {
             resolve();
         }
-    }
-
-    addNodesToResolver(
-        resolver: Resolver,
-        flatFragment: FlatFragment,
-        indexResolution: IndexResolution,
-    ) {
-        let add_nodes_result = PublicDoenetMLCore.add_nodes_to_resolver(
-            resolver,
-            flatFragment,
-            indexResolution,
-        );
-        return add_nodes_result;
     }
 
     async terminate() {

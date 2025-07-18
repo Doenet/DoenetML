@@ -1602,4 +1602,46 @@ describe("Conditional content tag tests", async () => {
         });
         await check_items(true);
     });
+
+    it("No duplicate component index with reference", async () => {
+        // Fix a bug where the target of an `<updateValue>` (which is a references attribute)
+        // caused a duplicate component index
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <booleanInput name="bi" />
+
+        <p name="p"><conditionalContent>
+            <case condition="$bi">A</case>
+            <else>B<updateValue name="addPoint1" target="$bi" newValue="true" type="boolean" /></else>
+        </conditionalContent></p>
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("B ");
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("A");
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("B ");
+    });
 });

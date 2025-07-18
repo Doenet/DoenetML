@@ -5,8 +5,10 @@ use crate::{dast::ref_expand::Expander, test_utils::*};
 
 #[test]
 fn can_compactify() {
-    let dast_root = dast_root_no_position(r#"<document><a><b /></a></document>"#);
-    let dast_root2 = dast_root_no_position(r#"<document><x><y /></x></document>"#);
+    let source = r#"<document><a><b /></a></document>"#;
+    let dast_root = dast_root_no_position(source);
+    let source2 = r#"<document><x><y /></x></document>"#;
+    let dast_root2 = dast_root_no_position(source2);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     // Add several nodes that aren't connected to the root
     flat_root.merge_content(&dast_root2.children[0], Some(0));
@@ -17,6 +19,7 @@ fn can_compactify() {
           {
             "type": "flatRoot",
             "children": [0],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",
@@ -61,6 +64,7 @@ fn can_compactify() {
           {
             "type": "flatRoot",
             "children": [0, 1],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",
@@ -100,9 +104,8 @@ fn can_compactify() {
 
 #[test]
 fn compactify_adjusts_extending_refs_attributes_and_resolver() {
-    let dast_root = dast_root_no_position(
-        r#"<text name="t">hello</text><text extend="$t"> world</text><textInput name="ti" /><p><text name="tiv" extend="$ti.immediateValue"> world</text></p>"#,
-    );
+    let source = r#"<text name="t">hello</text><text extend="$t"> world</text><textInput name="ti" /><p><text name="tiv" extend="$ti.immediateValue"> world</text></p>"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     let mut resolver = Expander::expand(&mut flat_root);
     flat_root.compactify(Some(&mut resolver));
@@ -113,6 +116,7 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
           {
             "type": "flatRoot",
             "children": [0],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",
@@ -218,55 +222,55 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
           "node_resolver_data": [
             {
               "node_parent": "None",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t:0": { "Unique": 1 },
+                "ti:0": { "Unique": 3 },
+                "tiv:0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": "FlatRoot",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t:0": { "Unique": 1 },
+                "ti:0": { "Unique": 3 },
+                "tiv:0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "tiv": { "Unique": 5 }
+                "tiv:0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 4 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
           ]
         })
@@ -275,9 +279,8 @@ fn compactify_adjusts_extending_refs_attributes_and_resolver() {
 
 #[test]
 fn compactify_adjusts_copying_refs_attributes_and_resolver() {
-    let dast_root = dast_root_no_position(
-        r#"<text name="t">hello</text><text copy="$t"> world</text><textInput name="ti" /><p><text name="tiv" copy="$ti.immediateValue"> world</text></p>"#,
-    );
+    let source = r#"<text name="t">hello</text><text copy="$t"> world</text><textInput name="ti" /><p><text name="tiv" copy="$ti.immediateValue"> world</text></p>"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     let mut resolver = Expander::expand(&mut flat_root);
     flat_root.compactify(Some(&mut resolver));
@@ -288,6 +291,7 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
           {
             "type": "flatRoot",
             "children": [0],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",
@@ -393,55 +397,55 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
           "node_resolver_data": [
             {
               "node_parent": "None",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t:0": { "Unique": 1 },
+                "ti:0": { "Unique": 3 },
+                "tiv:0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": "FlatRoot",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "t": { "Unique": 1 },
-                "ti": { "Unique": 3 },
-                "tiv": { "Unique": 5 }
+                "t:0": { "Unique": 1 },
+                "ti:0": { "Unique": 3 },
+                "tiv:0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "tiv": { "Unique": 5 }
+                "tiv:0": { "Unique": 5 }
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 4 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
           ]
         })
@@ -450,9 +454,8 @@ fn compactify_adjusts_copying_refs_attributes_and_resolver() {
 
 #[test]
 fn compactify_adjusts_refs_to_document() {
-    let dast_root = dast_root_no_position(
-        r#"<document name="doc"><number extend="$doc.creditAchieved" /><number copy="$doc.creditAchieved" /></document>"#,
-    );
+    let source = r#"<document name="doc"><number extend="$doc.creditAchieved" /><number copy="$doc.creditAchieved" /></document>"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     let mut resolver = Expander::expand(&mut flat_root);
     flat_root.compactify(Some(&mut resolver));
@@ -463,6 +466,7 @@ fn compactify_adjusts_refs_to_document() {
           {
             "type": "flatRoot",
             "children": [0],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",
@@ -528,29 +532,29 @@ fn compactify_adjusts_refs_to_document() {
           "node_resolver_data": [
             {
               "node_parent": "None",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {
-                "doc": { "Unique": 0 },
+                "doc:0": { "Unique": 0 },
               },
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": "FlatRoot",
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
             {
               "node_parent": { "Node": 0 },
-              "resolution_algorithm": "SearchChildren",
               "name_map": {},
               "index_resolutions": [],
+              "source_sequence": null,
             },
           ]
         })
@@ -559,7 +563,8 @@ fn compactify_adjusts_refs_to_document() {
 
 #[test]
 fn compactify_preserves_refs_in_path_parts() {
-    let dast_root = dast_root_no_position(r#"<number name="n"/><point name="p"/>$p[$n]"#);
+    let source = r#"<number name="n"/><point name="p"/>$p[$n]"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     flat_root.compactify(None);
@@ -570,6 +575,7 @@ fn compactify_preserves_refs_in_path_parts() {
           {
             "type": "flatRoot",
             "children": [0],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",
@@ -658,8 +664,8 @@ fn compactify_preserves_refs_in_path_parts() {
 
 #[test]
 fn compactify_shifts_refs_in_path_parts() {
-    let dast_root =
-        dast_root_no_position(r#"<number name="n"/><point name="p"/><point extend="$p" />$p[$n]"#);
+    let source = r#"<number name="n"/><point name="p"/><point extend="$p" />$p[$n]"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     flat_root.compactify(None);
@@ -670,6 +676,7 @@ fn compactify_shifts_refs_in_path_parts() {
           {
             "type": "flatRoot",
             "children": [0],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",
@@ -774,8 +781,8 @@ fn compactify_shifts_refs_in_path_parts() {
 
 #[test]
 fn compactify_index_in_extend() {
-    let dast_root =
-        dast_root_no_position(r#"<number name="n"/><math name="m"/><math extend="$m[$n]" />"#);
+    let source = r#"<number name="n"/><math name="m"/><math extend="$m[$n]" />"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     flat_root.compactify(None);
@@ -786,6 +793,7 @@ fn compactify_index_in_extend() {
           {
             "type": "flatRoot",
             "children": [0],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",
@@ -864,9 +872,8 @@ fn compactify_index_in_extend() {
 
 #[test]
 fn compactify_index_in_extend_additional_compactification_before() {
-    let dast_root = dast_root_no_position(
-        r#"<number name="n"/><math name="m" extend="$n" /><math extend="$m[$n]" />"#,
-    );
+    let source = r#"<number name="n"/><math name="m" extend="$n" /><math extend="$m[$n]" />"#;
+    let dast_root = dast_root_no_position(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
     flat_root.compactify(None);
@@ -877,6 +884,7 @@ fn compactify_index_in_extend_additional_compactification_before() {
           {
             "type": "flatRoot",
             "children": [0],
+            "sources": [source],
             "nodes": [
               {
                 "type": "element",

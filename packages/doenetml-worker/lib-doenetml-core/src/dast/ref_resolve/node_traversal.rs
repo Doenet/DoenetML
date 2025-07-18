@@ -2,7 +2,7 @@
 //! returning a description of the edges encountered.
 
 use super::*;
-use crate::dast::flat_dast::Index;
+use crate::dast::flat_dast::{Index, SourceDoc};
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone, Copy)]
@@ -35,6 +35,7 @@ pub(super) enum ResolverEdgeType {
 #[derive(Debug)]
 pub(super) struct ResolverEdge {
     pub(super) origin: NodeOrRoot,
+    pub(super) origin_source: SourceDoc,
     pub(super) referent: Index,
     pub(super) edge_type: ResolverEdgeType,
 }
@@ -55,15 +56,15 @@ impl Resolver {
 
         let mut edges_encountered = Vec::new();
 
-        let mut queue = VecDeque::new();
-        queue.push_back(NodeOrRoot::Root);
+        let mut queue: VecDeque<(NodeOrRoot, SourceDoc)> = VecDeque::new();
+        queue.push_back((NodeOrRoot::Root, None.into()));
 
         let mut visited = vec![false; self.node_resolver_data.len() - 1];
 
         let mut counter = 0;
         let max_count = self.node_resolver_data.len();
 
-        while let Some(origin) = queue.pop_front() {
+        while let Some((origin, origin_source)) = queue.pop_front() {
             counter += 1;
             if counter > max_count {
                 panic!("Cycles detected in references")
@@ -71,66 +72,85 @@ impl Resolver {
 
             let current_data = &self.node_resolver_data[origin.resolver_data_index()];
 
-            match current_data.resolution_algorithm {
-                ResolutionAlgorithm::DontSearchChildren | ResolutionAlgorithm::Unsearchable => {
-                    // If a node does not search children, do not traverse the graph from that node.
-                    continue;
-                }
-                ResolutionAlgorithm::SearchChildren => {
-                    // Note: this iteration over the `name_map` is done in a consistent order because we used a `FxHashMap`.
-                    for edge in current_data
-                        .name_map
-                        .iter()
-                        .filter_map(|(name, ref_)| match ref_ {
-                            Ref::Unique(idx) => {
-                                // TODO: the check to ignore names than begin with `'_'` is only due to
-                                // adding `pluginAddCompatibilityNames` in `normalize-dast.ts` of the parser.
-                                // This plugin creates automatically generated names of the from `_componentType1`,
-                                // which we do not want to include in root names.
-                                // When we remove `pluginAddCompatibilityNames`, we should remove the check for `'_'`.
-                                if visited[*idx] || name.starts_with('_') {
-                                    None
-                                } else {
-                                    visited[*idx] = true;
-                                    Some(ResolverEdge {
-                                        origin,
-                                        referent: *idx,
-                                        edge_type: ResolverEdgeType::Name(name.clone()),
-                                    })
-                                }
-                            }
-                            Ref::Ambiguous(_) => None,
-                        })
-                    {
-                        queue.push_back(NodeOrRoot::Node(edge.referent));
-                        edges_encountered.push(edge)
-                    }
+            // Note: this iteration over the `name_map` is done in a consistent order because we used a `FxHashMap`.
+            for edge in current_data
+                .name_map
+                .iter()
+                .filter_map(|(name_with_source, ref_)| match ref_ {
+                    Ref::Unique(idx) => {
+                        // TODO: the check to ignore names than begin with `'_'` is only due to
+                        // adding `pluginAddCompatibilityNames` in `normalize-dast.ts` of the parser.
+                        // This plugin creates automatically generated names of the from `_componentType1`,
+                        // which we do not want to include in root names.
+                        // When we remove `pluginAddCompatibilityNames`, we should remove the check for `'_'`.
+                        if visited[*idx] || name_with_source.name.starts_with('_') {
+                            None
+                        } else if name_with_source.source_doc == origin_source {
+                            visited[*idx] = true;
+                            Some(ResolverEdge {
+                                origin,
+                                origin_source,
+                                referent: *idx,
+                                edge_type: ResolverEdgeType::Name(name_with_source.name.clone()),
+                            })
+                        } else {
+                            // If `name_with_source` has a different origin, check to see if the node extended an external document,
+                            // and if `name_with_source` matches the source that was extended
+                            if let Some(source_sequence) = &current_data.source_sequence {
+                                // Since we have a `source_sequence`, the node must have extended an external document
+                                let mut sources = source_sequence.iter();
 
-                    // Index edges are traversed after all name edges
-                    for edge in current_data
-                        .index_resolutions
-                        .iter()
-                        .enumerate()
-                        .filter_map(|(index, index_resolution)| match index_resolution {
-                            None => None,
-                            Some(res_index) => {
-                                if visited[*res_index] {
-                                    None
-                                } else {
-                                    visited[*res_index] = true;
-                                    Some(ResolverEdge {
-                                        origin,
-                                        referent: *res_index,
-                                        edge_type: ResolverEdgeType::Index(index),
-                                    })
+                                if sources.any(|source| *source == origin_source) {
+                                    // If there is a subsequent source, determine if `name_with_source` matches the new source.
+                                    if let Some(next_source) = sources.next() {
+                                        if name_with_source.source_doc == *next_source {
+                                            visited[*idx] = true;
+                                            return Some(ResolverEdge {
+                                                origin,
+                                                origin_source: *next_source,
+                                                referent: *idx,
+                                                edge_type: ResolverEdgeType::Name(
+                                                    name_with_source.name.clone(),
+                                                ),
+                                            });
+                                        }
+                                    }
                                 }
                             }
-                        })
-                    {
-                        queue.push_back(NodeOrRoot::Node(edge.referent));
-                        edges_encountered.push(edge)
+                            None
+                        }
                     }
-                }
+                    Ref::Ambiguous(_) => None,
+                })
+            {
+                queue.push_back((NodeOrRoot::Node(edge.referent), edge.origin_source));
+                edges_encountered.push(edge)
+            }
+
+            // Index edges are traversed after all name edges
+            for edge in current_data
+                .index_resolutions
+                .iter()
+                .enumerate()
+                .filter_map(|(index, index_resolution)| match index_resolution {
+                    None => None,
+                    Some(res_index) => {
+                        if visited[*res_index] {
+                            None
+                        } else {
+                            visited[*res_index] = true;
+                            Some(ResolverEdge {
+                                origin,
+                                origin_source,
+                                referent: *res_index,
+                                edge_type: ResolverEdgeType::Index(index),
+                            })
+                        }
+                    }
+                })
+            {
+                queue.push_back((NodeOrRoot::Node(edge.referent), origin_source));
+                edges_encountered.push(edge)
             }
         }
 

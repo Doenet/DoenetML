@@ -33,6 +33,7 @@ export function addNodesToFlatFragment({
             children: [],
             attributes: [],
             idx: componentIdx,
+            sourceDoc: comp.sourceDoc,
         };
 
         if (comp.children) {
@@ -58,6 +59,7 @@ export function addNodesToFlatFragment({
                 name: "name",
                 parent: componentIdx,
                 children: [name],
+                sourceDoc: comp.sourceDoc,
             });
         }
 
@@ -95,6 +97,7 @@ export function addNodesToFlatFragment({
                             name: attrName,
                             parent: componentIdx,
                             children: attributeChildren,
+                            sourceDoc: attribute.sourceDoc,
                         });
                         break;
                     case "component":
@@ -105,6 +108,7 @@ export function addNodesToFlatFragment({
                             children: [
                                 getEffectiveComponentIdx(attribute.component),
                             ],
+                            sourceDoc: attribute.sourceDoc,
                         });
                         addNodesToFlatFragment({
                             flatFragment,
@@ -120,6 +124,7 @@ export function addNodesToFlatFragment({
                             children: attribute.references.map(
                                 getEffectiveComponentIdx,
                             ),
+                            sourceDoc: attribute.sourceDoc,
                         });
                         addNodesToFlatFragment({
                             flatFragment,
@@ -130,6 +135,17 @@ export function addNodesToFlatFragment({
                         break;
 
                     case "unresolved":
+                        flatElement.attributes.push({
+                            type: "attribute",
+                            name: attrName,
+                            parent: componentIdx,
+                            children: attribute.children.map((child) =>
+                                typeof child === "string"
+                                    ? child
+                                    : getEffectiveComponentIdx(child),
+                            ),
+                            sourceDoc: attribute.sourceDoc,
+                        });
                         addNodesToFlatFragment({
                             flatFragment,
                             serializedComponents: attribute.children,

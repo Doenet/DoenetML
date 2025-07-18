@@ -26,9 +26,6 @@ describe("MathList tag tests", async () => {
         maths?: any[];
         resolvePathToNodeIdx: ResolvePathToNodeIdx;
     }) {
-        if (!core.getResolver()) {
-            throw Error("No core resolver");
-        }
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         if (text !== undefined && pName !== undefined) {

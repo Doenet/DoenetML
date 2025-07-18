@@ -67,7 +67,6 @@ export default class Core {
         prerender = false,
         stateVariableChanges: stateVariableChangesString,
         coreId,
-        resolver,
         addNodesToResolver,
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
@@ -83,7 +82,6 @@ export default class Core {
     }) {
         // console.time('core');
 
-        // console.log("Initial resolver", JSON.parse(JSON.stringify(resolver)));
         // console.log("serialized document", serializedDocument);
 
         this.coreId = coreId;
@@ -96,7 +94,6 @@ export default class Core {
         this.nComponentsInit = nComponentsInit;
         this.createComponentIdxMapping = {};
 
-        this.resolver = resolver;
         this.addNodesToResolver = addNodesToResolver;
         this.replaceIndexResolutionsInResolver =
             replaceIndexResolutionsInResolver;
@@ -104,7 +101,7 @@ export default class Core {
         this.resolvePath = resolvePath;
         this.calculateRootNames = calculateRootNames;
 
-        this.rootNames = this.calculateRootNames?.(this.resolver).names;
+        this.rootNames = this.calculateRootNames?.().names;
 
         this.updateRenderersCallback = updateRenderersCallback;
         this.reportScoreAndStateCallback = reportScoreAndStateCallback;
@@ -416,6 +413,7 @@ export default class Core {
                     message: this.unmatchedChildren[componentIdxStr].message,
                     level: 1,
                     position: parent.position,
+                    sourceDoc: parent.sourceDoc,
                 });
             }
         }
@@ -482,12 +480,13 @@ export default class Core {
         return { errorWarnings: this.errorWarnings };
     }
 
-    addErrorWarning({ type, message, position, level }) {
+    addErrorWarning({ type, message, position, sourceDoc, level }) {
         if (type === "warning") {
             this.errorWarnings.warnings.push({
                 type,
                 message,
                 position,
+                sourceDoc,
                 level,
             });
         } else if (type === "error") {
@@ -495,6 +494,7 @@ export default class Core {
                 type,
                 message,
                 position,
+                sourceDoc,
             });
         } else {
             throw Error("Invalid error or warning: type not specified");
@@ -1623,12 +1623,17 @@ export default class Core {
                         lastErrorMessage = valueResult.lastErrorMessage;
                     }
                     const value = valueResult.components;
-                    index.push({ value, position: indexPiece.position });
+                    index.push({
+                        value,
+                        position: indexPiece.position,
+                        sourceDoc: indexPiece.sourceDoc,
+                    });
                 }
                 originalPath.push({
                     name: pathPart.name,
                     index,
                     position: pathPart.position,
+                    sourceDoc: pathPart.sourceDoc,
                 });
             }
             refResolution = {
@@ -1646,6 +1651,7 @@ export default class Core {
                 type: "error",
                 message: serializedComponent.state.message,
                 position: serializedComponent.position,
+                sourceDoc: serializedComponent.sourceDoc,
             });
         } else if (
             lastErrorMessageFromAttribute ||
@@ -2381,6 +2387,7 @@ export default class Core {
                 assignDoenetMLRange(
                     [newSerializedChild],
                     originalChild.position,
+                    originalChild.sourceDoc,
                 );
                 let newChildrenResult = await this.createIsolatedComponents({
                     serializedComponents: [newSerializedChild],
@@ -2538,6 +2545,7 @@ export default class Core {
         }
 
         let position = this.components[component.componentIdx].position;
+        let sourceDoc = this.components[component.componentIdx].sourceDoc;
         let overwriteDoenetMLRange = component.componentType === "_copy";
 
         this.gatherErrorsAndAssignDoenetMLRange({
@@ -2545,6 +2553,7 @@ export default class Core {
             errors: result.errors,
             warnings: result.warnings,
             position,
+            sourceDoc,
             overwriteDoenetMLRange,
         });
 
@@ -2621,8 +2630,9 @@ export default class Core {
 
         // If `createComponentIdx` was specified, the one replacement is already in the resolver,
         // so we just add its children and attribute components/references.
-        // Otherwise all all replacements.
+        // Otherwise add all replacements.
         const fragmentChildren = [];
+        let parentSourceSequence = null;
         if (component.attributes.createComponentIdx != null) {
             if (serializedReplacements[0]?.children) {
                 fragmentChildren.push(...serializedReplacements[0].children);
@@ -2635,6 +2645,23 @@ export default class Core {
                 } else if (attribute.type === "references") {
                     fragmentChildren.push(...attribute.references);
                 }
+            }
+
+            // if the replacement that is the fragment parent has a source sequence,
+            // then add that as the `parentSourceSequence` of the flat fragment
+            let sourceSequence =
+                serializedReplacements[0]?.attributes["source:sequence"];
+            if (sourceSequence) {
+                parentSourceSequence = {
+                    type: "attribute",
+                    name: "source:sequence",
+                    parent: component.attributes.createComponentIdx.primitive
+                        .number,
+                    children: sourceSequence.children.filter(
+                        (child) => typeof child === "string",
+                    ),
+                    sourceDoc: sourceSequence.sourceDoc,
+                };
             }
         } else {
             fragmentChildren.push(...serializedReplacements);
@@ -2649,6 +2676,7 @@ export default class Core {
             ),
             nodes: [],
             parentIdx,
+            parentSourceSequence,
             idxMap: {},
         };
 
@@ -2663,18 +2691,12 @@ export default class Core {
             this.addNodesToResolver
         ) {
             // console.log("add nodes to resolver", {
-            //     resolver: JSON.parse(JSON.stringify(this.resolver)),
             //     flatFragment,
             //     indexResolution,
             // });
-            let resolver = this.addNodesToResolver(
-                this.resolver,
-                flatFragment,
-                indexResolution,
-            );
-            this.resolver = resolver;
+            this.addNodesToResolver(flatFragment, indexResolution);
 
-            this.rootNames = this.calculateRootNames?.(this.resolver).names;
+            this.rootNames = this.calculateRootNames?.().names;
 
             let indexParent =
                 indexResolution.ReplaceAll?.parent ??
@@ -2693,11 +2715,6 @@ export default class Core {
                     );
                 }
             }
-
-            // console.log(
-            //     "added nodes",
-            //     JSON.parse(JSON.stringify(this.resolver)),
-            // );
         }
     }
 
@@ -2941,24 +2958,13 @@ export default class Core {
         });
 
         // console.log("add nodes from components to resolver", {
-        //     resolver: JSON.parse(JSON.stringify(this.resolver)),
         //     flatFragment,
         // });
 
         if (this.addNodesToResolver) {
-            let resolver = this.addNodesToResolver(
-                this.resolver,
-                flatFragment,
-                "None",
-            );
-            this.resolver = resolver;
+            this.addNodesToResolver(flatFragment, "None");
 
-            this.rootNames = this.calculateRootNames?.(this.resolver).names;
-
-            // console.log(
-            //     "added nodes",
-            //     JSON.parse(JSON.stringify(this.resolver)),
-            // );
+            this.rootNames = this.calculateRootNames?.().names;
         }
     }
 
@@ -2967,11 +2973,17 @@ export default class Core {
         errors,
         warnings,
         position,
+        sourceDoc,
         overwriteDoenetMLRange = false,
     }) {
-        assignDoenetMLRange(components, position, overwriteDoenetMLRange);
-        assignDoenetMLRange(errors, position);
-        assignDoenetMLRange(warnings, position);
+        assignDoenetMLRange(
+            components,
+            position,
+            sourceDoc,
+            overwriteDoenetMLRange,
+        );
+        assignDoenetMLRange(errors, position, sourceDoc);
+        assignDoenetMLRange(warnings, position, sourceDoc);
 
         for (const error of errors) {
             this.addErrorWarning({
@@ -3171,12 +3183,14 @@ export default class Core {
                         children: [],
                         state: { message },
                         position: compositeMediatingTheShadow.position,
+                        sourceDoc: compositeMediatingTheShadow.sourceDoc,
                     },
                 ];
                 this.addErrorWarning({
                     type: "error",
                     message,
                     position: compositeMediatingTheShadow.position,
+                    sourceDoc: compositeMediatingTheShadow.sourceDoc,
                 });
 
                 break;
@@ -5804,6 +5818,7 @@ export default class Core {
                             "Cannot set array value.  Number of dimensions is too large.",
                         level: 2,
                         position: component.position,
+                        sourceDoc: component.sourceDoc,
                     });
                     core.newErrorWarning = true;
                     return { nFailures: 1 };
@@ -5826,6 +5841,7 @@ export default class Core {
                             message: "ignore setting array value out of bounds",
                             level: 2,
                             position: component.position,
+                            sourceDoc: component.sourceDoc,
                         });
                         core.newErrorWarning = true;
                         return { nFailures: 1 };
@@ -5853,6 +5869,7 @@ export default class Core {
                                     "ignoring array values with insufficient dimensions",
                                 level: 2,
                                 position: component.position,
+                                sourceDoc: component.sourceDoc,
                             });
                             core.newErrorWarning = true;
                             return { nFailures: 1 };
@@ -5866,6 +5883,7 @@ export default class Core {
                                 message: "ignoring array values of out bounds",
                                 level: 2,
                                 position: component.position,
+                                sourceDoc: component.sourceDoc,
                             });
                             core.newErrorWarning = true;
                             nFailuresSub += desiredValue.length - currentSize;
@@ -6046,6 +6064,7 @@ export default class Core {
                         message: `Ignoring setting array values out of bounds: ${arrayKey} of ${stateVariable}`,
                         level: 2,
                         position: component.position,
+                        sourceDoc: component.sourceDoc,
                     });
                     core.newErrorWarning = true;
                     return { nFailures: 1 };
@@ -6935,6 +6954,7 @@ export default class Core {
                     message: `Cannot get propIndex from ${varName} of ${component.componentIdx} as it is not an array or array entry state variable`,
                     level: 1,
                     position: component.position,
+                    sourceDoc: component.sourceDoc,
                 });
                 newName = varName;
             }
@@ -6946,6 +6966,7 @@ export default class Core {
                     message: `Cannot get propIndex from ${varName} of ${component.componentIdx}`,
                     level: 1,
                     position: component.position,
+                    sourceDoc: component.sourceDoc,
                 });
                 newVarNames.push(varName);
             }
@@ -7833,6 +7854,7 @@ export default class Core {
                 this.addErrorWarning({
                     type: "warning",
                     position: component.position,
+                    sourceDoc: component.sourceDoc,
                     ...warning,
                 });
             }
@@ -9699,12 +9721,11 @@ export default class Core {
         });
 
         if (this.deleteNodesFromResolver) {
-            let resolver = this.deleteNodesFromResolver(this.resolver, {
+            this.deleteNodesFromResolver({
                 nodes: flatElements,
             });
-            this.resolver = resolver;
 
-            this.rootNames = this.calculateRootNames?.(this.resolver).names;
+            this.rootNames = this.calculateRootNames?.().names;
         }
     }
 
@@ -9735,6 +9756,11 @@ export default class Core {
                 let comp = component.attributes[attrName].component;
                 if (comp) {
                     componentsToRecurse.push(comp);
+                } else {
+                    let references = component.attributes[attrName].references;
+                    if (references) {
+                        componentsToRecurse.push(...references);
+                    }
                 }
             }
 
@@ -9934,6 +9960,8 @@ export default class Core {
 
                 const position =
                     this.components[component.componentIdx].position;
+                const sourceDoc =
+                    this.components[component.componentIdx].sourceDoc;
                 const overwriteDoenetMLRange =
                     component.componentType === "_copy";
 
@@ -9942,6 +9970,7 @@ export default class Core {
                     errors: [],
                     warnings: [],
                     position,
+                    sourceDoc,
                     overwriteDoenetMLRange,
                 });
 
@@ -10206,6 +10235,7 @@ export default class Core {
             type: "error",
             message,
             position: composite.position,
+            sourceDoc: composite.sourceDoc,
         });
         let errorReplacements = [
             {
@@ -10215,6 +10245,7 @@ export default class Core {
                 state: { message },
                 doenetAttributes: { createUniqueName: true },
                 position: composite.position,
+                sourceDoc: composite.sourceDoc,
                 children: [],
                 attributes: {},
             },
@@ -10816,17 +10847,12 @@ export default class Core {
                                 }
                             });
 
-                        let resolver = this.replaceIndexResolutionsInResolver(
-                            this.resolver,
+                        this.replaceIndexResolutionsInResolver(
                             { content: newContentForIndex },
                             indexResolution,
                         );
 
-                        this.resolver = resolver;
-
-                        this.rootNames = this.calculateRootNames?.(
-                            this.resolver,
-                        );
+                        this.rootNames = this.calculateRootNames?.();
 
                         await this.dependencies.addBlockersFromChangedReplacements(
                             indexParentComposite,
@@ -11039,6 +11065,7 @@ export default class Core {
                 message: `Cannot run action ${actionName} on component ${componentIdx}`,
                 level: 1,
                 position: component.position,
+                sourceDoc: component.sourceDoc,
             });
         }
 
@@ -11933,6 +11960,7 @@ export default class Core {
                         message: `can't update state variable ${vName} of component ${cIdx}, as it doesn't exist.`,
                         level: 2,
                         position: this._components[cIdx].position,
+                        sourceDoc: this._components[cIdx].sourceDoc,
                     });
                     continue;
                 }
@@ -11943,6 +11971,7 @@ export default class Core {
                         message: `can't update state variable ${vName} of component ${cIdx}, as it does not have an essential state variable.`,
                         level: 2,
                         position: this._components[cIdx].position,
+                        sourceDoc: this._components[cIdx].sourceDoc,
                     });
                     continue;
                 }
@@ -12039,6 +12068,7 @@ export default class Core {
                             message: `can't update state variable ${vName} of component ${cIdx}, as it does not have an essential state variable.`,
                             level: 2,
                             position: this._components[cIdx].position,
+                            sourceDoc: this._components[cIdx].sourceDoc,
                         });
                         continue;
                     }
@@ -12240,6 +12270,7 @@ export default class Core {
                         message: `Can't invert ${varName2} at the same time as ${stateVariable}, as not an additional state variable defined`,
                         level: 2,
                         position: component.position,
+                        sourceDoc: component.sourceDoc,
                     });
                     continue;
                 }
@@ -12256,6 +12287,7 @@ export default class Core {
                 message: `Cannot change state variable ${stateVariable} of ${component.componentIdx} as it doesn't have an inverse definition`,
                 level: 2,
                 position: component.position,
+                sourceDoc: component.sourceDoc,
             });
             return;
         }
@@ -12270,6 +12302,7 @@ export default class Core {
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixed is true.`,
                 level: 2,
                 position: component.position,
+                sourceDoc: component.sourceDoc,
             });
             return;
         }
@@ -12284,6 +12317,7 @@ export default class Core {
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation is true.`,
                 level: 2,
                 position: component.position,
+                sourceDoc: component.sourceDoc,
             });
             return;
         }
@@ -12299,6 +12333,7 @@ export default class Core {
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because modifyIndirectly is false.`,
                 level: 2,
                 position: component.position,
+                sourceDoc: component.sourceDoc,
             });
             return;
         }
@@ -12312,6 +12347,7 @@ export default class Core {
                 this.addErrorWarning({
                     type: "warning",
                     position: component.position,
+                    sourceDoc: component.sourceDoc,
                     ...warning,
                 });
             }
@@ -12637,6 +12673,7 @@ export default class Core {
                                 message: `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixed is true.`,
                                 level: 2,
                                 position: baseComponent.position,
+                                sourceDoc: baseComponent.sourceDoc,
                             });
                             return;
                         }
@@ -12652,6 +12689,7 @@ export default class Core {
                                 message: `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixLocation is true.`,
                                 level: 2,
                                 position: baseComponent.position,
+                                sourceDoc: baseComponent.sourceDoc,
                             });
                             return;
                         }
@@ -12877,6 +12915,9 @@ export default class Core {
                                     level: 2,
                                     position:
                                         this.components[dComponentIdx].position,
+                                    sourceDoc:
+                                        this.components[dComponentIdx]
+                                            .sourceDoc,
                                 });
                                 continue;
                             }
@@ -12897,6 +12938,9 @@ export default class Core {
                                     level: 2,
                                     position:
                                         this.components[dComponentIdx].position,
+                                    sourceDoc:
+                                        this.components[dComponentIdx]
+                                            .sourceDoc,
                                 });
                                 continue;
                             }
@@ -13267,6 +13311,7 @@ export default class Core {
         if (!position) {
             return null;
         }
+        let sourceDoc = component.sourceDoc ?? 0;
 
         let startInd, endInd;
 
@@ -13281,8 +13326,7 @@ export default class Core {
             endInd = position.end.offset;
         }
 
-        let doenetMLId = position.doenetMLId || 0;
-        let componentDoenetML = this.allDoenetMLs[doenetMLId].slice(
+        let componentDoenetML = this.allDoenetMLs[sourceDoc].slice(
             startInd,
             endInd,
         );

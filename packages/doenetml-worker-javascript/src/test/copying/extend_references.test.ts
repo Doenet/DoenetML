@@ -4561,7 +4561,7 @@ describe("Extend and references tests", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("l")].stateValues
                         .value,
-                ).eq("");
+                ).eq("\\(V_ \uff3f\\)");
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("P")
@@ -4570,7 +4570,7 @@ describe("Extend and references tests", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("P")].stateValues
                         .label,
-                ).eq("");
+                ).eq("\\(V_ \uff3f\\)");
             }
         }
 
@@ -6854,5 +6854,20 @@ describe("Extend and references tests", async () => {
             stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
                 .text,
         ).eq("3rd entry: 2, 2");
+    });
+
+    it("extending bad prop still add in children", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p">Hello</p>
+    <p name="p2" extend="$p.badProp"> there</p>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq(" there");
     });
 });
