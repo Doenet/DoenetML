@@ -2,7 +2,7 @@
     "name": "@doenet/doenetml",
     "type": "module",
     "description": "Semantic markup for building interactive web activities",
-    "version": "0.7.0-alpha48",
+    "version": "0.7.0-alpha50",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -52,8 +52,7 @@
                 "../ui-components:build",
                 "../utils:build",
                 "../virtual-keyboard:build",
-                "../parser:build",
-                "../parser:build:v06-to-v07"
+                "../parser:build"
             ]
         }
     },

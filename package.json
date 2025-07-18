@@ -21,6 +21,7 @@
         "./packages/lsp-tools",
         "./packages/lsp",
         "./packages/doenetml-worker-javascript",
+        "./packages/debug-hooks",
         "./packages/doenetml-worker/lib-js-wasm-binding/pkg",
         "./packages/doenetml-worker",
         "./packages/virtual-keyboard",
@@ -135,7 +136,7 @@
         "nanoid": "^5.1.5",
         "nextra": "^3.3.1",
         "nextra-theme-docs": "^3.3.1",
-        "peggy": "^5.0.4",
+        "peggy": "^5.0.5",
         "postcss": "^8.5.6",
         "prettier": "^3.6.2",
         "prettier-plugin-pegjs": "^2.0.2",
@@ -166,20 +167,20 @@
         "vite-plugin-arraybuffer": "^0.1.0",
         "vite-plugin-compile-time": "0.3.2",
         "vite-plugin-dts": "^4.5.4",
-        "vite-plugin-static-copy": "^3.1.0",
+        "vite-plugin-static-copy": "^3.1.1",
         "vitest": "^3.2.4",
         "vscode-jsonrpc": "8.2.1",
         "vscode-languageserver": "^9.0.1",
         "vscode-languageserver-protocol": "^3.17.5",
         "wasm-pack": "^0.13.1",
-        "webdriverio": "^9.16.2",
+        "webdriverio": "^9.17.0",
         "wireit": "^0.14.12",
         "xast-util-to-xml": "^4.0.0",
         "xastscript": "^4.0.0",
         "yargs": "^17.7.2"
     },
     "dependencies": {
-        "next": "^15.3.2",
+        "next": "^15.4.1",
         "next-themes": "^0.4.6"
     }
 }

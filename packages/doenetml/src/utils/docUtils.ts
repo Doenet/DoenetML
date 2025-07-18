@@ -2,7 +2,11 @@ import { DoenetMLFlags } from "../doenetml";
 import { doenetGlobalConfig } from "../global-config";
 import * as Comlink from "comlink";
 import type { CoreWorker } from "@doenet/doenetml-worker";
-import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
+import {
+    expandExternalReferences,
+    lezerToDast,
+    normalizeDocumentDast,
+} from "@doenet/parser";
 
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
@@ -23,6 +27,7 @@ export async function initializeCoreWorker({
     requestedVariantIndex,
     attemptNumber,
     documentStructureCallback,
+    fetchExternalDoenetML,
 }: {
     coreWorker: Comlink.Remote<CoreWorker>;
     doenetML: string;
@@ -32,8 +37,15 @@ export async function initializeCoreWorker({
     requestedVariantIndex: number;
     attemptNumber: number;
     documentStructureCallback?: Function;
+    fetchExternalDoenetML?: (arg: string) => Promise<string>;
 }) {
-    const dast = normalizeDocumentDast(lezerToDast(doenetML), true);
+    let dast = lezerToDast(doenetML);
+
+    if (fetchExternalDoenetML) {
+        dast = await expandExternalReferences(dast, fetchExternalDoenetML);
+    }
+
+    dast = normalizeDocumentDast(dast, true);
 
     await coreWorker.setCoreType("javascript");
     await coreWorker.setSource({ source: doenetML, dast });

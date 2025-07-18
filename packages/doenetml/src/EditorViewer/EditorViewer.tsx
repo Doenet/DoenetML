@@ -60,6 +60,7 @@ export function EditorViewer({
     border = "1px solid",
     initialErrors = [],
     initialWarnings = [],
+    fetchExternalDoenetML,
 }: {
     doenetML: string;
     activityId?: string;
@@ -83,6 +84,7 @@ export function EditorViewer({
     border?: string;
     initialErrors?: ErrorRecord[];
     initialWarnings?: WarningRecord[];
+    fetchExternalDoenetML?: (arg: string) => Promise<string>;
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -298,33 +300,6 @@ export function EditorViewer({
             }
         };
     }, []);
-    const updateSyntaxFromV06toV07 = React.useCallback(async () => {
-        const source = editorDoenetMLRef.current;
-        const { updateSyntaxFromV06toV07 } = await import(
-            "@doenet/parser/v06-to-v07"
-        );
-        const update = await updateSyntaxFromV06toV07(source);
-        const upgraded = toXml(update.dast);
-        onEditorChange(upgraded);
-        if (update.vfile.messages.length > 0) {
-            console.warn(
-                "There were warnings during syntax update:",
-                update.vfile.messages,
-            );
-            if (lspRef.current) {
-                lspRef.current.lsp.sendAdditionalDiagnostics(
-                    lspRef.current.documentUri,
-                    update.vfile.messages.map((msg) => {
-                        return vfileMessageToLSPDiagnostic(
-                            msg,
-                            DiagnosticSeverity.Error,
-                        );
-                    }),
-                );
-            }
-        }
-        console.log("Syntax updated to v0.7");
-    }, []);
 
     const tabStore = useTabStore();
     const codeMirror = (
@@ -432,39 +407,9 @@ export function EditorViewer({
                         </UiButton>
                     </>
                 ) : null}
-                <MenuProvider>
-                    <MenuButton
-                        render={
-                            <div
-                                className="doenetml-version"
-                                title="DoenetML version"
-                            >
-                                Version: {DOENETML_VERSION}
-                                <div className="update-syntax-icon">
-                                    <BsArrowBarUp />
-                                </div>
-                            </div>
-                        }
-                    ></MenuButton>
-                    <Menu className="update-syntax-menu">
-                        <MenuItem
-                            render={
-                                <UiButton>
-                                    Update Syntax to DoenetML v0.7
-                                </UiButton>
-                            }
-                            onClick={updateSyntaxFromV06toV07}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                    updateSyntaxFromV06toV07();
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                }
-                            }}
-                            title="Update Syntax to DoenetML v0.7 by automatically changing old-style references and namespaces to the new DoenetML v0.7 syntax."
-                        ></MenuItem>
-                    </Menu>
-                </MenuProvider>
+                <div className="doenetml-version" title="DoenetML version">
+                    Version: {DOENETML_VERSION}
+                </div>
             </div>
         </div>
     );
@@ -595,6 +540,7 @@ export function EditorViewer({
                     darkMode={darkMode}
                     showAnswerResponseMenu={showAnswerResponseMenu}
                     answerResponseCounts={answerResponseCounts}
+                    fetchExternalDoenetML={fetchExternalDoenetML}
                 />
             </div>
         </div>
