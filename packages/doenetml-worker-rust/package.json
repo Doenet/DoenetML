@@ -13,8 +13,7 @@
     "exports": {
         ".": {
             "import": "./dist/index.js",
-            "require": "./dist/index.js",
-            "types": "./dist/index.d.js"
+            "require": "./dist/index.js"
         },
         "./lib_doenetml_worker_bg.wasm": {
             "import": "./dist/lib_doenetml_worker_bg.wasm"

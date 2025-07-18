@@ -32,6 +32,9 @@
         "resolveJsonModule": true,
         "skipLibCheck": true,
         "paths": {
+            "lib-doenetml-worker": [
+                "./packages/doenetml-worker-rust/lib-js-wasm-binding/pkg/lib_doenetml_worker.js"
+            ],
             "@doenet/*": ["./packages/*/dist"]
         }
     }
