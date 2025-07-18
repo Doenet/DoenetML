@@ -93,3 +93,35 @@ using array notation.
 A `<repeatForSequence>{:dn}` can be nested within another `<repeatForSequence>{:dn}` to iterate
 over a combination of sequences with different ranges and steps.
 
+
+---
+
+### Example: Generate a user-specified number of random `<point>{:dn}` components
+
+```doenet-editor-horiz
+<p>How many points do you want to generate?
+  <mathInput name="n"/></p>
+<em>(Note, more than 10 takes some processing time...)</em>
+
+<graph>
+  <repeatForSequence name="randomPoints" from="1" to="$n">
+    <point>
+      (<sampleRandomNumbers 
+         from="-10" to="10"/>, 
+      <sampleRandomNumbers 
+        from="-10" to="10"/>)
+    </point>
+  </repeatForSequence>
+</graph>
+
+<p>The generated points are: 
+  <c>randomPoints</c> = $randomPoints
+</p>
+
+<p>The <m>n^{th}</m> generated point is: 
+  <c>randomPoints[$n]</c> = $randomPoints[$n]
+</p>
+```
+
+
+A ` <repeatForSequence>{:dn}` can be used to generate a user-specified number of randomly placed `<point>{:dn}` components.

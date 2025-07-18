@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <row>{:dn}` (in a matrix)
 
-` <row>{:dn}` is a Math Component that defines the individual row entries in a ` <matrix>{:dn}`.
+` <row>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+component that defines the individual row entries in a ` <matrix>{:dn}`.
 
 ## Attributes and Properties 
  <AttrDisplay name='row'/> 
@@ -50,13 +51,15 @@ One of several methods for defining a ` <matrix>{:dn}` in Doenet is to nest ` <r
 
 
 
-Since a ` <row>{:dn}` is a Math Component, some of the general attributes of a ` <math>{:dn}` also work inside a ` <row>{:dn}`, such as `functionSymbols` also work within a ` <row>{:dn}`. To use other ` <math>{:dn}` attributes (such as `simplify`), you can nest individual ` <math>{:dn}` components within a ` <row>{:dn}`.
+Since a ` <row>{:dn}` is a Math Component, some of the general attributes of a ` <math>{:dn}` 
+also work inside a ` <row>{:dn}`, such as `functionSymbols`. To use other ` <math>{:dn}` 
+attributes (such as `simplify`), you can nest individual ` <math>{:dn}` components within a ` <row>{:dn}`.
 
 
 
 ---
 
-### Example: functionSymbols
+### Attribute Example: functionSymbols
 
 
 ```doenet-editor-horiz
@@ -76,7 +79,7 @@ The `functionSymbols` attribute designates special characters or strings that ar
 
 ---
 
-### Example: splitSymbols
+### Attribute Example: splitSymbols
 
 
 ```doenet-editor-horiz
@@ -103,41 +106,54 @@ The `functionSymbols` attribute designates special characters or strings that ar
 By default, letters placed adjacent to one another in a ` <math>{:dn}` component are separated by Doenet for computations, so `xyz` is interpreted as $x \cdot y \cdot z$, rather than a single variable composed of three letters. To override this default behavior, set the splitSymbols attribute to false.
 
 
-Since a ` <row>{:dn}` is a type of Math Component, it follows this convention, with the exception that spaces between individual entries in a ` <row>{:dn}` are considered distinct entries (similar to the entries in a ` <mathList>{:dn}`, while in a general ` <math>{:dn}`, a space represents implied multiplication.
+Since a ` <row>{:dn}` is a type of Math Component, it follows this convention, with the exception that spaces between individual entries in a ` <row>{:dn}` are considered distinct entries (similar to the entries in a ` <mathList>{:dn}`, while in a general ` <math>{:dn}`, a space represents implied multiplication.)
 
 
 
 ---
 
-### Example: sourcesAreFunctionSymbols
+### Attribute Example: referencesAreFunctionSymbols
 
 
 ```doenet-editor-horiz
+<select name="func" numToSelect="2">
+  f g h a b q
+</select>
 
-      <select assignNames="fun1 fun2" numToSelect="2">f g h a b q</select>
+<p><m>A = </m>
+  <matrix name="A">
+    <row 
+      referencesAreFunctionSymbols="$func[1] $func[2]">
+      $func[1](x) $func[2](x)
+    </row>
+    <row>$func[1](x) $func[2](x)</row>
+  </matrix>
+</p>
 
-    <p><m>A = </m>
-      <matrix name="A">
-        <row sourcesAreFunctionSymbols="fun1 fun2">$fun1(x) $fun2(x)</row>
-        <row>$fun1(x) $fun2(x)</row>
-      </matrix>
-    </p>
-    <p>Row 1 uses <attr>sourcesAreFunctionSymbols</attr> = $A.rows[1]</p>
-    <p>Row 2 does not use this attribute = $A.rows[2]</p>
+<p>Row 1 uses <attr>referencesAreFunctionSymbols</attr> = $A.rows[1]
+</p>
+    
+<p>Row 2 does not use this attribute = $A.rows[2]
+</p>
 ```
 
 
 
-The `sourcesAreFunctionSymbols` attribute designates special characters or strings that are to be considered functions, when they are references from another component by name. In this case, the symbolic function letters are selected at random from a list of 6 possibilities, and assigned the names `fun1` and `fun2`.
+The `referencesAreFunctionSymbols` attribute designates special characters or strings 
+that are to be considered functions, when they are references from another component by 
+name. In this case, the symbolic function letters are selected at random from a list of 
+6 possibilities.
 
 
-Note that, even though `f` and `g` are default function symbols when written directly, in this example they are referenced values and therefore we need to tell Doenet that they represent functions.
+Note that, even though `f` and `g` are default function symbols when written directly, in 
+this example they are referenced values and therefore we need to tell Doenet that they 
+represent functions.
 
 
 
 ---
 
-### Example: rows
+### Property Example: rows
 
 
 ```doenet-editor-horiz
@@ -146,6 +162,7 @@ Note that, even though `f` and `g` are default function symbols when written dir
   <row>0 1 0</row>
   <row name="row3">0 0 1</row>
 </matrix>
+
 <p>I3.rows[3] = $I3.rows[3]</p>
 <p>I3.rows[3][3] = $I3.rows[3][3]</p>
 <p>row3 = $row3</p>
@@ -153,5 +170,7 @@ Note that, even though `f` and `g` are default function symbols when written dir
 
 
 
-Technically speaking, the `rows` property belongs to the parent ` <matrix>{:dn}`, rather than the ` <row>{:dn}`. The information is repeated here, however, because it is a useful way of accessing individual rows and entries.
+Technically speaking, the `rows` property belongs to the parent ` <matrix>{:dn}`, rather than 
+the ` <row>{:dn}`. The information is repeated here, however, because it is a useful way 
+of accessing individual rows and entries.
 

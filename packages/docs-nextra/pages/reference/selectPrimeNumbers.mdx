@@ -6,7 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <selectPrimeNumbers/>{:dn}`
 
 
-` <selectPrimeNumbers/>{:dn}` selects a prime number at random from a specified range. Selections generate unique variants of the document.
+` <selectPrimeNumbers/>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
+component that selects a prime number at random from a specified range. Selections generate variants of the document.
 
 ## Attributes and Properties 
  <AttrDisplay name='selectPrimeNumbers'/> 
@@ -14,7 +15,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
-### Example: Default <tage>selectPrimeNumbers</tage>
+### Example: Default ` <selectPrimeNumbers/>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -27,80 +28,94 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 The default ` <selectPrimeNumbers/>{:dn}` has a sequence range from $2$ to $97$.
 
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 ---
 
-### Example: Generate and name multiple selections
+### Example: Generate multiple selections
 
 
 ```doenet-editor-horiz
+<selectPrimeNumbers 
+  name="x"
+  minValue="2" 
+  maxValue="50" 
+  numToSelect="3"
+/>
 
-  <selectPrimeNumbers assignNames="x1 x2 x3" minValue="2" maxValue="50" numToSelect="3"/>
-
-<me>x_1 = $x1</me>
-<me>x_2 = $x2</me>
-<me>x_3 = $x3</me>  
+<me>x_1 = $x[1]</me>
+<me>x_2 = $x[2]</me>
+<me>x_3 = $x[3]</me>  
 ```
 
 
 
-Three numbers that are selected between $2$ and $50$ are assigned to the named variables `x1`, `x2`, and `x3`.
+Three numbers that are selected between $2$ and $50$. Individual
+selections can be accessed using array notation.
 
 
 
 ---
 
-### Example: numToSelect
+### Example: Assigning descriptive names to multiple selections
 
 
 ```doenet-editor-horiz
-<asList>
-  <selectPrimeNumbers minValue="2" maxValue="50" numToSelect="5"/>
-</asList>
+<setup>
+  <selectPrimeNumbers 
+    name="s" 
+    minValue="4" 
+    maxValue="50" 
+    numToSelect="4"
+  />
+  <number name="a" extend="$s[1]"/>
+  <number name="b" extend="$s[2]"/>
+  <number name="c" extend="$s[3]"/>
+  <number name="d" extend="$s[4]"/>
+</setup>
+
+<me><math>$a/$b + $c/$d</math></me>
 ```
 
 
 
-The `numToSelect` attribute allows for selection of multiple values within the range of a single ` <selectPrimeNumbers/>{:dn}` component. Multiple selections are made without replacement.
+The `numToSelect` attribute allows for selection of multiple values within the range of a single ` <selectPrimeNumbers/>{:dn}` 
+component. Multiple selections are made without replacement. Selections can be assigned more descriptive names by defining individual components
+which reference the selected values.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 
 ---
 
-### Example: sortResults
+### Attribute Example: sortResults
 
 
 ```doenet-editor-horiz
-<asList>
-  <selectPrimeNumbers sortResults minValue="2" maxValue="50" numToSelect="5"/>
-</asList>
+<selectPrimeNumbers 
+  name="s" 
+  sortResults 
+  minValue="2" 
+  maxValue="50" 
+  numToSelect="5"
+/>
+
+<p>The first selection is <c>s[1]</c> = $s[1]</p>
+<p>The second selection is <c>s[2]</c> = $s[2]</p>
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
+<p>The fourth selection is <c>s[4]</c> = $s[4]</p>
+<p>The fifth selection is <c>s[5]</c> = $s[5]</p>
 ```
 
 
 
 The `sortResults` attribute sorts the selected results in increasing order.
 
-
-
----
-
-### Example: assignNames
-
-
-```doenet-editor-horiz
-<asList>
-  <selectPrimeNumbers assignNames="a b" minValue="2" maxValue="50" numToSelect="2"/>
-</asList>
-<p>a = $a</p>
-<p>b = $b</p>
-```
-
-
-
-The `assignNames` attribute takes a list of text values (which must meet DoenetML naming conventions) for assigning names to individual selections.
-
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 ---
 
@@ -108,63 +123,72 @@ The `assignNames` attribute takes a list of text values (which must meet DoenetM
 
 
 ```doenet-editor-horiz
-<asList>
-  <selectPrimeNumbers minValue="10" maxValue="30" numToSelect="4"/>
-</asList>
+<selectPrimeNumbers
+  name="s" 
+  minValue="10" 
+  maxValue="30" 
+  numToSelect="4"
+/>
+
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
 ```
 
 
 
-The `minValue` and `maxValue` attributes specify the endpoints of the selction interval. These endpoints are not required to be prime numbers.
+The `minValue` and `maxValue` attributes specify the endpoints of the selection interval. These endpoints are not required to be prime numbers.
 
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Attribute Example: exclude
+
+
+```doenet-editor-horiz
+<selectPrimeNumbers 
+  name="s" 
+  minValue="2" 
+  maxValue="10" 
+  exclude="3"
+  numToSelect="5"
+  withReplacement
+/>
+
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
+```
+
+
+
+The `exclude` attribute specifies values to exclude in the selection. 
+Doenet will throw an error if sufficient primes are not available in the selection interval without 
+replacement. If repetitions are allowed, the `withReplacement` attribute can be used.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
 
-### Example: exclude
+### Attribute Example: withReplacement
 
 
 ```doenet-editor-horiz
-<asList>
-  <selectPrimeNumbers minValue="2" maxValue="10" exclude="3" numToSelect="3"/>
-</asList>
+<selectPrimeNumbers
+  name="s" 
+  minValue="2" 
+  maxValue="13" 
+  withReplacement
+  numToSelect="10"
+/>
+
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
 ```
-
-
-
-The `exclude` attribute specifies values to exclude in the selection. Doenet will throw an error if sufficient primes are not available in the selection interval without replacement. (To see this, change the `numToSelect` attribute to $4$ in the example above.) If repetitions are allowed, the `withReplacement` attribute can also be used.
-
-
-
----
-
-### Example: assignNamesSkip *
-
-
-```doenet-editor-horiz
-```
-
-
-
-. 
-
-
-
----
-
-### Example: withReplacement
-
-
-```doenet-editor-horiz
-<asList>
-  <selectPrimeNumbers minValue="2" maxValue="13" withReplacement numToSelect="10"/>
-</asList>
-```
-
-
 
 If selection with replacement is the desired behavior, use the `withReplacement` attribute.
 
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
@@ -173,14 +197,21 @@ If selection with replacement is the desired behavior, use the `withReplacement`
 
 
 ```doenet-editor-horiz
-<p>
-  <asList>
-  <selectPrimeNumbers assignNames="a b" exclude="0" numToSelect="2"  minValue="3" maxValue="7" excludecombinations="(3 7) (7 3)" />
-  </asList>
-</p>
+<selectPrimeNumbers 
+  name="s" 
+  numToSelect="2"  
+  minValue="3" 
+  maxValue="7"
+  excludecombinations="(3 7) (7 3)" 
+/>
+
+<p>The second selection is <c>s[2]</c> = $s[2]</p>  
 ```
 
 
 
-The `excludeCombinations` attribute can be used to exclude undesired combinations of prime numbers. Scroll through the page variants to observe this restriction in action.
+The `excludeCombinations` attribute can be used to exclude undesired combinations of prime numbers. 
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 

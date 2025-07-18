@@ -2,16 +2,18 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { AttrDisplay, PropDisplay } from "../../components"
 
-## Attributes and Properties 
- <AttrDisplay name='slider'/> 
- <PropDisplay name='slider'/>
+
  
 # ` <slider>{:dn}`
 
 
 
-` <slider>{:dn}` renders a draggable selection bar for graphical user input of a single value.
+` <slider>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
+component that renders a draggable selection bar for graphical user input of a single value.
 
+## Attributes and Properties 
+ <AttrDisplay name='slider'/> 
+ <PropDisplay name='slider'/>
 
 ---
 
@@ -25,7 +27,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-The range for a default ` <slider>{:dn}` is from $0$ to $10$. The current value of the slider is shown, by default, in the upper left corner of the slider bar. Referencing the named slider using the `$name` notation renders its current value.
+The range for a default ` <slider>{:dn}` is from $0$ to $10$. The current value of the slider is shown, by default, in 
+the upper left corner of the slider bar. Referencing the named slider using the `$name` notation renders its current value.
 
 
 
@@ -42,16 +45,17 @@ The range for a default ` <slider>{:dn}` is from $0$ to $10$. The current value 
 
 
 
-A ` <slider>{:dn}` can be given a ` <label>{:dn}` child, which renders above the slider to the left of the current value of the ` <slider>{:dn}`.
+A ` <slider>{:dn}` can be given a ` <label>{:dn}` child, which renders above the slider to the 
+left of the current value of the ` <slider>{:dn}`.
 
 
 
 ---
 
-### Example: type
+### Attribute Example: type
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Choose your character:</p>
 <slider name="character" type="text" showValue="false">
   <text>wizard</text>
@@ -64,154 +68,157 @@ A ` <slider>{:dn}` can be given a ` <label>{:dn}` child, which renders above the
 
 
 
-Currently, there are two types of sliders, "`number`" and "`text`", which can be specified using the `type` attribute. The text type requires ` <text>{:dn}` children, and frames them in a sequential list on the ` <slider>{:dn}` when it is rendered.
+There are two types of sliders, "`number`" and "`text`", which can be 
+specified using the `type` attribute. The text type requires ` <text>{:dn}` children, and 
+frames them in a sequential list on the ` <slider>{:dn}` when it is rendered.
 
 
 
 ---
 
-### Example: initialValue
+### Attribute Example: initialValue
 
 
-```doenet-editor-horiz
+```doenet-example
 <slider name="n" initialValue="5"/>
 <p>The value of the slider is: $n</p>
+
 <slider name="n2" from="2" to="12"/>
 <p>The value of the slider is: $n2</p>
 ```
 
 
 
-Using the `initialValue` attribute, the slider can be set to an initial value occuring in the interior of the slider's range. Without this attribute, the initial value of the slider defaults to the starting value.
+Using the `initialValue` attribute, the slider can be set to an initial value 
+occuring in the interior of the slider's range. Without this attribute, the 
+initial value of the slider defaults to the starting value.
 
 
 
 ---
 
-### Example: width
+### Attribute Example: width
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Here is a custom-width slider with a value of: $n</p>
 <slider name="n" width="100"/>
+
 <p>The default-width slider shown below has a value of: $n2</p>
 <slider name="n2"/>
 ```
 
 
 
-The default `width` for a ` <slider>{:dn}` is 300 pixels, in absolute measurement; this value can be adjusted with the `width` attribute.
-
-
-
----
-
-### Example: height*
-
-
-```doenet-editor-horiz
-```
-
-
-
-
-
+The default `width` for a ` <slider>{:dn}` is 300 pixels, in absolute measurement; this 
+value can be adjusted with the `width` attribute.
 
 
 ---
 
-### Example: labelIsName
+### Attribute Example: labelIsName
 
 
-```doenet-editor-horiz
+```doenet-example
 <slider name="x" labelIsName/>
 ```
 
 
 
-If the `labelIsName` attribute is specified, a default label is displayed above the slider, with the name of the slider taken as its label.
+If the `labelIsName` attribute is specified, a default label is displayed above the slider, with 
+the name of the slider taken as its label.
 
 
 
 ---
 
-### Example: showTicks
+### Attribute Example: showTicks
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Default slider:</p>
 <slider name="x" labelIsName/>
+
 <p>Slider with <attr>showTicks="false"</attr>:</p>
 <slider name="y" showTicks="false" labelIsName/>
 ```
 
 
 
-By default, the `showTicks` attribute is set to `true`. If `showTicks` is set to `false`, no values are rendered on the slider bar.
+By default, the `showTicks` attribute is set to `true`. If `showTicks` is set to `false`, no values 
+are rendered on the slider bar.
 
 
 
 ---
 
-### Example: showValue
+### Attribute Example: showValue
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Default slider:</p>
 <slider name="x" labelIsName/>
+
 <p>Slider with <attr>showValue="false"</attr>:</p>
 <slider name="y" showValue="false" labelIsName/>
 ```
 
 
 
-By default, the `showValue` attribute is set to `true`, and the current value of the slider is automatically rendered directly above the bar on the left side. If `showValue` is set to "`false`", no value is rendered above the slider bar as the user drags the point.
+By default, the `showValue` attribute is set to `true`, and the current value of the slider is 
+automatically rendered directly above the bar on the left side. If `showValue` is set to "`false`", 
+no value is rendered above the slider bar as the user drags the point.
 
 
 
 ---
 
-### Example: from / to
+### Attribute Example: from / to
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Default slider:</p>
 <slider name="x"/>
+
 <p>Slider with custom range:</p>
 <slider name="y" from="10" to="16"/>
 ```
 
 
 
-The `from` and `to` attributes can be used to customize the range for the ` <slider>{:dn}`. The default range is from $0$ to $10$.
+The `from` and `to` attributes can be used to customize the range for the ` <slider>{:dn}`. The default 
+range is from $0$ to $10$.
 
 
 
 ---
 
-### Example: step
+### Attribute Example: step
 
 
-```doenet-editor-horiz
+```doenet-example
 <p>Default slider:</p>
 <slider name="x" from="1" to="100"/>
+
 <p>Slider with custom range:</p>
 <slider name="y" from="10" to="100" step="10"/>
 ```
 
 
 
-The `step` attribute can be used to customize the incremental step size for the ` <slider>{:dn}`. The default step is $1$.
+The `step` attribute can be used to customize the incremental step size for the ` <slider>{:dn}`. The default 
+step is $1$.
 
 
 
 ---
 
-### Example: Attributes as properties
+### Property Example: Attributes as properties
 
 
 ```doenet-editor-horiz
 <slider name="n" labelIsName/>
+
 <p><c>width</c> = $n.width</p>
 <p><c>labelIsName</c> = $n.labelIsName</p>
 <p><c>showControls</c> = $n.showControls</p>
@@ -230,30 +237,7 @@ The attributes of ` <slider>{:dn}` listed above are also accessible as propertie
 
 ---
 
-### Example: value
-
-
-```doenet-editor-horiz
-<slider name="n"/>
-<p><c>value</c> = $n.value</p>
-<slider name="fruit" type="text">
-  <text>apple</text>
-  <text>banana</text>
-  <text>grape</text>
-  <text>orange</text>
-</slider>
-<p><c>value</c> = $fruit.value</p>      
-```
-
-
-
-The `value` property of ` <slider>{:dn}` returns the current `number` or `text` value stored.
-
-
-
----
-
-### Example: items
+### Property Example: items
 
 
 ```doenet-editor-horiz
@@ -263,23 +247,26 @@ The `value` property of ` <slider>{:dn}` returns the current `number` or `text` 
   <text>grape</text>
   <text>orange</text>
 </slider>
+
 <p><c>items</c> = $fruit.items</p>      
 ```
 
 
 
-The `items` property of ` <slider>{:dn}` returns a list of all the possible values in the slider's range for a `text` type ` <slider>{:dn}`.
+The `items` property of ` <slider>{:dn}` returns a list of all the possible values in 
+the slider's range for a `text` type ` <slider>{:dn}`.
 
 
 
 ---
 
-### Example: numItems
+### Property Example: numItems
 
 
 ```doenet-editor-horiz
 <slider name="n" from="4" to="10"/>
 <p><c>numItems</c> = $n.numItems</p>
+
 <slider name="fruit" type="text">
   <text>apple</text>
   <text>banana</text>
@@ -291,5 +278,6 @@ The `items` property of ` <slider>{:dn}` returns a list of all the possible valu
 
 
 
-The `numItems` property of ` <slider>{:dn}` returns the number of possible values occuring in the slider's range.
+The `numItems` property of ` <slider>{:dn}` returns the number of possible values 
+occuring in the slider's range.
 

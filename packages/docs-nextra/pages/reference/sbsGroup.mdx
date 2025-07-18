@@ -6,7 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <sbsGroup>{:dn}`
 
 
-` <sbsGroup>{:dn}` is a sectional component that serves as a container element for multiple ` <sideBySide>{:dn}` components.
+` <sbsGroup>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that serves as a container element for multiple ` <sideBySide>{:dn}` components.
 
 ## Attributes and Properties 
  <AttrDisplay name='sbsGroup'/> 
@@ -32,16 +33,17 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-In this example, the ` <sbsGroup>{:dn}` container is used without any additional attributes. The default margin between elements is 0.
+In this example, the ` <sbsGroup>{:dn}` container is used without any additional attributes. 
+The default margin between elements is 0.
 
 
 
 ---
 
-### Example: margins
+### Attribute Example: margins
 
 
-```doenet-editor-horiz
+```doenet-example
 <sbsGroup margins="5%">
   <sideBySide>
     <spreadsheet/>
@@ -56,16 +58,18 @@ In this example, the ` <sbsGroup>{:dn}` container is used without any additional
 
 
 
-In this example, two ` <sideBySide>{:dn}` components are grouped together in a unit with the ` <sbsGroup>{:dn}` container. The `margins` attribute provides a margin that applies to both ` <sideBySide>{:dn}` elements.
+In this example, two ` <sideBySide>{:dn}` components are grouped together in 
+a unit with the ` <sbsGroup>{:dn}` container. The `margins` attribute provides a 
+margin that applies to both ` <sideBySide>{:dn}` elements.
 
 
 
 ---
 
-### Example: width / widths
+### Attribute Example: width / widths
 
 
-```doenet-editor-horiz
+```doenet-example
 <sbsGroup margins="5%" widths="20% 80%">
   <sideBySide>
     <spreadsheet/>
@@ -80,5 +84,6 @@ In this example, two ` <sideBySide>{:dn}` components are grouped together in a u
 
 
 
-The `widths` attribute can be used in the ` <sbsGroup>{:dn}` container to set the widths for all of the ` <sideBySide>{:dn}` components contained in the group.
+The `widths` attribute can be used in the ` <sbsGroup>{:dn}` container to 
+set the widths for all of the ` <sideBySide>{:dn}` components contained in the group.
 

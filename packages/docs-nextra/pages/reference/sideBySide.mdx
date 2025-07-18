@@ -6,7 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <sideBySide>{:dn}`
 
 
-` <sideBySide>{:dn}` is a [**Sectional**](../document_structure/essentialConcepts/#componentTypes) component that takes enclosed sectional components and renders them in a sideBySide horizontal format.
+` <sideBySide>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes) 
+component that takes enclosed sectional components and renders them in a side-by-side horizontal format.
 
 ## Attributes and Properties 
  <AttrDisplay name='sideBySide'/> 
@@ -18,7 +19,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 ### Example: Default ` <sideBySide>{:dn}`
 
 
-```doenet-editor-horiz
+```doenet-example
 <sideBySide> 
   <ul>
     <li>red</li>
@@ -27,10 +28,14 @@ import { AttrDisplay, PropDisplay } from "../../components"
   </ul>
   <p><lorem generateWords="10"/></p>
 </sideBySide>
+<hr/>
+
 <sideBySide> 
-  <p><lorem generateWords="10"/></p>
-  <p><lorem generateWords="10"/></p>
+  <p><lorem generateWords="50"/></p>
+  <p><lorem generateWords="100"/></p>
 </sideBySide>
+<hr/>
+
 <sideBySide> 
   <graph/>
   <graph/>
@@ -46,10 +51,10 @@ Three examples of different components placed in a ` <sideBySide>{:dn}` are illu
 
 ---
 
-### Example: widths
+### Attribute Example: widths
 
 
-```doenet-editor-horiz
+```doenet-example
 <sideBySide widths="20% 80%">
   <graph/>
   <graph/>
@@ -64,10 +69,10 @@ The `widths` attribute assigns a width to each side-by-side portion by percent.
 
 ---
 
-### Example: margins
+### Attribute Example: margins
 
 
-```doenet-editor-horiz
+```doenet-example
 <sideBySide widths="20% 40% 40%" margins="2%">
   <graph/>
   <graph/>
@@ -77,7 +82,8 @@ The `widths` attribute assigns a width to each side-by-side portion by percent.
 
 
 
-The `margins` attribute assigns a margin between each side-by-side portion by percent. When `widths` and `margins` attributes are both applied, margins are applied first.
+The `margins` attribute assigns a margin between each side-by-side portion by 
+percent. When `widths` and `margins` attributes are both applied, margins are applied first.
 
 
 

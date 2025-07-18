@@ -63,7 +63,6 @@ Sectional components are blocks of content that serve as containers for other co
 | [`<proof>`](proof)             | sectional component designated as a proof                                             |
 | [`<question>`](question)          | a sectional component; similar to a `<problem>`                                       |
 | [`<row> (in a table)`](row_table)  | container element for one or more `<cell>`components within a `<tabular>`             |
-| [`<row> (in a matrix)`](row_matrix) | container element for horizontal entries in a single row of a `<matrix>`              |
 | [`<sbsGroup>`](sBsGroup)          | a container element for `<sideBySide>` components                                     |
 | [`<section>`](section)           | sectional component that renders an auto-numbered block of content                    |
 | [`<setup>`](setup.mdx)             | defines a block for defining or initializing named content; does not render to viewer |
@@ -178,9 +177,9 @@ Mathematical content can be defined and rendered with Math Components. These com
 | [`<odeSystem>`](odeSystem)            | computes a numerical solution to a system of ordinary differential equations                 |
 | `<periodicSet />`                                                                         | a set of numbers defined by their periodicity                                                |
 | `<rightHandSide>`                                                                         | used with `<odeSystem>` to define the right-hand side of a differential equation             |
+| [`<row> (in a matrix)`](row_matrix) | container element for horizontal entries in a single row of a `<matrix>`              |
 | [`<samplePrimeNumbers/>`](samplePrimeNumbers)  | generates randomly sampled prime numbers within a specified range                            |
 | [`<sampleRandomNumbers/>`](sampleRandomNumbers) | generates randomly sampled numbers from a specified distribution                             |
-| [`<select>`](select)               | select values from a list or set of `<option>`s to create document variants                  |
 | [`<selectFromSequence>`](selectFromSequence.mdx)   | generates immutable random values within a predefined range to create document variants      |
 | [`<selectPrimeNumbers/>`](selectPrimeNumbers)  | generates immutable random prime numbers to create document variants                         |
 | [`<selectRandomNumbers>`](selectRandomNumbers)  | generates immutable random numbers from a specified distribution to create document variants |
@@ -235,12 +234,14 @@ These components perform actions on Math components as well as other component t
 | [`<conditionalContent>`](conditionalContent.mdx)  | defines a section of content rendered upon a specific condition                                                |
 | [`<extractMath>`](extractMath)         | extract data (such as number of operands, or individual operands) from mathematical expressions                |
 | [`<group>`](group)               | groups multiple components into one component which can be referenced with a single name                       |
-| [`<repeat>`](repeat)                 | iterate an action or a sequence of actions                                 |
+| [`<repeat>`](repeat)                 | iterate an action or a group of actions                                 |
+| [`<repeatForSequence>`](repeatForSequence)          | iterate an action or a group of actions over a sequence                               |
 | `<module>`                                                                               | define a local template for a custom doenetML component or widget for re-use within the document               |
 | [`<option>`](option)              | specifies selection items within a `<select>` block                                                            |
 | `<paginator>`                                                                            | define a paginated section of content within a larger `<document>`                                             |
 | `<paginatorControls />`                                                                  | render navigation buttons for progression through content in a `<paginator>`                                   |
 | [`<ref>`](ref)                 | creates a link to another document, or a referenced component's location within the same document              |
+| [`<select>`](select)               | select values from a list or set of `<option>`s to create document variants                  |
 | [`<shuffle>`](shuffle)             | shuffle a list, or a listing of referenced components                                                          |
 | [`<sort>`](sort.mdx)                | sort components based on their values in numerical or alphabetical order                                       |
 | [`<sources>`](sources.mdx)             | used within a `<map>` to define input values for `<template>` and alias                                        |

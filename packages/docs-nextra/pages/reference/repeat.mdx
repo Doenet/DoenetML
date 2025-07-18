@@ -6,32 +6,42 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <repeat>{:dn}`
 
 ` <repeat>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
-component
+component that performs the requested operations in an iterative manner over the component specified (typically,
+this is a list or an array). If the specified component is a `<sequence{:dn}>`, a shorter method is to
+use the [` <repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
 
----
+The behavior of the ` <repeat>{:dn}` component is similar to a for loop in other programming languages. 
 
-
-` <repeat>{:dn}` is a paragraph markup function that generates multiple components based on a template and a set of sources. It is particularly useful for creating lists or arrays of components that follow a specific pattern.
-` <repeat>{:dn}` takes a list of [` <sources>{:dn}`](sources.mdx) and applies a [` <template>{:dn}`](template.mdx) to each source in turn.
 
 ## Attributes and Properties 
- <AttrDisplay name='map'/> 
- <PropDisplay name='map'/>
+ <AttrDisplay name='repeat'/> 
+` <repeat>{:dn}` does not have any properties.
 
 ---
 
-### Example: ` <repeat>{:dn}` a set of points within a ` <graph>{:dn}`
+### Example: ` <repeat>{:dn}` a series of rectangles within a ` <graph>{:dn}`
 
 
 ```doenet-editor-horiz
-<graph size="small">
-  <repeat>
-    <template>
-      <point>(5 cos($i), 5 sin($i))</point>
-    </template>
-    <sources alias="i">
-      <sequence from="0" to="2pi" step="pi/8"/>
-    </sources>
+<numberList name="n">
+  1 1 2 3 5 8 13
+</numberList>
+
+<graph 
+  size="small" 
+  xmin="-1" 
+  xmax="8" 
+  ymin="-2" 
+  ymax="14">
+    <repeat 
+      for="$n" 
+      itemName="v" 
+      indexName="i">
+        <rectangle 
+          center="($i, $v/2)" 
+          width="1" 
+          height="$v" 
+          filled/>
   </repeat>
 </graph>      
 ```
@@ -48,45 +58,27 @@ A ` <repeat>{:dn}` can be used to generate multiple graphical elements at once w
 
 
 ```doenet-editor-horiz
-<p>How many answers do you have? <mathInput name="n"/></p>
-<repeat>
-  <template><mathInput/></template>
-  <sources><sequence from="1" to="$n"/></sources>
+<p>How many answers do you have? 
+  <mathInput name="n"/></p>
+
+<sequence name="s" from="1" to="$n" hide/>
+
+<p><m>x = </m>
+<repeat name="inputs" for="$s">
+  <mathInput/>
 </repeat>
+</p>
+
+<p>Here are your answers: 
+  <c>inputs[1]</c> = $inputs[1], 
+  <c>inputs[2]</c> = $inputs[2], 
+  <c>inputs[n]</c> = $inputs[$n]</p>
 ```
 
 
 
 A ` <repeat>{:dn}` can be used to generate a user-specified number of ` <mathInput>{:dn}` components.
-
-
-
----
-
-### Example: Accessing a single mapping
-
-
-```doenet-editor-horiz
-<p>Enter a number: <mathInput name="n"/></p>
-
-  <repeat name="inputMap">
-    <template><math>2^$i</math></template>
-    <sources alias="i">
-      <sequence from="1" to="$n"/>
-    </sources>
-  </repeat>
-
-<p>The first element is: 
-  <c>inputMap[1]</c> = $inputMap[1]</p>
-<p>The last element is: 
-  <c>inputMap[n]</c> = $inputMap[$n]</p>
-```
-
-
-
-A ` <repeat>{:dn}` generates an array. Individual entries can be accessed using array notation.
-
-
+For an alternative way to do this, see the [` <repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
 
 ---
 
@@ -94,118 +86,136 @@ A ` <repeat>{:dn}` generates an array. Individual entries can be accessed using 
 
 
 ```doenet-editor-horiz
+<setup>
+<textList name="plant">
+  tree flower cactus
+</textList>
+</setup>
+
 <p>Say hello to a list of plants:
-  <repeat>
-    <template><p>Hello, $plant!</p></template>
-    <sources alias="plant">
-      <text>tree</text>
-      <text>flower</text>
-      <text>cactus</text>
-    </sources>
+  <repeat for="$plant" itemName="p">
+    <p>Hello, $p!</p>
   </repeat>
-</p>     
+</p> 
+
+<p>The second plant is a <c>plant[2]</c> = $plant[2].</p>
 ```
 
 
 
-A ` <repeat>{:dn}` can be used with non-mathematical components as well.
+A ` <repeat>{:dn}` can be used with non-mathematical components as well. Individual
+entries can be accessed using array notation.
 
+
+
+
+### Example: Use `<repeat>{:dn}` in a combinatoric way
+
+
+```doenet-editor-horiz
+<p>Names: 
+  <textList name="names">Donald Kermit Elmo</textList>
+</p>
+<p>Toys:
+  <textList name="toys">whistles yo-yos</textList>
+</p> 
+<p>Number of toys:
+  <numberList name="numToys">7 2 5</numberList>
+</p><hr/>
+
+<repeat name="nameR" for="$names" itemName="N">
+  <repeat name="toyR" for="$toys" itemName="t">
+    <repeat name="numR" for="$numToys" itemName="n">
+      <p>$N has $n $t.</p>
+    </repeat>
+  </repeat>
+</repeat><hr/>
+
+<p>The third number of the first toy, belonging to the second name is reference by 
+  <c>nameR[2].toyR[1].numR[3]</c>: 
+  $nameR[2].toyR[1].numR[3]
+</p>
+```
+
+
+Use nested `<repeat>{:dn}` components to iterate across all combinations of the specified components.
+
+---
+
+
+
+### Example: Use `<repeat>{:dn}` in a selective way
+
+
+```doenet-editor-horiz
+<p>Names: 
+  <textList name="names">Donald Kermit Elmo</textList>
+</p>
+<p>Toys:
+  <select 
+    name="toys" 
+    numToSelect="3" 
+    withReplacement>
+      <option>whistles</option>
+      <option>yo-yos</option>
+  </select>
+</p>
+<p>Number of toys:
+  <select name="num" numToSelect="3">
+    7 2 5
+  </select>
+</p><hr/>
+
+<repeat 
+  name="nameR" 
+  for="$names" 
+  itemName="N" 
+  indexName="i"
+  >
+    <p>$N has $num[$i] $toys[$i].</p>
+</repeat><hr/>
+
+<p>The second name has <c>nameR[2]</c>: 
+  $nameR[2]
+</p>
+```
+
+To achieve parallel iterative behavior, a combination of the `indexName` and `valueName`
+attributes can be used.
 
 
 ---
 
-### Example: assignNames
 
+### Example: Generate a user-specified number of random `<point>{:dn}` components
 
 ```doenet-editor-horiz
-<p>How many answer do you have (answer 1-4)? <mathInput name="n"/></p>
-<repeat assignNames="mi1 mi2 mi3 mi4">
-  <template><mathInput/></template>
-  <sources><sequence from="1" to="$n"/></sources>
-</repeat>
+<p>How many points do you want to generate?
+  <mathInput name="n"/></p>
+<em>(Note, more than 10 takes some processing time...)</em>
+
+<sequence name="s" from="1" to="$n" hide/>
+
+<graph>
+  <repeat name="randomPoints" for="$s">
+    <point>
+      (<sampleRandomNumbers 
+         from="-10" to="10"/>, 
+      <sampleRandomNumbers 
+        from="-10" to="10"/>)
+    </point>
+  </repeat>
+</graph>
+
+<p>The generated points are: 
+  <c>randomPoints</c> = $randomPoints
+</p>
+
+<p>The <m>n^{th}</m> generated point is: 
+  <c>randomPoints[$n]</c> = $randomPoints[$n]
+</p>
 ```
 
 
-
-The `assignNames` attribute allows you to specify names for components generated with a ` <repeat>{:dn}`.
-
-
-
----
-
-### Example: assignNamesSkip *
-
-
-```doenet-editor-horiz
-```
-
-
-
-
-
-
-
----
-
-### Example: behavior="combination"
-
-
-```doenet-editor-horiz
-<p><m>x</m> values: 
-  <sequence name="xS"/></p>
-<p><m>y</m> values: 
-  <sequence name="yS" from="2" to="20" step="2"/></p>
-<p><m>x + y = </m></p>
-<repeat name="combinationMap">
-  <template>
-    <p><math>$x+$y</math> = <math simplify="true">$x + $y</math></p>
-  </template>
-  <sources alias="x">$xS</sources>
-  <sources alias="y">$yS</sources>
-</repeat>
-```
-
-
-
-The default behavior for mapping with multiple sources is `behavior="combination"`. This maps each element of one source with each element of every other source. To modify the default behavior, see the example on `behavior="parallel"`. 
-
-
-
----
-
-### Example: behavior="parallel"
-
-
-```doenet-editor-horiz
-<p><m>x</m> values: 
-  <sequence name="xS"/></p>
-<p><m>y</m> values: 
-  <sequence name="yS" from="2" to="20" step="2"/></p>
-<p><m>x + y = </m></p>
-<repeat behavior="parallel" name="parallelMap">
-  <template>
-    <p><math>$x+$y</math> = <math simplify="true">$x + $y</math></p>
-  </template>
-  <sources alias="x">$xS</sources>
-  <sources alias="y">$yS</sources>
-</repeat>
-```
-
-
-
-With `behavior="parallel"`, the $i^{th}$ element of the first source is grouped with the $i^{th}$ element of the second source when generating the output of the ` <repeat>{:dn}`. This differs from the default mapping behavior; for a description of the default behavior see the example on `behavior="combination"`.
-
-
-
----
-
-### Example: isResponse *
-
-
-```doenet-editor-horiz
-```
-
-
-
-. 
-
+A ` <repeat>{:dn}` can be used to generate a user-specified number of randomly placed `<point>{:dn}` components.
+For an alternative way to do this, see the [`<repeatForSequence>{:dn}`](repeatForSequence.mdx) component.

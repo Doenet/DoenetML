@@ -2,17 +2,17 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { AttrDisplay, PropDisplay } from "../../components"
 
-## Attributes and Properties 
- <AttrDisplay name='row'/> 
- <PropDisplay name='row'/>
+
 
 # ` <row>{:dn}` (in a table)
 
 
+` <row>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that functions as a container element for the individual [` <cell>{:dn}`](cell.mdx) elements of  a [` <tabular>{:dn}`](tabular.mdx). 
 
-
-
-The ` <row>{:dn}` component is a container element for the individual [` <cell>{:dn}`](cell.mdx) elements of  a [` <tabular>{:dn}`](tabular.mdx). 
+## Attributes and Properties 
+ <AttrDisplay name='row'/> 
+ <PropDisplay name='row'/>
 
 
 ---
@@ -39,13 +39,14 @@ The ` <row>{:dn}` component is a container element for the individual [` <cell>{
 
 
 
-The basic, unformatted structure of a ` <table>{:dn}` is illustrated. Individual rows are contained within a ` <tabular>{:dn}`, and individual cells are contained within a ` <row>{:dn}`.
+The basic, unformatted structure of a ` <table>{:dn}` is illustrated. Individual rows are contained 
+within a ` <tabular>{:dn}`, and individual cells are contained within a ` <row>{:dn}`.
 
 
 
 ---
 
-### Example: header
+### Attribute Example: header
 
 
 ```doenet-editor-horiz
@@ -75,7 +76,7 @@ The `header` attribute defines a ` <row>{:dn}` with header styling.
 
 ---
 
-### Example: halign
+### Attribute Example: halign
 
 
 ```doenet-editor-horiz
@@ -103,13 +104,15 @@ The `header` attribute defines a ` <row>{:dn}` with header styling.
 
 
 
-The `halign` attribute defines the horizontal alignment of content within each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options are `left` (default), `center`, and `right`.
+The `halign` attribute defines the horizontal alignment of content within 
+each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options 
+are `left` (default), `center`, and `right`.
 
 
 
 ---
 
-### Example: valign
+### Attribute Example: valign
 
 
 ```doenet-editor-horiz
@@ -138,13 +141,15 @@ The `halign` attribute defines the horizontal alignment of content within each `
 
 
 
-The `valign` attribute defines the vertical alignment of content within each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options are `top`, `center` (default), and `bottom`.
+The `valign` attribute defines the vertical alignment of content within 
+each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options 
+are `top`, `center` (default), and `bottom`.
 
 
 
 ---
 
-### Example: left
+### Attribute Example: left
 
 
 ```doenet-editor-horiz
@@ -177,16 +182,20 @@ The `valign` attribute defines the vertical alignment of content within each ` <
 
 
 
-The `left` attribute defines the weight for the left border element of content within each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options are `none` (default), `minor`, `medium`, and `major`.
+The `left` attribute defines the weight for the left border element of content 
+within each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options 
+are `none` (default), `minor`, `medium`, and `major`.
 
 
-Note that the `left` attribute can also be specified in the ` <tabular>{:dn}`, which then applies to the entire table. If specified in both locations, the specification within the individual ` <row>{:dn}` takes precedence.
+Note that the `left` attribute can also be specified in the ` <tabular>{:dn}`, which 
+then applies to the entire table. If specified in both locations, the specification 
+within the individual ` <row>{:dn}` takes precedence.
 
 
 
 ---
 
-### Example: bottom
+### Attribute Example: bottom
 
 
 ```doenet-editor-horiz
@@ -219,32 +228,13 @@ Note that the `left` attribute can also be specified in the ` <tabular>{:dn}`, w
 
 
 
-The `bottom` attribute defines the weight for the bottom border element of content within each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options are `none` (default), `minor`, `medium`, and `major`.
+The `bottom` attribute defines the weight for the bottom border element of 
+content within each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available 
+options are `none` (default), `minor`, `medium`, and `major`.
 
 
-Note that the `bottom` attribute can also be specified in the ` <tabular>{:dn}`, which then applies to the entire table. If specified in both locations, the specification within the individual ` <row>{:dn}` takes precedence.
+Note that the `bottom` attribute can also be specified in the ` <tabular>{:dn}`, which 
+then applies to the entire table. If specified in both locations, the 
+specification within the individual ` <row>{:dn}` takes precedence.
 
-
-
----
-
-### Example: rowNum *
-
-
-```doenet-editor-horiz
-```
-
-
-
----
-
-### Example: 
-
-
-```doenet-editor-horiz
-```
-
-
-
-. 
 

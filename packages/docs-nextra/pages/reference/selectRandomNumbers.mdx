@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # `<selectRandomNumbers/>{:dn}`
 
-` <selectRandomNumbers/>{:dn}` creates named variants from a generates random numbers from a specified range of 
+` <selectRandomNumbers/>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+component that generates document variants by selecting random numbers from a specified range of 
 values or within a normal distribution around a specified mean.
 
 ## Attributes and Properties 
@@ -18,228 +19,268 @@ values or within a normal distribution around a specified mean.
 
 
 ```doenet-editor-horiz
+<selectRandomNumbers name="s" />
 
-<selectRandomNumbers name="selection" />
-
-<p>Number selected = $selection</p>
+<p>Number selected = $s</p>
 ```
 
 
 
-Without any attributes specified, the default selection  `type` is `uniform`, and the default interval is $[0, 1)$. Select a different page variant to view a different selection.
+Without any attributes specified, the default selection  `type` is `uniform`, and the default interval is $[0, 1)$.
 
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 ---
 
-### Example: numToSelect
+### Attribute Example: numToSelect
 
 
 ```doenet-editor-horiz
-<p>
-  <asList>
-    <selectRandomNumbers numToSelect="4" name="randomNumbers"/>
-  </asList>
-</p>
+<selectRandomNumbers
+  name="s"
+  numToSelect="4"
+/>
+
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
 ```
 
 
 
-The ` <selectRandomNumbers/>{:dn}` component is used with the `numToSelect` attribute to select multiple random values in the default interval $[0,1)$. The default `type` is `uniform`. The component is nested within an [` <asList>{:dn}`](asList.mdx) component for greater clarity when rendering.
+The ` <selectRandomNumbers/>{:dn}` component is used with the `numToSelect` attribute to select multiple 
+random values in the default interval $[0,1)$. The default `type` is `uniform`. 
 
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 ---
 
-### Example: assignNames
+### Example: Assign descriptive names to selections
 
 
 ```doenet-editor-horiz
-
-<selectRandomNumbers assignNames="a b c" numToSelect="3"/>
-<selectRandomNumbers name="d"/>
+<setup>
+<selectRandomNumbers name="s" numToSelect="3"/>
+<number name="a" extend="$s[1]"/>
+<number name="b" extend="$s[2]"/>
+<number name="c" extend="$s[3]"/>
+</setup>
 
 <p>a = $a</p>
 <p>b = $b</p>
 <p>c = $c</p>
-<p>d = $d</p>
+```
+
+Three numbers are selected. 
+Selections can be assigned more descriptive names by defining individual components
+which reference the selected values.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Attribute Example: from, to
+
+
+```doenet-editor-horiz
+<selectRandomNumbers
+  name="x" 
+  from="-5" 
+  to="5" 
+  numToSelect="5"
+/>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
 ```
 
 
 
-The `assignNames` attribute is used to specify unique identifiers for each selection where one more than one selection is required. If only one selection is required, the `name` of the selection itself assumes the selected value.
+The ` <selectRandomNumbers/>{:dn}` component is used with the `from` and the `to` attributes to modify the 
+default selection interval. The default `type` is `uniform`.
 
 
- Select a different page variant to view a different selection.
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 
 ---
 
-### Example: from, to
+### Attribute Example: type = "discreteUniform"
 
 
 ```doenet-editor-horiz
+<selectRandomNumbers
+  name="x" 
+  type="discreteUniform"
+  from="0" 
+  to="10" 
+  numToSelect="5"
+/>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified as `discreteUniform`. 
+The `discreteUniform` selection generates values from an evenly spaced range defined by the 
+attributes `to`, `from`, and `step`. If left unspecified, the default `step` is 1.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Attribute Example: exclude
+
+
+```doenet-editor-horiz
+<selectRandomNumbers 
+  name="x" 
+  type="discreteUniform" 
+  from="-4" 
+  to="4" 
+  numToSelect="4" 
+  exclude="0 1 -1"
+/>
+
 <p>
-<asList>
-  <selectRandomNumbers name="x" from="-5" to="5" numToSelect="5" />
-</asList>
+  <math name="m">
+    $x[1]/$x[2] + $x[3]/$x[4]
+  </math> = 
+  <math 
+    extend="$m" 
+    simplify="numberspreserveorder"/>
 </p>
 ```
 
 
+The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified 
+as `discreteUniform`. Values can be excluded from the specified range used with this type using the `exclude` attribute.
 
-The ` <selectRandomNumbers/>{:dn}` component is used with the `from` and the `to` attributes to modify the default selection interval. The default `type` is `uniform`.
-
-
- Select a different page variant to view a different selection.
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
 
-### Example: type = "discreteUniform"
+### Attribute Example: step
 
 
 ```doenet-editor-horiz
-<p><asList>
-    <selectRandomNumbers name="x" type="discreteUniform" from="0" to="10" numToSelect="5"/>
-</asList></p>
+<selectRandomNumbers 
+  name="x" 
+  type="discreteUniform"
+  from="0" 
+  to="20" 
+  step="2"
+  numToSelect="5"
+/>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
 ```
 
 
 
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified as `discreteUniform`. The `discreteUniform` selection generates values from an evenly spaced range defined by the attributes `to`, `from`, and `step`. If left unspecified, the default `step` is 1.
+The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified as `discreteUniform`. 
+The `discreteUniform` selection generates values from an evenly spaced range defined by the 
+attributes `to`, `from`, and `step`. If left unspecified, the default `step` is 1.
 
 
- Select a different page variant to view a different selection.
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
 
-### Example: exclude
+### Attribute Example: type = "gaussian"
 
 
-```doenet-editor-horiz
+```doenet-editor-horiz 
+<selectRandomNumbers 
+  name="x" 
+  type="gaussian" 
+  numToSelect="10"
+  displayDigits="4"
+/>
 
-  <selectRandomNumbers name="x" assignNames="a b c" type="discreteUniform" from="-4" to="4" numToSelect="3" exclude="0"/>
-
-<p><math simplify="numberspreserveorder">$a x^2 + $b x + $c</math></p>
+<p>The third selection is <c>x[3]</c> = $x[3]</p>  
 ```
 
 
 
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified as `discreteUniform`. Values can be excluded from the specified range used with this type using the `exclude` attribute.
+The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is 
+specified as `gaussian`. The `gaussian` selection generates standard normal 
+variables (mean 0, variance 1). Alternatively, the `mean` as well as the `variance` 
+or the `standardDeviation` attributes may be defined.
 
 
- Select a different page variant to view a different selection.
-
-
-
----
-
-### Example: step
-
-
-```doenet-editor-horiz
-<p>
-  <asList>
-    <selectRandomNumbers name="x" type="discreteUniform" from="0" to="20" numToSelect="5" step="2"/>
-  </asList>
-</p>
-```
-
-
-
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified as `discreteUniform`. The `discreteUniform` selection generates values from an evenly spaced range defined by the attributes `to`, `from`, and `step`. If left unspecified, the default `step` is 1.
-
-
- Select a different page variant to view a different selection.
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
 
-### Example: type = "gaussian"
-
-
-```doenet-editor-horiz
-<p>
-  <asList>
-    <selectRandomNumbers name="x" type="gaussian" numToSelect="10" displayDigits="4"/>
-  </asList>
-</p>      
-```
-
-
-
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). Alternatively, the `mean` as well as the `variance` or the `standardDeviation` attributes may be defined.
-
-
- Select a different page variant to view a different selection.
-
-
-
----
-
-### Example: gaussian with mean and variance
+### Attribute Example: gaussian with mean and variance
 
 
 ```doenet-editor-horiz
 <p>With <attr>mean</attr> and <attr>variance</attr> attribute:
-  <asList>
-    <selectRandomNumbers name="x" type="gaussian" mean="10" variance="2" numToSelect="10" displayDigits="4"/>
-  </asList>
+  <selectRandomNumbers 
+    name="x" 
+    type="gaussian" 
+    mean="10" 
+    variance="2" 
+    numToSelect="10" 
+    displayDigits="4"/>
 </p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>  
 ```
 
 
 
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In this example, the `mean` and the `variance` are defined with attributes.
+The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified 
+as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In 
+this example, the `mean` and the `variance` are defined with attributes.
 
 
- Select a different page variant to view a different selection.
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 
 ---
 
-### Example: gaussian with mean and standardDeviation
+### Attribute Example: gaussian with mean and standardDeviation
 
 
 ```doenet-editor-horiz
 <p>With <attr>mean</attr> and <attr>standardDeviation</attr> attribute:
-  <asList>
-    <selectRandomNumbers name="x" type="gaussian" mean="10" standardDeviation="2" numToSelect="10" displayDigits="4"/>
-  </asList>
+  <selectRandomNumbers 
+    name="x" 
+    type="gaussian" 
+    mean="10" 
+    standardDeviation="2" 
+    numToSelect="10" 
+    displayDigits="4"/>
 </p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>  
 ```
 
 
 
-The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In this example, the `mean` and the `standardDeviation` are defined with attributes.
+The `type` attribute of the ` <selectRandomNumbers/>{:dn}` component is specified 
+as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In 
+this example, the `mean` and the `standardDeviation` are defined with attributes.
 
 
- Select a different page variant to view a different selection.
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
-
----
-
-### Example: variantDeterminesSeed *
-
-
-```doenet-editor-horiz
-```
-
-
-
----
-
-### Example: assignNamesSkip *
-
-
-```doenet-editor-horiz
-```
 
