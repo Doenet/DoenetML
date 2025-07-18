@@ -13,7 +13,7 @@ function App() {
         <DoenetEditor
             doenetML={doenetMLstring}
             height="100%"
-            retrieveDoenetML={retrieveDoenetML}
+            fetchExternalDoenetML={fetchExternalDoenetML}
         />
     );
 }
@@ -26,7 +26,7 @@ const doenetMLs: Record<string, string> = {
     ghi: `<section name="s3"><p name="p3">How</p></section>`,
 };
 
-function retrieveDoenetML(sourceUri: string) {
+function fetchExternalDoenetML(sourceUri: string) {
     return new Promise<string>((resolve, reject) => {
         setTimeout(() => {
             const match = sourceUri.match(/^doenet:(\w+)/);
