@@ -623,6 +623,7 @@ export default class Rectangle extends Polygon {
             },
             isArray: true,
             numDimensions: 2,
+            indexAliases: [[], ["x", "y", "z"]],
             entryPrefixes: ["vertexX", "vertex"],
             returnEntryDimensions: (prefix) => (prefix === "vertex" ? 1 : 0),
             getArrayKeysFromVarName({
@@ -913,12 +914,13 @@ export default class Rectangle extends Polygon {
                                         .specifiedWidth;
 
                                 if (vertexInd === "0" || vertexInd === "3") {
-                                    vertices[arrayKey] =
-                                        centerComponent.subtract(width / 2);
+                                    vertices[arrayKey] = centerComponent
+                                        .subtract(width / 2)
+                                        .simplify();
                                 } else {
-                                    vertices[arrayKey] = centerComponent.add(
-                                        width / 2,
-                                    );
+                                    vertices[arrayKey] = centerComponent
+                                        .add(width / 2)
+                                        .simplify();
                                 }
                             } else {
                                 let height =
@@ -926,12 +928,13 @@ export default class Rectangle extends Polygon {
                                         .specifiedHeight;
 
                                 if (vertexInd === "0" || vertexInd === "1") {
-                                    vertices[arrayKey] =
-                                        centerComponent.subtract(height / 2);
+                                    vertices[arrayKey] = centerComponent
+                                        .subtract(height / 2)
+                                        .simplify();
                                 } else {
-                                    vertices[arrayKey] = centerComponent.add(
-                                        height / 2,
-                                    );
+                                    vertices[arrayKey] = centerComponent
+                                        .add(height / 2)
+                                        .simplify();
                                 }
                             }
                         }
@@ -951,8 +954,9 @@ export default class Rectangle extends Polygon {
                                     let width =
                                         dependencyValuesByKey[arrayKey]
                                             .specifiedWidth;
-                                    vertices[arrayKey] =
-                                        vertComponent.add(width);
+                                    vertices[arrayKey] = vertComponent
+                                        .add(width)
+                                        .simplify();
                                 }
                             } else {
                                 if (vertexInd === "0" || vertexInd === "1") {
@@ -961,8 +965,9 @@ export default class Rectangle extends Polygon {
                                     let height =
                                         dependencyValuesByKey[arrayKey]
                                             .specifiedHeight;
-                                    vertices[arrayKey] =
-                                        vertComponent.add(height);
+                                    vertices[arrayKey] = vertComponent
+                                        .add(height)
+                                        .simplify();
                                 }
                             }
                         }
@@ -1004,7 +1009,8 @@ export default class Rectangle extends Polygon {
                                 vertices[arrayKey] = vertComponent.add(
                                     centerComponent
                                         .subtract(vertComponent)
-                                        .multiply(2),
+                                        .multiply(2)
+                                        .simplify(),
                                 );
                             }
                         }
@@ -1037,8 +1043,9 @@ export default class Rectangle extends Polygon {
                                     let width =
                                         dependencyValuesByKey[arrayKey]
                                             .specifiedWidth;
-                                    vertices[arrayKey] =
-                                        vertComponent.add(width);
+                                    vertices[arrayKey] = vertComponent
+                                        .add(width)
+                                        .simplify();
                                 }
                             } else {
                                 if (vertexInd === "0" || vertexInd === "1") {
@@ -1047,8 +1054,9 @@ export default class Rectangle extends Polygon {
                                     let height =
                                         dependencyValuesByKey[arrayKey]
                                             .specifiedHeight;
-                                    vertices[arrayKey] =
-                                        vertComponent.add(height);
+                                    vertices[arrayKey] = vertComponent
+                                        .add(height)
+                                        .simplify();
                                 }
                             }
                         }

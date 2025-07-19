@@ -1614,4 +1614,52 @@ describe("Rectangle tag tests", async () => {
                 .value,
         ).eq(perimeter);
     });
+
+    it("reference vertex coordinates", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <rectangle name="r"/>
+  </graph>
+  <p name="p1">Coordinates of vertex 1: $r.vertex1.x, $r.vertex1.y</p>
+  <p name="p2">Coordinates of vertex 2: $r.vertices[2].x, $r.vertices[2].y</p>
+  <p name="p3">Coordinates of vertex 3: $r.vertex3.x, $r.vertex3.y</p>
+  <p name="p4">Coordinates of vertex 4: $r.vertices[4].x, $r.vertices[4].y</p>
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("Coordinates of vertex 1: 0, 0");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Coordinates of vertex 2: 1, 0");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("Coordinates of vertex 3: 1, 1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq("Coordinates of vertex 4: 0, 1");
+
+        await movePolygon({
+            componentIdx: await resolvePathToNodeIdx("r"),
+            pointCoords: { 1: [9, -3], 3: [-5, 2] },
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("Coordinates of vertex 1: -5, -3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("Coordinates of vertex 2: 9, -3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("Coordinates of vertex 3: 9, 2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq("Coordinates of vertex 4: -5, 2");
+    });
 });
