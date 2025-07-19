@@ -298,25 +298,23 @@ impl Resolver {
                                         // then the parent supersedes the name of the descendant.
                                         // We don't change the name map, and we stop looping to additional parents
                                         break;
-                                    } else {
-                                        if let Some(Ref::Unique(descendent_idx)) =
-                                            descendant_ref_of_own_name
-                                        {
-                                            if *idx == descendent_idx {
-                                                // If the `name_with_source` resolves to the descendant that `element` is superseding,
-                                                // then replace it with `element`
-                                                *x = Ref::Unique(element.idx);
-                                            } else {
-                                                // Since is already something sharing the `name_with_source` with the current element,
-                                                // the reference becomes ambiguous
-                                                *x = Ref::Ambiguous(vec![*idx, element.idx]);
-                                            }
+                                    } else if let Some(Ref::Unique(descendent_idx)) =
+                                        descendant_ref_of_own_name
+                                    {
+                                        if *idx == descendent_idx {
+                                            // If the `name_with_source` resolves to the descendant that `element` is superseding,
+                                            // then replace it with `element`
+                                            *x = Ref::Unique(element.idx);
                                         } else {
                                             // Since is already something sharing the `name_with_source` with the current element,
                                             // the reference becomes ambiguous
-                                            // TODO: collapse this and the previous equivalent case when upgrade rust to edition 2024
                                             *x = Ref::Ambiguous(vec![*idx, element.idx]);
                                         }
+                                    } else {
+                                        // Since is already something sharing the `name_with_source` with the current element,
+                                        // the reference becomes ambiguous
+                                        // TODO: collapse this and the previous equivalent case when upgrade rust to edition 2024
+                                        *x = Ref::Ambiguous(vec![*idx, element.idx]);
                                     }
                                 }
                                 Ref::Ambiguous(vec) => {
