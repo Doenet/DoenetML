@@ -1,4 +1,4 @@
-import { FlatDastElement, FlatDastElementContent } from "../CoreWorker";
+import type { FlatDastElement, FlatDastElementContent } from "../CoreWorker";
 
 /**
  * Conversion from javascript to rust for the section component

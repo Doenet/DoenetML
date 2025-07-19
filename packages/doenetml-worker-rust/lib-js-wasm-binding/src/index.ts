@@ -1,3 +1,6 @@
+export * from "lib-doenetml-worker";
+import init from "lib-doenetml-worker";
+export default init;
 import {
     evalWithMathExpressionsInScope,
     parseTextIntoMath,
@@ -10,8 +13,6 @@ import {
     parseTextIntoNumber,
 } from "./eval-math";
 import { globalThis } from "./global-this";
-
-export * from "./CoreWorker";
 
 // Keep typescript from complaining about adding properties to `Window`
 declare global {
@@ -31,7 +32,8 @@ declare global {
 }
 
 // The Rust code assumes these global variables exist.
-globalThis.__forDoenetWorker = {
+globalThis.__forDoenetWorker = (globalThis as any)._forDoenetWorker || {};
+Object.assign(globalThis.__forDoenetWorker, {
     evalWithMathExpressionsInScope,
     parseTextIntoMath,
     parseLatexIntoMath,
@@ -41,4 +43,4 @@ globalThis.__forDoenetWorker = {
     normalizeMath,
     evaluateToNumber,
     parseTextIntoNumber,
-};
+});

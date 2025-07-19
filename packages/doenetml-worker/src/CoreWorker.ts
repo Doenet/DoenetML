@@ -5,7 +5,10 @@ import init, {
     ActionsEnum,
     PublicDoenetMLCore,
     DastRoot as DastRootInCore,
-} from "lib-doenetml-worker";
+} from "@doenet/doenetml-worker-rust";
+// TODO: for some reason `export type * from "@doenet/doenetml-worker-rust";` doesn't work. The generated .d.ts file
+// has an incorrect path. As a workaround, we export the types directly from Rust here. Fix this if you can figure out
+// why the paths are wrong...
 export type * from "lib-doenetml-worker";
 import type {
     FlatDastRoot,
@@ -18,7 +21,7 @@ import type {
     RefResolution,
     ContentVector,
     NodeList,
-} from "lib-doenetml-worker";
+} from "@doenet/doenetml-worker-rust";
 import type { DastRoot } from "@doenet/parser";
 import {
     CancelAnimationFrame,
@@ -36,7 +39,7 @@ import {
 // the bundled WASM cannot actually be loaded. To work around this,
 // we import it as a string and create a blob URL from it.
 // @ts-ignore
-import WASM_BYTES_DATA_URL from "lib-doenetml-worker/lib_doenetml_worker_bg.wasm?url";
+import WASM_BYTES_DATA_URL from "@doenet/doenetml-worker-rust/lib_doenetml_worker_bg.wasm?url";
 import { flatDastFromJS } from "./flatDastFromJS";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
 let wasmBlobUrl: string = WASM_BYTES_DATA_URL;

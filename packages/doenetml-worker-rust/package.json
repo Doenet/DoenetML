@@ -1,0 +1,113 @@
+{
+    "name": "@doenet/doenetml-worker-rust",
+    "type": "module",
+    "description": "Repo for compiled WebWorker code for DoenetML",
+    "version": "*",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "require": "./dist/index.js"
+        },
+        "./lib_doenetml_worker_bg.wasm": {
+            "import": "./dist/lib_doenetml_worker_bg.wasm"
+        },
+        "./*": {
+            "import": "./dist/*",
+            "require": "./dist/*"
+        }
+    },
+    "scripts": {
+        "watch": "vite build --watch",
+        "test": "npm run test:rust && echo 'tests complete (keep this message at the end of the tests)'",
+        "test:rust": "npm run test:rust:before && cargo test --workspace --features testing",
+        "test:rust:before": "wireit",
+        "build:rust": "wireit",
+        "build:rust-wasm-test": "wireit",
+        "build:js": "wireit",
+        "build": "wireit",
+        "bench": "cargo bench -p doenetml-core"
+    },
+    "wireit": {
+        "build": {
+            "command": "echo \"Building rust and js\"",
+            "files": [],
+            "output": [],
+            "dependencies": [
+                "build:rust",
+                "build:js"
+            ]
+        },
+        "test:rust:before": {
+            "command": "vite build -c vite.rust-tests.config.ts",
+            "files": [
+                "lib-doenetml-core/tests/**/*.ts",
+                "vite.rust-tests.config.ts"
+            ],
+            "output": [
+                "lib-doenetml-core/tests/**/*.js"
+            ],
+            "dependencies": [
+                "../parser:build"
+            ]
+        },
+        "build:js": {
+            "command": "vite build",
+            "files": [
+                "lib-*/src/**/*.ts",
+                "lib-*/src/**/*.js",
+                "tsconfig.json",
+                "lib-*/tsconfig.json",
+                "vite.config.ts"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json",
+                "dist/**/*.wasm*"
+            ],
+            "dependencies": [
+                "../utils:build",
+                "../parser:build",
+                "../doenetml-worker-javascript:build",
+                "build:rust",
+                "../debug-hooks:build"
+            ]
+        },
+        "build:rust": {
+            "command": "npx wasm-pack build lib-js-wasm-binding --target web --dev --features 'web-logging web-debug-log'",
+            "files": [
+                "lib-*/**/*.rs",
+                "lib-js-wasm-binding/**/*.ts",
+                "**/*/Cargo.toml"
+            ],
+            "output": [
+                "lib-js-wasm-binding/pkg/**/*.js",
+                "lib-js-wasm-binding/pkg/**/*.d.ts",
+                "lib-js-wasm-binding/pkg/**/*.wasm",
+                "lib-js-wasm-binding/pkg/**/*.json"
+            ]
+        },
+        "build:rust-wasm-test": {
+            "command": "npx wasm-pack build lib-js-wasm-test --target web --dev --features 'web-logging web-debug-log'",
+            "files": [
+                "lib-*/**/*.rs",
+                "lib-js-wasm-test/**/*.ts",
+                "**/*/Cargo.toml"
+            ],
+            "output": [
+                "lib-js-wasm-test/pkg/**/*.js",
+                "lib-js-wasm-test/pkg/**/*.d.ts",
+                "lib-js-wasm-test/pkg/**/*.wasm",
+                "lib-js-wasm-test/pkg/**/*.json"
+            ]
+        }
+    },
+    "devDependencies": {}
+}
