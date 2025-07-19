@@ -254,6 +254,12 @@ impl Resolver {
                     parents.push(idx);
                 }
 
+                // Check to see if element's name map has a reference to its own `name_with_source`.
+                // If so, it's reference supersedes these descendants and should replace them in its ancestors' name maps.
+                let descendant_ref_of_own_name = descendant_names[element.idx + 1]
+                    .get(&name_with_source)
+                    .cloned();
+
                 // We recurse (via a loop) outward through the ancestors of `element`, building the name map of each parent.
                 // We check the `Visibility` of the parent and child to stop recursing to more distant ancestors
                 // if the original `element` becomes invisible to those ancestors.
@@ -267,6 +273,12 @@ impl Resolver {
 
                 let mut child_visibility = Visibility::lookup_by_flat_element(element);
 
+                // In any iteration of the loop, `previous_parent` will be the child from the previous loop.
+                // If `previous_parent` has the same `name_with_source` as `element`,
+                // then `previous_parent` supersedes `element` in the name map and we do not add `element`
+                // to the name map of any of `previous_parent`'s ancestors.
+                let mut previous_parent = element.idx;
+
                 for parent_idx_plus_1 in parents {
                     // if child is invisible, then do not add `element` (which is the child or its descendant)
                     // to the name map of parent or more distant ancestors
@@ -276,24 +288,81 @@ impl Resolver {
 
                     // Add `element` to the name map of `parent`, creating an ambiguous reference
                     // if its `name_with_source` is already in the name map
-                    descendant_names[parent_idx_plus_1]
-                        .get_mut(&name_with_source)
-                        .map(|x| {
-                            *x = match x {
+                    match descendant_names[parent_idx_plus_1].get_mut(&name_with_source) {
+                        Some(x) => {
+                            match x {
                                 // There is already something sharing the `name_with_source` with the current element
-                                // so we mark it as ambiguous
-                                Ref::Unique(idx) => Ref::Ambiguous(vec![*idx, element.idx]),
+                                Ref::Unique(idx) => {
+                                    if *idx == previous_parent {
+                                        // if `name_with_source` resolves to the `previous_parent`,
+                                        // then the parent supersedes the name of the descendant.
+                                        // We don't change the name map, and we stop looping to additional parents
+                                        break;
+                                    } else {
+                                        if let Some(Ref::Unique(descendent_idx)) =
+                                            descendant_ref_of_own_name
+                                        {
+                                            if *idx == descendent_idx {
+                                                // If the `name_with_source` resolves to the descendant that `element` is superseding,
+                                                // then replace it with `element`
+                                                *x = Ref::Unique(element.idx);
+                                            } else {
+                                                // Since is already something sharing the `name_with_source` with the current element,
+                                                // the reference becomes ambiguous
+                                                *x = Ref::Ambiguous(vec![*idx, element.idx]);
+                                            }
+                                        } else {
+                                            // Since is already something sharing the `name_with_source` with the current element,
+                                            // the reference becomes ambiguous
+                                            // TODO: collapse this and the previous equivalent case when upgrade rust to edition 2024
+                                            *x = Ref::Ambiguous(vec![*idx, element.idx]);
+                                        }
+                                    }
+                                }
                                 Ref::Ambiguous(vec) => {
-                                    vec.push(element.idx);
-                                    Ref::Ambiguous(mem::take(vec))
+                                    if vec.contains(&previous_parent) {
+                                        // if `name_with_source` contains an element that resolves to the `previous_parent`,
+                                        // then the parent supersedes the name of the descendant.
+                                        // We don't change the name map, and we stop looping to additional parents
+                                        break;
+                                    } else {
+                                        match &descendant_ref_of_own_name {
+                                            Some(Ref::Unique(descendant_idx)) => {
+                                                // Remove the descendant that `element` is superseding,
+                                                // then add `element` to the list of ambiguous references.
+                                                vec.retain(|idx| *idx != *descendant_idx);
+                                                vec.push(element.idx);
+                                                *x = Ref::Ambiguous(mem::take(vec));
+                                            }
+                                            Some(Ref::Ambiguous(descendant_indices)) => {
+                                                // Remove the descendants that `element` is superseding
+                                                vec.retain(|idx| !descendant_indices.contains(idx));
+                                                if vec.is_empty() {
+                                                    // If we removed all the previous resolutions of `name_with_source`,
+                                                    // then `element` becomes the unique resolution
+                                                    *x = Ref::Unique(element.idx)
+                                                } else {
+                                                    // Add `element` to the list of ambiguous sources
+                                                    vec.push(element.idx);
+                                                    *x = Ref::Ambiguous(mem::take(vec));
+                                                }
+                                            }
+                                            None => {
+                                                // Add `element` to the list of ambiguous sources
+                                                vec.push(element.idx);
+                                                *x = Ref::Ambiguous(mem::take(vec));
+                                            }
+                                        }
+                                    }
                                 }
                             };
-                        })
-                        .unwrap_or_else(|| {
+                        }
+                        None => {
                             // There is no current match for the`name_with_source`, so we have a unique reference
                             descendant_names[parent_idx_plus_1]
                                 .insert(name_with_source.clone(), Ref::Unique(element.idx));
-                        });
+                        }
+                    }
 
                     let parent_visibility = if Some(parent_idx_plus_1) == base_parent_idx_plus_1
                         || parent_idx_plus_1 == 0
@@ -317,6 +386,11 @@ impl Resolver {
 
                     // The previous parent becomes the child for the next iteration
                     child_visibility = parent_visibility;
+
+                    // Note: if `parent_idx_plus_1` is `0`, we're at the end of the loop
+                    if parent_idx_plus_1 > 0 {
+                        previous_parent = parent_idx_plus_1 - 1;
+                    }
                 }
             }
         }
