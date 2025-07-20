@@ -232,7 +232,7 @@ impl DocumentStructure {
     }
 
     /// Returns an iterator over all component indices
-    pub fn get_component_indices(&self) -> impl Iterator<Item = ComponentIdx> {
+    pub fn get_component_indices(&self) -> impl Iterator<Item = ComponentIdx> + use<> {
         (0..self.components.len()).map(ComponentIdx::new)
     }
 
