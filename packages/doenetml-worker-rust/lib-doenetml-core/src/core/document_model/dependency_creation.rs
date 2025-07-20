@@ -2,17 +2,17 @@ use itertools::Itertools;
 
 use crate::{
     components::{
+        ComponentNode,
         prelude::DataQuery,
         types::{ComponentIdx, PropPointer},
-        ComponentNode,
     },
-    props::{cache::PropStatus, FilterData, PickPropSource, PropSource, PropSpecifier},
+    props::{FilterData, PickPropSource, PropSource, PropSpecifier, cache::PropStatus},
 };
 
 use crate::{graph_node::GraphNode, props::PropValue};
 
-use super::dependency_creation_helpers::*;
 use super::DocumentModel;
+use super::dependency_creation_helpers::*;
 
 impl DocumentModel {
     /// Create any state nodes that are required for the given `DataQuery`.
@@ -158,11 +158,15 @@ impl DocumentModel {
                     PropSpecifier::LocalIdx(_) => match source {
                         PropSource::Me | PropSource::ByIdx(_) => {}
                         _ => {
-                            panic!("`LocalIdx` in a `DataQuery::Prop` is only valid when used with `Me` or `ByIdx`.")
+                            panic!(
+                                "`LocalIdx` in a `DataQuery::Prop` is only valid when used with `Me` or `ByIdx`."
+                            )
                         }
                     },
                     PropSpecifier::MatchingPair(..) => {
-                        panic!("`MatchingPair` in a `DataQuery::Prop` is not valid. Use two separate data queries to retrieve two props.")
+                        panic!(
+                            "`MatchingPair` in a `DataQuery::Prop` is not valid. Use two separate data queries to retrieve two props."
+                        )
                     }
                     _ => {}
                 }
@@ -423,17 +427,18 @@ impl DocumentModel {
                 // Use `GraphNode::Query(0)` for origin since it doesn't matter with untracked
                 let prop = self.get_prop_untracked(prop_node, GraphNode::Query(0));
                 let component_ref = match prop.value {
-                        PropValue::ComponentRef(Some(component_ref)) => component_ref,
-                        PropValue::ComponentRef(None) => {
-                            // We have the correct prop type, but there wasn't a valid reference inside.
-                            // This could result from a user's input (e.g., `<xref ref="" />`, with an invalid `ref` field),
-                            // so we don't cause a hard panic here.
-                            return Ok(None)
-                        }
-                        _ => panic!(
-                            "Tried to resolve a `StaticComponentRef` but the prop had the wrong type. Expected `ComponentRef`. Found {:?}.", prop.value
-                        ),
-                    };
+                    PropValue::ComponentRef(Some(component_ref)) => component_ref,
+                    PropValue::ComponentRef(None) => {
+                        // We have the correct prop type, but there wasn't a valid reference inside.
+                        // This could result from a user's input (e.g., `<xref ref="" />`, with an invalid `ref` field),
+                        // so we don't cause a hard panic here.
+                        return Ok(None);
+                    }
+                    _ => panic!(
+                        "Tried to resolve a `StaticComponentRef` but the prop had the wrong type. Expected `ComponentRef`. Found {:?}.",
+                        prop.value
+                    ),
+                };
                 Some(component_ref.0)
             }
         })

@@ -1,6 +1,6 @@
 use super::{
-    untagged_flat_dast::{FlatElement, FlatNode, Index},
     FlatRootOrFragment,
+    untagged_flat_dast::{FlatElement, FlatNode, Index},
 };
 
 /// An iterator that iterates over the parent elements of a node.

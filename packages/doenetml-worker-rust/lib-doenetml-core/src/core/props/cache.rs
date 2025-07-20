@@ -134,7 +134,9 @@ impl CachedProp {
             }
             PropCalcResult::NoChange => {
                 if self.get_status() == PropStatus::Resolved {
-                    panic!("Prop is marked as `Resolved` and value is computed as `NoChange`. This is a logic error as cached values only exist on `Fresh` and `Stale` props.")
+                    panic!(
+                        "Prop is marked as `Resolved` and value is computed as `NoChange`. This is a logic error as cached values only exist on `Fresh` and `Stale` props."
+                    )
                 }
                 self.set_status(PropStatus::Fresh);
             }

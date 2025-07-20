@@ -5,12 +5,12 @@
 use std::{collections::HashMap, fmt::Display, num::ParseIntError};
 
 use serde::{Deserialize, Serialize};
-use tsify_next::{declare, Tsify};
+use tsify_next::{Tsify, declare};
 
 use crate::dast::DastRoot;
 
 use super::{
-    super::{ref_resolve::RefResolution, Position},
+    super::{Position, ref_resolve::RefResolution},
     normalized_flat_dast::{NormalizedNode, NormalizedRoot},
 };
 

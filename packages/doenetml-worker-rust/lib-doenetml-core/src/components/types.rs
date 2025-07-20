@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    core::props::PropValue, graph_node::GraphNode, props::cache::PropWithMeta, DocumentModel,
+    DocumentModel, core::props::PropValue, graph_node::GraphNode, props::cache::PropWithMeta,
 };
 
 use super::ActionsEnum;

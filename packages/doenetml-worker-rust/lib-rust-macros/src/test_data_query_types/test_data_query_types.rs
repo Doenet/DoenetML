@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 
 use darling::{FromDeriveInput, FromField};
 use quote::{format_ident, quote};
-use syn::{spanned::Spanned, DeriveInput, Meta, Result};
+use syn::{DeriveInput, Meta, Result, spanned::Spanned};
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(forward_attrs(owning_component))]

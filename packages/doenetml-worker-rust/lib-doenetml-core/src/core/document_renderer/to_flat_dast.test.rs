@@ -1,17 +1,17 @@
 use std::rc::Rc;
 
 use crate::{
+    Core,
     components::{
+        ComponentNode,
         prelude::FlatDastElementContent,
         types::{ComponentIdx, StringIdx},
-        ComponentNode,
     },
     graph::directed_graph::Taggable,
     graph_node::GraphNode,
     props::PropValue,
     state::types::content_refs::ContentRef,
     test_utils::dast_root_no_position,
-    Core,
 };
 
 #[test]

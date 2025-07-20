@@ -1,4 +1,4 @@
-use crate::props::{cache::PropWithMeta, prop_type, DataQueryResult, PropCalcResult, PropValue};
+use crate::props::{DataQueryResult, PropCalcResult, PropValue, cache::PropWithMeta, prop_type};
 
 pub fn return_empty_data_query_result() -> DataQueryResult {
     DataQueryResult { values: vec![] }

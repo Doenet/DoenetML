@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     dast::{
         flat_dast::FlatRoot,
-        ref_resolve::{test_helpers::*, RefResolution, ResolutionError},
+        ref_resolve::{RefResolution, ResolutionError, test_helpers::*},
     },
     test_utils::*,
 };

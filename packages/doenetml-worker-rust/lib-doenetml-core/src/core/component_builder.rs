@@ -7,13 +7,13 @@ use typed_index_collections::TiVec;
 
 use crate::{
     components::{
+        _Ref, Component, ComponentAttributes, ComponentCommon, ComponentCommonData, ComponentEnum,
+        ComponentNode, ComponentProps,
         prelude::{
             ComponentIdx, Extending, ExtendingPropSource, FlatAttribute, KeyValueIgnoreCase,
             UntaggedContent,
         },
         types::{PropDefinitionIdx, PropPointer},
-        Component, ComponentAttributes, ComponentCommon, ComponentCommonData, ComponentEnum,
-        ComponentNode, ComponentProps, _Ref,
     },
     dast::{
         flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
@@ -196,12 +196,12 @@ impl ComponentBuilder {
             ComponentEnum::_Error(_) => {
                 return Err(anyhow!(
                     "Attempted to extend component from an error component"
-                ))
+                ));
             }
             ComponentEnum::_External(_) => {
                 return Err(anyhow!(
                     "Attempted to extend component from an external component"
-                ))
+                ));
             }
             _ => {}
         }
@@ -420,12 +420,17 @@ impl ComponentBuilder {
                     if let Some(ref_source) = &elm.extending {
                         let ref_resolution = match ref_source {
                             Source::Ref(ref_resolution) => ref_resolution,
-                            _ => unreachable!("Encountered an extend of style <foo extend='$xxx' /> inside of an attribute. It should be syntactically impossible to parse such an element in an attribute."),
+                            _ => unreachable!(
+                                "Encountered an extend of style <foo extend='$xxx' /> inside of an attribute. It should be syntactically impossible to parse such an element in an attribute."
+                            ),
                         };
                         if ref_resolution.unresolved_path.is_some() {
                             // XXX: this should result in the component being converted into an error, not a hard panic.
                             // TODO: Not only should this not be an error, but sometimes it is valid. For example `<point name="p">(3,2)</point><updateValue target="$p.x" newValue="$p.x+1" />`
-                            panic!("Cannot preserve_refs if there is a remaining path part. Remaining: {:?}", ref_resolution.unresolved_path);
+                            panic!(
+                                "Cannot preserve_refs if there is a remaining path part. Remaining: {:?}",
+                                ref_resolution.unresolved_path
+                            );
                         }
                         // If we made it here, we are a ref pointing to a component and we should not actually be expanded
                         // to a copy of our referent. Instead we should be replaced with a special `_ref` component that preserves the pointer.

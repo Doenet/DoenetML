@@ -6,9 +6,9 @@ use convert_case::{Case, Casing};
 use darling::{FromDeriveInput, FromVariant};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::{parse_quote, Path, Variant};
+use syn::{Path, Variant, parse_quote};
 
-use crate::component_module::utils::{doc_comment_from_attrs, extract_enum_in_module, EnumInBody};
+use crate::component_module::utils::{EnumInBody, doc_comment_from_attrs, extract_enum_in_module};
 
 use super::component_module::ComponentModule;
 
@@ -103,11 +103,7 @@ impl AttributesEnum {
             .enumerate()
             .filter_map(
                 |(i, variant)| {
-                    if variant.preserve_refs {
-                        Some(i)
-                    } else {
-                        None
-                    }
+                    if variant.preserve_refs { Some(i) } else { None }
                 },
             )
             .collect()

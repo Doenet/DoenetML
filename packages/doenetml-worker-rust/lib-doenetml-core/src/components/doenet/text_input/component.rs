@@ -98,13 +98,13 @@ pub(super) mod component {
     }
 }
 
-use component::attrs;
-pub(super) use component::props;
 pub use component::TextInput;
 pub use component::TextInputActionArgs;
 pub use component::TextInputActions;
 pub use component::TextInputAttributes;
 pub use component::TextInputProps;
+use component::attrs;
+pub(super) use component::props;
 
 use super::custom_props::{ImmediateValueProp, ValueProp};
 

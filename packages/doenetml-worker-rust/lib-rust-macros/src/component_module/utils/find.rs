@@ -1,10 +1,10 @@
 use quote::format_ident;
 use syn::{
-    //   visit::{visit_item_enum, visit_item_mod, Visit},
-    parse_quote,
-    visit_mut::{visit_item_enum_mut, visit_item_mod_mut, VisitMut},
     ItemEnum,
     ItemMod,
+    //   visit::{visit_item_enum, visit_item_mod, Visit},
+    parse_quote,
+    visit_mut::{VisitMut, visit_item_enum_mut, visit_item_mod_mut},
 };
 
 struct EnumVisitor {

@@ -2,7 +2,7 @@ use super::*;
 
 use doenetml_core::{
     components::doenet::{ol::OlProps, ul::UlProps},
-    props::{prop_type, PropView},
+    props::{PropView, prop_type},
 };
 
 #[test]

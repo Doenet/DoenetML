@@ -1,6 +1,6 @@
 use serde::{
-    ser::{SerializeMap, SerializeStruct},
     Deserialize, Serialize,
+    ser::{SerializeMap, SerializeStruct},
 };
 
 use std::collections::HashMap;

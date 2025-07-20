@@ -3,7 +3,7 @@
 
 use anyhow::anyhow;
 
-use crate::props::{cache::PropWithMeta, DataQueryResult, PropValue, PropView};
+use crate::props::{DataQueryResult, PropValue, PropView, cache::PropWithMeta};
 
 use super::IntoPropView;
 
@@ -61,9 +61,9 @@ where
     fn try_from_prop_with_meta(val: Vec<PropWithMeta>) -> anyhow::Result<Self> {
         if val.len() != 1 {
             return Err(anyhow!(
-                    "Converting from a Vec into a PropView can only be done if the vec is length 1, not {}",
-                    val.len()
-                ));
+                "Converting from a Vec into a PropView can only be done if the vec is length 1, not {}",
+                val.len()
+            ));
         }
         // Slightly faster than
         // val.into_iter().next().unwrap().into_prop_view()

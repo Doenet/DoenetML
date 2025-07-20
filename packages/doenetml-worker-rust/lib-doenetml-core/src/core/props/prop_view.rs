@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use crate::graph_node::GraphNode;
 
-use super::{cache::PropWithMeta, PropValue};
+use super::{PropValue, cache::PropWithMeta};
 use anyhow::anyhow;
 
 /// A view into the (typed) value of a prop. The value is a reference

@@ -1,12 +1,12 @@
 //! A version of `Core` based on `DirectedGraph`
 
 use crate::dast::{
+    DastRoot, FlatDastRoot,
     flat_dast::{
         FlatFragment, FlatNode, FlatPathPart, FlatRoot, Index, NormalizedRoot, UntaggedContent,
     },
     ref_expand::Expander,
     ref_resolve::{IndexResolution, RefResolution, ResolutionError, Resolver},
-    DastRoot, FlatDastRoot,
 };
 
 use super::{

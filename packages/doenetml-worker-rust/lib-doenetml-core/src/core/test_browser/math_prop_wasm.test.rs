@@ -12,8 +12,8 @@ use crate::{
         },
     },
     props::{
-        as_updater_object, cache::PropWithMeta, prop_type, DataQueryResult, DataQueryResults,
-        PropValue,
+        DataQueryResult, DataQueryResults, PropValue, as_updater_object, cache::PropWithMeta,
+        prop_type,
     },
     state::types::math_expr::{MathExpr, MathParser},
 };

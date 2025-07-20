@@ -1,4 +1,4 @@
-use darling::{ast, util, FromDeriveInput};
+use darling::{FromDeriveInput, ast, util};
 use proc_macro2::Ident;
 
 /// An `enum` that is found inside the module.

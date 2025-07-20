@@ -2,7 +2,7 @@
 use crate::dast::flat_dast::{FlatAttribute, FlatNode, FlatRoot, UntaggedContent};
 use crate::dast::{DastRoot, FlatDastRoot};
 use serde_json;
-pub use serde_json::{json, Value};
+pub use serde_json::{Value, json};
 use std::process::Command;
 use std::str;
 
