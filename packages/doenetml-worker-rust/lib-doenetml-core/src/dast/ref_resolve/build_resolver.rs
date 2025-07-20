@@ -1,4 +1,3 @@
-use regex::Regex;
 use rustc_hash::FxHashMap;
 use std::{iter, mem, ops::Range};
 
@@ -142,17 +141,20 @@ impl Resolver {
 
     /// Delete `nodes` from the resolver
     pub fn delete_nodes(&mut self, nodes: &[FlatNode]) {
-        for (name_with_source_doc, node_idx) in nodes.iter().flat_map(|node| {
-            // TODO: can this be done in a better way than collecting into a vector?
-            if let FlatNode::Element(element) = node {
+        for (name_with_source_doc, node_idx) in nodes
+            .iter()
+            .filter_map(|node| {
+                if let FlatNode::Element(element) = node {
+                    Some(element)
+                } else {
+                    None
+                }
+            })
+            .flat_map(|element| {
                 get_element_names_with_source(element)
-                    .into_iter()
-                    .map(|name_with_source| (name_with_source, node.idx()))
-                    .collect::<Vec<_>>()
-            } else {
-                vec![]
-            }
-        }) {
+                    .map(|name_with_source| (name_with_source, element.idx))
+            })
+        {
             let mut prev_parent_idx_plus_1 = node_idx + 1;
 
             loop {
@@ -333,32 +335,42 @@ impl Resolver {
 ///
 /// For each such attribute, the value of the name is determined from the attribute's children.
 /// The attribute must have exactly one text child to be considered valid.
-fn get_element_names_with_source(element: &FlatElement) -> Vec<NameWithSource> {
-    let name_re = Regex::new(r"^(source-(?<source_doc>\d+):)?name$").unwrap();
-    let names_with_source = element
-        .attributes
-        .iter()
-        .filter_map(|attr| match name_re.captures(&attr.name) {
-            None => None,
-            Some(caps) => {
-                let source_doc: SourceDoc = match caps.name("source_doc") {
-                    // if the attribute is `name`, then get `source_doc` from the element itself
-                    None => element.source_doc.into(),
-                    // if the attribute is `source-n:name`, where `n` is number, then `n` is the `source_doc`
-                    Some(source_match) => source_match.as_str().try_into().unwrap(),
-                };
-                match (attr.children.len(), attr.children.first()) {
-                    // A name attribute should have exactly one text child. Otherwise it is considered invalid.
-                    (1, Some(UntaggedContent::Text(name))) => Some(NameWithSource {
-                        name: name.to_string(),
-                        source_doc,
-                    }),
-                    _ => None,
-                }
+fn get_element_names_with_source(
+    element: &FlatElement,
+) -> impl Iterator<Item = NameWithSource> + use<'_> {
+    element.attributes.iter().filter_map(|attr| {
+        // If the attribute name is `name` or of the form `source-n:name` where `n` is an integer,
+        // then determine both the name (which is the attribute value)
+        // and the source doc
+        let source_doc: SourceDoc = if attr.name == "name" {
+            // for the attribute 'name`, the source doc is the element's source doc`
+            element.source_doc.into()
+        } else if attr.name.starts_with("source-") && attr.name.ends_with(":name") {
+            // `attr.name` is of the form "source-n:name". Extract `n`. If it is an integer, then that is the `source_doc`
+            let prefix_len = 7; // "source-";
+            let postfix_len = 5; // ":name";
+            let end_pos: usize = attr.name.len() - postfix_len;
+            match TryInto::<SourceDoc>::try_into(&attr.name[prefix_len..end_pos]) {
+                // `n` is an integer, so we have a source doc
+                Ok(source_doc) => source_doc,
+                // `n` was not an integer, so skip
+                Err(_) => return None,
             }
-        })
-        .collect::<Vec<_>>();
-    names_with_source
+        } else {
+            return None;
+        };
+
+        // The attribute ws either `name` or `source-n:name`.
+        // Extract its value if have a single text child.
+        match (attr.children.len(), attr.children.first()) {
+            // A name attribute should have exactly one text child. Otherwise it is considered invalid.
+            (1, Some(UntaggedContent::Text(name))) => Some(NameWithSource {
+                name: name.to_string(),
+                source_doc,
+            }),
+            _ => None,
+        }
+    })
 }
 
 /// If `node` has an attribute named `source:sequence`,
