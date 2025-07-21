@@ -1,10 +1,14 @@
 import { Plugin, unified } from "unified";
-import { DastElement, DastMacro, DastRoot } from "../types";
-import { visit } from "../pretty-printer/normalize/utils/visit";
-import { isDastElement } from "../types-util";
-import { toXml } from "../dast-to-xml/dast-util-to-xml";
+import {
+    DastElement,
+    DastMacro,
+    DastRoot,
+    isDastElement,
+    replaceNode,
+    toXml,
+    visit,
+} from "@doenet/parser";
 import { reparseAttribute } from "./reparse-attribute";
-import { replaceNode } from "../pretty-printer/normalize/utils/replace-node";
 import { getUniqueName } from "./utils";
 
 /**

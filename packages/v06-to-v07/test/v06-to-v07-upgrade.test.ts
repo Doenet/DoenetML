@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { lezerToDast } from "../src/lezer-to-dast";
-import { lezerToDastV6 } from "../src/lezer-to-dast/lezer-to-dast-v6";
-import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
+import { toXml } from "@doenet/parser";
 import util from "util";
-import { DastRoot } from "../src/types";
-import { updateSyntaxFromV06toV07 } from "../src/v06-to-v07";
-import { reparseAttribute } from "../src/v06-to-v07/reparse-attribute";
+import { updateSyntaxFromV06toV07 } from "../src/index";
+import { reparseAttribute } from "../src/reparse-attribute";
 
 const origLog = console.log;
 console.log = (...args) => {

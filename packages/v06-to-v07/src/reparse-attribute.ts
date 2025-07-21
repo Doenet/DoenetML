@@ -1,5 +1,4 @@
-import { lezerToDast } from "../lezer-to-dast";
-import { DastAttribute } from "../types";
+import { DastAttribute, lezerToDast } from "@doenet/parser";
 
 /**
  * Reparse a string into DAST as if it were an attribute.

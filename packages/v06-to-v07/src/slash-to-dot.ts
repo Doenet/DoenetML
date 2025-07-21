@@ -9,12 +9,11 @@ import {
     DastNodesV6,
     DastRoot,
     DastRootV6,
-} from "../types";
-import { visit } from "../pretty-printer/normalize/utils/visit";
-import { isDastElement } from "../types-util";
-import { macroToString as v06macroToString } from "../macros-v6/macro-to-string";
-import { toXml } from "../dast-to-xml/dast-util-to-xml";
-import { parseMacrosV06 } from "../macros-v6";
+    isDastElement,
+    toXml,
+    visit,
+} from "@doenet/parser";
+import { parseMacrosV06, v06macroToString } from "@doenet/parser/v06";
 
 /**
  * Upgrade namespace path syntax.

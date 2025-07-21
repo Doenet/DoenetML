@@ -1,4 +1,4 @@
-import { DastElement } from "../types";
+import { DastElement } from "@doenet/parser";
 
 /**
  * Rename an attribute in place. This function ensure that the order that the attributes

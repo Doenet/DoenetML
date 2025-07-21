@@ -8,13 +8,11 @@ import {
     DastNodes,
     DastRoot,
     DastRootContent,
-} from "../types";
-import { EXIT, visit } from "../pretty-printer/normalize/utils/visit";
-import { isDastElement } from "../types-util";
-import { renameAttrInPlace } from "./rename-attr-in-place";
-import { toXml } from "../dast-to-xml/dast-util-to-xml";
+    isDastElement,
+    toXml,
+    visit,
+} from "@doenet/parser";
 import { reparseAttribute } from "./reparse-attribute";
-import { FunctionMacro, Path } from "../macros/types";
 
 /**
  * Upgrade references with attribute syntax.

@@ -5,9 +5,9 @@ import {
     DastElementContent,
     DastRoot,
     DastRootContent,
-} from "../types";
-import { visit } from "../pretty-printer/normalize/utils/visit";
-import { isDastElement } from "../types-util";
+    isDastElement,
+    visit,
+} from "@doenet/parser";
 import { createComponentInfoObjects } from "@doenet/doenetml-worker-javascript";
 
 /**
