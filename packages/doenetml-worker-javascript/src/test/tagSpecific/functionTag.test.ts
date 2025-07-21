@@ -7326,4 +7326,93 @@ describe("Function tag tests", async () => {
             stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
         ).eq(false);
     });
+
+    it("don't get error with conditional content containing function with conditional content", async () => {
+        // This strange DoenetML was triggering an error due
+        // `shadowedComposite.mediatesShadows` containing a deleted component
+        // in `expandShadowingComposite`. This test checks to make sure at least an error is not invoked.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <booleanInput name="bi" />
+
+        <function name="f1">
+        <math>
+            <conditionalContent>
+            <case condition="$bi">x</case> <else>x^2</else>
+            </conditionalContent>
+        </math>
+        </function>
+
+        <function name="f2">$f1</function>
+
+        <function name="f3"><conditionalContent condition="$bi">$f2</conditionalContent></function>
+
+        <p name="p">$$f1(6), $$f2(6), $$f3(6)</p>
+    
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f1")].stateValues.formula
+                .tree,
+        ).eqls(["^", "x", 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.formula
+                .tree,
+        ).eqls(["^", "x", 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues.formula
+                .tree,
+        ).eqls(0);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("36, 36, 0");
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f1")].stateValues.formula
+                .tree,
+        ).eqls("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.formula
+                .tree,
+        ).eqls("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues.formula
+                .tree,
+        ).eqls("x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("6, 6, 6");
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f1")].stateValues.formula
+                .tree,
+        ).eqls(["^", "x", 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.formula
+                .tree,
+        ).eqls(["^", "x", 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f3")].stateValues.formula
+                .tree,
+        ).eqls(0);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("36, 36, 0");
+    });
 });

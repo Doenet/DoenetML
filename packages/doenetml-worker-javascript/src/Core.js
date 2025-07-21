@@ -3200,7 +3200,7 @@ export default class Core {
             // the shadow of compositeMediatingTheShadow
             shadowedByShadowed = shadowedByShadowed.reduce((acc, cIdx) => {
                 let comp = this.components[cIdx];
-                if (comp.mediatesShadows) {
+                if (comp?.mediatesShadows) {
                     return [
                         ...acc,
                         ...comp.mediatesShadows
