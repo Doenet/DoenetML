@@ -58,7 +58,7 @@ fn resolve_to_parent_in_ambiguous_case() {
     let e_idx = find(&flat_root, "e").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    // Searching from `c` or `b` for `x` should find the its parent `<a>`
+    // Searching from `c` or `b` for `x` should find its parent `<a>`
     let x_name = NameWithSource {
         name: "x".to_string(),
         source_doc: None.into(),
@@ -134,6 +134,308 @@ fn can_resolve_names() {
             nodes_in_resolved_path: vec![c_idx, b_idx]
         })
     );
+}
+
+#[test]
+fn parent_name_supersedes_unique_descendant() {
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="x">
+            <b name="y">
+                <c name="y" />
+            </b>
+        </a>
+        <d name="z" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    // Searching for `y` from `c` should find itself
+    let referent = resolver.resolve(make_path(["y"], None), c_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: c_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"], None),
+            nodes_in_resolved_path: vec![c_idx]
+        })
+    );
+
+    // Searching for `y` from `b`  or `d` should find `b`
+    let referent = resolver.resolve(make_path(["y"], None), b_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: b_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"], None),
+            nodes_in_resolved_path: vec![b_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["y"], None), d_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: b_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"], None),
+            nodes_in_resolved_path: vec![d_idx, b_idx]
+        })
+    );
+
+    // Searching for `y.y` from `b`  or `d` should find `c`
+    let referent = resolver.resolve(make_path(["y", "y"], None), b_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: c_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "y"], None),
+            nodes_in_resolved_path: vec![b_idx, c_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["y", "y"], None), d_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: c_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "y"], None),
+            nodes_in_resolved_path: vec![d_idx, b_idx, c_idx]
+        })
+    );
+}
+
+#[test]
+fn parent_name_supersedes_ambiguous_descendants() {
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="x">
+            <b name="y">
+                <c name="y" />
+                <e name="y" />
+                <f/>
+            </b>
+        </a>
+        <d name="z" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let b_idx = find(&flat_root, "b").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+    let f_idx = find(&flat_root, "f").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    // Searching for `y` from `f` is ambiguous
+    let referent = resolver.resolve(make_path(["y"], None), f_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
+
+    // Searching for `y` from `b`  or `d` should find `b`
+    let referent = resolver.resolve(make_path(["y"], None), b_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: b_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"], None),
+            nodes_in_resolved_path: vec![b_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["y"], None), d_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: b_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"], None),
+            nodes_in_resolved_path: vec![d_idx, b_idx]
+        })
+    );
+
+    // Searching for `y.y` from `b`  or `d` is ambiguous
+    let referent = resolver.resolve(make_path(["y", "y"], None), b_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
+    let referent = resolver.resolve(make_path(["y", "y"], None), d_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
+}
+
+#[test]
+fn parent_name_supersedes_unique_descendant_swapping_order() {
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="x"><b name="y"><c name="y" /></b></a>
+        <d name="z" />"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+
+    // Swap the the positions of `<b>`, and `<c>` so the dast becomes
+    // ```
+    // <a name="x"><c name="y"><b name="y" /></c></a>
+    // <d name="z" />
+    // ```
+    // In this way, the index `c_idx` of the parent will be larger than the index `b_idx` of the child,
+    // and we can test that `<c>` will supersede `<b>` when resolving "y"
+    // even though `<b>` will be encountered first when building the name map
+
+    if let FlatNode::Element(element) = &mut flat_root.nodes[a_idx] {
+        element.children[0] = UntaggedContent::Ref(c_idx);
+    }
+
+    if let FlatNode::Element(element) = &mut flat_root.nodes[c_idx] {
+        element.parent = Some(a_idx);
+        element.children.push(UntaggedContent::Ref(b_idx));
+    }
+
+    if let FlatNode::Element(element) = &mut flat_root.nodes[b_idx] {
+        element.parent = Some(c_idx);
+        element.children = vec![];
+    }
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    // Searching for `y` from `b` should find itself
+    let referent = resolver.resolve(make_path(["y"], None), b_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: b_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"], None),
+            nodes_in_resolved_path: vec![b_idx]
+        })
+    );
+
+    // Searching for `y` from `c`  or `d` should find `c`
+    let referent = resolver.resolve(make_path(["y"], None), c_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: c_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"], None),
+            nodes_in_resolved_path: vec![c_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["y"], None), d_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: c_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"], None),
+            nodes_in_resolved_path: vec![d_idx, c_idx]
+        })
+    );
+
+    // Searching for `y.y` from `c`  or `d` should find `b`
+    let referent = resolver.resolve(make_path(["y", "y"], None), c_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: b_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "y"], None),
+            nodes_in_resolved_path: vec![c_idx, b_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["y", "y"], None), d_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: b_idx,
+            unresolved_path: None,
+            original_path: make_path(["y", "y"], None),
+            nodes_in_resolved_path: vec![d_idx, c_idx, b_idx]
+        })
+    );
+}
+
+#[test]
+fn parent_name_supersedes_ambiguous_descendants_swapping_order() {
+    let dast_root = dast_root_no_position(
+        r#"
+        <a name="x"><b name="y"><f/><c name="y" /><e name="y" /></b></a>
+        <d name="z" />"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+    let e_idx = find(&flat_root, "e").unwrap();
+    let f_idx = find(&flat_root, "f").unwrap();
+
+    // Swap the the positions of `<b>`, and `<c>` so the dast becomes
+    // ```
+    // <a name="x"><e name="y"><f/><c name="y" /><b name="y" /></b></a>
+    // <d name="z" />
+    // ```
+    // In this way, the index `e_idx` of the parent will be larger than the indices `b_idx` and `c_idx` of the children,
+    // and we can test that `<e>` will supersede `<b>` and `<c>` when resolving "y"
+    // even though `<b>` and `<c>` will be encountered first when building the name map
+
+    if let FlatNode::Element(element) = &mut flat_root.nodes[a_idx] {
+        element.children[0] = UntaggedContent::Ref(e_idx);
+    }
+    if let FlatNode::Element(element) = &mut flat_root.nodes[e_idx] {
+        element.parent = Some(a_idx);
+        element.children.push(UntaggedContent::Ref(f_idx));
+        element.children.push(UntaggedContent::Ref(c_idx));
+        element.children.push(UntaggedContent::Ref(b_idx));
+    }
+    if let FlatNode::Element(element) = &mut flat_root.nodes[b_idx] {
+        element.parent = Some(e_idx);
+        element.children = vec![];
+    }
+    if let FlatNode::Element(element) = &mut flat_root.nodes[c_idx] {
+        element.parent = Some(e_idx);
+    }
+    if let FlatNode::Element(element) = &mut flat_root.nodes[f_idx] {
+        element.parent = Some(e_idx);
+    }
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    // Searching for `y` from `f` is ambiguous
+    let referent = resolver.resolve(make_path(["y"], None), f_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
+
+    // Searching for `y` from `e`  or `d` should find `e`
+    let referent = resolver.resolve(make_path(["y"], None), e_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: e_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"], None),
+            nodes_in_resolved_path: vec![e_idx]
+        })
+    );
+    let referent = resolver.resolve(make_path(["y"], None), d_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: e_idx,
+            unresolved_path: None,
+            original_path: make_path(["y"], None),
+            nodes_in_resolved_path: vec![d_idx, e_idx]
+        })
+    );
+
+    // Searching for `y.y` from `e`  or `d` is ambiguous
+    let referent = resolver.resolve(make_path(["y", "y"], None), e_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
+    let referent = resolver.resolve(make_path(["y", "y"], None), d_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NonUniqueReferent));
 }
 
 #[test]
