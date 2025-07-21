@@ -1,7 +1,4 @@
-import { toXml } from "../dast-to-xml/dast-util-to-xml";
-import { isElement } from "../pretty-printer/normalize/utils/testers";
-import { visit } from "../pretty-printer/normalize/utils/visit";
-import { DastRoot } from "../types";
+import { DastRoot, isDastElement, toXml, visit } from "@doenet/parser";
 
 /**
  * Find a name that does not conflict with any existing element names. `baseName` is
@@ -10,7 +7,7 @@ import { DastRoot } from "../types";
 export function getUniqueName(tree: DastRoot, baseName: string): string {
     const allNames = new Set();
     visit(tree, (node) => {
-        if (!isElement(node)) {
+        if (!isDastElement(node)) {
             return;
         }
         if (node.attributes["name"]) {

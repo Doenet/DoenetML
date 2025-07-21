@@ -7,10 +7,8 @@ import init, {
     IndexResolution,
     NodeList,
 } from "lib-doenetml-worker";
-import { normalizeDocumentDast } from "../../dast-normalize/normalize-dast";
+import { normalizeDocumentDast, DastRoot, toXml } from "@doenet/parser";
 import { PublicDoenetMLCore } from "@doenet/doenetml-worker-javascript";
-import { DastRoot } from "../../types";
-import { toXml } from "../../dast-to-xml/dast-util-to-xml";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
 
 type DoenetMLFlags = {

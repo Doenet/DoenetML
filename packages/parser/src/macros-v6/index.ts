@@ -1,4 +1,5 @@
 import { DastText, DastMacroV6, DastFunctionMacroV6 } from "../types";
+import { macroToString } from "./macro-to-string";
 import { MacroParser } from "./parser";
 
 /**
@@ -13,3 +14,5 @@ export function parseMacrosV06(
         | DastFunctionMacroV6
     )[];
 }
+
+export { macroToString as v06macroToString };

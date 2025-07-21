@@ -1,16 +1,9 @@
 import { Plugin, unified } from "unified";
 import { VFile } from "vfile";
-import {
-    DastAttribute,
-    DastElement,
-    DastElementContent,
-    DastRoot,
-    DastRootContent,
-    DastRootV6,
-} from "../types";
-import { visit } from "../pretty-printer/normalize/utils/visit";
-import { isDastElement } from "../types-util";
-import { toXml } from "../dast-to-xml/dast-util-to-xml";
+import { DastRoot, DastRootV6 } from "@doenet/parser";
+import { visit } from "@doenet/parser";
+import { isDastElement } from "@doenet/parser";
+import { toXml } from "@doenet/parser";
 import { reparseAttribute } from "./reparse-attribute";
 import {
     correctAttributeCapitalization,
@@ -18,7 +11,7 @@ import {
 } from "./normalize-capitalization";
 import { upgradeCollectElement } from "./upgrade-collect-element";
 import { upgradePathSlashesToDots } from "./slash-to-dot";
-import { lezerToDastV6 } from "../lezer-to-dast/lezer-to-dast-v6";
+import { lezerToDastV6 } from "@doenet/parser/v06";
 import { upgradeCopySyntax } from "./upgrade-copy-syntax";
 import { upgradeAttributeSyntax } from "./upgrade-attribute-syntax";
 import { upgradeMapElement } from "./upgrade-map-element";

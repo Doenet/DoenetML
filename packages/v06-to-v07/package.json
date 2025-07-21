@@ -1,8 +1,8 @@
 {
-    "name": "@doenet/parser",
+    "name": "@doenet/v06-to-v07",
     "type": "module",
-    "description": "Parse DoenetML",
-    "version": "*",
+    "description": "Convert DoenetML v0.6 syntax to v0.7 syntax",
+    "version": "0.7.0-alpha50",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -14,14 +14,6 @@
         ".": {
             "import": "./dist/index.js"
         },
-        "./pretty-printer": {
-            "import": "./dist/pretty-printer.js",
-            "types": "./dist/pretty-printer/index.d.ts"
-        },
-        "./v06": {
-            "import": "./dist/index-v06.js",
-            "types": "./dist/index-v06.d.ts"
-        },
         "./*": {
             "import": "./dist/*.js"
         }
@@ -30,15 +22,14 @@
         "dev": "vite",
         "watch": "vite build --watch",
         "build": "wireit",
-        "test": "vitest",
-        "compile_grammar": "npx lezer-generator --output src/generated-assets/lezer-doenet.ts src/doenet.grammar"
+        "publish": "npm run build && cd dist && npm publish",
+        "test": "vitest"
     },
     "wireit": {
         "build": {
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
-                "src/**/*.peggy",
                 "tsconfig.json",
                 "vite.config.ts"
             ],
@@ -48,7 +39,8 @@
                 "dist/**/*.json"
             ],
             "dependencies": [
-                "../static-assets:build"
+                "../parser:build",
+                "../doenetml-worker:build"
             ]
         }
     },

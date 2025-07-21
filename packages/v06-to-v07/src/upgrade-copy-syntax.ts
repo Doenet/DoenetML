@@ -7,13 +7,13 @@ import {
     DastMacroPathPart,
     DastRoot,
     DastRootContent,
-} from "../types";
-import { EXIT, visit } from "../pretty-printer/normalize/utils/visit";
-import { isDastElement } from "../types-util";
+    EXIT,
+    isDastElement,
+    toXml,
+    visit,
+} from "@doenet/parser";
 import { renameAttrInPlace } from "./rename-attr-in-place";
-import { toXml } from "../dast-to-xml/dast-util-to-xml";
 import { reparseAttribute } from "./reparse-attribute";
-import { Path, PathPart } from "../macros/types";
 import { createCoreForLookup } from "./core-info/core";
 import { determinePropType } from "./core-info/determine-prop-type";
 
