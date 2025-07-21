@@ -14,7 +14,7 @@ mod string_prop;
 mod string_to_integer_prop;
 mod util;
 
-#[cfg(any(test, debug_assertions))]
+#[cfg(any(test, debug_assertions, feature = "testing"))]
 #[path = "utils.test.rs"]
 pub mod test_utils;
 
