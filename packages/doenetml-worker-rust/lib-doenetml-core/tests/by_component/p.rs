@@ -185,7 +185,7 @@ mod test_helpers {
     use doenetml_core::{
         components::P,
         dast::{FlatDastElement, FlatDastElementContent, ForRenderPropValueOrContent},
-        props::{prop_type, traits::IntoPropView, PropValue, PropView},
+        props::{PropValue, PropView, prop_type, traits::IntoPropView},
         state::types::content_refs::ContentRef,
     };
 

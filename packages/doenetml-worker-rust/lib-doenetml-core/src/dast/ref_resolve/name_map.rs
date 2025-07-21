@@ -1,7 +1,7 @@
 use std::ops::{Deref, DerefMut};
 
 use rustc_hash::FxHashMap;
-use serde::{ser::SerializeMap, Serialize};
+use serde::{Serialize, ser::SerializeMap};
 
 use crate::dast::{flat_dast::SourceDoc, ref_resolve::Ref};
 

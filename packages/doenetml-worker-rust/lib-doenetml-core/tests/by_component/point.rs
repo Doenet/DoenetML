@@ -2,9 +2,9 @@ use super::*;
 
 use doenetml_core::{
     components::{
+        ActionsEnum,
         doenet::point::{PointActions, PointMoveActionArgs, PointProps},
         types::{Action, ActionBody},
-        ActionsEnum,
     },
     dast::{ForRenderPropValue, ForRenderPropValueOrContent, ForRenderProps},
     state::types::math_expr::{JsMathExpr, MathExpr},

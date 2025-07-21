@@ -4,10 +4,10 @@ use super::title::Title;
 use crate::components::prelude::*;
 use crate::general_prop::ComponentRefProp;
 use crate::general_prop::{BooleanProp, EnumProp};
-use crate::props::as_updater_object;
 use crate::props::DataQueryResults;
 use crate::props::PropView;
 use crate::props::UpdaterObject;
+use crate::props::as_updater_object;
 use crate::state::types::division_type::DivisionType;
 
 /// The `<division>` component renders its children along with a title
@@ -110,12 +110,12 @@ mod component {
     }
 }
 
-use component::attrs;
-use component::props;
 pub use component::Division;
 pub use component::DivisionActions;
 pub use component::DivisionAttributes;
 pub use component::DivisionProps;
+use component::attrs;
+use component::props;
 
 impl PropGetUpdater for DivisionProps {
     fn get_updater(&self) -> UpdaterObject {

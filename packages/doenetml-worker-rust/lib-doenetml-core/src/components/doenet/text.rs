@@ -44,12 +44,12 @@ mod component {
     }
 }
 
-use component::attrs;
-use component::props;
 pub use component::Text;
 pub use component::TextActions;
 pub use component::TextAttributes;
 pub use component::TextProps;
+use component::attrs;
+use component::props;
 
 impl PropGetUpdater for TextProps {
     fn get_updater(&self) -> UpdaterObject {

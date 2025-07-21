@@ -3,7 +3,7 @@ use super::*;
 use doenetml_core::{
     components::doenet::{li::LiProps, ol::OlProps},
     dast::ElementRefAnnotation,
-    props::{prop_type, PropView},
+    props::{PropView, prop_type},
     state::types::content_refs::{AnnotatedContentRefs, ContentRef},
 };
 

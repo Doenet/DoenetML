@@ -13,6 +13,7 @@
 //!    to track dependencies among _DoenetML_ components and their properties.
 
 #![allow(clippy::single_match)]
+#![allow(clippy::let_and_return)]
 
 pub mod components;
 pub mod core;

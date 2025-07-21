@@ -63,3 +63,4 @@ packages/docs-nextra/public/bundle
 .next
 cspell.json
 *.timestamp-*
+.cspell

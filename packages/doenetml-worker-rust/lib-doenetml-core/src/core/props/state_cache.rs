@@ -5,8 +5,8 @@ use std::{borrow, cell::Cell};
 use crate::core::graph_node::GraphNode;
 
 use super::{
-    cache::{PropCache, PropWithMeta},
     PropCalcResult, PropValue,
+    cache::{PropCache, PropWithMeta},
 };
 
 /// Storage for state props that facilitates setting, retrieval, and tracking of changes

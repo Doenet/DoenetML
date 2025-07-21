@@ -43,12 +43,12 @@ mod component {
     }
 }
 
-use component::attrs;
-use component::props;
 pub use component::Number;
 pub use component::NumberActions;
 pub use component::NumberAttributes;
 pub use component::NumberProps;
+use component::attrs;
+use component::props;
 
 impl PropGetUpdater for NumberProps {
     fn get_updater(&self) -> UpdaterObject {

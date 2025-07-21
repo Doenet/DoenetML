@@ -8,7 +8,7 @@ use crate::{
     graph_node::GraphNode,
 };
 
-use super::{cache::PropWithMeta, ApplyTest, FilterData, PropProfile};
+use super::{ApplyTest, FilterData, PropProfile, cache::PropWithMeta};
 
 /// Data resulting from a `DataQuery`
 #[derive(Debug, Clone)]

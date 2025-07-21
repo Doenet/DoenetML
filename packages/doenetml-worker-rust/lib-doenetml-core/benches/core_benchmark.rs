@@ -1,11 +1,11 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use doenetml_core::{
+    Core,
     components::{
+        ActionsEnum,
         doenet::text_input::{TextInputActionArgs, TextInputActions},
         types::{Action, ActionBody},
-        ActionsEnum,
     },
-    Core,
 };
 
 #[path = "../tests/test_utils/mod.rs"]
