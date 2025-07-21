@@ -2,7 +2,7 @@
     "name": "@doenet/parser",
     "type": "module",
     "description": "Parse DoenetML",
-    "version": "0.7.0",
+    "version": "*",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,

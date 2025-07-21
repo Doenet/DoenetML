@@ -6,11 +6,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { CodeMirror } from "@doenet/codemirror";
-import JsonView from "react18-json-view";
 import "react18-json-view/src/style.css";
-import { filterPositionInfo } from "./dast-to-xml/utils";
-import { lezerToDast } from "./lezer-to-dast";
-import { lezerToDastV6 } from "./index-v06";
+import { toXml } from "@doenet/parser";
+import { UiButton } from "@doenet/ui-components";
+import "@doenet/ui-components/style.css";
+import { updateSyntaxFromV06toV07 } from "./index";
 
 const INITIAL_DOENET_SOURCE = `
 <p>Use this to test DoenetML</p>
@@ -31,58 +31,44 @@ function App() {
     const [doenetSource, setDoenetSource] = React.useState(
         INITIAL_DOENET_SOURCE,
     );
-    const [dast, setDast] = React.useState({});
-    const [omitPosition, setOmitPosition] = React.useState(false);
-    const [rawJson, setRawJson] = React.useState(false);
-    const [dastV6, setDastV6] = React.useState(false);
-
-    React.useEffect(() => {
-        let dast = dastV6
-            ? lezerToDastV6(doenetSource)
-            : lezerToDast(doenetSource);
-        if (omitPosition) {
-            dast = filterPositionInfo(dast as any) as any;
-        }
-        setDast(dast);
-    }, [doenetSource, omitPosition, dastV6]);
+    const [processedSource, setProcessedSource] = React.useState("");
+    const [processing, setProcessing] = React.useState(false);
+    const [errorMessages, setErrorMessages] = React.useState<string[]>([]);
 
     return (
         <div
             style={{ display: "flex", flexDirection: "column", height: "100%" }}
         >
-            <div>
-                <input
-                    type="checkbox"
-                    id="include-position"
-                    checked={omitPosition}
-                    onChange={(e) => {
-                        setOmitPosition(e.target.checked);
+            <div style={{ backgroundColor: "gray", padding: "3px" }}>
+                <UiButton
+                    onClick={async () => {
+                        setProcessing(true);
+                        try {
+                            const { dast: updatedDast, vfile } =
+                                await updateSyntaxFromV06toV07(doenetSource);
+                            console.log(
+                                "Upgraded syntax to the follow v0.7 DAST",
+                                updatedDast,
+                                vfile,
+                            );
+                            const newSource = toXml(updatedDast);
+                            console.log(
+                                "Upgraded syntax to the follow v0.7 XML",
+                                newSource,
+                            );
+                            setProcessedSource(newSource);
+                            setErrorMessages(
+                                vfile.messages.map((msg) => String(msg)),
+                            );
+                        } finally {
+                            setProcessing(false);
+                        }
                     }}
-                />
-                <label htmlFor="include-position">Omit position</label>
-                <input
-                    type="checkbox"
-                    id="raw-json"
-                    checked={rawJson}
-                    onChange={(e) => {
-                        setRawJson(e.target.checked);
-                    }}
-                />
-                <label htmlFor="raw-json">Show raw JSON</label>
-                <input
-                    type="checkbox"
-                    id="dast-v6"
-                    checked={dastV6}
-                    onChange={(e) => {
-                        setDastV6(e.target.checked);
-                    }}
-                />
-                <label
-                    htmlFor="dast-v6"
-                    title="DAST v0.6 is the old version of DAST that accepts old-style macros."
                 >
-                    Use DAST v0.6
-                </label>
+                    {processing
+                        ? "Processing..."
+                        : "Upgrade to v0.7 Syntax"}{" "}
+                </UiButton>
             </div>
             <div
                 style={{ display: "flex", overflow: "hidden", height: "100%" }}
@@ -103,19 +89,16 @@ function App() {
                         overflow: "scroll",
                     }}
                 >
-                    {rawJson ? (
-                        <pre>{JSON.stringify(dast, null, 2)}</pre>
-                    ) : (
-                        <JsonView
-                            src={dast}
-                            enableClipboard={false}
-                            collapsed={(node) => {
-                                if (node.indexOrName === "position") {
-                                    return true;
-                                }
-                                return false;
-                            }}
-                        />
+                    <pre>{processedSource}</pre>
+                    {errorMessages.length > 0 && (
+                        <div>
+                            <h3>Warnings</h3>
+                            <ul>
+                                {errorMessages.map((msg, index) => (
+                                    <li key={index}>{msg}</li>
+                                ))}
+                            </ul>
+                        </div>
                     )}
                 </div>
             </div>
