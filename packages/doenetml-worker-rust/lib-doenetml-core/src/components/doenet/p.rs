@@ -23,10 +23,10 @@ mod component {
     }
 }
 
+pub use component::P;
 pub use component::PActions;
 pub use component::PAttributes;
 pub use component::PProps;
-pub use component::P;
 
 impl PropGetUpdater for PProps {
     fn get_updater(&self) -> UpdaterObject {

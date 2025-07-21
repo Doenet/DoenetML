@@ -1,11 +1,11 @@
 //! Utilities for generating `mermaid` diagrams from `doenetml` data.
 
 use crate::{
-    components::{prelude::UntaggedContent, types::ComponentIdx, ComponentAttributes},
+    Core,
+    components::{ComponentAttributes, prelude::UntaggedContent, types::ComponentIdx},
     dast::flat_dast::{NormalizedNode, NormalizedRoot},
     graph::directed_graph::DirectedGraph,
     graph_node::{GraphNode, GraphNodeLookup},
-    Core,
 };
 use itertools::Itertools;
 

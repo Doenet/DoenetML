@@ -1,7 +1,7 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    components::{types::LocalPropIdx, ComponentEnum},
+    components::{ComponentEnum, types::LocalPropIdx},
     props::PropProfile,
 };
 

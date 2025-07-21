@@ -1,14 +1,14 @@
 use itertools::Itertools;
 
 use crate::{
+    DocumentModel,
     components::{
         prelude::ComponentIdx,
         types::{PropPointer, UpdateFromAction},
     },
     graph::directed_graph::Taggable,
     graph_node::{GraphNode, GraphNodeLookup},
-    props::{cache::PropStatus, PropProfile, PropValue},
-    DocumentModel,
+    props::{PropProfile, PropValue, cache::PropStatus},
 };
 
 impl DocumentModel {

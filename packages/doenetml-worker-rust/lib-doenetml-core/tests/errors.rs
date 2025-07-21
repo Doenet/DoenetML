@@ -14,12 +14,14 @@ fn errors_from_dast_parsing_transmitted() {
     assert_eq!(elements[1].name, "a");
     assert_eq!(elements[2].name, "_error");
     assert_eq!(elements[2].data.id, 2);
-    assert!(elements[2]
-        .data
-        .message
-        .as_ref()
-        .unwrap()
-        .contains("Invalid DoenetML"));
+    assert!(
+        elements[2]
+            .data
+            .message
+            .as_ref()
+            .unwrap()
+            .contains("Invalid DoenetML")
+    );
 }
 
 #[test]
@@ -33,12 +35,14 @@ fn error_from_no_referent() {
 
     assert_eq!(elements[1].name, "_error");
     assert_eq!(elements[1].data.id, 1);
-    assert!(elements[1]
-        .data
-        .message
-        .as_ref()
-        .unwrap()
-        .contains("No referent"));
+    assert!(
+        elements[1]
+            .data
+            .message
+            .as_ref()
+            .unwrap()
+            .contains("No referent")
+    );
 }
 
 #[test]
@@ -53,12 +57,14 @@ fn error_from_multiple_referents() {
 
     assert_eq!(elements[2].name, "_error");
     assert_eq!(elements[2].data.id, 2);
-    assert!(elements[2]
-        .data
-        .message
-        .as_ref()
-        .unwrap()
-        .contains("Multiple referents"));
+    assert!(
+        elements[2]
+            .data
+            .message
+            .as_ref()
+            .unwrap()
+            .contains("Multiple referents")
+    );
 }
 
 #[test]
@@ -74,31 +80,39 @@ fn error_referencing_external_and_referencing_error() {
 
     assert_eq!(elements[1].name, "_error");
     assert_eq!(elements[1].data.id, 1);
-    assert!(elements[1]
-        .data
-        .message
-        .as_ref()
-        .unwrap()
-        .contains("Error while extending"));
-    assert!(elements[1]
-        .data
-        .message
-        .as_ref()
-        .unwrap()
-        .contains("from an external component"));
+    assert!(
+        elements[1]
+            .data
+            .message
+            .as_ref()
+            .unwrap()
+            .contains("Error while extending")
+    );
+    assert!(
+        elements[1]
+            .data
+            .message
+            .as_ref()
+            .unwrap()
+            .contains("from an external component")
+    );
 
     assert_eq!(elements[2].name, "_error");
     assert_eq!(elements[2].data.id, 2);
-    assert!(elements[2]
-        .data
-        .message
-        .as_ref()
-        .unwrap()
-        .contains("Error while extending"));
-    assert!(elements[2]
-        .data
-        .message
-        .as_ref()
-        .unwrap()
-        .contains("from an error component"));
+    assert!(
+        elements[2]
+            .data
+            .message
+            .as_ref()
+            .unwrap()
+            .contains("Error while extending")
+    );
+    assert!(
+        elements[2]
+            .data
+            .message
+            .as_ref()
+            .unwrap()
+            .contains("from an error component")
+    );
 }

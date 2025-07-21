@@ -3,11 +3,11 @@ use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 
 use crate::components::{
+    ComponentEnum,
     doenet::{
         graph::GraphActions, point::PointActions, text::TextActions, text_input::TextInputActions,
     },
     types::{ActionQueryProp, UpdateFromAction},
-    ComponentEnum,
 };
 
 use super::{ComponentActions, ComponentNode};

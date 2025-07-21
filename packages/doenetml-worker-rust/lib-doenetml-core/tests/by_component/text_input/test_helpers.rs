@@ -1,11 +1,11 @@
 use doenetml_core::components::{
+    ActionsEnum,
     doenet::{
         boolean::BooleanProps,
         text::TextProps,
         text_input::{TextInputActionArgs, TextInputActions, TextInputProps},
     },
     types::{Action, ActionBody},
-    ActionsEnum,
 };
 
 use super::*;

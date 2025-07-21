@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use crate::components::{
+    ComponentOnAction,
     prelude::{ComponentIdx, FlatDastElementUpdate},
     types::{Action, ActionQueryProp},
-    ComponentOnAction,
 };
 
 use super::core::Core;

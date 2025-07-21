@@ -72,12 +72,12 @@ mod component {
     }
 }
 
-use component::attrs;
-use component::props;
 pub use component::Math;
 pub use component::MathActions;
 pub use component::MathAttributes;
 pub use component::MathProps;
+use component::attrs;
+use component::props;
 
 impl PropGetUpdater for MathProps {
     fn get_updater(&self) -> UpdaterObject {

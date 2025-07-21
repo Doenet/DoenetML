@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use super::super::*;
 use super::*;
-use crate::{test_utils::*, Core};
+use crate::{Core, test_utils::*};
 
 #[test]
 fn can_apply_test_on_an_op() {
@@ -326,7 +326,7 @@ mod bindable {
     //! Traits to make testing slightly easier.
 
     use super::{ApplyTest, ContentFilter, FilterData, Op, OpNot};
-    use crate::{graph_node::GraphNode, DocumentModel};
+    use crate::{DocumentModel, graph_node::GraphNode};
     use std::fmt::Debug;
 
     /// Implementing this trait allows you to be bound to a document model.

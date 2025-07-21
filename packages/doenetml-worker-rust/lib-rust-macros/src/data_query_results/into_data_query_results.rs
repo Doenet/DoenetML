@@ -3,8 +3,8 @@ use quote::quote;
 use syn::{self, DeriveInput};
 use syn::{Generics, Type};
 
-use darling::ast;
 use darling::FromDeriveInput;
+use darling::ast;
 use syn::Ident;
 
 #[derive(Debug, FromDeriveInput)]

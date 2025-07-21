@@ -326,7 +326,7 @@ mod test_helpers {
 
     use doenetml_core::{
         components::doenet::{_fragment::_FragmentProps, division::DivisionProps},
-        props::{prop_type, traits::IntoPropView, PropView},
+        props::{PropView, prop_type, traits::IntoPropView},
         state::types::content_refs::ContentRef,
     };
 

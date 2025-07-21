@@ -2,7 +2,7 @@
 
 use typed_index_collections::TiVec;
 
-use crate::components::{types::ComponentIdx, Component, ComponentCommon};
+use crate::components::{Component, ComponentCommon, types::ComponentIdx};
 
 /// An iterator that iterates of the true ancestors of a component.
 pub(super) struct AncestorIterator<'a> {

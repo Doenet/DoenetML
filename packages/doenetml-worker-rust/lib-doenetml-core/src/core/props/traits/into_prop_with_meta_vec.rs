@@ -1,4 +1,4 @@
-use crate::props::{cache::PropWithMeta, PropView};
+use crate::props::{PropView, cache::PropWithMeta};
 
 /// Trait to allow for conversion from a `PropView` to a `Vec<PropWithMeta>`.
 pub trait IntoPropWithMetaVec {
@@ -40,7 +40,7 @@ mod test {
     use prop_value::prop_type;
 
     use crate::components::prelude::*;
-    use crate::props::{prop_value, PropValue};
+    use crate::props::{PropValue, prop_value};
 
     use super::*;
 

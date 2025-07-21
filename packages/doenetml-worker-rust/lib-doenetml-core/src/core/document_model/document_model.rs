@@ -8,15 +8,15 @@ use std::cell::{Cell, Ref, RefCell};
 use crate::{
     component_builder::ComponentBuilder,
     components::{
-        types::{ComponentIdx, LocalPropIdx, PropPointer},
         Component, ComponentNode, ComponentProps,
+        types::{ComponentIdx, LocalPropIdx, PropPointer},
     },
     dast::ElementRefAnnotation,
     graph_node::{DependencyGraph, GraphNode},
     props::{
-        cache::{PropCache, PropStatus, PropWithMeta},
         DataQuery, DataQueryResults, PropDefinition, PropProfile, RenderContext, StateCache,
         UpdaterObject,
+        cache::{PropCache, PropStatus, PropWithMeta},
     },
 };
 

@@ -145,7 +145,7 @@ mod custom_props {
                     None => {
                         return PropCalcResult::Calculated(Rc::new(
                             "[ERROR RESOLVING REFERENCE]".to_string(),
-                        ))
+                        ));
                     }
                     Some(val) => val.to_owned().value,
                 };

@@ -6,7 +6,7 @@ use crate::{
     state::types::math_expr::{MathExpr, MathParser},
 };
 
-use super::math_prop::{calculate_math_from_prop_value_vector, MathPropCache};
+use super::math_prop::{MathPropCache, calculate_math_from_prop_value_vector};
 
 /// A number prop that calculates its value from dependencies.
 ///

@@ -10,12 +10,12 @@ use typed_index_collections::TiVec;
 use crate::{
     component_builder::ComponentBuilder,
     components::{
-        types::{ComponentIdx, PropDefinitionIdx, PropPointer},
         Component, ComponentAttributes, ComponentCommon,
+        types::{ComponentIdx, PropDefinitionIdx, PropPointer},
     },
     dast::ElementRefAnnotation,
     graph_node::{GraphNode, GraphNodeLookup, StructureGraph},
-    props::{cache::PropWithMeta, PropDefinition, PropProfile, StringCache},
+    props::{PropDefinition, PropProfile, StringCache, cache::PropWithMeta},
 };
 
 use super::ancestor_iterator::AncestorIterator;
@@ -232,7 +232,7 @@ impl DocumentStructure {
     }
 
     /// Returns an iterator over all component indices
-    pub fn get_component_indices(&self) -> impl Iterator<Item = ComponentIdx> {
+    pub fn get_component_indices(&self) -> impl Iterator<Item = ComponentIdx> + use<> {
         (0..self.components.len()).map(ComponentIdx::new)
     }
 

@@ -1,14 +1,14 @@
 //! This file contains utilities for testing DoenetMLCore.
+use doenetml_core::Core;
 use doenetml_core::components::types::{Action, ComponentIdx, LocalPropIdx, PropPointer};
 use doenetml_core::dast::flat_dast::FlatPathPart;
 use doenetml_core::dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot};
 use doenetml_core::props::cache::PropWithMeta;
 use doenetml_core::props::traits::IntoPropView;
 use doenetml_core::props::{PropValue, PropView};
-use doenetml_core::Core;
 use serde_json;
 #[allow(unused)]
-pub use serde_json::{json, Value};
+pub use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
