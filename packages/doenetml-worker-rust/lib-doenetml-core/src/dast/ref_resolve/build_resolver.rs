@@ -401,9 +401,7 @@ impl Resolver {
 ///
 /// For each such attribute, the value of the name is determined from the attribute's children.
 /// The attribute must have exactly one text child to be considered valid.
-fn get_element_names_with_source(
-    element: &FlatElement,
-) -> impl Iterator<Item = NameWithSource> + use<'_> {
+fn get_element_names_with_source(element: &FlatElement) -> impl Iterator<Item = NameWithSource> {
     // Note: before PR #552, we tried a regex here (which was recreated each time this function was called).
     // This led the test `add_and_delete_a_large_number_of_nodes_multiple_times` in `build_resolver.test.rs`
     // to take multiple seconds to run. (Removing the regex saw about a 70-fold increase in speed for that test.)
