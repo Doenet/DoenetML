@@ -16,7 +16,7 @@ use super::{
 
 pub use super::parent_iterator::ParentIterator;
 
-#[declare]
+#[cfg_attr(feature = "web", declare)]
 pub type Index = usize;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq)]

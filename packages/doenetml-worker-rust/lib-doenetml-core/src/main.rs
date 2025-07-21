@@ -4,7 +4,7 @@ use doenetml_core::{core::core::Core, dast::DastRoot};
 fn main() -> Result<()> {
     println!("Running DoenetML Core in Standalone Mode");
 
-    let program = r#"{"type":"root","children":[{"type":"element","name":"document","attributes":{},"children":[{"type":"element","name":"text","attributes":{},"children":[{"type":"text","value":"hello "},{"type":"element","name":"text","attributes":{},"children":[{"type":"text","value":"there"}]}]}]}]}"#;
+    let program = r#"{"type":"root","children":[{"type":"element","name":"document","attributes":{},"children":[{"type":"element","name":"text","attributes":{},"children":[{"type":"text","value":"hello "},{"type":"element","name":"text","attributes":{},"children":[{"type":"text","value":"there"}]}]}]}], "sources":[]}"#;
     let dast_root: DastRoot = serde_json::from_str(program)?;
 
     let mut core = Core::new();
