@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
-import { movePoint, updateMathInputValue } from "../utils/actions";
+import {
+    movePoint,
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -7271,5 +7275,55 @@ describe("Function tag tests", async () => {
 
         await test_items("light");
         await test_items("dark");
+    });
+
+    it("don't get error with function with math containing conditional content of functions", async () => {
+        // This DoenetML does not create a valid function.
+        // But, due to a bug, it was triggering an error.
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <booleanInput name="bi" />
+        <boolean extend="$bi" name="b" />
+
+        <function name="f">
+        <math>
+            <conditionalContent>
+            <case condition="$bi"><function through="(0,1) (5,7) (3,-1)" /></case> <else>
+                <function maxima="(3,1)" />
+            </else>
+            </conditionalContent>
+        </math>
+        </function>
+
+        $f
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
     });
 });
