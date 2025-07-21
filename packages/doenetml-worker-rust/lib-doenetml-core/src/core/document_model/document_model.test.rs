@@ -1,7 +1,7 @@
 use itertools::Itertools;
 
 use crate::{
-    components::{types::LocalPropIdx, ComponentNode, Text, TextInput, P},
+    components::{ComponentNode, P, Text, TextInput, types::LocalPropIdx},
     core::{core::Core, graph_node::GraphNode},
     test_utils::*,
 };

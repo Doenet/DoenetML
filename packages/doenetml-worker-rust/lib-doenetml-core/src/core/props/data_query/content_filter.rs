@@ -2,7 +2,7 @@
 //! filtering/querying a component and its props.
 
 use super::{ApplyTest, Cond, PropValue};
-use crate::{graph_node::GraphNode, props::PropProfile, DocumentModel};
+use crate::{DocumentModel, graph_node::GraphNode, props::PropProfile};
 
 /// Filters used to filter content (props/components/strings) from the structure graph.
 #[derive(Debug, Clone)]

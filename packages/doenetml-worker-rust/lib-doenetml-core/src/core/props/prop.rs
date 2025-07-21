@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::components::{types::PropPointer, Boolean, Math, Number, Text, _Fragment};
+use crate::components::{_Fragment, Boolean, Math, Number, Text, types::PropPointer};
 
 use super::{PropProfile, PropUpdaterUntyped, PropValueType};
 

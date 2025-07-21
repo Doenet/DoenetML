@@ -1,6 +1,6 @@
 use crate::{
     components::ComponentVariantPropTypes,
-    props::{prop_profile_to_type, PropProfile},
+    props::{PropProfile, prop_profile_to_type},
 };
 
 use super::{DataQuery, PropSpecifier, PropValueType};

@@ -1,12 +1,12 @@
 //! Parse the `enum Actions {...}` in a component module.
 
 use convert_case::{Case, Casing};
-use darling::{ast, FromDeriveInput, FromVariant};
+use darling::{FromDeriveInput, FromVariant, ast};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::{parse_quote, Variant};
+use syn::{Variant, parse_quote};
 
-use crate::component_module::utils::{doc_comment_from_attrs, extract_enum_in_module, EnumInBody};
+use crate::component_module::utils::{EnumInBody, doc_comment_from_attrs, extract_enum_in_module};
 
 use super::component_module::ComponentModule;
 

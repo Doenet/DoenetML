@@ -12,9 +12,9 @@ use doenetml_core::{
     components::{prelude::ComponentIdx, types::Action},
     core::core::Core,
     dast::{
+        DastRoot, FlatDastElementUpdate, FlatDastRoot,
         flat_dast::{FlatFragment, FlatNode, FlatPathPart, Index, NormalizedRoot, UntaggedContent},
         ref_resolve::{IndexResolution, RefResolution, ResolutionError},
-        DastRoot, FlatDastElementUpdate, FlatDastRoot,
     },
 };
 
@@ -104,7 +104,7 @@ impl PublicDoenetMLCore {
         let dast_root = match &self.dast_root {
             Some(d) => d,
             None => {
-                return Err("Cannot create normalized dast root before source is set.".to_string())
+                return Err("Cannot create normalized dast root before source is set.".to_string());
             }
         };
 

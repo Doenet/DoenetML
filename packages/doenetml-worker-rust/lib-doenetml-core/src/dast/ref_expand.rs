@@ -3,11 +3,11 @@ use std::{collections::HashMap, mem};
 use anyhow::anyhow;
 
 use super::{
+    DastElement, DastElementContent, DastError,
     flat_dast::{
         ErrorType, FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent,
     },
-    ref_resolve::{format_error_message, RefResolution, ResolutionError, Resolver},
-    DastElement, DastElementContent, DastError,
+    ref_resolve::{RefResolution, ResolutionError, Resolver, format_error_message},
 };
 
 /// An `Expander` replaces all refs with their `DastElement`-equivalent forms. For example

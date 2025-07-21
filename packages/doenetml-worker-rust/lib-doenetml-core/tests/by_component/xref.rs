@@ -1,8 +1,8 @@
 use super::*;
 
 use doenetml_core::{
-    components::{doenet::xref::XrefProps, ComponentNode},
-    props::{prop_type, traits::IntoPropView, PropView},
+    components::{ComponentNode, doenet::xref::XrefProps},
+    props::{PropView, prop_type, traits::IntoPropView},
     state::types::component_refs::ComponentRef,
 };
 

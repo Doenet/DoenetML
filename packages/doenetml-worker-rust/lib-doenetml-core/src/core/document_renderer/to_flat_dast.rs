@@ -3,18 +3,18 @@ use std::collections::HashMap;
 use super::{super::graph_node::GraphNode, DocumentRenderer};
 use crate::{
     components::{
+        ComponentActions, ComponentCommon, ComponentEnum, ComponentNode,
         prelude::{ComponentIdx, ElementData, FlatDastElement, FlatDastElementContent},
         types::PropPointer,
-        ComponentActions, ComponentCommon, ComponentEnum, ComponentNode,
     },
     core::document_model::DocumentModel,
     dast::{
-        flat_dast::UntaggedContent, DastAttribute, DastText, DastTextRefElementContent,
-        ElementRefAnnotation, FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue,
-        ForRenderPropValueOrContent, ForRenderProps,
+        DastAttribute, DastText, DastTextRefElementContent, ElementRefAnnotation,
+        FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue, ForRenderPropValueOrContent,
+        ForRenderProps, flat_dast::UntaggedContent,
     },
     graph::directed_graph::Taggable,
-    props::{cache::PropWithMeta, PropProfile, PropValue, PropValueType},
+    props::{PropProfile, PropValue, PropValueType, cache::PropWithMeta},
     state::types::content_refs::ContentRef,
 };
 

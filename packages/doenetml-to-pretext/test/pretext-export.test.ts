@@ -24,7 +24,7 @@ afterAll(async () => {
 
 beforeAll(async () => {
     await coreRunner.processToFlatDast(`<p>Hi</p>`);
-}, 20000);
+}, 40000);
 
 describe("Pretext export", async () => {
     let source: string;

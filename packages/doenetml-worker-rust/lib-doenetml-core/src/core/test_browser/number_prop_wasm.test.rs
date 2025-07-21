@@ -3,16 +3,15 @@ use std::rc::Rc;
 use crate::{
     embed_test,
     general_prop::{
-        self,
+        self, NumberProp,
         test_utils::{
             assert_number_calculated_value, return_single_math_data_query_result,
             return_single_number_data_query_result, return_two_string_data_query_result,
         },
-        NumberProp,
     },
     props::{
-        as_updater_object, cache::PropWithMeta, prop_type, DataQueryResult, DataQueryResults,
-        PropValue,
+        DataQueryResult, DataQueryResults, PropValue, as_updater_object, cache::PropWithMeta,
+        prop_type,
     },
     state::types::math_expr::MathExpr,
 };

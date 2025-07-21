@@ -1,4 +1,5 @@
 use crate::{
+    Core,
     components::{
         doenet::text::TextProps,
         types::{LocalPropIdx, PropPointer},
@@ -6,7 +7,6 @@ use crate::{
     graph_node::GraphNode,
     props::{DataQuery, PropProfile, PropSource, PropSpecifier},
     test_utils::*,
-    Core,
 };
 
 const TEXT_VALUE_LOCAL_IDX: LocalPropIdx = TextProps::Value.local_idx();

@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     dast::{
         flat_dast::FlatRoot,
-        ref_resolve::{test_helpers::*, IndexResolution},
+        ref_resolve::{IndexResolution, test_helpers::*},
     },
     test_utils::*,
 };

@@ -1,11 +1,11 @@
 use crate::{
     dast::{
+        DastElementContent, DastRoot,
         flat_dast::{
             FlatAttribute, FlatFragment, FlatIndex, FlatNode, FlatPathPart, FlatRoot, Index,
             SourceDoc, UntaggedContent,
         },
         ref_resolve::RefResolution,
-        DastElementContent, DastRoot,
     },
     test_utils::*,
 };

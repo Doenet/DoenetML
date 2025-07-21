@@ -1,7 +1,7 @@
 use crate::{
     components::{
-        types::{AttributeName, ComponentIdx, PropPointer},
         ComponentNode,
+        types::{AttributeName, ComponentIdx, PropPointer},
     },
     core::document_structure::DocumentStructure,
     graph_node::GraphNode,
