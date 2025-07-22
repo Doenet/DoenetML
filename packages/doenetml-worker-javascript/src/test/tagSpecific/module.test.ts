@@ -1009,16 +1009,16 @@ describe("Module tag tests", async () => {
         ).eq(1);
     });
 
-    it("get new title when extend external module", async () => {
+    it("get new title when copy external module", async () => {
         // This test makes sure that the references are resolved correctly when
-        // extending a module that is a copy of external content.
+        // copying a module that is a copy of external content.
         // This tests makes sure we don't get a duplicate component index
         // due to a copy not resolving its source's `generatedVariantInfo` state variable before expanding
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <module title="New title" copy="doenet:def" name="g" />
-        <module extend="$g" name="g2" />
-        <module extend="$g" name="g3" title="Newer title" />
+        <module copy="$g" name="g2" />
+        <module copy="$g" name="g3" title="Newer title" />
         <p name="gTitle">$g.title</p>
         <p name="g2Title">$g2.title</p>
         <p name="g3Title">$g3.title</p>
@@ -1077,8 +1077,8 @@ describe("Module tag tests", async () => {
 
     </module>
     
-    <module extend="$g" b="-5" c="9" size="small" aspectRatio="4/5" name="g2" />
-    <module extend="$g" a="7" c="-3" size="large" aspectRatio="1.2" name="g3" />
+    <module copy="$g" b="-5" c="9" size="small" aspectRatio="4/5" name="g2" />
+    <module copy="$g" a="7" c="-3" size="large" aspectRatio="1.2" name="g3" />
     `,
             externalDoenetMLs,
         });
