@@ -466,7 +466,7 @@ export default React.memo(function Video(props) {
                 src={
                     "https://www.youtube.com/embed/" +
                     SVs.youtube +
-                    "?enablejsapi=1&rel=0&modestbranding=1"
+                    "?enablejsapi=1&rel=0"
                 }
                 allow="autoplay; fullscreen"
             />
