@@ -4173,13 +4173,17 @@ Enter any letter:
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("cond")].replacements!
-                .length,
-        ).eq(0);
+            stateVariables[await resolvePathToNodeIdx("cond")].replacements,
+        ).eqls([
+            {
+                componentIdx: await resolvePathToNodeIdx("cond[1]"),
+                componentType: "group",
+            },
+        ]);
         expect(
             stateVariables[await resolvePathToNodeIdx("cond")]
                 .replacementsToWithhold,
-        ).eq(0);
+        ).eq(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .justSubmitted,
@@ -4210,6 +4214,10 @@ Enter any letter:
             },
         ]);
         expect(
+            stateVariables[await resolvePathToNodeIdx("cond")]
+                .replacementsToWithhold,
+        ).eq(0);
+        expect(
             stateVariables[await resolvePathToNodeIdx("cond[1][1]")].stateValues
                 .text,
         ).eq("The answer was just submitted.");
@@ -4234,13 +4242,17 @@ Enter any letter:
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("cond")].replacements!
-                .length,
-        ).eq(0);
+            stateVariables[await resolvePathToNodeIdx("cond")].replacements,
+        ).eqls([
+            {
+                componentIdx: await resolvePathToNodeIdx("cond[1]"),
+                componentType: "group",
+            },
+        ]);
         expect(
             stateVariables[await resolvePathToNodeIdx("cond")]
                 .replacementsToWithhold,
-        ).eq(0);
+        ).eq(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .justSubmitted,
