@@ -393,19 +393,7 @@ describe("Unlinked Copying Tests", async () => {
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
-        async function check_items({
-            A,
-            B,
-            A2,
-            l2A,
-            l2B,
-            A3,
-            A4,
-            B4,
-            gA,
-            gB,
-            Ax,
-        }) {
+        async function check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax }) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -440,12 +428,12 @@ describe("Unlinked Copying Tests", async () => {
                 stateVariables[
                     await resolvePathToNodeIdx("l2")
                 ].stateValues.point1.map((x) => x.tree),
-            ).eqls(l2A);
+            ).eqls(A);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l2")
                 ].stateValues.point2.map((x) => x.tree),
-            ).eqls(l2B);
+            ).eqls(B);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("A3")
@@ -490,8 +478,6 @@ describe("Unlinked Copying Tests", async () => {
         let A = [1, 2],
             B = [3, 4],
             A2 = [1, 2],
-            l2A = [1, 2],
-            l2B = [3, 4],
             A3 = [1, 2],
             A4 = [1, 2],
             B4 = [3, 4],
@@ -521,7 +507,7 @@ describe("Unlinked Copying Tests", async () => {
         expect(stateVariables[copyForgnolink].stateValues.link).eq(false);
         expect(stateVariables[copyForAx].stateValues.link).eq(false);
 
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
 
         // move A
         A = [-9, -3];
@@ -531,7 +517,7 @@ describe("Unlinked Copying Tests", async () => {
             y: A[1],
             core,
         });
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
 
         // move B
         B = [-2, 6];
@@ -541,7 +527,7 @@ describe("Unlinked Copying Tests", async () => {
             y: B[1],
             core,
         });
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
 
         // move l
         A = [-7, -6];
@@ -553,7 +539,7 @@ describe("Unlinked Copying Tests", async () => {
             point2coords: B,
             core,
         });
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
 
         // move A2
         A2 = [5, 4];
@@ -563,18 +549,18 @@ describe("Unlinked Copying Tests", async () => {
             y: A2[1],
             core,
         });
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
 
         // move l2
-        l2A = [-5, 9];
-        l2B = [-4, -1];
+        A = [-5, 9];
+        B = [-4, -1];
         await moveLine({
             componentIdx: await resolvePathToNodeIdx("l2"),
-            point1coords: l2A,
-            point2coords: l2B,
+            point1coords: A,
+            point2coords: B,
             core,
         });
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
 
         // move A3
         A3 = [6, -3];
@@ -584,7 +570,7 @@ describe("Unlinked Copying Tests", async () => {
             y: A3[1],
             core,
         });
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
 
         // move A4
         A4 = [-2, 7];
@@ -594,7 +580,7 @@ describe("Unlinked Copying Tests", async () => {
             y: A4[1],
             core,
         });
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
 
         // move B4
         B4 = [-9, -8];
@@ -604,7 +590,7 @@ describe("Unlinked Copying Tests", async () => {
             y: B4[1],
             core,
         });
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
 
         // move A5
         gA = [-10, -9];
@@ -614,7 +600,7 @@ describe("Unlinked Copying Tests", async () => {
             y: gA[1],
             core,
         });
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
 
         // move B5
         gB = [-8, -7];
@@ -624,7 +610,7 @@ describe("Unlinked Copying Tests", async () => {
             y: gB[1],
             core,
         });
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
 
         // move l3
         gA = [6, 5];
@@ -635,7 +621,7 @@ describe("Unlinked Copying Tests", async () => {
             point2coords: gB,
             core,
         });
-        await check_items({ A, B, A2, l2A, l2B, A3, A4, B4, gA, gB, Ax });
+        await check_items({ A, B, A2, A3, A4, B4, gA, gB, Ax });
     }
 
     it("copy points and lines with no link dot notation", async () => {
@@ -988,7 +974,7 @@ describe("Unlinked Copying Tests", async () => {
             core,
         });
 
-        await check_items("hi", "bye");
+        await check_items("hi", "hi");
     }
 
     it("copy group, no link, copy to outside component from attribute", async () => {
@@ -1151,12 +1137,7 @@ describe("Unlinked Copying Tests", async () => {
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
-        async function check_items(
-            n1: number,
-            n2: number,
-            n3: number,
-            n4: number,
-        ) {
+        async function check_items(n1: number, n2: number) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -1165,6 +1146,11 @@ describe("Unlinked Copying Tests", async () => {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("section1.r[1][1]")
+                    ].stateValues.text,
+                ).eq("i=1, v=11");
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[1][1]")
                     ].stateValues.text,
                 ).eq("i=1, v=11");
                 expect(
@@ -1181,6 +1167,11 @@ describe("Unlinked Copying Tests", async () => {
                 isUndefinedOrInactive(
                     stateVariables[
                         await resolvePathToNodeIdx("section1.r[1][1]")
+                    ],
+                );
+                isUndefinedOrInactive(
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[1][1]")
                     ],
                 );
                 isUndefinedOrInactive(
@@ -1202,6 +1193,11 @@ describe("Unlinked Copying Tests", async () => {
                 ).eq("i=2, v=12");
                 expect(
                     stateVariables[
+                        await resolvePathToNodeIdx("section2.r[2][1]")
+                    ].stateValues.text,
+                ).eq("i=2, v=12");
+                expect(
+                    stateVariables[
                         await resolvePathToNodeIdx("section4.r[2][1]")
                     ].stateValues.text,
                 ).eq("i=2, v=12");
@@ -1214,6 +1210,11 @@ describe("Unlinked Copying Tests", async () => {
                 isUndefinedOrInactive(
                     stateVariables[
                         await resolvePathToNodeIdx("section1.r[2][1]")
+                    ],
+                );
+                isUndefinedOrInactive(
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[2][1]")
                     ],
                 );
                 isUndefinedOrInactive(
@@ -1235,6 +1236,11 @@ describe("Unlinked Copying Tests", async () => {
                 ).eq("i=3, v=13");
                 expect(
                     stateVariables[
+                        await resolvePathToNodeIdx("section2.r[3][1]")
+                    ].stateValues.text,
+                ).eq("i=3, v=13");
+                expect(
+                    stateVariables[
                         await resolvePathToNodeIdx("section4.r[3][1]")
                     ].stateValues.text,
                 ).eq("i=3, v=13");
@@ -1247,6 +1253,11 @@ describe("Unlinked Copying Tests", async () => {
                 isUndefinedOrInactive(
                     stateVariables[
                         await resolvePathToNodeIdx("section1.r[3][1]")
+                    ],
+                );
+                isUndefinedOrInactive(
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[3][1]")
                     ],
                 );
                 isUndefinedOrInactive(
@@ -1268,6 +1279,11 @@ describe("Unlinked Copying Tests", async () => {
                 ).eq("i=4, v=14");
                 expect(
                     stateVariables[
+                        await resolvePathToNodeIdx("section2.r[4][1]")
+                    ].stateValues.text,
+                ).eq("i=4, v=14");
+                expect(
+                    stateVariables[
                         await resolvePathToNodeIdx("section4.r[4][1]")
                     ].stateValues.text,
                 ).eq("i=4, v=14");
@@ -1280,6 +1296,11 @@ describe("Unlinked Copying Tests", async () => {
                 isUndefinedOrInactive(
                     stateVariables[
                         await resolvePathToNodeIdx("section1.r[4][1]")
+                    ],
+                );
+                isUndefinedOrInactive(
+                    stateVariables[
+                        await resolvePathToNodeIdx("section2.r[4][1]")
                     ],
                 );
                 isUndefinedOrInactive(
@@ -1297,96 +1318,43 @@ describe("Unlinked Copying Tests", async () => {
             if (n2 >= 1) {
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[1][1]")
+                        await resolvePathToNodeIdx("section3.r[1][1]")
                     ].stateValues.text,
                 ).eq("i=1, v=11");
             } else {
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[1][1]")
+                        await resolvePathToNodeIdx("section3.r[1][1]")
                     ],
                 );
             }
             if (n2 >= 2) {
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[2][1]")
+                        await resolvePathToNodeIdx("section3.r[2][1]")
                     ].stateValues.text,
                 ).eq("i=2, v=12");
             } else {
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[2][1]")
+                        await resolvePathToNodeIdx("section3.r[2][1]")
                     ],
                 );
             }
             if (n2 >= 3) {
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[3][1]")
+                        await resolvePathToNodeIdx("section3.r[3][1]")
                     ].stateValues.text,
                 ).eq("i=3, v=13");
             } else {
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[3][1]")
+                        await resolvePathToNodeIdx("section3.r[3][1]")
                     ],
                 );
             }
             if (n2 >= 4) {
-                expect(
-                    stateVariables[
-                        await resolvePathToNodeIdx("section2.r[4][1]")
-                    ].stateValues.text,
-                ).eq("i=4, v=14");
-            } else {
-                isUndefinedOrInactive(
-                    stateVariables[
-                        await resolvePathToNodeIdx("section2.r[4][1]")
-                    ],
-                );
-            }
-
-            if (n4 >= 1) {
-                expect(
-                    stateVariables[
-                        await resolvePathToNodeIdx("section3.r[1][1]")
-                    ].stateValues.text,
-                ).eq("i=1, v=11");
-            } else {
-                isUndefinedOrInactive(
-                    stateVariables[
-                        await resolvePathToNodeIdx("section3.r[1][1]")
-                    ],
-                );
-            }
-            if (n4 >= 2) {
-                expect(
-                    stateVariables[
-                        await resolvePathToNodeIdx("section3.r[2][1]")
-                    ].stateValues.text,
-                ).eq("i=2, v=12");
-            } else {
-                isUndefinedOrInactive(
-                    stateVariables[
-                        await resolvePathToNodeIdx("section3.r[2][1]")
-                    ],
-                );
-            }
-            if (n4 >= 3) {
-                expect(
-                    stateVariables[
-                        await resolvePathToNodeIdx("section3.r[3][1]")
-                    ].stateValues.text,
-                ).eq("i=3, v=13");
-            } else {
-                isUndefinedOrInactive(
-                    stateVariables[
-                        await resolvePathToNodeIdx("section3.r[3][1]")
-                    ],
-                );
-            }
-            if (n4 >= 4) {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("section3.r[4][1]")
@@ -1423,31 +1391,31 @@ describe("Unlinked Copying Tests", async () => {
                 .title,
         ).eq("Section 5");
 
-        await check_items(2, 2, 2, 2);
+        await check_items(2, 2);
 
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("section1.addP"),
             core,
         });
-        await check_items(3, 2, 2, 2);
+        await check_items(3, 2);
 
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("section5.removeP"),
             core,
         });
-        await check_items(2, 2, 2, 2);
+        await check_items(2, 2);
 
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("section3.addP"),
             core,
         });
-        await check_items(2, 2, 2, 3);
+        await check_items(2, 3);
 
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("section3.removeP"),
             core,
         });
-        await check_items(2, 2, 2, 2);
+        await check_items(2, 2);
     }
 
     it("copy dynamic repeat no link, check aliases", async () => {
@@ -1528,6 +1496,10 @@ describe("Unlinked Copying Tests", async () => {
     });
 
     it("copy repeat item with no link", async () => {
+        // Note: in this example, the x-coordinate of `C` is fixed,
+        // since it is a copy of `$i+4` and the link to the fixed `$i` is maintained.
+        // On the other hand, it's y-coordinate is free to change,
+        // since it is just an unlinked copy of the value of `ip4`.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Number of iterations: <mathInput name="n" /></p>
@@ -1666,7 +1638,7 @@ describe("Unlinked Copying Tests", async () => {
             core,
         });
 
-        await check_items([9, 0], [1, 8], [7, 2]);
+        await check_items([9, 0], [1, 8], [5, 2]);
 
         await updateMathInputValue({
             latex: "2",
@@ -1674,7 +1646,7 @@ describe("Unlinked Copying Tests", async () => {
             core,
         });
 
-        await check_items([9, 0], [1, 8], [7, 2], [2, 3], [4, 5], [6, 7]);
+        await check_items([9, 0], [1, 8], [5, 2], [2, 3], [4, 5], [6, 7]);
 
         await movePoint({
             componentIdx: await resolvePathToNodeIdx("r[2].A"),
@@ -1695,7 +1667,7 @@ describe("Unlinked Copying Tests", async () => {
             core,
         });
 
-        await check_items([9, 0], [1, 8], [7, 2], [0, 10], [9, 1], [2, 8]);
+        await check_items([9, 0], [1, 8], [5, 2], [0, 10], [9, 1], [6, 8]);
 
         await updateMathInputValue({
             latex: "0",
@@ -1710,7 +1682,7 @@ describe("Unlinked Copying Tests", async () => {
             core,
         });
 
-        await check_items([9, 0], [1, 8], [7, 2], [0, 10], [9, 1], [2, 8]);
+        await check_items([9, 0], [1, 8], [5, 2], [0, 10], [9, 1], [6, 8]);
     });
 
     it("copy no-link of a copy prop", async () => {

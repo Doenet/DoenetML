@@ -56,6 +56,8 @@ export default class Copy extends CompositeComponent {
         };
         attributes.link = {
             createPrimitiveOfType: "boolean",
+            createStateVariable: "link",
+            defaultValue: true,
         };
 
         // Note: only implemented with no wrapping components
@@ -739,41 +741,6 @@ export default class Copy extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.link = {
-            returnDependencies: () => ({
-                linkAttr: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "link",
-                },
-                replacementSourceIdentities: {
-                    dependencyType: "stateVariable",
-                    variableName: "replacementSourceIdentities",
-                },
-            }),
-            definition({ dependencyValues, componentInfoObjects }) {
-                let link;
-                if (dependencyValues.linkAttr === null) {
-                    if (
-                        dependencyValues.replacementSourceIdentities &&
-                        dependencyValues.replacementSourceIdentities.some((x) =>
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: x.componentType,
-                                baseComponentType: "module",
-                            }),
-                        )
-                    ) {
-                        link = false;
-                    } else {
-                        link = true;
-                    }
-                } else {
-                    link = dependencyValues.linkAttr !== false;
-                }
-
-                return { setValue: { link } };
-            },
-        };
-
         // For unlinked copies, we create a dependency to gather descendants
         // just to make sure any composite descendants are expanded.
         // This variable will be a dependency of `readyToExpandWhenResolved`
@@ -796,7 +763,7 @@ export default class Copy extends CompositeComponent {
 
                 return dependencies;
             },
-            definition({ dependencyValues, componentIdx }) {
+            definition() {
                 return {
                     setValue: {
                         unlinkedDescendants: true,
@@ -1540,7 +1507,7 @@ export default class Copy extends CompositeComponent {
             serializedComponents: serializedReplacements,
             componentIdx: component.componentIdx,
             addShadowDependencies: link,
-            unlinkExternalCopies: !link,
+            unlinkExternalCopies: false,
         });
 
         for (let repl of serializedReplacements) {
