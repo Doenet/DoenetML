@@ -867,7 +867,6 @@ export default class Copy extends CompositeComponent {
                 ) {
                     // since `generatedVariantInfo` may be accessed when serializing a component,
                     // make sure it is resolved so we don't end up resolving it while expanding
-                    // (which could change `nComponents` and cause overlapping component)
                     dependencies.extendedVariantInfo = {
                         dependencyType: "stateVariable",
                         componentIdx:

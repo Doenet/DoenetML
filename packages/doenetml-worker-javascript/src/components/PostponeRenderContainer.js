@@ -51,10 +51,12 @@ export default class PostponeRenderContainer extends Group {
             let replacementResults = await this.createSerializedReplacements({
                 component,
                 componentInfoObjects,
+                nComponents,
             });
             let replacements = replacementResults.replacements;
             errors.push(...replacementResults.errors);
             warnings.push(...replacementResults.warnings);
+            nComponents = replacementResults.nComponents;
 
             if (replacements.length > 0) {
                 let replacementInstruction = {
