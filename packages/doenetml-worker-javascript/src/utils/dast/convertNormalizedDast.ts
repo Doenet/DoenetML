@@ -1151,6 +1151,112 @@ export function convertUnresolvedAttributesForComponentType({
 }
 
 /**
+ * Convert `attributeValues` into `SerializedAttribute`s for a component of type `componentType`.
+ * Attributes that don't match what `componentType` accepts are ignored.
+ *
+ * Arguments:
+ * - `attributeValues`: an object keyed on attribute names with each value consisting
+ *   of the desired value for that attribute
+ * - `componentType`: the type of component that these attributes will be assigned to.
+ * - `componentInfoObjects`
+ * - `nComponents`
+ *
+ * Returns:
+ * - `attributes`: the new attributes
+ * - `nComponents`
+ */
+export function convertAttributeValuesForComponentType({
+    attributeValues,
+    componentType,
+    componentInfoObjects,
+    nComponents,
+}: {
+    attributeValues: Record<string, unknown>;
+    componentType: string;
+    componentInfoObjects: ComponentInfoObjects;
+    nComponents: number;
+}) {
+    const errors: ErrorRecord[] = [];
+    const warnings: WarningRecord[] = [];
+
+    const newClass = componentInfoObjects.allComponentClasses[componentType];
+    const newAttributesObj = newClass.createAttributesObject();
+
+    let attributeLowerCaseMapping: Record<string, string> = {};
+
+    for (let attrName in newAttributesObj) {
+        attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
+    }
+
+    const newAttributes: Record<string, SerializedAttribute> = {};
+
+    for (const attrNameOrig in attributeValues) {
+        const attributeVal = attributeValues[attrNameOrig];
+
+        const attrName =
+            attributeLowerCaseMapping[attrNameOrig.toLocaleLowerCase()];
+
+        const attrDef = newAttributesObj[attrName];
+
+        if (attrDef?.createComponentOfType) {
+            newAttributes[attrName] = {
+                type: "component",
+                name: attrName,
+                component: {
+                    type: "serialized",
+                    componentIdx: nComponents++,
+                    componentType: attrDef.createComponentOfType,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: { value: attributeVal },
+                    children: [],
+                },
+            };
+        } else if (attrDef?.createPrimitiveOfType) {
+            const cType = attrDef.createPrimitiveOfType;
+
+            if (
+                cType === "string" ||
+                cType === "boolean" ||
+                cType === "number"
+            ) {
+                if (typeof attributeVal === cType) {
+                    newAttributes[attrName] = {
+                        type: "primitive",
+                        name: attrName,
+                        primitive: { type: cType, value: attributeVal as any },
+                    };
+                }
+            } else if (cType === "numberArray") {
+                if (
+                    Array.isArray(attributeVal) &&
+                    attributeVal.every((v) => typeof v === "number")
+                ) {
+                    newAttributes[attrName] = {
+                        type: "primitive",
+                        name: attrName,
+                        primitive: { type: cType, value: attributeVal },
+                    };
+                }
+            } else if (cType === "stringArray") {
+                if (
+                    Array.isArray(attributeVal) &&
+                    attributeVal.every((v) => typeof v === "string")
+                ) {
+                    newAttributes[attrName] = {
+                        type: "primitive",
+                        name: attrName,
+                        primitive: { type: cType, value: attributeVal },
+                    };
+                }
+            }
+        }
+    }
+
+    return { attributes: newAttributes, nComponents };
+}
+
+/**
  * Unwrap an `extending` attribute to its underlying `refResolution`.
  */
 export function unwrapSource<T>(extending: Source<T>): T {
