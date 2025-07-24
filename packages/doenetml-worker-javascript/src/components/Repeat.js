@@ -286,6 +286,7 @@ export default class Repeat extends CompositeComponent {
         nComponents,
         workspace,
         componentInfoObjects,
+        isUpdate = false,
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`);
 
@@ -311,6 +312,7 @@ export default class Repeat extends CompositeComponent {
                 componentInfoObjects,
                 components,
                 nComponents,
+                isUpdate,
             });
             replacements.push(...res.replacements);
             errors.push(...res.errors);
@@ -378,9 +380,6 @@ export default class Repeat extends CompositeComponent {
         replacements[0] = aliasResult.replacement;
         nComponents = aliasResult.nComponents;
 
-        // XXX: is this code still relevant?
-        // If so, it probably needs to be updated.
-        // If not, delete it.
         if (component.unlinkedCopySource && !isUpdate) {
             await copyStateFromUnlinkedSource({
                 components,
@@ -442,9 +441,11 @@ export default class Repeat extends CompositeComponent {
         if (recreateReplacements) {
             let replacementResults = await this.createSerializedReplacements({
                 component,
+                components,
                 workspace,
                 componentInfoObjects,
                 nComponents,
+                isUpdate: true,
             });
 
             let newSerializedReplacements = replacementResults.replacements;
@@ -719,11 +720,11 @@ export default class Repeat extends CompositeComponent {
     }
 }
 
-// If a map is an unlinked copy of another map,
+// If a repeat is an unlinked copy of another repeat,
 // then when its replacements are created,
 // they should be initialized with the current state
-// of the original map's replacements.
-// For example, if the original map has points that were
+// of the original repeat's replacements.
+// For example, if the original repeat has points that were
 // moved before a snapshot was taken, the snapshot should
 // be initialized with the the moved points.
 export async function copyStateFromUnlinkedSource({

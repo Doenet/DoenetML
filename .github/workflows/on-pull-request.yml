@@ -103,11 +103,11 @@ jobs:
                   components: rustfmt, clippy
 
             - name: Cargo fmt
-              working-directory: ./packages/doenetml-worker
+              working-directory: ./packages/doenetml-worker-rust
               run: cargo fmt --all -- --check
 
             - name: Cargo clippy
-              working-directory: ./packages/doenetml-worker
+              working-directory: ./packages/doenetml-worker-rust
               run: cargo clippy -- -D warnings
 
     build-docs:

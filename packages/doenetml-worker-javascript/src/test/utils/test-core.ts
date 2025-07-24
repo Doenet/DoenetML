@@ -86,7 +86,7 @@ export async function createTestCore({
     const wasmBuffer = fs.readFileSync(
         path.resolve(
             __dirname,
-            "../../../../doenetml-worker/lib-js-wasm-binding/pkg/lib_doenetml_worker_bg.wasm",
+            "../../../../doenetml-worker-rust/lib-js-wasm-binding/pkg/lib_doenetml_worker_bg.wasm",
         ),
     );
 

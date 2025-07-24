@@ -180,6 +180,7 @@ export async function verifyReplacementsMatchSpecifiedType({
 
     let replacementsToWithhold = component.replacementsToWithhold;
     let replacementTypes;
+    const originalReplacements = replacements;
 
     if (!replacementChanges) {
         // if have a group, filter out blank strings
@@ -226,7 +227,8 @@ export async function verifyReplacementsMatchSpecifiedType({
         // composites must have a replacement
         // and we have at least one replacement
         return {
-            replacements,
+            // Note: use `originalReplacements` as may have modified `replacements`, above.
+            replacements: originalReplacements,
             replacementChanges,
             errors,
             warnings,

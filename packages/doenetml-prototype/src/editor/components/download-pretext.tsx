@@ -12,7 +12,7 @@ import {
     extractImages,
 } from "@doenet/doenetml-to-pretext/pretext-xml";
 import { VscCode } from "react-icons/vsc";
-import { FlatDastRoot } from "../../../../doenetml-worker/dist/CoreWorker";
+import type { FlatDastRoot } from "@doenet/doenetml-worker-rust";
 
 export function DownloadPretextDropdownItem({
     setFiles,

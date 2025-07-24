@@ -2517,18 +2517,31 @@ export default class Core {
         // resolveItem: a function that the composite can use to resolve any state variables
         // publicCaseInsensitiveAliasSubstitutions: a function that can be used to find a case insensitive match
         //   to a public state variable, substituting aliases if necessary
-        let result = await component.constructor.createSerializedReplacements({
-            component: this.components[component.componentIdx], // to create proxy
-            components: this.components,
-            nComponents: this.components.length,
-            workspace: component.replacementsWorkspace,
-            componentInfoObjects: this.componentInfoObjects,
-            allDoenetMLs: this.allDoenetMLs,
-            flags: this.flags,
-            resolveItem: this.dependencies.resolveItem.bind(this.dependencies),
-            publicCaseInsensitiveAliasSubstitutions:
-                this.publicCaseInsensitiveAliasSubstitutions.bind(this),
-        });
+        let initialNComponents;
+        let result;
+        do {
+            initialNComponents = this.components.length;
+            result = await component.constructor.createSerializedReplacements({
+                component: this.components[component.componentIdx], // to create proxy
+                components: this.components,
+                nComponents: this.components.length,
+                workspace: component.replacementsWorkspace,
+                componentInfoObjects: this.componentInfoObjects,
+                allDoenetMLs: this.allDoenetMLs,
+                flags: this.flags,
+                resolveItem: this.dependencies.resolveItem.bind(
+                    this.dependencies,
+                ),
+                publicCaseInsensitiveAliasSubstitutions:
+                    this.publicCaseInsensitiveAliasSubstitutions.bind(this),
+            });
+
+            // If `this.components` changed in length while `createSerializedReplacements` was executing,
+            // it means that some other action (like calling another `createSerializedReplacements`)
+            // occurred while resolving state variables.
+            // Since this would lead to collisions in assigned component indices, we rerun `createSerializedReplacements`.
+            // TODO: are there any scenarios where this will lead to an infinite loop?
+        } while (this.components.length !== initialNComponents);
 
         const newNComponents = result.nComponents;
 
@@ -3200,7 +3213,7 @@ export default class Core {
             // the shadow of compositeMediatingTheShadow
             shadowedByShadowed = shadowedByShadowed.reduce((acc, cIdx) => {
                 let comp = this.components[cIdx];
-                if (comp.mediatesShadows) {
+                if (comp?.mediatesShadows) {
                     return [
                         ...acc,
                         ...comp.mediatesShadows
@@ -9852,21 +9865,32 @@ export default class Core {
         // resolveItem: a function that the composite can use to resolve any state variables
         // publicCaseInsensitiveAliasSubstitutions: a function that can be used to find a case insensitive match
         //   to a public state variable, substituting aliases if necessary
-        const replacementResults =
-            await component.constructor.calculateReplacementChanges({
-                component: proxiedComponent,
-                componentChanges,
-                components: this.components,
-                nComponents: this.components.length,
-                workspace: component.replacementsWorkspace,
-                componentInfoObjects: this.componentInfoObjects,
-                flags: this.flags,
-                resolveItem: this.dependencies.resolveItem.bind(
-                    this.dependencies,
-                ),
-                publicCaseInsensitiveAliasSubstitutions:
-                    this.publicCaseInsensitiveAliasSubstitutions.bind(this),
-            });
+        let initialNComponents;
+        let replacementResults;
+        do {
+            initialNComponents = this.components.length;
+            replacementResults =
+                await component.constructor.calculateReplacementChanges({
+                    component: proxiedComponent,
+                    componentChanges,
+                    components: this.components,
+                    nComponents: this.components.length,
+                    workspace: component.replacementsWorkspace,
+                    componentInfoObjects: this.componentInfoObjects,
+                    flags: this.flags,
+                    resolveItem: this.dependencies.resolveItem.bind(
+                        this.dependencies,
+                    ),
+                    publicCaseInsensitiveAliasSubstitutions:
+                        this.publicCaseInsensitiveAliasSubstitutions.bind(this),
+                });
+
+            // If `this.components` changed in length while `calculateReplacementChanges` was executing,
+            // it means that some other action (like calling another `calculateReplacementChanges`)
+            // occurred while resolving state variables.
+            // Since this would lead to collisions in assigned component indices, we rerun `calculateReplacementChanges`.
+            // TODO: are there any scenarios where this will lead to an infinite loop?
+        } while (this.components.length !== initialNComponents);
 
         if (component.constructor.stateVariableToEvaluateAfterReplacements) {
             await component.stateValues[

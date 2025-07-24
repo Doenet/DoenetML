@@ -22,10 +22,6 @@
             "import": "./dist/index-v06.js",
             "types": "./dist/index-v06.d.ts"
         },
-        "./v06-to-v07": {
-            "import": "./dist/v06-to-v07.js",
-            "types": "./dist/v06-to-v07/index.d.ts"
-        },
         "./*": {
             "import": "./dist/*.js"
         }
@@ -34,8 +30,7 @@
         "dev": "vite",
         "watch": "vite build --watch",
         "build": "wireit",
-        "build:v06-to-v07": "wireit",
-        "test": "npm run build:v06-to-v07 && vitest",
+        "test": "vitest",
         "compile_grammar": "npx lezer-generator --output src/generated-assets/lezer-doenet.ts src/doenet.grammar"
     },
     "wireit": {
@@ -54,24 +49,6 @@
             ],
             "dependencies": [
                 "../static-assets:build"
-            ]
-        },
-        "build:v06-to-v07": {
-            "command": "vite build --config vite.config.v06-to-v07.ts",
-            "files": [
-                "src/v06-to-v07/**/*.ts",
-                "tsconfig.json",
-                "vite.config.v06-to-v07.ts"
-            ],
-            "output": [
-                "dist/v06-to-v07*",
-                "dist/lib_doenetml_worker*",
-                "dist/v06-to-v07/**/*.js",
-                "dist/v06-to-v07/**/*.d.ts",
-                "dist/v06-to-v07/**/*.json"
-            ],
-            "dependencies": [
-                "../doenetml-worker:build"
             ]
         }
     },

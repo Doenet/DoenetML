@@ -233,22 +233,71 @@ export default class ConditionalContent extends CompositeComponent {
         // console.log(component.stateValues.selectedIndex);
 
         // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        const errors = [];
+        const warnings = [];
 
-        let selectedIndex = await component.stateValues.selectedIndex;
+        const selectedIndex = await component.stateValues.selectedIndex;
 
         if (workspace.previousSelectedIndex === selectedIndex) {
             return { replacementChanges: [], nComponents };
+        }
+
+        const numCases = await component.stateValues.numCases;
+
+        if (numCases === 1) {
+            // If we have just one case child and we already created the replacements before,
+            // then we can just withhold all replacements (if one case is not selected)
+            // or stop withholding replacements (if one case is selected) for efficiency
+
+            if (selectedIndex === null) {
+                // the one case is not selected, so withhold all replacements
+                const replacementInstruction = {
+                    changeType: "changeReplacementsToWithhold",
+                    replacementsToWithhold: component.replacements.length,
+                };
+
+                workspace.previousSelectedIndex = selectedIndex;
+
+                return {
+                    replacementChanges: [replacementInstruction],
+                    nComponents,
+                };
+            } else {
+                const caseChildren = await component.stateValues.caseChildren;
+                const selectedChildComponentIdx =
+                    caseChildren[selectedIndex].componentIdx;
+                const numSerializedGrandchildren = (
+                    await components[selectedChildComponentIdx].stateValues
+                        .serializedChildren
+                ).length;
+
+                if (
+                    numSerializedGrandchildren === component.replacements.length
+                ) {
+                    // The one case is selected and we have created the replacements before,
+                    // so just stop withholding the replacements
+                    const replacementInstruction = {
+                        changeType: "changeReplacementsToWithhold",
+                        replacementsToWithhold: 0,
+                    };
+
+                    workspace.previousSelectedIndex = selectedIndex;
+
+                    return {
+                        replacementChanges: [replacementInstruction],
+                        nComponents,
+                    };
+                }
+            }
         }
 
         // delete previous replacements and create new ones
         // TODO: could we find a way to withhold old ones?
         // Either change order of replacements or allow to withhold later replacements
 
-        let replacementChanges = [];
+        const replacementChanges = [];
 
-        let replacementResults = await this.getReplacements(
+        const replacementResults = await this.getReplacements(
             component,
             components,
             nComponents,
@@ -257,7 +306,7 @@ export default class ConditionalContent extends CompositeComponent {
         warnings.push(...replacementResults.warnings);
         nComponents = replacementResults.nComponents;
 
-        let replacementInstruction = {
+        const replacementInstruction = {
             changeType: "add",
             changeTopLevelReplacements: true,
             firstReplacementInd: 0,

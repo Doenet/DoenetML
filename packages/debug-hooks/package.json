@@ -36,7 +36,7 @@
                 "dist/**/*.json"
             ],
             "dependencies": [
-                "../doenetml-worker:build:rust",
+                "../doenetml-worker-rust:build:rust",
                 "../doenetml-worker-javascript:build"
             ]
         }

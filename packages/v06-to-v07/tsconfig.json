@@ -1,0 +1,18 @@
+{
+    "extends": "../../tsconfig.build.json",
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "rootDir": "./src",
+        "types": ["vite-plugin-arraybuffer/types"]
+    },
+    "include": ["./**/*.ts", "./**/*.tsx"],
+    "exclude": [
+        "./**/*.test.ts",
+        "./**/*.stub.ts",
+        "node_modules",
+        "**/test/",
+        "**/dist/**/*",
+        "./vite.*.ts"
+    ],
+    "references": []
+}
