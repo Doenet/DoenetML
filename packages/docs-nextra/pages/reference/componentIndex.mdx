@@ -6,9 +6,9 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | Component                                                                                | Description                                                                           |
 | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | [`<abs>`](abs.mdx)                 | absolute value                                                                        |
-| `<activity>`                                                                             | a sectional component with auto-numbering and auto-title                              |
+| `<activity>`                        | a sectional component with auto-numbering and auto-title, see [`<exercise>`](exercise) for similar examples              |
 | [`<alert>`](alert.mdx)               | bold text                                                                             |
-| [`<and>`](and.mdx)                 | functions as the boolean operator and or &                                            |
+| [`<and>`](and.mdx)                 | functions as the boolean operator `and` or `&`                                            |
 | [`<angle>`](angle.mdx)               | angle graphical component                                                             |
 | [`<animateFromSequence>`](animateFromSequence.mdx) | renders an animation of a changing component or component property                    |
 | [`<answer>`](answer1.mdx)              | defines an answer block for response validation                                       |  |
@@ -37,7 +37,6 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<ceil>`](ceil.mdx)                | ceiling function                                                                                                |
 | [`<cell>`](cell.mdx)                | smallest data element in a `<table>`                                                                            |
 | `<cellBlock>`                                                                            | a container element for specifying data in a `<spreadsheet>`                                                    |
-| `<chart>`                                                                                | *under development*                                                                                             |
 | [`<choice>`](choice.mdx)              | defines a multiple-choice response                                                                              |
 | [`<choiceInput>`](choiceInput.mdx)         | defines a multiple-choice block                                                                                 |
 | [`<circle>`](circle.mdx)              | circle Graphical Component                                                                                      |
@@ -45,10 +44,9 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<clampNumber>`](clampNumber.mdx)         | rounds a number to within a specified interval                                                                  |
 | `<cobwebPolyline>`                                                                       |                                                                                                                 |
 | `<codeEditor>`                                                                           | renders an embedded doenetML code editor                                                                        |
-| `<codeViewer>`                                                                           | renders an embedded viewer for a `<codeEditor>` component                                                       |
 | [`<collect />`](collect.mdx)           | gathers multiple data instances of a specified type from a graph or a sectional component and stores in a list  |
-| `<column>`                                                                               | container element for a column of cells in a `<spreadsheet>`                                                    |
-| `<conclusion>`                                                                           | container element for content that does not have auto-numbering                                                 |
+| `<column>`                                       | container element for a column of cells in a `<spreadsheet>`                                                    |
+| `<conclusion>`                                   | container element included for PreTeXt compatibility                                               |
 | [`<conditionalContent>`](conditionalContent.mdx)  | defines a section of content rendered upon a specific condition                                                 |
 | [`<considerAsResponses>`](considerAsResponses.mdx) | specifies components involved in response data collection when the component occurs outside an `<answer>` block |
 | [`<constrainTo>`](constrainTo)         | constrain a `<point>` to a named component                                                                      |
@@ -66,10 +64,10 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 ## D
 | Component                                                                       | Description                                                             |
 | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `<definition>`                                                                  |                                                                         |
+| `<definition>`                                 |     container element included for PreTeXt compatibility                                                 |
 | [`<derivative>`](derivative) | renders or graphs the derivative of basic elementary functions          |
-| `<discreteSimulationResultList>`                                                |                                                                         |
-| `<discreteSimulationResultPolyline>`                                            |                                                                         |
+| `<discreteSimulationResultList>`               |                                                                         |
+| `<discreteSimulationResultPolyline>`           |                                                                         |
 | [`<div>`](div)        | groups doenetML content into an unformatted container that can be named |
 | [`<document>`](document)   | largest hierarchical sectional component                                |
 
@@ -87,9 +85,9 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<evaluate/>`](evaluate)    | evaluate a function                                                                             |
 | [`<example>`](example)     | sectional component with default numbering that defines an example                              |
 | [`<exercise>`](exercise)    | sectional component with default numbering that defines an exercise                             |
-| `<exercises>`                                                                    | a container element for multiple `<exercise>` components                                        |
+| `<exercises>`               | a container element for multiple `<exercise>` components                                        |
 | [`<extractMath>`](extractMath) | extract data (such as number of operands, or individual operands) from mathematical expressions |
-| `<extrema>`                                                                      |                                                                                                 |
+
 
 ## F-G
 | Component                                                                             | Description                                                                                          |
@@ -113,7 +111,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<intComma>`](intComma)         | inserts commas into a large integer when rendering                                |
 | [`<integer>`](integer)          | defines an integer                                                                |
 | [`<intersection>`](intersection)     | render intersections between graphical objects                                    |
-| `<introduction>`                                                                      | container element for content that does not have auto-numbering                   |
+| `<introduction>`                     | container element included for PreTeXt compatibility                  |
 | `<ionicCompound>`                                                                     |                                                                                   |
 | [`<isBetween>`](isBetween)        | returns whether a value is within a specified interval                            |
 | [`<isInteger>`](isInteger)        | returns whether a value is an integer                                             |
@@ -146,7 +144,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<men>`](men)            | centered, numbered mathematical display text                                                     |
 | [`<min>`](min)            | renders the minimum value of its arguments                                                       |
 | [`<mod>`](mod)            | renders the value of $a\modb$, where $a$ and $b$ are the two listed arguments                    |
-| `<module>`                                                                          | define a local template for a custom doenetML component or widget for re-use within the document |
+| `<module>`                    | define a local template for a custom doenetML component or widget for re-use within the document |
 | [`<mrow>`](mrow)           | defines individual row content when nested within an `<md>` or `<mdn>`                           |
 
 
@@ -155,10 +153,10 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | [`<nbsp/>`](nbsp)               | renders a blank space                                                        |
 | [`<not>`](not)                 | used in the construction of boolean conditions                               |
-| `<note>`                                                                                 | an auto-numbered sectional component with default title                      |
+| `<note>`                          | container element included for PreTeXt compatibility                       |
 | [`<number>`](number)              | calculates a floating point value from its contents                       |
 | [`<numberList>`](numberList)          | defines a list of `<number>` components                                      |
-| `<objectives>`                                                                           | a boxed sectional component with default title and auto-numbering            |
+| `<objectives>`                        | container element included for PreTeXt compatibility                |
 | [`<odesystem>`](odeSystem)           | computes a numerical solution to a system of ordinary differential equations |
 | [`<ol>`](ol.mdx)                  | ordered list                                                                 |
 | [`<option>`](option)              | specifies selection items within a `<select>` block                          |
@@ -226,15 +224,15 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | [`<slider>`](slider)               | renders a sliding bar for interactively adjusting values                                     |
 | [`<solution>`](solution.mdx)             | expandable block component which displays a problem solution                                 |
 | [`<sort>`](sort.mdx)                 | sort components based on their values in numerical or alphabetical order                     |
-| [`<sources>`](sources.mdx)              | used within a `<map>` to define input values for `<template>` and alias                      |
 | [`<split>`](split.mdx)                | splits multi-digit numbers or text strings into individual characters                        |
 | [`<spreadsheet>`](spreadsheet.mdx)          | renders a basic spreadsheet tool                                                             |
 | [`<sq>`](sq)                   | renders the enclosed text in single quotation marks                                          |
 | [`<stack>`](stack)                | vertical container element for organizing content within a `<sideBySide>`                    |
 | [`<standardDeviation>`](standardDeviation)    | renders the standard deviation of its arguments                                              |
-| [`<statement>`](statement)            | container element for content that does not have auto-numbering                              |
+| `<statement>`           | container element included for PreTeXt compatibility                             |
 | [`<styleDefinition>`](styleDefinition.mdx)      | defines custom styling for graphical elements outside the default styleNumbers (1-6)         |
 | [`<styleDefinitions>`](styleDefinitions)     | container element for the custom `<styleDefinition>` in a document                           |
+| `<subsection>`           | container element included for PreTeXt compatibility                             |
 | [`<subsetOfReals>`](subsetOfReals.mdx)        | defines an interval or a subset on the number line                                           |
 | [`<substitute>`](substitute.mdx)           | replace a math, character or string with a user-specified alternative                        |
 | [`<sum>`](sum)                  | renders the sum of its arguments                                                             |
@@ -245,17 +243,16 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | [`<table>`](table.mdx)       | container element for a `<tabular>`                                                                 |
 | [`<tabular>`](tabular.mdx)     | define data arranged in a tabular format                                                            |
-| [`<tag>`](tag)         | render enclosed text within a pair of tags, `< >` `< />`                                            |
+| [`<tag>`](tag)              | render enclosed text within a pair of tags, `< >` `< />`                                            |
 | `<tagc>`                                                                         |                                                                                                     |
-| [`<tage>`](tage)       | render enclosed text within a self-closing tag, `< />`                                              |
-| [`<template>`](template.mdx)    | defines operations to apply to individual `<sources>` within a `<map>`                              |
-| [`<term>`](term)        | emphasized styling associated with a defined vocabulary word                                        |
-| [`<text>`](text)        | a stored text value, or string                                                                      |
-| [`<textInput />`](textInput) | renders an input field for text responses                                                           |
+| `<tage>`                    | render enclosed text within a self-closing tag, `< />`                                              |
+| [`<term>`](term)            | emphasized styling associated with a defined vocabulary word                                        |
+| [`<text>`](text)            | a stored text value, or string                                                                      |
+| [`<textInput/>`](textInput) | renders an input field for text responses                                                           |
 | [`<textList>`](textList)    | list of `<text>` values separated by commas                                                         |
-| `<theorem>`                                                                      | a sectional component with auto-numbering and auto-title                                            |
-| [`<title>`](title)       | creates a title within a document, section, or other block component                                |
-| `<topic>`                                                                        | container element for content that does not have auto-numbering                                     |
+| `<theorem>`                 | container element included for PreTeXt compatibility                                            |
+| [`<title>`](title)          | creates a title within a document, section, or other block component                                |
+| `<topic>`                   | container element included for PreTeXt compatibility                                         |
 | [`<triangle>`](triangle)    | triangle Graphical Component                                                                        |
 | [`<triggerSet>`](triggerSet)  | groups a set of `<updateValue>` or `<callAction>` components which share a single trigger condition |
 | `<tupleList>`                                                                    | a list of tuples (points or intervals)                                                              |

@@ -72,39 +72,39 @@ Three points the circle passes through are specified using the `through` attribu
 
 
 ```doenet-editor-horiz
- <graph size="small">
-    <circle 
-      name="circle1" 
-      through="(-6,1) (0,-4) (5,3)"/>
-    $circle1.throughPoints 
-    $circle1.center{styleNumber="5"}
-  </graph>
+<graph size="small">
+  <circle 
+    name="circle1" 
+    through="(-6,1) (0,-4) (5,3)"/>
+  $circle1.throughPoints
+  <point extend="$circle1.center" styleNumber="5"/> 
+</graph>
 
-  <graph size="small">
-    <circle 
-      name="circle2" 
-      through="(-2,-2) (1, 4)"/>
-    $circle2.throughPoints 
-    $circle2.center{styleNumber="5"}
-  </graph>
+<graph size="small">
+  <circle 
+    name="circle2" 
+    through="(-2,-2) (1, 4)"/>
+  $circle2.throughPoints 
+  <point extend="$circle2.center" styleNumber="5"/>
+</graph>
 
-  <graph size="small">
-    <circle 
-      name="circle3" 
-      radius="2" 
-      through="(3,-3)"/>
-    $circle3.throughPoints 
-    $circle3.center{styleNumber="5"}
-  </graph>
+<graph size="small">
+  <circle 
+    name="circle3" 
+    radius="2" 
+    through="(3,-3)"/>
+  $circle3.throughPoints 
+  <point extend="$circle3.center" styleNumber="5"/>
+</graph>
 
-  <graph size="small">
-    <circle 
-      name="circle4" 
-      center="(-1,1)" 
-      through="(5,5)"/>
-    $circle4.throughPoints 
-    $circle4.center{styleNumber="5"}
-  </graph>
+<graph size="small">
+  <circle 
+    name="circle4" 
+    center="(-1,1)" 
+    through="(5,5)"/>
+  $circle4.throughPoints 
+  <point extend="$circle4.center" styleNumber="5"/> 
+</graph>
 ```
 
 

@@ -36,7 +36,7 @@ given expression and receive full credit in this case. See further examples on h
 ---
 
 ### Example: Default text  `<answer>{:dn}`
-```doenet-examples
+```doenet-example
 <p>Type <c>banana</c>: <answer type="text">banana</answer></p>
 ```
 
@@ -49,13 +49,14 @@ provided response, excluding white space at the beginning and end.
 
 ### Example: `<answer>{:dn}` with multiple awards
 ```doenet-editor-horiz
-  <p>Enter a prime number between 0 and 10:
-    <answer>
-      <award>2</award>
-      <award>3</award>
-      <award>5</award>
-      <award>7</award>
-    </answer></p>
+<p>Enter a prime number between 0 and 10:
+  <answer>
+    <award>2</award>
+    <award>3</award>
+    <award>5</award>
+    <award>7</award>
+  </answer>
+</p>
 ```
 
 One or more  `<award>{:dn}` components enclosing correct responses may be nested inside 
@@ -66,13 +67,14 @@ also have different credit values assigned, see further examples on how to refin
 
 ### Example: `<answer>{:dn}`  with basic logic
 ```doenet-editor-horiz
-   <p>Enter an even number greater than 6:
-    <answer>
-      <mathInput name="userNumber"/>
-      <award>
-        <when>$userNumber > 6 and <mod>$userNumber 2</mod> = 0</when>
-      </award>
-    </answer></p>
+<p>Enter an even number greater than 6:
+<answer>
+  <mathInput name="userNumber"/>
+  <award>
+    <when>$userNumber > 6 and <mod>$userNumber 2</mod> = 0</when>
+  </award>
+</answer>
+</p>
 ```
 
 This example illustrates the use of some simple validation logic that can be constructed 

@@ -15,9 +15,15 @@ that renders an animation of a changing component over a specified interval of u
 ---
 
 ### Example: Animated counting
-```doenet-example
-n = <number name="n">1</number>
-<animateFromSequence target="$n" from="1" to="20" animationOn="true"/>
+```doenet-editor-horiz
+<p>n = <number name="n">1</number></p>
+
+<animateFromSequence 
+  target="$n" 
+  from="1" 
+  to="20" 
+  animationOn="true"
+/>
 ```
 
 The ` <animateFromSequence/>{:dn}` component is used to animate a ` <number>{:dn}` over a sequence of values from 1 to 20.
@@ -27,11 +33,19 @@ The ` <animateFromSequence/>{:dn}` component is used to animate a ` <number>{:dn
 
 ### Example: Animation with start/stop button
 ```doenet-editor-horiz
-<callAction actionName="toggleAnimation" target="countUp">
+<callAction actionName="toggleAnimation" target="$countUp">
   <label>Start/Stop</label>
 </callAction>
+
 <p>n = <number name="n">1</number></p>
-<animateFromSequence name="countUp" target="n" from="1" to="20" animationOn="false" animationInterval="100"/>
+<animateFromSequence 
+  name="countUp" 
+  target="$n" 
+  from="1" 
+  to="20" 
+  animationOn="false" 
+  animationInterval="100"
+/>
 ```
 
 A ` <callAction>{:dn}` component references a named ` <animateFromSequence />{:dn}` with 
@@ -45,8 +59,15 @@ the `actionName` set to `toggleAnimation`.
 <graph size="small">
   <circle radius="$r" center="(0, 0)"/>
 </graph>
-r = <number name="r">0</number>
-<animateFromSequence target="r" from="0"to="10" animationInterval="200" animationOn="true"/>
+
+<p>r = <number name="r">0</number></p>
+<animateFromSequence 
+  target="$r" 
+  from="0"
+  to="10" 
+  animationInterval="200" 
+  animationOn="true"
+/>
 ```
 
 The `<animateFromSequence />{:dn}` component is used to animate the radius of a `<circle>{:dn}` where 
@@ -60,23 +81,31 @@ the radius has been defined as a `<number/>{:dn}` over a sequence of values from
   <function name="f">(1/4)x^2 - 4</function>
   <point styleNumber="2">($i,$$f($i))</point>
 </graph>
-i = <number name="i">-9</number>
-<animateFromSequence target="i" from="-9"to="9" step="1/2" animationInterval="100" animationOn="true"/>
+
+<p>i = <number name="i">-9</number></p>
+<animateFromSequence 
+  target="$i" 
+  from="-9"to="9" 
+  step="1/2" 
+  animationInterval="100" 
+  animationOn="true"
+/>
 ```
 
 The `<animateFromSequence />{:dn}` component is used to animate the $x$-coordinate of a 
 point which has been defined as a `<number/>{:dn}` over a sequence of values from -9 to 9. 
-The $y$-coordinate of the point is defined with the function evaluation macro &dollar;&dollar; $f(x)$.
+The $y$-coordinate of the point is defined with the function evaluation macro `$$f(x)`.
 
 
 ---
 
-### Example: target
+### Attribute Example: target
 ```doenet-example
 <graph size="small">
   <point name="P">(-10, 0)</point>
 </graph>
-<animateFromSequence target="P.x" from="-10"to="10" animationInterval="100" animationOn="true"/>
+
+<animateFromSequence target="$P.x" from="-10"to="10" animationInterval="100" animationOn="true"/>
 ```
 
 The `target` attribute is used to specify the value to animate. Since points have a 
@@ -85,11 +114,11 @@ without having to define a separate `<number/>{:dn}`.
 
 ---
 
-### Example: animationOn
+### Attribute Example: animationOn
 ```doenet-example
 <slider name="s">0</slider>
 Click to animate <booleanInput name="switch"/> $switch
-<animateFromSequence target="s" from="0" to="10" animationInterval="200" animationOn="$switch"/>
+<animateFromSequence target="$s" from="0" to="10" animationInterval="200" animationOn="$switch"/>
 ```
 
 The `animationOn` attribute is used to specify the current state of the animation. 
@@ -98,40 +127,74 @@ the boolean value is specified by the user with a `<booleanInput/>{:dn}`.
 
 ---
 
-### Example: animationMode
+### Attribute Example: animationMode
 ```doenet-editor-horiz
 <graph size="small">
   <point name="P">(0, 0)</point>
 </graph>
+
 <p>Type "increase", "increase once", "decrease", "decrease once", or "oscillate":
   <textInput name="userMode" prefill="increase"/></p>
 <booleanInput name="switch">
   <label>Start/Stop Animation</label>
 </booleanInput>
-<animateFromSequence target="P.x" from="-10" to="10" animationInterval="200" animationOn="$switch" animationMode="$userMode.text"/>
+
+<animateFromSequence 
+  target="$P.x" 
+  from="-10" 
+  to="10" 
+  animationInterval="200" 
+  animationOn="$switch" 
+  animationMode="$userMode.text"
+/>
 ```
 
 The `animationMode` attribute is used to specify the directional behavior of the animation. 
-Valid values for the input text are: "increase", "increase once", "decrease", "decrease once", and "oscillate". 
-The default value is "increase".
+Valid values for the input text are: `increase`, `increase once,` `decrease`, `decrease once`, and `oscillate`. 
+The default value is `increase`.
 
 ---
 
-### Example: animationInterval
+### Attribute Example: animationInterval
 ```doenet-editor-horiz
-<p>Race the points!</p>
-<graph size="small">
-  <point name="A" labelIsName>(-5, 8)</point>
-  <point name="B" styleNumber="2" labelIsName>(5, 8)</point>
-</graph>
-<p>Type a number for the animationInterval for each point. Default value is 1000 (ms).</p>
-<p>Point A: <mathInput name="miA"/>. Point B: 
-  <mathInput name="miB"/>.</p>
-<booleanInput name="switch">
+<p>Race the points!  <booleanInput name="switch">
   <label>Start/Stop Animation</label>
 </booleanInput>
-<animateFromSequence target="A.y" from="8" to="-10" animationInterval="$miA" animationOn="$switch" animationMode="increase once"/>
-<animateFromSequence target="B.y" from="8" to="-10" animationInterval="$miB" animationOn="$switch" animationMode="increase once"/>
+</p>
+
+<animateFromSequence 
+  target="$A.y" 
+  from="-8" 
+  to="10" 
+  animationInterval="$miA" 
+  animationOn="$switch" 
+  animationMode="increase once"
+/>
+
+<animateFromSequence 
+  target="$B.y" 
+  from="-8" 
+  to="10" 
+  animationInterval="$miB" 
+  animationOn="$switch" 
+  animationMode="increase once"
+/>
+
+<p>Type a number for the <attr>animationInterval</attr> for each point. Default value is 1000 (ms).</p>
+
+<sideBySide>
+<stack>
+<p>Point A: 
+  <mathInput name="miA" prefill="500"/></p> 
+<p>Point B: 
+  <mathInput name="miB" prefill="800"/></p>
+</stack>
+
+<graph size="small">
+  <point name="A" labelIsName>(-5, -8)</point>
+  <point name="B" styleNumber="2" labelIsName>(5, -8)</point>
+</graph>
+</sideBySide>
 ```
 
 The $y$-coordinate of two points are both animated with the `<animateFromSequence />{:dn}` component, 
@@ -142,14 +205,15 @@ of the animation sequence. The default value is 1000 ms.
 
 ---
 
-### Example: type="letters"
+### Attribute Example: type="letters"
 ```doenet-example
 <text name="letter">a</text>
 <p><booleanInput name="switch">
   <label>Start/Stop Animation</label>
 </booleanInput></p>
+
 <animateFromSequence 
-    target="letter" 
+    target="$letter" 
     from="a" 
     to="z" 
     type="letters" 
@@ -165,18 +229,19 @@ If unspecified, the default `type` is "number".
 
 ---
 
-### Example: type="number"
+### Attribute Example: length
 ```doenet-example
-<number name="n">1</number>
+<number name="n">0</number>
 <p><booleanInput name="switch">
   <label>Start/Stop Animation</label>
 </booleanInput></p>
+
 <animateFromSequence 
-  target="n" 
-  from="1" 
+  target="$n" 
+  from="0" 
   step="2" 
   length="10" 
-  animationInterval="200" 
+  animationInterval="600" 
   animationOn="$switch" 
   animationMode="increase once"
   />    
@@ -186,14 +251,15 @@ The `length` attribute specifies the length, in number of terms, of the animatio
 
 ---
 
-### Example: from, to
+### Attribute Example: from, to
 ```doenet-example
 <number name="n">1</number>
 <p><booleanInput name="switch">
   <label>Start/Stop Animation</label>
 </booleanInput></p>
+
 <animateFromSequence 
-  target="n" 
+  target="$n" 
   from="1" 
   step="2" 
   to="19" 
@@ -210,14 +276,15 @@ the starting and ending values in the animation sequence.
 
 ---
 
-### Example: step
+### Attribute Example: step
 ```doenet-example
 <number name="n">1</number>
 <p><booleanInput name="switch">
   <label>Start/Stop Animation</label>
 </booleanInput></p>
+
 <animateFromSequence 
-  target="n" 
+  target="$n" 
   from="0" 
   step="10" 
   to="100" 
@@ -233,14 +300,15 @@ The default `step` is $1$.
 
 ---
 
-### Example: exclude
+### Attribute Example: exclude
 ```doenet-example
 <number name="n">1</number>
 <p><booleanInput name="switch">
   <label>Start/Stop Animation</label>
 </booleanInput></p>
+
 <animateFromSequence 
-  target="n" 
+  target="$n" 
   from="0" 
   to="5" 
   exclude="3" 
@@ -254,7 +322,7 @@ The `exclude` attribute specifies values to exclude in the animation sequence.
 
 ---
 
-### Example: Attributes as properties
+### Property Example: Attributes as properties
 ```doenet-editor-horiz
 <number name="n">1</number>
 <p><booleanInput name="switch">
@@ -262,13 +330,14 @@ The `exclude` attribute specifies values to exclude in the animation sequence.
 </booleanInput></p>
 <animateFromSequence 
   name="counting" 
-  target="n" 
+  target="$n" 
   from="0" 
   to="5" 
   animationInterval="600" 
   animationOn="$switch" 
   animationMode="oscillate"
   />
+
 <p><c>animationOn</c> = $counting.animationOn</p>
 <p><c>animationMode</c> = $counting.animationMode</p>
 <p><c>animationInterval</c> = $counting.animationInterval</p>
@@ -278,17 +347,18 @@ The above listed `<animateFromSequence/>{:dn}` attributes are also accessible as
 
 ---
 
-### Example: value
+### Property Example: value
 ```doenet-example
- n = <number name="n">1</number>
-    <animateFromSequence 
-      name="countingAnimation" 
-      target="n" 
-      from="1" 
-      to="20" 
-      animationOn="true"
-      />
-    <p><c>value</c> = $countingAnimation.value</p>
+n = <number name="n">1</number>
+<animateFromSequence 
+  name="countingAnimation" 
+  target="$n" 
+  from="1" 
+  to="20" 
+  animationOn="true"
+/>
+    
+<p><c>value</c> = $countingAnimation.value</p>
 ```
 
 The `value` property of the `<animateFromSequence/>{:dn}` component 
@@ -296,12 +366,12 @@ renders the current sequence value of the animation target.
 
 ---
 
-### Example: currentAnimationDirection
+### Property Example: currentAnimationDirection
 ```doenet-example
 n = <number name="n">0</number>
     <animateFromSequence 
       name="countingAnimation" 
-      target="n" 
+      target="$n" 
       from="-2" 
       to="2" 
       animationOn="true" 
@@ -315,12 +385,12 @@ renders the current direction of the animation; i.e. whether the sequence values
 
 ---
 
-### Example: selectedIndex
+### Property Example: selectedIndex
 ```doenet-example
 n = <number name="n">0</number>
     <animateFromSequence 
       name="countingAnimation" 
-      target="n" 
+      target="$n" 
       from="2" 
       to="20" 
       step="2" 

@@ -447,7 +447,7 @@ acts on a target ` <video/>{:dn}` component.
   target="$unicornPage" 
   triggerWhen="$ans.creditAchieved=1"/>
 
-<ref name="unicornPage" uri="https://en.wikipedia.org/wiki/Unicorn" hide/>
+<ref name="unicornPage" to="https://en.wikipedia.org/wiki/Unicorn" hide/>
 ```
 
 
@@ -590,13 +590,7 @@ the ` <callAction>{:dn}` is performed.
 
 
 
-The `triggerWhen` attribute takes a boolean condition that triggers the 
-action to occur when the condition is `true`.
-
-
-Note that this process is repeated each time the boolean is 
-newly `true`. To observe this behavior, drag the point back and forth into 
-the negative $x$ region several times. Also, move the blue ` <point>{:dn}` child 
-each time so that you can clearly see the new ` <point>{:dn}` child that appears.
+The `triggerWhenObjectsClicked` attribute takes a component reference as input. Any
+graphical component that can be clicked can serve as a trigger.
 
 

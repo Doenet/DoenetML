@@ -81,33 +81,37 @@ The ` <answer>{:dn}` attributes listed above are also accessible as properties.
 ### Example: numResponses
 ```doenet-editor-horiz
 <p>Enter three numbers greater than 1.
-    <answer name="ans1">
-      <mathInput name="input1"/>
-      <mathInput name="input2"/>
-      <mathInput name="input3"/>
-      <award>
-        <when>
-          $input1 > 1 and $input2 > 1 and $input3 > 1 
-        </when>
-      </award>
-    </answer></p>
+<answer name="ans1">
+  <mathInput name="input1"/>
+  <mathInput name="input2"/>
+  <mathInput name="input3"/>
+  <award>
+    <when>
+      $input1 > 1 and $input2 > 1 and $input3 > 1 
+    </when>
+  </award>
+</answer>
+</p>
 
-    <p><c>numResponses</c> = $ans1.numResponses</p>
-    <p>Move point <m>A</m> to the first quadrant and point <m>B</m> to the third quadrant.
-    <graph size="small">
-      <point name="A" labelIsName>(-4,0)</point>
-      <point name="B" labelIsName styleNumber="2">(4,0)</point>
-    </graph>
+<p><c>numResponses</c> = $ans1.numResponses</p>
 
-      <answer name="ans2">
-        <award>
-          <when>
-            $A.x{isResponse} >= 0 and $A.y{isResponse} >= 0 and
-            $B.x{isResponse} <= 0 and $B.y{isResponse} <= 0
-          </when>
-        </award>
-      </answer></p>
-    <p><c>numResponses</c> = $ans2.numResponses</p>
+<p>Move point <m>A</m> to the first quadrant 
+and point <m>B</m> to the third quadrant.</p>
+<graph size="small">
+  <point name="A" labelIsName>(-4,0)</point>
+  <point name="B" labelIsName styleNumber="2">(4,0)</point>
+</graph>
+
+<p><answer name="ans2">
+  <award>
+    <when>
+      $A.x >= 0 and $A.y >= 0 and
+      $B.x <= 0 and $B.y <= 0
+    </when>
+  </award>
+</answer></p>
+
+<p><c>numResponses</c> = $ans2.numResponses</p>
 ```
 
 The `numResponses` property of the named ` <answer>{:dn}` renders 
@@ -118,34 +122,37 @@ the number of user-inputs, or the number of distinct response components conside
 ### Example: currentResponses
 ```doenet-editor-horiz
 <p>Enter three numbers greater than 1.
-    <answer name="ans1">
-      <mathInput name="input1"/>
-      <mathInput name="input2"/>
-      <mathInput name="input3"/>
-      <award>
-        <when>
-          $input1 > 1 and $input2 > 1 and $input3 > 1 
-        </when>
-      </award>
-    </answer></p>
+<answer name="ans1">
+  <mathInput name="input1"/>
+  <mathInput name="input2"/>
+  <mathInput name="input3"/>
+  <award>
+    <when>
+      $input1 > 1 and $input2 > 1 and $input3 > 1 
+    </when>
+  </award>
+</answer>
+</p>
 
-    <p><c>currentResponses</c> = <asList>$ans1.currentResponses</asList></p>
-    <p>Move point <m>A</m> to the first quadrant and point <m>B</m> to the third quadrant.
-    <graph size="small">
-      <point name="A" labelIsName>(-4,0)</point>
-      <point name="B" labelIsName styleNumber="2">(4,0)</point>
-    </graph>
+<p><c>currentResponses</c> = $ans1.currentResponses</p>
+<p>Move point <m>A</m> to the first quadrant and 
+point <m>B</m> to the third quadrant.</p>
+<graph size="small">
+  <point name="A" labelIsName>(-4,0)</point>
+  <point name="B" labelIsName styleNumber="2">(4,0)</point>
+</graph>
 
-      <answer name="ans2">
-        <award>
-          <when>
-            $A.x{isResponse} >= 0 and $A.y{isResponse} >= 0 and
-            $B.x{isResponse} <= 0 and $B.y{isResponse} <= 0
-          </when>
-        </award>
-      </answer></p>
+<p><answer name="ans2">
+  <award>
+    <when>
+      $A.x >= 0 and $A.y >= 0 and
+      $B.x <= 0 and $B.y <= 0
+    </when>
+  </award>
+</answer>
+</p>
 
-    <p><c>currentResponses</c> = <asList>$ans2.currentResponses</asList></p>
+<p><c>currentResponses</c> = $ans2.currentResponses</p>
 ```
 
 
@@ -160,18 +167,19 @@ can be obtain with square brackets.  For example, the second response can be acc
 ### Example: numSubmittedResponses
 ```doenet-editor-horiz
 <p>Enter three numbers greater than 1.
-    <answer name="ans1">
-      <mathInput name="input1"/>
-      <mathInput name="input2"/>
-      <mathInput name="input3"/>
-      <award>
-        <when>
-          $input1 > 1 and $input2 > 1 and $input3 > 1 
-        </when>
-      </award>
-    </answer></p>
+<answer name="ans1">
+  <mathInput name="input1"/>
+  <mathInput name="input2"/>
+  <mathInput name="input3"/>
+  <award>
+    <when>
+      $input1 > 1 and $input2 > 1 and $input3 > 1 
+    </when>
+  </award>
+</answer>
+</p>
 
-    <p><c>numSubmittedResponses</c> = <asList>$ans1.numSubmittedResponses</asList></p>
+<p><c>numSubmittedResponses</c> = $ans1.numSubmittedResponses</p>
 ```
 
 In this example, the `numSubmittedResponses` property of the named ` <answer>{:dn}` 
@@ -184,18 +192,19 @@ also counts as a submitted response once the user has clicked the "Check Work" b
 ### Example: submittedResponses
 ```doenet-editor-horiz
 <p>Enter three numbers greater than 1.
-    <answer name="ans1">
-      <mathInput name="input1"/>
-      <mathInput name="input2"/>
-      <mathInput name="input3"/>
-      <award>
-        <when>
-          $input1 > 1 and $input2 > 1 and $input3 > 1 
-        </when>
-      </award>
-    </answer></p>
+<answer name="ans1">
+  <mathInput name="input1"/>
+  <mathInput name="input2"/>
+  <mathInput name="input3"/>
+  <award>
+    <when>
+      $input1 > 1 and $input2 > 1 and $input3 > 1 
+    </when>
+  </award>
+</answer>
+</p>
 
-    <p><c>submittedResponses</c> = <asList>$ans1.submittedResponses</asList></p>
+<p><c>submittedResponses</c> = $ans1.submittedResponses</p>
 ```
 
 
@@ -210,18 +219,19 @@ values can be obtain with square brackets.  For example, the second response can
 ### Example: creditAchieved
 ```doenet-editor-horiz
 <p>Enter three numbers greater than 1.
-    <answer name="ans1" matchPartial>
-      <mathInput name="input1"/>
-      <mathInput name="input2"/>
-      <mathInput name="input3"/>
-      <award>
-        <when>
-          $input1 > 1 and $input2 > 1 and $input3 > 1 
-        </when>
-      </award>
-    </answer></p>
+<answer name="ans1" matchPartial>
+  <mathInput name="input1"/>
+  <mathInput name="input2"/>
+  <mathInput name="input3"/>
+  <award>
+    <when>
+      $input1 > 1 and $input2 > 1 and $input3 > 1 
+    </when>
+  </award>
+</answer>
+</p>
 
-    <p><c>creditAchieved</c> = <asList>$ans1.creditAchieved</asList></p>
+<p><c>creditAchieved</c> = $ans1.creditAchieved</p>
 ```
 
 
@@ -262,13 +272,13 @@ the `justSubmitted` property turns to false.
 
 ### Example: feedbacks
 ```doenet-editor-horiz
-    <p>The correct answer is <m>x</m> but <m>y</m> is close.</p>
-    <answer name="ans">
-      <award feedbackText="Good job!">x</award>
-      <award credit="0.5" feedbackText="Not quite">y</award>
-    </answer>
+<p>The correct answer is <m>x</m> but <m>y</m> is close.</p>
+<answer name="ans">
+  <award feedbackText="Good job!">x</award>
+  <award credit="0.5" feedbackText="Not quite">y</award>
+</answer>
 
-<p><c>feedbacks</c> = <asList>$ans.feedbacks</asList></p>
+<p><c>feedbacks</c> = $ans.feedbacks</p>
 ```
 
 The `feedbacks` property renders any feedback that is defined within the ` <answer>{:dn}` itself.  

@@ -5,21 +5,21 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <standardDeviation>{:dn}`
 
-The ` <standardDeviation>{:dn}` component renders the standard deviation of a list of 
-enclosed data values according to the equation: 
+` <standardDeviation>{:dn}` is a [Math Operator](../document_structure/essentialConcepts/#componentTypes) 
+component that renders the standard deviation of a list of enclosed data values according to the equation: 
 
-```doenet
-<men>\sigma(x) = \sqrt{\frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n-1}}</men>
-```
+
+$$\sigma(x) = \sqrt{\frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n-1}}$$
+
 
 In this equation, $\bar x$ 
 represents the mean of the sample and $n$ the number of data points.  By default, the sample 
 standard deviation is calculated.  If instead, the `population` attribute is specified as "true", the
  equation becomes: 
  
- ```doenet
- <men>\sigma(x) = \sqrt{\frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n}}</men>
- ```
+ 
+$$\sigma(x) = \sqrt{\frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n}}$$
+
 
 ## Attributes and Properties 
  <AttrDisplay name='standardDeviation'/> 
@@ -32,7 +32,10 @@ standard deviation is calculated.  If instead, the `population` attribute is spe
 
 ```doenet-editor-horiz
 <p><m>A = \{1, 2, 3, 4, -1\}</m></p>
-<p>The standard deviation of <m>A</m> is <standardDeviation>1 2 3 4 -1</standardDeviation></p>     
+<p>The standard deviation of <m>A</m> is <standardDeviation>
+  1 2 3 4 -1
+</standardDeviation>
+</p>         
 ```
 
 
@@ -44,15 +47,20 @@ Data is directly entered in the form of a list of numbers separated by spaces wi
 
 ---
 
-### Example: population
+### Attribute Example: population
 
 
 ```doenet-editor-horiz
 <p><m>A = \{1, 2, 3, 4, -1\} </m></p>
-<p>The population standardDeviation of <m>A</m> is <standardDeviation population="true">1 2 3 4 -1</standardDeviation></p>   
+<p>The population standardDeviation of <m>A</m> is 
+<standardDeviation population="true">
+    1 2 3 4 -1
+</standardDeviation>
+</p>   
 ```
 
 
 
-The ` <standardDeviation>{:dn}` component is used with the `population` attribute and the population standard deviation is calculated according to equation (2) above.
+The ` <standardDeviation>{:dn}` component is used with the `population` attribute and the population standard deviation is calculated according 
+the second equation shown above.
 

@@ -6,9 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <substitute>{:dn}`
 
 
-` <substitute>{:dn}` is a [**General Operator**](../document_structure/essentialConcepts/#componentTypes) 
-component that replaces one character or 
-string from a math or a text with another specified string.
+` <substitute>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
+component that replaces one character or string from a math or a text with another specified string.
 
 
 Note that substitution is used for variables in math expressions, not numerical values. Doenet ignores requests for substitution of strict numerical values in math expressions.
@@ -23,10 +22,9 @@ Note that substitution is used for variables in math expressions, not numerical 
 
 
 ```doenet-editor-horiz
-
-  <substitute name="sub" match="y" replacement="z">
-      $mi
-  </substitute>
+<substitute name="sub" match="y" replacement="z">
+  $mi
+</substitute>
 
 <p>Enter <m>x + y</m> 
   <mathInput name="mi"/>
@@ -56,10 +54,9 @@ The substititution is performed in a ` <setup>{:dn}` block, which does not rende
 
 
 ```doenet-editor-horiz
-
-  <substitute name="sub" match="vanilla" replacement="chocolate" type="text">
-      $ti
-  </substitute>
+<substitute name="sub" match="vanilla" replacement="chocolate" type="text">
+    $ti
+</substitute>
 
 <p>Enter "vanilla ice cream"
   <textInput name="ti"/>
@@ -102,7 +99,7 @@ In this example, the user provides the substituted value in the math expression.
 
 ---
 
-### Example: type
+### Attribute Example: type
 
 
 ```doenet-editor-horiz
@@ -128,7 +125,7 @@ The default substitution type is `math`. Use `type="text"` to switch the type of
 
 ---
 
-### Example: match, replacement
+### Attribute Example: match, replacement
 
 
 ```doenet-editor-horiz
@@ -148,15 +145,12 @@ The `replacement` attribute specifies new content to be inserted with the ` <sub
 
 ---
 
-### Example: simplify
+### Attribute Example: simplify
 
 
 ```doenet-editor-horiz
-<booleanInput name="simplify">
-  <label>Simplify</label>
-</booleanInput>
 <p><math name="math1">x + 2x + 4 - 1</math></p>
-<substitute match="x" replacement="y" simplify="$simplify">
+<substitute match="x" replacement="y" simplify>
       $math1
 </substitute>
 ```
@@ -169,22 +163,22 @@ The ` <substitution>{:dn}` component accepts the standard `simplify` attribute f
 
 ---
 
-### Example: matchWholeWord
+### Attribute Example: matchWholeWord
 
 
 ```doenet-editor-horiz
-<p>If your name is Billy, you're a dude:</p>
+<p>If your name is Billy, you're a goat:</p>
 <p>What's your name? <textInput name="nameWholeMatch"/></p>
 <p>Hey, 
-  <substitute type="text" match="Billy" matchWholeWord replacement="dude">
+  <substitute type="text" match="Billy" matchWholeWord replacement="goat">
     $nameWholeMatch
   </substitute>
 </p>
 <p>(Default)</p>
-<p>If your name starts with a B, you're a dude (sort of):</p>
+<p>If your name starts with a B, you're a goat (sort of):</p>
 <p>What's your name? <textInput name="namePartial"/></p>
 <p>Hey, 
-  <substitute type="text" match="B" replacement="dude">
+  <substitute type="text" match="B" replacement="goat">
     $namePartial
   </substitute>
 </p>
@@ -198,7 +192,7 @@ By default, Doenet separates strings into individual, case-insensitive character
 
 ---
 
-### Example: matchCase
+### Attribute Example: matchCase
 
 
 ```doenet-editor-horiz
@@ -223,7 +217,7 @@ By default, matching is case-insensitive with the ` <substitution>{:dn}` compone
 
 ---
 
-### Example: preserveCase
+### Attribute Example: preserveCase
 
 
 ```doenet-editor-horiz

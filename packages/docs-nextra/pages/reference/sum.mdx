@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <sum>{:dn}`
 
 
-` <sum>{:dn}` is a Math Operator component that renders the sum of its arguments.
+` <sum>{:dn}` is a [Math Operator](../document_structure/essentialConcepts/#componentTypes) 
+component that renders the sum of its arguments.
 
 
 ## Attributes and Properties 
@@ -15,11 +16,11 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
-### Example: ` <sum>{:dn}` of a sugared list of numbers
+### Example: ` <sum>{:dn}` of a nested list of numbers
 
 
 ```doenet-editor-horiz
-<max>0 2.5 1 4.1 3</max>
+<sum>0 2.5 1 4.1 3</sum>
 ```
 
 
@@ -35,6 +36,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ```doenet-editor-horiz
 <numberList name="numList">1.2 9.9 17.3</numberList>
+
 <p>Sum = <sum>$numList</sum></p> 
 ```
 
@@ -51,15 +53,23 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ```doenet-editor-horiz
 
-<selectRandomNumbers numToSelect="7" from="-500" to="500" type="discreteUniform" name="randomNumberList"/>
+<selectRandomNumbers 
+  numToSelect="7" 
+  from="-500" 
+  to="500" 
+  type="discreteUniform" 
+  name="randomNumberList"
+/>
 
-<p>The list of random numbers selected is: <convertSetToList>$randomNumberList</convertSetToList></p>
+<p>The list of random numbers selected is: 
+  $randomNumberList</p>
 <p>Sum of selected numbers: <sum>$randomNumberList</sum></p>
 ```
 
 
 
-` <sum>{:dn}` renders the sum of values in a list of numbers that are generated with the <ref uri="doenet:activityId=_HFhH7id_K4u5E1OiZTTby">` <selectRandomNumbers/>{:dn}`</ref> component. 
+` <sum>{:dn}` renders the sum of values in a list of numbers that are generated with 
+the ` <selectRandomNumbers/>{:dn}` component. 
 
 
 
@@ -72,10 +82,13 @@ import { AttrDisplay, PropDisplay } from "../../components"
 <mathList name="mList">
   x 3y 2x^2 y -3x x^2
 </mathList>
+
 <p>Sum = 
   <sum name="sumOfMaths">$mList</sum>
 </p> 
-<p>Simplified = $sumOfMaths{simplify}</p> 
+<p>Simplified = 
+  <sum extend="$sumOfMaths" simplify/>
+</p> 
 ```
 
 

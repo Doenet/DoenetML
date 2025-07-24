@@ -6,7 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <text>{:dn}`
 
 
-` <text>{:dn}` defines a string variable for use in evaluations and boolean expressions, or to store a value for future rendering.
+` <text>{:dn}` is a [Text](../document_structure/essentialConcepts/#componentTypes)
+component that defines a string variable for use in evaluations and boolean expressions, or to store a value for future rendering.
 
 ## Attributes and Properties 
  <AttrDisplay name='text'/> 
@@ -18,10 +19,11 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ```doenet-editor-horiz
-
-  <text name="chickenSound">Bak Bak!</text>
-  <text name="cowSound">Moo Moo!</text>
-  <text name="dogSound">Woof Woof!</text>
+<setup>
+<text name="chickenSound">Bak Bak!</text>
+<text name="cowSound">Moo Moo!</text>
+<text name="dogSound">Woof Woof!</text>
+</setup>
 
 <p>The chicken goes $chickenSound</p>
 <p>The cow goes $cowSound</p>
@@ -40,8 +42,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ```doenet-editor-horiz
-
+<setup>
 <text name="color">green</text>
+</setup>
 
 <p>Enter the complement of red: 
   <textInput name="userColor"/></p>
@@ -78,10 +81,11 @@ A ` <text>{:dn}` values is defined on a ` <graph>{:dn}`. The position of the ` <
 
 
 ```doenet-editor-horiz
-<p><text name="a">4</text></p>
+<p>a = <text name="a">4</text></p>
+
 <math name="hypotenuse">
   sqrt(3^2 + $a^2)
-</math> = $hypotenuse{simplify}
+</math> = <math extend="$hypotenuse" simplify/>
 ```
 
 
@@ -92,14 +96,16 @@ A ` <text>{:dn}` values is defined on a ` <graph>{:dn}`. The position of the ` <
 
 ---
 
-### Example: anchor
+### Attribute Example: anchor
 
 
 ```doenet-editor-horiz
 <graph size="small">
-  <text anchor="(-6,6)">Hello World!</text>
+  <text name="a" anchor="(-6,6)">Hello World!</text>
   <circle radius="5"/>
 </graph>
+
+<p><c>a.anchor</c> = $a.anchor</p>   
 ```
 
 
@@ -110,26 +116,28 @@ The `anchor` attribute determines the initial position of a ` <text>{:dn}` on a 
 
 ---
 
-### Example: draggable
+### Attribute Example: draggable
 
 
 ```doenet-editor-horiz
-<graph size="small" displayXAxis="false" displayYAxis="false">
-  <text anchor="(-6,0)">I'm free!</text>
-  <text anchor="(6,0)" draggable="false">I'm stuck!</text>
+<graph size="small">
+  <text name="a" anchor="(-6,3)">
+    I'm free!
+  </text>
+  <text 
+    name="b" 
+    anchor="(6,3)" 
+    draggable="false"
+    >
+      I'm stuck!
+  </text>
 </graph>
+
+<p><c>a.draggable</c> = $a.draggable</p>  
+<p><c>b.draggable</c> = $b.draggable</p>     
 ```
 
 
 
 The `draggable` attribute determines whether the ` <text>{:dn}` can be dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
 
-
-
----
-
-### Example: layer *
-
-
-```doenet-editor-horiz
-```

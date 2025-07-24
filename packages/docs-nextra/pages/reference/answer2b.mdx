@@ -91,7 +91,10 @@ exponents, add the `includeErrorInNumberExponents` attribute, preferably with th
 ### Example: caseInsensitiveMatch
 ```doenet-example
 <p>Enter tTkLp: <answer type="text">tTkLp</answer></p>
-<p>Enter tTkLp with any capitalization: <answer type="text" caseInsensitiveMatch>ttklp</answer></p>
+<p>Enter tTkLp with any capitalization: 
+  <answer type="text" caseInsensitiveMatch>ttklp</answer>
+</p>
+
 <p>Either <m>x^2</m> or <m>X^2</m> is acceptable:
   <answer caseInsensitiveMatch>x^2</answer>
 </p>
@@ -106,22 +109,30 @@ Use the `caseInsensitiveMatch` attribute if capitalization is not relevant for v
 <m>\sqrt{529} = </m> 
   <answer name="ans1" showCorrectness="false" symbolicEquality>23</answer> 
 
-<p>(Though it generally wouldn't make sense to show the credit if you're hiding correctness, you <em>could</em> 
+<p>(Though it generally wouldn't make sense to show the credit 
+if you're hiding correctness, you <em>could</em> 
 show the credit achieved: $ans1.creditAchieved.)</p>
 
-  <p>Try again with a big button</p>
-    <m>\sqrt{529} = </m> 
-  <answer name="ans2" showCorrectness="false" symbolicEquality forceFullCheckworkButton>23</answer> 
+<p>Try again with a big button</p>
+  <m>\sqrt{529} = </m> 
+<answer 
+  name="ans2" 
+  showCorrectness="false" 
+  symbolicEquality 
+  forceFullCheckworkButton>
+    23
+</answer> 
 
-  <p>Customize message</p>
-    <m>\sqrt{529} = </m> 
-  <answer name="ans3" 
-    showCorrectness="false" 
-    symbolicEquality 
-    forceFullCheckworkButton 
-    submitLabelNoCorrectness="submit!"
-    >23
-  </answer> 
+<p>Customize message</p>
+  <m>\sqrt{529} = </m> 
+  
+<answer name="ans3" 
+  showCorrectness="false" 
+  symbolicEquality 
+  forceFullCheckworkButton 
+  submitLabelNoCorrectness="submit!"
+  >23
+</answer> 
 ```
 
 
@@ -156,7 +167,8 @@ way to relax this requirement.
 
 ### Example: disableAfterCorrect
 ```doenet-example
-<p>Given an angle <m>\theta</m> on the unit circle, what is the name for the ratio of the opposite side to the hypotenuse?
+<p>Given an angle <m>\theta</m> on the unit circle, what 
+is the name for the ratio of the opposite side to the hypotenuse?
 <answer disableAfterCorrect>
   <choiceInput>
     <choice><m>\tan(\theta)</m></choice>
@@ -213,7 +225,8 @@ The `submitLabelNoCorrectness` attribute modifies the standard
     <choice credit="1">orange</choice>
     <choice credit="1">red</choice>
     <choice>blue</choice>
-  </answer></p>
+  </answer>
+</p>
 ```
 
 The `selectMultiple` attribute allows multiple ` <choice>{:dn}` components to be selected for response.
@@ -222,14 +235,14 @@ The `selectMultiple` attribute allows multiple ` <choice>{:dn}` components to be
 
 ### Example: shuffleOrder
 ```doenet-example
-    <p>Select the smallest number</p>
-    <answer shuffleOrder>
-      <choice credit="1">1</choice>
-      <choice>2</choice>
-      <choice>3</choice>
-      <choice>4</choice>
-      <choice>5</choice>
-    </answer>
+<p>Select the smallest number</p>
+<answer shuffleOrder>
+  <choice credit="1">1</choice>
+  <choice>2</choice>
+  <choice>3</choice>
+  <choice>4</choice>
+  <choice>5</choice>
+</answer>
 ```
 
 
@@ -246,11 +259,11 @@ original order if there are fewer than 5 choices.
 
 ### Example: splitSymbols
 ```doenet-example
-    <p>Enter the product of the variables <c>two</c> and <c>vars</c>:
-    <answer splitSymbols="false">
-      <math splitSymbols="false">two vars</math>
-    </answer>
-    </p>
+<p>Enter the product of the variables <c>two</c> and <c>vars</c>:
+<answer splitSymbols="false">
+  <math splitSymbols="false">two vars</math>
+</answer>
+</p>
 ```
 
 
@@ -303,13 +316,13 @@ The default value is 10 digits.
 
 ### Example: displayDigitsForCreditAchieved
 ```doenet-editor-horiz
-    <p>Enter <m>x</m> for full credit, <m>y</m> for partial credit.
-      <answer name="ans" displayDigitsForCreditAchieved="6">
-        <award>x</award>
-        <award credit="1/3">y</award>
-      </answer>
-    </p>
-    <p>Credit achieved: $ans.creditAchieved</p>
+<p>Enter <m>x</m> for full credit, <m>y</m> for partial credit.
+  <answer name="ans" displayDigitsForCreditAchieved="6">
+    <award>x</award>
+    <award credit="1/3">y</award>
+  </answer>
+</p>
+<p>Credit achieved: $ans.creditAchieved</p>
 ```
 
 
@@ -326,9 +339,9 @@ The default value is 3 digits.
 
 ### Example: matchBlanks
 ```doenet-example
-    <p>Enter <m>f()</m> with no arguments.
-      <answer name="ans" matchBlanks>f()</answer>
-    </p>
+<p>Enter <m>f()</m> with no arguments.
+  <answer name="ans" matchBlanks>f()</answer>
+</p>
 ```
 
 

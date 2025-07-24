@@ -6,7 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <when>{:dn}`
 
 
-` <when>{:dn}` is used for creating boolean conditions within an [` <award>{:dn}`](award.mdx).
+` <when>{:dn}` is an [Evaluation](../document_structure/essentialConcepts/#componentTypes)
+component that is used for creating boolean conditions within an [` <award>{:dn}`](award.mdx).
 
 ## Attributes and Properties 
  <AttrDisplay name='when'/> 
@@ -14,15 +15,15 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
-### Example: ` <when>{:dn}` in an ` <award>{:dn}` with <tage>mathInput</tage>
+### Example: ` <when>{:dn}` in an ` <award>{:dn}` with ` <mathInput/>{:dn}`
 
 
 ```doenet-editor-horiz
-<p>1.  <m>\sqrt{4}  = </m>
+<p>1. Enter  <m>a</m> or <m>b</m>:
   <answer><mathInput name="ans1"/>
     <award>
       <when>
-        $ans1 = 2 or $ans1 = -2
+        $ans1 = a or $ans1 = b
       </when>
     </award>
   </answer>
@@ -49,6 +50,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
       </when>
     </award>
 </answer>
+
 <graph size="small" grid>
   <point name="center" fixed coords="(0,0)"/>
   <point name="dragPt" styleNumber="2">
@@ -60,20 +62,21 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-` <when>{:dn}` is used to specify the boolean condition within an ` <award>{:dn}`. In this case, the boolean is based on graphical interactions performed by the user to update the radius of the named ` <circle/>{:dn}`.
+` <when>{:dn}` is used to specify the boolean condition within an ` <award>{:dn}`. In 
+this case, the boolean is based on graphical interactions performed by the user to update the radius of the named ` <circle/>{:dn}`.
 
 
 
 ---
 
-### Example: ` <when>{:dn}` in an ` <award>{:dn}` with <tage>textInput</tage>
+### Example: ` <when>{:dn}` in an ` <award>{:dn}` with ` <textInput/>{:dn}`
 
 
 ```doenet-editor-horiz
 <p>What color is the complement of purple? 
 <textInput name="userColor"/>
   <answer name="ans" type="text">
-    <award>
+    <award caseInsensitiveMatch>
       <when>
         $userColor = yellow
       </when>
@@ -84,13 +87,14 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-` <when>{:dn}` is used to specify the boolean condition within an ` <award>{:dn}`. In this case, the boolean is based on the value of a ` <textInput/>{:dn}`.
+` <when>{:dn}` is used to specify the boolean condition within an ` <award>{:dn}`. In 
+this case, the boolean is based on the value of a ` <textInput/>{:dn}`.
 
 
 
 ---
 
-### Example: matchPartial
+### Attribute Example: matchPartial
 
 
 ```doenet-editor-horiz
@@ -107,13 +111,14 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-The ` <matchPartial>{:dn}` attribute signifies that partial credit is to be awarded if any part of the enclosed boolean condition is true.
+The `matchPartial` attribute signifies that partial credit is to be awarded if any part of the 
+enclosed boolean condition is true.
 
 
 
 ---
 
-### Example: value
+### Property Example: value
 
 
 ```doenet-editor-horiz
@@ -121,12 +126,13 @@ The ` <matchPartial>{:dn}` attribute signifies that partial credit is to be awar
   <mathInput name="primeList"/>.</p>
 <answer>
   <award unOrderedCompare>
-    <when matchPartial="true">
+    <when name="w1" matchPartial>
       $primeList = <mathList>2 3 5 7</mathList>
     </when>
   </award>
 </answer>
-<p><c>value</c> = $_when1.value</p>
+
+<p><c>value</c> = $w1.value</p>
 ```
 
 
@@ -137,7 +143,7 @@ The `value` property renders the value of the boolean condition enclosed by the 
 
 ---
 
-### Example: fractionSatisfied
+### Property Example: fractionSatisfied
 
 
 ```doenet-editor-horiz
@@ -145,23 +151,25 @@ The `value` property renders the value of the boolean condition enclosed by the 
   <mathInput name="primeList"/>.</p>
 <answer>
   <award unOrderedCompare>
-    <when matchPartial="true">
+    <when name="w1" matchPartial="true">
       $primeList = <mathList>2 3 5 7</mathList>
     </when>
   </award>
 </answer>
-<p><c>fractionSatisfied</c> = $_when1.fractionSatisfied</p>
+
+<p><c>fractionSatisfied</c> = $w1.fractionSatisfied</p>
 ```
 
 
 
-The `fractionSatisfied` property renders the fractional value corresponding to which portion of the boolean condition enclosed by the ` <when>{:dn}` evaluates to `true`.
+The `fractionSatisfied` property renders the fractional value corresponding to 
+which portion of the boolean condition enclosed by the ` <when>{:dn}` evaluates to `true`.
 
 
 
 ---
 
-### Example: conditionSatisfied
+### Property Example: conditionSatisfied
 
 
 ```doenet-editor-horiz
@@ -169,23 +177,25 @@ The `fractionSatisfied` property renders the fractional value corresponding to w
   <mathInput name="primeList"/>.</p>
 <answer>
   <award unOrderedCompare>
-    <when matchPartial="true">
+    <when name="w1" matchPartial>
       $primeList = <mathList>2 3 5 7</mathList>
     </when>
   </award>
 </answer>
-<p><c>conditionSatisfied</c> = $_when1.conditionSatisfied</p>
+
+<p><c>conditionSatisfied</c> = $w1.conditionSatisfied</p>
 ```
 
 
 
-The `conditionSatisfied` property renders the boolean value corresponding to whether the ` <when>{:dn}` condition has been satisfied.
+The `conditionSatisfied` property renders the boolean value corresponding to 
+whether the ` <when>{:dn}` condition has been satisfied.
 
 
 
 ---
 
-### Example: matchPartial
+### Property Example: matchPartial
 
 
 ```doenet-editor-horiz
@@ -193,12 +203,13 @@ The `conditionSatisfied` property renders the boolean value corresponding to whe
   <mathInput name="primeList"/>.</p>
 <answer>
   <award unOrderedCompare>
-    <when matchPartial="true">
+    <when name="w1" matchPartial>
       $primeList = <mathList>2 3 5 7</mathList>
     </when>
   </award>
 </answer>
-<p><c>matchPartial</c> = $_when1.matchPartial</p>
+
+<p><c>matchPartial</c> = $w1.matchPartial</p>
 ```
 
 

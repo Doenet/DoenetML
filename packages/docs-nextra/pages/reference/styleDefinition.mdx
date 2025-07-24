@@ -6,7 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <styleDefinition>{:dn}`
 
 
-The ` <styleDefinition>{:dn}` component allows the user to define custom styles for an individual document. Default styleNumbers, used in Graphical Components, are numbered $1$ to $6$. Additional styleNumbers are defined with a ` <styleDefinition>{:dn}` component nested within a ` <styleDefinitions>{:dn}` block.
+` <styleDefinition>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
+component that allows the user to define custom styles for an individual document. Default styleNumbers, used in Graphical Components, are numbered $1$ to $6$. Additional styleNumbers are defined with a ` <styleDefinition>{:dn}` component nested within a ` <styleDefinitions>{:dn}` block.
 
 
 These new styles are assigned unique numbers that can be used locally in that document.
@@ -21,21 +22,29 @@ These new styles are assigned unique numbers that can be used locally in that do
 
 
 ```doenet-editor-horiz
-
+<setup>
 <styleDefinitions>
   <styleDefinition styleNumber="10" 
     fillColor="#D4042D" 
     fillOpacity="0.1" 
     markerSize="6" 
-    markerStyle="circle" 
+    markerStyle="circle"
+    markerStyleWord="point"
     markerColor="#D4042D" 
-    lineColor="#D4042D" 
+    markerColorWord="red"
+    lineColor="#D4042D"
+    lineColorWord="red"
     lineOpacity="0.7"  
-    lineWidth="4"/>
-</styleDefinitions>      
+    lineWidth="4"
+    lineWidthWord="thick"
+    />
+</styleDefinitions>  
+</setup>
 
-<graph>
-  <line name="thickRedLine" styleNumber="10">y = x</line>
+<p>The $redCircle.styleDescriptionWithNoun passes through the $thickRedLine.styleDescriptionWithNoun at $redCircle.</p>
+
+<graph size="small">
+  <line name="thickRedLine" styleNumber="10" through="$redCircle (0,0)"/>
   <line name="defLine" styleNumber="2">y = -x</line>
   <point name="redCircle" styleNumber="10">(3,3)</point>
   <point name="defPt" styleNumber="2">(-3,3)</point>
@@ -45,5 +54,9 @@ These new styles are assigned unique numbers that can be used locally in that do
 
 
 In this example, a custom style has been created and assigned a `styleNumber` of $10$. The custom 
-style is an adaptation of the default "red" `styleNumber` of $2$, generating a thicker line and a round rather than a square point.
+style is an adaptation of the default "red" `styleNumber` of $2$, generating a thicker line and a round rather than a square point. The
+attributes ending in `Word` define the way doenet will render the style descriptions in text references when the `styleDescription` or 
+`styleDescriptionWithNoun` properties are used.
+
+Note: A `<styleDefinitions>{:dn}` block must be placed within a `<setup>{:dn}` component.
 

@@ -6,18 +6,21 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <variance>{:dn}`
 
 
-The ` <variance>{:dn}` component renders the variance of a list of enclosed data values according to the equation: 
-```doenetml
-$$\mathbf{Var}(x) = \frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n-1}
-```
+` <variance>{:dn}` is a [Math Operator](../document_structure/essentialConcepts/#componentTypes) 
+component that renders the variance of a list of enclosed data values according to the equation: 
+
+
+$$\mathbf{Var}(x) = \frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n-1}$$
+
+
 In this equation, $\bar x$ represents 
 the [` <mean>{:dn}`](mean.mdx) of the sample and $n$ the number of data points.  By default, the sample variance is 
 calculated.  If instead, the `population` attribute is specified as "true", the equation 
 becomes: 
 
-```doenetml
-<men>\mathbf{Var}(x) = \frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n}.</men>
-```
+
+$$\mathbf{Var}(x) = \frac{\sum_{i=1}^n (x_{i} - \bar x)^2}{n}$$
+
 
 ## Attributes and Properties 
  <AttrDisplay name='variance'/> 
@@ -25,7 +28,7 @@ becomes:
 
 ---
 
-### Example: ` <variance>{:dn}` of a sugared list of numbers
+### Example: ` <variance>{:dn}` of a nested list of numbers
 
 
 ```doenet-editor-horiz
@@ -34,7 +37,7 @@ becomes:
 
 
 
-` <variance>{:dn}` component renders the variance of a list of numbers separated by spaces.
+The ` <variance>{:dn}` component renders the variance of a list of numbers separated by spaces.
 
 
 
@@ -47,12 +50,13 @@ becomes:
 <numberList name="numList">
   3 5 4 5 4 6
 </numberList>
+
 <p><m>\mathbf{Var}(x) = <variance>$numList</variance></m></p>  
 ```
 
 
 
-` <variance>{:dn}` renders the variance of a named ` <numberList>{:dn}`.
+The `<variance>{:dn}` component renders the variance of a named ` <numberList>{:dn}`.
 
 
 
@@ -62,14 +66,22 @@ becomes:
 
 
 ```doenet-editor-horiz
-<p>Enter a list of numbers separated by commas: <mathInput name="mi"/></p>
-<p>You've entered:   
-  <mathList name="userList">$mi</mathList>
+<p>Enter a list of numbers separated by commas: 
+<mathInput name="mi"/>
 </p>
-<p>The variance of your list of numbers is = <variance>$userList</variance></p>  
+
+<p>You've entered:   
+  <numberList name="userList">$mi</numberList>
+</p>
+
+<p>The variance of your list of numbers is = 
+  <variance>$userList</variance>
+</p>  
 ```
 
 
-Since there is no numberInput component, the ` <mathInput>{:dn}` is used to store a user's numerical list. This must then be defined as a ` <mathList>{:dn}`. The named ` <mathList>{:dn}` is then referenced by the ` <variance>{:dn}` component to compute the numerical variance.
+Since there is no numberInput component, the ` <mathInput>{:dn}` is used to store a user's numerical list. This 
+must then be defined as a ` <numberList>{:dn}`. The named ` <numberList>{:dn}` is then referenced by 
+the ` <variance>{:dn}` component to compute the numerical variance.
 
 

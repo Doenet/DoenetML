@@ -5,10 +5,11 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <styleDefinitions>{:dn}`
 
-The ` <styleDefinitions>{:dn}` component is a container element for one or more ` <styleDefinition>{:dn}` components. It must be placed in a ` <setup>{:dn}` block.
+` <styleDefinitions>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
+component that acts as a container element for one or more ` <styleDefinition>{:dn}` components. It must be placed in a ` <setup>{:dn}` block.
 
 ## Attributes and Properties 
- <AttrDisplay name='styleDefinitions'/> 
+The ` <styleDefinitions>{:dn}` component has no attributes.
  <PropDisplay name='styleDefinitions'/>
 
 ---
@@ -17,7 +18,7 @@ The ` <styleDefinitions>{:dn}` component is a container element for one or more 
 
 
 ```doenet-editor-horiz
-
+<setup>
 <styleDefinitions>
   <styleDefinition styleNumber="10" 
     fillColor="green" 
@@ -40,6 +41,7 @@ The ` <styleDefinitions>{:dn}` component is a container element for one or more 
     lineWidth="4"
     lineStyle="dotted"/>
 </styleDefinitions>      
+</setup>
 
 <graph>
   <line name="greenLine" styleNumber="10">y = x</line>

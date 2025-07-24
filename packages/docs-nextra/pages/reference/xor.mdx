@@ -7,8 +7,61 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <xor>{:dn}`
 
 
-` <xor>{:dn}` functions as the exclusive `or` boolean operator, and checks to see whether one and only one of the enclosed ` <boolean>{:dn}` references are `true`.
+` <xor>{:dn}` is a [Logic](../document_structure/essentialConcepts/#componentTypes)
+component that functions as the exclusive `or` boolean operator, and checks to see whether one and 
+only one of the enclosed ` <boolean>{:dn}` references are `true`.
 
 ## Attributes and Properties 
  <AttrDisplay name='xor'/> 
  <PropDisplay name='xor'/>
+
+---
+
+### Example: ` <xor>{:dn}` in a ` <boolean>{:dn}`
+
+```doenet-editor-horiz
+<p>Enter a number that is divisible by 2 or 3, but not both:
+  <mathInput name="n"/></p>
+      
+<boolean name="divisBy2"><mod>$n 2</mod> = 0</boolean>
+<boolean name="divisBy3"><mod>$n 3</mod> = 0</boolean>
+
+      
+<p>You have entered a correct number:
+  <boolean>
+    <xor>$divisBy2 $divisBy3</xor>
+  </boolean>
+</p>
+```
+
+
+The ` <xor>{:dn}` component functions as the exclusive `or` boolean operator, 
+and checks to see whether one and only one of the enclosed ` <boolean>{:dn}` references are true.
+
+---
+
+### Example: ` <xor>{:dn}` in an ` <award>{:dn}`
+
+```doenet-editor-horiz
+<p>Move the point such that the <m>x</m>-coordinate is negative or the <m>y</m>-coordinate is negative, but not both.</p>
+      
+<graph size="small">
+  <point name="p"/>
+</graph>
+
+<answer>
+  <award>
+    <when>
+      <xor>$xNeg $yNeg</xor>
+    </when>
+  </award>
+</answer>
+
+<boolean name="xNeg">$p.x < 0</boolean>
+<boolean name="yNeg">$p.y < 0</boolean>
+```
+
+
+An ` <xor>{:dn}` component is used to construct a compound boolean from two 
+referenced ` <boolean>{:dn}` components within an ` <award>{:dn}`. One of the booleans 
+must evaluate to `true`, and one to `false`, for credit to be awarded.

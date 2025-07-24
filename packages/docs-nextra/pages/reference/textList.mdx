@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <textList>{:dn}`
 
-The ` <textList>{:dn}` component stores multiple [` <text>{:dn}`](text.mdx) components within a list.
+The ` <textList>{:dn}` is a [Text](../document_structure/essentialConcepts/#componentTypes)
+component that stores multiple [` <text>{:dn}`](text.mdx) components within a list.
 
 ## Attributes and Properties 
  <AttrDisplay name='textList'/> 
@@ -17,7 +18,11 @@ The ` <textList>{:dn}` component stores multiple [` <text>{:dn}`](text.mdx) comp
 
 
 ```doenet-editor-horiz
-      <p>A list of flower names: ( <textList name="flowerNames">rose lily daffodil tulip</textList> )</p>
+<p>A list of flower names: 
+( <textList name="flowerNames">
+    rose lily daffodil tulip
+  </textList> )
+</p>
 ```
 
 
@@ -32,85 +37,85 @@ In the sample code above, the individual [` <text>{:dn}`](text.mdx) components a
 
 
 ```doenet-editor-horiz
-    <p>Name 3 reptiles:</p>
-      <ol>
-        <li><textInput name="reptile1"/></li>
-        <li><textInput name="reptile2"/></li>
-        <li><textInput name="reptile3"/></li>
-      </ol>
-    <p>Your list of reptiles is: 
-      <textList name="reptileList">$reptile1 $reptile2 $reptile3</textList>
-    </p>
-    <p>The third item in the list is a <alert>$reptileList.texts[3]</alert> and the first item is a <alert>$reptile1</alert>.</p>
+<p>Name 3 reptiles:</p>
+<ol>
+  <li><textInput name="r1"/></li>
+  <li><textInput name="r2"/></li>
+  <li><textInput name="r3"/></li>
+</ol>
+
+<p>Your list of reptiles is: 
+  <textList name="reptileList">
+    $r1 $r2 $r3
+  </textList>
+</p>
+
+<p>The third item in the list is a $reptileList[3]</p>
 ```
 
 
 
-In the sample code below, the user is prompted to provide three text responses with the <ref uri="doenet:activityId=_9Cg4Vwh5-o0wk7kT98bPI">` <textInput/>{:dn}`</ref> component. These are gathered into a ` <textList>{:dn}` by referencing their `names` using the `$name` notation. Two different methods of rendering an individual list item are then illustrated; using the `texts` property of the named ` <textList>{:dn}` along with the desired index, and using the `name` of the individual ` <textInput/>{:dn}`. 
+The user is prompted to provide three text responses 
+with the ` <textInput/>{:dn}` component, which are then referenced within the 
+definition of a ` <textList>{:dn}`. Individual entries in the list can be referenced by index.
 
 
 
 ---
 
-### Example: unordered
+### Attribute Example: unordered
 
 
 ```doenet-editor-horiz
+<p>Enter "apple", "banana", "orange":</p>
+<ul>
+  <li><textInput name="fruit1"/></li>
+  <li><textInput name="fruit2"/></li>
+  <li><textInput name="fruit3"/></li>
+</ul>
 
-      <textList name="answerDays">Wednesday Friday Monday Tuesday Saturday Sunday Thursday</textList>
+<textList name="userAns" unordered hide>
+  $fruit1 $fruit2 $fruit3
+</textList>
 
-      <p>List all the days of the week, in any order:</p>
-      <ul>
-      <li><textInput name="day1"/></li>
-      <li><textInput name="day2"/></li>
-      <li><textInput name="day3"/></li>
-      <li><textInput name="day4"/></li>
-      <li><textInput name="day5"/></li>
-      <li><textInput name="day6"/></li>
-      <li><textInput name="day7"/></li>
-      </ul>
-      <textList name="userDays" unordered hide>$day1 $day2 $day3 $day4 $day5 $day6 $day7</textList>
-      <answer>
-        <award>
-          <when>
-            $userDays = $answerDays
-          </when>
-        </award>
-      </answer>
+<answer>
+  <award>
+    <when>
+      $userAns = $answerList
+    </when>
+  </award>
+</answer>
+<boolean>$userAns = $answerList</boolean>
+
+<p>Answers = 
+  <textList name="answerList">
+    orange banana apple
+  </textList>
+</p>
 ```
 
 
 
-In the sample code above, the user is asked to provide the days of the week in a series of <ref uri="doenet:activityId=_9Cg4Vwh5-o0wk7kT98bPI">` <textInput/>{:dn}`</ref>s nested within an unordered list ([` <ul>{:dn}`](ul.mdx)). These values are referenced by name and collected in the definition of the ` <textList>{:dn}` named `userDays`. The `unordered` attribute is specified in order to evaluate the subsequent [` <award>{:dn}`](award.mdx) component without regard to the order in which the names of the days have been entered (notice the comparison ` <textList>{:dn}` named `answerDays` is purposefully out of sequence.) (See also: [` <answer>{:dn}`](answer.mdx), [` <when>{:dn}`](when.mdx))
-
+The `unordered` attribute allows for boolean comparisons between lists, 
+such as in the ` <award>{:dn}` component or the `<boolean>{:dn}` component,
+without regard to the order in which the names of the fruits have been entered.
 
 
 ---
 
-### Example: maxNumber
+### Attribute Example: maxNumber
 
 
 ```doenet-editor-horiz
-      <p>A list of dog breeds: 
-        <textList name="dogBreeds" maxNumber="3">poodle chihuahua bulldog husky</textList>
-      </p>
+<p>A list of dog breeds: 
+  <textList name="dogBreeds" maxNumber="3">
+    poodle chihuahua bulldog husky dobermann
+  </textList>
+</p>
 ```
 
 
 
-In the sample code above, the maximum number of [` <text>{:dn}`](text.mdx) components displayed is 3, even though there are 4 [` <text>{:dn}`](text.mdx) components listed directly between the opening and closing ` <textInput>{:dn}` tags.
-
-
-
----
-
-### Example: 
-
-
-```doenet-editor-horiz
-```
-
-
-
-
+In the sample code above, the maximum number of ` <text>{:dn}` components displayed is 3, even 
+though there are 5 ` <text>{:dn}` components listed directly between the opening and closing ` <textInput>{:dn}` tags.
 

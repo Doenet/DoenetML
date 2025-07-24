@@ -209,12 +209,12 @@ With the large button, it is also possible to customize the message on the butto
   <answer symbolicEquality simplifyOnCompare>x^2+2x+1</answer></p>
 
 <p>Pick level of simplification:
-  <choiceinput name="simpOnComp" inline preselectChoice="1">
+  <choiceInput name="simpOnComp" inline preselectChoice="1">
     <choice>none</choice>
     <choice>numbersPreserveOrder</choice>
     <choice>numbers</choice>
     <choice>full</choice>
-  </choiceinput>
+  </choiceInput>
 </p>
 
 <p>
@@ -259,9 +259,8 @@ To include expansion of factored expressions, you can add the `expandOnCompare` 
 
 The default comparison is a numerical answer-checker with a liberal definition of equality.  
 Specifying the `symbolicEquality` attribute switches to a symbolic answer-checker 
-that demands exact syntatical equality.  The symbolic equality can be relaxed with 
-the `simplifyOnCompare` attribute. To expand factor expressions prior to comparison,  
-you should also include the `expandOnCompare` attribute.
+that demands exact syntactical equality.  The symbolic equality can be relaxed with 
+the `simplifyOnCompare` attribute. To expand factor expressions prior to comparison, you should also include the `expandOnCompare` attribute.
 
 ---
 
@@ -305,11 +304,11 @@ to be used when comparing it to anything else.
 
 ### Example: matchByExactPositions
 ```doenet-example
-  <p>Earn partial credit by getting some of the components of <m>(1,2,3,4)</m> correct:</p>
-  <answer matchPartial matchByExactPositions>(1,2,3,4)</answer>
+<p>Earn partial credit by getting some of the components of <m>(1,2,3,4)</m> correct:</p>
+<answer matchPartial matchByExactPositions>(1,2,3,4)</answer>
 
-  <p>Earn partial credit by getting some of the numbers <m>1,2,3,4</m> entered in order:</p>
-  <p><answer matchPartial>1,2,3,4</answer></p>
+<p>Earn partial credit by getting some of the numbers <m>1,2,3,4</m> entered in order:</p>
+<p><answer matchPartial>1,2,3,4</answer></p>
 ```
 
 
@@ -334,17 +333,17 @@ ordered lists, `matchByExactPositions` may not be desired.
 
 ### Example: numAwardsCredited
 ```doenet-example
-   <p>Enter an even number greater than 6:
-    <answer numAwardsCredited="2">
-      <mathInput name="userNumber"/>
-      <award credit="0.5"><when>
-        $userNumber > 6
-      </when></award>
-      <award credit="0.5"><when>
-        <mod>$userNumber 2</mod> = 0
-      </when></award>
-    </answer>
-   </p>
+<p>Enter an even number greater than 6:
+<answer numAwardsCredited="2">
+  <mathInput name="userNumber"/>
+  <award credit="0.5"><when>
+    $userNumber > 6
+  </when></award>
+  <award credit="0.5"><when>
+    <mod>$userNumber 2</mod> = 0
+  </when></award>
+</answer>
+</p>
 ```
 
 

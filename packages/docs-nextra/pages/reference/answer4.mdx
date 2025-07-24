@@ -12,8 +12,8 @@ The following examples illustrate some of the advanced answer forms.
 When using the full logic of an ` <award>{:dn}` tag, the expression inside the ` <when>{:dn}`
 can refer to components outside the ` <answer>{:dn}` tag.  However, in this case, Doenet cannot tell what 
 values should be considered the **response** of that answer.  When basing an answer on inputs outside the 
-` <answer>{:dn}` tag, you must indicate what values are to be used for the responses.   There are three ways 
-to tell Doenet that a value is a response: adding an `isResponse` attribute to the value, adding a 
+` <answer>{:dn}` tag, you must indicate what values are to be used for the responses.   There are two ways 
+to tell Doenet that a value is a response: adding a 
 `referencesAreResponses` attribute to the ` <award>{:dn}`, or adding a 
 ` <considerAsResponses>{:dn}` child to the ` <award>{:dn}`. 
 
@@ -27,12 +27,6 @@ instructors and authors.  They can also be referenced inside the DoenetML docume
 on the user's response. Every answer should have some values flagged as the responses.
 
 See the examples below for how to use each of these methods to designate a response.
-
-### Example: using the `isResponse` attribute to designate responses
-
-
-
-
 
 
 ### Example: using the `referencesAreResponses` attribute in the ` <award>{:dn}`

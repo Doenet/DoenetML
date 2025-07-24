@@ -3,11 +3,13 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 
-#` <tag>{:dn}`, ` <tage/>{:dn}`
+# `<tag>{:dn}`, ` <tage/>{:dn}`
 
-` <tag>{:dn}` is a paragraph markup function which renders the enclosed text in the default font for component tags.   
+` <tag>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts/#componentTypes) 
+component which renders the enclosed text in the default font for component tags.   
+
 Similarly, a `<tage/>{:dn}` component may be used to render 
-a self-closing tag (i.e. &lt; componentName /&gt;).  Use of ` <tag>{:dn}` and ` <tage/>{:dn}` will prevent errors with 
+a self-closing tag (i.e. `< componentName />`).  Use of ` <tag>{:dn}` and ` <tage/>{:dn}` will prevent errors with 
 rendering these symbols, allowing them to be used for display rather than as functional components within the document.
 
 ## Attributes and Properties 
@@ -21,15 +23,10 @@ The ` <tag>{:dn}` and ` <tage/>{:dn}` components do not have any attributes or p
 
 ```doenet-editor-horiz
 <p><alert>Example With the Tag Component (Correctly Displayed):</alert></p>
+
 <p>When creating a new webpage, you can use the <tag>p</tag> 
   to generate a block of text with HTML.  To insert a photo you should
   use the <tage>image</tage> tag.
-</p>
-
-<p><alert>Example <em>Without</em> the Tag Component (Incorrectly Displayed):</alert></p>
-<p>When creating a new webpage, you can use <p> to generate a 
-  block of text with HTML.  To insert a photo you should
-  use the <image/> tag.
 </p>
 ```
 

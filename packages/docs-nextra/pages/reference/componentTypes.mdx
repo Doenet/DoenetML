@@ -5,7 +5,6 @@ These components can be placed within a `<p>` tag to change the rendered appeara
 | Component                                                                     | Description                                                                                          |
 | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | [`<alert>`](alert)    | bold text                                                                                            |
-| [`<asList>`](asList)   | formatting component for sequences and repeats                                                          |
 | [`<attr>`](attr)     | renders default font for an attribute                                                                |
 | [`<c>`](c.mdx)        | renders default font for a code example                                                              |
 | [`<ellipsis>`](ellipsis) | renders an ellipsis symbol                                                                           |
@@ -22,7 +21,7 @@ These components can be placed within a `<p>` tag to change the rendered appeara
 | `<rsq>`                                                                       | paragraph markup component for a right-single-quote mark                                             |
 | [`<sq>`](sq)       | renders the enclosed text in single quotation marks                                              |
 | [`<tag>`](tag)      | render enclosed text within a pair of tags, `< >` `</ >`                                        |
-| [`<tage>`](tage)    | render enclosed text within a self-closing tag, `< />`                                          |
+| `<tage>`    | render enclosed text within a self-closing tag, `< />`                                          |
 | [`<term>`](term)     | emphasized styling associated with a defined vocabulary word                                   |
 
 <a id="sectionalComponents"></a>
@@ -31,18 +30,17 @@ Sectional components are blocks of content that serve as containers for other co
 
 | Component                                                                              | Description                                                                           |
 | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `<activity>`                                                                           | a sectional component with auto-numbering and auto-title                              |
+| `<activity>`                   | a sectional component with auto-numbering and auto-title, see [`<exercise>`](exercise) for similar examples               |
 | [`<aside>`](aside)             | renders a collapsible section of content                                              |
 | [`<caption>`](caption.mdx)           | renders a caption inside a `<figure>`                                                 |
 | [`<cell>`](cell)              | smallest data element in a `<table>`                                                  |
 | `<cellBlock>`                                                                          | a container element for specifying data in a `<spreadsheet>`                          |
-| `<chart>`                                                                              | *under development*                                                                   |
 | [`<choice>`](choice.mdx)            | defines a multiple-choice response                                                    |
 | [`<choiceInput>`](choiceInput)       | defines a multiple-choice block                                                       |
 | `<codeEditor>`                                                                         | renders an embedded doenetML code editor                                              |
 | `<column>`                                                                             | container element for a column of cells in a `<spreadsheet>`                          |
-| `<conclusion>`                                                                         | container element for content that does not have auto-numbering                       |
-| `<definition>`                                                                         | a sectional component with auto-numbering and auto-title                              |
+| `<conclusion>`                          | container element included for PreTeXt compatibility                         |
+| `<definition>`                          | container element included for PreTeXt compatibility                              |
 | [`<div>`](div)               | groups doenetML content into an unformatted container that can be named               |
 | [`<document>`](document)          | largest hierarchical sectional component                                              |
 | [`<example>`](example)           | sectional component with default numbering that defines an example                    |
@@ -51,16 +49,16 @@ Sectional components are blocks of content that serve as containers for other co
 | [`<figure>`](figure)            | container element for images, videos, and captions                                    |
 | [`<hint>`](hint)              | hidden content triggered by clicking on a banner or by specific user interactions     |
 | [`<image />`](image)           | inserts an image                                                                      |
-| `<introduction>`                                                                       | container element for content that does not have auto-numbering                       |
+| `<introduction>`               | container element included for PreTeXt compatibility                     |
 | [`<li>`](li)                | list item                                                                             |
-| `<note>`                                                                               | an auto-numbered sectional component with default title                               |
-| `<objectives>`                                                                         | a boxed sectional component with default title and auto-numbering                     |
+| `<note>`                          | container element included for PreTeXt compatibility                                   |
+| `<objectives>`                    | container element included for PreTeXt compatibility                         |
 | [`<ol>`](ol.mdx)                | ordered list                                                                          |
 | [`<p>`](p)                 | create a paragraph or drop down a line                                                |
 | `<paragraphs>`                                                                         | a container element for `<p>` components                                              |
 | [`<problem>`](problem)           | sectional component with default numbering that defines a problem                     |
 | `<problems>`                                                                           | a container element for `<problem>` components                                        |
-| [`<proof>`](proof)             | sectional component designated as a proof                                             |
+| [`<proof>`](proof)             | container element included for PreTeXt compatibility                                                  |
 | [`<question>`](question)          | a sectional component; similar to a `<problem>`                                       |
 | [`<row> (in a table)`](row_table)  | container element for one or more `<cell>`components within a `<tabular>`             |
 | [`<sbsGroup>`](sBsGroup)          | a container element for `<sideBySide>` components                                     |
@@ -69,13 +67,14 @@ Sectional components are blocks of content that serve as containers for other co
 | [`<sidebySide>`](sideBySide.mdx)        | renders components in a side-by-side horizontal format                                |
 | [`<solution>`](solution.mdx)          | expandable block component which displays a problem solution                          |
 | [`<stack>`](stack)             | vertical container element for organizing content within a `<sideBySide>`             |
-| [`<statement>`](statement)         | container element for content that does not have auto-numbering                       |
+| `<statement>`        | container element included for PreTeXt compatibility                     |
+| `<subsection>`         | container element included for PreTeXt compatibility                        |
 | [`<table>`](table.mdx)             | container element for a `<tabular>`                                                   |
 | [`<tabular>`](tabular.mdx)           | define data arranged in a tabular format                                              |
-| `<theorem>`                                                                            | a sectional component with auto-numbering and auto-title                              |
+| `<theorem>`                          | container element included for PreTeXt compatibility                            |
 | [`<title>`](title.mdx)             | creates a title within a document, section, or other block component                  |
-| `<topic>`                                                                              | container element for content that does not have auto-numbering                       |
-| [`<ul>`](ul.mdx)                | unordered, or bulleted, list                                                          |
+| `<topic>`                          | container element included for PreTeXt compatibility                      |
+| [`<ul>`](ul.mdx)                   | unordered, or bulleted, list                                                          |
 
 <a id="inputComponents"></a>
 ## Input components
@@ -204,7 +203,6 @@ Math Operator components perform computations or take actions on the math compon
 | [`<convertSetToList>`](convertSetToList)   | renders an unformatted set of values as a list enclosed in parentheses and separated by commas |
 | [`<count>`](count)              | renders the length of its list of arguments                                                    |
 | [`<evaluate/>`](evaluate)           | evaluate a function                                                                            |
-| `<extrema>`                                                                             |                                                                                                |
 | [`<floor>`](floor)              | renders the result of the floor function applied to the enclosed argument                      |
 | [`<functionIterates>`](functionIterates)     | evaluate a function over a specified number of iterations of its argument                    |
 | [`<gcd>`](gcd)                | renders the greatest common divisor of its arguments                                           |
@@ -244,13 +242,11 @@ These components perform actions on Math components as well as other component t
 | [`<select>`](select)               | select values from a list or set of `<option>`s to create document variants                  |
 | [`<shuffle>`](shuffle)             | shuffle a list, or a listing of referenced components                                                          |
 | [`<sort>`](sort.mdx)                | sort components based on their values in numerical or alphabetical order                                       |
-| [`<sources>`](sources.mdx)             | used within a `<map>` to define input values for `<template>` and alias                                        |
 | [`<split>`](split.mdx)               | splits multi-digit numbers or text strings into individual characters                                          |
 | [`<spreadsheet>`](spreadsheet.mdx)         | renders a basic spreadsheet tool                                                                               |
 | [`<styleDefinition>`](styleDefinition.mdx)     | defines custom styling for graphical elements outside the default styleNumbers (1-6)                           |
 | [`<styleDefinitions>`](styleDefinitions)    | container element for the custom `<styleDefinition>` in a document                                             |
 | [`<substitute>`](substitute.mdx)          | replace a math, character or string with a user-specified alternative                                          |
-| [`<template>`](template)            | defines operations to apply to individual `<sources>` within a `<map>`                                         |
 | [`<triggerSet>`](triggerSet)          | groups a set of `<updateValue>` or `<callAction>` components which share a single trigger condition            |
 | [`<updateValue>`](updateValue)         | changes the value or property of a named component                                                             |
 | `<variantControl>`                                     |                                                                                                                |
@@ -262,7 +258,7 @@ These components perform actions on Math components as well as other component t
 Logic components define boolean conditions or are used in logical expressions.
 | Component                                                                         | Description                                                            |
 | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [`<and>`](and.mdx)          | functions as the boolean operator and or &                             |
+| [`<and>`](and.mdx)          | functions as the boolean operator `and` or `&`                            |
 | [`<boolean>`](boolean.mdx)      | renders the boolean true or false value of the enclosed expression     |
 | [`<booleanInput>`](booleanInput.mdx) | renders a checkbox                                                     |
 | [`<booleanList>`](booleanList.mdx)  | list of `<boolean>` values separated by commas                         |
