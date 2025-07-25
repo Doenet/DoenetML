@@ -6,7 +6,10 @@ import {
     addAttributesToSingleReplacementChange,
 } from "../../utils/copy";
 import { flattenDeep, flattenLevels, deepClone } from "@doenet/utils";
-import { convertUnresolvedAttributesForComponentType } from "../../utils/dast/convertNormalizedDast";
+import {
+    convertAttributeValuesForComponentType,
+    convertUnresolvedAttributesForComponentType,
+} from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
 
 export default class Copy extends CompositeComponent {
@@ -1440,12 +1443,6 @@ export default class Copy extends CompositeComponent {
         // to determine its state variables (as values linked from its source may be used).
         // Therefore, we copy the primary state variable
         // and copy the essential state of the source.
-        let copyPrimaryEssential = false;
-        let copyEssentialState = false;
-        if (!link && replacementSourceComponent.shadows) {
-            copyPrimaryEssential = true;
-            copyEssentialState = true;
-        }
 
         let serializedReplacements;
         try {
@@ -1454,8 +1451,8 @@ export default class Copy extends CompositeComponent {
                     copyAll: !link,
                     componentSourceAttributesToIgnore: ["labelIsName"],
                     copyVariants: !link,
-                    copyPrimaryEssential,
-                    copyEssentialState,
+                    copyPrimaryEssentialIfShadow: !link,
+                    copyEssentialStateIfShadow: !link,
                     errorIfEncounterComponent: [component.componentIdx],
                 }),
             ];
@@ -2717,13 +2714,12 @@ export async function replacementFromProp({
                                 }
                             }
 
-                            const res =
-                                convertUnresolvedAttributesForComponentType({
-                                    attributes: additionalAttributes,
-                                    componentType: createComponentOfType,
-                                    componentInfoObjects,
-                                    nComponents,
-                                });
+                            const res = convertAttributeValuesForComponentType({
+                                attributeValues: additionalAttributes,
+                                componentType: createComponentOfType,
+                                componentInfoObjects,
+                                nComponents,
+                            });
 
                             const attributesFromComponent = res.attributes;
                             nComponents = res.nComponents;
@@ -3056,15 +3052,12 @@ export async function replacementFromProp({
                                 }
 
                                 const res =
-                                    convertUnresolvedAttributesForComponentType(
-                                        {
-                                            attributes: additionalAttributes,
-                                            componentType:
-                                                createComponentOfType,
-                                            componentInfoObjects,
-                                            nComponents,
-                                        },
-                                    );
+                                    convertAttributeValuesForComponentType({
+                                        attributeValues: additionalAttributes,
+                                        componentType: createComponentOfType,
+                                        componentInfoObjects,
+                                        nComponents,
+                                    });
 
                                 const attributesFromComponent = res.attributes;
                                 nComponents = res.nComponents;
@@ -3328,16 +3321,13 @@ export async function replacementFromProp({
                                     Object.keys(additionalAttributes).length > 0
                                 ) {
                                     const res =
-                                        convertUnresolvedAttributesForComponentType(
-                                            {
-                                                attributes:
-                                                    additionalAttributes,
-                                                componentType:
-                                                    piece.componentType,
-                                                componentInfoObjects,
-                                                nComponents,
-                                            },
-                                        );
+                                        convertAttributeValuesForComponentType({
+                                            attributeValues:
+                                                additionalAttributes,
+                                            componentType: piece.componentType,
+                                            componentInfoObjects,
+                                            nComponents,
+                                        });
 
                                     additionalAttributes = res.attributes;
                                     nComponents = res.nComponents;

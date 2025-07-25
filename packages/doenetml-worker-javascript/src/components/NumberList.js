@@ -2,7 +2,11 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { convertValueToMathExpression } from "@doenet/utils";
-import { returnRoundingAttributes } from "../utils/rounding";
+import {
+    addShadowRoundingAttributes,
+    gatherRawRoundingFixedResponseAttributes,
+    returnRoundingAttributes,
+} from "../utils/rounding";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class NumberList extends CompositeComponent {
@@ -565,15 +569,24 @@ export default class NumberList extends CompositeComponent {
         let replacements = [];
         let componentsCopied = [];
 
-        let attributesToConvert = {};
-        for (let attr of [
-            "fixed",
-            "isResponse",
-            ...Object.keys(returnRoundingAttributes()),
-        ]) {
-            if (attr in component.attributes) {
-                attributesToConvert[attr] = component.attributes[attr];
-            }
+        // For attributes that were left raw, we convert them and add them to the replacements
+        let attributesToConvert = gatherRawRoundingFixedResponseAttributes(
+            component,
+            components,
+        );
+
+        const copyChild =
+            component.definingChildren.length === 1 &&
+            component.definingChildren[0].componentType === "_copy"
+                ? component.definingChildren[0]
+                : null;
+        let copyChildSource;
+        if (copyChild) {
+            const cIdx = await copyChild?.stateValues.extendIdx;
+            copyChildSource = {
+                componentIdx: cIdx,
+                componentType: components[cIdx].componentType,
+            };
         }
 
         let childInfoByComponent =
@@ -584,7 +597,7 @@ export default class NumberList extends CompositeComponent {
             // allow one to override the fixed and isResponse attributes
             // as well as rounding settings
             // by specifying it on the list
-            let attributesFromComposite = {};
+            let attributes = {};
 
             if (Object.keys(attributesToConvert).length > 0) {
                 const res = convertUnresolvedAttributesForComponentType({
@@ -594,8 +607,18 @@ export default class NumberList extends CompositeComponent {
                     nComponents,
                 });
 
-                attributesFromComposite = res.attributes;
+                attributes = JSON.parse(JSON.stringify(res.attributes));
                 nComponents = res.nComponents;
+            }
+
+            if (copyChildSource) {
+                nComponents = addShadowRoundingAttributes({
+                    nComponents,
+                    source: copyChildSource,
+                    compositeIdx: copyChild.componentIdx,
+                    attributes,
+                    componentInfoObjects,
+                });
             }
 
             let childInfo = childInfoByComponent[i];
@@ -616,7 +639,7 @@ export default class NumberList extends CompositeComponent {
                 type: "serialized",
                 componentType: "number",
                 componentIdx: nComponents++,
-                attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
+                attributes,
                 doenetAttributes: {},
                 children: [],
                 state: {},

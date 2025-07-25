@@ -1201,11 +1201,6 @@ export default class BaseComponent {
     }
 
     async serialize(parameters = {}) {
-        // TODO: this function is converted only for the case with the parameter
-        // forLink set
-
-        // TODO: not serializing attribute children (as don't need them with forLink)
-
         if (parameters.errorIfEncounterComponent?.includes(this.componentIdx)) {
             throw Error("Encountered " + this.componentIdx);
         }
@@ -1353,7 +1348,10 @@ export default class BaseComponent {
             serializedComponent.state = deepClone(this.essentialState);
         }
 
-        if (parameters.copyPrimaryEssential) {
+        if (
+            parameters.copyPrimaryEssential ||
+            (parameters.copyPrimaryEssentialIfShadow && this.shadows)
+        ) {
             let primaryEssentialStateVariable = "value";
             if (this.constructor.primaryEssentialStateVariable) {
                 primaryEssentialStateVariable =
@@ -1397,7 +1395,10 @@ export default class BaseComponent {
             }
         }
 
-        if (parameters.copyEssentialState) {
+        if (
+            parameters.copyEssentialState ||
+            (parameters.copyEssentialStateIfShadow && this.shadows)
+        ) {
             for (let varName in this.state) {
                 if (!(varName in serializedComponent.state)) {
                     let stateVar = this.state[varName];

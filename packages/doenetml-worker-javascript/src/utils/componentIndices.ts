@@ -356,6 +356,19 @@ function remapRefResolutions(
                 });
         }
 
+        if (component.doenetAttributes.extendList) {
+            const newNodeIdx = idxMap[component.doenetAttributes.extendList];
+            if (newNodeIdx != undefined) {
+                component.doenetAttributes.extendList = newNodeIdx;
+            }
+        }
+        if (component.doenetAttributes.copyList) {
+            const newNodeIdx = idxMap[component.doenetAttributes.copyList];
+            if (newNodeIdx != undefined) {
+                component.doenetAttributes.copyList = newNodeIdx;
+            }
+        }
+
         const childResult = remapRefResolutions(
             component.children,
             idxMap,
