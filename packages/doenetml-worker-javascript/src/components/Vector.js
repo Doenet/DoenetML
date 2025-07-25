@@ -339,6 +339,36 @@ export default class Vector extends GraphicalComponent {
             },
         };
 
+        stateVariableDefinitions.inUnorderedList = {
+            returnDependencies: () => ({
+                sourceCompositeUnordered: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "unordered",
+                    skipCopies: true,
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                if (
+                    dependencyValues.sourceCompositeUnordered !== null &&
+                    !usedDefault.sourceCompositeUnordered
+                ) {
+                    return {
+                        setValue: {
+                            inUnorderedList: Boolean(
+                                dependencyValues.sourceCompositeUnordered,
+                            ),
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            inUnorderedList: false,
+                        },
+                    };
+                }
+            },
+        };
+
         stateVariableDefinitions.tailDraggable = {
             public: true,
             shadowingInstructions: {
@@ -2409,16 +2439,18 @@ export default class Vector extends GraphicalComponent {
         {
             stateVariable: "displacementCoords",
             componentType: "coords",
-            stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
-            ),
+            stateVariablesToShadow: [
+                ...Object.keys(returnRoundingStateVariableDefinitions()),
+                "inUnorderedList",
+            ],
         },
         {
             stateVariable: "displacementCoords",
             componentType: "point",
-            stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
-            ),
+            stateVariablesToShadow: [
+                ...Object.keys(returnRoundingStateVariableDefinitions()),
+                "inUnorderedList",
+            ],
         },
     ];
 

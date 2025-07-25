@@ -9,6 +9,7 @@ import {
 } from "../utils/rounding";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
+import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedLists";
 export default class NumberList extends CompositeComponent {
     static componentType = "numberList";
 
@@ -34,9 +35,8 @@ export default class NumberList extends CompositeComponent {
 
         attributes.unordered = {
             createComponentOfType: "boolean",
-            createStateVariable: "unordered",
+            createStateVariable: "unorderedPrelim",
             defaultValue: false,
-            public: true,
         };
 
         attributes.maxNumber = {
@@ -107,6 +107,11 @@ export default class NumberList extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnUnorderedListStateVariableDefinitions(),
+        );
 
         stateVariableDefinitions.numbersShadow = {
             defaultValue: null,

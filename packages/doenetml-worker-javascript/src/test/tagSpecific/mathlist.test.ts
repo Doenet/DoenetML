@@ -1816,4 +1816,71 @@ describe("MathList tag tests", async () => {
             text: `${x1}, ${x2}`,
         });
     });
+
+    it("compare unordered math lists", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+
+    <booleanInput name="unordered">true</booleanInput>
+
+    <boolean name="b1">
+        <mathList name="nl1" unordered="$unordered">3x-2 y/z f(x)</mathList>
+        =
+        <mathList name="nl2">f(x) 3x-2 y/z</mathList>
+    </boolean>
+    <boolean name="b2">$nl1 = $nl2</boolean>
+    <boolean name="b3"><mathList extend="$nl1" name="nl1a" /> = <mathList extend="$nl2" /></boolean>
+    <boolean name="b4"><mathList copy="$nl1" name="nl1b" /> = <mathList copy="$nl2" /></boolean>
+
+    <p name="pUnordered">$nl1.unordered, $nl1a.unordered, $nl1b.unordered</p>
+
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
+                .text,
+        ).eq("true, true, true");
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("unordered"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        // all but copied list become ordered
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
+                .text,
+        ).eq("false, false, true");
+    });
 });

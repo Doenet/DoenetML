@@ -160,11 +160,11 @@ export default class NumberComponent extends InlineComponent {
         Object.assign(stateVariableDefinitions, roundingDefinitions);
 
         stateVariableDefinitions.inUnorderedList = {
-            defaultValue: false,
             returnDependencies: () => ({
                 sourceCompositeUnordered: {
                     dependencyType: "sourceCompositeStateVariable",
                     variableName: "unordered",
+                    skipCopies: true,
                 },
             }),
             definition({ dependencyValues, usedDefault }) {

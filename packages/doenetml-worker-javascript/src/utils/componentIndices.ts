@@ -356,16 +356,18 @@ function remapRefResolutions(
                 });
         }
 
-        if (component.doenetAttributes.extendList) {
-            const newNodeIdx = idxMap[component.doenetAttributes.extendList];
+        if (component.doenetAttributes.extendListViaComposite) {
+            const newNodeIdx =
+                idxMap[component.doenetAttributes.extendListViaComposite];
             if (newNodeIdx != undefined) {
-                component.doenetAttributes.extendList = newNodeIdx;
+                component.doenetAttributes.extendListViaComposite = newNodeIdx;
             }
         }
-        if (component.doenetAttributes.copyList) {
-            const newNodeIdx = idxMap[component.doenetAttributes.copyList];
+        if (component.doenetAttributes.copyListViaComposite) {
+            const newNodeIdx =
+                idxMap[component.doenetAttributes.copyListViaComposite];
             if (newNodeIdx != undefined) {
-                component.doenetAttributes.copyList = newNodeIdx;
+                component.doenetAttributes.copyListViaComposite = newNodeIdx;
             }
         }
 

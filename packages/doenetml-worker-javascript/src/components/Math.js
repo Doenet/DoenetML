@@ -251,25 +251,10 @@ export default class MathComponent extends InlineComponent {
                     childGroups: ["maths"],
                     variableNames: ["unordered"],
                 },
-                sourceCompositeUnordered: {
-                    dependencyType: "sourceCompositeStateVariable",
-                    variableName: "unordered",
-                },
             }),
-            definition({ dependencyValues, usedDefault }) {
+            definition({ dependencyValues }) {
                 if (dependencyValues.unorderedAttr === null) {
-                    if (
-                        dependencyValues.sourceCompositeUnordered !== null &&
-                        !usedDefault.sourceCompositeUnordered
-                    ) {
-                        return {
-                            setValue: {
-                                unordered: Boolean(
-                                    dependencyValues.sourceCompositeUnordered,
-                                ),
-                            },
-                        };
-                    } else if (dependencyValues.mathChildren.length > 0) {
+                    if (dependencyValues.mathChildren.length > 0) {
                         let unordered = dependencyValues.mathChildren.every(
                             (x) => x.stateValues.unordered,
                         );
@@ -287,6 +272,36 @@ export default class MathComponent extends InlineComponent {
                             unordered:
                                 dependencyValues.unorderedAttr.stateValues
                                     .value,
+                        },
+                    };
+                }
+            },
+        };
+
+        stateVariableDefinitions.inUnorderedList = {
+            returnDependencies: () => ({
+                sourceCompositeUnordered: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "unordered",
+                    skipCopies: true,
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                if (
+                    dependencyValues.sourceCompositeUnordered !== null &&
+                    !usedDefault.sourceCompositeUnordered
+                ) {
+                    return {
+                        setValue: {
+                            inUnorderedList: Boolean(
+                                dependencyValues.sourceCompositeUnordered,
+                            ),
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            inUnorderedList: false,
                         },
                     };
                 }

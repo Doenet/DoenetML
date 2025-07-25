@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { updateBooleanInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -139,5 +140,72 @@ describe("VectorList tag tests", async () => {
                 });
             }
         }
+    });
+
+    it("compare unordered vector lists", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        
+            <booleanInput name="unordered">true</booleanInput>
+        
+            <boolean name="b1">
+                <vectorList name="nl1" unordered="$unordered">(1,-4) (-8,3) (0,0)</vectorList>
+                =
+                <vectorList name="nl2">(0,0) (1,-4) (-8, 3)</vectorList>
+            </boolean>
+            <boolean name="b2">$nl1 = $nl2</boolean>
+            <boolean name="b3"><vectorList extend="$nl1" name="nl1a" /> = <vectorList extend="$nl2" /></boolean>
+            <boolean name="b4"><vectorList copy="$nl1" name="nl1b" /> = <vectorList copy="$nl2" /></boolean>
+        
+            <p name="pUnordered">$nl1.unordered, $nl1a.unordered, $nl1b.unordered</p>
+        
+            `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
+                .text,
+        ).eq("true, true, true");
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("unordered"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        // all but copied list become ordered
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
+                .text,
+        ).eq("false, false, true");
     });
 });

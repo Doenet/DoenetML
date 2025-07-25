@@ -347,6 +347,36 @@ export default class Point extends GraphicalComponent {
             },
         };
 
+        stateVariableDefinitions.inUnorderedList = {
+            returnDependencies: () => ({
+                sourceCompositeUnordered: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "unordered",
+                    skipCopies: true,
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                if (
+                    dependencyValues.sourceCompositeUnordered !== null &&
+                    !usedDefault.sourceCompositeUnordered
+                ) {
+                    return {
+                        setValue: {
+                            inUnorderedList: Boolean(
+                                dependencyValues.sourceCompositeUnordered,
+                            ),
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            inUnorderedList: false,
+                        },
+                    };
+                }
+            },
+        };
+
         stateVariableDefinitions.hideOffGraphIndicator = {
             public: true,
             forRenderer: true,
@@ -1283,9 +1313,10 @@ export default class Point extends GraphicalComponent {
     static adapters = [
         {
             stateVariable: "coords",
-            stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
-            ),
+            stateVariablesToShadow: [
+                ...Object.keys(returnRoundingStateVariableDefinitions()),
+                "inUnorderedList",
+            ],
         },
     ];
 
