@@ -8021,6 +8021,7 @@ class SourceCompositeStateVariableDependency extends Dependency {
                 const extendedComponent =
                     await sourceComposite.stateValues.extendedComponent;
                 if (
+                    extendedComponent &&
                     this.dependencyHandler.componentInfoObjects.isCompositeComponent(
                         { componentType: extendedComponent.componentType },
                     )
