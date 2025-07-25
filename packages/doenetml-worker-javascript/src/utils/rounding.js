@@ -301,14 +301,34 @@ export function gatherRawRoundingFixedResponseAttributes(
             }
         }
 
-        if (componentForRawAttributes.doenetAttributes.extendList) {
-            componentForRawAttributes =
+        if (componentForRawAttributes.doenetAttributes.extendListViaComposite) {
+            const composite =
                 components[
-                    componentForRawAttributes.doenetAttributes.extendList
+                    componentForRawAttributes.doenetAttributes
+                        .extendListViaComposite
                 ];
-        } else if (componentForRawAttributes.doenetAttributes.copyList) {
-            componentForRawAttributes =
-                components[componentForRawAttributes.doenetAttributes.copyList];
+
+            if (typeof composite.stateValues.extendIdx === "number") {
+                componentForRawAttributes =
+                    components[composite.stateValues.extendIdx];
+            } else {
+                break;
+            }
+        } else if (
+            componentForRawAttributes.doenetAttributes.copyListViaComposite
+        ) {
+            const composite =
+                components[
+                    componentForRawAttributes.doenetAttributes
+                        .copyListViaComposite
+                ];
+
+            if (typeof composite.stateValues.extendIdx === "number") {
+                componentForRawAttributes =
+                    components[composite.stateValues.extendIdx];
+            } else {
+                break;
+            }
         } else {
             break;
         }

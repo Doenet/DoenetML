@@ -126,11 +126,11 @@ export function convertRefsToCopies({
                         children: ["false"],
                     };
 
-                    wrappingComponent.doenetAttributes.copyList =
-                        refResolution.nodeIdx;
+                    wrappingComponent.doenetAttributes.copyListViaComposite =
+                        newComponent.componentIdx;
                 } else {
-                    wrappingComponent.doenetAttributes.extendList =
-                        refResolution.nodeIdx;
+                    wrappingComponent.doenetAttributes.extendListViaComposite =
+                        newComponent.componentIdx;
                 }
 
                 // The "removeEmptyArrayEntries" attribute needs to be on the copy component, not the list component

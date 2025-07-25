@@ -853,7 +853,11 @@ export function evaluateLogic({
         if (typeof tree === "string") {
             let child = dependencyValues.mathChildrenByCode[tree];
             if (child !== undefined) {
-                if (child.stateValues.unordered) {
+                // TODO: should we treat `unordered` differently from `inUnorderedList`?
+                if (
+                    child.stateValues.unordered ||
+                    child.stateValues.inUnorderedList
+                ) {
                     foundUnordered = true;
                 }
                 return child.stateValues.value.tree;

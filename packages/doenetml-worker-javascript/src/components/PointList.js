@@ -7,6 +7,7 @@ import {
 } from "../utils/rounding";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
+import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedLists";
 
 export default class PointList extends CompositeComponent {
     static componentType = "pointList";
@@ -33,9 +34,8 @@ export default class PointList extends CompositeComponent {
 
         attributes.unordered = {
             createComponentOfType: "boolean",
-            createStateVariable: "unordered",
+            createStateVariable: "unorderedPrelim",
             defaultValue: false,
-            public: true,
         };
 
         attributes.maxNumber = {
@@ -102,6 +102,11 @@ export default class PointList extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnUnorderedListStateVariableDefinitions(),
+        );
 
         stateVariableDefinitions.pointsShadow = {
             defaultValue: null,

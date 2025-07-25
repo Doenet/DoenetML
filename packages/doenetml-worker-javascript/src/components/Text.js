@@ -96,11 +96,11 @@ export default class Text extends InlineComponent {
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
         stateVariableDefinitions.inUnorderedList = {
-            defaultValue: false,
             returnDependencies: () => ({
                 sourceCompositeUnordered: {
                     dependencyType: "sourceCompositeStateVariable",
                     variableName: "unordered",
+                    skipCopies: true,
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
