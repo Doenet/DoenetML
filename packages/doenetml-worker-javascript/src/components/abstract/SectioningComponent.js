@@ -49,6 +49,11 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: false,
             public: true,
         };
+        attributes.showCorrectness = {
+            createComponentOfType: "boolean",
+            createStateVariable: "showCorrectnessPreliminary",
+            defaultValue: null,
+        };
         attributes.submitLabel = {
             createComponentOfType: "text",
             createStateVariable: "submitLabel",
@@ -656,14 +661,24 @@ export class SectioningComponent extends BlockComponent {
         stateVariableDefinitions.showCorrectness = {
             forRenderer: true,
             returnDependencies: () => ({
+                showCorrectnessPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "showCorrectnessPreliminary",
+                },
                 showCorrectnessFlag: {
                     dependencyType: "flag",
                     flagName: "showCorrectness",
                 },
             }),
-            definition({ dependencyValues }) {
-                let showCorrectness =
-                    dependencyValues.showCorrectnessFlag !== false;
+            definition({ dependencyValues, usedDefault }) {
+                let showCorrectness;
+                if (!usedDefault.showCorrectnessPreliminary) {
+                    showCorrectness =
+                        dependencyValues.showCorrectnessPreliminary;
+                } else {
+                    showCorrectness =
+                        dependencyValues.showCorrectnessFlag !== false;
+                }
                 return { setValue: { showCorrectness } };
             },
         };

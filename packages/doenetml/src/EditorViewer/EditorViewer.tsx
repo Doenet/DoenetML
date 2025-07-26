@@ -165,27 +165,35 @@ export function EditorViewer({
                             nanInfinityReviver,
                         );
                         const answerCreditAchieved = result.creditAchieved;
-                        const response: unknown[] = result.response;
-                        const componentTypes: string[] = result.componentTypes;
+                        const response: unknown[] | undefined = result.response;
+                        const componentTypes: string[] | undefined =
+                            result.componentTypes;
 
-                        const responseElement = formatResponse(
-                            response,
-                            componentTypes,
-                        );
+                        if (
+                            response !== undefined &&
+                            componentTypes !== undefined &&
+                            response.length === componentTypes.length
+                        ) {
+                            const responseElement = formatResponse(
+                                response,
+                                componentTypes,
+                            );
 
-                        setResponses((was) => {
-                            const arr = [...was];
-                            arr.push({
-                                answerId:
-                                    answerId[0] === "/"
-                                        ? answerId.substring(1)
-                                        : answerId,
-                                response: responseElement,
-                                creditAchieved: answerCreditAchieved,
-                                submittedAt: new Date().toLocaleTimeString(),
+                            setResponses((was) => {
+                                const arr = [...was];
+                                arr.push({
+                                    answerId:
+                                        answerId[0] === "/"
+                                            ? answerId.substring(1)
+                                            : answerId,
+                                    response: responseElement,
+                                    creditAchieved: answerCreditAchieved,
+                                    submittedAt:
+                                        new Date().toLocaleTimeString(),
+                                });
+                                return arr;
                             });
-                            return arr;
-                        });
+                        }
                     }
                 }
             }
