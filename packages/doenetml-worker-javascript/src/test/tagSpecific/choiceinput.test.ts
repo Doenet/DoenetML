@@ -18,6 +18,7 @@ describe("ChoiceInput tag tests", async () => {
         resolvePathToNodeIdx: ResolvePathToNodeIdx,
         inline: boolean,
         shuffleOrder: boolean,
+        preserveLastChoice: boolean,
     ) {
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -28,6 +29,12 @@ describe("ChoiceInput tag tests", async () => {
         if (!shuffleOrder) {
             expect(choiceTexts).eqls(originalChoices);
         }
+        if (preserveLastChoice) {
+            expect(choiceTexts[choiceTexts.length - 1]).eq(
+                originalChoices[originalChoices.length - 1],
+            );
+        }
+
         expect([...choiceTexts].sort()).eqls(originalChoices);
 
         expect(
@@ -37,6 +44,10 @@ describe("ChoiceInput tag tests", async () => {
             stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                 .shuffleOrder,
         ).eq(shuffleOrder);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .preserveLastChoice,
+        ).eq(preserveLastChoice);
 
         async function check_items(
             selectedIndex?: number,
@@ -140,6 +151,7 @@ describe("ChoiceInput tag tests", async () => {
             resolvePathToNodeIdx,
             false,
             false,
+            false,
         );
     });
 
@@ -164,7 +176,43 @@ describe("ChoiceInput tag tests", async () => {
             requestedVariantIndex: 8,
         });
 
-        await test_animal_choice_input(core, resolvePathToNodeIdx, false, true);
+        await test_animal_choice_input(
+            core,
+            resolvePathToNodeIdx,
+            false,
+            true,
+            false,
+        );
+    });
+
+    it("shuffleOrder, preserveLastChoice", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <choiceInput shuffleOrder preserveLastChoice name="ci">
+      <choice name="choice1">cat</choice>
+      <choice name="choice2">dog</choice>
+      <choice name="choice3">monkey</choice>
+      <choice name="choice4">mouse</choice>
+    </choiceInput>
+
+    <p name="psv">Selected value: $ci.selectedValue</p>
+    <p name="psi">Selected index: $ci.selectedIndex</p>
+
+    <p name="pCat">Selected cat: $choice1.selected</p>
+    <p name="pDog">Selected dog: $choice2.selected</p>
+    <p name="pMonkey">Selected monkey: $choice3.selected</p>
+    <p name="pMouse">Selected mouse: $choice4.selected</p>
+    `,
+            requestedVariantIndex: 8,
+        });
+
+        await test_animal_choice_input(
+            core,
+            resolvePathToNodeIdx,
+            false,
+            true,
+            true,
+        );
     });
 
     it("inline", async () => {
@@ -188,7 +236,13 @@ describe("ChoiceInput tag tests", async () => {
             requestedVariantIndex: 8,
         });
 
-        await test_animal_choice_input(core, resolvePathToNodeIdx, true, false);
+        await test_animal_choice_input(
+            core,
+            resolvePathToNodeIdx,
+            true,
+            false,
+            false,
+        );
     });
 
     it("inline, shuffle order", async () => {
@@ -212,7 +266,43 @@ describe("ChoiceInput tag tests", async () => {
             requestedVariantIndex: 8,
         });
 
-        await test_animal_choice_input(core, resolvePathToNodeIdx, true, true);
+        await test_animal_choice_input(
+            core,
+            resolvePathToNodeIdx,
+            true,
+            true,
+            false,
+        );
+    });
+
+    it("inline, shuffle order, preserve last choice", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <choiceInput inline shuffleOrder preserveLastChoice name="ci">
+      <choice name="choice1">cat</choice>
+      <choice name="choice2">dog</choice>
+      <choice name="choice3">monkey</choice>
+      <choice name="choice4">mouse</choice>
+    </choiceInput>
+
+    <p name="psv">Selected value: $ci.selectedValue</p>
+    <p name="psi">Selected index: $ci.selectedIndex</p>
+
+    <p name="pCat">Selected cat: $choice1.selected</p>
+    <p name="pDog">Selected dog: $choice2.selected</p>
+    <p name="pMonkey">Selected monkey: $choice3.selected</p>
+    <p name="pMouse">Selected mouse: $choice4.selected</p>
+    `,
+            requestedVariantIndex: 8,
+        });
+
+        await test_animal_choice_input(
+            core,
+            resolvePathToNodeIdx,
+            true,
+            true,
+            true,
+        );
     });
 
     it("choiceInput references", async () => {

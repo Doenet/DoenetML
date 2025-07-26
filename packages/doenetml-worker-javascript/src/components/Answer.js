@@ -207,6 +207,12 @@ export default class Answer extends InlineComponent {
             defaultValue: false,
             public: true,
         };
+        attributes.preserveLastChoice = {
+            createPrimitiveOfType: "boolean",
+            createStateVariable: "preserveLastChoice",
+            defaultValue: false,
+            public: true,
+        };
 
         attributes.splitSymbols = {
             createComponentOfType: "boolean",
@@ -505,6 +511,15 @@ export default class Answer extends InlineComponent {
                             shuffleOrder: {
                                 type: "primitive",
                                 name: "shuffleOrder",
+                                primitive: { type: "boolean", value: true },
+                            },
+                        };
+                    }
+                    if (componentAttributes.preserveLastChoice) {
+                        choiceinput.attributes = {
+                            preserveLastChoice: {
+                                type: "primitive",
+                                name: "preserveLastChoice",
                                 primitive: { type: "boolean", value: true },
                             },
                         };

@@ -2542,6 +2542,25 @@ The animal is a <answer name="answer1" shuffleOrder>
         });
     });
 
+    it("answer with shuffled sugared choices, preserve last choice", async () => {
+        const doenetML = `
+The animal is a <answer name="answer1" shuffleOrder preserveLastChoice>
+    <choice credit="0.5">cat</choice>
+    <choice credit="1">dog</choice>
+    <choice>monkey</choice>
+</answer>
+  `;
+
+        await test_choice_answer({
+            doenetML,
+            answers: [
+                { choices: ["dog"], credit: 1 },
+                { choices: ["monkey"], credit: 0 },
+                { choices: ["cat"], credit: 0.5 },
+            ],
+        });
+    });
+
     it("answer with choiceInput, fixed order", async () => {
         const doenetML = `
 The animal is a <answer name="answer1">
