@@ -180,7 +180,7 @@ export default class Pretzel extends BlockScoredComponent {
 
                 const offsets = dependencyValues.currentResponses.map(
                     (resp, i) =>
-                        (Number(resp) -
+                        ((resp.trim() === "" ? NaN : Number(resp)) -
                             dependencyValues.problemOrder[i] +
                             numProblems) %
                         numProblems,
