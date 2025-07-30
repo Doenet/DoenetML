@@ -261,6 +261,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         outlineOffset: "2px",
         outlineColor: "var(--canvastext)",
         outlineWidth: "2px",
+        backgroundColor: "var(--canvas)",
         minWidth: `${SVs.minWidth > 0 ? SVs.minWidth : 0}px`,
     };
 
