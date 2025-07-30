@@ -234,6 +234,13 @@ export default class PretzelArranger extends CompositeComponent {
                         } else if (child.componentType === "givenAnswer") {
                             lastGivenAnswer = child.children[0];
                             lastGivenAnswer.componentType = "span";
+                            // copy componentIdx and name from `givenAnswer`
+                            // so references to it will response to the answer
+                            lastGivenAnswer.componentIdx = child.componentIdx;
+                            if (child.attributes.name) {
+                                lastGivenAnswer.attributes.name =
+                                    child.attributes.name;
+                            }
                         }
                     }
 
