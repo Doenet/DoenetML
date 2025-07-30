@@ -1348,6 +1348,7 @@ export function DocViewer({
         paddingLeft: "20px",
         paddingRight: "20px",
         backgroundColor: "inherit",
+        containerType: "inline-size",
     };
     if (!coreCreated.current) {
         if (!documentRenderer) {

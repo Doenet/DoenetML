@@ -1,0 +1,210 @@
+.doenet-viewer {
+    .pretzel1 {
+        grid-area: area1;
+    }
+    .pretzel2 {
+        grid-area: area2;
+    }
+    .pretzel3 {
+        grid-area: area3;
+    }
+    .pretzel4 {
+        grid-area: area4;
+    }
+    .pretzel5 {
+        grid-area: area5;
+    }
+    .pretzel6 {
+        grid-area: area6;
+    }
+    .pretzel7 {
+        grid-area: area7;
+    }
+    .pretzel8 {
+        grid-area: area8;
+    }
+    .pretzel9 {
+        grid-area: area9;
+    }
+    .pretzel10 {
+        grid-area: area10;
+    }
+    .pretzel11 {
+        grid-area: area11;
+    }
+    .pretzel12 {
+        grid-area: area12;
+    }
+
+    .pretzelProblem {
+        border: 1px solid #333;
+        /* padding: 5px; */
+    }
+
+    .pretzelAnswerInput {
+        display: flex;
+        justify-content: space-between;
+        /* border-bottom: 1px solid #333; */
+        background-color: #ddd;
+        padding: 5px;
+    }
+
+    .pretzelStatement {
+        padding: 5px;
+    }
+
+    .pretzelWrapper {
+        display: grid;
+        gap: 0px;
+        border-left: 1px solid #333;
+        border-right: 1px solid #333;
+    }
+
+    .pretzelWrapperTop {
+        border-top: 1px solid #333;
+    }
+
+    .pretzelWrapperBottom {
+        border-bottom: 1px solid #333;
+        margin-bottom: 10px;
+    }
+
+    .pretzelWrapper1 {
+        grid-template-columns: 100%;
+        grid-template-areas:
+            "area1"
+            "area2"
+            "area3"
+            "area4"
+            "area5"
+            "area6"
+            "area7"
+            "area8"
+            "area9"
+            "area10"
+            "area11"
+            "area12";
+    }
+
+    .pretzelWrapper2 {
+        grid-template-columns: 100%;
+        grid-template-areas:
+            "area1"
+            "area2"
+            "area3"
+            "area4"
+            "area5"
+            "area6"
+            "area7"
+            "area8"
+            "area9"
+            "area10"
+            "area11"
+            "area12";
+    }
+
+    @container (width >= 600px) {
+        .pretzelWrapper2 {
+            grid-template-columns: 50% 50%;
+            grid-template-areas:
+                "area1 area2"
+                "area3 area4"
+                "area5 area6"
+                "area7 area8"
+                "area9 area10"
+                "area11 area12";
+        }
+    }
+
+    .pretzelWrapper3 {
+        grid-template-columns: 100%;
+        grid-template-areas:
+            "area1"
+            "area2"
+            "area3"
+            "area4"
+            "area5"
+            "area6"
+            "area7"
+            "area8"
+            "area9"
+            "area10"
+            "area11"
+            "area12";
+    }
+
+    @container (width >= 500px) {
+        .pretzelWrapper3 {
+            grid-template-columns: 50% 50%;
+            grid-template-areas:
+                "area1 area2"
+                "area3 area4"
+                "area5 area6"
+                "area7 area8"
+                "area9 area10"
+                "area11 area12";
+        }
+    }
+
+    @container (width >= 750px) {
+        .pretzelWrapper3 {
+            grid-template-columns: 33.3333% 33.3333% 33.3333%;
+            grid-template-areas:
+                "area1 area2 area3"
+                "area4 area5 area6"
+                "area7 area8 area9"
+                "area10 area11 area12";
+        }
+    }
+
+    .pretzelWrapper4 {
+        grid-template-columns: 100%;
+        grid-template-areas:
+            "area1"
+            "area2"
+            "area3"
+            "area4"
+            "area5"
+            "area6"
+            "area7"
+            "area8"
+            "area9"
+            "area10"
+            "area11"
+            "area12";
+    }
+
+    @container (width >= 400px) {
+        .pretzelWrapper4 {
+            grid-template-columns: 50% 50%;
+            grid-template-areas:
+                "area1 area2"
+                "area3 area4"
+                "area5 area6"
+                "area7 area8"
+                "area9 area10"
+                "area11 area12";
+        }
+    }
+
+    @container (width >= 600px) {
+        .pretzelWrapper4 {
+            grid-template-columns: 33.3333% 33.3333% 33.3333%;
+            grid-template-areas:
+                "area1 area2 area3"
+                "area4 area5 area6"
+                "area7 area8 area9"
+                "area10 area11 area12";
+        }
+    }
+
+    @container (width >= 800px) {
+        .pretzelWrapper4 {
+            grid-template-columns: 25% 25% 25% 25%;
+            grid-template-areas:
+                "area1 area2 area3 area4"
+                "area5 area6 area7 area8"
+                "area9 area10 area11 area12";
+        }
+    }
+}

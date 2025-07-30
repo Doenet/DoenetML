@@ -15,6 +15,7 @@ import { conditionalContentSugar } from "./component-sugar/conditionalContent";
 import { selectSugar } from "./component-sugar/select";
 import { postponeRenderSugar } from "./component-sugar/postponeRender";
 import { pluginEnforceValidNames } from "./enforce-valid-names";
+import { pretzelSugar } from "./component-sugar/pretzel";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
@@ -207,6 +208,9 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                             postponeRenderSugar(node);
                         }
                     }
+                    break;
+                case "pretzel":
+                    pretzelSugar(node);
                     break;
             }
         });
