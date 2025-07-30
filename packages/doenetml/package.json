@@ -2,7 +2,7 @@
     "name": "@doenet/doenetml",
     "type": "module",
     "description": "Semantic markup for building interactive web activities",
-    "version": "0.7.0-alpha51",
+    "version": "0.7.0-alpha52",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -57,8 +57,8 @@
         }
     },
     "peerDependencies": {
-        "react": "^19.1.0",
-        "react-dom": "^19.1.0",
+        "react": "^19.1.1",
+        "react-dom": "^19.1.1",
         "styled-components": "^5.3.11"
     },
     "dependencies": {},
