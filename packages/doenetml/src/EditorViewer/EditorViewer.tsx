@@ -157,7 +157,7 @@ export function EditorViewer({
                 const data = event.data;
                 if (data.verb === "submitted") {
                     const object = JSON.parse(data.object);
-                    const answerId = object.componentIdx;
+                    const answerId = object.rootName;
 
                     if (answerId) {
                         const result = JSON.parse(
@@ -182,10 +182,7 @@ export function EditorViewer({
                             setResponses((was) => {
                                 const arr = [...was];
                                 arr.push({
-                                    answerId:
-                                        answerId[0] === "/"
-                                            ? answerId.substring(1)
-                                            : answerId,
+                                    answerId,
                                     response: responseElement,
                                     creditAchieved: answerCreditAchieved,
                                     submittedAt:

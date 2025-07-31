@@ -427,6 +427,7 @@ export default class Pretzel extends BlockScoredComponent {
                     componentIdx: this.componentIdx,
                     componentType: this.componentType,
                     answerNumber: this.answerNumber,
+                    rootName: this.rootName,
                 },
                 result: {
                     response: currentResponses,

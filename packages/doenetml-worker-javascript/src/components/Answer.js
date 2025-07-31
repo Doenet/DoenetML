@@ -1815,6 +1815,7 @@ export default class Answer extends InlineComponent {
                     componentIdx: this.componentIdx,
                     componentType: this.componentType,
                     answerNumber: this.answerNumber,
+                    rootName: this.rootName,
                 },
                 result: {
                     response: currentResponses,
