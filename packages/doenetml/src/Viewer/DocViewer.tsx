@@ -586,7 +586,7 @@ export function DocViewer({
                 // look for a child that has a componentType solution
                 for (let childInst of rendererState[componentIdx]
                     .childrenInstructions) {
-                    if (childInst.componentType === "solution") {
+                    if (childInst?.componentType === "solution") {
                         let solComponentIdx = childInst.componentIdx;
                         if (rendererState[solComponentIdx].stateValues.hidden) {
                             rendererState[solComponentIdx].stateValues.hidden =

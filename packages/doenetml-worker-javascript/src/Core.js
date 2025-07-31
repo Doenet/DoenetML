@@ -1698,6 +1698,7 @@ export default class Core {
         // create component itself
         const newComponent = new componentClass({
             componentIdx,
+            rootName: this.rootNames?.[componentIdx] ?? componentIdx.toString(),
             ancestors,
             definingChildren,
             stateVariableDefinitions,

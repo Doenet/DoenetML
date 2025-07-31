@@ -61,7 +61,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
                 answerComponentIdx={componentIdx}
                 docId={docId}
                 activityId={activityId}
-                numResponses={answerResponseCounts?.[componentIdx]}
+                numResponses={answerResponseCounts?.[id]}
             />
         );
     }

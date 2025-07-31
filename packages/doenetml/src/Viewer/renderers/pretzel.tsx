@@ -46,7 +46,7 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
                 answerComponentIdx={componentIdx}
                 docId={docId}
                 activityId={activityId}
-                numResponses={answerResponseCounts?.[componentIdx]}
+                numResponses={answerResponseCounts?.[id]}
             />
         );
     }

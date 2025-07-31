@@ -1915,6 +1915,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -2250,6 +2251,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -2585,6 +2587,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -24524,6 +24527,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -24588,6 +24592,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -25027,6 +25038,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -25091,6 +25103,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -25530,6 +25549,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -25594,6 +25614,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -26033,6 +26060,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -26097,6 +26125,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -26536,6 +26571,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -26600,6 +26636,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -27065,6 +27108,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -27129,6 +27173,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -27568,6 +27619,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -27632,6 +27684,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -28071,6 +28130,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -28135,6 +28195,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -28574,6 +28641,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -28638,6 +28706,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -29077,6 +29152,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -29141,6 +29217,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -29580,6 +29663,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -29644,6 +29728,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -30083,6 +30174,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -30147,6 +30239,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -30586,6 +30685,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -30650,6 +30750,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -31089,6 +31196,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -31153,6 +31261,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -31592,6 +31707,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -31656,6 +31772,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -32095,6 +32218,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -32159,6 +32283,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -32598,6 +32729,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -32662,6 +32794,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -33118,6 +33257,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -33182,6 +33322,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -33612,6 +33759,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -33676,6 +33824,13 @@
                 },
                 {
                     "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -34358,6 +34513,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -38791,7 +38947,8 @@
                 "split",
                 "codeEditor",
                 "summaryStatistics",
-                "blockQuote"
+                "blockQuote",
+                "pretzel"
             ],
             "attributes": [
                 {
@@ -39361,6 +39518,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -40201,6 +40359,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -40536,6 +40695,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -40871,6 +41031,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -41206,6 +41367,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -41561,6 +41723,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -42302,7 +42465,8 @@
                 "subsetOfRealsInput",
                 "codeEditor",
                 "summaryStatistics",
-                "blockQuote"
+                "blockQuote",
+                "pretzel"
             ],
             "attributes": [
                 {
@@ -42640,6 +42804,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -42663,6 +42828,13 @@
                 },
                 {
                     "name": "documentWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
                     "values": [
                         "true",
                         "false"
@@ -44713,11 +44885,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -44740,6 +44907,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -44956,11 +45128,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -44983,6 +45150,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -45172,11 +45344,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -45184,6 +45351,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -45484,6 +45656,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -51352,11 +51525,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -51374,6 +51542,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -52310,6 +52483,42 @@
                     ]
                 },
                 {
+                    "name": "matchPartial",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "maxNumAttempts"
+                },
+                {
+                    "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disableAfterCorrect",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForResponses"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
+                },
+                {
                     "name": "inline",
                     "values": [
                         "true",
@@ -52318,13 +52527,6 @@
                 },
                 {
                     "name": "symbolicEquality",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "matchPartial",
                     "values": [
                         "true",
                         "false"
@@ -52371,9 +52573,6 @@
                     "name": "numAwardsCredited"
                 },
                 {
-                    "name": "maxNumAttempts"
-                },
-                {
                     "name": "allowedErrorInNumbers"
                 },
                 {
@@ -52411,27 +52610,7 @@
                     ]
                 },
                 {
-                    "name": "showCorrectness",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
                     "name": "type"
-                },
-                {
-                    "name": "disableAfterCorrect",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "submitLabel"
-                },
-                {
-                    "name": "submitLabelNoCorrectness"
                 },
                 {
                     "name": "selectMultiple",
@@ -52442,6 +52621,13 @@
                 },
                 {
                     "name": "shuffleOrder",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "preserveLastChoice",
                     "values": [
                         "true",
                         "false"
@@ -52467,12 +52653,6 @@
                         "true",
                         "false"
                     ]
-                },
-                {
-                    "name": "displayDigitsForResponses"
-                },
-                {
-                    "name": "displayDigitsForCreditAchieved"
                 }
             ],
             "properties": [
@@ -52512,17 +52692,47 @@
                     "isArray": false
                 },
                 {
+                    "name": "matchPartial",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "disableAfterCorrect",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForResponses",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
                     "name": "inline",
                     "type": "boolean",
                     "isArray": false
                 },
                 {
                     "name": "symbolicEquality",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "matchPartial",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -52553,11 +52763,6 @@
                 },
                 {
                     "name": "numAwardsCredited",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "maxNumAttempts",
                     "type": "integer",
                     "isArray": false
                 },
@@ -52597,27 +52802,17 @@
                     "isArray": false
                 },
                 {
-                    "name": "disableAfterCorrect",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
                     "name": "selectMultiple",
                     "type": "boolean",
                     "isArray": false
                 },
                 {
                     "name": "shuffleOrder",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveLastChoice",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -52634,16 +52829,6 @@
                 {
                     "name": "expanded",
                     "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDigitsForResponses",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDigitsForCreditAchieved",
-                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -52668,6 +52853,36 @@
                 },
                 {
                     "name": "disabledOriginal",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "responseHasBeenSubmitted",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "justSubmitted",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "numSubmissions",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "numAttemptsLeft",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -52704,21 +52919,6 @@
                     ]
                 },
                 {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "responseHasBeenSubmitted",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "justSubmitted",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "numFeedbacks",
                     "type": "number",
                     "isArray": false
@@ -52735,21 +52935,6 @@
                             "numDimensions": 1
                         }
                     ]
-                },
-                {
-                    "name": "numSubmissions",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "numAttemptsLeft",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
                 },
                 {
                     "name": "currentResponse",
@@ -54759,6 +54944,13 @@
                     ]
                 },
                 {
+                    "name": "preserveLastChoice",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "preselectChoice"
                 },
                 {
@@ -54824,6 +55016,11 @@
                 },
                 {
                     "name": "shuffleOrder",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveLastChoice",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -55219,6 +55416,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -58372,6 +58570,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -59443,6 +59642,7 @@
                 "eigenDecomposition",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -60470,7 +60670,8 @@
                 "subsetOfRealsInput",
                 "codeEditor",
                 "summaryStatistics",
-                "blockQuote"
+                "blockQuote",
+                "pretzel"
             ],
             "attributes": [
                 {
@@ -60794,7 +60995,8 @@
                 "subsetOfRealsInput",
                 "codeEditor",
                 "summaryStatistics",
-                "blockQuote"
+                "blockQuote",
+                "pretzel"
             ],
             "attributes": [
                 {
@@ -61350,6 +61552,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -61675,6 +61878,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -64476,6 +64680,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -66140,6 +66345,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -67516,6 +67722,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -68575,6 +68782,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -68908,6 +69116,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -69243,6 +69452,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -70529,6 +70739,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -70852,6 +71063,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -71169,6 +71381,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -71701,7 +71914,8 @@
                 "subsetOfRealsInput",
                 "codeEditor",
                 "summaryStatistics",
-                "blockQuote"
+                "blockQuote",
+                "pretzel"
             ],
             "attributes": [
                 {
@@ -72472,6 +72686,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -72820,6 +73035,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -74206,6 +74422,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -75411,6 +75628,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -78572,6 +78790,7 @@
                 "latex",
                 "blockQuote",
                 "stickyGroup",
+                "pretzel",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -78939,6 +79158,282 @@
             "acceptsStringChildren": false
         },
         {
+            "name": "pretzel",
+            "children": [
+                "statement",
+                "textInput",
+                "span"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "handGraded",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "matchPartial",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "maxNumAttempts"
+                },
+                {
+                    "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disableAfterCorrect",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForResponses"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
+                },
+                {
+                    "name": "maxNumColumns"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "handGraded",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "matchPartial",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "disableAfterCorrect",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForResponses",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "maxNumColumns",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "disabledOriginal",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "responseHasBeenSubmitted",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "justSubmitted",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "numSubmissions",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "numAttemptsLeft",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "numProblems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "currentResponses",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numSubmittedResponses",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "submittedResponses",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
+        },
+        {
             "name": "pointList",
             "children": [
                 "rightHandSide",
@@ -79106,11 +79601,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -79118,6 +79608,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -79302,11 +79797,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -79314,6 +79804,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -79498,11 +79993,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -79510,6 +80000,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
