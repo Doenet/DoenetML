@@ -4,7 +4,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { DocContext } from "../DocViewer";
-import { AnswerResponseMenu } from "./utils/AnswerResponseMenu";
+import { AnswerResponseButton } from "./utils/AnswerResponseButton";
 import "./pretzel.css";
 import { createCheckworkComponent } from "../../utils/checkwork";
 
@@ -24,7 +24,7 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
-    const { showAnswerResponseMenu, answerResponseCounts } =
+    const { showAnswerResponseButton, answerResponseCounts } =
         useContext(DocContext) || {};
 
     if (SVs.hidden) {
@@ -38,10 +38,10 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
             action: actions.submitAnswer,
         });
 
-    let answerResponseMenu = null;
-    if (showAnswerResponseMenu) {
-        answerResponseMenu = (
-            <AnswerResponseMenu
+    let answerResponseButton = null;
+    if (showAnswerResponseButton) {
+        answerResponseButton = (
+            <AnswerResponseButton
                 answerId={id}
                 answerComponentIdx={componentIdx}
                 docId={docId}
@@ -117,14 +117,14 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
             <div id={id} ref={ref} style={{ marginBottom: "4px" }}>
                 {problemGrids}
                 {checkworkComponent}
-                {answerResponseMenu}
+                {answerResponseButton}
             </div>
         );
     } else {
         return (
             <div id={id} ref={ref} style={{ marginBottom: "4px" }}>
                 {problemGrids}
-                {answerResponseMenu}
+                {answerResponseButton}
             </div>
         );
     }

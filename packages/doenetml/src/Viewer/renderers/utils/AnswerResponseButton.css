@@ -1,0 +1,15 @@
+.answer-response-button {
+    --button-color: #aaa;
+    --button-hover-color: #ccc;
+    --button-active-color: #ddd;
+    padding: 0;
+    height: 2.2em;
+    width: 2.2em;
+}
+.answer-response-tooltip-anchor {
+    display: inline;
+}
+.answer-response-tooltip {
+    background-color: var(--mainGray);
+    padding: 0.2em 0.5em;
+}
