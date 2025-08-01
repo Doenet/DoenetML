@@ -43,7 +43,7 @@ export function EditorViewer({
     prefixForIds = "",
     doenetViewerUrl,
     darkMode = "light",
-    showAnswerResponseMenu = false,
+    showAnswerResponseButton = false,
     answerResponseCounts = {},
     width = "100%",
     height = "500px",
@@ -67,7 +67,7 @@ export function EditorViewer({
     prefixForIds?: string;
     doenetViewerUrl?: string;
     darkMode?: "dark" | "light";
-    showAnswerResponseMenu?: boolean;
+    showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
@@ -543,7 +543,7 @@ export function EditorViewer({
                         scrollableContainer.current ?? undefined
                     }
                     darkMode={darkMode}
-                    showAnswerResponseMenu={showAnswerResponseMenu}
+                    showAnswerResponseButton={showAnswerResponseButton}
                     answerResponseCounts={answerResponseCounts}
                     fetchExternalDoenetML={fetchExternalDoenetML}
                 />

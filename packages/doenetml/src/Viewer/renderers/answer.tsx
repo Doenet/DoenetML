@@ -3,7 +3,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { DocContext } from "../DocViewer";
-import { AnswerResponseMenu } from "./utils/AnswerResponseMenu";
+import { AnswerResponseButton } from "./utils/AnswerResponseButton";
 import { createCheckworkComponent } from "../../utils/checkwork";
 
 export default React.memo(function Answer(props: UseDoenetRendererProps) {
@@ -18,7 +18,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         callAction,
     } = useDoenetRenderer(props);
 
-    const { showAnswerResponseMenu, answerResponseCounts } =
+    const { showAnswerResponseButton, answerResponseCounts } =
         useContext(DocContext) || {};
 
     if (SVs.hidden) {
@@ -51,12 +51,10 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         );
     }
 
-    // XXX: we need to send in actual name of the answer to the renderer
-    // so that can also be sent to the menu here
-    let answerResponseMenu = null;
-    if (showAnswerResponseMenu) {
-        answerResponseMenu = (
-            <AnswerResponseMenu
+    let answerResponseButton = null;
+    if (showAnswerResponseButton) {
+        answerResponseButton = (
+            <AnswerResponseButton
                 answerId={id}
                 answerComponentIdx={componentIdx}
                 docId={docId}
@@ -78,14 +76,14 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
             <span id={id} style={{ marginBottom: "4px" }}>
                 {inputChildrenToRender}
                 {checkworkComponent}
-                {answerResponseMenu}
+                {answerResponseButton}
             </span>
         );
     } else {
         return (
             <span id={id} style={{ marginBottom: "4px" }}>
                 {inputChildrenToRender}
-                {answerResponseMenu}
+                {answerResponseButton}
             </span>
         );
     }

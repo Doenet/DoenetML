@@ -1,0 +1,8 @@
+.answer-response-button {
+    --button-color: #aaa;
+    --button-hover-color: #ccc;
+    --button-active-color: #ddd;
+    padding: 0;
+    height: 2.2em;
+    width: 2.2em;
+}

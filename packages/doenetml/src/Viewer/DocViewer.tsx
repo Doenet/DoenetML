@@ -33,7 +33,7 @@ export const DocContext = createContext<{
     doenetViewerUrl?: string;
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
-    showAnswerResponseMenu?: boolean;
+    showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
 }>({});
 
@@ -62,7 +62,7 @@ export function DocViewer({
     doenetViewerUrl,
     scrollableContainer,
     darkMode,
-    showAnswerResponseMenu = false,
+    showAnswerResponseButton = false,
     answerResponseCounts = {},
     initializeCounters: prescribedInitializeCounters = {},
     fetchExternalDoenetML,
@@ -91,7 +91,7 @@ export function DocViewer({
     doenetViewerUrl?: string;
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
-    showAnswerResponseMenu?: boolean;
+    showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     initializeCounters?: Record<string, number>;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
@@ -207,7 +207,7 @@ export function DocViewer({
         doenetViewerUrl,
         scrollableContainer,
         darkMode,
-        showAnswerResponseMenu,
+        showAnswerResponseButton,
         answerResponseCounts,
     };
 
