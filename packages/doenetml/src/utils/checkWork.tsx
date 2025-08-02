@@ -157,11 +157,10 @@ export function createCheckWorkComponent(
             checkWorkStyle.backgroundColor = "#efab34";
             const percent = Math.round(SVs.creditAchieved * 100);
             const checkWorkText = showText
-                ? `${percent}% Correct`
+                ? SVs.creditIsReducedByAttempt
+                    ? `${percent}% Credit`
+                    : `${percent}% Correct`
                 : `${percent} %`;
-            if (!showText) {
-                checkWorkStyle.width = "44px";
-            }
 
             checkWorkComponent = (
                 <Button
@@ -212,6 +211,15 @@ export function createCheckWorkComponent(
             <>
                 {checkWorkComponent}
                 <span>({SVs.numAttemptsLeft} attempts remaining)</span>
+            </>
+        );
+    }
+
+    if (SVs.creditIsReducedByAttempt) {
+        checkWorkComponent = (
+            <>
+                {checkWorkComponent}
+                <span>(wrong answers reduce credit)</span>
             </>
         );
     }

@@ -159,6 +159,32 @@ export default class Answer extends InlineComponent {
             defaultValue: false,
             public: true,
         };
+        attributes.disableWrongChoices = {
+            createComponentOfType: "boolean",
+            createStateVariable: "disableWrongChoices",
+            defaultValue: false,
+            public: true,
+        };
+        attributes.creditFactorByAttempt = {
+            createComponentOfType: "numberList",
+            createStateVariable: "creditFactorByAttempt",
+            defaultValue: [],
+            public: true,
+        };
+        attributes.creditReductionPerAttempt = {
+            createComponentOfType: "number",
+            createStateVariable: "creditReductionPerAttempt",
+            defaultValue: 0,
+            public: true,
+            clamp: [0, 1],
+        };
+        attributes.creditReductionLimit = {
+            createComponentOfType: "number",
+            createStateVariable: "creditReductionLimit",
+            defaultValue: 0.99,
+            public: true,
+            clamp: [0, 1],
+        };
 
         attributes.splitSymbols = {
             createComponentOfType: "boolean",
@@ -1441,6 +1467,35 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.creditIsReducedByAttempt = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                creditFactorByAttempt: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditFactorByAttempt",
+                },
+                creditReductionPerAttempt: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditReductionPerAttempt",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let creditIsReducedByAttempt = false;
+
+                if (dependencyValues.creditFactorByAttempt.length > 0) {
+                    creditIsReducedByAttempt =
+                        dependencyValues.creditFactorByAttempt.some(
+                            (reduction) => reduction < 1,
+                        );
+                } else {
+                    creditIsReducedByAttempt =
+                        dependencyValues.creditReductionPerAttempt > 0;
+                }
+
+                return { setValue: { creditIsReducedByAttempt } };
+            },
+        };
+
         stateVariableDefinitions.creditAchievedIfSubmit = {
             additionalStateVariablesDefined: [
                 "awardsUsedIfSubmit",
@@ -1572,6 +1627,55 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.nextCreditFactor = {
+            returnDependencies: () => ({
+                creditFactorByAttempt: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditFactorByAttempt",
+                },
+                creditReductionPerAttempt: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditReductionPerAttempt",
+                },
+                creditReductionLimit: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditReductionLimit",
+                },
+                numIncorrectSubmissions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numIncorrectSubmissions",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let nextCreditFactor = 1;
+
+                if (dependencyValues.creditFactorByAttempt.length > 0) {
+                    const factorByAttempt =
+                        dependencyValues.creditFactorByAttempt;
+                    const effectiveAttempt = Math.min(
+                        dependencyValues.numIncorrectSubmissions,
+                        factorByAttempt.length - 1,
+                    );
+                    nextCreditFactor = Math.min(
+                        1,
+                        Math.max(0, factorByAttempt[effectiveAttempt]),
+                    );
+                } else if (
+                    dependencyValues.creditReductionPerAttempt > 0 &&
+                    dependencyValues.numIncorrectSubmissions > 0
+                ) {
+                    const reduction = Math.min(
+                        dependencyValues.creditReductionLimit,
+                        dependencyValues.creditReductionPerAttempt *
+                            dependencyValues.numIncorrectSubmissions,
+                    );
+                    nextCreditFactor = 1 - reduction;
+                }
+
+                return { setValue: { nextCreditFactor } };
+            },
+        };
+
         stateVariableDefinitions.allFeedbacks = {
             returnDependencies: () => ({
                 awardChildren: {
@@ -1683,25 +1787,29 @@ export default class Answer extends InlineComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        let numAttemptsLeft = await this.stateValues.numAttemptsLeft;
+        const numAttemptsLeft = await this.stateValues.numAttemptsLeft;
         if (numAttemptsLeft < 1) {
             return;
         }
 
-        let disabled = await this.stateValues.disabled;
+        const disabled = await this.stateValues.disabled;
         if (disabled) {
             return;
         }
 
-        let creditAchieved = await this.stateValues.creditAchievedIfSubmit;
-        if (await this.stateValues.handGraded) {
-            creditAchieved = 0;
-        }
-        let awardsUsed = await this.stateValues.awardsUsedIfSubmit;
-        let inputUsed = await this.stateValues.inputUsedIfSubmit;
+        const unmodifiedCreditAchieved =
+            await this.stateValues.creditAchievedIfSubmit;
+
+        const creditAchieved = (await this.stateValues.handGraded)
+            ? 0
+            : unmodifiedCreditAchieved *
+              (await this.stateValues.nextCreditFactor);
+
+        const awardsUsed = await this.stateValues.awardsUsedIfSubmit;
+        const inputUsed = await this.stateValues.inputUsedIfSubmit;
 
         // request to update credit
-        let instructions = [
+        const instructions = [
             {
                 updateType: "updateValue",
                 componentIdx: this.componentIdx,
@@ -1716,14 +1824,14 @@ export default class Answer extends InlineComponent {
             },
         ];
 
-        let inputChildrenWithValues =
+        const inputChildrenWithValues =
             await this.stateValues.inputChildrenWithValues;
 
         if (inputChildrenWithValues.length === 1) {
             // if have a single input descendant,
             // then will record the current value
 
-            let inputChild = inputChildrenWithValues[0];
+            const inputChild = inputChildrenWithValues[0];
 
             if (
                 inputUsed === inputChild.componentIdx &&
@@ -1740,8 +1848,7 @@ export default class Answer extends InlineComponent {
         }
 
         // add submitted responses to instruction for answer
-        let currentResponses = await this.stateValues.currentResponses;
-        // let currentResponses = await this.state.currentResponses.value;
+        const currentResponses = await this.stateValues.currentResponses;
 
         instructions.push({
             updateType: "updateValue",
@@ -1779,8 +1886,17 @@ export default class Answer extends InlineComponent {
             value: (await this.stateValues.numSubmissions) + 1,
         });
 
-        for (let child of await this.stateValues.awardChildren) {
-            let awarded = awardsUsed.includes(child.componentIdx);
+        if (unmodifiedCreditAchieved < 1) {
+            instructions.push({
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "numIncorrectSubmissions",
+                value: (await this.stateValues.numIncorrectSubmissions) + 1,
+            });
+        }
+
+        for (const child of await this.stateValues.awardChildren) {
+            const awarded = awardsUsed.includes(child.componentIdx);
             instructions.push({
                 updateType: "updateValue",
                 componentIdx: child.componentIdx,
@@ -1801,8 +1917,8 @@ export default class Answer extends InlineComponent {
             });
         }
 
-        let responseText = [];
-        for (let response of currentResponses) {
+        const responseText = [];
+        for (const response of currentResponses) {
             if (response.toString) {
                 try {
                     responseText.push(response.toString());

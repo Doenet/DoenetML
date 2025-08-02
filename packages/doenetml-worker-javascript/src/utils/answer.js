@@ -379,6 +379,26 @@ export function returnStandardAnswerStateVariableDefinition() {
         }),
     };
 
+    stateVariableDefinitions.numIncorrectSubmissions = {
+        defaultValue: 0,
+        hasEssential: true,
+        returnDependencies: () => ({}),
+        definition: () => ({
+            useEssentialOrDefaultValue: {
+                numIncorrectSubmissions: true,
+            },
+        }),
+        inverseDefinition: ({ desiredStateVariableValues }) => ({
+            success: true,
+            instructions: [
+                {
+                    setEssentialValue: "numIncorrectSubmissions",
+                    value: desiredStateVariableValues.numIncorrectSubmissions,
+                },
+            ],
+        }),
+    };
+
     stateVariableDefinitions.numAttemptsLeft = {
         public: true,
         shadowingInstructions: {

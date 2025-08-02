@@ -534,6 +534,26 @@ export default class Choiceinput extends Input {
             },
         };
 
+        stateVariableDefinitions.disableWrongChoices = {
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "answer",
+                    variableNames: ["disableWrongChoices"],
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                return {
+                    setValue: {
+                        disableWrongChoices: Boolean(
+                            dependencyValues.answerAncestor?.stateValues
+                                .disableWrongChoices,
+                        ),
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.choicesDisabled = {
             isArray: true,
             forRenderer: true,

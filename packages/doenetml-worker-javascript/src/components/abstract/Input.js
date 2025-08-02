@@ -35,6 +35,7 @@ export default class Input extends InlineComponent {
                         "creditAchieved",
                         "showCorrectness",
                         "numAttemptsLeft",
+                        "creditIsReducedByAttempt",
                     ],
                 },
             }),
@@ -111,27 +112,27 @@ export default class Input extends InlineComponent {
                 };
             },
         };
-        //TODO: disabled is now in basecomponent - how to make it work with collaborateGroups
-        // stateVariableDefinitions.disabled = {
-        //   forRenderer: true,
-        //   returnDependencies: () => ({
-        //     collaborateGroups: {
-        //       dependencyType: "stateVariable",
-        //       variableName: "collaborateGroups"
-        //     },
-        //     collaboration: {
-        //       dependencyType: "flag",
-        //       flagName: "collaboration"
-        //     }
-        //   }),
-        //   definition: function ({ dependencyValues }) {
-        //     let disabled = false;
-        //     if (dependencyValues.collaborateGroups) {
-        //       disabled = !dependencyValues.collaborateGroups.matchGroup(dependencyValues.collaboration)
-        //     }
-        //     return { setValue: { disabled } }
-        //   }
-        // }
+
+        stateVariableDefinitions.creditIsReducedByAttempt = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let creditIsReducedByAttempt = false;
+                if (dependencyValues.answerAncestor) {
+                    creditIsReducedByAttempt =
+                        dependencyValues.answerAncestor.stateValues
+                            .creditIsReducedByAttempt;
+                }
+                return {
+                    setValue: { creditIsReducedByAttempt },
+                };
+            },
+        };
 
         stateVariableDefinitions.justSubmitted = {
             forRenderer: true,
