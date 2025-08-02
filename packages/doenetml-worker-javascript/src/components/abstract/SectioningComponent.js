@@ -950,7 +950,7 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.suppressCheckwork = {
+        stateVariableDefinitions.suppressCheckWork = {
             forRenderer: true,
             returnDependencies: () => ({
                 autoSubmit: {
@@ -961,7 +961,7 @@ export class SectioningComponent extends BlockComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        suppressCheckwork: dependencyValues.autoSubmit,
+                        suppressCheckWork: dependencyValues.autoSubmit,
                     },
                 };
             },

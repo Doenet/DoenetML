@@ -640,7 +640,7 @@ export default class Document extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.suppressCheckwork = {
+        stateVariableDefinitions.suppressCheckWork = {
             forRenderer: true,
             returnDependencies: () => ({
                 autoSubmit: {
@@ -651,7 +651,7 @@ export default class Document extends BaseComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        suppressCheckwork: dependencyValues.autoSubmit,
+                        suppressCheckWork: dependencyValues.autoSubmit,
                     },
                 };
             },

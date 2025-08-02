@@ -6,7 +6,10 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { DocContext } from "../DocViewer";
 import { AnswerResponseButton } from "./utils/AnswerResponseButton";
 import "./pretzel.css";
-import { createCheckworkComponent } from "../../utils/checkwork";
+import {
+    calculateValidationState,
+    createCheckWorkComponent,
+} from "../../utils/checkWork";
 
 export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
     let {
@@ -105,27 +108,20 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         problemGrids.push(grid);
     }
 
-    if (!SVs.suppressCheckwork) {
-        const checkworkComponent = createCheckworkComponent(
-            SVs,
-            disabled,
-            id,
-            submitAnswer,
-        );
+    const validationState = calculateValidationState(SVs);
+    const checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState,
+        submitAnswer,
+        true,
+    );
 
-        return (
-            <div id={id} ref={ref} style={{ marginBottom: "4px" }}>
-                {problemGrids}
-                {checkworkComponent}
-                {answerResponseButton}
-            </div>
-        );
-    } else {
-        return (
-            <div id={id} ref={ref} style={{ marginBottom: "4px" }}>
-                {problemGrids}
-                {answerResponseButton}
-            </div>
-        );
-    }
+    return (
+        <span id={id} style={{ marginBottom: "4px" }}>
+            {problemGrids}
+            {checkWorkComponent}
+            {answerResponseButton}
+        </span>
+    );
 });

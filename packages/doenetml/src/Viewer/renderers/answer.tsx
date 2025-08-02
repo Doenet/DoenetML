@@ -4,7 +4,10 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { DocContext } from "../DocViewer";
 import { AnswerResponseButton } from "./utils/AnswerResponseButton";
-import { createCheckworkComponent } from "../../utils/checkwork";
+import {
+    calculateValidationState,
+    createCheckWorkComponent,
+} from "../../utils/checkWork";
 
 export default React.memo(function Answer(props: UseDoenetRendererProps) {
     let {
@@ -25,9 +28,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         return null;
     }
 
-    let disabled = SVs.disabled;
-
-    let submitAnswer = () =>
+    const submitAnswer = () =>
         callAction({
             action: actions.submitAnswer,
         });
@@ -64,27 +65,20 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         );
     }
 
-    if (!SVs.delegateCheckWork && !SVs.suppressCheckwork) {
-        const checkworkComponent = createCheckworkComponent(
-            SVs,
-            disabled,
-            id,
-            submitAnswer,
-        );
+    const validationState = calculateValidationState(SVs);
+    const checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState,
+        submitAnswer,
+        true,
+    );
 
-        return (
-            <span id={id} style={{ marginBottom: "4px" }}>
-                {inputChildrenToRender}
-                {checkworkComponent}
-                {answerResponseButton}
-            </span>
-        );
-    } else {
-        return (
-            <span id={id} style={{ marginBottom: "4px" }}>
-                {inputChildrenToRender}
-                {answerResponseButton}
-            </span>
-        );
-    }
+    return (
+        <span id={id} style={{ marginBottom: "4px" }}>
+            {inputChildrenToRender}
+            {checkWorkComponent}
+            {answerResponseButton}
+        </span>
+    );
 });

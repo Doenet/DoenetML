@@ -48,7 +48,7 @@ export function DocViewer({
     forceDisable = false,
     forceShowCorrectness = false,
     forceShowSolution = false,
-    forceUnsuppressCheckwork = false,
+    forceUnsuppressCheckWork = false,
     generatedVariantCallback,
     flags,
     requestedVariantIndex,
@@ -77,7 +77,7 @@ export function DocViewer({
     forceDisable?: boolean;
     forceShowCorrectness?: boolean;
     forceShowSolution?: boolean;
-    forceUnsuppressCheckwork?: boolean;
+    forceUnsuppressCheckWork?: boolean;
     generatedVariantCallback?: Function;
     flags: DoenetMLFlags;
     requestedVariantIndex: number;
@@ -557,13 +557,13 @@ export function DocViewer({
         forceDisable,
         forceShowCorrectness,
         forceShowSolution,
-        forceUnsuppressCheckwork,
+        forceUnsuppressCheckWork,
     }: {
         rendererState: Record<string, Record<string, any>>;
         forceDisable: boolean;
         forceShowCorrectness: boolean;
         forceShowSolution: boolean;
-        forceUnsuppressCheckwork: boolean;
+        forceUnsuppressCheckWork: boolean;
     }) {
         for (let componentIdx in rendererState) {
             let stateValues = rendererState[componentIdx].stateValues;
@@ -574,10 +574,10 @@ export function DocViewer({
                 stateValues.showCorrectness = true;
             }
             if (
-                forceUnsuppressCheckwork &&
-                stateValues.suppressCheckwork === true
+                forceUnsuppressCheckWork &&
+                stateValues.suppressCheckWork === true
             ) {
-                stateValues.suppressCheckwork = false;
+                stateValues.suppressCheckWork = false;
             }
             if (
                 forceShowSolution &&
@@ -605,14 +605,14 @@ export function DocViewer({
                 forceDisable ||
                 forceShowCorrectness ||
                 forceShowSolution ||
-                forceUnsuppressCheckwork
+                forceUnsuppressCheckWork
             ) {
                 forceRendererState({
                     rendererState: args.rendererState,
                     forceDisable,
                     forceShowCorrectness,
                     forceShowSolution,
-                    forceUnsuppressCheckwork,
+                    forceUnsuppressCheckWork,
                 });
             }
             for (let componentIdx in args.rendererState) {
