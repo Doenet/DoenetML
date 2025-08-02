@@ -1367,7 +1367,6 @@ export default class Answer extends InlineComponent {
                 "delegateCheckWorkToInput",
                 "delegateCheckWorkToAncestor",
             ],
-            forRenderer: true,
             returnDependencies: () => ({
                 inputChildren: {
                     dependencyType: "stateVariable",
@@ -1414,6 +1413,29 @@ export default class Answer extends InlineComponent {
                         delegateCheckWork,
                         delegateCheckWorkToAncestor,
                         delegateCheckWorkToInput,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.showCheckWork = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                delegateCheckWork: {
+                    dependencyType: "stateVariable",
+                    variableName: "delegateCheckWork",
+                },
+                suppressCheckWork: {
+                    dependencyType: "stateVariable",
+                    variableName: "suppressCheckWork",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        showCheckWork:
+                            !dependencyValues.delegateCheckWork &&
+                            !dependencyValues.suppressCheckWork,
                     },
                 };
             },

@@ -312,6 +312,23 @@ export default class Pretzel extends BlockScoredComponent {
             },
         };
 
+        stateVariableDefinitions.showCheckWork = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                suppressCheckWork: {
+                    dependencyType: "stateVariable",
+                    variableName: "suppressCheckWork",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        showCheckWork: !dependencyValues.suppressCheckWork,
+                    },
+                };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 

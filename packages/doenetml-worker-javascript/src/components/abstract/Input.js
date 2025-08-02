@@ -47,29 +47,7 @@ export default class Input extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.includeCheckWork = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                answerAncestor: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerAncestor",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                let includeCheckWork = false;
-                if (dependencyValues.answerAncestor) {
-                    includeCheckWork =
-                        dependencyValues.answerAncestor.stateValues
-                            .delegateCheckWorkToInput;
-                }
-                return {
-                    setValue: { includeCheckWork },
-                };
-            },
-        };
-
-        stateVariableDefinitions.suppressCheckwork = {
-            forRenderer: true,
+        stateVariableDefinitions.suppressCheckWork = {
             returnDependencies: () => ({
                 autoSubmit: {
                     dependencyType: "flag",
@@ -79,14 +57,41 @@ export default class Input extends InlineComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        suppressCheckwork: dependencyValues.autoSubmit,
+                        suppressCheckWork: dependencyValues.autoSubmit,
                     },
                 };
             },
         };
 
+        stateVariableDefinitions.showCheckWork = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+                suppressCheckWork: {
+                    dependencyType: "stateVariable",
+                    variableName: "suppressCheckWork",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let showCheckWork = false;
+                if (
+                    dependencyValues.answerAncestor &&
+                    !dependencyValues.suppressCheckWork
+                ) {
+                    showCheckWork =
+                        dependencyValues.answerAncestor.stateValues
+                            .delegateCheckWorkToInput;
+                }
+                return {
+                    setValue: { showCheckWork },
+                };
+            },
+        };
+
         stateVariableDefinitions.creditAchieved = {
-            defaultValue: 0,
             forRenderer: true,
             returnDependencies: () => ({
                 answerAncestor: {
@@ -128,7 +133,7 @@ export default class Input extends InlineComponent {
         //   }
         // }
 
-        stateVariableDefinitions.valueHasBeenValidated = {
+        stateVariableDefinitions.justSubmitted = {
             forRenderer: true,
             returnDependencies: () => ({
                 answerAncestor: {
@@ -137,16 +142,16 @@ export default class Input extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let valueHasBeenValidated = false;
+                let justSubmitted = false;
 
                 if (
                     dependencyValues.answerAncestor &&
                     dependencyValues.answerAncestor.stateValues.justSubmitted
                 ) {
-                    valueHasBeenValidated = true;
+                    justSubmitted = true;
                 }
                 return {
-                    setValue: { valueHasBeenValidated },
+                    setValue: { justSubmitted },
                 };
             },
         };

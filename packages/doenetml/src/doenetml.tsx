@@ -85,7 +85,7 @@ export function DoenetViewer({
     forceDisable = false,
     forceShowCorrectness = false,
     forceShowSolution = false,
-    forceUnsuppressCheckwork = false,
+    forceUnsuppressCheckWork = false,
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
     doenetViewerUrl,
@@ -117,7 +117,7 @@ export function DoenetViewer({
     forceDisable?: boolean;
     forceShowCorrectness?: boolean;
     forceShowSolution?: boolean;
-    forceUnsuppressCheckwork?: boolean;
+    forceUnsuppressCheckWork?: boolean;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
@@ -247,7 +247,7 @@ export function DoenetViewer({
             forceDisable={forceDisable}
             forceShowCorrectness={forceShowCorrectness}
             forceShowSolution={forceShowSolution}
-            forceUnsuppressCheckwork={forceUnsuppressCheckwork}
+            forceUnsuppressCheckWork={forceUnsuppressCheckWork}
             doenetViewerUrl={doenetViewerUrl}
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}

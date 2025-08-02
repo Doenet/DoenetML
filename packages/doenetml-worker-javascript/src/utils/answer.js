@@ -108,8 +108,7 @@ export function returnStandardAnswerStateVariableDefinition() {
         },
     };
 
-    stateVariableDefinitions.suppressCheckwork = {
-        forRenderer: true,
+    stateVariableDefinitions.suppressCheckWork = {
         returnDependencies: () => ({
             autoSubmit: {
                 dependencyType: "flag",
@@ -119,7 +118,7 @@ export function returnStandardAnswerStateVariableDefinition() {
         definition({ dependencyValues }) {
             return {
                 setValue: {
-                    suppressCheckwork: dependencyValues.autoSubmit,
+                    suppressCheckWork: dependencyValues.autoSubmit,
                 },
             };
         },
@@ -318,7 +317,6 @@ export function returnStandardAnswerStateVariableDefinition() {
         definition: function ({
             dependencyValues,
             justUpdatedForNewComponent,
-            componentIdx,
         }) {
             if (
                 dependencyValues.disableAfterCorrect &&
@@ -344,7 +342,7 @@ export function returnStandardAnswerStateVariableDefinition() {
                 };
             }
         },
-        inverseDefinition({ desiredStateVariableValues, componentIdx }) {
+        inverseDefinition({ desiredStateVariableValues }) {
             return {
                 success: true,
                 instructions: [
