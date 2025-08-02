@@ -10,7 +10,7 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import styled from "styled-components";
 const VideoStyling = styled.div`
     &: focus {
-        outline: 2px solid var(--canvastext);
+        outline: 2px solid var(--canvasText);
         outline-offset: 2px;
     }
 `;

@@ -94,8 +94,8 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
             disabled: SVs.disabled,
             checked: rendererValue,
             useMathJax: SVs.labelHasLatex,
-            strokeColor: "var(--canvastext)",
-            highlightStrokeColor: "var(--canvastext)",
+            strokeColor: "var(--canvasText)",
+            highlightStrokeColor: "var(--canvasText)",
             highlight: !fixLocation.current,
             parse: false,
         };

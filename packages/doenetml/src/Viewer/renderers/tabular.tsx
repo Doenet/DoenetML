@@ -20,7 +20,7 @@ export default React.memo(function Tabular(props: UseDoenetRendererProps) {
         width: sizeToCSS(SVs.width),
         height: sizeToCSS(SVs.height),
         borderCollapse: "collapse",
-        borderColor: "var(--canvastext)",
+        borderColor: "var(--canvasText)",
         borderRadius: "var(--mainBorderRadius)",
         tableLayout: "fixed",
     };

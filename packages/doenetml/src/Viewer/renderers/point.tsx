@@ -146,7 +146,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
             if (SVs.applyStyleToLabel) {
                 jsxPointAttributes.label.strokeColor = markerColor;
             } else {
-                jsxPointAttributes.label.strokeColor = "var(--canvastext)";
+                jsxPointAttributes.label.strokeColor = "var(--canvasText)";
             }
         } else {
             jsxPointAttributes.label = {
@@ -636,7 +636,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                     pointJXG.current.label.visProp.strokecolor = markerColor;
                 } else {
                     pointJXG.current.label.visProp.strokecolor =
-                        "var(--canvastext)";
+                        "var(--canvasText)";
                 }
 
                 let labelPosition = adjustPointLabelPosition(

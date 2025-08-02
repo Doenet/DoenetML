@@ -2,13 +2,13 @@ import { EditorView } from "@codemirror/view";
 
 export const colorTheme = EditorView.theme({
     "&": {
-        color: "var(--canvastext)",
+        color: "var(--canvasText)",
         height: "100%",
         //backgroundColor: "var(--canvas)",
     },
     ".cm-content": {
         caretColor: "#0e9",
-        borderDownColor: "var(--canvastext)",
+        borderDownColor: "var(--canvasText)",
     },
     ".cm-editor": {
         caretColor: "#0e9",
@@ -16,13 +16,13 @@ export const colorTheme = EditorView.theme({
     },
     "&.cm-focused .cm-cursor": {
         backgroundColor: "var(--lightBlue)",
-        borderLeftColor: "var(--canvastext)",
+        borderLeftColor: "var(--canvasText)",
     },
     "&.cm-focused .cm-selectionBackground, ::selection": {
         backgroundColor: "var(--mainGray)",
     },
     "&.cm-focused": {
-        color: "var(--canvastext)",
+        color: "var(--canvasText)",
     },
     "cm-selectionLayer": {
         backgroundColor: "var(--mainGreen)",
@@ -40,12 +40,12 @@ export const colorTheme = EditorView.theme({
 
 export const readOnlyColorTheme = EditorView.theme({
     "&": {
-        color: "var(--canvastext)",
+        color: "var(--canvasText)",
         height: "100%",
     },
     ".cm-content": {
         caretColor: "#0e9",
-        borderDownColor: "var(--canvastext)",
+        borderDownColor: "var(--canvasText)",
         backgroundColor: "#77777720",
     },
     ".cm-editor": {
@@ -53,13 +53,13 @@ export const readOnlyColorTheme = EditorView.theme({
     },
     "&.cm-focused .cm-cursor": {
         backgroundColor: "var(--lightBlue)",
-        borderLeftColor: "var(--canvastext)",
+        borderLeftColor: "var(--canvasText)",
     },
     "&.cm-focused .cm-selectionBackground, ::selection": {
         backgroundColor: "var(--mainGray)",
     },
     "&.cm-focused": {
-        color: "var(--canvastext)",
+        color: "var(--canvasText)",
     },
     "cm-selectionLayer": {
         backgroundColor: "var(--mainGreen)",

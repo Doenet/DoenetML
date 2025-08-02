@@ -142,7 +142,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             if (SVs.applyStyleToLabel) {
                 jsxCircleAttributes.label.strokeColor = lineColor;
             } else {
-                jsxCircleAttributes.label.strokeColor = "var(--canvastext)";
+                jsxCircleAttributes.label.strokeColor = "var(--canvasText)";
             }
         }
 
@@ -201,7 +201,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             if (SVs.applyStyleToLabel) {
                 jsxPointAttributes.label.strokeColor = markerColor;
             } else {
-                jsxPointAttributes.label.strokeColor = "var(--canvastext)";
+                jsxPointAttributes.label.strokeColor = "var(--canvasText)";
             }
         } else {
             jsxPointAttributes.label = {
@@ -931,7 +931,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                     circleJXG.current.label.visProp.strokecolor = lineColor;
                 } else {
                     circleJXG.current.label.visProp.strokecolor =
-                        "var(--canvastext)";
+                        "var(--canvasText)";
                 }
                 circleJXG.current.label.needsUpdate = true;
                 circleJXG.current.label.update();
@@ -1007,7 +1007,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                             markerColor;
                     } else {
                         indicatorJXG.current.label.visProp.strokecolor =
-                            "var(--canvastext)";
+                            "var(--canvasText)";
                     }
 
                     let labelPosition = adjustPointLabelPosition(

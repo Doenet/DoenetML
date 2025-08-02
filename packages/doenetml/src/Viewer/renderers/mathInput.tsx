@@ -210,13 +210,13 @@ export default function MathInput(props: UseDoenetRendererProps) {
     let mathInputStyle: React.CSSProperties = {
         /* Set each border attribute separately since the borderColor is updated during rerender (checking mathInput's disabled state)
     Currently does not work with border: "var(--mainBorder)" */
-        borderColor: "var(--canvastext)",
+        borderColor: "var(--canvasText)",
         borderStyle: "solid",
         borderWidth: "2px",
         margin: "0px",
         boxShadow: "none",
         outlineOffset: "2px",
-        outlineColor: "var(--canvastext)",
+        outlineColor: "var(--canvasText)",
         outlineWidth: "2px",
         backgroundColor: "var(--canvas)",
         minWidth: `${SVs.minWidth > 0 ? SVs.minWidth : 0}px`,

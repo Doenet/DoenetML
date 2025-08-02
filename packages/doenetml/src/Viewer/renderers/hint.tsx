@@ -12,7 +12,7 @@ import { addCommasForCompositeRanges } from "./utils/composites";
 
 const SpanStyling = styled.span`
     &: focus {
-        outline: 2px solid var(--canvastext);
+        outline: 2px solid var(--canvasText);
         outline-offset: 2px;
     }
 `;
@@ -94,7 +94,7 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
             display: "block",
             margin: "0px 4px 12px 4px",
             padding: "6px",
-            border: "2px solid var(--canvastext)",
+            border: "2px solid var(--canvasText)",
             borderTop: "0px",
             borderBottomLeftRadius: "5px",
             borderBottomRightRadius: "5px",
@@ -122,7 +122,7 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
                     display: "block",
                     margin: SVs.open ? "12px 4px 0px 4px" : "12px 4px 12px 4px",
                     padding: "6px",
-                    border: "2px solid var(--canvastext)",
+                    border: "2px solid var(--canvasText)",
                     borderTopLeftRadius: "5px",
                     borderTopRightRadius: "5px",
                     borderBottomLeftRadius: SVs.open ? "0px" : "5px",

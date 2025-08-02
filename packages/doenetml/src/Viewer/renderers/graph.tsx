@@ -60,8 +60,8 @@ export default React.memo(function Graph(props) {
         previousBoundingbox.current = boundingbox;
 
         JXG.Options.layer.numlayers = 100;
-        JXG.Options.navbar.highlightFillColor = "var(--canvastext)";
-        JXG.Options.navbar.strokeColor = "var(--canvastext)";
+        JXG.Options.navbar.highlightFillColor = "var(--canvasText)";
+        JXG.Options.navbar.strokeColor = "var(--canvasText)";
 
         // check if have grid with specified width
         let haveFixedGrid = false;
@@ -211,14 +211,14 @@ export default React.memo(function Graph(props) {
     }
 
     if (SVs.showBorder) {
-        divStyle.border = "2px solid var(--canvastext)";
+        divStyle.border = "2px solid var(--canvasText)";
     } else {
         divStyle.border = "none";
     }
     divStyle.marginBottom = "12px";
     divStyle.marginTop = "12px";
     divStyle.backgroundColor = "var(--canvas)";
-    divStyle.color = "var(--canvastext)";
+    divStyle.color = "var(--canvasText)";
 
     if (!board) {
         return (
@@ -463,7 +463,7 @@ export default React.memo(function Graph(props) {
                 position,
                 offset,
                 anchorx,
-                strokeColor: "var(--canvastext)",
+                strokeColor: "var(--canvasText)",
                 highlight: false,
             };
             if (SVs.yLabelHasLatex) {
@@ -472,7 +472,7 @@ export default React.memo(function Graph(props) {
         }
         previousYaxisWithLabel.current = Boolean(SVs.yLabel);
 
-        yaxisOptions.strokeColor = "var(--canvastext)";
+        yaxisOptions.strokeColor = "var(--canvasText)";
         yaxisOptions.highlight = false;
 
         yaxisOptions.ticks = {
@@ -480,11 +480,11 @@ export default React.memo(function Graph(props) {
             label: {
                 offset: [12, -2],
                 layer: 2,
-                strokeColor: "var(--canvastext)",
-                highlightStrokeColor: "var(--canvastext)",
+                strokeColor: "var(--canvasText)",
+                highlightStrokeColor: "var(--canvasText)",
                 highlightStrokeOpacity: 1,
             },
-            strokeColor: "var(--canvastext)",
+            strokeColor: "var(--canvasText)",
             strokeOpacity: 0.5,
             // minorTicks: 4,
             precision: 4,
@@ -658,7 +658,7 @@ export default React.memo(function Graph(props) {
                 position,
                 offset,
                 anchorx,
-                strokeColor: "var(--canvastext)",
+                strokeColor: "var(--canvasText)",
                 highlight: false,
             };
             if (SVs.xLabelHasLatex) {
@@ -672,11 +672,11 @@ export default React.memo(function Graph(props) {
             label: {
                 offset: [-5, -15],
                 layer: 2,
-                strokeColor: "var(--canvastext)",
-                highlightStrokeColor: "var(--canvastext)",
+                strokeColor: "var(--canvasText)",
+                highlightStrokeColor: "var(--canvasText)",
                 highlightStrokeOpacity: 1,
             },
-            strokeColor: "var(--canvastext)",
+            strokeColor: "var(--canvasText)",
             strokeOpacity: 0.5,
             // minorTicks: 4,
             precision: 4,
@@ -691,7 +691,7 @@ export default React.memo(function Graph(props) {
                 xaxisOptions.ticks.scaleSymbol = scaleSymbol;
             }
         }
-        xaxisOptions.strokeColor = "var(--canvastext)";
+        xaxisOptions.strokeColor = "var(--canvasText)";
         xaxisOptions.highlight = false;
 
         if (SVs.grid === "dense") {
@@ -884,7 +884,7 @@ export default React.memo(function Graph(props) {
             navigationBar.appendChild(button);
             button.setAttribute(
                 "style",
-                "color: var(--canvastext); opacity: 0.7",
+                "color: var(--canvasText); opacity: 0.7",
             );
             let text_node = document.createTextNode(label);
             button.appendChild(text_node);

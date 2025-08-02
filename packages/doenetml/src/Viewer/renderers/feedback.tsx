@@ -11,12 +11,12 @@ const FeedbackStyling = styled.aside`
     background-color: var(--canvas);
     margin: 0px 4px 12px 4px;
     padding: 1em;
-    border: 2px solid var(--canvastext);
+    border: 2px solid var(--canvasText);
     border-top: 0px;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
     //   &: focus {
-    //   outline: 2px solid var(--canvastext);
+    //   outline: 2px solid var(--canvasText);
     //   outline-offset: 2px;
     //  }
 `;
@@ -24,12 +24,12 @@ const SpanStyling = styled.span`
     display: block;
     margin: 12px 4px 0px 4px;
     padding: 6px;
-    border: 2px solid var(--canvastext);
+    border: 2px solid var(--canvasText);
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
     background-color: var(--mainGray);
     &: focus {
-        outline: 2px solid var(--canvastext);
+        outline: 2px solid var(--canvasText);
         outline-offset: 2px;
     }
 `;

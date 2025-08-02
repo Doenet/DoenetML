@@ -127,7 +127,7 @@ export default React.memo(function Line(props) {
             if (SVs.applyStyleToLabel) {
                 jsxLineAttributes.label.strokeColor = lineColor;
             } else {
-                jsxLineAttributes.label.strokeColor = "var(--canvastext)";
+                jsxLineAttributes.label.strokeColor = "var(--canvasText)";
             }
         } else {
             jsxLineAttributes.label = {
@@ -454,7 +454,7 @@ export default React.memo(function Line(props) {
                     lineJXG.current.label.visProp.strokecolor = lineColor;
                 } else {
                     lineJXG.current.label.visProp.strokecolor =
-                        "var(--canvastext)";
+                        "var(--canvasText)";
                 }
                 if (SVs.labelPosition !== previousLabelPosition.current) {
                     let anchorx, anchory, offset;

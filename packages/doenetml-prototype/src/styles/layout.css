@@ -28,7 +28,7 @@
     --dn-primary: rgb(var(--dn-primary-color-raw));
     --dn-primary-accent: rgb(var(--dn-primary-color-accent-raw));
 
-    --canvastext: var(--dn-text);
+    --canvasText: var(--dn-text);
     --canvas: var(--dn-bg);
 
     color: var(--dn-text);
