@@ -27,6 +27,12 @@ const Button = styled.button`
     }
 `;
 
+/**
+ * Calculate if the current response of an answer blank has already been validated,
+ * and, if so, the correctness of the response.
+ *
+ * Calculation is based on the state variables `SVs`.
+ */
 export function calculateValidationState(SVs: Record<string, any>) {
     let validationState:
         | "unvalidated"
@@ -45,6 +51,17 @@ export function calculateValidationState(SVs: Record<string, any>) {
     return validationState;
 }
 
+/**
+ * Create the check work button and state text of an answers.
+ *
+ * Inputs:
+ * - SVs: the state variables of an answer or input
+ * - id: the component's id
+ * - validationState: the validation state calculated from `calculateValidationState`
+ * - submitAnswer: function to call to submit answer
+ * - showText: if true, then the button includes text like "Submit" or "Correct"
+ *   in addition to the symbols
+ */
 export function createCheckWorkComponent(
     SVs: Record<string, any>,
     id: string,
