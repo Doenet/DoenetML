@@ -7,7 +7,10 @@ import { ActionButtonGroup } from "@doenet/ui-components";
 
 import styled from "styled-components";
 import "./mathInput.css";
-import { calculateValidationState } from "../../utils/checkWork";
+import {
+    calculateValidationState,
+    createCheckWorkComponent,
+} from "../../utils/checkWork";
 
 const Matrix = styled.div`
     position: relative;
