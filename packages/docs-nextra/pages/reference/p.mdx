@@ -41,16 +41,16 @@ All text enclosed within an opening and closing ` <p>{:dn}` forms a paragraph.
 ```doenet-editor-horiz
 <section>
 <p>Chocolate cake sugar plum chocolate bar brownie chupa chups chocolate tart.</p>
-</section>      
+</section>
 
----
-
+<example>
 <p>Shortbread chocolate marshmallow macaroon candy canes.</p>
-
+</example>
 
 <exercise>
 <p>Bear claw pastry liquorice jelly beans shortbread sesame snaps.</p>
 </exercise> 
+
 <problem>
 <p>Dessert oat cake marzipan bear claw wafer ice cream ice cream.</p>
 </problem> 
@@ -88,10 +88,11 @@ The ` <p>{:dn}` component can be nested inside list items to provide additional 
 
 
 ```doenet-editor-horiz
-
+<setup>
   <function name="f">$userFunction</function>
   <point name="intercept">(0,$$f(0))</point>
   <line equation="y = $userFunction" name="userLine"/>
+</setup>
 
 <p>Write the equation for a line in slope-intercept form:</p> 
 <p><m>y = </m> <mathInput name="userFunction"/></p>
