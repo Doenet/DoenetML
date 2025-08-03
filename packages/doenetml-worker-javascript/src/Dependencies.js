@@ -7924,6 +7924,13 @@ class SourceCompositeStateVariableDependency extends Dependency {
                 this.definition.compositeComponentType;
         }
 
+        // If `skipCopies` is set, then if the sourceComposite is a `_copy`,
+        // instead use the component that the source composite extends.
+        // If that component is not a composite, then don't return anything.
+        if (this.definition.skipCopies) {
+            this.skipCopies = this.definition.skipCopies;
+        }
+
         this.returnSingleVariableValue = true;
 
         // for source composite state variable
@@ -8001,6 +8008,28 @@ class SourceCompositeStateVariableDependency extends Dependency {
             ) {
                 if (sourceComposite.replacementOf) {
                     sourceComposite = sourceComposite.replacementOf;
+                } else {
+                    return {
+                        success: true,
+                        downstreamComponentIndices: [],
+                        downstreamComponentTypes: [],
+                    };
+                }
+            }
+        } else if (this.skipCopies) {
+            while (sourceComposite.componentType === "_copy") {
+                const extendedComponent =
+                    await sourceComposite.stateValues.extendedComponent;
+                if (
+                    extendedComponent &&
+                    this.dependencyHandler.componentInfoObjects.isCompositeComponent(
+                        { componentType: extendedComponent.componentType },
+                    )
+                ) {
+                    sourceComposite =
+                        this.dependencyHandler.components[
+                            extendedComponent.componentIdx
+                        ];
                 } else {
                     return {
                         success: true,

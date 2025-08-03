@@ -223,6 +223,7 @@
         "latex",
         "blockQuote",
         "stickyGroup",
+        "pretzel",
         "pointList",
         "intervalList",
         "vectorList"
@@ -3996,6 +3997,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -4797,6 +4801,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -5596,6 +5603,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -37351,6 +37361,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -38097,6 +38114,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -38335,6 +38355,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -39081,6 +39108,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -39319,6 +39349,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -40065,6 +40102,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -40303,6 +40343,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -41051,6 +41098,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -41281,6 +41331,13 @@
                     ]
                 },
                 "sectionWideCheckWork": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "showCorrectness": {
                     "optional": true,
                     "type": [
                         "true",
@@ -42054,6 +42111,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -42297,6 +42357,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -43043,6 +43110,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -43281,6 +43351,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -44027,6 +44104,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -44265,6 +44345,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -45011,6 +45098,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -45249,6 +45339,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -45995,6 +46092,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -46233,6 +46333,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -46979,6 +47086,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -47217,6 +47327,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -47963,6 +48080,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -48201,6 +48321,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -48947,6 +49074,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -49185,6 +49315,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -49931,6 +50068,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -50169,6 +50309,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -50915,6 +51062,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -51153,6 +51303,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -51899,6 +52056,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -52137,6 +52297,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -52885,6 +53052,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -53115,6 +53285,13 @@
                     ]
                 },
                 "sectionWideCheckWork": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "showCorrectness": {
                     "optional": true,
                     "type": [
                         "true",
@@ -53889,6 +54066,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -54125,6 +54305,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -54870,6 +55057,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -55103,6 +55293,13 @@
                         "false"
                     ]
                 },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -55848,6 +56045,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -57038,6 +57238,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -62920,6 +63123,9 @@
                 },
                 {
                     "ref": "blockQuote"
+                },
+                {
+                    "ref": "pretzel"
                 }
             ],
             "textChildrenAllowed": false,
@@ -63963,6 +64169,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -65620,6 +65829,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -66419,6 +66631,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -67222,6 +67437,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -68021,6 +68239,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -68848,6 +69069,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -70047,6 +70271,9 @@
                 },
                 {
                     "ref": "blockQuote"
+                },
+                {
+                    "ref": "pretzel"
                 }
             ],
             "textChildrenAllowed": true,
@@ -70138,6 +70365,13 @@
                     ]
                 },
                 "documentWideCheckWork": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "showCorrectness": {
                     "optional": true,
                     "type": [
                         "true",
@@ -70847,6 +71081,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -74136,11 +74373,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -74163,6 +74395,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -74562,11 +74799,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -74589,6 +74821,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -74955,11 +75192,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -74967,6 +75199,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -75811,6 +76048,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -83431,11 +83671,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -83453,6 +83688,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -84688,6 +84928,57 @@
                         "false"
                     ]
                 },
+                "matchPartial": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "maxNumAttempts": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disableAfterCorrect": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "submitLabel": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "submitLabelNoCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDigitsForResponses": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDigitsForCreditAchieved": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "inline": {
                     "optional": true,
                     "type": [
@@ -84696,13 +84987,6 @@
                     ]
                 },
                 "symbolicEquality": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "matchPartial": {
                     "optional": true,
                     "type": [
                         "true",
@@ -84747,12 +85031,6 @@
                     ]
                 },
                 "numAwardsCredited": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "maxNumAttempts": {
                     "optional": true,
                     "type": [
                         "string"
@@ -84804,33 +85082,7 @@
                         "false"
                     ]
                 },
-                "showCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
                 "type": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "disableAfterCorrect": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "submitLabel": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "submitLabelNoCorrectness": {
                     "optional": true,
                     "type": [
                         "string"
@@ -84848,6 +85100,38 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "preserveLastChoice": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disableWrongChoices": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "creditFactorByAttempt": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "creditReductionPerAttempt": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "creditReductionLimit": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 },
                 "splitSymbols": {
@@ -84869,18 +85153,6 @@
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "displayDigitsForResponses": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "displayDigitsForCreditAchieved": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 }
             },
@@ -85212,17 +85484,47 @@
                     "isArray": false
                 },
                 {
+                    "name": "matchPartial",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "disableAfterCorrect",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForResponses",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
                     "name": "inline",
                     "type": "boolean",
                     "isArray": false
                 },
                 {
                     "name": "symbolicEquality",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "matchPartial",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -85253,11 +85555,6 @@
                 },
                 {
                     "name": "numAwardsCredited",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "maxNumAttempts",
                     "type": "integer",
                     "isArray": false
                 },
@@ -85297,21 +85594,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "disableAfterCorrect",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
                     "name": "selectMultiple",
                     "type": "boolean",
                     "isArray": false
@@ -85319,6 +85601,31 @@
                 {
                     "name": "shuffleOrder",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveLastChoice",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disableWrongChoices",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditFactorByAttempt",
+                    "type": "numberList",
+                    "isArray": false
+                },
+                {
+                    "name": "creditReductionPerAttempt",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "creditReductionLimit",
+                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -85334,16 +85641,6 @@
                 {
                     "name": "expanded",
                     "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDigitsForResponses",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "displayDigitsForCreditAchieved",
-                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -85368,6 +85665,36 @@
                 },
                 {
                     "name": "disabledOriginal",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "responseHasBeenSubmitted",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "justSubmitted",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "numSubmissions",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "numAttemptsLeft",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -85404,21 +85731,6 @@
                     ]
                 },
                 {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "responseHasBeenSubmitted",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "justSubmitted",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "numFeedbacks",
                     "type": "number",
                     "isArray": false
@@ -85435,21 +85747,6 @@
                             "numDimensions": 1
                         }
                     ]
-                },
-                {
-                    "name": "numSubmissions",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "numAttemptsLeft",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
                 },
                 {
                     "name": "currentResponse",
@@ -88412,6 +88709,13 @@
                         "false"
                     ]
                 },
+                "preserveLastChoice": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "preselectChoice": {
                     "optional": true,
                     "type": [
@@ -88508,6 +88812,11 @@
                 },
                 {
                     "name": "shuffleOrder",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "preserveLastChoice",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -89437,6 +89746,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -89494,11 +89806,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "fixed",
                     "type": "boolean",
                     "isArray": false
@@ -89511,6 +89818,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "disabledOriginal",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -89530,6 +89842,11 @@
                 },
                 {
                     "name": "submitted",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -94206,6 +94523,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -96051,6 +96371,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -97566,6 +97889,9 @@
                 },
                 {
                     "ref": "blockQuote"
+                },
+                {
+                    "ref": "pretzel"
                 }
             ],
             "textChildrenAllowed": true,
@@ -98276,6 +98602,9 @@
                 },
                 {
                     "ref": "blockQuote"
+                },
+                {
+                    "ref": "pretzel"
                 }
             ],
             "textChildrenAllowed": true,
@@ -99461,6 +99790,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -100291,6 +100623,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -104687,6 +105022,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -107097,6 +107435,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -108995,6 +109336,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -110922,6 +111266,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -111716,6 +112063,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -112524,6 +112874,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -114465,6 +114818,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -115239,6 +115595,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -116026,6 +116385,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -117237,6 +117599,9 @@
                 },
                 {
                     "ref": "blockQuote"
+                },
+                {
+                    "ref": "pretzel"
                 }
             ],
             "textChildrenAllowed": true,
@@ -118692,6 +119057,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -119494,6 +119862,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -121749,6 +122120,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -123588,6 +123962,9 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
                 },
                 {
                     "ref": "pointList"
@@ -128324,6 +128701,9 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pretzel"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -128826,6 +129206,321 @@
                 }
             ]
         },
+        "pretzel": {
+            "type": "element",
+            "name": "pretzel",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "weight": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "handGraded": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "matchPartial": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "maxNumAttempts": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disableAfterCorrect": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "submitLabel": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "submitLabelNoCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDigitsForResponses": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDigitsForCreditAchieved": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "maxNumColumns": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "span"
+                }
+            ],
+            "textChildrenAllowed": false,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "handGraded",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "matchPartial",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "disableAfterCorrect",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForResponses",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "maxNumColumns",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "disabledOriginal",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "responseHasBeenSubmitted",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "justSubmitted",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "numSubmissions",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "numAttemptsLeft",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "numProblems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "currentResponses",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numSubmittedResponses",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "submittedResponses",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                }
+            ]
+        },
         "pointList": {
             "type": "element",
             "name": "pointList",
@@ -129173,11 +129868,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -129185,6 +129875,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -129546,11 +130241,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -129558,6 +130248,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -129919,11 +130614,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "unordered",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false
@@ -129931,6 +130621,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {

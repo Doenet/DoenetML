@@ -126,7 +126,7 @@ export default React.memo(function Polyline(props) {
         if (SVs.applyStyleToLabel) {
             jsxPolylineAttributes.label.strokeColor = lineColor;
         } else {
-            jsxPolylineAttributes.label.strokeColor = "var(--canvastext)";
+            jsxPolylineAttributes.label.strokeColor = "var(--canvasText)";
         }
 
         // create invisible points at endpoints
@@ -627,7 +627,7 @@ export default React.memo(function Polyline(props) {
                     polylineJXG.current.label.visProp.strokecolor = lineColor;
                 } else {
                     polylineJXG.current.label.visProp.strokecolor =
-                        "var(--canvastext)";
+                        "var(--canvasText)";
                 }
                 polylineJXG.current.label.needsUpdate = true;
                 polylineJXG.current.label.update();

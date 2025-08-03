@@ -1345,8 +1345,7 @@ describe("MathList tag tests", async () => {
         ).eq("1 * 10⁻¹², 300");
     });
 
-    // TODO: fix this feature and restore test. See issue #477.
-    it.skip("mathList and rounding, from strings", async () => {
+    it("mathList and rounding, from strings", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><mathList name="ml1" displayDigits="4">2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</mathList></p>
@@ -1356,6 +1355,7 @@ describe("MathList tag tests", async () => {
     <p name="p5"><mathList name="ml5" displayDecimals="4" displayDigits="3" displaySmallAsZero="false">2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</mathList></p>
     <p name="p6"><mathList name="ml6" displayDecimals="4" displayDigits="3" displaySmallAsZero="false" padZeros>2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</mathList></p>
 
+    <section name="sec1">
     <p name="p1a"><mathList name="ml1a" extend="$ml1" /></p>
     <p name="p2a"><mathList name="ml2a" extend="$ml2" /></p>
     <p name="p3a"><mathList name="ml3a" extend="$ml3" /></p>
@@ -1369,7 +1369,10 @@ describe("MathList tag tests", async () => {
     <p name="p4b"><mathList name="ml4b" copy="$ml4" /></p>
     <p name="p5b"><mathList name="ml5b" copy="$ml5" /></p>
     <p name="p6b"><mathList name="ml6b" copy="$ml6" /></p>
+    </section>
 
+    <section name="sec2" extend="$sec1" />
+    <section name="sec3" copy="$sec1" />
 
     `,
         });
@@ -1399,55 +1402,58 @@ describe("MathList tag tests", async () => {
             "6.00 * 10⁻²¹",
         ].join(", ");
 
-        for (let post of ["", "a", "b"]) {
-            await test_mathList({
-                resolvePathToNodeIdx,
-                core,
-                name: `ml1${post}`,
-                maths: vals,
-                pName: `p1${post}`,
-                text: text1,
-            });
-            await test_mathList({
-                resolvePathToNodeIdx,
-                core,
-                name: `ml2${post}`,
-                maths: vals,
-                pName: `p2${post}`,
-                text: text2,
-            });
-            await test_mathList({
-                resolvePathToNodeIdx,
-                core,
-                name: `ml3${post}`,
-                maths: vals,
-                pName: `p3${post}`,
-                text: text3,
-            });
-            await test_mathList({
-                resolvePathToNodeIdx,
-                core,
-                name: `ml4${post}`,
-                maths: vals,
-                pName: `p4${post}`,
-                text: text4,
-            });
-            await test_mathList({
-                resolvePathToNodeIdx,
-                core,
-                name: `ml5${post}`,
-                maths: vals,
-                pName: `p5${post}`,
-                text: text5,
-            });
-            await test_mathList({
-                resolvePathToNodeIdx,
-                core,
-                name: `ml6${post}`,
-                maths: vals,
-                pName: `p6${post}`,
-                text: text6,
-            });
+        for (const post of ["", "a", "b"]) {
+            const preOptions = post === "" ? [""] : ["", "sec2.", "sec3."];
+            for (const pre of preOptions) {
+                await test_mathList({
+                    resolvePathToNodeIdx,
+                    core,
+                    name: `${pre}ml1${post}`,
+                    maths: vals,
+                    pName: `${pre}p1${post}`,
+                    text: text1,
+                });
+                await test_mathList({
+                    resolvePathToNodeIdx,
+                    core,
+                    name: `${pre}ml2${post}`,
+                    maths: vals,
+                    pName: `${pre}p2${post}`,
+                    text: text2,
+                });
+                await test_mathList({
+                    resolvePathToNodeIdx,
+                    core,
+                    name: `${pre}ml3${post}`,
+                    maths: vals,
+                    pName: `${pre}p3${post}`,
+                    text: text3,
+                });
+                await test_mathList({
+                    resolvePathToNodeIdx,
+                    core,
+                    name: `${pre}ml4${post}`,
+                    maths: vals,
+                    pName: `${pre}p4${post}`,
+                    text: text4,
+                });
+                await test_mathList({
+                    resolvePathToNodeIdx,
+                    core,
+                    name: `${pre}ml5${post}`,
+                    maths: vals,
+                    pName: `${pre}p5${post}`,
+                    text: text5,
+                });
+                await test_mathList({
+                    resolvePathToNodeIdx,
+                    core,
+                    name: `${pre}ml6${post}`,
+                    maths: vals,
+                    pName: `${pre}p6${post}`,
+                    text: text6,
+                });
+            }
         }
     });
 
@@ -1809,5 +1815,72 @@ describe("MathList tag tests", async () => {
             pName: "p",
             text: `${x1}, ${x2}`,
         });
+    });
+
+    it("compare unordered math lists", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+
+    <booleanInput name="unordered">true</booleanInput>
+
+    <boolean name="b1">
+        <mathList name="nl1" unordered="$unordered">3x-2 y/z f(x)</mathList>
+        =
+        <mathList name="nl2">f(x) 3x-2 y/z</mathList>
+    </boolean>
+    <boolean name="b2">$nl1 = $nl2</boolean>
+    <boolean name="b3"><mathList extend="$nl1" name="nl1a" /> = <mathList extend="$nl2" /></boolean>
+    <boolean name="b4"><mathList copy="$nl1" name="nl1b" /> = <mathList copy="$nl2" /></boolean>
+
+    <p name="pUnordered">$nl1.unordered, $nl1a.unordered, $nl1b.unordered</p>
+
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
+                .text,
+        ).eq("true, true, true");
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("unordered"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        // all but copied list become ordered
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
+                .text,
+        ).eq("false, false, true");
     });
 });

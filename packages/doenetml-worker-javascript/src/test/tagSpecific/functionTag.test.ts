@@ -3618,8 +3618,7 @@ describe("Function tag tests", async () => {
         });
     });
 
-    // TODO: fix rounding when copy to lists. See issue 477.
-    it.skip("extrema at domain endpoints, function from formula, unlinked copy", async () => {
+    it("extrema at domain endpoints, function from formula, unlinked copy", async () => {
         // Note: checking to see if rounding attributes are properly copied
         // for wrapped array state variables when link="false"
         let { core, resolvePathToNodeIdx } = await createTestCore({
@@ -3627,8 +3626,17 @@ describe("Function tag tests", async () => {
     <function name="f1" domain="(-pi,2pi)" displayDecimals="5" displaySmallAsZero="10^(-6)">cos(x)</function>
     <function name="f2" domain="[-pi,2pi]" displayDecimals="5" displaySmallAsZero="10^(-6)">cos(x)+1</function>
  
-    <pointList copy="$f1.extrema" name="f1e" />
-    <pointList copy="$f2.extrema" name="f2e" />
+    <section name="sec1">
+    <p name="pf1a"><pointList copy="$f1.extrema" name="f1a" /></p>
+    <p name="pf2a"><pointList copy="$f2.extrema" name="f2a" /></p>
+    <p name="pf1b"><pointList extend="$f1.extrema" name="f1b" /></p>
+    <p name="pf2b"><pointList extend="$f2.extrema" name="f2b" /></p>
+    <p name="pf1c">$f1.extrema</p>
+    <p name="pf2c">$f2.extrema</p>
+    </section>
+
+    <section extend="$sec1" name="sec2" />
+    <section copy="$sec1" name="sec3" />
 
 
     `,
@@ -3636,36 +3644,47 @@ describe("Function tag tests", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("f1e[1]")].stateValues
-                    .latex,
-            ),
-        ).eq("(0,1)");
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("f1e[2]")].stateValues
-                    .latex,
-            ),
-        ).eq(`(${Math.round(Math.PI * 10 ** 5) / 10 ** 5},-1)`);
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("f2e[1]")].stateValues
-                    .latex,
-            ),
-        ).eq(`(${Math.round(-Math.PI * 10 ** 5) / 10 ** 5},0)`);
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("f2e[2]")].stateValues
-                    .latex,
-            ),
-        ).eq("(0,2)");
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("f2e[3]")].stateValues
-                    .latex,
-            ),
-        ).eq(`(${Math.round(Math.PI * 10 ** 5) / 10 ** 5},0)`);
+        const piString = (Math.round(Math.PI * 10 ** 5) / 10 ** 5).toString();
+        const twoPiString = (
+            Math.round(2 * Math.PI * 10 ** 5) /
+            10 ** 5
+        ).toString();
+
+        for (const pName of [
+            "pf1a",
+            "pf1b",
+            "pf1c",
+            "sec2.pf1a",
+            "sec2.pf1b",
+            "sec2.pf1c",
+            "sec3.pf1a",
+            "sec3.pf1b",
+            "sec3.pf1c",
+        ]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(pName)].stateValues
+                    .text,
+            ).eq(`( 0, 1 ), ( ${piString}, -1 )`);
+        }
+
+        for (const pName of [
+            "pf2a",
+            "pf2b",
+            "pf2c",
+            "sec2.pf2a",
+            "sec2.pf2b",
+            "sec2.pf2c",
+            "sec3.pf2a",
+            "sec3.pf2b",
+            "sec3.pf2c",
+        ]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(pName)].stateValues
+                    .text,
+            ).eq(
+                `( -${piString}, 0 ), ( 0, 2 ), ( ${piString}, 0 ), ( ${twoPiString}, 2 )`,
+            );
+        }
     });
 
     it("extrema at domain endpoints, interpolated function", async () => {

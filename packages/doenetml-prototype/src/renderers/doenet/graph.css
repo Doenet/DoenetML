@@ -2,7 +2,7 @@
     .graph-container {
         @apply max-w-full aspect-square border-2 border-black rounded-md touch-none select-none w-72 relative;
         background-color: var(--canvas);
-        color: var(--canvastext);
+        color: var(--canvasText);
     }
     .jsxgraph-container {
         @apply w-full h-full;

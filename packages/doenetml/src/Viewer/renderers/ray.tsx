@@ -98,7 +98,7 @@ export default React.memo(function Ray(props) {
         if (SVs.applyStyleToLabel) {
             jsxRayAttributes.label.strokeColor = lineColor;
         } else {
-            jsxRayAttributes.label.strokeColor = "var(--canvastext)";
+            jsxRayAttributes.label.strokeColor = "var(--canvasText)";
         }
 
         let through = [
@@ -391,7 +391,7 @@ export default React.memo(function Ray(props) {
                     rayJXG.current.label.visProp.strokecolor = lineColor;
                 } else {
                     rayJXG.current.label.visProp.strokecolor =
-                        "var(--canvastext)";
+                        "var(--canvasText)";
                 }
                 rayJXG.current.label.needsUpdate = true;
                 rayJXG.current.label.update();

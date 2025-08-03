@@ -123,6 +123,7 @@ export default class BooleanComponent extends InlineComponent {
                 sourceCompositeUnordered: {
                     dependencyType: "sourceCompositeStateVariable",
                     variableName: "unordered",
+                    skipCopies: true,
                 },
             }),
             definition({ dependencyValues, usedDefault }) {

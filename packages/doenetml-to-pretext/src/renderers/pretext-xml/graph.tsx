@@ -52,7 +52,7 @@ export const Graph: BasicComponent = ({ node }) => {
         const style = svgDom.createElement("style");
         style.textContent = `
             :root {
-              --canvastext: black;
+              --canvasText: black;
               --lightBlue: hsl(209, 54%, 82%);
               --solidLightBlue: #8fb8de;
               --mainGray: #e3e3e3;

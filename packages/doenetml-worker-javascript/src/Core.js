@@ -226,7 +226,7 @@ export default class Core {
         // console.log(`serialized components at the beginning`)
         // console.log(deepClone(serializedComponents));
 
-        numberAnswers(serializedComponents);
+        numberAnswers(serializedComponents, this.componentInfoObjects);
 
         this.documentIdx = serializedComponents[0].componentIdx;
 
@@ -434,23 +434,6 @@ export default class Core {
                 componentType: "document",
             },
         });
-
-        let foundAnswerDescendant = function (comp) {
-            let sDecs = comp.stateValues.scoredDescendants;
-            if (Array.isArray(sDecs)) {
-                for (let dec of sDecs) {
-                    if (dec.componentType === "answer") {
-                        return true;
-                    } else {
-                        if (foundAnswerDescendant(dec)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        };
 
         await this.document.stateValues.scoredDescendants; // to evaluated scoredDescendants
 
@@ -1715,6 +1698,7 @@ export default class Core {
         // create component itself
         const newComponent = new componentClass({
             componentIdx,
+            rootName: this.rootNames?.[componentIdx] ?? componentIdx.toString(),
             ancestors,
             definingChildren,
             stateVariableDefinitions,
@@ -13488,15 +13472,25 @@ function calculateAllComponentsShadowing(component) {
     return allShadowing;
 }
 
-function numberAnswers(components, numSoFar = 0) {
+function numberAnswers(components, componentInfoObjects, numSoFar = 0) {
     let count = numSoFar;
 
     for (let comp of components) {
-        if (comp.componentType === "answer") {
+        if (
+            comp.componentType === "answer" ||
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: comp.componentType,
+                baseComponentType: "_blockScoredComponent",
+            })
+        ) {
             count++;
             comp.answerNumber = count;
         } else if (comp.children) {
-            const result = numberAnswers(comp.children, count);
+            const result = numberAnswers(
+                comp.children,
+                componentInfoObjects,
+                count,
+            );
             count = result.count;
         }
     }

@@ -47,7 +47,7 @@
     width: 18px;
     background-color: var(--mainGray);
     border-style: solid;
-    border-color: var(--canvastext);
+    border-color: var(--canvasText);
     border-radius: var(--mainBorderRadius);
     border-width: 2px;
     box-sizing: content-box;
@@ -81,7 +81,7 @@
 .doenetml-boolean-container:focus-within
     input[type="checkbox"]
     ~ .doenetml-checkmark {
-    outline: 2px solid var(--canvastext);
+    outline: 2px solid var(--canvasText);
     outline-offset: 2px;
 }
 

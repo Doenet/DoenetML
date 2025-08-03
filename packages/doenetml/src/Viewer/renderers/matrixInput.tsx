@@ -5,16 +5,12 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-    faCheck,
-    faLevelDownAlt,
-    faTimes,
-    faCloud,
-    faPercentage,
-} from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
 import "./mathInput.css";
+import {
+    calculateValidationState,
+    createCheckWorkComponent,
+} from "../../utils/checkWork";
 
 const Matrix = styled.div`
     position: relative;
@@ -50,42 +46,18 @@ const Matrix = styled.div`
     }
 `;
 
-const Button = styled.button`
-    position: relative;
-    width: 24px;
-    height: 24px;
-    display: inline-block;
-    color: white;
-    background-color: var(--mainBlue);
-    /* border: var(--mainBorder); */
-    padding: 2px;
-    border: none;
-    border-radius: var(--mainBorderRadius);
-    margin: 0px 4px 4px 0px;
-
-    &:hover {
-        background-color: var(--lightBlue);
-        color: black;
-    }
-`;
-
 export default React.memo(function MatrixInput(props) {
     let { id, SVs, actions, children, callAction } = useDoenetRenderer(props);
 
-    let validationState = useRef(null);
+    // need to use a ref for validation state as handlePressEnter
+    // does not update to current values
+    let validationState = useRef<
+        "unvalidated" | "correct" | "incorrect" | "partialcorrect"
+    >("unvalidated");
 
-    function updateValidationState() {
-        validationState.current = "unvalidated";
-        if (SVs.valueHasBeenValidated || SVs.numAttemptsLeft < 1) {
-            if (SVs.creditAchieved === 1) {
-                validationState.current = "correct";
-            } else if (SVs.creditAchieved === 0) {
-                validationState.current = "incorrect";
-            } else {
-                validationState.current = "partialcorrect";
-            }
-        }
-    }
+    const updateValidationState = () => {
+        validationState.current = calculateValidationState(SVs);
+    };
 
     if (SVs.hidden) {
         return null;
@@ -93,7 +65,7 @@ export default React.memo(function MatrixInput(props) {
 
     updateValidationState();
 
-    let disabled = SVs.disabled;
+    const disabled = SVs.disabled;
 
     // const inputKey = id + '_input';
 
@@ -104,130 +76,18 @@ export default React.memo(function MatrixInput(props) {
     //   surroundingBorderColor = "#82a5ff";
     // }
 
-    let checkWorkStyle = {
-        cursor: "pointer",
-        padding: "1px 6px 1px 6px",
-    };
-    let checkWorkTabIndex = "0";
+    const submitAnswer = () =>
+        callAction({
+            action: actions.submitAnswer,
+        });
 
-    if (disabled) {
-        // Disable the checkWorkButton
-        checkWorkStyle.backgroundColor = getComputedStyle(
-            document.documentElement,
-        ).getPropertyValue("--mainGray");
-        checkWorkStyle.color = "black";
-        checkWorkStyle.cursor = "not-allowed";
-        checkWorkTabIndex = "-1";
-    }
-
-    //Assume we don't have a check work button
-    let checkWorkButton = null;
-    if (SVs.includeCheckWork && !SVs.suppressCheckwork) {
-        if (validationState.current === "unvalidated") {
-            checkWorkButton = (
-                <Button
-                    id={id + "_submit"}
-                    tabIndex={checkWorkTabIndex}
-                    disabled={disabled}
-                    style={checkWorkStyle}
-                    onClick={() =>
-                        callAction({
-                            action: actions.submitAnswer,
-                        })
-                    }
-                >
-                    <FontAwesomeIcon
-                        icon={faLevelDownAlt}
-                        transform={{ rotate: 90 }}
-                    />
-                </Button>
-            );
-        } else {
-            if (SVs.showCorrectness) {
-                if (validationState.current === "correct") {
-                    checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement,
-                    ).getPropertyValue("--mainGreen");
-                    checkWorkButton = (
-                        <Button
-                            id={id + "_correct"}
-                            style={checkWorkStyle}
-                            tabIndex={checkWorkTabIndex}
-                        >
-                            <FontAwesomeIcon icon={faCheck} />
-                        </Button>
-                    );
-                } else if (validationState.current === "partialcorrect") {
-                    //partial credit
-
-                    let percent = Math.round(SVs.creditAchieved * 100);
-                    let partialCreditContents = `${percent} %`;
-                    checkWorkStyle.width = "44px";
-
-                    checkWorkStyle.backgroundColor = "#efab34";
-                    checkWorkButton = (
-                        <Button
-                            id={id + "_partial"}
-                            style={checkWorkStyle}
-                            tabIndex={checkWorkTabIndex}
-                        >
-                            {partialCreditContents}
-                        </Button>
-                    );
-                } else {
-                    //incorrect
-                    checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement,
-                    ).getPropertyValue("--mainRed");
-                    checkWorkButton = (
-                        <Button
-                            id={id + "_incorrect"}
-                            style={checkWorkStyle}
-                            tabIndex={checkWorkTabIndex}
-                        >
-                            <FontAwesomeIcon icon={faTimes} />
-                        </Button>
-                    );
-                }
-            } else {
-                // showCorrectness is false
-                checkWorkStyle.backgroundColor = "rgb(74, 3, 217)";
-                checkWorkStyle.padding = "1px 8px 1px 4px"; // To center the faCloud icon
-                checkWorkButton = (
-                    <Button
-                        id={id + "_saved"}
-                        style={checkWorkStyle}
-                        tabIndex={checkWorkTabIndex}
-                    >
-                        <FontAwesomeIcon icon={faCloud} />
-                    </Button>
-                );
-            }
-        }
-
-        if (SVs.numAttemptsLeft < 0) {
-            checkWorkButton = (
-                <>
-                    {checkWorkButton}
-                    <span>(no attempts remaining)</span>
-                </>
-            );
-        } else if (SVs.numAttemptsLeft == 1) {
-            checkWorkButton = (
-                <>
-                    {checkWorkButton}
-                    <span>(1 attempt remaining)</span>
-                </>
-            );
-        } else if (SVs.numAttemptsLeft < Infinity) {
-            checkWorkButton = (
-                <>
-                    {checkWorkButton}
-                    <span>({SVs.numAttemptsLeft} attempts remaining)</span>
-                </>
-            );
-        }
-    }
+    const checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState.current,
+        submitAnswer,
+        false,
+    );
 
     let matrixInputs = [];
 
@@ -332,7 +192,7 @@ export default React.memo(function MatrixInput(props) {
                 <div style={{ marginRight: "4px" }}></div>
                 {rowNumControls}
                 {colNumControls}
-                {checkWorkButton}
+                {checkWorkComponent}
             </div>
         </React.Fragment>
     );

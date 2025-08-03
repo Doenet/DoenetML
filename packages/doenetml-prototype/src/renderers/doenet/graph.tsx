@@ -89,11 +89,11 @@ export const Graph: BasicComponent<GraphData> = ({ node }) => {
                     visible: true,
                     majorHeight: 10,
                     minorHeight: 5,
-                    strokeColor: "var(--canvastext)",
+                    strokeColor: "var(--canvasText)",
                     strokeWidth: 1,
                 },
                 highlight: false,
-                strokeColor: "var(--canvastext)",
+                strokeColor: "var(--canvasText)",
             },
         );
         setXaxis(xaxis);
@@ -108,11 +108,11 @@ export const Graph: BasicComponent<GraphData> = ({ node }) => {
                     visible: true,
                     majorHeight: 10,
                     minorHeight: 5,
-                    strokeColor: "var(--canvastext)",
+                    strokeColor: "var(--canvasText)",
                     strokeWidth: 1,
                 },
                 highlight: false,
-                strokeColor: "var(--canvastext)",
+                strokeColor: "var(--canvasText)",
             },
         );
         setYaxis(yaxis);

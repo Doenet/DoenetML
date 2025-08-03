@@ -452,6 +452,7 @@ describe("Problem tag tests", async () => {
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,
         sectionName = "theProblem",
+        showCorrectness = true,
     ) {
         let stateVariables = await core.returnAllStateVariables(false, true);
         let answerNames = ["twox", "hello", "fruit", "sum3"];
@@ -577,6 +578,10 @@ describe("Problem tag tests", async () => {
             stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .createSubmitAllButton,
         ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
+                .showCorrectness,
+        ).eq(showCorrectness);
         expect(
             stateVariables[await resolvePathToNodeIdx(sectionName)].stateValues
                 .justSubmitted,
@@ -768,6 +773,86 @@ describe("Problem tag tests", async () => {
             core,
             resolvePathToNodeIdx,
             "theDocument",
+        );
+    });
+
+    it("section wide checkWork, show correctness turned off", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <p>Section wide checkWork: <booleanInput name="swcw" /></p>
+        <problem sectionWideCheckWork="$swcw" name="theProblem" showCorrectness="false">
+        <title>Problem 1</title>
+      
+        <p>2x: <answer name="twox">2x</answer></p>
+      
+        <p>hello: <answer type="text" name="hello">hello</answer></p>
+
+        <p>banana: 
+        <answer name="fruit">
+          <choiceInput name="fruitInput">
+            <choice credit="1">banana</choice>
+            <choice>apple</choice>
+            <choice>orange</choice>
+          </choiceInput>
+        </answer>
+        </p>
+      
+        <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
+        <answer name="sum3">
+          <award referencesAreResponses="n1 n2">
+            <when>$n1+$n2=3</when>
+          </award>
+        </answer></p>
+      
+      </problem>
+    `,
+        });
+
+        await test_section_wide_check_work(
+            core,
+            resolvePathToNodeIdx,
+            undefined,
+            false,
+        );
+    });
+
+    it("document wide checkWork, show correctness turned off", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <document documentWideCheckWork="$swcw" name="theDocument" showCorrectness="false">
+        <title>The problem</title>
+
+        <p>Document wide checkWork: <booleanInput name="swcw" /></p>
+      
+        <p>2x: <answer name="twox">2x</answer></p>
+      
+        <p>hello: <answer type="text" name="hello">hello</answer></p>
+
+        <p>banana: 
+        <answer name="fruit">
+          <choiceInput shuffleOrder name="fruitInput">
+            <choice credit="1">banana</choice>
+            <choice>apple</choice>
+            <choice>orange</choice>
+          </choiceInput>
+        </answer>
+        </p>
+      
+        <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
+        <answer name="sum3">
+          <award referencesAreResponses="n1 n2">
+            <when>$n1+$n2=3</when>
+          </award>
+        </answer></p>
+        </document>
+    `,
+        });
+
+        await test_section_wide_check_work(
+            core,
+            resolvePathToNodeIdx,
+            "theDocument",
+            false,
         );
     });
 

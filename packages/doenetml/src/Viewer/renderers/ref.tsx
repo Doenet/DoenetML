@@ -11,7 +11,7 @@ const RefButton = styled.button`
     display: inline-block;
     color: white;
     color: ${(props) =>
-        props.disabled ? "var(--canvastext)" : "var(--canvas)"};
+        props.disabled ? "var(--canvasText)" : "var(--canvas)"};
     background-color: ${(props) =>
         props.disabled ? "var(--mainGray)" : "var(--mainBlue)"};
 
@@ -26,7 +26,7 @@ const RefButton = styled.button`
         background-color: ${(props) =>
             props.disabled ? "var(--mainGray)" : "var(--lightBlue)"};
         color: ${(props) =>
-            props.disabled ? "var(--canvastext)" : "var(--canvas)"};
+            props.disabled ? "var(--canvasText)" : "var(--canvas)"};
     }
 
     &:focus {

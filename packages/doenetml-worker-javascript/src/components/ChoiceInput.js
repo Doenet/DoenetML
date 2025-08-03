@@ -69,6 +69,12 @@ export default class Choiceinput extends Input {
             defaultValue: false,
             public: true,
         };
+        attributes.preserveLastChoice = {
+            createPrimitiveOfType: "boolean",
+            createStateVariable: "preserveLastChoice",
+            defaultValue: false,
+            public: true,
+        };
 
         attributes.preselectChoice = {
             createComponentOfType: "number",
@@ -199,6 +205,10 @@ export default class Choiceinput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "shuffleOrder",
                 },
+                preserveLastChoice: {
+                    dependencyType: "stateVariable",
+                    variableName: "preserveLastChoice",
+                },
                 variantSeed: {
                     dependencyType: "value",
                     value: sharedParameters.variantSeed,
@@ -267,7 +277,10 @@ export default class Choiceinput extends Input {
                     choiceOrder = [...Array(numChoices).keys()].map(
                         (x) => x + 1,
                     );
-                    for (let i = numChoices - 1; i > 0; i--) {
+                    const lastShuffledIdx =
+                        numChoices -
+                        (dependencyValues.preserveLastChoice ? 2 : 1);
+                    for (let i = lastShuffledIdx; i > 0; i--) {
                         const rand = variantRng();
                         const j = Math.floor(rand * (i + 1));
                         [choiceOrder[i], choiceOrder[j]] = [
@@ -515,6 +528,26 @@ export default class Choiceinput extends Input {
                     setValue: {
                         choicePreselects: choiceChildrenOrdered.map(
                             (x) => x.stateValues.preSelect,
+                        ),
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.disableWrongChoices = {
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "answer",
+                    variableNames: ["disableWrongChoices"],
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                return {
+                    setValue: {
+                        disableWrongChoices: Boolean(
+                            dependencyValues.answerAncestor?.stateValues
+                                .disableWrongChoices,
                         ),
                     },
                 };
@@ -1554,8 +1587,14 @@ export default class Choiceinput extends Input {
             }
         }
 
+        const preserveLastChoice =
+            serializedComponent.attributes?.preserveLastChoice?.primitive.value;
+        const numChoicesAdjusted = preserveLastChoice
+            ? Math.max(1, numChoices - 1)
+            : numChoices;
+
         let numberOfPermutations = 1;
-        for (let i = 2; i <= numChoices; i++) {
+        for (let i = 2; i <= numChoicesAdjusted; i++) {
             numberOfPermutations *= i;
         }
 
@@ -1578,6 +1617,7 @@ export default class Choiceinput extends Input {
                     .numVariantsByDescendant,
             numberOfPermutations,
             numChoices,
+            numChoicesAdjusted,
         };
 
         return { success: true, numVariants };
@@ -1618,6 +1658,8 @@ export default class Choiceinput extends Input {
             serializedComponent.variants.uniqueVariantData.numberOfPermutations;
         let numChoices =
             serializedComponent.variants.uniqueVariantData.numChoices;
+        let numChoicesAdjusted =
+            serializedComponent.variants.uniqueVariantData.numChoicesAdjusted;
 
         // treat permutations as another descendant variant component
         let numbersOfOptions = [...numVariantsByDescendant];
@@ -1633,12 +1675,20 @@ export default class Choiceinput extends Input {
         let indicesForEachDescendant = indicesForEachOption;
 
         // choice a permutation based on permutations index
-        let indicesToPermute = [...Array(numChoices).keys()].map((x) => x + 1);
+        let indicesToPermute = [...Array(numChoicesAdjusted).keys()].map(
+            (x) => x + 1,
+        );
 
         let permutedIndices = enumeratePermutations({
             values: indicesToPermute,
             maxNumber: permutationsIndex,
         })[permutationsIndex - 1];
+
+        if (numChoicesAdjusted < numChoices) {
+            // We didn't shuffle the last index, as `preserveLastChoice` was specified.
+            // Add the last index at the end.
+            permutedIndices = [...permutedIndices, numChoices];
+        }
 
         // for each descendant, get unique variant corresponding
         // to the selected variant number and include that as a subvariant

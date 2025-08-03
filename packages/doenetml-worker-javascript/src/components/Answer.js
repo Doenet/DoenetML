@@ -1,13 +1,10 @@
 import InlineComponent from "./abstract/InlineComponent";
 import { renameStateVariable } from "../utils/stateVariables";
-import {
-    serializedComponentsReplacer,
-    serializedComponentsReviver,
-} from "@doenet/utils";
-import sha1 from "crypto-js/sha1";
-import Base64 from "crypto-js/enc-base64";
-import stringify from "json-stringify-deterministic";
 import me from "math-expressions";
+import {
+    returnStandardAnswerAttributes,
+    returnStandardAnswerStateVariableDefinition,
+} from "../utils/answer";
 
 export default class Answer extends InlineComponent {
     constructor(args) {
@@ -43,18 +40,7 @@ export default class Answer extends InlineComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        attributes.weight = {
-            createComponentOfType: "number",
-            createStateVariable: "weight",
-            defaultValue: 1,
-            public: true,
-        };
-        attributes.handGraded = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "handGraded",
-            defaultValue: false,
-            public: true,
-        };
+        Object.assign(attributes, returnStandardAnswerAttributes());
         attributes.inline = {
             createComponentOfType: "boolean",
             createStateVariable: "inline",
@@ -64,12 +50,6 @@ export default class Answer extends InlineComponent {
         attributes.symbolicEquality = {
             createComponentOfType: "boolean",
             createStateVariable: "symbolicEquality",
-            defaultValue: false,
-            public: true,
-        };
-        attributes.matchPartial = {
-            createComponentOfType: "boolean",
-            createStateVariable: "matchPartial",
             defaultValue: false,
             public: true,
         };
@@ -111,12 +91,6 @@ export default class Answer extends InlineComponent {
             createComponentOfType: "integer",
             createStateVariable: "numAwardsCredited",
             defaultValue: 1,
-            public: true,
-        };
-        attributes.maxNumAttempts = {
-            createComponentOfType: "integer",
-            createStateVariable: "maxNumAttempts",
-            defaultValue: Infinity,
             public: true,
         };
         attributes.allowedErrorInNumbers = {
@@ -161,38 +135,10 @@ export default class Answer extends InlineComponent {
             defaultValue: false,
             public: true,
         };
-        attributes.showCorrectness = {
-            createComponentOfType: "boolean",
-            createStateVariable: "showCorrectnessPreliminary",
-            defaultValue: null,
-        };
         attributes.type = {
             createPrimitiveOfType: "string",
             createStateVariable: "type",
             defaultValue: null,
-        };
-
-        attributes.disableAfterCorrect = {
-            createComponentOfType: "boolean",
-            createStateVariable: "disableAfterCorrect",
-            defaultValue: false,
-            public: true,
-        };
-
-        attributes.submitLabel = {
-            createComponentOfType: "text",
-            createStateVariable: "submitLabel",
-            defaultValue: "Check Work",
-            public: true,
-            forRenderer: true,
-        };
-
-        attributes.submitLabelNoCorrectness = {
-            createComponentOfType: "text",
-            createStateVariable: "submitLabelNoCorrectness",
-            defaultValue: "Submit Response",
-            public: true,
-            forRenderer: true,
         };
 
         attributes.selectMultiple = {
@@ -206,6 +152,61 @@ export default class Answer extends InlineComponent {
             createStateVariable: "shuffleOrder",
             defaultValue: false,
             public: true,
+        };
+        attributes.preserveLastChoice = {
+            createPrimitiveOfType: "boolean",
+            createStateVariable: "preserveLastChoice",
+            defaultValue: false,
+            public: true,
+        };
+
+        // If `true`, then incorrect choices are disabled after they have been submitted.
+        attributes.disableWrongChoices = {
+            createComponentOfType: "boolean",
+            createStateVariable: "disableWrongChoices",
+            defaultValue: false,
+            public: true,
+        };
+
+        // A list of factors that will multiply the original credit achieved to adjust it based on the number
+        // of incorrect attempts submitted.
+        // For example, given `<answer creditFactorByAttempt="1 0.7 0.5" />`,
+        // a correct answer on the first attempt would get full credit,
+        // obtaining the correct answer after one incorrect response would give 70% credit,
+        // while getting the correct response after two or more incorrect responses would yield 50% credit.
+        attributes.creditFactorByAttempt = {
+            createComponentOfType: "numberList",
+            createStateVariable: "creditFactorByAttempt",
+            defaultValue: [],
+            public: true,
+        };
+
+        // If `creditFactorByAttempt` is not supplied, then `creditReductionPerAttempt` can specify a value
+        // to subtract from the credit for each incorrect attempt.
+        // For example, given `<answer creditReductionPerAttempt="0.4" />`,
+        // a correct answer on the first attempt would get full credit,
+        // obtaining the correct after one incorrect response would give 60% credit,
+        // while getting the response after two incorrect responses would yield 20% credit.
+        // With three or more incorrect responses, credit is prevented by going negative by the value of `creditReductionLimit`,
+        // which defaults to 0.99, meaning the credit doesn't drop below 1%.
+        attributes.creditReductionPerAttempt = {
+            createComponentOfType: "number",
+            createStateVariable: "creditReductionPerAttempt",
+            defaultValue: 0,
+            public: true,
+            clamp: [0, 1],
+        };
+
+        // The maximum amount of credit reduced by incorrect answers when `creditReductionPerAttempt` is in force.
+        // It defaults to `0.99`.
+        // If the previous example were modified to `<answer creditReductionPerAttempt="0.4" creditReductionLimit="0.6" />`,
+        // then the credit after two or more in correct responses would stay at 40%.
+        attributes.creditReductionLimit = {
+            createComponentOfType: "number",
+            createStateVariable: "creditReductionLimit",
+            defaultValue: 0.99,
+            public: true,
+            clamp: [0, 1],
         };
 
         attributes.splitSymbols = {
@@ -226,20 +227,6 @@ export default class Answer extends InlineComponent {
             createComponentOfType: "boolean",
             createStateVariable: "expanded",
             defaultValue: false,
-            public: true,
-        };
-
-        attributes.displayDigitsForResponses = {
-            createComponentOfType: "integer",
-            createStateVariable: "displayDigitsForResponses",
-            defaultValue: 10,
-            public: true,
-        };
-
-        attributes.displayDigitsForCreditAchieved = {
-            createComponentOfType: "integer",
-            createStateVariable: "displayDigitsForCreditAchieved",
-            defaultValue: 3,
             public: true,
         };
 
@@ -509,6 +496,15 @@ export default class Answer extends InlineComponent {
                             },
                         };
                     }
+                    if (componentAttributes.preserveLastChoice) {
+                        choiceinput.attributes = {
+                            preserveLastChoice: {
+                                type: "primitive",
+                                name: "preserveLastChoice",
+                                primitive: { type: "boolean", value: true },
+                            },
+                        };
+                    }
                     return {
                         success: true,
                         newChildren: [choiceinput],
@@ -707,35 +703,10 @@ export default class Answer extends InlineComponent {
             newName: "disabledOriginal",
         });
 
-        stateVariableDefinitions.showCorrectness = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                showCorrectnessPreliminary: {
-                    dependencyType: "stateVariable",
-                    variableName: "showCorrectnessPreliminary",
-                },
-                showCorrectnessFlag: {
-                    dependencyType: "flag",
-                    flagName: "showCorrectness",
-                },
-                handGraded: {
-                    dependencyType: "stateVariable",
-                    variableName: "handGraded",
-                },
-            }),
-            definition({ dependencyValues, usedDefault }) {
-                let showCorrectness;
-                if (!usedDefault.showCorrectnessPreliminary) {
-                    showCorrectness =
-                        dependencyValues.showCorrectnessPreliminary;
-                } else {
-                    showCorrectness =
-                        dependencyValues.showCorrectnessFlag !== false &&
-                        !dependencyValues.handGraded;
-                }
-                return { setValue: { showCorrectness } };
-            },
-        };
+        Object.assign(
+            stateVariableDefinitions,
+            returnStandardAnswerStateVariableDefinition(),
+        );
 
         stateVariableDefinitions.haveAwardThatRequiresInput = {
             returnDependencies: () => ({
@@ -1440,29 +1411,11 @@ export default class Answer extends InlineComponent {
             targetVariableName: "submittedResponse1",
         };
 
-        stateVariableDefinitions.suppressCheckwork = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                autoSubmit: {
-                    dependencyType: "flag",
-                    flagName: "autoSubmit",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        suppressCheckwork: dependencyValues.autoSubmit,
-                    },
-                };
-            },
-        };
-
         stateVariableDefinitions.delegateCheckWork = {
             additionalStateVariablesDefined: [
                 "delegateCheckWorkToInput",
                 "delegateCheckWorkToAncestor",
             ],
-            forRenderer: true,
             returnDependencies: () => ({
                 inputChildren: {
                     dependencyType: "stateVariable",
@@ -1511,6 +1464,58 @@ export default class Answer extends InlineComponent {
                         delegateCheckWorkToInput,
                     },
                 };
+            },
+        };
+
+        stateVariableDefinitions.showCheckWork = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                delegateCheckWork: {
+                    dependencyType: "stateVariable",
+                    variableName: "delegateCheckWork",
+                },
+                suppressCheckWork: {
+                    dependencyType: "stateVariable",
+                    variableName: "suppressCheckWork",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        showCheckWork:
+                            !dependencyValues.delegateCheckWork &&
+                            !dependencyValues.suppressCheckWork,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.creditIsReducedByAttempt = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                creditFactorByAttempt: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditFactorByAttempt",
+                },
+                creditReductionPerAttempt: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditReductionPerAttempt",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let creditIsReducedByAttempt = false;
+
+                if (dependencyValues.creditFactorByAttempt.length > 0) {
+                    creditIsReducedByAttempt =
+                        dependencyValues.creditFactorByAttempt.some(
+                            (reduction) => reduction < 1,
+                        );
+                } else {
+                    creditIsReducedByAttempt =
+                        dependencyValues.creditReductionPerAttempt > 0;
+                }
+
+                return { setValue: { creditIsReducedByAttempt } };
             },
         };
 
@@ -1645,234 +1650,92 @@ export default class Answer extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.displayDecimalsForCreditAchieved = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: { displayDecimalsForCreditAchieved: -Infinity },
-            }),
-        };
-
-        stateVariableDefinitions.creditAchieved = {
+        stateVariableDefinitions.numPreviousIncorrectSubmissions = {
             defaultValue: 0,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "number",
-                addAttributeComponentsShadowingStateVariables: {
-                    displayDigits: {
-                        stateVariableToShadow: "displayDigitsForCreditAchieved",
-                    },
-                    displayDecimals: {
-                        stateVariableToShadow:
-                            "displayDecimalsForCreditAchieved",
-                    },
-                },
-            },
+            hasEssential: true,
             forRenderer: true,
-            hasEssential: true,
             returnDependencies: () => ({}),
             definition: () => ({
                 useEssentialOrDefaultValue: {
-                    creditAchieved: true,
+                    numPreviousIncorrectSubmissions: true,
                 },
             }),
-            inverseDefinition: function ({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "creditAchieved",
-                            value: desiredStateVariableValues.creditAchieved,
-                        },
-                    ],
-                };
-            },
-        };
-
-        stateVariableDefinitions.responseHasBeenSubmitted = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            defaultValue: false,
-            hasEssential: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    responseHasBeenSubmitted: true,
-                },
+            inverseDefinition: ({ desiredStateVariableValues }) => ({
+                success: true,
+                instructions: [
+                    {
+                        setEssentialValue: "numPreviousIncorrectSubmissions",
+                        value: desiredStateVariableValues.numPreviousIncorrectSubmissions,
+                    },
+                ],
             }),
-            inverseDefinition: function ({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "responseHasBeenSubmitted",
-                            value: desiredStateVariableValues.responseHasBeenSubmitted,
-                        },
-                    ],
-                };
-            },
         };
 
-        stateVariableDefinitions.autoSubmit = {
+        stateVariableDefinitions.nextCreditFactor = {
+            forRenderer: true,
             returnDependencies: () => ({
-                autoSubmit: {
-                    dependencyType: "flag",
-                    flagName: "autoSubmit",
+                creditFactorByAttempt: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditFactorByAttempt",
+                },
+                creditReductionPerAttempt: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditReductionPerAttempt",
+                },
+                creditReductionLimit: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditReductionLimit",
+                },
+                numIncorrectSubmissions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numIncorrectSubmissions",
                 },
             }),
             definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        autoSubmit: Boolean(dependencyValues.autoSubmit),
-                    },
-                };
-            },
-        };
+                let nextCreditFactor = 1;
 
-        stateVariableDefinitions.creditAchievedDependencies = {
-            shadowVariable: true,
-            stateVariablesDeterminingDependencies: ["autoSubmit"],
-            returnDependencies: ({ stateValues }) => ({
-                currentCreditAchievedDependencies: {
-                    dependencyType: "recursiveDependencyValues",
-                    variableNames: ["creditAchievedIfSubmit"],
-                    includeImmediateValueWithValue: !stateValues.autoSubmit,
-                    includeRawValueWithImmediateValue: !stateValues.autoSubmit,
-                    includeOnlyEssentialValues: true,
-                },
-            }),
-            definition({ dependencyValues, componentIdx }) {
-                // Use stringify from json-stringify-deterministic
-                // so that the string will be the same
-                // even if the object was built in a different order
-                // (as can happen when reloading from a database)
-
-                let warnings = [];
-
-                let selfDependencies =
-                    dependencyValues.currentCreditAchievedDependencies.find(
-                        (x) => x.componentIdx === componentIdx,
+                if (dependencyValues.creditFactorByAttempt.length > 0) {
+                    const factorByAttempt =
+                        dependencyValues.creditFactorByAttempt;
+                    const effectiveAttempt = Math.min(
+                        dependencyValues.numIncorrectSubmissions,
+                        factorByAttempt.length - 1,
                     );
-
-                if (selfDependencies) {
-                    // look for a dependency on a submitted response
-                    if (
-                        Object.keys(selfDependencies.stateValues).find(
-                            (x) => x.substring(0, 17) === "submittedResponse",
-                        )
-                    ) {
-                        warnings.push({
-                            message:
-                                "An award for this answer is based on the answer tag's own submitted response, which will lead to unexpected behavior.",
-                            level: 1,
-                        });
-                    }
+                    nextCreditFactor = Math.min(
+                        1,
+                        Math.max(0, factorByAttempt[effectiveAttempt]),
+                    );
+                } else if (
+                    dependencyValues.creditReductionPerAttempt > 0 &&
+                    dependencyValues.numIncorrectSubmissions > 0
+                ) {
+                    const reduction = Math.min(
+                        dependencyValues.creditReductionLimit,
+                        dependencyValues.creditReductionPerAttempt *
+                            dependencyValues.numIncorrectSubmissions,
+                    );
+                    nextCreditFactor = 1 - reduction;
                 }
 
-                let stringified = stringify(
-                    dependencyValues.currentCreditAchievedDependencies,
-                    { replacer: serializedComponentsReplacer },
-                );
-
-                return {
-                    setValue: {
-                        creditAchievedDependencies: Base64.stringify(
-                            sha1(stringified),
-                        ),
-                    },
-                    sendWarnings: warnings,
-                };
+                return { setValue: { nextCreditFactor } };
             },
-            markStale: () => ({ answerCreditPotentiallyChanged: true }),
         };
 
-        stateVariableDefinitions.creditAchievedDependenciesAtSubmit = {
-            defaultValue: null,
+        stateVariableDefinitions.creditFactorUsed = {
+            forRenderer: true,
             hasEssential: true,
+            defaultValue: 1,
             returnDependencies: () => ({}),
             definition: () => ({
-                useEssentialOrDefaultValue: {
-                    creditAchievedDependenciesAtSubmit: true,
-                },
+                useEssentialOrDefaultValue: { creditFactorUsed: true },
             }),
             inverseDefinition: function ({ desiredStateVariableValues }) {
                 return {
                     success: true,
                     instructions: [
                         {
-                            setEssentialValue:
-                                "creditAchievedDependenciesAtSubmit",
-                            value: desiredStateVariableValues.creditAchievedDependenciesAtSubmit,
-                        },
-                    ],
-                };
-            },
-        };
-
-        stateVariableDefinitions.justSubmitted = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            forRenderer: true,
-            defaultValue: false,
-            hasEssential: true,
-            shadowVariable: true,
-            returnDependencies: () => ({
-                currentCreditAchievedDependencies: {
-                    dependencyType: "stateVariable",
-                    variableName: "creditAchievedDependencies",
-                },
-                creditAchievedDependenciesAtSubmit: {
-                    dependencyType: "stateVariable",
-                    variableName: "creditAchievedDependenciesAtSubmit",
-                },
-                disableAfterCorrect: {
-                    dependencyType: "stateVariable",
-                    variableName: "disableAfterCorrect",
-                },
-                hasBeenCorrect: {
-                    dependencyType: "stateVariable",
-                    variableName: "hasBeenCorrect",
-                },
-            }),
-            definition: function ({
-                dependencyValues,
-                justUpdatedForNewComponent,
-                componentIdx,
-            }) {
-                if (
-                    dependencyValues.disableAfterCorrect &&
-                    dependencyValues.hasBeenCorrect
-                ) {
-                    return {
-                        setValue: { justSubmitted: true },
-                    };
-                }
-
-                let foundChange =
-                    dependencyValues.creditAchievedDependenciesAtSubmit !==
-                    dependencyValues.currentCreditAchievedDependencies;
-
-                if (foundChange && !justUpdatedForNewComponent) {
-                    return {
-                        setValue: { justSubmitted: false },
-                        setEssentialValue: { justSubmitted: false },
-                    };
-                } else {
-                    return {
-                        useEssentialOrDefaultValue: { justSubmitted: true },
-                    };
-                }
-            },
-            inverseDefinition({ desiredStateVariableValues, componentIdx }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "justSubmitted",
-                            value: desiredStateVariableValues.justSubmitted,
+                            setEssentialValue: "creditFactorUsed",
+                            value: desiredStateVariableValues.creditFactorUsed,
                         },
                     ],
                 };
@@ -1982,145 +1845,6 @@ export default class Answer extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.numSubmissions = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "integer",
-            },
-            defaultValue: 0,
-            hasEssential: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    numSubmissions: true,
-                },
-            }),
-            inverseDefinition: ({ desiredStateVariableValues }) => ({
-                success: true,
-                instructions: [
-                    {
-                        setEssentialValue: "numSubmissions",
-                        value: desiredStateVariableValues.numSubmissions,
-                    },
-                ],
-            }),
-        };
-
-        stateVariableDefinitions.numAttemptsLeft = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "integer",
-            },
-            forRenderer: true,
-            returnDependencies: () => ({
-                numSubmissions: {
-                    dependencyType: "stateVariable",
-                    variableName: "numSubmissions",
-                },
-                maxNumAttempts: {
-                    dependencyType: "stateVariable",
-                    variableName: "maxNumAttempts",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        numAttemptsLeft:
-                            dependencyValues.maxNumAttempts -
-                            dependencyValues.numSubmissions,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.hasBeenCorrect = {
-            defaultValue: false,
-            hasEssential: true,
-            shadowVariable: true,
-            returnDependencies: () => ({
-                creditAchieved: {
-                    dependencyType: "stateVariable",
-                    variableName: "creditAchieved",
-                },
-            }),
-            definition({ dependencyValues }) {
-                if (dependencyValues.creditAchieved === 1) {
-                    return {
-                        setValue: { hasBeenCorrect: true },
-                        setEssentialValue: { hasBeenCorrect: true },
-                    };
-                }
-
-                return {
-                    useEssentialOrDefaultValue: {
-                        hasBeenCorrect: true,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.disabled = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            forRenderer: true,
-            stateVariablesDeterminingDependencies: ["disableAfterCorrect"],
-            returnDependencies({ stateValues }) {
-                let dependencies = {
-                    disabledOriginal: {
-                        dependencyType: "stateVariable",
-                        variableName: "disabledOriginal",
-                    },
-                    numAttemptsLeft: {
-                        dependencyType: "stateVariable",
-                        variableName: "numAttemptsLeft",
-                    },
-                    disableAfterCorrect: {
-                        dependencyType: "stateVariable",
-                        variableName: "disableAfterCorrect",
-                    },
-                };
-
-                if (stateValues.disableAfterCorrect) {
-                    dependencies.hasBeenCorrect = {
-                        dependencyType: "stateVariable",
-                        variableName: "hasBeenCorrect",
-                    };
-                }
-
-                return dependencies;
-            },
-            definition({ dependencyValues }) {
-                let disabled =
-                    dependencyValues.disabledOriginal ||
-                    dependencyValues.numAttemptsLeft < 1 ||
-                    (dependencyValues.disableAfterCorrect &&
-                        dependencyValues.hasBeenCorrect);
-
-                return { setValue: { disabled } };
-            },
-        };
-
-        stateVariableDefinitions.inComponentNumber = {
-            returnDependencies: () => ({
-                documentAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["componentNumberByAnswerName"],
-                },
-            }),
-            definition({ dependencyValues, componentIdx }) {
-                return {
-                    setValue: {
-                        inComponentNumber:
-                            dependencyValues.documentAncestor.stateValues
-                                .componentNumberByAnswerName[componentIdx],
-                    },
-                };
-            },
-        };
-
         return stateVariableDefinitions;
     }
 
@@ -2129,25 +1853,29 @@ export default class Answer extends InlineComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        let numAttemptsLeft = await this.stateValues.numAttemptsLeft;
+        const numAttemptsLeft = await this.stateValues.numAttemptsLeft;
         if (numAttemptsLeft < 1) {
             return;
         }
 
-        let disabled = await this.stateValues.disabled;
+        const disabled = await this.stateValues.disabled;
         if (disabled) {
             return;
         }
 
-        let creditAchieved = await this.stateValues.creditAchievedIfSubmit;
-        if (await this.stateValues.handGraded) {
-            creditAchieved = 0;
-        }
-        let awardsUsed = await this.stateValues.awardsUsedIfSubmit;
-        let inputUsed = await this.stateValues.inputUsedIfSubmit;
+        const unadjustedCreditAchieved =
+            await this.stateValues.creditAchievedIfSubmit;
+        const creditFactor = await this.stateValues.nextCreditFactor;
+
+        const creditAchieved = (await this.stateValues.handGraded)
+            ? 0
+            : unadjustedCreditAchieved * creditFactor;
+
+        const awardsUsed = await this.stateValues.awardsUsedIfSubmit;
+        const inputUsed = await this.stateValues.inputUsedIfSubmit;
 
         // request to update credit
-        let instructions = [
+        const instructions = [
             {
                 updateType: "updateValue",
                 componentIdx: this.componentIdx,
@@ -2162,14 +1890,14 @@ export default class Answer extends InlineComponent {
             },
         ];
 
-        let inputChildrenWithValues =
+        const inputChildrenWithValues =
             await this.stateValues.inputChildrenWithValues;
 
         if (inputChildrenWithValues.length === 1) {
             // if have a single input descendant,
             // then will record the current value
 
-            let inputChild = inputChildrenWithValues[0];
+            const inputChild = inputChildrenWithValues[0];
 
             if (
                 inputUsed === inputChild.componentIdx &&
@@ -2186,8 +1914,7 @@ export default class Answer extends InlineComponent {
         }
 
         // add submitted responses to instruction for answer
-        let currentResponses = await this.stateValues.currentResponses;
-        // let currentResponses = await this.state.currentResponses.value;
+        const currentResponses = await this.stateValues.currentResponses;
 
         instructions.push({
             updateType: "updateValue",
@@ -2225,8 +1952,31 @@ export default class Answer extends InlineComponent {
             value: (await this.stateValues.numSubmissions) + 1,
         });
 
-        for (let child of await this.stateValues.awardChildren) {
-            let awarded = awardsUsed.includes(child.componentIdx);
+        if (unadjustedCreditAchieved < 1) {
+            instructions.push({
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "numIncorrectSubmissions",
+                value: (await this.stateValues.numIncorrectSubmissions) + 1,
+            });
+        }
+
+        instructions.push({
+            updateType: "updateValue",
+            componentIdx: this.componentIdx,
+            stateVariable: "numPreviousIncorrectSubmissions",
+            value: await this.stateValues.numIncorrectSubmissions,
+        });
+
+        instructions.push({
+            updateType: "updateValue",
+            componentIdx: this.componentIdx,
+            stateVariable: "creditFactorUsed",
+            value: creditFactor,
+        });
+
+        for (const child of await this.stateValues.awardChildren) {
+            const awarded = awardsUsed.includes(child.componentIdx);
             instructions.push({
                 updateType: "updateValue",
                 componentIdx: child.componentIdx,
@@ -2247,8 +1997,8 @@ export default class Answer extends InlineComponent {
             });
         }
 
-        let responseText = [];
-        for (let response of currentResponses) {
+        const responseText = [];
+        for (const response of currentResponses) {
             if (response.toString) {
                 try {
                     responseText.push(response.toString());
@@ -2269,7 +2019,7 @@ export default class Answer extends InlineComponent {
             creditAchieved,
         });
 
-        // console.log(`submit instructions`)
+        // console.log(`submit instructions`);
         // console.log(instructions);
 
         await this.coreFunctions.performUpdate({
@@ -2283,6 +2033,7 @@ export default class Answer extends InlineComponent {
                     componentIdx: this.componentIdx,
                     componentType: this.componentType,
                     answerNumber: this.answerNumber,
+                    rootName: this.rootName,
                 },
                 result: {
                     response: currentResponses,

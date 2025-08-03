@@ -356,6 +356,21 @@ function remapRefResolutions(
                 });
         }
 
+        if (component.doenetAttributes.extendListViaComposite) {
+            const newNodeIdx =
+                idxMap[component.doenetAttributes.extendListViaComposite];
+            if (newNodeIdx != undefined) {
+                component.doenetAttributes.extendListViaComposite = newNodeIdx;
+            }
+        }
+        if (component.doenetAttributes.copyListViaComposite) {
+            const newNodeIdx =
+                idxMap[component.doenetAttributes.copyListViaComposite];
+            if (newNodeIdx != undefined) {
+                component.doenetAttributes.copyListViaComposite = newNodeIdx;
+            }
+        }
+
         const childResult = remapRefResolutions(
             component.children,
             idxMap,

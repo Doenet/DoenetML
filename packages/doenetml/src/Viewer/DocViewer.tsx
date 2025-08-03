@@ -33,7 +33,7 @@ export const DocContext = createContext<{
     doenetViewerUrl?: string;
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
-    showAnswerResponseMenu?: boolean;
+    showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
 }>({});
 
@@ -48,7 +48,7 @@ export function DocViewer({
     forceDisable = false,
     forceShowCorrectness = false,
     forceShowSolution = false,
-    forceUnsuppressCheckwork = false,
+    forceUnsuppressCheckWork = false,
     generatedVariantCallback,
     flags,
     requestedVariantIndex,
@@ -62,7 +62,7 @@ export function DocViewer({
     doenetViewerUrl,
     scrollableContainer,
     darkMode,
-    showAnswerResponseMenu = false,
+    showAnswerResponseButton = false,
     answerResponseCounts = {},
     initializeCounters: prescribedInitializeCounters = {},
     fetchExternalDoenetML,
@@ -77,7 +77,7 @@ export function DocViewer({
     forceDisable?: boolean;
     forceShowCorrectness?: boolean;
     forceShowSolution?: boolean;
-    forceUnsuppressCheckwork?: boolean;
+    forceUnsuppressCheckWork?: boolean;
     generatedVariantCallback?: Function;
     flags: DoenetMLFlags;
     requestedVariantIndex: number;
@@ -91,7 +91,7 @@ export function DocViewer({
     doenetViewerUrl?: string;
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
-    showAnswerResponseMenu?: boolean;
+    showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     initializeCounters?: Record<string, number>;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
@@ -207,7 +207,7 @@ export function DocViewer({
         doenetViewerUrl,
         scrollableContainer,
         darkMode,
-        showAnswerResponseMenu,
+        showAnswerResponseButton,
         answerResponseCounts,
     };
 
@@ -557,13 +557,13 @@ export function DocViewer({
         forceDisable,
         forceShowCorrectness,
         forceShowSolution,
-        forceUnsuppressCheckwork,
+        forceUnsuppressCheckWork,
     }: {
         rendererState: Record<string, Record<string, any>>;
         forceDisable: boolean;
         forceShowCorrectness: boolean;
         forceShowSolution: boolean;
-        forceUnsuppressCheckwork: boolean;
+        forceUnsuppressCheckWork: boolean;
     }) {
         for (let componentIdx in rendererState) {
             let stateValues = rendererState[componentIdx].stateValues;
@@ -574,10 +574,10 @@ export function DocViewer({
                 stateValues.showCorrectness = true;
             }
             if (
-                forceUnsuppressCheckwork &&
-                stateValues.suppressCheckwork === true
+                forceUnsuppressCheckWork &&
+                stateValues.suppressCheckWork === true
             ) {
-                stateValues.suppressCheckwork = false;
+                stateValues.suppressCheckWork = false;
             }
             if (
                 forceShowSolution &&
@@ -586,7 +586,7 @@ export function DocViewer({
                 // look for a child that has a componentType solution
                 for (let childInst of rendererState[componentIdx]
                     .childrenInstructions) {
-                    if (childInst.componentType === "solution") {
+                    if (childInst?.componentType === "solution") {
                         let solComponentIdx = childInst.componentIdx;
                         if (rendererState[solComponentIdx].stateValues.hidden) {
                             rendererState[solComponentIdx].stateValues.hidden =
@@ -605,14 +605,14 @@ export function DocViewer({
                 forceDisable ||
                 forceShowCorrectness ||
                 forceShowSolution ||
-                forceUnsuppressCheckwork
+                forceUnsuppressCheckWork
             ) {
                 forceRendererState({
                     rendererState: args.rendererState,
                     forceDisable,
                     forceShowCorrectness,
                     forceShowSolution,
-                    forceUnsuppressCheckwork,
+                    forceUnsuppressCheckWork,
                 });
             }
             for (let componentIdx in args.rendererState) {
@@ -1348,6 +1348,7 @@ export function DocViewer({
         paddingLeft: "20px",
         paddingRight: "20px",
         backgroundColor: "inherit",
+        containerType: "inline-size",
     };
     if (!coreCreated.current) {
         if (!documentRenderer) {

@@ -2542,6 +2542,25 @@ The animal is a <answer name="answer1" shuffleOrder>
         });
     });
 
+    it("answer with shuffled sugared choices, preserve last choice", async () => {
+        const doenetML = `
+The animal is a <answer name="answer1" shuffleOrder preserveLastChoice>
+    <choice credit="0.5">cat</choice>
+    <choice credit="1">dog</choice>
+    <choice>monkey</choice>
+</answer>
+  `;
+
+        await test_choice_answer({
+            doenetML,
+            answers: [
+                { choices: ["dog"], credit: 1 },
+                { choices: ["monkey"], credit: 0 },
+                { choices: ["cat"], credit: 0.5 },
+            ],
+        });
+    });
+
     it("answer with choiceInput, fixed order", async () => {
         const doenetML = `
 The animal is a <answer name="answer1">
@@ -6491,5 +6510,948 @@ What is the derivative of <function name="f">x^2</function>?
             stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(1);
+    });
+
+    it("credit factor by attempt", async () => {
+        const doenetML = `
+    <answer name="ans" creditFactorByAttempt="1 0.8 0.7">x</answer>
+  `;
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answerIdx = await resolvePathToNodeIdx("ans");
+        const mathInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
+
+        // resubmitting correct answer does not reduce credit
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.8);
+
+        // credit for correct answer is reduced
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(4);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.8);
+
+        // resubmitting correct answer does not reduce credit
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(5);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.8);
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(6);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.7);
+
+        // credit for correct answer is further reduced
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.7);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(7);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.7);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.7);
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(8);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.7);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.7);
+
+        // credit for correct answer is not reduced further
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.7);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(9);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(3);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.7);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.7);
+    });
+
+    it("credit reduction per attempt", async () => {
+        const doenetML = `
+    <answer name="ans" creditReductionPerAttempt="0.4">x</answer>
+  `;
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answerIdx = await resolvePathToNodeIdx("ans");
+        const mathInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
+
+        // resubmitting correct answer does not reduce credit
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
+
+        // credit for correct answer is reduced
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(4);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
+
+        // resubmitting correct answer does not reduce credit
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(5);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(6);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
+            0.2,
+            1e-14,
+        );
+
+        // credit for correct answer is further reduced
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).closeTo(
+            0.2,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(7);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).closeTo(
+            0.2,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
+            0.2,
+            1e-14,
+        );
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(8);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).closeTo(
+            0.2,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
+            0.01,
+            1e-14,
+        );
+
+        // credit for correct answer is reduced to default limit
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).closeTo(
+            0.01,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(9);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(3);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).closeTo(
+            0.01,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
+            0.01,
+            1e-14,
+        );
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "x^2",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(10);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(4);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(3);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).closeTo(
+            0.01,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
+            0.01,
+            1e-14,
+        );
+
+        // credit for correct answer is not reduced further
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).closeTo(
+            0.01,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(11);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(4);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(4);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).closeTo(
+            0.01,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
+            0.01,
+            1e-14,
+        );
+    });
+
+    it("credit reduction per attempt with credit reduction limit", async () => {
+        const doenetML = `
+    <answer name="ans" creditReductionPerAttempt="0.4" creditReductionLimit="0.6">x</answer>
+  `;
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answerIdx = await resolvePathToNodeIdx("ans");
+        const mathInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
+
+        // resubmitting correct answer does not reduce credit
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
+
+        // credit for correct answer is reduced
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(4);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
+
+        // resubmitting correct answer does not reduce credit
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(5);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(6);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.4);
+
+        // credit for correct answer is further reduced
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.4);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(7);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.4);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.4);
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(8);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.4);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.4);
+
+        // credit for correct answer is not reduced further
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.4);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(9);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(3);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.4);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.4);
+    });
+
+    it("credit factor by attempt supersedes credit reduction per attempt and credit reduction limit", async () => {
+        const doenetML = `
+    <answer name="ans" creditFactorByAttempt="1 0.8 0.7" creditReductionPerAttempt="0.4" creditReductionLimit="0.1">x</answer>
+  `;
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answerIdx = await resolvePathToNodeIdx("ans");
+        const mathInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+
+        // resubmitting correct answer does not reduce credit
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+
+        // credit for correct answer is reduced
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.8);
+
+        // resubmitting correct answer does not reduce credit
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.8);
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+
+        // credit for correct answer is further reduced
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.7);
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+
+        // credit for correct answer is not reduced further
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.7);
+    });
+
+    it("disable wrong choices", async () => {
+        const doenetML = `
+    <answer name="ans" disableWrongChoices>
+        <choice>A</choice>
+        <choice credit="1">B</choice>
+        <choice>C</choice>
+    </answer>
+  `;
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answerIdx = await resolvePathToNodeIdx("ans");
+        const choiceInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+        const choiceIndices = stateVariables[choiceInputIdx].activeChildren.map(
+            (child) => child.componentIdx,
+        );
+
+        expect(
+            choiceIndices.map(
+                (idx) => stateVariables[idx].stateValues.disabled,
+            ),
+        ).eqls([false, false, false]);
+
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(
+            choiceIndices.map(
+                (idx) => stateVariables[idx].stateValues.disabled,
+            ),
+        ).eqls([false, false, false]);
+
+        // submit correct answer
+        await updateSelectedIndices({
+            componentIdx: choiceInputIdx,
+            selectedIndices: [2],
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(
+            choiceIndices.map(
+                (idx) => stateVariables[idx].stateValues.disabled,
+            ),
+        ).eqls([false, false, false]);
+
+        // submitting incorrect answer disables choice
+        await updateSelectedIndices({
+            componentIdx: choiceInputIdx,
+            selectedIndices: [1],
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(
+            choiceIndices.map(
+                (idx) => stateVariables[idx].stateValues.disabled,
+            ),
+        ).eqls([true, false, false]);
+
+        // submit correct answer again
+        await updateSelectedIndices({
+            componentIdx: choiceInputIdx,
+            selectedIndices: [2],
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(
+            choiceIndices.map(
+                (idx) => stateVariables[idx].stateValues.disabled,
+            ),
+        ).eqls([true, false, false]);
+
+        // submit other incorrect answer disables that choice
+        await updateSelectedIndices({
+            componentIdx: choiceInputIdx,
+            selectedIndices: [3],
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(
+            choiceIndices.map(
+                (idx) => stateVariables[idx].stateValues.disabled,
+            ),
+        ).eqls([true, false, true]);
     });
 });

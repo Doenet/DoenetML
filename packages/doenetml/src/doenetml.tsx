@@ -85,13 +85,13 @@ export function DoenetViewer({
     forceDisable = false,
     forceShowCorrectness = false,
     forceShowSolution = false,
-    forceUnsuppressCheckwork = false,
+    forceUnsuppressCheckWork = false,
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
     doenetViewerUrl,
     scrollableContainer,
     darkMode = "light",
-    showAnswerResponseMenu = false,
+    showAnswerResponseButton = false,
     answerResponseCounts = {},
     includeVariantSelector = false,
     initializeCounters = {},
@@ -117,13 +117,13 @@ export function DoenetViewer({
     forceDisable?: boolean;
     forceShowCorrectness?: boolean;
     forceShowSolution?: boolean;
-    forceUnsuppressCheckwork?: boolean;
+    forceUnsuppressCheckWork?: boolean;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
-    showAnswerResponseMenu?: boolean;
+    showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     includeVariantSelector?: boolean;
     initializeCounters?: Record<string, number>;
@@ -247,11 +247,11 @@ export function DoenetViewer({
             forceDisable={forceDisable}
             forceShowCorrectness={forceShowCorrectness}
             forceShowSolution={forceShowSolution}
-            forceUnsuppressCheckwork={forceUnsuppressCheckwork}
+            forceUnsuppressCheckWork={forceUnsuppressCheckWork}
             doenetViewerUrl={doenetViewerUrl}
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}
-            showAnswerResponseMenu={showAnswerResponseMenu}
+            showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
             initializeCounters={initializeCounters}
             fetchExternalDoenetML={fetchExternalDoenetML}
@@ -296,7 +296,7 @@ export function DoenetEditor({
     externalVirtualKeyboardProvided = false,
     doenetViewerUrl,
     darkMode = "light",
-    showAnswerResponseMenu = false,
+    showAnswerResponseButton = false,
     answerResponseCounts = {},
     width,
     height,
@@ -323,7 +323,7 @@ export function DoenetEditor({
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
     darkMode?: "dark" | "light";
-    showAnswerResponseMenu?: boolean;
+    showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
@@ -363,7 +363,7 @@ export function DoenetEditor({
             prefixForIds={prefixForIds}
             doenetViewerUrl={doenetViewerUrl}
             darkMode={darkMode}
-            showAnswerResponseMenu={showAnswerResponseMenu}
+            showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
             width={width}
             height={height}

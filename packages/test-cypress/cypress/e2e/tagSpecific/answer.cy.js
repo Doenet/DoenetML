@@ -3113,4 +3113,185 @@ d
         cy.get(cesc("#ti_submit")).click();
         cy.get(cesc("#ti_correct")).should("be.visible");
     });
+
+    it("credit factor by attempt and disable wrong choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+
+  <p><answer name="answer1" inline creditFactorByAttempt="1 0.6 0.4" disableWrongChoices>
+    <choiceInput name="choiceInput1">
+      <choice credit="1">A</choice>
+      <choice>B</choice>
+      <choice>C</choice>
+      <choice>D</choice>
+    </choiceInput>
+  </answer></p>
+  <p><answer name="answer2" inline creditFactorByAttempt="1 0.6 0.4" disableWrongChoices forceFullCheckworkButton>
+    <choiceInput name="choiceInput2">
+      <choice credit="1">A</choice>
+      <choice>B</choice>
+      <choice>C</choice>
+      <choice>D</choice>
+    </choiceInput>
+  </answer></p>
+   `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#answer1")).should(
+            "contain.text",
+            "wrong answers reduce credit",
+        );
+        cy.get(cesc("#answer2")).should(
+            "contain.text",
+            "wrong answers reduce credit",
+        );
+
+        cy.log("Submit correct answers");
+        cy.get(cesc("#choiceInput1")).select(`A`);
+        cy.get(cesc("#choiceInput2")).select(`A`);
+        cy.get(cesc("#choiceInput1_submit")).click();
+        cy.get(cesc("#answer2_submit")).click();
+        cy.get(cesc("#choiceInput1_correct")).should("be.visible");
+        cy.get(cesc("#answer2_correct")).should("be.visible");
+
+        cy.get(cesc("#answer1")).should(
+            "contain.text",
+            "wrong answers reduce credit",
+        );
+        cy.get(cesc("#answer2")).should(
+            "contain.text",
+            "wrong answers reduce credit",
+        );
+
+        cy.log("Submit incorrect answers");
+        cy.get(cesc("#choiceInput1")).select(`B`);
+        cy.get(cesc("#choiceInput2")).select(`B`);
+        cy.get(cesc("#choiceInput1_submit")).click();
+        cy.get(cesc("#answer2_submit")).click();
+        cy.get(cesc("#choiceInput1_incorrect")).should("be.visible");
+        cy.get(cesc("#answer2_incorrect")).should("be.visible");
+
+        cy.get(cesc("#answer1")).should(
+            "contain.text",
+            "credit will be reduced by 60% due to 1 wrong answer",
+        );
+        cy.get(cesc("#answer2")).should(
+            "contain.text",
+            "credit will be reduced by 60% due to 1 wrong answer",
+        );
+        cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
+
+        cy.log("Submit correct answers for reduced credit");
+        cy.get(cesc("#choiceInput1")).select(`A`);
+        cy.get(cesc("#choiceInput2")).select(`A`);
+        cy.get(cesc("#choiceInput1_submit")).click();
+        cy.get(cesc("#answer2_submit")).click();
+        cy.get(cesc("#choiceInput1_partial")).should("have.text", "60 %");
+        cy.get(cesc("#answer2_partial")).should("contain.text", "60% Credit");
+
+        cy.get(cesc("#answer1")).should(
+            "contain.text",
+            "credit reduced by 60% due to 1 wrong answer",
+        );
+        cy.get(cesc("#answer2")).should(
+            "contain.text",
+            "credit reduced by 60% due to 1 wrong answer",
+        );
+        cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
+
+        cy.log("Submit second incorrect answers");
+        cy.get(cesc("#choiceInput1")).select(`D`);
+        cy.get(cesc("#choiceInput2")).select(`D`);
+        cy.get(cesc("#choiceInput1_submit")).click();
+        cy.get(cesc("#answer2_submit")).click();
+        cy.get(cesc("#choiceInput1_incorrect")).should("be.visible");
+        cy.get(cesc("#answer2_incorrect")).should("be.visible");
+
+        cy.get(cesc("#answer1")).should(
+            "contain.text",
+            "credit will be reduced by 40% due to 2 wrong answers",
+        );
+        cy.get(cesc("#answer2")).should(
+            "contain.text",
+            "credit will be reduced by 40% due to 2 wrong answers",
+        );
+        cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput1")).get(`[value="4"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="4"]`).should("be.disabled");
+
+        cy.log("Submit correct answers for further reduced credit");
+        cy.get(cesc("#choiceInput1")).select(`A`);
+        cy.get(cesc("#choiceInput2")).select(`A`);
+        cy.get(cesc("#choiceInput1_submit")).click();
+        cy.get(cesc("#answer2_submit")).click();
+        cy.get(cesc("#choiceInput1_partial")).should("have.text", "40 %");
+        cy.get(cesc("#answer2_partial")).should("contain.text", "40% Credit");
+
+        cy.get(cesc("#answer1")).should(
+            "contain.text",
+            "credit reduced by 40% due to 2 wrong answers",
+        );
+        cy.get(cesc("#answer2")).should(
+            "contain.text",
+            "credit reduced by 40% due to 2 wrong answers",
+        );
+        cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput1")).get(`[value="4"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="4"]`).should("be.disabled");
+
+        cy.log("Submit third incorrect answers");
+        cy.get(cesc("#choiceInput1")).select(`C`);
+        cy.get(cesc("#choiceInput2")).select(`C`);
+        cy.get(cesc("#choiceInput1_submit")).click();
+        cy.get(cesc("#answer2_submit")).click();
+        cy.get(cesc("#choiceInput1_incorrect")).should("be.visible");
+        cy.get(cesc("#answer2_incorrect")).should("be.visible");
+
+        cy.get(cesc("#answer1")).should(
+            "contain.text",
+            "credit will be reduced by 40% due to 3 wrong answers",
+        );
+        cy.get(cesc("#answer2")).should(
+            "contain.text",
+            "credit will be reduced by 40% due to 3 wrong answers",
+        );
+        cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput1")).get(`[value="3"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="3"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput1")).get(`[value="4"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="4"]`).should("be.disabled");
+
+        cy.log("Submit correct answers, credit not further reduced");
+        cy.get(cesc("#choiceInput1")).select(`A`);
+        cy.get(cesc("#choiceInput2")).select(`A`);
+        cy.get(cesc("#choiceInput1_submit")).click();
+        cy.get(cesc("#answer2_submit")).click();
+        cy.get(cesc("#choiceInput1_partial")).should("have.text", "40 %");
+        cy.get(cesc("#answer2_partial")).should("contain.text", "40% Credit");
+
+        cy.get(cesc("#answer1")).should(
+            "contain.text",
+            "credit reduced by 40% due to 3 wrong answers",
+        );
+        cy.get(cesc("#answer2")).should(
+            "contain.text",
+            "credit reduced by 40% due to 3 wrong answers",
+        );
+        cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput1")).get(`[value="3"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="3"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput1")).get(`[value="4"]`).should("be.disabled");
+        cy.get(cesc("#choiceInput2")).get(`[value="4"]`).should("be.disabled");
+    });
 });

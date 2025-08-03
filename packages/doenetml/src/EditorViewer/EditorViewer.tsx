@@ -43,7 +43,7 @@ export function EditorViewer({
     prefixForIds = "",
     doenetViewerUrl,
     darkMode = "light",
-    showAnswerResponseMenu = false,
+    showAnswerResponseButton = false,
     answerResponseCounts = {},
     width = "100%",
     height = "500px",
@@ -67,7 +67,7 @@ export function EditorViewer({
     prefixForIds?: string;
     doenetViewerUrl?: string;
     darkMode?: "dark" | "light";
-    showAnswerResponseMenu?: boolean;
+    showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
@@ -157,7 +157,7 @@ export function EditorViewer({
                 const data = event.data;
                 if (data.verb === "submitted") {
                     const object = JSON.parse(data.object);
-                    const answerId = object.componentIdx;
+                    const answerId = object.rootName;
 
                     if (answerId) {
                         const result = JSON.parse(
@@ -165,27 +165,32 @@ export function EditorViewer({
                             nanInfinityReviver,
                         );
                         const answerCreditAchieved = result.creditAchieved;
-                        const response: unknown[] = result.response;
-                        const componentTypes: string[] = result.componentTypes;
+                        const response: unknown[] | undefined = result.response;
+                        const componentTypes: string[] | undefined =
+                            result.componentTypes;
 
-                        const responseElement = formatResponse(
-                            response,
-                            componentTypes,
-                        );
+                        if (
+                            response !== undefined &&
+                            componentTypes !== undefined &&
+                            response.length === componentTypes.length
+                        ) {
+                            const responseElement = formatResponse(
+                                response,
+                                componentTypes,
+                            );
 
-                        setResponses((was) => {
-                            const arr = [...was];
-                            arr.push({
-                                answerId:
-                                    answerId[0] === "/"
-                                        ? answerId.substring(1)
-                                        : answerId,
-                                response: responseElement,
-                                creditAchieved: answerCreditAchieved,
-                                submittedAt: new Date().toLocaleTimeString(),
+                            setResponses((was) => {
+                                const arr = [...was];
+                                arr.push({
+                                    answerId,
+                                    response: responseElement,
+                                    creditAchieved: answerCreditAchieved,
+                                    submittedAt:
+                                        new Date().toLocaleTimeString(),
+                                });
+                                return arr;
                             });
-                            return arr;
-                        });
+                        }
                     }
                 }
             }
@@ -538,7 +543,7 @@ export function EditorViewer({
                         scrollableContainer.current ?? undefined
                     }
                     darkMode={darkMode}
-                    showAnswerResponseMenu={showAnswerResponseMenu}
+                    showAnswerResponseButton={showAnswerResponseButton}
                     answerResponseCounts={answerResponseCounts}
                     fetchExternalDoenetML={fetchExternalDoenetML}
                 />

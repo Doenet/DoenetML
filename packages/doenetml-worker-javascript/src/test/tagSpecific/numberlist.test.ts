@@ -742,8 +742,7 @@ describe("NumberList tag tests", async () => {
         ).eq(true);
     });
 
-    // TODO: fix this feature and restore test. See issue #477.
-    it.skip("numberList and rounding, from strings", async () => {
+    it("numberList and rounding, from strings", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><numberList name="nl1" displayDigits="4">2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</numberList></p>
@@ -753,6 +752,7 @@ describe("NumberList tag tests", async () => {
     <p name="p5"><numberList name="nl5" displayDecimals="4" displayDigits="3" displaySmallAsZero="false">2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</numberList></p>
     <p name="p6"><numberList name="nl6" displayDecimals="4" displayDigits="3" displaySmallAsZero="false" padZeros>2345.1535268 3.52343 0.5 0.00000000000052523 0.000000000000000000006</numberList></p>
 
+    <section name="sec1">
     <p name="p1a"><numberList name="nl1a" extend="$nl1" /></p>
     <p name="p2a"><numberList name="nl2a" extend="$nl2" /></p>
     <p name="p3a"><numberList name="nl3a" extend="$nl3" /></p>
@@ -760,13 +760,16 @@ describe("NumberList tag tests", async () => {
     <p name="p5a"><numberList name="nl5a" extend="$nl5" /></p>
     <p name="p6a"><numberList name="nl6a" extend="$nl6" /></p>
 
-    <p name="p1b"><numberList name="nl1b" extend="$nl1" /></p>
-    <p name="p2b"><numberList name="nl2b" extend="$nl2" /></p>
-    <p name="p3b"><numberList name="nl3b" extend="$nl3" /></p>
-    <p name="p4b"><numberList name="nl4b" extend="$nl4" /></p>
-    <p name="p5b"><numberList name="nl5b" extend="$nl5" /></p>
-    <p name="p6b"><numberList name="nl6b" extend="$nl6" /></p>
+    <p name="p1b"><numberList name="nl1b" copy="$nl1" /></p>
+    <p name="p2b"><numberList name="nl2b" copy="$nl2" /></p>
+    <p name="p3b"><numberList name="nl3b" copy="$nl3" /></p>
+    <p name="p4b"><numberList name="nl4b" copy="$nl4" /></p>
+    <p name="p5b"><numberList name="nl5b" copy="$nl5" /></p>
+    <p name="p6b"><numberList name="nl6b" copy="$nl6" /></p>
+    </section>
 
+    <section name="sec2" extend="$sec1" />
+    <section name="sec3" copy="$sec1" />
 
     `,
         });
@@ -802,56 +805,59 @@ describe("NumberList tag tests", async () => {
             "6.00 * 10^(-21)",
         ].join(", ");
 
-        for (let post of ["", "a", "b"]) {
-            //console.log({ post });
-            await test_numberList({
-                core,
-                resolvePathToNodeIdx,
-                name: `nl1${post}`,
-                numbers: vals,
-                pName: `p1${post}`,
-                text: text1,
-            });
-            await test_numberList({
-                core,
-                resolvePathToNodeIdx,
-                name: `nl2${post}`,
-                numbers: vals,
-                pName: `p2${post}`,
-                text: text2,
-            });
-            await test_numberList({
-                core,
-                resolvePathToNodeIdx,
-                name: `nl3${post}`,
-                numbers: vals,
-                pName: `p3${post}`,
-                text: text3,
-            });
-            await test_numberList({
-                core,
-                resolvePathToNodeIdx,
-                name: `nl4${post}`,
-                numbers: vals,
-                pName: `p4${post}`,
-                text: text4,
-            });
-            await test_numberList({
-                core,
-                resolvePathToNodeIdx,
-                name: `nl5${post}`,
-                numbers: vals,
-                pName: `p5${post}`,
-                text: text5,
-            });
-            await test_numberList({
-                core,
-                resolvePathToNodeIdx,
-                name: `nl6${post}`,
-                numbers: vals,
-                pName: `p6${post}`,
-                text: text6,
-            });
+        for (const post of ["", "a", "b"]) {
+            const preOptions = post === "" ? [""] : ["", "sec2.", "sec3."];
+            for (const pre of preOptions) {
+                // console.log({ pre, post });
+                await test_numberList({
+                    core,
+                    resolvePathToNodeIdx,
+                    name: `${pre}nl1${post}`,
+                    numbers: vals,
+                    pName: `${pre}p1${post}`,
+                    text: text1,
+                });
+                await test_numberList({
+                    core,
+                    resolvePathToNodeIdx,
+                    name: `${pre}nl2${post}`,
+                    numbers: vals,
+                    pName: `${pre}p2${post}`,
+                    text: text2,
+                });
+                await test_numberList({
+                    core,
+                    resolvePathToNodeIdx,
+                    name: `${pre}nl3${post}`,
+                    numbers: vals,
+                    pName: `${pre}p3${post}`,
+                    text: text3,
+                });
+                await test_numberList({
+                    core,
+                    resolvePathToNodeIdx,
+                    name: `${pre}nl4${post}`,
+                    numbers: vals,
+                    pName: `${pre}p4${post}`,
+                    text: text4,
+                });
+                await test_numberList({
+                    core,
+                    resolvePathToNodeIdx,
+                    name: `${pre}nl5${post}`,
+                    numbers: vals,
+                    pName: `${pre}p5${post}`,
+                    text: text5,
+                });
+                await test_numberList({
+                    core,
+                    resolvePathToNodeIdx,
+                    name: `${pre}nl6${post}`,
+                    numbers: vals,
+                    pName: `${pre}p6${post}`,
+                    text: text6,
+                });
+            }
         }
     });
 
@@ -1216,5 +1222,165 @@ describe("NumberList tag tests", async () => {
             pName: "p",
             text: `${n1}, ${n2}`,
         });
+    });
+
+    it("compare unordered number lists", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+
+    <booleanInput name="unordered">true</booleanInput>
+
+    <boolean name="b1">
+        <numberList name="nl1" unordered="$unordered">1 2 3</numberList>
+        =
+        <numberList name="nl2">3 1 2</numberList>
+    </boolean>
+    <boolean name="b2">$nl1 = $nl2</boolean>
+    <boolean name="b3"><numberList extend="$nl1" name="nl1a" /> = <numberList extend="$nl2" /></boolean>
+    <boolean name="b4"><numberList copy="$nl1" name="nl1b" /> = <numberList copy="$nl2" /></boolean>
+
+    <p name="pUnordered">$nl1.unordered, $nl1a.unordered, $nl1b.unordered</p>
+
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
+                .text,
+        ).eq("true, true, true");
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("unordered"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        // all but copied list become ordered
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
+                .text,
+        ).eq("false, false, true");
+    });
+
+    it("compare unordered number lists, overwrite attribute", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+
+    <booleanInput name="unordered" />
+
+    <numberList name="nl1" unordered>1 2 3</numberList>
+    <numberList name="nl2">3 1 2</numberList>
+
+    <boolean name="b1"><numberList name="nl1a" unordered="$unordered" extend="$nl1" /> = $nl2</boolean>
+    <boolean name="b2"><numberList name="nl1b" unordered="$unordered" copy="$nl1" /> = $nl2</boolean>
+    <boolean name="b3">$nl1a = $nl2</boolean>
+    <boolean name="b4"><numberList extend="$nl1a" name="nl1c" /> = $nl2</boolean>
+    <boolean name="b5"><numberList copy="$nl1a" name="nl1d" /> = $nl2</boolean>
+    <boolean name="b6">$nl1b = $nl2</boolean>
+    <boolean name="b7"><numberList extend="$nl1b" name="nl1e" /> = $nl2</boolean>
+    <boolean name="b8"><numberList copy="$nl1b" name="nl1f" /> = $nl2</boolean>
+
+    <p name="pUnordered">$nl1a.unordered, $nl1b.unordered, $nl1c.unordered, $nl1d.unordered, $nl1e.unordered, $nl1f.unordered</p>
+
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b5")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b6")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b7")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b8")].stateValues.value,
+        ).eq(false);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
+                .text,
+        ).eq("false, false, false, false, false, false");
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("unordered"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b5")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b6")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b7")].stateValues.value,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b8")].stateValues.value,
+        ).eq(false);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
+                .text,
+        ).eq("true, true, true, false, true, false");
     });
 });

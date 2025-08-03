@@ -256,3 +256,154 @@ export function returnRoundingAttributeComponentShadowing() {
     }
     return shadowing;
 }
+
+/**
+ * Gather the raw attributes (i.e., of type `unresolved`) in `component`
+ * that are rounding attribute, with the addition of `fixed` and `isResponse`.
+ *
+ * If `component` extends or copies a list, then recurse to that list component,
+ * to add attributes that were not yet encountered.
+ *
+ * Returns: an array of `UnresolvedAttribute`s.
+ */
+export function gatherRawRoundingFixedResponseAttributes(
+    component,
+    components,
+) {
+    const rawAttrNames = [
+        "fixed",
+        "isResponse",
+        ...Object.keys(returnRoundingAttributes()),
+    ];
+
+    let componentForRawAttributes = component;
+    let attributesToConvert = {};
+
+    while (rawAttrNames.length > 0) {
+        const attrsFound = [];
+        for (const attr of rawAttrNames) {
+            if (attr in componentForRawAttributes.attributes) {
+                if (
+                    componentForRawAttributes.attributes[attr].type ===
+                    "unresolved"
+                ) {
+                    attributesToConvert[attr] =
+                        componentForRawAttributes.attributes[attr];
+                }
+                attrsFound.push(attr);
+                // displayDigits and displayDecimals are treated as a single unit,
+                // so if either attribute is found, remove both when recurse
+                if (attr === "displayDigits") {
+                    attrsFound.push("displayDecimals");
+                } else if (attr === "displayDecimals") {
+                    attrsFound.push("displayDigits");
+                }
+            }
+        }
+
+        if (componentForRawAttributes.doenetAttributes.extendListViaComposite) {
+            const composite =
+                components[
+                    componentForRawAttributes.doenetAttributes
+                        .extendListViaComposite
+                ];
+
+            if (typeof composite.stateValues.extendIdx === "number") {
+                componentForRawAttributes =
+                    components[composite.stateValues.extendIdx];
+            } else {
+                break;
+            }
+        } else if (
+            componentForRawAttributes.doenetAttributes.copyListViaComposite
+        ) {
+            const composite =
+                components[
+                    componentForRawAttributes.doenetAttributes
+                        .copyListViaComposite
+                ];
+
+            if (typeof composite.stateValues.extendIdx === "number") {
+                componentForRawAttributes =
+                    components[composite.stateValues.extendIdx];
+            } else {
+                break;
+            }
+        } else {
+            break;
+        }
+
+        for (const attr of attrsFound) {
+            const idx = rawAttrNames.indexOf(attr);
+            if (idx !== -1) {
+                rawAttrNames.splice(idx, 1);
+            }
+        }
+    }
+    return attributesToConvert;
+}
+
+export function addShadowRoundingAttributes({
+    nComponents,
+    source,
+    compositeIdx,
+    attributes,
+    componentInfoObjects,
+}) {
+    const sourceSVs =
+        componentInfoObjects.publicStateVariableInfo[source.componentType]
+            ?.stateVariableDescriptions;
+
+    if (!sourceSVs) {
+        return nComponents;
+    }
+
+    const roundingAttributes = returnRoundingAttributes();
+
+    const origAttrNames = Object.keys(attributes);
+
+    for (const attrName in roundingAttributes) {
+        if (origAttrNames.includes(attrName)) {
+            continue;
+        }
+        if (
+            (attrName === "displayDigits" &&
+                origAttrNames.includes("displayDecimals")) ||
+            (attrName === "displayDecimals" &&
+                origAttrNames.includes("displayDigits"))
+        ) {
+            continue;
+        }
+
+        if (
+            sourceSVs[attrName]?.createComponentOfType ===
+            roundingAttributes[attrName].createComponentOfType
+        ) {
+            const shadowComponent = {
+                type: "serialized",
+                componentType:
+                    roundingAttributes[attrName].createComponentOfType,
+                componentIdx: nComponents++,
+                attributes: {},
+                doenetAttributes: {},
+                state: {},
+                children: [],
+                downstreamDependencies: {
+                    [source.componentIdx]: [
+                        {
+                            compositeIdx,
+                            dependencyType: "referenceShadow",
+                            propVariable: attrName,
+                        },
+                    ],
+                },
+            };
+
+            attributes[attrName] = {
+                component: shadowComponent,
+            };
+        }
+    }
+
+    return nComponents;
+}

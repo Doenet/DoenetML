@@ -166,6 +166,8 @@ import BlockQuote from "./components/BlockQuote";
 // import VertexConstraints from "./components/VertexConstraints";
 // import EdgeConstraints from "./components/EdgeConstraints";
 import StickyGroup from "./components/StickyGroup";
+import Pretzel from "./components/Pretzel";
+import PretzelArranger from "./components/PretzelArranger";
 
 //Extended
 import * as ComponentSize from "./components/abstract/ComponentSize";
@@ -174,6 +176,7 @@ import BaseComponent from "./components/abstract/BaseComponent";
 import Copy from "./components/abstract/Copy";
 import InlineComponent from "./components/abstract/InlineComponent";
 import BlockComponent from "./components/abstract/BlockComponent";
+import BlockScoredComponent from "./components/abstract/BlockScoredComponent";
 import GraphicalComponent from "./components/abstract/GraphicalComponent";
 import ConstraintComponent from "./components/abstract/ConstraintComponent";
 import SegmentConstraintComponent from "./components/abstract/SegmentConstraintComponent";
@@ -358,10 +361,13 @@ const componentTypeArray = [
     // VertexConstraints,
     // EdgeConstraints,
     StickyGroup,
+    Pretzel,
+    PretzelArranger,
 
     BaseComponent,
     InlineComponent,
     BlockComponent,
+    BlockScoredComponent,
     GraphicalComponent,
     ConstraintComponent,
     SegmentConstraintComponent,

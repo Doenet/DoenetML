@@ -95,7 +95,12 @@ export function convertRefsToCopies({
         // and we make the name and componentIdx the component be assigned to the eventual replacement
 
         if ("ExtendAttribute" in extending || "CopyAttribute" in extending) {
-            if (newComponent.componentType.endsWith("List")) {
+            if (
+                newComponent.componentType.endsWith("List") &&
+                !["asList", "convertSetToList"].includes(
+                    newComponent.componentType,
+                )
+            ) {
                 wrappingComponent = newComponent;
                 wrappingComponent.attributes = outerAttributes;
                 newComponent = {
@@ -111,11 +116,21 @@ export function convertRefsToCopies({
                     extending: wrappingComponent.extending,
                 };
 
+                if (!wrappingComponent.doenetAttributes) {
+                    wrappingComponent.doenetAttributes = {};
+                }
+
                 if ("CopyAttribute" in extending) {
                     newComponent.attributes.link = {
                         name: "link",
                         children: ["false"],
                     };
+
+                    wrappingComponent.doenetAttributes.copyListViaComposite =
+                        newComponent.componentIdx;
+                } else {
+                    wrappingComponent.doenetAttributes.extendListViaComposite =
+                        newComponent.componentIdx;
                 }
 
                 // The "removeEmptyArrayEntries" attribute needs to be on the copy component, not the list component

@@ -2,13 +2,6 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-    faCheck,
-    faLevelDownAlt,
-    faTimes,
-    faCloud,
-} from "@fortawesome/free-solid-svg-icons";
 import { sizeToCSS } from "./utils/css";
 import styled from "styled-components";
 import { MathJax } from "better-react-mathjax";
@@ -17,26 +10,10 @@ import { BoardContext } from "./graph";
 import me from "math-expressions";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { JXGObject } from "./jsxgraph-distrib/types";
-
-// Moved most of checkWorkStyle styling into Button
-const Button = styled.button`
-    position: relative;
-    height: 24px;
-    width: 24px;
-    display: inline-block;
-    color: white;
-    background-color: var(--mainBlue);
-    padding: 2px;
-    /* border: var(--mainBorder); */
-    border: none;
-    border-radius: var(--mainBorderRadius);
-    margin: 0px 4px 4px 0px;
-
-    &:hover {
-        background-color: var(--lightBlue);
-        color: black;
-    }
-`;
+import {
+    calculateValidationState,
+    createCheckWorkComponent,
+} from "../../utils/checkWork";
 
 const TextArea = styled.textarea`
     font-size: 14px;
@@ -131,16 +108,12 @@ export default function TextInput(props: UseDoenetRendererProps) {
         immediateValueWhenSetState.current = null;
     }
 
-    let validationState = "unvalidated";
-    if (SVs.valueHasBeenValidated) {
-        if (SVs.creditAchieved === 1) {
-            validationState = "correct";
-        } else if (SVs.creditAchieved === 0) {
-            validationState = "incorrect";
-        } else {
-            validationState = "partialcorrect";
-        }
-    }
+    const validationState = calculateValidationState(SVs);
+
+    const submitAnswer = () =>
+        callAction({
+            action: actions.submitAnswer,
+        });
 
     function handleKeyPress(e: React.KeyboardEvent) {
         if (e.key === "Enter") {
@@ -152,14 +125,11 @@ export default function TextInput(props: UseDoenetRendererProps) {
             });
 
             if (
-                SVs.includeCheckWork &&
-                !SVs.suppressCheckwork &&
+                SVs.showCheckWork &&
                 !SVs.expanded &&
                 validationState === "unvalidated"
             ) {
-                callAction({
-                    action: actions.submitAnswer,
-                });
+                submitAnswer();
             }
         }
     }
@@ -225,8 +195,8 @@ export default function TextInput(props: UseDoenetRendererProps) {
             fixed: fixed.current,
             disabled: SVs.disabled,
             useMathJax: SVs.labelHasLatex,
-            strokeColor: "var(--canvastext)",
-            highlightStrokeColor: "var(--canvastext)",
+            strokeColor: "var(--canvasText)",
+            highlightStrokeColor: "var(--canvasText)",
             highlight: !fixLocation.current,
             parse: false,
         };
@@ -292,9 +262,9 @@ export default function TextInput(props: UseDoenetRendererProps) {
         newInputJXG.rendNodeInput.addEventListener("focus", handleFocus);
 
         newInputJXG.rendNodeInput.style.width = width!;
-        newInputJXG.rendNodeInput.style.color = "var(--canvastext)";
+        newInputJXG.rendNodeInput.style.color = "var(--canvasText)";
         newInputJXG.rendNodeInput.style.background = "var(--canvas)";
-        newInputJXG.rendNodeInput.style.borderColor = "var(--canvastext)";
+        newInputJXG.rendNodeInput.style.borderColor = "var(--canvasText)";
 
         newInputJXG.rendNodeLabel.style.marginRight = "2px";
 
@@ -597,133 +567,13 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     const inputKey = id + "_input";
 
-    let checkWorkStyle: React.CSSProperties = {
-        cursor: "pointer",
-        padding: "1px 6px 1px 6px",
-    };
-    let checkWorkTabIndex = 0;
-
-    if (disabled) {
-        checkWorkStyle.backgroundColor = getComputedStyle(
-            document.documentElement,
-        ).getPropertyValue("--mainGray");
-        checkWorkStyle.cursor = "not-allowed";
-        checkWorkStyle.color = "black";
-        checkWorkTabIndex = -1;
-    }
-
-    // Assume we don't have a check work button
-    let checkWorkButton = null;
-    if (SVs.includeCheckWork && !SVs.suppressCheckwork) {
-        if (validationState === "unvalidated") {
-            checkWorkButton = (
-                <Button
-                    id={id + "_submit"}
-                    tabIndex={checkWorkTabIndex}
-                    disabled={disabled}
-                    style={checkWorkStyle}
-                    onClick={() =>
-                        callAction({
-                            action: actions.submitAnswer,
-                        })
-                    }
-                >
-                    <FontAwesomeIcon
-                        style={
-                            {
-                                /*marginRight: "4px", paddingLeft: "2px"*/
-                            }
-                        }
-                        icon={faLevelDownAlt}
-                        transform={{ rotate: 90 }}
-                    />
-                </Button>
-            );
-        } else {
-            if (SVs.showCorrectness) {
-                if (validationState === "correct") {
-                    checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement,
-                    ).getPropertyValue("--mainGreen");
-                    checkWorkButton = (
-                        <Button
-                            id={id + "_correct"}
-                            style={checkWorkStyle}
-                            tabIndex={checkWorkTabIndex}
-                        >
-                            <FontAwesomeIcon icon={faCheck} />
-                        </Button>
-                    );
-                } else if (validationState === "partialcorrect") {
-                    //partial credit
-                    let percent = Math.round(SVs.creditAchieved * 100);
-                    let partialCreditContents = `${percent} %`;
-                    checkWorkStyle.width = "44px";
-
-                    checkWorkStyle.backgroundColor = "#efab34";
-                    checkWorkButton = (
-                        <Button
-                            id={id + "_partial"}
-                            style={checkWorkStyle}
-                            tabIndex={checkWorkTabIndex}
-                        >
-                            {partialCreditContents}
-                        </Button>
-                    );
-                } else {
-                    //incorrect
-                    checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement,
-                    ).getPropertyValue("--mainRed");
-                    checkWorkButton = (
-                        <Button
-                            id={id + "_incorrect"}
-                            style={checkWorkStyle}
-                            tabIndex={checkWorkTabIndex}
-                        >
-                            <FontAwesomeIcon icon={faTimes} />
-                        </Button>
-                    );
-                }
-            } else {
-                // showCorrectness is false
-                checkWorkStyle.backgroundColor = "rgb(74, 3, 217)";
-                checkWorkStyle.padding = "1px 8px 1px 4px"; // To center the faCloud icon
-                checkWorkButton = (
-                    <Button
-                        id={id + "_saved"}
-                        style={checkWorkStyle}
-                        tabIndex={checkWorkTabIndex}
-                    >
-                        <FontAwesomeIcon icon={faCloud} />
-                    </Button>
-                );
-            }
-        }
-
-        if (SVs.numAttemptsLeft < 0) {
-            checkWorkButton = (
-                <>
-                    {checkWorkButton}
-                    <span>(no attempts remaining)</span>
-                </>
-            );
-        } else if (SVs.numAttemptsLeft == 1) {
-            checkWorkButton = (
-                <>
-                    {checkWorkButton}
-                    <span>(1 attempt remaining)</span>
-                </>
-            );
-        } else if (Number.isFinite(SVs.numAttemptsLeft)) {
-            checkWorkButton = (
-                <>
-                    {checkWorkButton}
-                    <span>(attempts remaining: {SVs.numAttemptsLeft})</span>
-                </>
-            );
-        }
-    }
+    const checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState,
+        submitAnswer,
+        false,
+    );
 
     let input;
     let label = SVs.label;
@@ -750,7 +600,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     onFocus={handleFocus}
                     style={{
                         margin: "0px 4px 4px 4px",
-                        color: "var(--canvastext)",
+                        color: "var(--canvasText)",
                         background: "var(--canvas)",
                         width,
                         height,
@@ -775,7 +625,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     width={width}
                     style={{
                         margin: "0px 4px 4px 4px",
-                        color: "var(--canvastext)",
+                        color: "var(--canvasText)",
                         background: "var(--canvas)",
                     }}
                 />
@@ -790,7 +640,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
             style={{ display: "inline-flex", maxWidth: "100%" }}
         >
             {input}
-            {checkWorkButton}
+            {checkWorkComponent}
         </span>
     );
 }
