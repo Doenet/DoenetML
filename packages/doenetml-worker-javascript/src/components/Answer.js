@@ -159,18 +159,36 @@ export default class Answer extends InlineComponent {
             defaultValue: false,
             public: true,
         };
+
+        // If `true`, then incorrect choices are disabled after they have been submitted.
         attributes.disableWrongChoices = {
             createComponentOfType: "boolean",
             createStateVariable: "disableWrongChoices",
             defaultValue: false,
             public: true,
         };
+
+        // A list of factors that will multiply the original credit achieved to adjust it based on the number
+        // of incorrect attempts submitted.
+        // For example, given `<answer creditFactorByAttempt="1 0.7 0.5" />`,
+        // a correct answer on the first attempt would get full credit,
+        // obtaining the correct answer after one incorrect response would give 70% credit,
+        // while getting the correct response after two or more incorrect responses would yield 50% credit.
         attributes.creditFactorByAttempt = {
             createComponentOfType: "numberList",
             createStateVariable: "creditFactorByAttempt",
             defaultValue: [],
             public: true,
         };
+
+        // If `creditFactorByAttempt` is not supplied, then `creditReductionPerAttempt` can specify a value
+        // to subtract from the credit for each incorrect attempt.
+        // For example, given `<answer creditReductionPerAttempt="0.4" />`,
+        // a correct answer on the first attempt would get full credit,
+        // obtaining the correct after one incorrect response would give 60% credit,
+        // while getting the response after two incorrect responses would yield 20% credit.
+        // With three or more incorrect responses, credit is prevented by going negative by the value of `creditReductionLimit`,
+        // which defaults to 0.99, meaning the credit doesn't drop below 1%.
         attributes.creditReductionPerAttempt = {
             createComponentOfType: "number",
             createStateVariable: "creditReductionPerAttempt",
@@ -178,6 +196,11 @@ export default class Answer extends InlineComponent {
             public: true,
             clamp: [0, 1],
         };
+
+        // The maximum amount of credit reduced by incorrect answers when `creditReductionPerAttempt` is in force.
+        // It defaults to `0.99`.
+        // If the previous example were modified to `<answer creditReductionPerAttempt="0.4" creditReductionLimit="0.6" />`,
+        // then the credit after two or more in correct responses would stay at 40%.
         attributes.creditReductionLimit = {
             createComponentOfType: "number",
             createStateVariable: "creditReductionLimit",
@@ -1627,7 +1650,29 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.numPreviousIncorrectSubmissions = {
+            defaultValue: 0,
+            hasEssential: true,
+            forRenderer: true,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: {
+                    numPreviousIncorrectSubmissions: true,
+                },
+            }),
+            inverseDefinition: ({ desiredStateVariableValues }) => ({
+                success: true,
+                instructions: [
+                    {
+                        setEssentialValue: "numPreviousIncorrectSubmissions",
+                        value: desiredStateVariableValues.numPreviousIncorrectSubmissions,
+                    },
+                ],
+            }),
+        };
+
         stateVariableDefinitions.nextCreditFactor = {
+            forRenderer: true,
             returnDependencies: () => ({
                 creditFactorByAttempt: {
                     dependencyType: "stateVariable",
@@ -1673,6 +1718,27 @@ export default class Answer extends InlineComponent {
                 }
 
                 return { setValue: { nextCreditFactor } };
+            },
+        };
+
+        stateVariableDefinitions.creditFactorUsed = {
+            forRenderer: true,
+            hasEssential: true,
+            defaultValue: 1,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { creditFactorUsed: true },
+            }),
+            inverseDefinition: function ({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "creditFactorUsed",
+                            value: desiredStateVariableValues.creditFactorUsed,
+                        },
+                    ],
+                };
             },
         };
 
@@ -1797,13 +1863,13 @@ export default class Answer extends InlineComponent {
             return;
         }
 
-        const unmodifiedCreditAchieved =
+        const unadjustedCreditAchieved =
             await this.stateValues.creditAchievedIfSubmit;
+        const creditFactor = await this.stateValues.nextCreditFactor;
 
         const creditAchieved = (await this.stateValues.handGraded)
             ? 0
-            : unmodifiedCreditAchieved *
-              (await this.stateValues.nextCreditFactor);
+            : unadjustedCreditAchieved * creditFactor;
 
         const awardsUsed = await this.stateValues.awardsUsedIfSubmit;
         const inputUsed = await this.stateValues.inputUsedIfSubmit;
@@ -1886,7 +1952,7 @@ export default class Answer extends InlineComponent {
             value: (await this.stateValues.numSubmissions) + 1,
         });
 
-        if (unmodifiedCreditAchieved < 1) {
+        if (unadjustedCreditAchieved < 1) {
             instructions.push({
                 updateType: "updateValue",
                 componentIdx: this.componentIdx,
@@ -1894,6 +1960,20 @@ export default class Answer extends InlineComponent {
                 value: (await this.stateValues.numIncorrectSubmissions) + 1,
             });
         }
+
+        instructions.push({
+            updateType: "updateValue",
+            componentIdx: this.componentIdx,
+            stateVariable: "numPreviousIncorrectSubmissions",
+            value: await this.stateValues.numIncorrectSubmissions,
+        });
+
+        instructions.push({
+            updateType: "updateValue",
+            componentIdx: this.componentIdx,
+            stateVariable: "creditFactorUsed",
+            value: creditFactor,
+        });
 
         for (const child of await this.stateValues.awardChildren) {
             const awarded = awardsUsed.includes(child.componentIdx);
@@ -1939,7 +2019,7 @@ export default class Answer extends InlineComponent {
             creditAchieved,
         });
 
-        // console.log(`submit instructions`)
+        // console.log(`submit instructions`);
         // console.log(instructions);
 
         await this.coreFunctions.performUpdate({

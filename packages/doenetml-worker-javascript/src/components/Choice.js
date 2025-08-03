@@ -254,13 +254,19 @@ export default class Choice extends InlineComponent {
                     parentComponentType: "choiceInput",
                     variableName: "disableWrongChoices",
                 },
+                selectMultiple: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "choiceInput",
+                    variableName: "selectMultiple",
+                },
             }),
             definition({ dependencyValues }) {
                 const disabled =
                     dependencyValues.disabledOriginal ||
                     (dependencyValues.disableWrongChoices &&
                         dependencyValues.hasBeenSubmitted &&
-                        dependencyValues.credit === 0);
+                        dependencyValues.credit < 1 &&
+                        !dependencyValues.selectMultiple);
                 return { setValue: { disabled } };
             },
         };

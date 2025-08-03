@@ -6534,6 +6534,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
 
         // resubmitting correct answer does not reduce credit
         await updateMathInputValue({
@@ -6550,6 +6560,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
 
         // submit incorrect answer
         await updateMathInputValue({
@@ -6561,6 +6581,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.8);
 
         // credit for correct answer is reduced
         await updateMathInputValue({
@@ -6572,6 +6602,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(4);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.8);
 
         // resubmitting correct answer does not reduce credit
         await updateMathInputValue({
@@ -6588,6 +6628,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(5);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.8);
 
         // submit incorrect answer
         await updateMathInputValue({
@@ -6599,6 +6649,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(6);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.7);
 
         // credit for correct answer is further reduced
         await updateMathInputValue({
@@ -6610,6 +6670,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.7);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(7);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.7);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.7);
 
         // submit incorrect answer
         await updateMathInputValue({
@@ -6621,6 +6691,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(8);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.7);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.7);
 
         // credit for correct answer is not reduced further
         await updateMathInputValue({
@@ -6632,6 +6712,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.7);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(9);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(3);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.7);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.7);
     });
 
     it("credit reduction per attempt", async () => {
@@ -6656,6 +6746,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
 
         // resubmitting correct answer does not reduce credit
         await updateMathInputValue({
@@ -6672,6 +6772,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
 
         // submit incorrect answer
         await updateMathInputValue({
@@ -6683,6 +6793,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
 
         // credit for correct answer is reduced
         await updateMathInputValue({
@@ -6694,6 +6814,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(4);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
 
         // resubmitting correct answer does not reduce credit
         await updateMathInputValue({
@@ -6710,6 +6840,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(5);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
 
         // submit incorrect answer
         await updateMathInputValue({
@@ -6721,6 +6861,19 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(6);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
+            0.2,
+            1e-14,
+        );
 
         // credit for correct answer is further reduced
         await updateMathInputValue({
@@ -6735,6 +6888,22 @@ What is the derivative of <function name="f">x^2</function>?
             0.2,
             1e-14,
         );
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(7);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).closeTo(
+            0.2,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
+            0.2,
+            1e-14,
+        );
 
         // submit incorrect answer
         await updateMathInputValue({
@@ -6746,6 +6915,22 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(8);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).closeTo(
+            0.2,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
+            0.01,
+            1e-14,
+        );
 
         // credit for correct answer is reduced to default limit
         await updateMathInputValue({
@@ -6760,6 +6945,22 @@ What is the derivative of <function name="f">x^2</function>?
             0.01,
             1e-14,
         );
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(9);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(3);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).closeTo(
+            0.01,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
+            0.01,
+            1e-14,
+        );
 
         // submit incorrect answer
         await updateMathInputValue({
@@ -6771,6 +6972,22 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(10);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(4);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(3);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).closeTo(
+            0.01,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
+            0.01,
+            1e-14,
+        );
 
         // credit for correct answer is not reduced further
         await updateMathInputValue({
@@ -6782,6 +6999,22 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).closeTo(
+            0.01,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(11);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(4);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(4);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).closeTo(
+            0.01,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).closeTo(
             0.01,
             1e-14,
         );
@@ -6809,6 +7042,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
 
         // resubmitting correct answer does not reduce credit
         await updateMathInputValue({
@@ -6825,6 +7068,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(0);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(1);
 
         // submit incorrect answer
         await updateMathInputValue({
@@ -6836,6 +7089,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
 
         // credit for correct answer is reduced
         await updateMathInputValue({
@@ -6847,6 +7110,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(4);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
 
         // resubmitting correct answer does not reduce credit
         await updateMathInputValue({
@@ -6863,6 +7136,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(5);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.6);
 
         // submit incorrect answer
         await updateMathInputValue({
@@ -6874,6 +7157,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(6);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.6);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.4);
 
         // credit for correct answer is further reduced
         await updateMathInputValue({
@@ -6885,6 +7178,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.4);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(7);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.4);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.4);
 
         // submit incorrect answer
         await updateMathInputValue({
@@ -6896,6 +7199,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(8);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(2);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.4);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.4);
 
         // credit for correct answer is not reduced further
         await updateMathInputValue({
@@ -6907,6 +7220,16 @@ What is the derivative of <function name="f">x^2</function>?
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.4);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(9);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(3);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(3);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.4);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.4);
     });
 
     it("credit factor by attempt supersedes credit reduction per attempt and credit reduction limit", async () => {

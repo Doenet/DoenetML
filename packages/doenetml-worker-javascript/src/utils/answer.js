@@ -382,6 +382,7 @@ export function returnStandardAnswerStateVariableDefinition() {
     stateVariableDefinitions.numIncorrectSubmissions = {
         defaultValue: 0,
         hasEssential: true,
+        forRenderer: true,
         returnDependencies: () => ({}),
         definition: () => ({
             useEssentialOrDefaultValue: {
