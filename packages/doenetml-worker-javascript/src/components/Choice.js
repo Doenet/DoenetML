@@ -1,3 +1,4 @@
+import { renameStateVariable } from "../utils/stateVariables";
 import { textFromChildren } from "../utils/text";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
@@ -50,6 +51,13 @@ export default class Choice extends InlineComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // rename disabled to disabledOriginal
+        renameStateVariable({
+            stateVariableDefinitions,
+            oldName: "disabled",
+            newName: "disabledOriginal",
+        });
 
         stateVariableDefinitions.text = {
             public: true,
@@ -132,7 +140,7 @@ export default class Choice extends InlineComponent {
                     variableNames: ["selected"],
                 },
             }),
-            definition({ dependencyValues, componentIdx }) {
+            definition({ dependencyValues }) {
                 let selected;
                 if (dependencyValues.childIndicesSelected) {
                     selected = dependencyValues.childIndicesSelected.includes(
@@ -157,12 +165,20 @@ export default class Choice extends InlineComponent {
                 createComponentOfType: "boolean",
             },
             doNotShadowEssential: true,
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "hasBeenSubmitted",
+                    defaultValue: false,
+                    hasEssential: true,
+                    doNotShadowEssential: true,
+                },
+            ],
             returnDependencies: () => ({
                 // Note: existence of primary shadow means that the choice is inside a shuffle or sort
                 // and the replacement from the shuffle/sort is the primary shadow (and the only one visible to parent)
                 primaryShadow: {
                     dependencyType: "primaryShadow",
-                    variableNames: ["submitted"],
+                    variableNames: ["submitted", "hasBeenSubmitted"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -172,12 +188,16 @@ export default class Choice extends InlineComponent {
                             submitted:
                                 dependencyValues.primaryShadow.stateValues
                                     .submitted,
+                            hasBeenSubmitted:
+                                dependencyValues.primaryShadow.stateValues
+                                    .hasBeenSubmitted,
                         },
                     };
                 } else
                     return {
                         useEssentialOrDefaultValue: {
                             submitted: true,
+                            hasBeenSubmitted: true,
                         },
                     };
             },
@@ -186,20 +206,68 @@ export default class Choice extends InlineComponent {
                 dependencyValues,
             }) {
                 if (dependencyValues.primaryShadow) {
-                    // if have a primary shadow, then inversee definition should never be called
+                    // if have a primary shadow, then inverse definition should never be called
                     // as it will be called only on the shadow
                     return { success: false };
                 } else {
+                    const instructions = [
+                        {
+                            setEssentialValue: "submitted",
+                            value: desiredStateVariableValues.submitted,
+                        },
+                    ];
+                    if (desiredStateVariableValues.submitted) {
+                        instructions.push({
+                            setEssentialValue: "hasBeenSubmitted",
+                            value: desiredStateVariableValues.submitted,
+                        });
+                    }
                     return {
                         success: true,
-                        instructions: [
-                            {
-                                setEssentialValue: "submitted",
-                                value: desiredStateVariableValues.submitted,
-                            },
-                        ],
+                        instructions,
                     };
                 }
+            },
+        };
+
+        stateVariableDefinitions.disabled = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            forRenderer: true,
+            returnDependencies: () => ({
+                disabledOriginal: {
+                    dependencyType: "stateVariable",
+                    variableName: "disabledOriginal",
+                },
+                hasBeenSubmitted: {
+                    dependencyType: "stateVariable",
+                    variableName: "hasBeenSubmitted",
+                },
+                credit: {
+                    dependencyType: "stateVariable",
+                    variableName: "credit",
+                },
+                disableWrongChoices: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "choiceInput",
+                    variableName: "disableWrongChoices",
+                },
+                selectMultiple: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "choiceInput",
+                    variableName: "selectMultiple",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const disabled =
+                    dependencyValues.disabledOriginal ||
+                    (dependencyValues.disableWrongChoices &&
+                        dependencyValues.hasBeenSubmitted &&
+                        dependencyValues.credit < 1 &&
+                        !dependencyValues.selectMultiple);
+                return { setValue: { disabled } };
             },
         };
 

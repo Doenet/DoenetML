@@ -127,7 +127,7 @@ export default React.memo(function Polygon(props) {
         if (SVs.applyStyleToLabel) {
             jsxPolygonAttributes.label.strokeColor = lineColor;
         } else {
-            jsxPolygonAttributes.label.strokeColor = "var(--canvastext)";
+            jsxPolygonAttributes.label.strokeColor = "var(--canvasText)";
         }
 
         if (SVs.filled) {
@@ -581,7 +581,7 @@ export default React.memo(function Polygon(props) {
                     polygonJXG.current.label.visProp.strokecolor = lineColor;
                 } else {
                     polygonJXG.current.label.visProp.strokecolor =
-                        "var(--canvastext)";
+                        "var(--canvasText)";
                 }
                 polygonJXG.current.label.needsUpdate = true;
                 polygonJXG.current.label.update();

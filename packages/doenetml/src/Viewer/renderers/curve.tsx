@@ -160,7 +160,7 @@ export default React.memo(function Curve(props) {
             if (SVs.applyStyleToLabel) {
                 curveAttributes.label.strokeColor = lineColor;
             } else {
-                curveAttributes.label.strokeColor = "var(canvastext)";
+                curveAttributes.label.strokeColor = "var(canvasText)";
             }
         } else {
             curveAttributes.label = {
@@ -849,7 +849,7 @@ export default React.memo(function Curve(props) {
                     curveJXG.current.label.visProp.strokecolor = lineColor;
                 } else {
                     curveJXG.current.label.visProp.strokecolor =
-                        "var(canvastext)";
+                        "var(canvasText)";
                 }
                 curveJXG.current.label.update();
             }

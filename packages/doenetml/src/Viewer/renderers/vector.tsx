@@ -150,7 +150,7 @@ export default React.memo(function Vector(props) {
         if (SVs.applyStyleToLabel) {
             jsxVectorAttributes.label.strokeColor = lineColor;
         } else {
-            jsxVectorAttributes.label.strokeColor = "var(--canvastext)";
+            jsxVectorAttributes.label.strokeColor = "var(--canvasText)";
         }
 
         let newVectorJXG = board.create(
@@ -652,7 +652,7 @@ export default React.memo(function Vector(props) {
                     vectorJXG.current.label.visProp.strokecolor = lineColor;
                 } else {
                     vectorJXG.current.label.visProp.strokecolor =
-                        "var(--canvastext)";
+                        "var(--canvasText)";
                 }
                 vectorJXG.current.label.needsUpdate = true;
                 vectorJXG.current.label.update();

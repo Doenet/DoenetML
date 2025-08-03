@@ -48,7 +48,7 @@
     width: 18px;
     background-color: var(--mainGray);
     border-style: solid;
-    border-color: var(--canvastext);
+    border-color: var(--canvasText);
     border-radius: 50%;
 }
 
@@ -151,7 +151,7 @@
     width: 18px;
     background-color: var(--mainGray);
     border-style: solid;
-    border-color: var(--canvastext);
+    border-color: var(--canvasText);
     border-radius: var(--mainBorderRadius);
 }
 

@@ -35,6 +35,11 @@ export default class Input extends InlineComponent {
                         "creditAchieved",
                         "showCorrectness",
                         "numAttemptsLeft",
+                        "creditIsReducedByAttempt",
+                        "numIncorrectSubmissions",
+                        "numPreviousIncorrectSubmissions",
+                        "creditFactorUsed",
+                        "nextCreditFactor",
                     ],
                 },
             }),
@@ -111,27 +116,27 @@ export default class Input extends InlineComponent {
                 };
             },
         };
-        //TODO: disabled is now in basecomponent - how to make it work with collaborateGroups
-        // stateVariableDefinitions.disabled = {
-        //   forRenderer: true,
-        //   returnDependencies: () => ({
-        //     collaborateGroups: {
-        //       dependencyType: "stateVariable",
-        //       variableName: "collaborateGroups"
-        //     },
-        //     collaboration: {
-        //       dependencyType: "flag",
-        //       flagName: "collaboration"
-        //     }
-        //   }),
-        //   definition: function ({ dependencyValues }) {
-        //     let disabled = false;
-        //     if (dependencyValues.collaborateGroups) {
-        //       disabled = !dependencyValues.collaborateGroups.matchGroup(dependencyValues.collaboration)
-        //     }
-        //     return { setValue: { disabled } }
-        //   }
-        // }
+
+        stateVariableDefinitions.creditIsReducedByAttempt = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let creditIsReducedByAttempt = false;
+                if (dependencyValues.answerAncestor) {
+                    creditIsReducedByAttempt =
+                        dependencyValues.answerAncestor.stateValues
+                            .creditIsReducedByAttempt;
+                }
+                return {
+                    setValue: { creditIsReducedByAttempt },
+                };
+            },
+        };
 
         stateVariableDefinitions.justSubmitted = {
             forRenderer: true,
@@ -200,6 +205,90 @@ export default class Input extends InlineComponent {
                     numAttemptsLeft = Infinity;
                 }
                 return { setValue: { numAttemptsLeft } };
+            },
+        };
+
+        stateVariableDefinitions.numIncorrectSubmissions = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let numIncorrectSubmissions;
+                if (dependencyValues.answerAncestor) {
+                    numIncorrectSubmissions =
+                        dependencyValues.answerAncestor.stateValues
+                            .numIncorrectSubmissions;
+                } else {
+                    numIncorrectSubmissions = 0;
+                }
+                return { setValue: { numIncorrectSubmissions } };
+            },
+        };
+
+        stateVariableDefinitions.numPreviousIncorrectSubmissions = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let numPreviousIncorrectSubmissions;
+                if (dependencyValues.answerAncestor) {
+                    numPreviousIncorrectSubmissions =
+                        dependencyValues.answerAncestor.stateValues
+                            .numPreviousIncorrectSubmissions;
+                } else {
+                    numPreviousIncorrectSubmissions = 0;
+                }
+                return { setValue: { numPreviousIncorrectSubmissions } };
+            },
+        };
+
+        stateVariableDefinitions.creditFactorUsed = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let creditFactorUsed;
+                if (dependencyValues.answerAncestor) {
+                    creditFactorUsed =
+                        dependencyValues.answerAncestor.stateValues
+                            .creditFactorUsed;
+                } else {
+                    creditFactorUsed = 1;
+                }
+                return { setValue: { creditFactorUsed } };
+            },
+        };
+
+        stateVariableDefinitions.nextCreditFactor = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let nextCreditFactor;
+                if (dependencyValues.answerAncestor) {
+                    nextCreditFactor =
+                        dependencyValues.answerAncestor.stateValues
+                            .nextCreditFactor;
+                } else {
+                    nextCreditFactor = 1;
+                }
+                return { setValue: { nextCreditFactor } };
             },
         };
 

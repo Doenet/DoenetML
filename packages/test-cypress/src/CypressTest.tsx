@@ -547,7 +547,7 @@ export function CypressTest() {
         <div
             style={{
                 backgroundColor: "var(--canvas)",
-                color: "var(--canvastext)",
+                color: "var(--canvasText)",
             }}
             data-theme={darkMode}
         >

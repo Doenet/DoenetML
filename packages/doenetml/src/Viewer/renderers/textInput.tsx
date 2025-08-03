@@ -195,8 +195,8 @@ export default function TextInput(props: UseDoenetRendererProps) {
             fixed: fixed.current,
             disabled: SVs.disabled,
             useMathJax: SVs.labelHasLatex,
-            strokeColor: "var(--canvastext)",
-            highlightStrokeColor: "var(--canvastext)",
+            strokeColor: "var(--canvasText)",
+            highlightStrokeColor: "var(--canvasText)",
             highlight: !fixLocation.current,
             parse: false,
         };
@@ -262,9 +262,9 @@ export default function TextInput(props: UseDoenetRendererProps) {
         newInputJXG.rendNodeInput.addEventListener("focus", handleFocus);
 
         newInputJXG.rendNodeInput.style.width = width!;
-        newInputJXG.rendNodeInput.style.color = "var(--canvastext)";
+        newInputJXG.rendNodeInput.style.color = "var(--canvasText)";
         newInputJXG.rendNodeInput.style.background = "var(--canvas)";
-        newInputJXG.rendNodeInput.style.borderColor = "var(--canvastext)";
+        newInputJXG.rendNodeInput.style.borderColor = "var(--canvasText)";
 
         newInputJXG.rendNodeLabel.style.marginRight = "2px";
 
@@ -600,7 +600,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     onFocus={handleFocus}
                     style={{
                         margin: "0px 4px 4px 4px",
-                        color: "var(--canvastext)",
+                        color: "var(--canvasText)",
                         background: "var(--canvas)",
                         width,
                         height,
@@ -625,7 +625,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     width={width}
                     style={{
                         margin: "0px 4px 4px 4px",
-                        color: "var(--canvastext)",
+                        color: "var(--canvasText)",
                         background: "var(--canvas)",
                     }}
                 />

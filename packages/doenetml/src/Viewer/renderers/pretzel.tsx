@@ -34,9 +34,7 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         return null;
     }
 
-    let disabled = SVs.disabled;
-
-    let submitAnswer = () =>
+    const submitAnswer = () =>
         callAction({
             action: actions.submitAnswer,
         });

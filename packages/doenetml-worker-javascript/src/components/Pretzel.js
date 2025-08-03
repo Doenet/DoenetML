@@ -348,20 +348,19 @@ export default class Pretzel extends BlockScoredComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        let numAttemptsLeft = await this.stateValues.numAttemptsLeft;
+        const numAttemptsLeft = await this.stateValues.numAttemptsLeft;
         if (numAttemptsLeft < 1) {
             return;
         }
 
-        let disabled = await this.stateValues.disabled;
+        const disabled = await this.stateValues.disabled;
         if (disabled) {
             return;
         }
 
-        let creditAchieved = await this.stateValues.creditAchievedIfSubmit;
-        if (await this.stateValues.handGraded) {
-            creditAchieved = 0;
-        }
+        const creditAchieved = (await this.stateValues.handGraded)
+            ? 0
+            : await this.stateValues.creditAchievedIfSubmit;
 
         // request to update credit
         let instructions = [
@@ -381,7 +380,6 @@ export default class Pretzel extends BlockScoredComponent {
 
         // add submitted responses to instruction for answer
         let currentResponses = await this.stateValues.currentResponses;
-        // let currentResponses = await this.state.currentResponses.value;
 
         instructions.push({
             updateType: "updateValue",
@@ -411,8 +409,17 @@ export default class Pretzel extends BlockScoredComponent {
             value: (await this.stateValues.numSubmissions) + 1,
         });
 
-        let responseText = [];
-        for (let response of currentResponses) {
+        if (creditAchieved < 1) {
+            instructions.push({
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "numIncorrectSubmissions",
+                value: (await this.stateValues.numIncorrectSubmissions) + 1,
+            });
+        }
+
+        const responseText = [];
+        for (const response of currentResponses) {
             if (response.toString) {
                 try {
                     responseText.push(response.toString());
