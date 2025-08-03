@@ -52634,6 +52634,22 @@
                     ]
                 },
                 {
+                    "name": "disableWrongChoices",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "creditFactorByAttempt"
+                },
+                {
+                    "name": "creditReductionPerAttempt"
+                },
+                {
+                    "name": "creditReductionLimit"
+                },
+                {
                     "name": "splitSymbols",
                     "values": [
                         "true",
@@ -52814,6 +52830,26 @@
                 {
                     "name": "preserveLastChoice",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disableWrongChoices",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditFactorByAttempt",
+                    "type": "numberList",
+                    "isArray": false
+                },
+                {
+                    "name": "creditReductionPerAttempt",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "creditReductionLimit",
+                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -55533,11 +55569,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "fixed",
                     "type": "boolean",
                     "isArray": false
@@ -55550,6 +55581,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "disabledOriginal",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -55569,6 +55605,11 @@
                 },
                 {
                     "name": "submitted",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
                     "type": "boolean",
                     "isArray": false
                 },

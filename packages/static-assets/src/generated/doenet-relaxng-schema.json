@@ -85109,6 +85109,31 @@
                         "false"
                     ]
                 },
+                "disableWrongChoices": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "creditFactorByAttempt": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "creditReductionPerAttempt": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "creditReductionLimit": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "splitSymbols": {
                     "optional": true,
                     "type": [
@@ -85581,6 +85606,26 @@
                 {
                     "name": "preserveLastChoice",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disableWrongChoices",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditFactorByAttempt",
+                    "type": "numberList",
+                    "isArray": false
+                },
+                {
+                    "name": "creditReductionPerAttempt",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "creditReductionLimit",
+                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -89761,11 +89806,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "fixed",
                     "type": "boolean",
                     "isArray": false
@@ -89778,6 +89818,11 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "disabledOriginal",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -89797,6 +89842,11 @@
                 },
                 {
                     "name": "submitted",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
                     "type": "boolean",
                     "isArray": false
                 },
