@@ -70,7 +70,7 @@ html {
     --lightRed: hsl(0, 54%, 82%);
     --mainGreen: #459152;
     --canvas: white;
-    --canvastext: black;
+    --canvasText: black;
     --lightGreen: #a6f19f;
     --lightYellow: #f5ed85;
     --whiteBlankLink: #6d4445;
@@ -93,7 +93,7 @@ html {
     --lightRed: hsl(0, 54%, 82%);
     --mainGreen: #459152;
     --canvas: #121212;
-    --canvastext: white;
+    --canvasText: white;
     --lightGreen: #a6f19f;
     --lightYellow: #f5ed85;
     --whiteBlankLink: #a9abe5;
@@ -102,7 +102,7 @@ html {
 }
 .doenet-viewer {
     font-family: "Open Sans" !important;
-    color: var(--canvastext);
+    color: var(--canvasText);
 }
 .doenet-viewer h1 {
     font-size: 2em;
