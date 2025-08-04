@@ -6,7 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <spreadsheet>{:dn}`
 
 
-The ` <spreadsheet>{:dn}` component renders a basic embedded spreadsheet tool.
+` <spreadsheet>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
+component that renders a basic embedded spreadsheet tool.
 
 ## Attributes and Properties 
  <AttrDisplay name='spreadsheet'/> 
@@ -35,16 +36,25 @@ Without any additional attributes, the default ` <spreadsheet>{:dn}` is $4$ rows
 
 ```doenet-editor-horiz
 <spreadsheet name="foods" minNumColumns="3" minNumRows="3">
-  <row><cell>apple</cell><cell>cherry</cell><cell>banana</cell></row>
-  <row><cell>broccoli</cell><cell>tomato</cell><cell>spinach</cell></row>
+  <row>
+    <cell>apple</cell>
+    <cell>cherry</cell>
+    <cell>banana</cell>
+  </row>
+  <row>
+    <cell>broccoli</cell>
+    <cell>tomato</cell>
+    <cell>spinach</cell>
+  </row>
 </spreadsheet>
-<p>foods.cellA2.text = $foods.cellA2.text</p>
+<p>foods.cellA2 = $foods.cellA2</p>
 ```
 
 
-
-Cells within a spreadsheet that store text values can be accessed using the following 
-notation: `spreadsheetName.cell##.text`.
+Values stored within individual cells of a ` <spreadsheet>{:dn}` can be accessed using the following
+notation: `spreadsheetName.cell##` where `##` is the column letter and row number of the cell. 
+For example, `$foods.cellA2` refers to the cell in the first column and second row of the 
+` <spreadsheet>{:dn}` component. 
 
 
 
@@ -89,17 +99,33 @@ When only one or neither of these attributes is specified, data is populated in 
 
 ```doenet-editor-horiz
 <spreadsheet>
-  <row><cell>Name</cell><cell>Type</cell><cell>Exp</cell></row>
-  <row><cell>Gandalf</cell><cell>wizard</cell><cell>sage</cell></row>
-  <row><cell>Legolas</cell><cell>elf</cell><cell>advanced</cell></row>
-  <row><cell>Frodo</cell><cell>hobbit</cell><cell>novice</cell></row>
+  <row>
+    <cell>Name</cell>
+    <cell>Type</cell>
+    <cell>Exp</cell>
+  </row>
+  <row>
+    <cell>Gandalf</cell>
+    <cell>wizard</cell>
+    <cell>sage</cell>
+  </row>
+  <row>
+    <cell>Legolas</cell>
+    <cell>elf</cell>
+    <cell>advanced</cell>
+  </row>
+  <row>
+    <cell>Frodo</cell>
+    <cell>hobbit</cell>
+    <cell>novice</cell>
+  </row>
 </spreadsheet>
 ```
 
 
 
 Initial data can be prefilled using nested ` <row>{:dn}` children, which in turn contain 
-individual ` <cell>{:dn}`s.
+individual ` <cell>{:dn}` children.
 
 
 
@@ -134,7 +160,7 @@ individual ` <cell>{:dn}`s.
 
 
 Initial data can be prefilled using nested ` <column>{:dn}` children, which in turn contain 
-individual ` <cell>{:dn}`s.
+individual ` <cell>{:dn}` children.
 
 
 
@@ -145,9 +171,21 @@ individual ` <cell>{:dn}`s.
 
 ```doenet-editor-horiz
 <spreadsheet minNumRows="3" minNumColumns="3">
-  <row><cell>2</cell><cell>2</cell><cell>= A1 + B1</cell></row>
-  <row><cell>4</cell><cell>5</cell><cell>= A2 * B2</cell></row>
-  <row><cell>= A1 / A2</cell><cell></cell><cell>=C1 + C2</cell></row>
+  <row>
+    <cell>2</cell>
+    <cell>2</cell>
+    <cell>= A1 + B1</cell>
+  </row>
+  <row>
+    <cell>4</cell>
+    <cell>5</cell>
+    <cell>= A2 * B2</cell>
+  </row>
+  <row>
+    <cell>= A1 / A2</cell>
+    <cell></cell>
+    <cell>=C1 + C2</cell>
+  </row>
 </spreadsheet>
 ```
 
@@ -162,10 +200,10 @@ Try directly entering a formula into cell B3 that references one or more of the 
 
 ---
 
-### Example: minNumRows, minNumColumns
+### Attribute Example: minNumRows, minNumColumns
 
 
-```doenet-editor-horiz
+```doenet-example
 <spreadsheet minNumRows="2" minNumColumns="6"/>     
 ```
 
@@ -178,10 +216,10 @@ the `minNumRows` and the `minNumColumns` attributes.
 
 ---
 
-### Example: width, height
+### Attribute Example: width, height
 
 
-```doenet-editor-horiz
+```doenet-example
 <spreadsheet/>
 <spreadsheet width="50%"/>    
 ```
@@ -195,10 +233,10 @@ above one with a specified `width` of 50% of available width.
 
 ---
 
-### Example: rowHeaders, columnHeaders
+### Attribute Example: rowHeaders, columnHeaders
 
 
-```doenet-editor-horiz
+```doenet-example
 <spreadsheet rowHeaders="false" columnHeaders="false"/> 
 ```
 
@@ -210,10 +248,10 @@ In this example, the `rowHeaders` and `columnHeaders` are suppressed by setting 
 
 ---
 
-### Example: hiddenRows, hiddenColumns
+### Attribute Example: hiddenRows, hiddenColumns
 
 
-```doenet-editor-horiz
+```doenet-example
 <spreadsheet hiddenRows="2 4" hiddenColumns="1 3"/>
 ```
 
@@ -225,10 +263,10 @@ Individual rows and columns may be hidden using the `hiddenRows` and `hiddenColu
 
 ---
 
-### Example: fixedRowsTop, fixedColumnsLeft
+### Attribute Example: fixedRowsTop, fixedColumnsLeft
 
 
-```doenet-editor-horiz
+```doenet-example
 <spreadsheet fixedRowsTop="2" fixedColumnsLeft="2" minNumRows="20" minNumColumns="20"/>
 ```
 

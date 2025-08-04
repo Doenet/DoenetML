@@ -1,0 +1,165 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <legend>{:dn}`
+
+
+
+` <legend>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a legend when nested inside a ` <graph>{:dn}`. Individual 
+legend entries are defined with the ` <label>{:dn}` component.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='legend'/> 
+ <PropDisplay name='legend'/>
+
+---
+
+### Example: Default ` <legend>{:dn}` within a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<graph xmin="-2" ymin="-2" size="large">  
+  <point name="A" labelIsName styleNumber="1">(2,3)</point>
+  <point name="B" labelIsName styleNumber="3">(4,3)</point>
+  <point name="C" styleNumber="4">(6,3)
+    <label>C</label>
+  </point>
+  <point name="D" styleNumber="2">(8,3)
+    <label>D</label>
+  </point>
+  <legend>
+    <label>This is point A</label>
+    <label>This is point B, $B</label>
+    <label>This is point C</label>
+    <label>This is point D, $D</label>
+  </legend>
+</graph>     
+```
+
+
+
+By default, ` <label>{:dn}` children are assigned to graphical objects with unique `styleNumber` 
+attributes in the order in which they are defined within the ` <graph>{:dn}`.
+
+
+
+---
+
+### Example: ` <legend>{:dn}` with labels assigned by name
+
+
+```doenet-editor-horiz
+<graph xmin="-2" ymin="-2" size="large">  
+  <line name="line1" styleNumber="3">y = 4</line>
+  <line name="line2" styleNumber="4">y = -x + 2</line>
+  <line name="line3" styleNumber="2">y = 1/2 x - 1</line>
+  <legend>
+    <label forObject="$line3">
+      $line3.equation
+    </label>
+    <label forObject="$line1">
+      $line1.equation
+    </label>
+    <label forObject="$line2">
+      $line2.equation
+    </label>
+  </legend>
+</graph>      
+```
+
+
+
+By default, ` <label>{:dn}` children are assigned to graphical objects with unique `styleNumber` 
+attributes in the order in which they are defined within the ` <graph>{:dn}`.
+
+This default order can be altered in the following way: use the `forObject` attribute 
+within each ` <label>{:dn}` child, and as its input list the name of the component the 
+label is attached to (no need to include the `$`).
+
+
+
+---
+
+### Attribute Example: position
+
+
+```doenet-example
+<p>Default legend positioning:</p>
+<graph xmin="-2" ymin="-2" size="small">  
+  <point name="A" labelIsName styleNumber="1">(2,3)</point>
+  <point name="B" labelIsName styleNumber="3">(4,3)</point>
+  <legend>
+    <label>This is point A</label>
+    <label>This is point B</label>
+  </legend>
+</graph> 
+
+<p>Legend position = upperleft:</p>
+
+<graph xmax="2" ymin="-2" size="small">  
+  <point name="A" labelIsName styleNumber="1">(-2,3)</point>
+  <point name="B" labelIsName styleNumber="3">(-4,3)</point>
+  <legend position="upperleft">
+    <label>This is point A</label>
+    <label>This is point B</label>
+  </legend>
+</graph>  
+
+<p>Legend position = lowerright:</p>
+
+<graph xmin="-2" ymax="2" size="small">  
+  <point name="A" labelIsName styleNumber="1">(2,-3)</point>
+  <point name="B" labelIsName styleNumber="3">(4,-3)</point>
+  <legend position="lowerright">
+    <label>This is point A</label>
+    <label>This is point B</label>
+  </legend>
+</graph>  
+<p>Legend position = lowerleft:</p>
+<graph xmax="2" ymax="2" size="small" >  
+  <point name="A" labelIsName styleNumber="1">(-2,-3)</point>
+  <point name="B" labelIsName styleNumber="3">(-4,-3)</point>
+  <legend position="lowerleft">
+    <label>This is point A</label>
+    <label>This is point B</label>
+  </legend>
+</graph>  
+```
+
+
+
+The default position for the ` <legend>{:dn}` is in the upper-right corner of the graphing window. 
+To adjust this, use the `position` attribute. Valid text inputs for this attribute 
+are: `upperright`, `upperleft`, `lowerright` and `lowerleft`.
+
+
+
+---
+
+### Attribute Example: displayClosedSwatches
+
+
+```doenet-example
+<graph xmin="-2" ymin="-2"> 
+  <circle radius="3" center="(2,2)" filled/>
+  <rectangle center="(7,3)" width="2" height="4" styleNumber="2" filled/>
+  <line styleNumber="4">y = 1/4 x</line>
+  <point styleNumber="3">(4,6)</point>
+  <legend displayClosedSwatches>
+    <label>Circle</label>
+    <label>Rectangle</label>
+    <label>Line</label>
+    <label>Point</label>
+  </legend>
+</graph>
+```
+
+
+
+When a graph contains filled shapes, the `displayClosedSwatches` attribute can be 
+used to alter the appearance of the symbols within the ` <legend>{:dn}` from that of the default line.
+

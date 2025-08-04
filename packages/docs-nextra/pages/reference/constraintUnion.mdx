@@ -1,0 +1,103 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <constraintUnion>{:dn}`
+
+
+` <constraintUnion>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that delineates 
+a block of code for defining the union of one or more constraint components 
+associated with a ` <point>{:dn}`. It is nested within a ` <constraints>{:dn}` block.
+
+## Attributes and Properties 
+The ` <constraintUnion>{:dn}` component has no attributes.
+ <PropDisplay name='constraintUnion'/>
+
+---
+
+### Example: Constrain a ` <point>{:dn}` to multiple components
+
+
+```doenet-editor-horiz
+<p>With <tag>constraintUnion</tag>:</p>
+<graph size="small">
+  <line name="line1">x+y=0</line>
+  <line name="line2">x=y</line>
+  <line name="line3">x=2y+8</line>
+  <line name="line4">x=-2y-8</line>
+  <point name="A" coords="(-4,4)">
+    <constraints>
+    <constraintUnion>
+      <constrainTo>$line1</constrainTo>
+      <constrainTo>$line2</constrainTo>
+      <constrainTo>$line3</constrainTo>
+      <constrainTo>$line4</constrainTo>
+    </constraintUnion>
+    </constraints>
+  </point>
+</graph>
+
+<p>Without <tag>constraintUnion</tag>:</p>
+<graph size="small">
+  $line1 $line2 $line3 $line4
+  <point name="B" coords="(-4,4)" styleNumber="2">
+    <constraints>
+      <constrainTo>$line1</constrainTo>
+      <constrainTo>$line2</constrainTo>
+      <constrainTo>$line3</constrainTo>
+      <constrainTo>$line4</constrainTo>
+    </constraints>
+  </point>
+</graph>
+```
+
+
+
+A ` <point>{:dn}` is constrained to four ` <line>{:dn}` components. 
+In the first graph, the ` <constraintUnion>{:dn}` container is used, 
+and the point can move between lines. In the second graph, without ` <constraintUnion>{:dn}`, 
+the point is quickly "trapped" on the last line to which it is constrained.
+
+
+
+---
+
+### Example: Constrain to a circle and a grid
+
+
+```doenet-editor-horiz
+<p>With <tag>constraintUnion</tag>:</p>
+<graph size="small" grid="2 2">
+  <circle name="circ" radius="4" styleNumber="2" filled/>
+  <point name="p">(4,0)
+    <constraints>
+      <constraintUnion>
+        <constrainToGrid dx="2" dy="2"/>
+        <constrainTo>$circ</constrainTo>
+      </constraintUnion>
+    </constraints>
+  </point>  
+</graph>
+
+<p>Without <tag>constraintUnion</tag>:</p>
+<graph size="small" grid="2 2">
+  $circ
+  <point name="q">(4,0)
+    <constraints>
+      <constrainToGrid dx="2" dy="2"/>
+      <constrainTo>$circ</constrainTo>
+    </constraints>
+  </point>  
+</graph>
+```
+
+
+
+A ` <point>{:dn}` is constrained to a ` <circle>{:dn}` and a grid. In the first 
+graph, the ` <constraintUnion>{:dn}` container is used, and the point can move off the circle, 
+but then only on gridlines. In the second graph, without ` <constraintUnion>{:dn}`, the 
+point is "trapped" on the circle, which is the last constraint in the ` <constraints>{:dn}` block.
+
+

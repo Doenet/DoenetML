@@ -1,0 +1,132 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <considerAsResponses>{:dn}`
+
+` <considerAsResponses>{:dn}` is an [Evaluation](../document_structure/essentialConcepts#component-types)
+component that informs Doenet which component to designate as a "response". This is not required for correct answer evaluation, but can help disambiguate user response data 
+for instructor review. 
+
+There is **no** need to use ` <considerAsResponses>{:dn}` in the following common situations:
+* the `<answer>{:dn}` tag does not have any `<award>{:dn}` children
+* the `<answer>{:dn}` tag has a nested `<mathInput/>{:dn}`, `<textInput/>{:dn}`, `<choice>{:dn}` 
+or `<choiceInput/>{:dn}`
+* the `<answer>{:dn}` tag *does* have `<award>{:dn}` children, but in all cases there is only 
+  one available component referenced that could be considered a response (In this case, the single component
+  reference is automatically processed as the
+  "response", so there is no need for the ` <considerAsResponses>{:dn}` tag clarification.)
+
+However, it is good practice to use the ` <considerAsResponses>{:dn}` in the following situations:
+* an `<award>{:dn}` child is used with the `<answer>{:dn}` tag, and multiple components are 
+  referenced within the `<award>{:dn}` (not all of which are "responses")
+* no nested input components are used within the `<answer>{:dn}` tag, and there is ambiguity in the submitted response
+  data
+
+
+
+## Attributes and Properties 
+The ` <considerAsResponses>{:dn}` component has no attributes or properties.
+
+
+---
+
+### Example: ` <considerAsResponses>{:dn}` for graphical component
+
+
+```doenet-editor
+<p>Move point <m>A</m> so that is reflected
+  across the <m>x</m>-axis from point <m>B</m></p>
+
+<graph grid="1 1">
+  <point name="A" labelIsName>
+    (-4,-7)
+    <constraints>
+      <constrainToGrid/>
+    </constraints>
+  </point>
+  <point name="B" 
+    labelIsName 
+    fixed
+    styleNumber="2">
+    (5,3)
+  </point>
+</graph>
+
+<answer name="ans1">
+  <award>
+    <when>
+      $A.x = $B.x and $A.y = -$B.y
+    </when>
+  </award>
+  <considerAsResponses>$A</considerAsResponses>
+</answer>
+
+<p>Submitted response for answer: $ans1.submittedResponse</p>
+```
+
+
+
+The ` <considerAsResponses>{:dn}` component designates which graphical 
+element Doenet should store as a response for the named ` <answer>{:dn}`. 
+Without designating `$A` as the response, both data for points `$A`
+and `$B` will appear in the **Submitted response** tab.
+
+You can test this behavior by answering the question on the right-hand
+side and clicking the blue "Check Work" button. Then, click where it 
+says "1 Submitted response"
+in the bottom of the editor panel on the left-hand side.
+
+---
+
+### Example: ` <considerAsResponses>{:dn}` for multiple components
+
+```doenet-editor
+<setup>
+  <text name="bestAnimal">kapybara</text>
+</setup>
+
+<p>Choose your favorite rodent: 
+  <choiceInput name="animal">
+    <choice>dog</choice>
+    <choice>elephant</choice>
+    <choice>kapybara</choice>
+  </choiceInput>
+</p>
+
+<p>Put the point inside the circle.</p>
+<graph size="small">
+  <circle name="circ" radius="5" fixed/>
+  <point name="P">(7,7)</point>
+  <lineSegment 
+    name="ptDist" 
+    endpoints="$circ.center $P"
+    hide/>
+</graph>
+
+<answer name="ans1" matchPartial>
+  <award>
+    <when>
+      $animal = $bestAnimal and
+      $ptDist.length < $circ.radius
+    </when>
+  </award>
+  <considerAsResponses>
+    $animal $ptDist.length
+  </considerAsResponses>
+</answer>
+```
+
+
+The ` <considerAsResponses>{:dn}` tag can contain multiple
+component references and can also refer to component properties.
+
+Without the ` <considerAsResponses>{:dn}` specification as shown,
+data for `$animal`, `$bestAnimal`, `$ptDist.length`
+and `$circ.radius` will all appear in the **Submitted response** tab.
+
+You can test this behavior by answering the question on the right-hand
+side, and then click where it says "1 Submitted response"
+in the bottom of the editor panel on the left-hand side.

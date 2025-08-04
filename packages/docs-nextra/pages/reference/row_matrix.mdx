@@ -1,0 +1,176 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <row>{:dn}` (in a matrix)
+
+` <row>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+component that defines the individual row entries in a ` <matrix>{:dn}`.
+
+## Attributes and Properties 
+ <AttrDisplay name='row'/> 
+ <PropDisplay name='row'/>
+
+---
+
+### Example: Defining a ` <matrix>{:dn}` with ` <row>{:dn}` components
+
+
+```doenet-editor-horiz
+<matrix name="I3">
+  <row>1 0 0</row>
+  <row>0 1 0</row>
+  <row>0 0 1</row>
+</matrix>
+<p>I3.rows[3] = $I3.rows[3]</p>
+```
+
+
+
+One of several methods for defining a ` <matrix>{:dn}` in Doenet is to nest ` <row>{:dn}` components inside the opening and closing tags. Individual rows can be accessed using index notation with the `rows` property of the ` <matrix>{:dn}`.
+
+
+
+---
+
+### Example: A ` <row>{:dn}` with symbolic math
+
+
+```doenet-editor-horiz
+<matrix name="A">
+  <row>
+    <math simplify>(f(x) + f(x))</math>
+    <math>g(x)</math>
+  </row>
+  <row functionSymbols="h">g(x) h(x)</row>
+</matrix>
+<p>A.rows[2][2] = $A.rows[2][2]</p>
+<p>A.rows[1] = $A.rows[1]</p>
+```
+
+
+
+Since a ` <row>{:dn}` is a Math Component, some of the general attributes of a ` <math>{:dn}` 
+also work inside a ` <row>{:dn}`, such as `functionSymbols`. To use other ` <math>{:dn}` 
+attributes (such as `simplify`), you can nest individual ` <math>{:dn}` components within a ` <row>{:dn}`.
+
+
+
+---
+
+### Attribute Example: functionSymbols
+
+
+```doenet-editor-horiz
+<matrix name="A">
+  <row functionSymbols="v x">x(t) v(t) a(t)</row>
+  <row >x(t) v(t) a(t)</row>
+</matrix>
+<p>Row 1 uses <attr>functionSymbols</attr> = $A.rows[1]</p>
+<p>Row 2 does not use this attribute = $A.rows[2]</p>
+```
+
+
+
+The `functionSymbols` attribute designates special characters or strings that are to be considered functions. By default, only the characters $f$ and $g$ are considered function symbols when employed within a Math Component.
+
+
+
+---
+
+### Attribute Example: splitSymbols
+
+
+```doenet-editor-horiz
+<p><m>A = </m>
+  <matrix name="A">
+    <row splitSymbols="false">
+      ab ac
+    </row>
+    <row>
+      ab ac
+    </row>    
+  </matrix>
+</p>
+<p>Since row 2 defaults to <c>splitSymbols = true</c>, the sum of the entries <m>A_{21}</m> and <m>A_{22}</m> will simplify:</p>
+<p><m>ab + ac  = a(b + c)</m> ? <nbsp/>
+  <boolean>$A.rows[2][1] + $A.rows[2][2] = a(b + c)</boolean></p>
+<p>However, the same is not true of row 1, since <m>A_{11}</m> is not equal to <m>a\cdot b</m>, and <m>A_{12}</m> is not equal to <m>a \cdot c</m>:</p>
+<p><m>ab + ac  = a(b + c)</m> ? <nbsp/>
+  <boolean>$A.rows[1][1] + $A.rows[1][2] = a(b + c)</boolean></p>
+```
+
+
+
+By default, letters placed adjacent to one another in a ` <math>{:dn}` component are separated by Doenet for computations, so `xyz` is interpreted as $x \cdot y \cdot z$, rather than a single variable composed of three letters. To override this default behavior, set the splitSymbols attribute to false.
+
+
+Since a ` <row>{:dn}` is a type of Math Component, it follows this convention, with the exception that spaces between individual entries in a ` <row>{:dn}` are considered distinct entries (similar to the entries in a ` <mathList>{:dn}`, while in a general ` <math>{:dn}`, a space represents implied multiplication.)
+
+
+
+---
+
+### Attribute Example: referencesAreFunctionSymbols
+
+
+```doenet-editor-horiz
+<select name="func" numToSelect="2">
+  f g h a b q
+</select>
+
+<p><m>A = </m>
+  <matrix name="A">
+    <row 
+      referencesAreFunctionSymbols="$func[1] $func[2]">
+      $func[1](x) $func[2](x)
+    </row>
+    <row>$func[1](x) $func[2](x)</row>
+  </matrix>
+</p>
+
+<p>Row 1 uses <attr>referencesAreFunctionSymbols</attr> = $A.rows[1]
+</p>
+    
+<p>Row 2 does not use this attribute = $A.rows[2]
+</p>
+```
+
+
+
+The `referencesAreFunctionSymbols` attribute designates special characters or strings 
+that are to be considered functions, when they are references from another component by 
+name. In this case, the symbolic function letters are selected at random from a list of 
+6 possibilities.
+
+
+Note that, even though `f` and `g` are default function symbols when written directly, in 
+this example they are referenced values and therefore we need to tell Doenet that they 
+represent functions.
+
+
+
+---
+
+### Property Example: rows
+
+
+```doenet-editor-horiz
+<matrix name="I3">
+  <row>1 0 0</row>
+  <row>0 1 0</row>
+  <row name="row3">0 0 1</row>
+</matrix>
+
+<p>I3.rows[3] = $I3.rows[3]</p>
+<p>I3.rows[3][3] = $I3.rows[3][3]</p>
+<p>row3 = $row3</p>
+```
+
+
+
+Technically speaking, the `rows` property belongs to the parent ` <matrix>{:dn}`, rather than 
+the ` <row>{:dn}`. The information is repeated here, however, because it is a useful way 
+of accessing individual rows and entries.
+

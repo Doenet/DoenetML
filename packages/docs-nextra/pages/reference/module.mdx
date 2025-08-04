@@ -1,0 +1,74 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <module>{:dn}`
+
+` <module>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+component that provides a way to organize a sequence of repeatable content. It is similar to creating
+a macro that can be reused multiple times within a DoenetML document.
+
+## Attributes and Properties 
+ <AttrDisplay name='module'/> 
+ <PropDisplay name='module'/>
+
+---
+
+### Example: ` <module>{:dn}` for repeated geometry
+
+
+```doenet-editor-horiz
+<setup>
+<module name="drawBalloon">
+  <moduleAttributes>
+     <point name="center">(0,2)</point>
+     <number name="color">2</number>
+     <number name="radius">4</number>
+  </moduleAttributes>
+  
+  <lineSegment 
+    endpoints="($center.x, $center.y - $radius) (1,-7)" 
+    styleNumber="5"
+  />
+  <circle 
+    center="$center"
+    radius="$radius"
+    styleNumber="$color"
+    filled
+  />
+</module>
+</setup>
+
+<graph 
+    ymin="-8" 
+    ymax="8" 
+    displayXAxis="false" 
+    displayYAxis="false">
+  <module extend="$drawBalloon"/>
+  <module 
+    extend="$drawBalloon" 
+    center="(-5,0)" 
+    color="1"
+  />
+  <module 
+    extend="$drawBalloon" 
+    center="(5,1)" 
+    color="3" 
+    radius="3"
+  />
+</graph>
+```
+
+In this example, a ` <module>{:dn}` named `drawBalloon` is defined within a `<setup>{:dn}` block. Nested 
+`<moduleAttributes>{:dn}` components define the center point, color, and radius of a default balloon. 
+
+Geometry defined within the ` <module>{:dn}` (the `<lineSegment>{:dn}` and `<circle>{:dn}` components) 
+are copied into the graph when the module is referenced.
+
+Referencing the module multiple times within the `<graph>{:dn}` and varying the
+attribute values has the effect of creating a "bunch" of balloons.
+
+
+
+---

@@ -1,0 +1,312 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <answer>{:dn}`
+
+## Property Examples
+
+The following examples illustrate use of the ` <answer>{:dn}` tag properties.  
+
+## Properties 
+ <PropDisplay name='answer'/>
+
+---
+
+### Example: Attributes as properties 1
+```doenet-editor-horiz
+Enter <m>x + y</m>: 
+    <answer name="ans" 
+      symbolicEquality 
+      simplifyOnCompare 
+      disableAfterCorrect 
+      maxNumAttempts="4"
+      >x + y
+    </answer>
+
+
+<p><c>weight</c> = $ans.weight</p>
+<p><c>disabled</c> = $ans.disabled</p>
+<p><c>inline</c> = $ans.inline</p>
+<p><c>handGraded</c> = $ans.handGraded</p>
+<p><c>matchPartial</c> = $ans.matchPartial</p>
+<p><c>symbolicEquality</c> = $ans.symbolicEquality</p>
+<p><c>forceFullCheckWorkButton</c> = $ans.forceFullCheckWorkButton</p>
+<p><c>simplifyOnCompare</c> = $ans.simplifyOnCompare</p>
+<p><c>expandOnCompare</c> = $ans.expandOnCompare</p>
+<p><c>unorderedCompare</c> = $ans.unorderedCompare</p>
+<p><c>matchByExactPositions</c> = $ans.matchByExactPositions</p>
+<p><c>numAwardsCredited</c> = $ans.numAwardsCredited</p>
+```
+
+The ` <answer>{:dn}` attributes listed above are also accessible as properties.
+
+---
+
+### Example: Attributes as properties 2
+```doenet-editor-horiz
+Enter <m>x + y</m>: 
+    <answer name="ans" 
+      symbolicEquality 
+      simplifyOnCompare 
+      disableAfterCorrect 
+      maxNumAttempts="4"
+      >x + y
+    </answer>
+
+
+<p><c>maxNumAttempts</c> = $ans.maxNumAttempts</p>
+<p><c>allowedErrorInNumbers</c> = $ans.allowedErrorInNumbers</p>
+<p><c>allowedErrorIsAbsolute</c> = $ans.allowedErrorIsAbsolute</p>
+<p><c>numSignErrorsMatched</c> = $ans.numSignErrorsMatched</p>
+<p><c>numPeriodicSetMatchesRequired</c> = $ans.numPeriodicSetMatchesRequired</p>
+<p><c>caseInsensitiveMatch</c> = $ans.caseInsensitiveMatch</p>
+<p><c>matchBlanks</c> = $ans.matchBlanks</p>
+<p><c>disableAfterCorrect</c> = $ans.disableAfterCorrect</p>
+<p><c>submitLabel</c> = $ans.submitLabel</p>
+<p><c>submitLabelNoCorrectness</c> = $ans.submitLabelNoCorrectness</p>
+<p><c>selectMultiple</c> = $ans.selectMultiple</p>
+<p><c>shuffleOrder</c> = $ans.shuffleOrder</p>
+<p><c>splitSymbols</c> = $ans.splitSymbols</p>
+<p><c>expanded</c> = $ans.expanded</p>
+<p><c>displayDigitsForResponses</c> = $ans.displayDigitsForResponses</p>
+<p><c>displayDigitsForCreditAchieved</c> = $ans.displayDigitsForCreditAchieved</p>
+```
+
+The ` <answer>{:dn}` attributes listed above are also accessible as properties.
+
+---
+
+### Example: numResponses
+```doenet-editor-horiz
+<p>Enter three numbers greater than 1.
+<answer name="ans1">
+  <mathInput name="input1"/>
+  <mathInput name="input2"/>
+  <mathInput name="input3"/>
+  <award>
+    <when>
+      $input1 > 1 and $input2 > 1 and $input3 > 1 
+    </when>
+  </award>
+</answer>
+</p>
+
+<p><c>numResponses</c> = $ans1.numResponses</p>
+
+<p>Move point <m>A</m> to the first quadrant 
+and point <m>B</m> to the third quadrant.</p>
+<graph size="small">
+  <point name="A" labelIsName>(-4,0)</point>
+  <point name="B" labelIsName styleNumber="2">(4,0)</point>
+</graph>
+
+<p><answer name="ans2">
+  <award>
+    <when>
+      $A.x >= 0 and $A.y >= 0 and
+      $B.x <= 0 and $B.y <= 0
+    </when>
+  </award>
+</answer></p>
+
+<p><c>numResponses</c> = $ans2.numResponses</p>
+```
+
+The `numResponses` property of the named ` <answer>{:dn}` renders 
+the number of user-inputs, or the number of distinct response components considered when awarding credit.
+
+---
+
+### Example: currentResponses
+```doenet-editor-horiz
+<p>Enter three numbers greater than 1.
+<answer name="ans1">
+  <mathInput name="input1"/>
+  <mathInput name="input2"/>
+  <mathInput name="input3"/>
+  <award>
+    <when>
+      $input1 > 1 and $input2 > 1 and $input3 > 1 
+    </when>
+  </award>
+</answer>
+</p>
+
+<p><c>currentResponses</c> = $ans1.currentResponses</p>
+<p>Move point <m>A</m> to the first quadrant and 
+point <m>B</m> to the third quadrant.</p>
+<graph size="small">
+  <point name="A" labelIsName>(-4,0)</point>
+  <point name="B" labelIsName styleNumber="2">(4,0)</point>
+</graph>
+
+<p><answer name="ans2">
+  <award>
+    <when>
+      $A.x >= 0 and $A.y >= 0 and
+      $B.x <= 0 and $B.y <= 0
+    </when>
+  </award>
+</answer>
+</p>
+
+<p><c>currentResponses</c> = $ans2.currentResponses</p>
+```
+
+
+
+`currentResponses` is an array that could contain multiple values.  Individual values 
+can be obtain with square brackets.  For example, the second response can be accessed with `currentResponses[2]`.
+
+
+
+---
+
+### Example: numSubmittedResponses
+```doenet-editor-horiz
+<p>Enter three numbers greater than 1.
+<answer name="ans1">
+  <mathInput name="input1"/>
+  <mathInput name="input2"/>
+  <mathInput name="input3"/>
+  <award>
+    <when>
+      $input1 > 1 and $input2 > 1 and $input3 > 1 
+    </when>
+  </award>
+</answer>
+</p>
+
+<p><c>numSubmittedResponses</c> = $ans1.numSubmittedResponses</p>
+```
+
+In this example, the `numSubmittedResponses` property of the named ` <answer>{:dn}` 
+renders the number of responses that have been submitted for the answer. Once the "Check Work" button 
+has been clicked, this number does not change (even if the values submitted do change). A null response 
+also counts as a submitted response once the user has clicked the "Check Work" button.
+
+---
+
+### Example: submittedResponses
+```doenet-editor-horiz
+<p>Enter three numbers greater than 1.
+<answer name="ans1">
+  <mathInput name="input1"/>
+  <mathInput name="input2"/>
+  <mathInput name="input3"/>
+  <award>
+    <when>
+      $input1 > 1 and $input2 > 1 and $input3 > 1 
+    </when>
+  </award>
+</answer>
+</p>
+
+<p><c>submittedResponses</c> = $ans1.submittedResponses</p>
+```
+
+
+
+`submittedResponses` is an array that could contain multiple values.  Individual 
+values can be obtain with square brackets.  For example, the second response can be accessed with `submittedResponses[2]`.
+
+
+
+---
+
+### Example: creditAchieved
+```doenet-editor-horiz
+<p>Enter three numbers greater than 1.
+<answer name="ans1" matchPartial>
+  <mathInput name="input1"/>
+  <mathInput name="input2"/>
+  <mathInput name="input3"/>
+  <award>
+    <when>
+      $input1 > 1 and $input2 > 1 and $input3 > 1 
+    </when>
+  </award>
+</answer>
+</p>
+
+<p><c>creditAchieved</c> = $ans1.creditAchieved</p>
+```
+
+
+
+Note: the `creditAchieved` property will always show the credit from the most recent 
+submission of the answer, even if assignment settings or due dates modify the actual credit awarded.
+
+
+
+---
+
+### Example: responseHasBeenSubmitted
+```doenet-editor-horiz
+<p>The ratio of a circle's circumference to its diameter is
+    <answer name="ans1">pi</answer></p>
+
+<p><c>responseHasBeenSubmitted</c> = $ans1.responseHasBeenSubmitted</p>
+```
+
+The `responseHasBeenSubmitted` property of a named ` <answer>{:dn}` component returns "true" if the 
+user has clicked the "Check Work" button and "false" otherwise.
+
+---
+
+### Example: justSubmitted
+```doenet-editor-horiz
+<p>The ratio of a circle's circumference to its diameter is
+  <answer name="ans1">pi</answer></p>
+
+<p><c>justSubmitted</c> = $ans1.justSubmitted</p>
+```
+
+The `justSubmitted` property of a named ` <answer>{:dn}` component returns "true" if the user 
+has clicked the "Check Work" button and has not changed the content. When the user modifies their answer, 
+the `justSubmitted` property turns to false.
+
+---
+
+### Example: feedbacks
+```doenet-editor-horiz
+<p>The correct answer is <m>x</m> but <m>y</m> is close.</p>
+<answer name="ans">
+  <award feedbackText="Good job!">x</award>
+  <award credit="0.5" feedbackText="Not quite">y</award>
+</answer>
+
+<p><c>feedbacks</c> = $ans.feedbacks</p>
+```
+
+The `feedbacks` property renders any feedback that is defined within the ` <answer>{:dn}` itself.  
+To specify more customized feedback, use a ` <feedback>{:dn}` tag.
+
+
+
+---
+
+### Example: numSubmissions
+```doenet-editor-horiz
+<p>The ratio of a circle's circumference to its diameter is
+  <answer name="ans1">pi</answer></p>
+
+<p><c>numSubmissions</c> = $ans1.numSubmissions</p>
+```
+
+The `numSubmissions` property renders the number of times the student has clicked the "Check Work" button.
+
+---
+
+### Example: numAttemptsLeft
+```doenet-editor-horiz
+<p>The ratio of a circle's circumference to its diameter is
+  <answer name="ans1" maxNumAttempts="3">pi</answer></p>
+
+<p><c>numAttemptsLeft</c> = $ans1.numAttemptsLeft</p>
+```
+
+The `numAttemptsLeft` property renders the remaining number of times the student can a response. 
+It is only relevant when the `maxNumAttempts` attribute is used.

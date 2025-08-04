@@ -1,0 +1,76 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <me>{:dn}`
+
+` <me>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
+component that renders the math expression centered within the page. 
+
+` <me>{:dn}` can be used with [` <men>{:dn}`](men.mdx) to number the equation, and can also be used with 
+mathematical expression created by [` <m>{:dn}`](m.mdx)and [` <md>{:dn}`](md.mdx)/[` <mdn>{:dn}`](mdn.mdx).
+
+## Attributes and Properties 
+ <AttrDisplay name='me'/> 
+ <PropDisplay name='me'/>
+
+---
+
+### Example: ` <me>{:dn}` nested within a paragraph
+
+
+```doenet-editor-horiz
+<p>Given the following equations relating polar and Cartesian coordinate systems,
+  <me>x = r \cos \theta</me>
+  <me>y = r \sin \theta</me>
+determine the Cartesian form of the polar equation:
+  <me>r \cos \theta = 1</me>
+</p>
+```
+
+
+
+In the example above, the ` <me>{:dn}` component is used to render centered mathematical content within a paragraph.
+
+
+
+---
+
+### Example: ` <me>{:dn}` with named mathematical content
+
+
+```doenet-editor-horiz
+<setup>
+<number name="g">9.81</number>
+<number name="radiusEarth">6.371*10^6</number>
+<number name="rocketHeight">200</number>
+<function 
+  variables="R h" 
+  name="v_0">
+    sqrt((2$g R h)/(R + h))
+</function>
+</setup>
+
+<p>The rocket's initial velocity is given by
+  <me>v_0 = $v_0,</me>
+which, when <m>R = $radiusEarth</m> meters and <m>h = $rocketHeight</m> meters,
+is found to be
+  <me>v_0 = 
+    <math 
+      displayDecimals="2">
+        $$v_0($radiusEarth, $rocketHeight)
+    </math>\; m/s
+  </me>
+</p>
+```
+
+
+
+ In the example above, the named mathematical ` <function>{:dn}` is referenced 
+ within the ` <me>{:dn}` component using the `$functionName` notation. This function 
+ is also later evalutated with a ` <math>{:dn}` nested inside the second ` <me>{:dn}` 
+ component using the function evaluation notation `$$functionName(x)` 
+ (note that you could also use the ` <evaluate>{:dn}` component here.)
+
+

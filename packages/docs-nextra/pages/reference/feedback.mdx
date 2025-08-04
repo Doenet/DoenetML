@@ -1,0 +1,200 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <feedback>{:dn}`
+
+
+` <feedback>{:dn}` is an [Evaluation](../document_structure/essentialConcepts#component-types) 
+component that renders a boxed section of content that can be triggered by predefined user interactions. 
+
+## Attributes and Properties 
+ <AttrDisplay name='feedback'/> 
+ <PropDisplay name='feedback'/>
+
+
+---
+
+### Example: ` <feedback>{:dn}` for any arbitrary incorrect answer
+
+
+```doenet-editor-horiz
+<p>Enter <em>hello there</em>: 
+  <answer name="ans" type="text">
+    hello there
+  </answer>
+</p>
+
+<feedback 
+  condition="$ans.creditAchieved != 1 and $ans.responseHasBeenSubmitted">
+    Your response <em>$ans.submittedResponse</em> is incorrect.
+</feedback>
+```
+
+
+
+The `condition` for triggering the ` <feedback>{:dn}` consists of a boolean 
+that has two parts. The first part references the `creditAchieved` property of the 
+named ` <answer>{:dn}`, and the second checks to see whether the user has yet submitted a response. 
+No feedback is provided if the user answers the question correctly.
+
+
+
+---
+
+### Example: ` <feedback>{:dn}` based on ` <choice>{:dn}` selected
+
+
+```doenet-editor-horiz
+<p>Select animal: 
+  <answer name="ans"> 
+    <choice credit="0.8">cat</choice>
+    <choice credit="1">dog</choice>
+    <choice credit="0.5">cow</choice>
+  </answer>
+</p>
+
+<feedback 
+  condition="$ans.submittedResponse = cat">
+    Meow
+</feedback>
+<feedback 
+  condition="$ans.submittedResponse = dog">
+    Ruff
+</feedback>
+<feedback 
+  condition="$ans.submittedResponse = cow">
+    Moo
+</feedback>
+```
+
+
+
+The ` <feedback>{:dn}` provided to the user is tied to the ` <choice>{:dn}` 
+selected within an ` <answer>{:dn}`.
+
+
+
+---
+
+### Example: Feedback defined directly in choices
+
+
+```doenet-editor-horiz
+<p>Select animal: 
+  <answer name="ans">
+    <choice credit="1" feedbackText="Meow">
+      cat
+    </choice>
+    <choice credit="0.8" feedbackText="Ruff">
+      dog
+    </choice>
+    <choice credit="0.2" feedbackText="Moo">
+      cow
+    </choice>
+  </answer>
+</p>
+
+$ans.feedbacks
+```
+
+
+
+Feedback is defined within each ` <choice>{:dn}` with the `feedbackText` attribute.  
+Below the ` <answer>{:dn}` block, the feedback text is rendered to the viewer with the reference
+`$ans.feedbacks`.
+
+
+
+---
+
+### Example: ` <feedback>{:dn}` tied to an ` <award>{:dn}`
+
+
+```doenet-editor-horiz
+<p>List all factors of 6, entering your numbers separated by commas:
+    <answer name="ans">
+      <award name="fullCredit"
+        unorderedCompare>
+          <mathList>1,2,3,6</mathList>
+      </award>
+      <award name="missing1_6"
+        unorderedCompare credit="1/2">
+          <mathList>2,3</mathList>
+      </award>
+      <award name="missing2_3"
+        unorderedCompare credit="1/2">
+          <mathList>1,6</mathList>
+      </award>
+    </answer>
+</p>
+
+<feedback condition="$fullCredit">
+  <p>Nice work! That's all of the factors!</p>
+</feedback>
+<feedback condition="$missing1_6">
+  <p>Can 6 also be divided by 1?</p>
+</feedback>
+<feedback condition="$missing2_3">
+  <p>Can 6 also be divided by 2?</p>
+</feedback>
+```
+
+
+
+Individualized feedback is provided to specific responses by referencing named awards in the `condition`.
+
+
+
+---
+
+### Atttibute Example: condition
+
+
+```doenet-example
+<p>Enter 2 (and get it wrong...):
+  <answer name="ans">2</answer></p>
+<feedback condition="$ans != 2 and $ans.responseHasBeenSubmitted">
+  This is not a 2
+</feedback>
+```
+
+
+
+The `condition` attribute specifies the boolean condition necessary for rendering the ` <feedback>{:dn}`.
+
+
+
+---
+
+### Attribute Example: updateWith
+
+
+```doenet-editor-horiz
+<p>Enter <em>y</em>, then click the Check Work button.</p>
+  <answer name="ans">x</answer>
+
+<feedback updateWith="$ans">
+  You answered the question!
+</feedback> 
+
+<p>Enter <em>x</em>, then click outside the box.
+  <mathInput name="mi"/>
+</p>
+
+<feedback updateWith="$mi">
+  You typed something!
+</feedback> 
+
+```
+
+
+
+When the `updateWith` attribute is specified, the condition for the ` <feedback>{:dn}` is re-checked after 
+the specified action. An `<answer>{:dn}` action is completed when the user clicks the Check Work button.
+The action for a `<mathInput>{:dn}` is completed when the input box is no longer activated (i.e. the user
+navigates outside the box).
+
+
+

@@ -1,0 +1,188 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <md>{:dn}`
+
+` <md>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
+component that renders a block of aligned display mathematics when used in combination 
+with the ` <mrow>{:dn}` component.
+
+## Attributes and Properties 
+ <AttrDisplay name='md'/> 
+ <PropDisplay name='md'/>
+ 
+---
+
+### Example: ` <md>{:dn}` with nested ` <mrow>{:dn}` children
+
+
+```doenet-editor-horiz
+<p>The trigonometric ratios for the angle <m>\theta = \pi/2</m>:
+  <md>
+    <mrow>\sin(\theta) &= 1</mrow>
+    <mrow>\cos(\theta) &= 0</mrow>
+    <mrow>\tan(\theta) &= \text{undefined}</mrow>
+  </md>
+</p>  
+```
+
+
+
+The data contained within an ` <md>{:dn}` block must be contained in 
+an [` <mrow>{:dn}`](mrow.mdx).  Equations and content will align vertically where 
+the `&` symbol is entered in each row. 
+
+
+
+---
+
+### Example: ` <md>{:dn}` cannot contain ` <answer>{:dn}` or `<mathInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<p>The following will not render as intended:</p>
+<md>
+  <mrow>x = <answer name="ans1">x</answer></mrow>
+  <mrow>y = <mathInput/></mrow>
+</md>
+```
+
+
+
+An ` <md>{:dn}` block cannot contain an ` <answer>{:dn}` or a ` <mathInput/>{:dn}`.
+
+
+
+---
+
+### Example: ` <md>{:dn}` with referenced ` <math>{:dn}`
+
+
+```doenet-example
+<p><m>f(x) = <function name="f" variables="x">x^2</function></m></p>
+<p><m>g(y) = <function name="g" variables="y">sqrt(y)</function></m></p>
+<p><m>h(z) = <function name="h" variables="z">sin(z)</function></m></p>
+
+<p>The first derivatives of functions <m>f(x)</m>, <m>g(y)</m> and <m>h(z)</m> are:
+  <md>
+    <mrow>\frac{df}{dx} &= 
+      <derivative derivVariables="x">$f</derivative>
+    </mrow>
+    <mrow>\frac{dg}{dy} &= 
+      <derivative derivVariables="y">$g</derivative>
+    </mrow>
+    <mrow>\frac{dh}{dz} &= 
+      <derivative derivVariables="z">$h</derivative>
+    </mrow>    
+  </md>
+</p>  
+```
+
+
+
+Computational DoenetML components, such as ` <math>{:dn}`, or ` <derivative>{:dn}`, can be nested within or 
+referenced within an ` <md>{:dn}` block.
+
+
+Exceptions: The ` <answer>{:dn}` component, the ` <mathInput/>{:dn}` component, and other ` <md>{:dn}` 
+components cannot be nested within an ` <md>{:dn}` block.
+
+
+
+---
+
+### Example: ` <md>{:dn}` on a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<graph>
+  <line name="line1">2x - y = 3</line>
+  <line name="line2">x + y = 5</line>
+  <intersection>$line1 $line2</intersection>
+
+<md anchor="(-6,4)">
+  <mrow>$line1.equation</mrow>
+  <mrow>$line2.equation</mrow>
+</md>
+</graph>
+```
+
+
+
+An ` <md>{:dn}` block can be placed on a ` <graph>{:dn}`. The `anchor` attribute 
+can be used to specify its initial location.
+
+
+
+---
+
+### Attribute Example: Standard graphical attributes
+
+
+```doenet-editor-horiz
+<p>Hide equations: 
+  <booleanInput name="hideEq"/> $hideEq</p>
+<p>Drag equations: 
+  <booleanInput name="canDrag" prefill="true"/> $canDrag</p>
+<graph>
+  <line name="line1">2x - y = 3</line>
+  <line name="line2">x + y = 5</line>
+  <intersection>$line1 $line2</intersection>
+<md 
+  name="eqBlock" 
+  anchor="(-6,4)" 
+  draggable="$canDrag" 
+  hide="$hideEq"
+  styleNumber="2">
+    <mrow>$line1.equation</mrow>
+    <mrow>$line2.equation</mrow>
+</md>
+</graph>     
+```
+
+
+
+Since an ` <md>{:dn}` block can be placed on a graph, the standard graphical 
+attributes `draggable`, `hide`, and `styleNumber` can be used to control its appearance and behavior.
+
+
+
+---
+
+### Property Example: latex
+
+
+```doenet-editor-horiz
+<md name="eqBlock">
+  <mrow>\frac{x}{2} &= 4</mrow>
+  <mrow>x + \sqrt{y} &= 3</mrow>
+</md>
+<p><c>latex</c> = $eqBlock.latex</p>      
+```
+
+
+
+The `latex` property returns the LaTeX code for rendering the equation block.
+
+
+
+---
+
+### Property Example: text
+
+
+```doenet-editor-horiz
+<md name="eqBlock">
+  <mrow>\frac{x}{2} &= 4</mrow>
+  <mrow>x + \sqrt{y} &= 3</mrow>
+</md>
+
+<p><c>text</c> = $eqBlock.text</p>  
+```
+
+
+
+The `text` property returns the text value of the equation block.
+

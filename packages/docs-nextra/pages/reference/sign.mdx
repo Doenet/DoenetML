@@ -1,0 +1,53 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <sign>{:dn}`
+
+` <sign>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+component that renders the result of the $\text{sign}$ or the $\text{signum}$ function on the enclosed argument.
+
+## Attributes and Properties 
+ <AttrDisplay name='sign'/> 
+ <PropDisplay name='sign'/>
+
+---
+
+### Example: ` <sign>{:dn}` of a user-input number
+
+
+```doenet-editor-horiz
+<p>Enter a number between -10 and 10: 
+  <mathInput name="x" prefill="0"/></p>
+<sign>$x</sign>
+```
+
+
+
+The ` <sign>{:dn}` component returns $1$ for positive arguments, $0$ for a $0$ argument, and $-1$ for negative arguments.
+
+
+
+---
+
+### Example: graph of the ` <sign>{:dn}` function
+
+
+```doenet-editor-horiz
+<slider name="x" initialValue="3" from="-10" to="10">
+  <label><m>x</m></label>
+</slider>
+<graph ymin="-2" ymax="2">
+  <function name="f"><sign>x</sign></function>
+  <endpoint open fixed>(0,1)</endpoint>
+  <endpoint open fixed>(0,-1)</endpoint>
+  <point fixed>(0,0)</point>
+  <point name="dp" styleNumber="2">($x,$$f($x))</point>
+</graph>
+```
+
+
+
+The ` <sign>{:dn}` component returns $1$ for positive arguments, $0$ for a $0$ argument, and $-1$ for negative arguments. Drag the slider to evaluate the ` <function>{:dn}` at different inputs.
+

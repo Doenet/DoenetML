@@ -1,0 +1,86 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <or>{:dn}`
+
+` <or>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types)
+component that functions as the boolean operator `or` and checks to see whether any of 
+the enclosed ` <boolean>{:dn}` references are `true`.
+
+## Attributes and Properties 
+ <AttrDisplay name='or'/> 
+ <PropDisplay name='or'/>
+
+---
+
+### Example: ` <or>{:dn}` in a ` <boolean>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Enter the number 1, 3, or 5:
+  <mathInput name="n"/></p>
+<boolean name="is1">$n = 1</boolean>
+<boolean name="is3">$n = 3</boolean>
+<boolean name="is5">$n = 5</boolean>
+
+<p>You have entered either 1, 3, or 5:
+  <boolean>
+    <or>$is1 $is3 $is5</or>
+  </boolean></p>
+```
+
+
+
+The ` <or>{:dn}` component functions as the boolean operator `or`, and checks 
+to see whether any of the enclosed ` <boolean>{:dn}` references are `true`.
+
+
+
+---
+
+### Example: ` <or>{:dn}` in an ` <award>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Move the $p.styleDescription point to one of the 
+three $a.styleDescription points. 
+(Scroll down to check work.)</p>
+
+<graph size="small">
+  <point name="p" layer="1">
+    <constraints>
+      <attractTo>$a $b $c</attractTo>
+    </constraints>
+  </point>
+  <point name="a" styleNumber="2">
+    (-5, 5)
+  </point>
+  <point name="b" styleNumber="2">
+    (0, -5)
+  </point>
+  <point name="c" styleNumber="2">
+    (5, 5)
+  </point>
+</graph>
+
+<answer>
+  <award>
+    <when>
+      <or>$onA $onB $onC</or>
+    </when>
+  </award>
+</answer>
+<boolean name="onA">$p = $a</boolean>
+<boolean name="onB">$p = $b</boolean>
+<boolean name="onC">$p = $c</boolean>
+```
+
+
+
+An ` <or>{:dn}` component is used to construct a compound boolean from three 
+referenced ` <boolean>{:dn}` components within an ` <award>{:dn}`.
+
+

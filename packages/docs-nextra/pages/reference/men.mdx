@@ -1,0 +1,97 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <men>{:dn}`
+
+The ` <men>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types) 
+component that renders auto-numbered, mathematical display text centered within the page.  The ` <men>{:dn}` 
+component accepts DoenetML mathematical content as well as LaTeX.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='men'/> 
+ <PropDisplay name='men'/>
+
+---
+
+### Example: ` <men>{:dn}` with Latex input
+
+
+```doenet-editor-horiz
+<p>The standard equations for kinematics of an object moving
+with constant acceleration are:
+  <men>v = v_0 + at</men>
+  <men>\Delta x = \frac{v + v_0}{2} t</men>
+  <men>
+    \Delta x = v_0 t + \frac{1}{2} a t^2
+  </men>
+  <men>v^2 = v_0^2 + 2 a \Delta x</men>
+</p>
+```
+
+
+
+The sample code above illustrates the use of Latex within an ` <men>{:dn}` component 
+to render centered, numbered mathematical display text.
+
+
+
+---
+
+### Example: ` <men>{:dn}` with nested ` <math>{:dn}` content
+
+
+```doenet-editor-horiz
+<p>The trigonometric ratios for angle <m>x</m> are:
+  <men><math>sin(x)</math> = 1</men>
+  <men><math>cos(x)</math> = 0</men>
+  <men>
+    <math>tan(x)</math> = \text{undefined}
+  </men>
+What is <m>x</m>?
+</p>
+```
+
+
+
+In the sample code above, the ` <men>{:dn}` component is used to render centered, 
+numbered mathematical content within a paragraph. In this case, 
+content inside a ` <math>{:dn}` component is embedded into the Latex expressions.
+
+
+
+---
+
+### Example: ` <men>{:dn}` with named mathematical content
+
+
+```doenet-editor-horiz
+<setup>
+  <number name="angle1">pi/4</number>
+  <function name="f1">
+    sin(x)
+  </function>
+  <function name="f2">
+    cos(x)
+  </function>
+  <function name="f3">
+    tan(x)
+  </function>
+</setup>
+
+<p>The trigonometric ratios for angle <m>x</m> are:
+<men>$f1 = $$f1($angle1)</men>
+<men>$f2 = $$f2($angle1)</men>
+<men>$f3 = $$f3($angle1)</men>
+What is <m>x</m>? <answer>($angle1)</answer>
+</p>
+```
+
+
+
+In the sample code above, the named mathematical ` <function>{:dn}` components 
+are defined in a ` <setup>{:dn}` block and referenced within the ` <men>{:dn}` 
+component. This function is then evalutated at the 
+angle defined as a ` <number>{:dn}` named `angle1` with `$$f($angle1)`. 
+

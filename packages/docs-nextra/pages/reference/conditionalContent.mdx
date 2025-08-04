@@ -1,0 +1,125 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <conditionalContent>{:dn}`
+
+
+` <conditionalContent>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+component that defines one or more blocks of content that 
+are evaluated only when certain conditions are met. 
+Conditions may be defined directly on the ` <conditionalContent>{:dn}` tag using the `condition` attribute.  
+Alternatively, one can use one or more [` <case>{:dn}`](case.mdx) children with an 
+optional [` <else>{:dn}`](else.mdx) child.
+
+## Attributes and Properties 
+The ` <conditionalContent>{:dn}` component has no attributes or properties.
+
+
+---
+
+### Example: ` <conditionalContent>{:dn}` with nested ` <case>{:dn}` children
+
+
+```doenet-editor-horiz
+  <p>Choose a letter: 
+  <choiceInput inline name="letter">
+    <choice>A</choice>
+    <choice>B</choice>
+    <choice>C</choice>
+  </choiceInput>    
+</p>
+
+<conditionalContent>
+  <case condition="$letter.selectedIndices = 1">
+    <p>A is for apple.</p>
+  </case>
+  <case condition="$letter.selectedIndices = 2">
+    <p>B is for balloon.</p>
+  </case>
+  <case condition="$letter.selectedIndices = 3">
+    <p>C is for cat.</p>
+  </case>  
+</conditionalContent> 
+```
+
+
+
+The ` <conditionalContent>{:dn}` component defines a block of content 
+containing individual ` <case>{:dn}` children. The doenetML within 
+each ` <case>{:dn}` is only rendered when its specified `condition` is `true`.
+
+
+---
+
+### Example: ` <conditionalContent>{:dn}` with nested ` <else>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Type an even integer and press enter:
+  <mathInput name="int"/></p>
+
+<conditionalContent>
+  <case condition="mod($int,2) = 0">
+    Nice work!
+  </case>
+  <else>
+    This is not an even integer.
+  </else>
+</conditionalContent> 
+```
+
+
+
+The ` <conditionalContent>{:dn}` component defines a block of content 
+containing individual ` <case>{:dn}` children. To catch all remaining
+cases following a given condition or set of conditions, the 
+`<else>{:dn}` component may be used.
+
+---
+
+### Attribute Example: condition
+
+
+```doenet-example
+<p>Let's graph a... 
+    <choiceInput name="shape">
+      <choice>circle</choice>
+      <choice>square</choice>
+      <choice>pentagon</choice>
+    </choiceInput></p>
+
+  <graph size="small">
+    <conditionalContent 
+      condition="$shape.selectedValues = circle">
+        <circle radius="4" filled/>
+    </conditionalContent>
+
+    <conditionalContent 
+      condition="$shape.selectedValues = square">
+        <rectangle 
+          width="8" 
+          height="8" 
+          filled 
+          center="(0,0)" 
+          verticesDraggable="false"/>
+    </conditionalContent>
+
+    <conditionalContent 
+      condition="$shape.selectedValues = pentagon">
+        <regularPolygon 
+          numVertices="5" 
+          sideLength="6" 
+          filled/>
+    </conditionalContent>
+  </graph>
+```
+
+
+
+A ` <conditionalContent>{:dn}` block with a ` <condition>{:dn}` attribute 
+renders only when the `condition` is satisfied. This allows for use of 
+a ` <conditionalContent>{:dn}` component without nested ` <case>{:dn}` components.
+
+

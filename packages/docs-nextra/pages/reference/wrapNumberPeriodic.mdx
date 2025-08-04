@@ -1,0 +1,64 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <wrapNumberPeriodic>{:dn}`
+
+
+` <wrapNumberPeriodic>{:dn}` is a [Math Operator](../document_structure/essentialConcepts/#componentTypes) 
+component that wraps a number line around a circle.
+
+## Attributes and Properties 
+ <AttrDisplay name='wrapNumberPeriodic'/> 
+ <PropDisplay name='wrapNumberPeriodic'/>
+
+
+---
+
+### Example: ` <wrapNumberPeriodic>{:dn}` with default bounds
+
+ ```doenet-editor-horiz
+<p>
+  <wrapNumberPeriodic>1.5</wrapNumberPeriodic>
+</p>
+
+<p>
+  <wrapNumberPeriodic>-0.5</wrapNumberPeriodic>
+</p>
+```
+
+The default lowerValue for ` <wrapNumberPeriodic>{:dn}` is 0, and the default upperValue is 1.
+
+---
+
+### Example: ` <wrapNumberPeriodic>{:dn}` of user-input
+
+```doenet-editor-horiz
+<p>Enter a number <mathInput name="n"/></p>
+      
+<p><m>n \rightarrow 
+	<wrapNumberPeriodic>$n</wrapNumberPeriodic>
+</m></p>
+```
+
+The ` <wrapNumberPeriodic>{:dn}` component is applied to a ` <mathInput/>{:dn}`
+
+---
+
+### Attribute Example: lowerValue, upperValue
+
+```doenet-editor-horiz
+<p>Enter a number <mathInput name="n"/></p>
+      
+<p><m>n \rightarrow 
+	<wrapNumberPeriodic 
+		lowerValue="-1" 
+		upperValue="2">
+			$n
+	</wrapNumberPeriodic>
+</m></p>
+```
+
+Use the `lowerValue` and `upperValue` attributes to modify the default bounds 
+of ` <wrapNumberPeriodic>{:dn}`. The default `lowerValue` is 0 and the default `upperValue` is 1.

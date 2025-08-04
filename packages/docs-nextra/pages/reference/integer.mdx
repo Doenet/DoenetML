@@ -1,0 +1,51 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <integer>{:dn}`
+
+
+` <integer>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
+component that defines an integer value.
+
+## Attributes and Properties 
+ <AttrDisplay name='integer'/> 
+ <PropDisplay name='integer'/>
+
+---
+
+### Example: ` <integer>{:dn}` of nested number
+
+
+```doenet-editor-horiz
+<integer name="int">2.3</integer>
+
+<p>$int </p>
+```
+
+
+
+The named ` <integer>{:dn}` stores the enclosed number as the nearest integer value.
+
+
+
+---
+
+### Example: ` <integer>{:dn}` of user-input
+
+
+```doenet-example
+<p>Enter a number with a decimal or fractional part:
+  <mathInput name="userN"/></p>
+
+<p>The nearest integer is: <integer>$userN</integer></p>
+```
+
+
+
+The named ` <mathInput/>{:dn}` is stored by the ` <integer>{:dn}` component as 
+the nearest integer value.
+
+

@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <subsetOfReals>{:dn}`
 
 
-Defines an interval or a subset on the number line.
+` <subsetOfReals>{:dn}` is a [Math](../document_structure/essentialConcepts/#componentTypes)
+component that defines an interval or a subset on the number line.
 
 ## Attributes and Properties 
  <AttrDisplay name='subsetOfReals'/> 
@@ -18,8 +19,18 @@ Defines an interval or a subset on the number line.
 
 
 ```doenet-editor-horiz
-<p><m>A = <subsetOfReals name="A">(-2,4]</subsetOfReals></m></p>
-<p><m>B = <subsetOfReals name="B">-2 < x <= 4</subsetOfReals></m></p>
+<p><m>A = 
+  <subsetOfReals name="A">
+    (-2,4]
+  </subsetOfReals>
+</m></p>
+
+<p><m>B = 
+  <subsetOfReals name="B">
+    -2 < x <= 4
+  </subsetOfReals>
+</m></p>
+
 <p><m>A = B</m> ? <boolean>$A = $B</boolean></p>
 ```
 
@@ -38,11 +49,22 @@ interval notation.
 
 ```doenet-editor-horiz
 <p><m>\{q \: | \: 4 < q < 5\}</m> returns: 
-  <subsetOfReals>{q | 4 < q < 5}</subsetOfReals></p>
+  <subsetOfReals>
+    {q | 4 < q < 5}
+  </subsetOfReals>
+</p>
+
 <p><m>\{q \: | \: 5 < q < 4\}</m> returns:
-  <subsetOfReals>{q | 5 < q < 4}</subsetOfReals></p>
+  <subsetOfReals>
+    {q | 5 < q < 4}
+  </subsetOfReals>
+</p>
+
 <p><m>\{q \: | \: \text{infinity} < q < 4\}</m> returns:
-  <subsetOfReals>{q | infinity > q > 4}</subsetOfReals></p>
+  <subsetOfReals>
+    {q | infinity > q > 4}
+  </subsetOfReals>
+</p>
 ```
 
 
@@ -53,14 +75,19 @@ A ` <subsetOfReals>{:dn}` can be defined using set builder notation with variabl
 
 ---
 
-### Example: displayMode
+### Attribute Example: displayMode
 
 
 ```doenet-editor-horiz
 <p>The inequality input <m>1 \leq x < 7</m> returns: 
-  <subsetOfReals>1 <= x < 7</subsetOfReals></p>
+  <subsetOfReals>1 <= x < 7</subsetOfReals>
+</p>
+
 <p>The interval input <m>(-\infty, -1]</m> returns: 
-  <subsetOfReals displayMode="inequalities">(-infinity, -1]</subsetOfReals></p>
+  <subsetOfReals displayMode="inequalities">
+    (-infinity, -1]
+  </subsetOfReals>
+</p>
 ```
 
 
@@ -71,14 +98,21 @@ The `displayMode` can be specified as `intervals` or `inequalities`, regardless 
 
 ---
 
-### Example: simplify
+### Attribute Example: simplify
 
 
 ```doenet-editor-horiz
 <p>Enter the intersection of two inequalities: 
   <mathInput name="mi" prefill="-3 <= x < 7 and x <=5"/>
 </p>
-<p><subsetOfReals simplify displayMode="inequalities">$mi</subsetOfReals></p>
+
+<p>
+  <subsetOfReals 
+  simplify 
+  displayMode="inequalities">
+    $mi
+  </subsetOfReals>
+</p>
 ```
 
 
@@ -89,15 +123,27 @@ The `simplify` attribute can be used to simplify inequalities and intervals defi
 
 ---
 
-### Example: variable
+### Attribute Example: variable
 
 
 ```doenet-editor-horiz
-<p>The inequality <m>4 < q < 10</m> and <m>-1 < q < 8</m> returns: <subsetOfReals variable="q">4 < q < 10 and -1 < q < 8</subsetOfReals></p>
-<p>The interval <m>[2,7)</m> and <m>(-3,2]</m> returns: <subsetOfReals variable="q" displayMode="inequalities">[2,7) and (-3,2]</subsetOfReals></p>
+<p>The inequality <m>4 < q < 10</m> and <m>-1 < q < 8</m> returns: 
+  <subsetOfReals variable="q">
+    4 < q < 10 and -1 < q < 8
+  </subsetOfReals>
+</p>
+
+<p>The interval <m>[2,7)</m> and <m>(-3,2]</m> returns: 
+  <subsetOfReals 
+    variable="q" 
+    displayMode="inequalities">
+      [2,7) and (-3,2]
+    </subsetOfReals>
+</p>
 ```
 
 
 
-When defining a ` <subsetOfReals>{:dn}` using interval or inequality notation, the default variable is $x$. Use the `variable` attribute to define a subset with a different variable.
+When defining a ` <subsetOfReals>{:dn}` using interval or inequality notation, the default variable 
+is $x$. Use the `variable` attribute to define a subset with a different variable.
 

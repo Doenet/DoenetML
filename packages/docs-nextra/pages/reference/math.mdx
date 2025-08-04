@@ -1,0 +1,320 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <math>{:dn}`
+
+` <math>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+component that defines a symbolic or numerical math expression that can be rendered and used in computations.
+
+## Attributes and Properties 
+ <AttrDisplay name='math'/> 
+ <PropDisplay name='math'/>
+
+## Examples Page 1
+
+### Example: Named ` <math>{:dn}` for computations
+
+
+```doenet-editor-horiz
+<math name="math1">x^2 + 3x + 2</math>
+<p>
+  <m>
+    <math name="math2">$math1 + $math1</math>
+    = <math extend="$math2" simplify/>
+  </m>
+</p>
+```
+
+
+
+The ` <math>{:dn}` component can be used to name and store symbolic math expressions for computations.
+
+
+
+---
+
+### Example: How spaces are interpreted in a ` <math>{:dn}`
+
+
+```doenet-editor-horiz
+<p><math name="math1">2 3 4</math></p>
+<p><math name="math2" simplify>2 3 4</math></p>
+```
+
+
+
+Spaces between terms in a ` <math>{:dn}` component are interpreted as multiplication.
+
+
+
+---
+
+### Example: Some common ` <math>{:dn}` functions and their syntax
+
+
+```doenet-example
+<ol>
+  <li>
+    <p><m><math name="math1">e^(2x + x)</math>
+     = <math extend="$math1" simplify/></m>
+    </p>
+  </li>
+  <li>
+    <p><m><math name="math2">sin(pi/2)</math>
+     = <math extend="$math2" simplify/></m>
+    </p>
+  </li>
+  <li>
+    <p><m><math name="math3">cos(pi)</math>
+     = <math extend="$math3" simplify/></m>
+    </p>
+  </li>
+  <li>
+    <p><m><math name="math4">tan(pi/4)</math>
+     = <math extend="$math4" simplify/></m>
+    </p>
+  </li>
+  <li>
+    <p><m><math name="math5">|-1| + abs(-1)</math>
+     = <math extend="$math5" simplify/></m>
+    </p>
+  </li>
+  <li>
+    <p><m><math name="math6">log(e)</math>
+     = <math extend="$math6" simplify/></m>
+    </p>
+  </li>
+  <li>
+    <p><m><math name="math7">ln(e)</math>
+     = <math extend="$math7" simplify/></m>
+    </p>
+  </li>
+  <li>
+    <p><m><math name="math8">log10(10)</math>
+     = <math extend="$math8" simplify/></m>
+    </p>
+  </li>
+  <li>
+    <p><m><math name="math9">sqrt(4)</math>
+     = <math extend="$math9" simplify/></m>
+    </p>
+  </li>
+  <li>
+    <p><m><math name="math10">4!</math>
+     = <math extend="$math10" simplify/></m>
+    </p>
+  </li>
+  <li>
+    <p><m><math name="math11">binom(5,3)</math>
+     = <math extend="$math11" simplify/></m>
+    </p>
+  </li>
+</ol>
+```
+
+
+
+Many mathematical functions such as $\sin(x)$ and $\log(x)$ are interpreted by 
+Doenet when nested within a ` <math>{:dn}` component. In this example, several built-in ` <math>{:dn}` functions 
+that Doenet will simplify are illustrated with their syntax. Note that the default base when 
+using $\log(x)$ is $e$. For a complete updated listing of supported functions, 
+see the <ref uri="https://www.doenet.org/course?tool=assignment&doenetId=__pXorGnWFwZn2kTil3HHw#page1">DoenetML Manual</ref>.
+
+
+
+---
+
+### Attribute Example: format
+
+
+```doenet-example
+<p><alert>Part 1: With default format</alert></p>
+  <m>
+    <math>1/2 + 1/3</math> = 
+    <math simplify>1/2 + 1/3</math>
+  </m>
+
+<p><alert>Part 2: With latex format</alert></p>
+  <m>
+    <math format="latex">\frac{1}{2} + \frac{1}{3}</math> = 
+    <math format="latex" simplify>\frac{1}{2} + \frac{1}{3}</math>
+  </m>
+```
+
+
+
+The `format` attribute specifies how the enclosed math expression is entered, and 
+accepts inputs of either `latex` or `text`. The default value for this attribute is `text`, 
+which corresponds to the syntax that you would naturally type in a typical online calculator. 
+This is illustrated in <alert>Part 1</alert> of the example.
+
+
+If the `format` is set to `latex`, the input text can be written in 
+LaTeX and Doenet will interpret and translate this into functional mathematical code. 
+Therefore, as shown in <alert>Part 2</alert>, it is possible to input the desired 
+expression in `latex` format and then evaluate it with the `simplify` attribute.
+
+
+
+---
+
+### Attribute Example: simplify = "full" (or just simplify)
+
+
+```doenet-example
+<p><math name="math1">2x^2 + 4x + x + x^2 + 5</math></p>
+
+<p><m><math name="math2">$math1 + 3x^2 - 2</math> = 
+  <math extend="$math2" simplify/></m>
+</p>  
+```
+
+
+
+The first ` <math>{:dn}` component defines an unsimplified expression, 
+while the second ` <math>{:dn}` component references the first expression by name, 
+adds two additional terms, and simplifies the resulting expression.
+
+
+The `simplify` attribute has four options:
+
+1. `simplify="none"`: no simplification.
+2. `simplify="full"` (or simply `simplify` by itself): apply all available simplification routines.  
+  Does not include expanding factored expressions.
+3. `simplify="numbers"`: simplify numerical expressions like `1+2` but not algebraic expressions.  
+  Permute terms and factors into a canonical order.
+4. `simplify="numbersPreserveOrder"`: simplify numbers but without permuting terms or factors.
+
+
+
+To include expansion of factored expressions, you can add the `expand` attribute.
+
+
+If the `simplify` attribute is not specified within the ` <math>{:dn}` component, 
+no simplification occurs (i.e. this is equivalent to specifying `simplify="none"`).
+
+
+
+---
+
+### Attribute Example: simplify = "numbers"
+
+
+```doenet-example
+<p>
+  <m>
+    <math name="math1">1 + 2x^2 + x^2 + 5 + 3</math> = 
+    <math name="math2" simplify="numbers">$math1</math>
+  </m>
+</p>
+```
+
+
+
+When only numerical terms are to be combined, use the  `simplify="numbers"` 
+specification inside the ` <math>{:dn}` component. Some rearrangement of terms 
+may occur during simplification.
+
+
+
+---
+
+### Attribute Example: simplify = "numbersPreserveOrder"
+
+
+```doenet-example
+<p>
+  <m>
+    <math name="math1">5 + 3 + 2x^2 + x^2 + 1</math> = 
+    <math name="math2" simplify="numbersPreserveOrder">$math1</math>
+  </m>
+</p>
+```
+
+
+
+When only numerical terms are to be combined and terms must 
+remain in their original ordering, use the  `simplify="numbersPreserveOrder"` specification 
+inside the ` <math>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: expand
+
+
+```doenet-example
+<p><alert>Factored expression:</alert>
+  <math name="math1">(2x+8)(x-3)</math>
+</p>
+
+<p><alert>Expanded expression:</alert>
+<math expand="true">$math1</math>
+</p>
+
+<p><alert>Factored expression:</alert>
+  <math name="math2">(sin(x)-cos(x))(sin(x)-cos(x))</math>
+</p>
+
+<p><alert>Expanded expression:</alert>
+  <math expand>$math2</math>
+</p>
+```
+
+
+
+By default, a ` <math>{:dn}` will not expand factored expressions.  
+Specifying the `expand` attribute will expand the result.
+
+
+
+---
+
+### Attribute Example: unordered
+
+
+```doenet-editor-horiz
+<p>Type the expression <m>3,2,1</m>: 
+  <mathInput name="userTest"/>
+</p>
+
+<p>Is this equivalent to <m>1,2,3</m> ?</p>
+
+<p>Default answer evaluation: 
+  <answer>
+    <award>
+      <when>
+        $userTest = <math>1, 2, 3</math>
+      </when>
+    </award>
+  </answer>
+</p>
+
+
+<p>Answer evaluation with <c>unordered="true"</c> attribute: 
+  <answer>
+    <award>
+      <when>
+        $userTest = 
+        <math unordered>1, 2, 3</math>
+      </when>
+    </award>
+  </answer>
+</p>
+```
+
+
+
+The `unordered` attribute determines how the whether or not comparisons with the ` <math>{:dn}` 
+require the same order of its subparts.  The first ` <math>{:dn}` is defined without 
+the `unordered` attribute, so it defaults to `unordered="false"`. The second ` <math>{:dn}` 
+has `unordered="true"` specified, so it will match expressions independent of the ordering. 
+The `unordered` affects both lists, suchs $1,2,3$ or tuples such as $(1,2,3)$.
+
+
+An alternative way to specify that ordering doesn't matter is 
+with the `unorderedCompare` attribute of ` <answer>{:dn}`, ` <award>{:dn}`, ` <when>{:dn}`, or ` <boolean>{:dn}`.
+

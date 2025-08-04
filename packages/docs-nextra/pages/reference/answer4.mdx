@@ -1,0 +1,116 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <answer>{:dn}`
+
+## Advanced Use Examples
+
+The following examples illustrate some of the advanced answer forms.
+
+## Designating Responses
+When using the full logic of an ` <award>{:dn}` tag, the expression inside the ` <when>{:dn}`
+can refer to components outside the ` <answer>{:dn}` tag.  However, in this case, Doenet cannot tell what 
+values should be considered the **response** of that answer.  When basing an answer on inputs outside the 
+` <answer>{:dn}` tag, you must indicate what values are to be used for the responses.   There are two ways 
+to tell Doenet that a value is a response: adding a 
+`referencesAreResponses` attribute to the ` <award>{:dn}`, or adding a 
+` <considerAsResponses>{:dn}` child to the ` <award>{:dn}`. 
+
+The **response** of an answer is what the user entered to be evaluated for credit.  For a typical answer, the response is what 
+the user entered in the blank or selected from a lists of choices.  Doenet always uses any input tag (e.g., ` <mathInput/>{:dn}`, 
+` <textInput>{:dn}`, ` <choiceInput/>{:dn}`) inside the ` <answer>{:dn}` tag for the response.  Any other value referenced 
+inside a ` <when>{:dn}` is not considered a response, by default.
+  
+Although answer responses do not affect the credit awarded, they are used for the data analytics and giving feedback to 
+instructors and authors.  They can also be referenced inside the DoenetML document to create dynamic content that depends 
+on the user's response. Every answer should have some values flagged as the responses.
+
+See the examples below for how to use each of these methods to designate a response.
+
+
+### Example: using the `referencesAreResponses` attribute in the ` <award>{:dn}`
+```doenet-editor
+<p>In the graph below, one curve represents a function <m>f</m>, and one curve
+  represents its derivative. Click the derivative of the function to change its color. 
+  Then, click the button to check your work.</p>
+
+<graph>
+  <function name="f">x^2</function>
+  <derivative name="fPrime">$f</derivative>
+  <triggerSet anchor="(-6,-6)">
+    <updateValue target="$fPrime.styleNumber" newValue="1"/>
+    <updateValue target="$f.styleNumber" newValue="1"/>
+    <label>Reset Graph</label>
+</triggerSet>
+  <legend>
+    <label forObject="$f"><m>f(x)</m></label>
+    <label forObject="$fPrime"><m>\frac{d}{dx}f(x)</m></label>
+  </legend>
+</graph>
+
+  
+<updateValue target="$f.styleNumber" newValue="2" triggerWhenObjectsClicked="$f"/>
+<updateValue target="$fPrime.styleNumber" newValue="2" triggerWhenObjectsClicked="$fPrime"/>
+  
+
+<answer name="ans1">
+  <award referencesAreResponses="$fPrime.styleNumber">
+    <when>$f.styleNumber = 1 and $fPrime.styleNumber = 2</when>
+  </award>
+</answer>
+
+<p>Submitted Response: $ans1.submittedResponses</p>
+```
+In this example, the `referencesAreResponses` attribute is used in the `<award>{:dn}` tag 
+to indicate that `$fPrime.styleNumber` is the **response** for this answer. 
+
+When this attribute is not included, both `$f.styleNumber` and `$fPrime.styleNumber` are considered responses, which could lead 
+to confusion when analyzing the collected data.
+
+
+
+### Example: using ` <considerAsResponses>{:dn}` to designate responses
+
+```doenet-editor
+<setup>
+  <number name="x">2</number>
+  <number name="y">-1</number>
+</setup>
+<p>Move the point such that the <m>x</m>-coordinate
+is greater than <m>$x</m> and the <m>y</m>-coordinate
+is less than <m>$y</m>.</p>
+
+  <graph><point name="P" x="-5" y="3" /></graph>
+
+<p><alert>Without <tag>considerAsResponses</tag>:</alert></p>
+<p>
+<answer name="ans1">
+    <award>
+      <when>
+        $P.x > $x and $P.y < $y
+      </when>
+    </award>
+</answer></p>
+
+<p>submittedResponses = $ans1.submittedResponses</p>
+
+<p><alert>With <tag>considerAsResponses</tag>:</alert></p>
+<p>
+<answer name="ans2">
+    <award>
+      <when>
+        $P.x > $x and $P.y < $y
+      </when>
+    </award>
+  <considerAsResponses>$P</considerAsResponses>
+</answer></p>
+
+<p>$ans2.submittedResponses</p>
+```
+
+In this example, the ` <considerAsResponses>{:dn}` tag is used to indicate that the 
+coordinates of point `$P` is the **response** for this answer. 
+
+When the ` <considerAsResponses>{:dn}` child is not included, all four values `$P.x`, `$P.y`, `$x`, and `$y` are considered responses, 
+which is not desirable in this case.

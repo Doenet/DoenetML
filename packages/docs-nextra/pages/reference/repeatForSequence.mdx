@@ -1,0 +1,127 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <repeatForSequence>{:dn}`
+
+` <repeatForSequence>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+component that performs the requested operations in an iterative manner over the sequence specified.
+Its behavior is similar to a for loop in other programming languages.
+
+
+---
+
+
+## Attributes and Properties 
+ <AttrDisplay name='repeatForSequence'/> 
+` <repeatForSequence>{:dn}` does not have any properties.
+
+---
+
+### Example: ` <repeatForSequence>{:dn}` a set of points within a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <repeatForSequence 
+    from="0" 
+    to="2pi" 
+    step="pi/4" 
+    valueName="v">
+      <point>(5 cos($v), 5 sin($v))</point>
+  </repeatForSequence>
+</graph> 
+```
+
+
+
+A ` <repeatForSequence>{:dn}` can be used to generate multiple graphical elements at 
+once when placed within a ` <graph>{:dn}`.
+
+
+
+---
+
+### Example: ` <repeatForSequence>{:dn}` a user-specified number of inputs
+
+
+```doenet-editor-horiz
+<p>How many answers do you have? 
+  <mathInput name="n"/></p>
+
+<p><m>x = </m>
+<repeatForSequence 
+  name="inputs" 
+  from="1" 
+  to="$n">
+    <mathInput/>
+</repeatForSequence>
+</p>
+
+<p>Here are your answers: 
+  <c>inputs[1]</c> = $inputs[1], 
+  <c>inputs[2]</c> = $inputs[2], 
+  <c>inputs[n]</c> = $inputs[$n]</p>
+```
+
+
+
+A `<repeatForSequence>{:dn}` can be used to generate a user-specified number of ` <mathInput>{:dn}` 
+components.
+
+The `<repeatForSequence>{:dn}` component generates an array. Individual entries can be accessed 
+using array notation.
+
+
+---
+
+### Example: Nested `<repeatForSequence>{:dn}` to generate an irregular grid
+
+
+```doenet-example
+<graph xmin="-1" xmax="19" ymin="-1" ymax="12" identicalAxisScales>
+<repeatForSequence name="shapeGrid" from="3" to="17" step="7" valueName="xC" indexName="i">
+  <repeatForSequence from="2" to="10" step="4" valueName="yC">
+    <regularPolygon numSides="5" center="($xC, $yC)" styleNumber="$i" filled/>
+  </repeatForSequence>
+</repeatForSequence>
+</graph>
+```
+
+
+A `<repeatForSequence>{:dn}` can be nested within another `<repeatForSequence>{:dn}` to iterate
+over a combination of sequences with different ranges and steps.
+
+
+---
+
+### Example: Generate a user-specified number of random `<point>{:dn}` components
+
+```doenet-editor-horiz
+<p>How many points do you want to generate?
+  <mathInput name="n"/></p>
+<em>(Note, more than 10 takes some processing time...)</em>
+
+<graph>
+  <repeatForSequence name="randomPoints" from="1" to="$n">
+    <point>
+      (<sampleRandomNumbers 
+         from="-10" to="10"/>, 
+      <sampleRandomNumbers 
+        from="-10" to="10"/>)
+    </point>
+  </repeatForSequence>
+</graph>
+
+<p>The generated points are: 
+  <c>randomPoints</c> = $randomPoints
+</p>
+
+<p>The <m>n^{th}</m> generated point is: 
+  <c>randomPoints[$n]</c> = $randomPoints[$n]
+</p>
+```
+
+
+A ` <repeatForSequence>{:dn}` can be used to generate a user-specified number of randomly placed `<point>{:dn}` components.

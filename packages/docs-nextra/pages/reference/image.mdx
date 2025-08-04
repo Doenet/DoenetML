@@ -1,0 +1,376 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <image/>{:dn}`
+
+` <image/>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes) 
+component that renders an image from a hyperlink or an uploaded file.
+
+## Attributes and Properties 
+ <AttrDisplay name='image'/> 
+ <PropDisplay name='image'/>
+
+
+
+
+
+---
+
+### Example: ` <image/>{:dn}` from a hyperlink
+
+
+```doenet-editor-horiz
+<image source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg" description="A corner of a Doric temple with column capital, architrave, and triglyph"/>
+```
+
+
+
+An ` <image/>{:dn}` may be inserted from a hyperlink using the `source` attribute. The `description` attribute is required for accessibility.
+
+
+
+---
+
+### Example: ` <image/>{:dn}` in a ` <figure>{:dn}`
+
+
+```doenet-editor-horiz
+<figure>
+  <image 
+    size="full" 
+    source="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/1684_untitled_engraving_of_Sea_Monsters_Attacking_A_Sailing_Vessel.jpg/640px-1684_untitled_engraving_of_Sea_Monsters_Attacking_A_Sailing_Vessel.jpg" 
+    description="An engraving of sea monsters attacking a sailing vessel"
+  />
+  <caption>Engraving of sea monsters attacking a vessel.</caption>
+</figure>
+```
+
+
+
+An ` <image/>{:dn}` is often nested within a ` <figure>{:dn}` along with a ` <caption>{:dn}`. The `description` attribute is required for accessibility.
+
+
+
+---
+
+### Example: ` <image/>{:dn}` on a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<graph>
+  <image 
+    source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
+    description='large brown rabbit' 
+    size="small" anchor="(4,4)"
+  />
+</graph>
+```
+
+
+
+An ` <image/>{:dn}` can be placed on a ` <graph>{:dn}`. Control the size of the image with the `size` attribute and its initial position with the `anchor` attribute.
+
+
+
+---
+
+### Attribute Example: width
+
+
+```doenet-editor-horiz
+<image 
+  width="100px" 
+  name="doric" 
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg" 
+  description="A corner of a Doric temple with column capital, architrave, and triglyph"
+/>
+```
+
+
+
+The `width` attribute specifies the absolute width of the image. Doenet determines the `size` category corresponds to that width and sizes the image accordingly.
+
+
+
+---
+
+### Attribute Example: size
+
+
+```doenet-editor-horiz
+<image 
+  size="tiny" 
+  name="doric" 
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg" 
+  description="A corner of a Doric temple with column capital, architrave, and triglyph"
+/>
+<image extend="$doric" size="small"/>
+<image extend="$doric" size="full"/>
+```
+
+
+
+The `size` attribute specifies one of 5 size categories for the ` <image/>{:dn}`: `tiny`, `small`, `medium`, `large`, or `full`.
+
+
+
+---
+
+### Attribute Example: aspectRatio
+
+
+```doenet-editor-horiz
+<image 
+  size="small" 
+  aspectRatio="2/1" 
+  name="doric" 
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg" 
+  description="A corner of a Doric temple with column capital, architrave, and triglyph"
+/>
+```
+
+
+
+The `aspectRatio` attribute allows for customization of the image's default proportions.
+
+
+
+---
+
+### Attribute Example: displayMode
+
+
+```doenet-editor-horiz
+<image size="tiny" displayMode="inline" 
+  name="doric" 
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg" 
+  description="A corner of a Doric temple with column capital, architrave, and triglyph"
+/>
+
+<image extend="$doric" displayMode="block"/>  
+```
+
+
+
+The `displayMode` attribute affects how the ` <image/>{:dn}` is positioned on screen. The default mode is "block", which renders the image centered on screen. The available modes are `inline`, and `block`.
+
+
+
+---
+
+### Attribute Example: horizontalAlign
+
+
+```doenet-editor-horiz
+<image 
+  size="tiny" 
+  horizontalAlign="right" 
+  name="doric" 
+  source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg" 
+  description="A corner of a Doric temple with column capital, architrave, and triglyph"
+/>
+```
+
+
+
+The `horizontalAlign` attribute specifies the horizontal position on-screen for the default block-mode style image. Valid values are `left`, `center`, and `right`, with a default of `center`.
+
+
+
+---
+
+### Attribute Example: description
+
+
+```doenet-editor-horiz
+<figure>
+  <image width="300" description="An image of an 18th century 
+    sailing vessel on the ocean" source="broken link"/>
+  <caption>My dream ship</caption>
+</figure>
+```
+
+
+The `description` attribute provides a description of the ` <image/>{:dn}` for situations where the image 
+cannot load, or for use with screen-reading technology. It is a required attribute for accessibility.
+
+
+
+
+---
+
+### Attribute Example: source
+
+
+```doenet-editor-horiz
+<image 
+  source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
+  description='large brown rabbit' 
+  size="small"
+/>
+```
+
+
+
+The `source` attribute specifies the url for a hyperlinked ` <image/>{:dn}` and the filepath for an uploaded ` <image/>{:dn}`.
+
+
+
+---
+
+### Attribute Example: anchor
+
+
+```doenet-editor-horiz
+<graph>
+  <image 
+  source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
+  description='large brown rabbit' 
+  size="small" 
+  anchor="(4,4)"
+/>
+</graph>
+```
+
+
+
+The `anchor` attribute positions the ` <image/>{:dn}` on a ` <graph>{:dn}`.
+
+
+
+---
+
+### Attribute Example: draggable
+
+
+```doenet-editor-horiz
+<booleanInput name="isDraggable">
+  <label>Draggable?</label>
+</booleanInput> $isDraggable.value
+<graph size="small">
+  <image 
+  source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
+  description='large brown rabbit' 
+  size="small" 
+  anchor="(4,4)"
+  draggable="$isDraggable"
+/>
+</graph>
+```
+
+
+
+The `draggable` attribute determines whether the ` <image/>{:dn}` can be dragged around the graph.
+
+
+
+---
+
+### Attribute Example: layer
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle radius="7" filled/>
+  <image 
+  source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
+  description='large brown rabbit' 
+  size="small" 
+  anchor="(4,4)"
+  layer="1"
+/>
+</graph>
+```
+
+
+
+
+By adjusting the `layer` attribute number, geometry can be placed in front of or behind other geometry. The default `layer` number is 0; all higher numbers are placed in front.
+
+
+
+---
+
+### Attribute Example: rotate
+
+
+```doenet-editor-horiz
+<slider name="angle" from="0" to="2pi"/>
+<graph size="small">
+  <circle  radius="7" filled/>
+  <image 
+    rotate="$angle"
+    source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
+    description='large brown rabbit' 
+    layer="1"
+  />
+</graph>
+```
+
+The `rotate` attribute allows for rotation of the `<image>{:dn}` about its centerpoint.
+
+
+
+
+---
+
+### Property Example: Attributes as properties 1
+
+
+```doenet-editor-horiz
+<image 
+  name="leviathan" 
+  size="tiny" 
+  horizontalAlign="left" 
+  aspectRatio="3/2" 
+  source="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/1684_untitled_engraving_of_Sea_Monsters_Attacking_A_Sailing_Vessel.jpg/640px-1684_untitled_engraving_of_Sea_Monsters_Attacking_A_Sailing_Vessel.jpg" 
+  description="An engraving of sea monsters attacking a sailing vessel" 
+  draggable="false"
+/>
+
+<p><c>displayMode</c> = $leviathan.displayMode</p>
+<p><c>horizontalAlign</c> = $leviathan.horizontalAlign</p>
+<p><c>size</c> = $leviathan.size</p>
+<p><c>width</c> = $leviathan.width</p>
+<p><c>aspectRatio</c> = $leviathan.aspectRatio</p>
+<p><c>description</c> = $leviathan.description</p>
+<p><c>source</c> = $leviathan.source</p>
+```
+
+
+
+The above listed ` <image/>{:dn}` attributes are also accessible as properties.
+
+
+
+---
+
+### Property Example: Attributes as properties 2
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle  radius="7" filled/>
+  <image 
+    name="bunny"
+    rotate="$angle"
+    source="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Oryctolagus_cuniculus_Rcdo.jpg/1920px-Oryctolagus_cuniculus_Rcdo.jpg" 
+    description='large brown rabbit'
+    draggable="false" 
+    size="small" 
+    anchor="(4,4)"
+    layer="1"
+  />
+</graph>
+
+<p><c>draggable</c> = $bunny.draggable</p>
+<p><c>layer</c> = $bunny.layer</p>
+<p><c>rotate</c> = $bunny.rotate</p>
+```
+
+
+
+The above listed ` <image/>{:dn}` attributes are also accessible as properties.
+
+

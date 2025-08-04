@@ -1,0 +1,354 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <answer>{:dn}`
+
+## Attribute Examples Part 2
+
+
+The following examples illustrate use of the ` <answer>{:dn}` tag attributes.  
+
+## Attributes
+ <AttrDisplay name='answer'/> 
+ 
+---
+
+### Example: maxNumAttempts
+```doenet-example
+<m>\sqrt{529} = </m> 
+  <answer maxNumAttempts="2" symbolicEquality>23</answer>
+```
+
+The `maxNumAttempts` attribute may be used to limit the number of attempts 
+on a question-by-question basis.
+
+---
+
+### Example: allowedErrorInNumbers
+```doenet-example
+<p>Enter a number within about <m>1\%</m> of <m>100</m>: 
+  <answer allowedErrorInNumbers="0.01">100</answer>
+</p>
+<p>Enter a number within 0.01 of <m>100</m>: 
+  <answer allowedErrorInNumbers="0.01" allowedErrorIsAbsolute>100</answer>
+</p>
+<p>Enter an expression close to <m>\sin(\pi x)</m>: 
+  <answer allowedErrorInNumbers="0.1" symbolicEquality>sin(pi x)</answer>
+</p>
+```
+
+
+
+The `allowedErrorInNumbers` attribute may be used to specify a tolerance on numerical values that are considered to be correct.
+If the answer includes variables as well as numbers, using the `symbolicEquality` attribute will typically give more precise behavior.
+
+
+By default, the error tolerance is specified as a fraction of the absolute value of the correct response.  
+
+
+The `allowedErrorIsAbsolute` attribute will change the tolerance to be specified as an absolute number.
+
+
+
+---
+
+### Example: allowedErrorIsAbsolute
+```doenet-example
+<p>Enter a number within <m>1</m> of <m>100</m>: 
+  <answer allowedErrorInNumbers="1" allowedErrorIsAbsolute>100</answer></p>
+
+<p>Enter a number within <m>10</m> of <m>100</m>: 
+  <answer allowedErrorInNumbers="10" allowedErrorIsAbsolute>100</answer></p>
+```
+
+To specify an allowed error with a specific numerical value (rather than as a fraction of the correct response), 
+use the `allowedErrorIsAbsolute` attribute in combination with the `allowedErrorInNumbers` attribute.
+
+
+---
+
+### Example: includeErrorInNumberExponents
+```doenet-example
+  <p>Allow a 1% error in <m>2x^3+4</m>, but only in the coefficient 2 and constant 4: 
+  <answer allowedErrorInNumbers="0.01" symbolicEquality>2x^3+4</answer>
+  </p>
+
+    <p>Allow a 1% error in <m>2x^3+4</m>, in any of the 3 numbers: 
+  <answer allowedErrorInNumbers="0.01" symbolicEquality includeErrorInNumberExponents>2x^3+4</answer>
+  </p>
+```
+
+
+
+By default, `allowedErrorInNumbers` does not apply to exponents 
+so that $x^{2.01}$ is not considered within 1% of $x^2$.  To allow error in such 
+exponents, add the `includeErrorInNumberExponents` attribute, preferably with the `symbolicEquality` attribute.
+
+---
+
+### Example: caseInsensitiveMatch
+```doenet-example
+<p>Enter tTkLp: <answer type="text">tTkLp</answer></p>
+<p>Enter tTkLp with any capitalization: 
+  <answer type="text" caseInsensitiveMatch>ttklp</answer>
+</p>
+
+<p>Either <m>x^2</m> or <m>X^2</m> is acceptable:
+  <answer caseInsensitiveMatch>x^2</answer>
+</p>
+```
+
+Use the `caseInsensitiveMatch` attribute if capitalization is not relevant for validation.
+
+---
+
+### Example: showCorrectness
+```doenet-example
+<m>\sqrt{529} = </m> 
+  <answer name="ans1" showCorrectness="false" symbolicEquality>23</answer> 
+
+<p>(Though it generally wouldn't make sense to show the credit 
+if you're hiding correctness, you <em>could</em> 
+show the credit achieved: $ans1.creditAchieved.)</p>
+
+<p>Try again with a big button</p>
+  <m>\sqrt{529} = </m> 
+<answer 
+  name="ans2" 
+  showCorrectness="false" 
+  symbolicEquality 
+  forceFullCheckworkButton>
+    23
+</answer> 
+
+<p>Customize message</p>
+  <m>\sqrt{529} = </m> 
+  
+<answer name="ans3" 
+  showCorrectness="false" 
+  symbolicEquality 
+  forceFullCheckworkButton 
+  submitLabelNoCorrectness="submit!"
+  >23
+</answer> 
+```
+
+
+
+The `showCorrectness` attribute may be used to hide the validation of individual questions for assessments.
+
+
+The default behavior is to show correctness unless either the `handGraded` attribute was 
+specified or we are in assignment where the Show Correctness setting has been set to false.  
+The `showCorrectness` attribute on ` <answer>{:dn}` will override these settings to either 
+always show or never show correctness.
+
+
+
+---
+
+### Example: type="text"
+```doenet-example
+<p>Enter <em>hello</em>: <answer type="text">hello</answer></p>
+```
+
+
+
+The `type` attribute of ` <answer>{:dn}` is needed in a few cases to switch the answer to text mode 
+when it cannot be inferred. In text mode, the response must match 
+exactly with only whitespace difference at the beginning or end. See `caseInsensitiveMatch` for one 
+way to relax this requirement.
+
+
+
+---
+
+### Example: disableAfterCorrect
+```doenet-example
+<p>Given an angle <m>\theta</m> on the unit circle, what 
+is the name for the ratio of the opposite side to the hypotenuse?
+<answer disableAfterCorrect>
+  <choiceInput>
+    <choice><m>\tan(\theta)</m></choice>
+    <choice credit="1"><m>\sin(\theta)</m></choice>
+    <choice><m>\cos(\theta)</m></choice>
+    <choice><m>\cot(\theta)</m></choice>
+  </choiceInput>
+</answer></p>
+```
+
+The `disableAfterCorrect` attribute can be used to render  ` <answer>{:dn}` components disabled after credit is achieved.
+
+---
+
+### Example: submitLabel
+```doenet-example
+<p>Move the point.</p>
+<graph size="small">
+  <point name="p"/>
+</graph>
+
+<answer submitLabel="Check Point">
+  <award><when>$p != (0,0)</when></award>
+</answer>
+```
+
+The `submitLabel` attribute can be used to create a custom label for the "Check Work" button.
+
+---
+
+### Example: submitLabelNoCorrectness
+```doenet-example
+<p>Move the point.</p>
+<graph size="small">
+  <point name="p"/>
+</graph>
+
+<answer submitLabelNoCorrectness="Submit Point" showCorrectness="false">
+  <award><when>$p != (0,0)</when></award>
+</answer>
+```
+
+The `submitLabelNoCorrectness` attribute modifies the standard 
+"Submit Response" button label for answers where it is not desired to show correctness.
+
+---
+
+### Example: selectMultiple
+```doenet-example
+<p>Select all the warm colors:
+  <answer matchPartial selectMultiple>
+    <choice credit="1">yellow</choice>
+    <choice>green</choice>
+    <choice credit="1">orange</choice>
+    <choice credit="1">red</choice>
+    <choice>blue</choice>
+  </answer>
+</p>
+```
+
+The `selectMultiple` attribute allows multiple ` <choice>{:dn}` components to be selected for response.
+
+---
+
+### Example: shuffleOrder
+```doenet-example
+<p>Select the smallest number</p>
+<answer shuffleOrder>
+  <choice credit="1">1</choice>
+  <choice>2</choice>
+  <choice>3</choice>
+  <choice>4</choice>
+  <choice>5</choice>
+</answer>
+```
+
+
+
+The `shuffleOrder` will create different variants of the document with the choices rendered in different orders.
+
+
+Due to the algorithm used to generate these variants, the displayed variant may display the choices in the 
+original order if there are fewer than 5 choices.
+
+
+
+---
+
+### Example: splitSymbols
+```doenet-example
+<p>Enter the product of the variables <c>two</c> and <c>vars</c>:
+<answer splitSymbols="false">
+  <math splitSymbols="false">two vars</math>
+</answer>
+</p>
+```
+
+
+
+By default, an ` <answer>{:dn}` will split multiple characters entered into the 
+product of single character variables (unless the combination contains a non-leading number).  
+Setting `splitSymbols` to false will turn off this splitting so that variables in a 
+product must be separated by a space or a multiplication symbol.
+
+
+
+---
+
+### Example: expanded
+```doenet-example
+<p>In one sentence, describe the theme of the story: 
+  <answer name="ans" type="text" handGraded expanded/>
+</p>
+```
+
+The `expanded` attribute renders an expanded text box for answers with `type="text"`.
+
+---
+
+### Example: displayDigitsForResponses
+```doenet-example
+<p>Enter the value of <m>\pi</m> to at least 2 decimal places.
+  <answer name="ans" 
+    displayDigitsForResponses="5" 
+    symbolicEquality 
+    allowedErrorInNumbers="0.005" 
+    allowedErrorIsAbsolute
+    >3.141592653589793
+  </answer>
+</p>
+<p>Your response: $ans</p>
+```
+
+
+
+The `displayDigitsForResponses` determines how many digits are displayed when 
+referencing the users responses of the answer.
+
+
+The default value is 10 digits.
+
+
+
+---
+
+### Example: displayDigitsForCreditAchieved
+```doenet-editor-horiz
+<p>Enter <m>x</m> for full credit, <m>y</m> for partial credit.
+  <answer name="ans" displayDigitsForCreditAchieved="6">
+    <award>x</award>
+    <award credit="1/3">y</award>
+  </answer>
+</p>
+<p>Credit achieved: $ans.creditAchieved</p>
+```
+
+
+
+The `displayDigitsForCreditAchieved` determines how many digits are displayed when referencing 
+the `creditAchieved` property of the answer.
+
+
+The default value is 3 digits.
+
+
+
+---
+
+### Example: matchBlanks
+```doenet-example
+<p>Enter <m>f()</m> with no arguments.
+  <answer name="ans" matchBlanks>f()</answer>
+</p>
+```
+
+
+
+If a mathematical expression is incomplete, such as `<math>3+()</math>`, it may contain blanks that 
+are rendered by an underscore or a gray square.  Since such blanks typically indicate an error in a 
+mathematical expression, any expression with a blank will, by default, never match a correct answer.  
+To valid as correct a response that includes a blank, add the `matchBlanks` attribute to the ` <answer>{:dn}`.
+
+

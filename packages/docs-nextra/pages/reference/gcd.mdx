@@ -1,0 +1,87 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <gcd>{:dn}`
+
+
+` <gcd>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
+component that accepts a list of integer values separated by spaces and returns the 
+greatest common divisor of those integers.
+
+## Attributes and Properties 
+ <AttrDisplay name='gcd'/> 
+ <PropDisplay name='gcd'/>
+
+
+---
+
+### Example: ` <gcd>{:dn}` of nested list of integers
+
+
+```doenet-editor-horiz
+<p><m>\mathbb{A} = \{22, 55, 99, 110\}</m></p>
+
+<p>The greatest common divisor of 
+<m>\mathbb{A} = <gcd>22 55 99 110</gcd></m>.</p>
+```
+
+
+
+The integer arguments to the ` <gcd>{:dn}` function are entered directly 
+between the opening and closing tags.
+
+
+
+---
+
+### Example: ` <gcd>{:dn}` of variable number of user-inputs
+
+
+```doenet-editor-horiz
+<p>Enter number of integers: 
+  <mathInput name="n"/></p>
+
+<repeatForSequence 
+  name="userIntegers" 
+  from="1" 
+  to="$n">
+   <mathInput />
+</repeatForSequence>
+
+<p>The <m>GCD</m> of your list of integers is
+  <gcd>$userIntegers</gcd>.</p>
+```
+
+
+
+The user is prompted to enter the size of a list of integers using a ` <mathInput>{:dn}`. 
+This number of ` <mathInput>{:dn}` blanks are then generated with a ` <repeat>{:dn}`. 
+Finally, the ` <gcd>{:dn}` of the entered values is computed with reference to the
+named ` <repeat>{:dn}`.
+
+
+
+---
+
+### Example: ` <gcd>{:dn}` used in a multiple-choice problem
+
+
+```doenet-editor-horiz
+<problem>What is the greatest common divisor of 32, 24, and 64?
+  <answer>
+    <choice credit = "1"><gcd>32 24 64</gcd></choice>
+    <choice><gcd>24 8 12</gcd></choice>
+    <choice><gcd>8 2 12</gcd></choice>
+    <choice><gcd>12 6 3</gcd></choice>
+  </answer>
+</problem>
+```
+
+
+
+The ` <gcd>{:dn}` component is used to render each available ` <choice>{:dn}` component 
+inside an ` <answer>{:dn}`.
+
+

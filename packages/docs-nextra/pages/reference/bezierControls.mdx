@@ -1,0 +1,118 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <bezierControls>{:dn}`
+
+` <bezierControls>{:dn}`is a [Graphical](../document_structure/essentialConcepts#component-types) 
+component. It is always the child of a ` <curve>{:dn}` component and provides a means to 
+specify the control vectors at each bezier curve control point.
+
+## Attributes and Properties 
+ <AttrDisplay name='bezierControls'/> 
+ <PropDisplay name='bezierControls'/>
+
+
+---
+
+### Example: ` <bezierControls>{:dn}` with nested control vectors
+
+
+```doenet-editor-horiz
+<p>Click the curve once to reveal the control points, and click each individual control point to reveal its bezier control handles.</p>
+    <graph>
+      <curve through="(1,2) (3,4) (-5,6) (2,-4)">
+        <bezierControls>(3,1) (-1,5) (5,3) (0,-5)</bezierControls>
+      </curve>
+    </graph> 
+```
+
+
+
+Assuming all control points have symmetric control vectors, the vectors may be specified directly in list form inside a ` <bezierControls>{:dn}` component, in the same order as the control points are specified in the parent ` <curve>{:dn}` component.
+
+
+
+---
+
+### Example: ` <bezierControls>{:dn}` with ` <controlVectors>{:dn}` children
+
+
+```doenet-editor-horiz
+<p>Click the curve once to reveal the control points, and click each individual control point to reveal its bezier control handles.</p>
+
+<graph>
+  <curve through="(1,2) (3,4) (-5,6) (2,-4)">
+    <bezierControls>
+      <controlVectors>(3,1)</controlVectors>
+      <controlVectors>(-1,5)</controlVectors>
+      <controlVectors>(5,3)</controlVectors>
+      <controlVectors>(0,-5)</controlVectors>
+    </bezierControls>
+  </curve>
+</graph>
+```
+
+
+
+ Control vectors for a bezier ` <curve>{:dn}` can also be specified as individual ` <controlVectors>{:dn}` nested within a ` <bezierControls>{:dn}` block.
+
+
+
+---
+
+### Example: ` <bezierControls>{:dn}` with asymmetric control vectors
+
+
+```doenet-editor-horiz
+<p>Click the curve once to reveal the control points, and click each individual control point to reveal its bezier control handles.</p>
+
+<graph>
+  <curve through="(1,2) (3,4) (-5,6) (2,1)">
+    <bezierControls>
+      <controlVectors>(3,1)</controlVectors>
+      <controlVectors direction="both">
+        <vector>(-1,5)</vector>
+        <vector>(2,2)</vector>
+      </controlVectors>
+      <controlVectors direction="both">
+        <vector>(5,3)</vector>
+        <vector>(-5,1)</vector>
+      </controlVectors>
+      <controlVectors>(0,-5)</controlVectors>
+    </bezierControls>
+  </curve>
+</graph>
+```
+
+
+
+When a single control point has distinct control vectors in each direction, two ` <vector>{:dn}` components may be listed within the ` <controlVectors>{:dn}` component in a ` <bezierControls>{:dn}` block. In this case, specify `direction="both"` within the ` <controlVectors>{:dn}` block.
+
+
+
+---
+
+### Attribute Example: alwaysVisible
+
+
+```doenet-editor-horiz
+<p>Use the light grey handles to adjust the shape of the curve.</p>
+    
+<graph>
+  <curve through="(1,2) (3,4) (-5,6) (2,1)">
+    <bezierControls alwaysVisible>
+      <controlVectors>(3,1)</controlVectors>
+      <controlVectors>(-1,5)</controlVectors>
+      <controlVectors>(5,3)</controlVectors>
+      <controlVectors>(0,-5)</controlVectors>
+    </bezierControls>
+  </curve>
+</graph>
+```
+
+
+
+ The `alwaysVisible` attribute can be used with ` <bezierControls>{:dn}` to make handles permanently visible.
+

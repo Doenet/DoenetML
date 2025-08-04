@@ -5,7 +5,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <ol>{:dn}`
 
-` <ol>{:dn}` defines an ordered (numbered) list.  List items are nested within using an ` <li>{:dn}` tag.
+` <ol>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that defines an ordered (numbered) list.  List items are nested within using an ` <li>{:dn}` tag.
 
 ## Attributes and Properties 
  <AttrDisplay name='ol'/> 
@@ -17,25 +18,57 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ```doenet-editor-horiz
-<p>Homework:</p>
+<p>Flavors</p>
 <ol>
-  <li><m>x + 3x</m></li>
-  <li><m>5x - 2x</m></li>
-  <li><m>8x + 4x</m></li>
+  <li>Chocolate</li>
+  <li>Vanilla</li>
+  <li>Strawberry</li>
+</ol>
+
+<p>Shapes</p>
+<ol>
+  <li>
+    <p>
+      <graph size="tiny" displayMode="inline">
+        <circle radius="5"/>
+      </graph>
+    </p>
+  </li>
+  <li>
+    <p>
+      <graph size="tiny" displayMode="inline">
+        <regularPolygon radius="5"/>
+      </graph>
+    </p>
+  </li>
+  <li>
+    <p>
+      <graph size="tiny" displayMode="inline">
+        <rectangle height="8" width="8"/>
+      </graph>
+    </p>
+  </li>
+</ol>
+
+<p>Equations</p>
+<ol>
+  <li><p><m>A = \pi r^2</m></p></li>
+  <li><p><m>F = ma</m></p></li>
+  <li><p><m>E = mc^2</m></p></li>
 </ol>
 ```
 
 
 
-` <ol>{:dn}` renders an ordered list, with list items given by ` <li>{:dn}` children. ` <ol>{:dn}` is a [**Sectional**](../document_structure/essentialConcepts/#componentTypes) 
-component and should not contain any components other than ` <li>{:dn}` children. Individual ` <li>{:dn}` children 
+` <ol>{:dn}` renders an ordered list, with list items given by ` <li>{:dn}` children. ` <ol>{:dn}` 
+should not contain any components other than ` <li>{:dn}` children. Individual ` <li>{:dn}` children 
 may themselves contain graphs, problems, paragraphs, and other content.
 
 
 
 ---
 
-### Example: level
+### Attribute Example: level
 
 
 ```doenet-editor-horiz
@@ -65,13 +98,14 @@ may themselves contain graphs, problems, paragraphs, and other content.
 
 
 
-When nesting ` <ol>{:dn}` components, the `level` attribute can be used to specify a change in the counting marker for the inner lists.
+When nesting ` <ol>{:dn}` components, the `level` attribute can be used to specify a 
+change in the counting marker for the inner lists.
 
 
 
 ---
 
-### Example: marker
+### Attribute Example: marker
 
 
 ```doenet-editor-horiz
@@ -99,5 +133,5 @@ When nesting ` <ol>{:dn}` components, the `level` attribute can be used to speci
 
 
 
-Use the `marker` attribute to indicate a specific counting marker for the list. See the `level` example 
-for the default markers at each level.
+Use the `marker` attribute to indicate a specific counting marker for the list. See 
+the `level` example for the default markers at each level.

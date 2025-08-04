@@ -1,0 +1,150 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <function>{:dn}`
+
+` <function>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) component that defines a 
+mathematical function that can be used for numerical or symbolic evaluation, 
+answer validation, graphing, and other computations within Doenet.
+There are two main ways to create a function:
+
+
+1. Creating a function using a formula
+2. Creating an interpolated function through given points or with specified extrema
+
+
+## Basic Use Examples
+
+The following examples illustrate some of the basic uses of the ` <function>{:dn}` component.  
+See the following pages for more complex examples, attributes and properties.
+
+
+
+---
+
+### Example: Single variable function defined by a formula
+
+
+```doenet-editor-horiz
+<p>If <m>f(x) = 
+  <function name="f">
+    x^2 + 3x - 2
+  </function>
+  </m>, then 
+  <m>f(3) = $$f(3)</m> and 
+  <m>f(z) = $$f(z)</m>.
+</p>
+
+<p>If <m>g(t) = 
+  <function name="g" variable="t" styleNumber="2">
+    sin(t)
+  </function>
+  </m>, then 
+  <m>g(0) = $$g(0)</m> and 
+  <m>g(z) = $$g(z)</m>.
+</p>
+
+<p>The graphs of <m>f</m> and <m>g</m> are shown below.</p>
+<graph size="small">
+  $f
+  $g
+</graph>
+```
+
+
+
+A single variable function can be defined by giving a formula in the variable $x$ as the child of ` <function>{:dn}`.  
+The variable can be changed with the `variable` attribute.
+
+
+The function can be evaluated using a macro of the form `$$f(x)` 
+or rendered on a ` <graph>{:dn}` using the reference `$f`.
+
+
+
+---
+
+### Example: Vector-valued function of multiple variables
+
+
+```doenet-editor-horiz
+<p>If <m>f(x,y) = 
+  <function 
+    name="f" 
+    variables="x y">
+      (x+y, x-y)
+    </function>
+  </m>,
+  then <m>f(3,4) = $$f(3,4)</m> 
+  and <m>f(a,b) = $$f(a,b)</m>.
+</p>
+```
+
+
+
+A vector-valued function can be created by giving a vector for the formula.  
+The `variables` attribute can specify multiple variables.
+
+The macro notation `$$f(x,y)` can be used with multiple variables.
+
+
+
+---
+
+### Example: Interpolated functions 1
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function maxima="(3,4) (-5,7)" />
+  <function 
+    through="(-7,-6) (8,9)" 
+    styleNumber="2"
+  />
+</graph>
+```
+
+
+
+To create an interpolated function, use the attributes `maxima`, `minima`, `extrema`, `through` 
+and/or `throughSlopes`.  The scales used in the interpolation algorithm are specified by 
+the attributes `xscale` and `yscale`.
+
+
+
+---
+
+### Example: Interpolated functions 2
+
+
+```doenet-example
+Move the points
+<graph size="small">
+  <point name="min" labelIsName>(-8,2)</point>
+  <point name="max" labelIsName styleNumber="2">(-3,6)</point>
+  <point name="ext" labelIsName styleNumber="3">(4,-5)</point>
+  <point name="thr" labelIsName styleNumber="4">(8,-9)</point>
+  <function name="f" minima="$min" maxima="$max" extrema="$ext" through="$thr" />
+</graph>
+
+<ul>
+<li>Minima: $f.minima</li>
+<li>Maxima: $f.maxima</li>
+<li>Extrema: $f.extrema</li>
+<li>Minimum values: $f.minimumValues</li>
+<li>Maximum locations: $f.maximumLocations</li>
+</ul>
+```
+
+
+
+In addition to specifying extrema of functions, one can also access the actual 
+extrema of a function with the properties: `minima`, `minimumLocations`, `minimumValues`, `maxima`, 
+`maximumLocations`, `maximumValues`, `extrema`, `extremaLocations`, `extremaValues`.
+
+
+These properties apply to both interpolated functions and scalar-valued functions of a 
+single variable determined by a formula.
+

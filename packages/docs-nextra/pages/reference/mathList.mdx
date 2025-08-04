@@ -1,0 +1,326 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <mathList>{:dn}`
+
+
+
+` <mathList>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+component that defines a collection, or list, of [` <math>{:dn}`](math.mdx) components. 
+Some components that accept a ` <mathList>{:dn}` as an input include functions, repeats, and awards.
+
+## Attributes and Properties 
+ <AttrDisplay name='mathList'/> 
+ <PropDisplay name='mathList'/>
+
+---
+
+### Example: Defining a ` <mathList>{:dn}` and retrieving a value
+
+
+```doenet-editor-horiz
+<p>Here is a list of maths, with one missing piece. What do you want it to be? 
+  <mathInput name="userMath"/>
+</p>
+
+<mathList name="mList">
+  x $userMath y cos(x) sin(theta)
+</mathList>
+
+<p>The second element in the list is: $mList[2]</p>
+```
+
+
+
+The ` <mathList>{:dn}` component stores a list of "maths", or ` <math>{:dn}` components. 
+To access an individual element in the list, use array notation with the named ` <mathList>{:dn}`.
+
+
+---
+
+### Example: A ` <mathList>{:dn}` from multiple ` <mathInput/>{:dn}` tags
+
+
+```doenet-editor-horiz
+<p>Let's build a list:</p>
+<p>Type <m>x</m>: <mathInput name="mi1"/></p>
+<p>Type <m>y</m>: <mathInput name="mi2"/></p>
+<p>Type <m>z</m>: <mathInput name="mi3"/></p>
+<mathList name="asList">$mi1 $mi2 $mi3</mathList>
+
+<p>The second element in the user's list is: 
+  $asList[2]
+</p>
+```
+
+
+
+Combining a number of user-inputs into a ` <mathList>{:dn}` is a simple matter of 
+listing the named input references between the opening and closing tags.
+
+
+
+---
+
+### Example: A ` <mathList>{:dn}` for function evaluation
+
+
+```doenet-editor-horiz
+<mathList name="inputList">a b c</mathList>
+<p><m>f(x, y, z) = 
+  <function name="f" variables="x y z">
+    x^2 + y^2 + z^2
+  </function>
+</m></p>
+
+<p>One way to evaluate the function: </p>
+  
+<p><m>f($inputList) = 
+  <evaluate function="$f" input="$inputList"/>
+</m></p>
+
+<p>Another way to evaluate the function:</p>
+<p><m>f($inputList) = $$f($inputList)</m></p>
+
+```
+
+
+
+Here, a ` <mathList>{:dn}` stores multiple input values to be used in the subsequent code for function evaluation.
+
+
+
+---
+
+### Example: A ` <mathList>{:dn}` in a ` <repeat>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Define list: 
+  <mathList name="mL">a b c</mathList>
+</p>
+
+<p>Create a repeat loop that doubles every
+element in the list:</p>
+
+<p>
+  <repeat 
+    name="doublingLoop" 
+    for="$mL" 
+    valueName="v">
+      <math>2 $v</math>
+  </repeat>
+</p>
+
+<p>Retrieve a single element: 
+  $doublingLoop[2]</p>
+```
+
+
+
+Here, a ` <mathList>{:dn}` is referenced within the `for` attribute of 
+a ` <repeat>{:dn}`. 
+
+---
+
+### Example: A ` <mathList>{:dn}` in an ` <award>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Type <m>x, y, z</m> 
+  <mathInput name="mi1"/>
+</p>
+
+<p>Check your answer:
+  <answer>
+    <award unorderedCompare="$isUnordered">
+      <when>
+        $mi1 = <mathList>x y z</mathList>
+      </when>
+    </award>
+  </answer></p>
+
+<booleanInput name="isUnordered">
+  <label>Order not important</label>
+</booleanInput>
+```
+
+
+
+A ` <mathList>{:dn}` is frequently used in an ` <award>{:dn}` to compare two groups of values. 
+Comparisons can be ordered or unordered. (Also, specifying whether comparisons are to be ordered 
+can occur in the ` <award>{:dn}`, the ` <answer>{:dn}`, or the ` <mathList>{:dn}` itself.)
+
+
+
+---
+
+### Attribute Example: unordered
+
+
+```doenet-example
+<p>Type <m>x, y, z</m> <mathInput name="mi1"/></p>
+
+<p>Check if equal to <m>{y,z,x}</m>:
+  <boolean>
+    $mi1 = <mathList unordered>y,z,x</mathList>
+  </boolean></p>
+```
+
+
+
+If a ` <mathList>{:dn}` is defined with the `unordered` attribute, 
+comparisons (for validation in an ` <award>{:dn}` or a ` <boolean>{:dn}` for example) are 
+unordered automatically.
+
+
+
+---
+
+### Attribute Example: maxNumber
+
+
+```doenet-example
+<p>Enter a list of 3 or more variables: 
+  <mathInput name="mi1"/></p>
+
+<p><mathList name="mL1" maxNumber="2">$mi1</mathList></p>
+<p>$mL1</p>    
+```
+
+
+
+The `maxNumber` attribute imposes a limit on the number of maths that can be stored in the list.
+
+
+
+---
+
+### Attribute Example: mergeMathLists
+
+
+```doenet-example
+<mathList name="mL1" mergeMathLists="$isMerged">
+  <math>a</math>
+  <math>b,c,d</math>
+  <math>e,f</math>
+  <math>g</math>
+</mathList>
+
+<p>Merge math lists: <booleanInput name="isMerged" /></p>
+<p>The third math in the list is: $mL1[3]</p>
+```
+
+
+
+If individual maths contained within a ` <mathList>{:dn}` contain multiple values, those 
+groupings will be preserved by default. To turn off this default behavior, 
+use the `mergeMathLists` attribute.
+
+
+
+---
+
+### Attribute Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<p>How many maths should we keep?
+  <mathInput name="n"/></p>
+<p>Merge? <booleanInput name="merge"/></p>
+
+  <mathList name="mL1" mergeMathLists="$merge" maxNumber="$n">
+    <math>(e^t, cos(t))</math>
+    <math>y, z, f(x), g(y)</math>
+    <math functionSymbols="h">h(z)</math>
+    <math>4x+2</math>
+  </mathList>
+
+<p>$mL1</p>
+<p><c>unordered</c> = $mL1.unordered</p>
+<p><c>maxNumber</c> = $mL1.maxNumber</p>
+<p><c>mergeMathLists</c> = $mL1.mergeMathLists</p> 
+```
+
+
+
+All of the attributes of the ` <mathList>{:dn}` component are also available as properties.
+
+
+
+---
+
+### Property Example: numComponents
+
+
+```doenet-editor-horiz
+<p>Merge? <booleanInput name="merge"/></p>
+
+  <mathList name="mL1" mergeMathLists="$merge">
+    <math>(a, b)</math>
+    <math>c, d, e</math>
+    <math>f</math>
+  </mathList>
+
+<p>$mL1</p>
+<p><c>numComponents</c> = $mL1.numComponents</p> 
+```
+
+
+
+The `numComponents` property returns the number of components stored 
+in a ` <mathList>{:dn}`. Note that the first math  listed in the definition 
+in the example above counts as one component, even when lists are merged, 
+because it is specified as a <em>tuple</em> (enclosed by parentheses). The second 
+math in the definition counts as 1 component when lists are not merged, and 3 components if they are merged.
+
+
+
+---
+
+### Property Example: latex
+
+
+```doenet-editor-horiz
+
+  <mathList name="mL1">
+    <math>(a, b)</math>
+    <math>3/4</math>
+    <math>sin(pi/2)</math>
+  </mathList>
+
+<p><c>latex</c> = $mL1.latex</p>
+<p><c>mL1[3].latex</c> = $mL1[3].latex</p>
+```
+
+
+
+The `latex` property returns the LaTeX code required to render the maths in an array. The 
+LaTeX code for individual components can be accessed using array notation and then appending the `latex` property.
+
+
+
+---
+
+### Property Example: text
+
+
+```doenet-editor-horiz
+
+  <mathList name="mL1">
+    <math>(a, b)</math>
+    <math>3/4</math>
+    <math>sin(pi/2)</math>
+  </mathList>
+
+<p><c>text</c> = $mL1.text</p>
+<p><c>mL1[3].text</c> = $mL1[3].text</p>
+```
+
+
+
+The `text` property returns the maths in text format in an array. The text for individual 
+components can be accessed using array notation and then appending the `text` property.
+

@@ -1,0 +1,89 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <curve>{:dn}`
+
+` <curve>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a spline within a ` <graph>{:dn}`.
+
+## Attributes and Properties 
+ <AttrDisplay name='curve'/> 
+ <PropDisplay name='curve'/>
+
+---
+
+### Example: ` <curve>{:dn}` through 4 points
+
+
+```doenet-example
+<p>Click the curve to adjust the through points</p>
+<graph>
+  <curve through="(4,6) (7,-2) (-1,4) (-8,0)"/>
+</graph>
+```
+
+
+
+A ` <curve>{:dn}` is constructed through four points specified in the `through` attribute.
+
+
+
+---
+
+### Example: ` <curve>{:dn}` through 4 points with bezier controls
+
+
+```doenet-example
+<p>Click the curve to adjust the through points. 
+Click the points to adjust the curve's shape.
+</p>
+
+<graph>
+  <curve through="(1,5) (-3,-6) (1,0) (-6,3)" name="myCurve">
+    <bezierControls>(3,-3) (-2,4) (5,3) (3,3)</bezierControls>
+  </curve>
+</graph>
+```
+
+
+
+A ` <curve>{:dn}` is constructed through four points specified in 
+the `through` attribute. The shape of the curve at its through points 
+is specified with ` <bezierControls>{:dn}`. When ` <bezierControls>{:dn}` are 
+specified, draggable handles appear on the ` <graph>{:dn}` when the 
+through points are clicked.
+
+
+
+---
+
+### Example: Parametric equation of an ellipse
+
+
+```doenet-example
+<p>Parametric Equation of an Ellipse: 
+  <m>x = a \cos t, \; y=b \sin t</m>
+</p>
+
+<slider name="a" initialValue="3" labelIsName/>
+<slider name="b" initialValue="2" labelIsName/>
+
+<graph size="small">
+<curve 
+  name="parameterizedEllipse" 
+  variable="t">
+    ($a cos(t), $b sin(t))
+</curve>
+</graph>
+```
+
+
+
+Parametric equations can be constructed with the ` <curve>{:dn}` component 
+by assigning a parameter with the  `variable` attribute and 
+providing function children for the $x$-coordinates and $y$-coordinates 
+defining the ` <curve>{:dn}`.
+
+

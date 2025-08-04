@@ -1,0 +1,62 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <constrainToGraph>{:dn}`
+
+
+` <constrainToGraph>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component used within a ` <constraints>{:dn}` block to keep constrained ` <point>{:dn}` 
+components within the confines of the graphing window.
+
+## Attributes and Properties 
+ <AttrDisplay name='constrainToGraph'/> 
+ <PropDisplay name='constrainToGraph'/>
+
+---
+
+### Example: Constrain a ` <point>{:dn}` to a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Try dragging the point off the graph</p>
+<graph size="small">
+  <point name="p">
+    <constraints>
+      <constrainToGraph/>
+    </constraints>
+    <label>$p.coords</label>
+  </point>
+</graph>
+```
+
+
+
+The ` <point>{:dn}` is constrained to the current viewing window of the ` <graph>{:dn}`.
+
+
+
+---
+
+### Attribute Example: buffer
+
+
+```doenet-editor-horiz
+<p>Try dragging the point off the graph</p>
+<graph size="small">
+  <point name="p">
+    <constraints>
+      <constrainToGraph buffer="0.2"/>
+    </constraints>
+    <label>$p.coords</label>
+  </point>
+</graph>
+```
+
+
+
+The ` <point>{:dn}` is constrained to the current viewing window of 
+the ` <graph>{:dn}` with a specified `buffer` of $20 \%$ of the graph.
+
+

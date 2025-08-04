@@ -1,0 +1,240 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <row>{:dn}` (in a table)
+
+
+` <row>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that functions as a container element for the individual [` <cell>{:dn}`](cell.mdx) elements of  a [` <tabular>{:dn}`](tabular.mdx). 
+
+## Attributes and Properties 
+ <AttrDisplay name='row'/> 
+ <PropDisplay name='row'/>
+
+
+---
+
+### Example: a ` <row>{:dn}` without attributes
+
+
+```doenet-editor-horiz
+<table>
+  <tabular>
+    <row>
+      <cell>1</cell>
+      <cell>2</cell>
+      <cell>3</cell>
+    </row>
+    <row>
+      <cell>A</cell>
+      <cell>B</cell>
+      <cell>C</cell>
+    </row>
+  </tabular>
+</table>
+```
+
+
+
+The basic, unformatted structure of a ` <table>{:dn}` is illustrated. Individual rows are contained 
+within a ` <tabular>{:dn}`, and individual cells are contained within a ` <row>{:dn}`.
+
+
+
+---
+
+### Attribute Example: header
+
+
+```doenet-editor-horiz
+<table>
+  <tabular 
+    top="minor" 
+    bottom="minor" 
+    left="minor" 
+    right="minor">
+      <row header="true">
+        <cell>Name</cell>
+        <cell>Occupation</cell>
+      </row>
+      <row>
+        <cell>Jeremiah</cell>
+        <cell>Bullfrog</cell>
+      </row>
+  </tabular>
+</table>
+```
+
+
+
+The `header` attribute defines a ` <row>{:dn}` with header styling.
+
+
+
+---
+
+### Attribute Example: halign
+
+
+```doenet-editor-horiz
+<table>
+  <tabular 
+    top="minor" 
+    bottom="minor" 
+    left="minor" 
+    right="minor">
+      <row halign="left">
+        <cell>1</cell>
+        <cell>2</cell>
+      </row>
+      <row halign="center">
+        <cell>3</cell>
+        <cell>4</cell>
+      </row>
+      <row halign="right">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+  </tabular>
+</table>
+```
+
+
+
+The `halign` attribute defines the horizontal alignment of content within 
+each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options 
+are `left` (default), `center`, and `right`.
+
+
+
+---
+
+### Attribute Example: valign
+
+
+```doenet-editor-horiz
+<table>
+  <tabular 
+    top="minor" 
+    bottom="minor" 
+    left="minor" 
+    right="minor"
+    height="300">
+      <row valign="top">
+        <cell>1</cell>
+        <cell>2</cell>
+      </row>
+      <row valign="center">
+        <cell>3</cell>
+        <cell>4</cell>
+      </row>
+      <row valign="bottom">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+  </tabular>
+</table>
+```
+
+
+
+The `valign` attribute defines the vertical alignment of content within 
+each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options 
+are `top`, `center` (default), and `bottom`.
+
+
+
+---
+
+### Attribute Example: left
+
+
+```doenet-editor-horiz
+<table>
+  <tabular 
+    top="minor" 
+    bottom="minor" 
+    left="minor" 
+    right="minor"
+    height="300">
+      <row left="none">
+        <cell>1</cell>
+        <cell>2</cell>
+      </row>
+      <row>
+        <cell>3</cell>
+        <cell>4</cell>
+      </row>
+      <row left="medium">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+      <row left="major">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+  </tabular>
+</table>
+```
+
+
+
+The `left` attribute defines the weight for the left border element of content 
+within each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available options 
+are `none` (default), `minor`, `medium`, and `major`.
+
+
+Note that the `left` attribute can also be specified in the ` <tabular>{:dn}`, which 
+then applies to the entire table. If specified in both locations, the specification 
+within the individual ` <row>{:dn}` takes precedence.
+
+
+
+---
+
+### Attribute Example: bottom
+
+
+```doenet-editor-horiz
+<table>
+  <tabular 
+    top="minor" 
+    bottom="minor" 
+    left="minor" 
+    right="minor"
+    height="300">
+      <row bottom="none">
+        <cell>1</cell>
+        <cell>2</cell>
+      </row>
+      <row>
+        <cell>3</cell>
+        <cell>4</cell>
+      </row>
+      <row bottom="medium">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+      <row bottom="major">
+        <cell>5</cell>
+        <cell>6</cell>
+      </row>
+  </tabular>
+</table>
+```
+
+
+
+The `bottom` attribute defines the weight for the bottom border element of 
+content within each ` <cell>{:dn}` for the given ` <row>{:dn}`. The available 
+options are `none` (default), `minor`, `medium`, and `major`.
+
+
+Note that the `bottom` attribute can also be specified in the ` <tabular>{:dn}`, which 
+then applies to the entire table. If specified in both locations, the 
+specification within the individual ` <row>{:dn}` takes precedence.
+
+

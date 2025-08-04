@@ -1,0 +1,326 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <sampleRandomNumbers/>{:dn}`
+
+
+` <sampleRandomNumbers/>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
+component that generates random numbers from a specified range of values or within a normal distribution 
+around a specified mean. It differs from the `<selectRandomNumbers/>{:dn}` component in that the 
+values can be altered within the document by resampling or changing one or more of the 
+component's attributes. The primary application of the ` <sampleRandomNumbers/>{:dn}` component 
+is for use in simulations involving random numbers.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='sampleRandomNumbers'/> 
+ <PropDisplay name='sampleRandomNumbers'/>
+
+
+---
+
+### Example: Default ` <sampleRandomNumbers/>{:dn}`
+
+
+```doenet-editor-horiz
+
+<sampleRandomNumbers name="sample" />
+
+<p>Number selected = $sample</p>
+```
+
+
+
+Without any attributes specified, the default sampling `type` is `uniform`, and the 
+default interval is $[0, 1)$. In this example, there are two ways to view different 
+samples: selecting another variant, or refreshing the page.
+
+
+
+---
+
+### Example: Using a re-sampling button
+
+
+```doenet-editor-horiz
+<p><sampleRandomNumbers name="randomNumber"/></p>
+
+<callAction actionName="resample" target="$randomNumber">
+  <label>Get a New Number</label>
+</callAction>
+```
+
+
+
+Without any attributes specified, the default sampling `type` is `uniform`, and 
+the default interval is $[0, 1)$. The ` <callAction>{:dn}` button can be used to 
+resample the value.
+
+
+
+---
+
+### Attribute Example: numSamples
+
+
+```doenet-example
+<p>
+  <sampleRandomNumbers numSamples="4" name="randomNumbers"/>
+</p>
+
+<callAction actionName="resample" target="$randomNumbers" >
+  <label>Get New Numbers</label>
+</callAction>
+
+<p>The second number selected 
+  <c>randomNumbers[2]</c> = $randomNumbers[2]
+</p>
+```
+
+
+
+The ` <sampleRandomNumbers/>{:dn}` component is used with the `numSamples` attribute to 
+select multiple random values in the default interval $[0,1)$. The default `type` is `uniform`. 
+
+
+---
+
+### Attribute Example: from, to
+
+
+```doenet-example
+<p>
+  <sampleRandomNumbers 
+    name="x" 
+    from="-5" 
+    to="5" 
+    numSamples="5" 
+  />
+</p>
+
+<callAction actionName="resample" target="$x">
+  <label>Get New Numbers</label>
+</callAction>
+
+<p>The second number selected 
+  <c>x[2]</c> = $x[2]
+</p>
+```
+
+
+
+The `<sampleRandomNumbers/>{:dn}` component is used with the `from` and the `to` attributes 
+to modify the default selection interval. The default `type` is `uniform`.
+
+
+
+---
+
+### Attribute Example: type = "discreteUniform"
+
+
+```doenet-example
+<p>
+  <sampleRandomNumbers 
+    name="x" 
+    type="discreteUniform" 
+    from="0" 
+    to="10" 
+    numSamples="5"
+  />
+</p>
+
+<callAction actionName="resample" target="$x">
+  <label>Get New Numbers</label>
+</callAction>
+
+<p>The second number selected 
+  <c>x[2]</c> = $x[2]
+</p>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component is 
+specified as `discreteUniform`. The `discreteUniform` selection generates 
+values from an evenly spaced range defined by the attributes `to`, `from`, and `step`. If 
+left unspecified, the default `step` is 1.
+
+
+
+---
+
+### Attribute Example: exclude
+
+
+```doenet-example
+<setup>
+<sampleRandomNumbers 
+  name="n" 
+  type="discreteUniform" 
+  from="-4" to="4" 
+  numSamples="3" 
+  exclude="0"
+/>
+<number name="a" extend="$n[1]"/>
+<number name="b" extend="$n[2]"/>
+<number name="c" extend="$n[3]"/>
+</setup>
+
+<p>
+  <math simplify="numberspreserveorder">
+    $a x^2 + $b x + $c
+  </math>
+</p>
+
+<callAction actionName="resample" target="$n">
+  <label>New Coefficients</label>
+</callAction>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component is specified 
+as `discreteUniform`. Values can be excluded from the specified range used with 
+this type using the `exclude` attribute.
+
+
+
+---
+
+### Attribute Example: step
+
+
+```doenet-example
+<p>
+  <sampleRandomNumbers 
+    name="x" 
+    type="discreteUniform" 
+    from="0" 
+    to="20" 
+    numSamples="5" 
+    step="2"
+  />
+</p>
+
+<callAction actionName="resample" target="$x">
+  <label>Get New Numbers</label>
+</callAction>
+
+<p>The second number selected 
+  <c>x[2]</c> = $x[2]
+</p>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component is specified 
+as `discreteUniform`. The `discreteUniform` selection generates values from an evenly 
+spaced range defined by the attributes `to`, `from`, and `step`. If left unspecified, 
+the default `step` is 1.
+
+
+
+---
+
+### Attribute Example: type = "gaussian"
+
+
+```doenet-example
+<p>
+  <sampleRandomNumbers 
+    name="x" 
+    type="gaussian" 
+    numSamples="10" 
+    displayDigits="4"
+  />
+</p>
+
+<callAction actionName="resample" target="$x">
+  <label>Get New Numbers</label>
+</callAction>
+
+<p>The second number selected 
+  <c>x[2]</c> = $x[2]
+</p>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component is 
+specified as `gaussian`. The `gaussian` selection generates standard normal 
+variables (mean 0, variance 1). Alternatively, the `mean` as well as the `variance` 
+or the `standardDeviation` attributes may be defined.
+
+
+
+---
+
+### Attribute Example: gaussian with mean and variance
+
+
+```doenet-example
+<p>With <attr>mean</attr> and <attr>variance</attr> attribute:
+  <sampleRandomNumbers 
+    name="x" 
+    type="gaussian" 
+    mean="10" 
+    variance="2" 
+    numSamples="10" 
+    displayDigits="4"
+  />
+</p>
+
+<callAction actionName="resample" target="$x">
+  <label>Get New Numbers</label>
+</callAction>
+
+<p>The second number selected 
+  <c>x[2]</c> = $x[2]
+</p>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component 
+is specified as `gaussian`. The `gaussian` selection generates standard 
+normal variables (mean 0, variance 1). In this example, the `mean` and 
+the `variance` are defined with attributes.
+
+
+
+---
+
+### Attribute Example: gaussian with mean and standardDeviation
+
+
+```doenet-example
+<p>With <attr>mean</attr> and <attr>standardDeviation</attr> attribute:
+  <sampleRandomNumbers 
+    name="x" 
+    type="gaussian" 
+    mean="10" 
+    standardDeviation="2" 
+    numSamples="10" 
+    displayDigits="4"
+  />
+</p>
+
+<callAction actionName="resample" target="$x">
+  <label>Get New Numbers</label>
+</callAction>
+
+<p>The second number selected 
+  <c>x[2]</c> = $x[2]
+</p>
+```
+
+
+
+The `type` attribute of the ` <sampleRandomNumbers/>{:dn}` component is specified 
+as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In 
+this example, the `mean` and the `standardDeviation` are defined with attributes.
+

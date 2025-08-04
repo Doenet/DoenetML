@@ -6,8 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <selectFromSequence>{:dn}`
 
 
-
-` <selectFromSequence>{:dn}` creates named variants from a user-defined range of numerical values.
+` <selectFromSequence>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+component that creates named variants from a user-defined range of numerical (or alphabetical) values. Selections generate variants of the document.
 
 ## Attributes and Properties 
  <AttrDisplay name='selectFromSequence'/> 
@@ -28,181 +28,267 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 The default ` <selectFromSequence>{:dn}` has a sequence range from $1$ to $10$.
 
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 ---
 
-### Example: Generate and name multiple selections
+### Example: Generate multiple selections
 
 
 ```doenet-editor-horiz
+<selectFromSequence 
+  name="x" 
+  from="-5" 
+  to="5" 
+  step="0.5" 
+  numToSelect="3"
+/>
 
-  <selectFromSequence assignNames="x1 x2 x3" from="-5" to="5" step="0.5" numToSelect="3"/>
+<me>x_1 = $x[1]</me>
+<me>x_2 = $x[2]</me>
+<me>x_3 = $x[3]</me>  
+```
 
-<me>x_1 = $x1</me>
-<me>x_2 = $x2</me>
-<me>x_3 = $x3</me>  
+
+Three numbers are selected between -5 and 5 (stepping in increments of 0.5). Individual
+selections can be accessed using array notation.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+### Example: Assign descriptive names to selections
+
+
+```doenet-editor-horiz
+<setup>
+<selectFromSequence 
+  name="coeff" 
+  from="-5" 
+  to="5" 
+  exclude="0" 
+  numToSelect="3"
+/>
+<number name="a" extend="$coeff[1]"/>
+<number name="b" extend="$coeff[2]"/>
+<number name="c" extend="$coeff[3]"/>
+
+<math name="expr" simplify="numbersPreserveOrder">
+  $a x^2 + $b x + $c
+</math>
+</setup>
+
+<me>y = $expr</me>
 ```
 
 
 
-Three numbers are selected
-between -5 and 5 (stepping in increments of 0.5) are
-assigned to the named variables `x1`, `x2`,
-and `x3`.
+Three numbers are selected between -5 and 5 (stepping in increments of 0.5). 
+Selections can be assigned more descriptive names by defining individual components
+which reference the selected values.
 
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
 
-### Example: numToSelect
+### Attribute Example: numToSelect
 
 
 ```doenet-editor-horiz
-<asList>
-  <selectFromSequence from="0" to="50" numToSelect="5"/>
-</asList>
+<selectFromSequence 
+  name="s" from="0" 
+  to="50" 
+  numToSelect="5"
+/>
+
+<p>The first selection is <c>s[1]</c> = $s[1]</p>
 ```
 
 
 
-The `numToSelect` attribute allows for selection of multiple values within the range of a single ` <selectFromSequence>{:dn}` component. Multiple selections are made without replacement.
+The `numToSelect` attribute allows for selection of multiple values within the range of a 
+single ` <selectFromSequence>{:dn}` component. Multiple selections are made without replacement, unless
+the `withReplacement` attribute is also specified.
 
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 ---
 
-### Example: sortResults
+### Attribute Example: sortResults
 
 
 ```doenet-editor-horiz
-<asList>
-  <selectFromSequence sortResults from="0" to="50" numToSelect="5"/>
-</asList>
+<selectFromSequence 
+  name="s" 
+  sortResults 
+  from="0" 
+  to="50" 
+  numToSelect="5"
+/>
+
+<p>The first selection is <c>s[1]</c> = $s[1]</p>
+<p>The second selection is <c>s[2]</c> = $s[2]</p>
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
+<p>The fourth selection is <c>s[4]</c> = $s[4]</p>
+<p>The fifth selection is <c>s[5]</c> = $s[5]</p>
 ```
 
 
 
 The `sortResults` attribute sorts the selected results in increasing order.
 
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
 
-### Example: assignNames
+### Attribute Example: from, to
 
 
 ```doenet-editor-horiz
-<asList>
-  <selectFromSequence assignNames="a b" from="0" to="50" numToSelect="2"/>
-</asList>
-<p>a = $a</p>
-<p>b = $b</p>
+<selectFromSequence 
+  name="s" 
+  from="10" 
+  to="20" 
+  numToSelect="4"
+/>
+
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
 ```
 
 
 
-The `assignNames` attribute takes a list of text values (which must meet DoenetML [naming conventions](../reference/essentialConcepts/#namingConventions) ) for assigning names to individual selections.
+The `from` and `to` attributes specify the endpoints of the selection interval.
 
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
 
-### Example: from, to
+### Attribute Example: step
 
 
 ```doenet-editor-horiz
-<asList>
-  <selectFromSequence from="10" to="20" numToSelect="4"/>
-</asList>
+<selectFromSequence 
+  name="s" 
+  from="10" 
+  to="20" 
+  step="2"
+  numToSelect="4"
+/>
+
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
 ```
-
-
-
-The `from` and `to` attributes specify the endpoints of the selction interval.
-
-
-
----
-
-### Example: step
-
-
-```doenet-editor-horiz
-<asList>
-  <selectFromSequence from="10" to="20" step="2" numToSelect="4"/>
-</asList>
-```
-
-
 
 The `step` attribute specifies the size of each increment in the sequence. The default `step` is $1$
 
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 ---
 
-### Example: exclude
+### Attribute Example: exclude
 
 
 ```doenet-editor-horiz
-<asList>
-  <selectFromSequence from="-5" to="5" exclude="0" numToSelect="10"/>
-</asList>
-```
+<selectFromSequence 
+  name="s" 
+  from="-5" 
+  to="5" 
+  exclude="0"
+  numToSelect="10"
+/>
 
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
+```
 
 
 The `exclude` attribute specifies values to exclude in the selection.
 
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
 ---
 
-### Example: withReplacement
+
+### Attribute Example: withReplacement
 
 
 ```doenet-editor-horiz
-<asList>
-  <selectFromSequence from="-1" to="1" withReplacement numToSelect="10"/>
-</asList>
+<selectFromSequence 
+  name="s" 
+  from="-1" 
+  to="1" 
+  withReplacement
+  numToSelect="10"
+/>
+
+<p>The third selection is <c>s[3]</c> = $s[3]</p>
 ```
 
 
 
 If selection with replacement is the desired behavior, use the `withReplacement` attribute.
 
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
 
-### Example: excludeCombinations
+
+### Attribute Example: excludeCombinations
 
 
 ```doenet-editor-horiz
+<selectFromSequence 
+  name="s" 
+  exclude="0" 
+  numToSelect="2"  
+  from="-3" 
+  to="3" 
+  excludecombinations="(-3 3) (3 -3) (-2 2) (2 -2) (-1 1) (1 -1)" 
+/>
 
-  <selectfromsequence assignNames="a b" exclude="0" numToSelect="2"  from="-3" to="3" excludecombinations="(-3 3) (3 -3) (-2 2) (2 -2) (-1 1) (1 -1)" />
-
-<p><math simplify="numberspreserveorder">$a x + $b x</math></p>       
+<p><math simplify>$s[1] x + $s[2] x</math></p>       
 ```
 
 
+The `excludeCombinations` attribute can be used to exclude unfavorable combinations of 
+parameters. In this example, the exclusions have been designed to prevent the condition 
+that the coefficients in the expression result in a sum of $0$. 
 
-The `excludeCombinations` attribute can be used to exclude unfavorable combinations of parameters. In this example, the exclusions have been designed to prevent the condition that the coefficients in the expression result in a sum of $0$. Scroll through the page variants to observe the selections for each.
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
 
-### Example: type
+### Attribute Example: type
 
 
 ```doenet-editor-horiz
-<asList>
-  <selectFromSequence type="letters" from="a" to="g" numToSelect="5" />
-</asList>
-<selectFromSequence type="number"from="0" to="10"/>      
+<selectFromSequence
+  name="alpha" 
+  type="letters" 
+  from="a" 
+  to="g" 
+  numToSelect="5" 
+/>
+
+<p>The third selection is <c>alpha[3]</c> = $alpha[3]</p>    
 ```
 
 
 
-The `type` attribute takes either `letters` or `number` as a text input. If unspecified, the default `type` is `number`. 
+The `type` attribute takes either `letters` or `number` as a text input. If unspecified, 
+the default `type` is `number`. 
 
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.

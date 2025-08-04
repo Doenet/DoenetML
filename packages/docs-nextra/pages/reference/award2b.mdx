@@ -1,0 +1,240 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <award>{:dn}`
+
+## Attribute Examples Part 2
+
+
+The following examples illustrate use of the ` <award>{:dn}` tag attributes.  
+
+---
+
+### Attribute Example: matchByExactPositions
+```doenet-example
+  <p>Earn partial credit by getting some of the components of <m>(1,2,3,4)</m> correct:</p>
+  <answer>
+    <award matchPartial matchByExactPositions>(1,2,3,4)</award>
+  </answer>
+
+  <p>Earn partial credit by getting some of the numbers <m>1,2,3,4</m> entered in order:</p>
+  <answer>
+    <award matchPartial>1,2,3,4</award>
+  </answer>
+```
+
+
+
+The attribute `matchByExactPositions` influences how the `matchPartial` calculates partial credit 
+involving vectors, lists, and related quantities.  Without `matchByExactPositions`, the vectors `(3,1,2)` 
+and `(1,2,3)` would be deemed by `matchPartial` to have a 67% match, as both contain the 
+sequence `1,2`, even though no components match.  With `matchByExactPositions`, they would 
+have a $0 \%$ match, as none of the first, second or third coordinates match.
+
+
+In general, for a comparison of vectors, one would want to include `matchByExactPositions` 
+along with `matchPartial` to give partial credit only for matches in a coordinate.  
+For comparing ordered lists, `matchByExactPositions` may not be desired.
+
+
+`matchByExactPosition` implies an ordered comparison, so attributes like `unorderedCompare` 
+and `unordered` are ignored.
+
+
+
+---
+
+### Attribute Example: allowedErrorInNumbers and allowedErrorIsAbsolute
+```doenet-editor-horiz
+<p>Enter a number within about <m>1\%</m> of <m>100</m>: 
+  <answer>
+    <award allowedErrorInNumbers="0.01">100</award>
+  </answer>
+</p>
+
+<p>Enter a number within 0.01 of <m>100</m>: 
+  <answer>
+    <award allowedErrorInNumbers="0.01" allowedErrorIsAbsolute>100</award>
+  </answer>
+</p>
+
+<p>Enter an expression close to <m>\sin(\pi x)</m>: 
+  <answer>
+    <award allowedErrorInNumbers="0.1" symbolicEquality>sin(pi x)</award>
+  </answer>
+</p>
+```
+
+
+
+The `allowedErrorInNumbers` attribute may be used to specify a tolerance on numerical values that 
+are considered to be correct.
+If the answer includes variables as well as numbers, using the `symbolicEquality` attribute 
+will typically give more precise behavior.
+
+
+By default, the error tolerance is specified as a fraction of the absolute value of the correct 
+response. 
+
+The `allowedErrorIsAbsolute` attribute will change the tolerance to be specified as an absolute number.
+
+
+
+---
+
+### Attribute Example: allowedErrorIsAbsolute
+```doenet-editor-horiz
+<p>Enter a number within <m>1</m> of <m>100</m>: 
+  <answer>
+    <award allowedErrorInNumbers="1" allowedErrorIsAbsolute>100</award>
+  </answer>
+</p>
+
+<p>Enter a number within <m>10</m> of <m>100</m>: 
+  <answer>
+    <award allowedErrorInNumbers="10" allowedErrorIsAbsolute>100</award>
+  </answer>
+</p>
+```
+
+To specify an allowed error with a specific numerical value (rather than as a fraction of the correct response), 
+use the `allowedErrorIsAbsolute` attribute in combination with the `allowedErrorInNumbers` attribute.
+
+---
+
+### Attribute Example: includeErrorInNumberExponents
+```doenet-example
+  <p>Allow a 1% error in <m>2x^3+4</m>, but only in the coefficient 2 and constant 4: 
+  <answer><award allowedErrorInNumbers="0.01" symbolicEquality>2x^3+4</award></answer>
+  </p>
+    <p>Allow a 1% error in <m>2x^3+4</m>, in any of the 3 numbers: 
+  <answer><award allowedErrorInNumbers="0.01" symbolicEquality includeErrorInNumberExponents>2x^3+4</award></answer>
+  </p>
+```
+
+
+
+By default, `allowedErrorInNumbers` does not apply to exponents so that $x^{2.01}$ is not 
+considered within $1 \%$ of $x^2$.  To allow error in such exponents, add 
+the `includeErrorInNumberExponents` attribute, preferably with the `symbolicEquality` attribute.
+
+
+
+
+---
+
+### Attribute Example: caseInsensitiveMatch
+```doenet-editor-horiz
+<p>Enter tTkLp: 
+  <answer type="text">
+    <award>tTkLp</award>
+  </answer>
+</p>
+
+<p>Enter tTkLp with any capitalization: 
+  <answer type="text">
+    <award caseInsensitiveMatch>ttklp</award>
+  </answer>
+</p>
+
+<p>Either <m>x^2</m> or <m>X^2</m> is acceptable:
+  <answer>
+    <award caseInsensitiveMatch>x^2</award>
+  </answer>
+</p>
+```
+
+Use the `caseInsensitiveMatch` attribute if capitalization is not relevant for validation.
+
+---
+
+### Attribute Example: matchBlanks
+```doenet-example
+    <p>Enter <m>f()</m> with no arguments.
+      <answer name="ans"><award matchBlanks>f()</award></answer>
+    </p>
+```
+
+
+
+If a mathematical expression is incomplete, such as <math>3+()</math>, it 
+may contain <q>blanks</q> that are rendered by an underscore or a gray square.  
+Since such blanks typically indicate an error in a mathematical expression, any 
+expression with a blank will, by default, never match a correct answer.  To valid as 
+correct a response that includes a blank, add the `matchBlanks` attribute to the ` <answer>{:dn}`.
+
+
+
+
+---
+
+### Attribute Example: feedbackText
+```doenet-example
+<p><em>For the following question, first enter <m>\frac{4}{8}</m> and 
+then <m>\frac{1}{2}</m>.</em></p>
+
+<p>Question: Simplify <m>\frac{8}{16}</m>
+  <answer name="ans" symbolicEquality>
+    <award>1/2</award>
+    <award feedbackText="Simplify further." credit="0">4/8</award>
+  </answer>
+</p>
+
+$ans.feedbacks
+```
+
+
+
+The `feedbackText` attribute will assign a particular feedback message to the 
+answer when the award is matched.  To display feedbacks associate to the answer, 
+render the `feedbacks` property of the ` <answer>{:dn}`.
+
+
+
+---
+
+### Attribute Example: referencesAreResponses
+```doenet-editor-horiz
+<number name="threshold">6</number>
+
+<p>Move the point so its coordinates are larger than $threshold.</p>
+
+<graph size="small">
+  <point name="P" />
+</graph>
+
+<answer name="ans">
+  <award referencesAreResponses="P">
+    <when>
+      $P.x > $threshold
+      and $P.y > $threshold
+    </when>
+  </award>
+</answer>
+
+<p>Responses recorded as data:
+$ans.submittedResponses
+</p>
+```
+
+If an ` <answer>{:dn}` has an embedded input field, then Doenet knows that input is the user's response.  
+Absent such input, Doenet will guess that any value copied into an award is the user's response.  
+One way to tell Doenet what is the user's response is by setting the `referencesAreResponses` to names of components. 
+Then any values copied into the ` <award>{:dn}` from those components will be considered the user's response.
+
+
+
+Properly annotating DoenetML to specify the user's response will help Doenet collect better data and 
+better understand how user's are learning.  
+Other ways to annotate user responses are:
+  1. Add the `isResponse` attribute to responses that are copied into the ` <award>{:dn}`.
+  2. Add a ` <considerAsResponses>{:dn}` child to the ` <answer>{:dn}` and copy anything that 
+  should be considered a reponse into the ` <considerAsResponses>{:dn}`.
+
+
+
+Specifying the user's response will also let you use the `submittedResponses` and `currentResponses` properties 
+of the ` <answer>{:dn}`.
+

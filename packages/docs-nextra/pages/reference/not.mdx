@@ -1,0 +1,62 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <not>{:dn}`
+
+` <not>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types) 
+component that can be used in place of typing `not` or using the symbol `!` to construct boolean conditions.
+
+## Attributes and Properties 
+ <AttrDisplay name='not'/> 
+ <PropDisplay name='not'/>
+
+---
+
+### Example: ` <not>{:dn}` in a ` <boolean>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Enter a 1, and then <c>not</c> a 1:
+      <mathInput name="n"/></p>
+<p>You have not entered a 1: 
+  <boolean><not>$n = 1</not></boolean></p>
+```
+
+
+
+The ` <not>{:dn}` component functions as the boolean operator `not` or `!`.
+
+
+
+---
+
+### Example: ` <not>{:dn}` in an ` <award>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Move the point away from the origin for credit.</p>
+<graph size="small">
+  <point name="p">
+    <constraints>
+      <constrainToGrid/>
+    </constraints>
+  </point>
+</graph>
+
+<answer>
+  <award>
+    <when>
+      <not>$p = (0,0)</not>
+    </when>
+  </award>
+</answer>
+```
+
+
+
+A ` <not>{:dn}` component is used to construct a boolean condition within an ` <award>{:dn}`.
+
+

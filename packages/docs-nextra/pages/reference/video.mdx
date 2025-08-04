@@ -1,0 +1,285 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <video/>{:dn}` 
+
+`<video/>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes)
+component that renders an embedded video.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='video'/> 
+ <PropDisplay name='video'/>
+
+---
+
+### Example: Default `<video/>{:dn}` embed
+
+
+```doenet-example
+<video youtube="B7UmUX68KtE" />
+```
+
+
+
+The video at [the youtube website ending in "B7UmUX68KtE"](https://www.youtube.com/watch?v=B7UmUX68KtE) 
+is embedded into the page with the `youtube` attribute.  Note that only the portion of the url following 
+the equals sign is required.
+
+
+
+---
+
+### Example: Play `<video/>{:dn}` when question answered
+
+
+```doenet-example
+<p>What muppet likes to throw pepper? 
+  <answer name="ans">
+    <choice>Oscar the Grouch</choice>
+    <choice>Kermit the Frog</choice>
+    <choice credit="1">the Swedish Chef</choice>
+  </answer></p>
+
+<video name="chefVideo" youtube="B7UmUX68KtE" />
+<callAction actionName="playVideo" target="$chefVideo" triggerWhen="$ans.creditAchieved = 1"/>
+```
+
+
+
+The video at [the youtube website ending in "B7UmUX68KtE"](https://www.youtube.com/watch?v=B7UmUX68KtE)
+is triggered to play automatically with a ` <callAction>{:dn}` when the correct answer is provided.
+
+
+
+---
+
+### Example: Give credit based on fraction watched
+
+
+```doenet-example
+<video name="v1" youtube="49qilPR8Qpc" size="small" aspectRatio="16/9" />
+
+<p>Video credit achieved: 
+  <number displayDecimals="1">$v1.fractionWatched*100</number>%</p>
+
+<answer hide name="v1Credit">
+  <award credit="$v1.fractionWatched">
+    <when>true</when>
+  </award>
+</answer>
+
+<callAction triggerWith="$v1" target="$v1Credit" actionName="submitAnswer" />
+```
+
+
+
+The student is awarded credit for ` <answer>{:dn}` `v1Credit` based on the `fractionWatched` property 
+of the named ` <video/>{:dn}` component. This "answer" is submitted automatically 
+with a ` <callAction>{:dn}` employing the `submitAnswer` action.
+
+
+
+---
+
+### Attribute Example: width
+
+
+```doenet-example
+<video name="v1" youtube="49qilPR8Qpc" width="300px"/>
+<p><c>v1.size</c> = $v1.size</p>
+
+<video name="v2" extend="$v1" width="700px"/>
+<p><c>v2.size</c> = $v2.size</p>
+```
+
+
+
+The `width` attribute specifies the absolute width of the video. Doenet determines 
+the `size` category that corresponds to that width and sizes the video accordingly.
+
+
+
+---
+
+### Attribute Example: size
+
+
+```doenet-editor-horiz
+<video name="v1" youtube="49qilPR8Qpc" size="small"/>
+
+<video extend="$v1" size="medium"/>
+```
+
+
+
+The `size` attribute specifies one of 5 size categories for the ` <video/>{:dn}`: `tiny`, `small`, `medium`, `large`, or `full`.
+
+
+
+---
+
+### Attribute Example: aspectRatio
+
+
+```doenet-example
+<video name="v1" youtube="49qilPR8Qpc" size="small" aspectRatio="16/9"/>
+
+<video extend="$v1" size="small" aspectRatio="9/16"/>
+```
+
+
+
+The `aspectRatio` attribute allows for customization of the video embed's default proportions.
+
+
+
+---
+
+### Attribute Example: displayMode
+
+
+```doenet-editor-horiz
+<video name="v1" youtube="49qilPR8Qpc" displayMode="inline" size="small"/>
+
+<video extend="$v1"  displayMode="block" />
+```
+
+
+
+The `displayMode` attribute affects how the ` <video/>{:dn}` is positioned on screen. The default mode is "block", which renders the video centered on screen. The available modes are `inline`, and `block`. 
+
+
+
+---
+
+### Attribute Example: horizontalAlign
+
+
+```doenet-example
+<p>A left video</p>  
+<video 
+  name="v1" 
+  youtube="49qilPR8Qpc" 
+  displayMode="block" 
+  size="small" 
+  horizontalAlign="left"
+/>
+
+<p>A centered video (default)</p>
+<video extend="$v1" horizontalAlign="center"/>
+
+<p>A right video </p>
+<video extend="$v1" horizontalAlign="right"/>
+```
+
+
+
+The `horizontalAlign` attribute specifies the horizontal position on-screen for the 
+default block-mode style video. Valid values are `left`, `center`, and `right`, with a default of `center`.
+
+
+
+---
+
+### Attribute Example: youtube
+
+
+```doenet-editor-horiz
+<video youtube="B7UmUX68KtE" />
+```
+
+
+
+The video at *https://www.youtube.com/watch?v=B7UmUX68KtE* is embedded into the page with the `youtube` attribute.  Note that only the portion of the url following the equals sign is required.
+
+
+
+---
+
+### Action Example: playVideo
+
+
+```doenet-editor-horiz
+<callAction 
+  actionName="playVideo" 
+  target="$v1">
+  <label>Play</label>
+</callAction>
+
+<video name="v1" youtube="B7UmUX68KtE" />
+```
+
+
+
+The `playVideo` action can be triggered with a ` <callAction>{:dn}` component.
+
+
+
+---
+
+### Action Example: pauseVideo
+
+
+```doenet-editor-horiz
+<callAction actionName="playVideo" target="$v1">
+  <label>Play</label>
+</callAction>
+
+<callAction actionName="pauseVideo" target="$v1">
+  <label>Pause</label>
+</callAction>
+
+<video name="v1" youtube="B7UmUX68KtE" />
+```
+
+
+
+The `pauseVideo` action can be triggered with a ` <callAction>{:dn}` component.
+
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<video name="v1" youtube="B7UmUX68KtE" />
+
+<p><c>width</c> = $v1.width</p>
+<p><c>size</c> = $v1.size</p>
+<p><c>aspectRatio</c> = $v1.aspectRatio</p>
+<p><c>displayMode</c> = $v1.displayMode</p>
+<p><c>horizontalAlign</c> = $v1.horizontalAlign</p>
+<p><c>youtube</c> = $v1.youtube</p>
+```
+
+
+
+The above listed ` <video/>{:dn}` attributes are also accessible as properties.
+
+
+
+---
+
+### Property Example: Properties related to view statistics
+
+
+```doenet-editor-horiz
+<video name="v1" youtube="B7UmUX68KtE" />
+
+<p><c>state</c> = $v1.state</p>
+<p><c>time</c> = $v1.time</p>
+<p><c>duration</c> = $v1.duration</p>
+<p><c>secondsWatched</c> = $v1.secondsWatched</p>
+<p><c>fractionWatched</c> = $v1.fractionWatched</p>
+```
+
+
+
+The ` <video/>{:dn}` component has several properties related to viewing behavior as shown above. The `secondsWatched` and `fractionWatched` properties are only updated once the ` <video/>{:dn}` has been paused once.
+
+

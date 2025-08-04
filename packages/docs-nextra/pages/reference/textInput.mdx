@@ -1,0 +1,316 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <textInput/>{:dn}`
+
+
+` <textInput/>{:dn}` is an [Input](../document_structure/essentialConcepts/#componentTypes)
+component that renders a form input field for text responses from the user.
+
+## Attributes and Properties 
+ <AttrDisplay name='textInput'/> 
+ <PropDisplay name='textInput'/>
+
+
+---
+
+### Example: Default ` <textInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Type anything: 
+  <textInput name="userText"/>
+</p>
+
+<p>You typed: $userText</p>
+```
+
+
+
+The default ` <textInput/>{:dn}` blank is wide enough for approximately 2-4 words to be visible at a time.
+
+
+
+---
+
+### Example: Large ` <textInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Type some longer things: 
+  <textInput name="longText" expanded/>
+</p>
+
+<p>You typed: $longText</p>
+```
+
+
+
+The expanded ` <textInput/>{:dn}` blank is approximately large enough for 4-6 sentences to be visible at a time.
+
+
+---
+
+### Example: ` <textInput/>{:dn}` with `<label>{:dn}` child
+
+
+```doenet-editor-horiz
+<p> 
+  <textInput name="userName">
+    <label>Enter your name:</label> 
+  </textInput>
+</p>
+
+<p>You typed: $userName</p>
+```
+
+
+
+The ` <textInput/>{:dn}` component can take a nested `<label>{:dn}` child.
+
+
+
+---
+
+### Example: ` <textInput/>{:dn}` for graded free-response
+
+
+```doenet-editor-horiz
+<p>Explain how you solved the problem: 
+  <answer name="ans" type="text" handGraded>
+    <textInput expanded/>
+  </answer>
+</p>
+```
+
+
+
+The ` <textInput/>{:dn}` can be nested in an ` <answer>{:dn}` with the `handGraded` attribute for graded free-response style questions.
+
+
+
+---
+
+### Example: ` <textInput/>{:dn}` for graded closed-form text response
+
+
+```doenet-editor-horiz
+<p>What color is the complement of purple? 
+  <textInput name="userColor"/>
+  <answer 
+    name="ans" 
+    type="text"
+    caseInsensitiveMatch
+  >
+    <award>
+      <when>
+        $userColor = yellow
+      </when>
+    </award>
+  </answer>
+</p>
+```
+
+
+
+The ` <textInput/>{:dn}` can be nested in an ` <answer>{:dn}` with the `handGraded` attribute for graded free-response style questions.
+
+
+
+---
+
+### Example: ` <textInput/>{:dn}` on a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Where should we put the <tage>textInput</tage>? 
+  <mathInput name="userAnchor" prefill="(0,0)"/>
+</p>
+
+<graph size="small"> 
+  <textInput name="shape" anchor="$userAnchor"/>
+  <regularPolygon numSides="5" sideLength="6" filled center="(-2,0)"/>
+</graph>
+```
+
+
+
+A ` <textInput/>{:dn}` can be placed on a ` <graph>{:dn}`. Use the `anchor` attribute to adjust its starting location. Click on the border of the ` <textInput/>{:dn}` to drag it around.
+
+
+
+---
+
+### Attribute Example: prefill
+
+
+```doenet-example
+<p>Enter your favorite vacation place: 
+  <textInput prefill="my cabin"/></p>
+```
+
+
+
+The `prefill` attribute specifies initial text for the ` <textInput/>{:dn}`.
+
+
+
+---
+
+### Attribute Example: expanded
+
+
+```doenet-example
+<p>Type some longer things: <textInput expanded/></p>
+```
+
+
+
+The `expanded` attribute renders a larger ` <textInput/>{:dn}` space. The dimensions of the input space can be further customized with the `height` and `width` attributes.
+
+
+
+---
+
+### Attribute Example: width
+
+
+```doenet-example
+<p>A wider input: 
+  <textInput width="600px"/></p>
+<p>A narrower input: 
+  <textInput width="10px"/></p>
+```
+
+
+
+The default width of the input space can be customized with the `width` attribute.
+
+
+
+---
+
+### Attribute Example: height
+
+
+```doenet-example
+<p>A taller input: 
+  <textInput height="600px" expanded/></p>
+```
+
+
+
+The default height of the input space can be customized with the `height` attribute. This must be used in combination with the `expanded` attribute.
+
+
+
+---
+
+### Attribute Example: labelIsName
+
+
+```doenet-example
+<p>Enter the shape that is shown.</p>
+
+<graph size="small" displayXAxis="false" displayYAxis="false"> 
+  <textInput name="shape" labelIsName/>
+  <regularPolygon numSides="3" sideLength="18" filled center="(-2,0)"/>
+</graph>
+
+<textInput name="Hi" labelIsName/>
+```
+
+
+
+The `labelIsName` attribute can be used to assign an automatic label to a ` <textInput/>{:dn}`.
+
+
+
+---
+
+### Attribute Example: draggable
+
+
+```doenet-example
+<p>Play with moving the boxes around.</p>
+
+<graph size="small"> 
+  <textInput 
+    draggable="false" 
+    prefill="cannot drag" 
+    anchor="(-3,-5)"
+  />
+  <textInput prefill="drag me" anchor="(3,5)"/>
+  <circle radius="8" filled/>
+</graph>
+```
+
+
+
+The `draggable` attribute can be set to false to prevent users from moving the ` <textInput/>{:dn}` on a ` <graph>{:dn}`.
+
+
+
+---
+
+### Property Example: value
+
+
+```doenet-editor-horiz
+<textInput name="ti"/>
+
+<p><c>value</c> = $ti.value</p>
+```
+
+
+
+The `value` property contains the finalized value the user entered into the input.  It is updated when the user presses enter or navigates away.
+
+
+
+---
+
+### Property Example: immediateValue
+
+
+```doenet-editor-horiz
+<textInput name="ti"/>
+
+<p><c>immediateValue</c> = $ti.immediateValue</p>
+```
+
+
+
+The `immediateValue` property contains the value the user enters into the input as they are typing.
+
+
+---
+
+### Property Example: attributes as properties
+
+
+```doenet-editor-horiz
+<graph size="small" displayXAxis="false" displayYAxis="false">
+<textInput 
+  name="ti" 
+  width="50" 
+  prefill="type here"
+  >
+    <label>Name: </label>
+</textInput>
+</graph>
+
+<p><c>prefill</c> = $ti.prefill</p>
+<p><c>expanded</c> = $ti.expanded</p>
+<p><c>width</c> = $ti.width</p>
+<p><c>labelIsName</c> = $ti.labelIsName</p>
+<p><c>draggable</c> = $ti.draggable</p>
+<p><c>label</c> = $ti.label</p>
+```
+
+
+
+The attributes illustrated in the example are also accessible as properties. The value stored in a ` <label>{:dn}` child can also be rendered using the `label` property.
+
+

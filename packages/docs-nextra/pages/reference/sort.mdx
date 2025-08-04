@@ -5,7 +5,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 # ` <sort>{:dn}`
 
-` <sort>{:dn}` is an [**General Operator**](../document/essentialConcepts/#componentTypes) component that reorders a list of components based on given criteria.
+` <sort>{:dn}` is an [General Operator](../document/essentialConcepts/#componentTypes) component that reorders a list of components based on given criteria.
 
 ## Attributes and Properties 
  <AttrDisplay name='sort'/> 
@@ -18,20 +18,19 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ```doenet-editor-horiz
 <p>
-  <asList>
-    <sort>
-      <number>4</number>
-      <number>pi</number>
-      <number>sqrt(3)</number>
-      <number>11</number>
-  </sort>
-  </asList>
+  <sort>
+    <number>4</number>
+    <number>pi</number>
+    <number>sqrt(3)</number>
+    <number>11</number>
+</sort>
 </p>
 ```
 
 
 
-In this example, ` <number>{:dn}` component are sorted in increasing order using the ` <sort>{:dn}` component.
+In this example, ` <number>{:dn}` components are sorted in increasing order using 
+the ` <sort>{:dn}` component.
 
 
 
@@ -42,20 +41,17 @@ In this example, ` <number>{:dn}` component are sorted in increasing order using
 
 ```doenet-editor-horiz
 <p>
-  <asList>
-    <selectRandomNumbers name="numbers" numToSelect="10"/>
-  </asList>
+  <selectRandomNumbers name="numbers" numToSelect="10"/>
 </p>
 <p>
-  <asList>
-    <sort>$numbers</sort>
-  </asList>
+  <sort>$numbers</sort>
 </p>
 ```
 
 
 
-In this example, randomly selected numbers generated with a ` <selectRandomNumbers>{:dn}` component are sorted in increasing order using the ` <sort>{:dn}` component.
+In this example, randomly selected numbers generated with a ` <selectRandomNumbers>{:dn}` component 
+are sorted in increasing order using the ` <sort>{:dn}` component.
 
 
 
@@ -71,21 +67,20 @@ In this example, randomly selected numbers generated with a ` <selectRandomNumbe
   <mathInput name="n3"/>
 </p>
 <p>Your sorted list is: 
-  <asList>
-    <sort>$n1 $n2 $n3</sort>
-  </asList>
+  <sort>$n1 $n2 $n3</sort>
 </p>
 ```
 
 
 
-In this example, numbers entered by the user with a ` <mathInput>{:dn}` component are referenced by name and are sorted in increasing order using the ` <sort>{:dn}` component.
+In this example, numbers entered by the user with a ` <mathInput>{:dn}` component are 
+referenced by name and are sorted in increasing order using the ` <sort>{:dn}` component.
 
 
 
 ---
 
-### Example: alphabetical sorting
+### Example: Alphabetical sorting
 
 
 ```doenet-editor-horiz
@@ -95,100 +90,77 @@ In this example, numbers entered by the user with a ` <mathInput>{:dn}` componen
   <textInput name="n3"/>
 </p>
 <p>Your sorted list is: 
-  <asList>
-    <sort>$n1 $n2 $n3</sort>
-  </asList>
+  <sort>$n1 $n2 $n3</sort>
 </p>
 ```
 
 
 
-In this example, names entered by the user with a ` <textInput>{:dn}` component are referenced by name and are sorted in alphabetical order using the ` <sort>{:dn}` component.
+In this example, names entered by the user with a ` <textInput>{:dn}` component 
+are referenced by name and are sorted in alphabetical order 
+using the ` <sort>{:dn}` component.
 
 
 
 ---
 
-### Example: assignNames
+
+### Attribute Example: sortByComponent
 
 
 ```doenet-editor-horiz
-<p>Enter three numbers, not in increasing order:
-  <mathInput name="n1"/>, 
-  <mathInput name="n2"/>, 
-  <mathInput name="n3"/>
+<p>Drag the points!</p>
+
+<p>Choose component number to sort by (1 or 2):
+  <mathInput name="i" prefill="1"/></p>
+<p>
+  <sort sortByComponent="$i">
+    $A $B $C $D
+  </sort>
 </p>
-<p>Your sorted list is: 
-  <asList>
-    <sort assignNames="small medium large">$n1 $n2 $n3</sort>
-  </asList>
-</p>
-<p>small = $small</p>
-<p>medium = $medium</p>
-<p>large = $large</p>
-```
 
-
-
-Sorted values can be assigned names directly using the `assignNames` attribute.
-
-
-
----
-
-### Example: sortByComponent
-
-
-```doenet-editor-horiz
-Drag the points!
-<graph>
+<graph size="small">
   <point name="A">(0,5)</point>
   <point name="B" styleNumber="2">(-2,6)</point>
   <point name="C" styleNumber="3">(7,-3)</point>
   <point name="D" styleNumber="4">(-4,2)</point>
 </graph>
-<p>Choose component number to sort by (1 or 2):
-  <mathInput name="i" prefill="1"/></p>
-<p>
-  <asList>
-    <sort sortByComponent="$i">
-      $A $B $C $D
-    </sort>
-  </asList>
-</p>
 ```
 
 
 
-For multi-dimensional object like points, sorting by `sortByComponent="1"` sorts by their first component, i.e., their $x$-component, while using `sortByComponent="2"` results in sorting based on the $y$-component.
+For multi-dimensional object like points, sorting by `sortByComponent="1"` sorts by 
+their first component, i.e., their $x$-component, while using `sortByComponent="2"` results 
+in sorting based on the $y$-component.
 
 
-Values entered outside the dimensions of the object, such as entering a $3$ or a $0$ in for a two-dimensional object, will result in no sorting.
+Values entered outside the dimensions of the object, such as entering a $3$ or a $0$ in 
+for a two-dimensional object, will result in no sorting.
 
 
 
 ---
 
-### Example: sortByProp
+### Attribute Example: sortByProp
 
 
 ```doenet-editor-horiz
 Drag the points!
 <graph size="small">
   <point name="A">(0,5)</point>
-  <point name="B">(-2,6)</point>
-  <point name="C">(7,-3)</point>
-  <point name="D">(3,2)</point>
-  <point name="E">(5,1)</point>
+  <point name="B" styleNumber="2">(-2,6)</point>
+  <point name="C" styleNumber="3">(7,-3)</point>
+  <point name="D" styleNumber="4">(3,2)</point>
 </graph>
+
 <p>Points sorted by x: 
   <sort sortByProp="x">
-    $A $B $C $D $E
+    $A $B $C $D
   </sort>
 </p>
 <p>Points sorted by y:
   <sort sortByProp="y">
-    $A $B $C $D $E
+    $A $B $C $D
   </sort>
 </p>
 ```
@@ -201,7 +173,7 @@ Components with numerical properties can be sorted based on an individual proper
 
 ---
 
-### Example: sortVectorsBy
+### Attribute Example: sortVectorsBy
 
 
 ```doenet-editor-horiz
@@ -212,19 +184,16 @@ Drag the vectors!
   <vector name="v3" tail="(7,1)" displacement="(-1,-3)" styleNumber="3"/>
   <vector name="v4" tail="(-2,-2)" displacement="(-3,0)" styleNumber="4"/>
 </graph>
+
 <p>Vectors sorted by tail:
-  <asList>
-    <sort sortVectorsBy="tail" >
-      $v1 $v2 $v3 $v4
-    </sort>
-  </asList>
+  <sort sortVectorsBy="tail" >
+    $v1 $v2 $v3 $v4
+  </sort>
 </p>
 <p>Vectors sorted by displacement:
-  <asList>
-    <sort sortVectorsBy="displacement" sortByProp="x2">
-      $v1 $v2 $v3 $v4
-    </sort>
-  </asList>
+  <sort sortVectorsBy="displacement" sortByProp="x2">
+    $v1 $v2 $v3 $v4
+  </sort>
 </p>
 ```
 

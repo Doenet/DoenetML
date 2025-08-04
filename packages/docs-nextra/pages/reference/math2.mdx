@@ -1,0 +1,552 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <math>{:dn}`
+
+## Examples Page 2
+
+
+
+### Attribute Example: functionSymbols
+
+
+```doenet-example
+<p>
+  <math>f(x) + g(x) - h(x)</math>
+</p>
+<p>
+  <math functionSymbols="f g h">
+    f(x) + g(x) - h(x)
+  </math>
+</p>
+```
+
+
+
+By default, Doenet considers $f$ and $g$ as symbols that represent functions 
+when they occur in mathematical expressions. To modify or override this default 
+behavior, or to include additional symbols representing functions, provide the 
+symbols as a space-separated list within the `functionSymbols` attribute specification.
+
+
+If a symbol is not specified as a function, then parentheses after the symbol are 
+interpreted as multiplication.
+
+
+
+---
+
+
+### Attribute Example: referencesAreFunctionSymbols
+
+
+```doenet-example
+<select name="f">g h k m n</select>
+<select name="x">s t u v w x y z</select>
+
+<p><alert>Without the attribute:</alert>
+  <math>$f($x)</math></p>
+
+<p><alert>With the attribute:</alert>
+  <math referencesAreFunctionSymbols="$f">
+    $f($x)
+  </math>
+</p>
+```
+
+
+
+By default, Doenet considers $f$ and $g$ as symbols that represent functions 
+when they occur in mathematical expressions. If the symbol itself is given by a 
+named reference using `$name`, the `referencesAreFunctionSymbols` attribute 
+alerts Doenet that the value stored in this reference is the function symbol. In the 
+example above, this could be any one of the five possible symbols that are assigned 
+in different variants to the reference ` <select>{:dn}`.
+
+
+
+---
+
+### Attribute Example: splitSymbols
+
+
+```doenet-editor-horiz
+<p><math>xyz</math></p>
+<p><math splitSymbols="false">xyz</math></p>
+<p><math simplify>xyx</math></p>
+<p><math simplify splitSymbols="false">xyx</math></p>
+<p><math simplify>sqs</math></p>
+<p><math simplify splitSymbols="false">sqs</math></p>
+```
+
+
+
+By default, letters placed adjacent to one another in a ` <math>{:dn}` component are separated by Doenet for computations, so `xyz` is interpreted as $x \cdot y \cdot z$, rather than a single variable composed of three letters. To override this default behavior, set the `splitSymbols` attribute to `false`.
+
+
+
+---
+
+### Attribute Example: displayBlanks
+
+
+```doenet-editor-horiz
+<p><math>2 + ()  = ()</math></p>
+<p>
+  <math displayBlanks="false">
+    2 + () = ()
+  </math>
+</p>
+```
+
+
+
+By default, Doenet inserts an underscore when there is a blank space (indicated by an empty set of parentheses in the DoenetML) within a ` <math>{:dn}`. To override this default behavior, set the `displayBlanks` attribute to `false`.
+
+
+
+---
+
+### Attribute Example: displayDigits/displayDecimals
+
+
+```doenet-editor-horiz
+<p>By default, display three digits or two decimals places, whichever is greater.</p>
+<p><m>\frac{\pi}{2} \approx 
+  <math simplify>3.14159/2</math></m>
+</p> 
+<p><m>\frac{\sqrt{2}}{2} \approx 
+  <math simplify>1.41214/2</math></m>
+</p>
+
+<p>User specifies number of digits to display; default number of decimal places is ignored</p>
+<p><m>\frac{\pi}{2} \approx 
+  <math 
+    simplify 
+    displayDigits="2">
+      3.14159/2
+  </math>
+</m></p> 
+
+<p>User specifies number of digits to display; default number of decimal places is ignored</p>        
+<p><m>\frac{\sqrt{2}}{2} \approx 
+  <math 
+    simplify 
+    displayDigits="2">
+      1.41214/2
+  </math>
+</m></p>
+```
+
+
+
+By default, maths that are also numbers will be displayed as rounded to three digits or to two decimal places, whichever includes more digits.  The `displayDigits` attribute will change the number of digits, and the `displayDecimals` attribute will change the number of decimal places.
+
+
+Note: these display rounding settings do not affect the actual value of the numbers in the expression.  All 
+available digits will be used if the expression is used in another calculation unless one uses the ` <round>{:dn}` 
+component to explicitly round numbers.
+
+
+**Disclaimer:** Using a ` <math>{:dn}` component with inexact decimal values is only used in 
+this example for illustrative purposes; it is not good practice. Note that, in a ` <math>{:dn}` or 
+a ` <number>{:dn}` component, it is better enter the symbolic representation of the irrational 
+number (i.e., to use $\pi$, $\sqrt(2)$, $e$, etc.) In addition, if 
+the final desired result is a numerical value, it may also be better to use the ` <number>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: displaySmallAsZero
+
+
+```doenet-editor-horiz
+<p>The exact number is: <m>1 \times 10^{-21}</m></p>
+  <math name="m1" simplify>10.1^(-21)</math>
+
+<p>By default, small numbers (with absolute value 
+smaller than <m>10^{-14}</m>) 
+are displayed as zero.</p>
+  <math name="m1" simplify>10.1^(-21)</math>
+
+<p>Don't display small numbers as zero.</p>
+  <math name="m2" 
+    displaySmallAsZero="false" 
+    simplify>
+      10.1^(-21)
+  </math>
+
+<p>Display numbers smaller than <m>10^{-20}</m> 
+in absolute value as zero.</p>
+<p>
+  <math name="m3" 
+    displaySmallAsZero="10^(-20)" 
+    simplify>
+      10.1^(-19)
+  </math>
+</p>
+
+<p>
+  <math name="m4" 
+    displaySmallAsZero="10.1^(-20)" 
+    simplify>
+      10.1^(-21)
+  </math>
+</p>
+```
+
+
+
+The default value of the `displaySmallAsZero` attribute is $10^{-14}$, which means that maths which 
+are also numerical values smaller than that value will appear as zero.  This behavior can be altered 
+by changing the value of `displaySmallAsZero` to a different number, or even setting it to "false".
+
+
+**Disclaimer:** In the above example, if the final desired result is a numerical 
+value, it may be better practice to use the ` <number>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: padZeros
+
+
+```doenet-example
+<p><alert>Without the attribute:</alert>
+  <math displayDecimals="2" simplify>1/10.1</math>
+</p>
+
+<p><alert>With the attribute:</alert>
+  <math displayDecimals="2" padZeros simplify>1/10.1</math>
+</p>
+```
+
+
+
+If the `padZeros` is set, then maths which are also numbers will be displayed padded with 
+zeros so that all the digits from the combination of `displayDigits` and `displayDecimals` will be shown.
+
+
+**Disclaimer**: In the above example, if the final desired result is a numerical value, 
+it may be better practice to use the ` <number>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: Standard graphical attributes
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <math 
+    name="math1" 
+    anchor="$miAnchor" 
+    hide="$biHide" 
+    draggable="$biDraggable" 
+    styleNumber="$miStyleNumber" 
+    layer="2">
+      x^2 + y^2 = 25
+  </math>
+  <circle 
+    radius="5" 
+    styleNumber="5" 
+    filled 
+    fixed/>
+</graph>
+
+<p>Adjust attribute values:</p>
+  <p>anchor (x,y): 
+    <mathInput name="miAnchor" prefill="(-3,3)"/>
+  </p>
+
+  <p>hide (true/false): 
+    <booleanInput name="biHide"/>
+  </p>
+
+  <p>draggable (true/false): 
+    <booleanInput name="biDraggable" prefill="true"/>
+  </p>
+
+  <p>styleNumber (1-6): 
+    <mathInput name="miStyleNumber" prefill="3"/>
+  </p>
+
+  <p>layer (0,1,2,...): 
+    <mathInput name="miLayer" prefill="1"/>
+  </p>
+```
+
+
+
+In this example, the uses of the standard graphical 
+attributes, `anchor`, `hide`, `draggable`, `styleNumber`, and `layer` are 
+illustrated. Note that the default layer is $0$. Layers greater than $0$ will appear 
+in front of graphical elements on the default layer. Since default styleNumbers 
+are all somewhat transparent, this effect may not be clearly visible for default styles.
+
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<p><math name="math1" simplify="full">
+    (1/2)xx + y^2 = 5 - 1
+  </math></p>
+<p><c>format</c> = $math1.format</p>
+<p><c>simplify</c> = $math1.simplify</p>
+<p><c>splitSymbols</c> = $math1.splitSymbols</p> 
+<hr/>
+
+<p><math name="math2" expand>
+    f(x) = (x + 2)(x - 2)
+  </math></p>
+<p><c>expand</c> = $math2.expand</p>
+<p><c>functionSymbols</c> = $math2.functionSymbols</p>
+<hr/>
+
+<graph size="small">
+  <math name="math3" styleNumber="4" anchor="(4,4)">x^2</math>
+</graph>
+<p><c>draggable</c> = $math3.draggable</p>
+<p><c>layer</c> = $math3.layer</p>
+<p><c>anchor</c> = $math3.anchor</p>
+<p><c>hide</c> = $math3.hide</p>
+```
+
+
+
+The ` <math>{:dn}` attributes listed above are also accessible as properties.
+
+
+
+---
+
+### Property Example: unordered
+
+
+```doenet-editor-horiz
+<p><m>
+  <math name="math1" unordered>(2,3,4)</math> 
+    = (4,3,2)</m>? 
+  <boolean>(4,3,2) = $math1</boolean>
+</p>
+
+<p><m>
+  <math name="math2">(2,3,4)</math> 
+    = (4,3,2)</m>? 
+  <boolean>(4,3,2) = $math2</boolean>
+</p>
+
+<p>Math 1: <c>unordered</c> = $math1.unordered</p>
+<p>Math 2: <c>unordered</c> = $math2.unordered</p>
+```
+
+
+
+The `unordered` property returns the boolean value `true` if the ` <math>{:dn}` is 
+considered without regard to order for validation purposes.
+
+
+
+---
+
+### Property Example: number
+
+
+```doenet-example
+<math name="math1">pi</math>
+<p><c>number</c> = $math1.number</p>
+```
+
+
+
+If the value stored in the ` <math>{:dn}` component can be parsed as 
+a ` <number>{:dn}`, the `number` property returns this value.
+
+
+
+---
+
+### Property Example: isNumber/ isNumeric
+
+
+```doenet-example
+<math name="math1">3.14</math>
+<p><c>number</c> = $math1.number</p>
+<p><c>isNumber</c> = $math1.isNumber</p>
+<p><c>isNumeric</c> = $math1.isNumeric</p> 
+<math name="math2">pi/2 + 3</math>
+<p><c>number</c> = $math2.number</p>
+<p><c>isNumber</c> = $math2.isNumber</p>
+<p><c>isNumeric</c> = $math2.isNumeric</p>      
+```
+
+
+
+The `isNumber` property returns `true` if the ` <math>{:dn}` is a number, without any simplification. This implies that the `number` property of the ` <math>{:dn}` is equivalent to the ` <math>{:dn}` itself. (Note, that simplification includes substituting the numerical value of the symbol for `pi`, so `pi` returns a `false` for `isNumber`.) 
+
+
+The `isNumeric` property returns `true` if the ` <math>{:dn}` evaluates to a number, or simplifies to a number. This implies that the property `number` returns a value, rather than `NaN`.
+
+
+
+---
+
+### Property Example: latex
+
+
+```doenet-example
+<math name="math1">(3/4) sin(x)</math>
+<p><c>latex</c> = $math1.latex</p>
+```
+
+
+
+The `latex` property returns the LaTeX of the ` <math>{:dn}` expression.
+
+
+
+---
+
+### Property Example: text
+
+
+```doenet-example
+<math name="math1">(3/4) sin(x)</math>
+<p><c>text</c> = $math1.text</p>
+```
+
+
+
+The `text` property returns the text value of the ` <math>{:dn}` expression.
+
+
+
+---
+
+### Property Example: numDimensions
+
+
+```doenet-example
+<math name="math1">(1,2,3,4,5)</math>
+<p><c>numDimensions</c> = $math1.numDimensions</p>
+```
+
+
+
+The `numDimensions` property returns the number of dimensions of the ` <math>{:dn}`.
+
+
+
+---
+
+### Property Example: vector
+
+
+```doenet-example
+<math name="math1">(3,4)</math>
+<math name="math2" format="latex">\begin{bmatrix}-5 \\ 7\end{bmatrix}</math>
+<graph size="small">
+  $math1.vector
+  $math2.vector
+</graph>
+```
+
+
+
+If the ` <math>{:dn}` component is expressed in the form of a tuple, the `vector` property returns the vector value of the ` <math>{:dn}`.  The `vector` will also convert a row or column matrix into a vector.
+
+
+
+---
+
+### Property Example: matrixSize
+
+
+```doenet-example
+<p><m>
+  <math name="math1">
+    <matrix>
+      <row>1 2</row>
+      <row>3 4</row>
+    </matrix>
+    <matrix>
+      <row>1</row>
+      <row>2</row>
+    </matrix>
+  </math> = 
+  <math name="math2" expand>$math1</math>
+</m></p>
+<p><c>matrixSize</c> = $math2.matrixSize</p>
+```
+
+
+
+When the ` <math>{:dn}` component involves a matrix, the `matrixSize` attribute returns the dimensions of the matrix. In this example, `math1` involves multiplication of two matrices. This operation is carried out with the `expand` attribute in the definition of `math2`. The `matrixSize` property of `math2` returns `2,1` for the 2 rows x 1 column of the resultant matrix.
+
+
+
+---
+
+### Property Example: numRows/ numColumns
+
+
+```doenet-example
+<p><m>
+  <math name="math1">
+    <matrix>
+      <row>1 2</row>
+      <row>3 4</row>
+    </matrix> +
+    <matrix>
+      <row>5 6</row>
+      <row>7 8</row>
+    </matrix>
+  </math> = 
+  <math name="math2" expand>$math1</math>
+</m></p>
+<p><c>numRows</c> = $math2.numRows</p>
+<p><c>numColumns</c> = $math2.numColumns</p>
+```
+
+
+
+The `numRows` and `numCols` properties return the dimensions of a ` <math>{:dn}` that takes the form of a matrix.
+
+
+
+---
+
+### Property Example: matrix
+
+
+```doenet-example
+<p><m>
+  <math name="math1">
+    x <matrix>
+      <row>1 2</row>
+      <row>3 4</row>
+    </matrix>
+  </math> = <math name="math2" expand>$math1</math>
+</m></p>
+<p><c>matrix</c> = $math2.matrix</p>
+<p><c>matrix[1][1]</c> = $math2.matrix[1][1]</p>
+<p><c>matrix[1][2]</c> = $math2.matrix[1][2]</p>
+<p><c>matrix[2][1]</c> = $math2.matrix[2][1]</p>
+<p><c>matrix[2][2]</c> = $math2.matrix[2][2]</p>
+<p><math name="m1">(a,b)</math> as a matrix: $m1.matrix</p>
+<p><math name="m2">(c,d)^T</math> as a matrix: $m2.matrix</p>
+```
+
+
+
+The `matrix` property can be used to render the value of a ` <math>{:dn}` in matrix form, or it can be used with array notation to access a distinct entry within a matrix.  It can also be used to convert vectors into matrices.
+

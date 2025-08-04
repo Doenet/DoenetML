@@ -1,0 +1,32 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <term>{:dn}`
+
+
+` <term>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts/#componentTypes) 
+component that renders the enclosed text in the emphasized 
+styling associated with a defined vocabulary word.
+
+## Attributes and Properties 
+The ` <term>{:dn}` component does not have any attributes.
+ <PropDisplay name='term'/>
+
+---
+
+### Example: Using ` <term>{:dn}` to highlight important words
+
+
+```doenet-editor-horiz
+<p>What does <term>Doenet</term> stand for? 
+  <term>Doenet</term>
+means the <sq>Distributed Open Education Network</sq>.</p>
+```
+
+
+
+In the example above, ` <term>{:dn}` is used when referring to the word "Doenet", which is associated with a definition.
+
+

@@ -6,7 +6,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <tabular>{:dn}`
 
 
-` <tabular>{:dn}` contains the data and style specifications for a [` <table>{:dn}`](table.mdx). Nested 
+` <tabular>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes)
+component that contains the data and style specifications for a [` <table>{:dn}`](table.mdx). Nested 
 inside a ` <tabular>{:dn}` component are the [` <row>{:dn}`](row.mdx) and [` <cell>{:dn}`](cell.mdx) 
 components. 
 
@@ -21,18 +22,18 @@ components.
 
 
 ```doenet-editor-horiz
-        <tabular>
-          <row>
-            <cell>1</cell>
-            <cell>2</cell>
-            <cell>3</cell>
-          </row>
-          <row>
-            <cell>a</cell>
-            <cell>b</cell>
-            <cell>c</cell>
-          </row>
-        </tabular>
+<tabular>
+  <row>
+    <cell>1</cell>
+    <cell>2</cell>
+    <cell>3</cell>
+  </row>
+  <row>
+    <cell>a</cell>
+    <cell>b</cell>
+    <cell>c</cell>
+  </row>
+</tabular>
 ```
 
 
@@ -127,7 +128,7 @@ The `width` and `hAlign` attributes within a ` <tabular>{:dn}` can control the w
 
 ---
 
-### Example: width/height
+### Attribute Example: width/height
 
 
 ```doenet-editor-horiz
@@ -155,7 +156,7 @@ The `width` and `height` attributes for the ` <tabular>{:dn}` component accept m
 
 ---
 
-### Example: hAlign
+### Attribute Example: hAlign
 
 
 ```doenet-editor-horiz
@@ -183,7 +184,7 @@ The `hAlign` attribute within a ` <tabular>{:dn}` controls the horizontal alignm
 
 ---
 
-### Example: vAlign
+### Attribute Example: vAlign
 
 
 ```doenet-editor-horiz
@@ -211,7 +212,7 @@ The `vAlign` attribute within a ` <tabular>{:dn}` controls the vertical alignmen
 
 ---
 
-### Example: top/bottom/left/right
+### Attribute Example: top/bottom/left/right
 
 
 ```doenet-editor-horiz
@@ -239,7 +240,7 @@ Borders and dividing lines within a ` <table>{:dn}` can be specified within the 
 
 ---
 
-### Example: Attributes as properties
+### Property Example: Attributes as properties
 
 
 ```doenet-editor-horiz
@@ -252,6 +253,7 @@ Borders and dividing lines within a ` <table>{:dn}` can be specified within the 
     </row>
   </tabular>
 </table>
+
 <p><c>width</c> = $tabular1.width</p>
 <p><c>height</c> = $tabular1.height</p>
 <p><c>hAlign</c> = $tabular1.hAlign</p>
@@ -266,34 +268,4 @@ Borders and dividing lines within a ` <table>{:dn}` can be specified within the 
 
 The above-listed attributes of the ` <tabular>{:dn}` component are also accessible as properties.
 
-
-
----
-
-### Example: Attributes as properties
-
-
-```doenet-editor-horiz
-<table>
-  <tabular name="tabular1" left="major" right="major" top="major" bottom="major" height="50">
-    <row>
-      <cell>1</cell>
-      <cell>2</cell>
-      <cell>3</cell>
-    </row>
-  </tabular>
-</table>
-<p><c>width</c> = $tabular1.width</p>
-<p><c>height</c> = $tabular1.height</p>
-<p><c>hAlign</c> = $tabular1.hAlign</p>
-<p><c>vAlign</c> = $tabular1.vAlign</p>
-<p><c>top</c> = $tabular1.top</p>
-<p><c>left</c> = $tabular1.left</p>
-<p><c>bottom</c> = $tabular1.bottom</p>
-<p><c>right</c> = $tabular1.right</p>
-```
-
-
-
-The above-listed attributes of the ` <tabular>{:dn}` component are also accessible as properties.
 

@@ -1,0 +1,56 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <setSmallToZero>{:dn}`
+
+` <setSmallToZero>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) component 
+that replaces very small floating point numbers that arise during numerical computations to a precise zero value.
+
+## Attributes and Properties 
+ <AttrDisplay name='setSmallToZero'/> 
+ <PropDisplay name='setSmallToZero'/>
+
+---
+
+### Example: ` <setSmallToZero>{:dn}` of a tiny number
+
+
+```doenet-editor-horiz
+<p><m>10^{-14} = 
+  <setSmallToZero>10^(-14)</setSmallToZero>
+</m></p>
+
+<p><m>10^{-15} = 
+  <setSmallToZero>10^(-15)</setSmallToZero>
+</m></p>
+```
+
+
+
+` <setSmallToZero>{:dn}` replaces numbers that are close to $0$ to a precise zero value. The default threshold value is $10^{-14}$.
+
+
+
+---
+
+### Attribute Example: threshold
+
+
+```doenet-editor-horiz
+<p><m>10^{-14} = 
+  <setSmallToZero>10^(-14)</setSmallToZero>
+</m></p>
+
+<p><m>10^{-14} = 
+  <setSmallToZero threshold="10^(-13)">
+    10^(-14)
+  </setSmallToZero>
+</m></p>
+```
+
+
+
+The `threshold` attribute allows the user to change the default limiting value for rounding small values to zero.
+

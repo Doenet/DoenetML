@@ -1,0 +1,74 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <figure>{:dn}`
+
+
+` <figure>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) 
+component which acts as a container for an ` <image/>{:dn}` or ` <video/>{:dn}`.
+
+## Attributes and Properties 
+ <AttrDisplay name='figure'/> 
+ <PropDisplay name='figure'/>
+
+
+---
+
+### Example: ` <figure>{:dn}` in a ` <section>{:dn}`
+
+
+```doenet-editor-horiz
+<section>
+<p><lorem generateWords="10"/></p>
+  <figure>
+    <image size="tiny" source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg" description="a black and white engraving of the Doric column capital"/>
+    <caption>Example of the Doric order in greek architecture.</caption>
+  </figure>
+<p><lorem generateWords="10"/></p>
+</section>
+```
+
+
+
+This example illustrates a ` <figure>{:dn}` with a ` <caption>{:dn}` placed within a ` <section>{:dn}`.
+
+
+
+---
+
+### Attribute Example: suppressFigureNameInCaption
+
+
+```doenet-editor-horiz
+<figure suppressFigureNameInCaption>
+  <image size="large" source="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Sous_la_Tour_Eiffel_1.jpg/640px-Sous_la_Tour_Eiffel_1.jpg" description="a photograph taken from the base of the Eiffel tower looking upwards"/>
+  <caption>View from the base of the Eiffel Tower</caption>
+</figure>
+```
+
+
+
+The `suppressFigureNameInCaption` overrides the default naming convention for captions, which otherwise start with the word "Figure".
+
+
+
+---
+
+### Attribute Example: number
+
+
+```doenet-editor-horiz
+<figure number="false">
+  <image size="small" source="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Currier_%26_Ives_Brooklyn2.jpg/640px-Currier_%26_Ives_Brooklyn2.jpg" description="An artistic rendering/map of the city of Brookly in 1879"/>
+  <caption>Aerial depiction of Brooklyn as it appeared in 1879.</caption>
+</figure>
+```
+
+
+
+The `number`
+attribute can be set to "false" to suppress the automatic figure
+numbering in the caption.
+

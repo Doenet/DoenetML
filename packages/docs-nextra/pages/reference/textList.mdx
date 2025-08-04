@@ -1,0 +1,121 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <textList>{:dn}`
+
+The ` <textList>{:dn}` is a [Text](../document_structure/essentialConcepts/#componentTypes)
+component that stores multiple [` <text>{:dn}`](text.mdx) components within a list.
+
+## Attributes and Properties 
+ <AttrDisplay name='textList'/> 
+ <PropDisplay name='textList'/>
+
+---
+
+### Example: ` <textList>{:dn}` with direct input
+
+
+```doenet-editor-horiz
+<p>A list of flower names: 
+( <textList name="flowerNames">
+    rose lily daffodil tulip
+  </textList> )
+</p>
+```
+
+
+
+In the sample code above, the individual [` <text>{:dn}`](text.mdx) components are listed directly between the opening and closing ` <textInput>{:dn}` tags, with spaces to separate list items.
+
+
+
+---
+
+### Example: ` <textList>{:dn}` from user-input
+
+
+```doenet-editor-horiz
+<p>Name 3 reptiles:</p>
+<ol>
+  <li><textInput name="r1"/></li>
+  <li><textInput name="r2"/></li>
+  <li><textInput name="r3"/></li>
+</ol>
+
+<p>Your list of reptiles is: 
+  <textList name="reptileList">
+    $r1 $r2 $r3
+  </textList>
+</p>
+
+<p>The third item in the list is a $reptileList[3]</p>
+```
+
+
+
+The user is prompted to provide three text responses 
+with the ` <textInput/>{:dn}` component, which are then referenced within the 
+definition of a ` <textList>{:dn}`. Individual entries in the list can be referenced by index.
+
+
+
+---
+
+### Attribute Example: unordered
+
+
+```doenet-editor-horiz
+<p>Enter "apple", "banana", "orange":</p>
+<ul>
+  <li><textInput name="fruit1"/></li>
+  <li><textInput name="fruit2"/></li>
+  <li><textInput name="fruit3"/></li>
+</ul>
+
+<textList name="userAns" unordered hide>
+  $fruit1 $fruit2 $fruit3
+</textList>
+
+<answer>
+  <award>
+    <when>
+      $userAns = $answerList
+    </when>
+  </award>
+</answer>
+<boolean>$userAns = $answerList</boolean>
+
+<p>Answers = 
+  <textList name="answerList">
+    orange banana apple
+  </textList>
+</p>
+```
+
+
+
+The `unordered` attribute allows for boolean comparisons between lists, 
+such as in the ` <award>{:dn}` component or the `<boolean>{:dn}` component,
+without regard to the order in which the names of the fruits have been entered.
+
+
+---
+
+### Attribute Example: maxNumber
+
+
+```doenet-editor-horiz
+<p>A list of dog breeds: 
+  <textList name="dogBreeds" maxNumber="3">
+    poodle chihuahua bulldog husky dobermann
+  </textList>
+</p>
+```
+
+
+
+In the sample code above, the maximum number of ` <text>{:dn}` components displayed is 3, even 
+though there are 5 ` <text>{:dn}` components listed directly between the opening and closing ` <textInput>{:dn}` tags.
+

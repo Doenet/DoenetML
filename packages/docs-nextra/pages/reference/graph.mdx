@@ -1,0 +1,335 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <graph>{:dn}`
+
+` <graph>{:dn}`  is a [Graphical](../document_structure/essentialConcepts#component-types) 
+component that renders a 2D cartesian graph.
+
+## Attributes and Properties 
+ <AttrDisplay name='graph'/> 
+ <PropDisplay name='graph'/>
+
+---
+## Examples Page 1
+
+
+### Example: Default ` <graph>{:dn}`
+
+
+```doenet-example
+<graph>
+  <point/>
+  <line>y = x</line>
+</graph>
+```
+
+
+
+Here a default ` <graph>{:dn}` is illustrated without any additional attributes.
+
+
+
+---
+
+### Example: ` <graph>{:dn}` with default grid
+
+
+```doenet-example
+<graph grid>
+  <point/>
+  <line>y = x</line>
+</graph>
+```
+
+
+
+A ` <graph>{:dn}` with a default grid is illustrated. As you zoom in and out of 
+the graph the size of the grid adapts to the view. To zoom, use the (+) and (-) buttons 
+at the bottom of the graph.
+
+
+
+---
+
+### Example: Invisible ` <graph>{:dn}` with shapes
+
+
+```doenet-editor-horiz
+<graph 
+  displayXAxis="false" 
+  displayYAxis="false" 
+  showNavigation="false" 
+  showBorder="false">
+    <regularPolygon 
+      numSides="5" 
+      sideLength="4" 
+      center="(0,4)" 
+      filled/>
+    <circle 
+      center="(-4,-4)" 
+      radius="3" 
+      styleNumber="2" 
+      filled/>
+    <rectangle 
+      center="(4,-4)" 
+      width="5" 
+      height="3" 
+      styleNumber="3" 
+      filled/>
+</graph>
+```
+
+
+
+A ` <graph>{:dn}` without border, axes, or navigation buttons appears invisible.
+
+
+
+---
+
+### Example: ` <graph>{:dn}` with axis labels
+
+
+```doenet-editor-horiz
+<graph xmin="-3" ymin="-3">
+  <xLabel>time</xLabel>
+  <yLabel>distance</yLabel>
+  <lineSegment endpoints="(0,0) (12,6)"/>
+</graph>
+```
+
+
+
+Axis labels are specified using the ` <xLabel>{:dn}` and ` <yLabel>{:dn}` components as 
+children of the ` <graph>{:dn}`.
+
+
+
+---
+
+### Example: ` <graph>{:dn}` with legend
+
+
+```doenet-editor-horiz
+<graph>
+  <point styleNumber="2"/>
+  <point coords="(3,3)"/>
+  <line styleNumber="3">y = 1/2 x - 2</line>
+  <legend>
+    <label>Red point</label>
+    <label>Blue point</label>
+    <label>Orange line</label>
+  </legend>
+</graph>
+```
+
+
+
+Legends are constructed by adding a ` <legend>{:dn}` child to the ` <graph>{:dn}` 
+component. See ` <legend>{:dn}` for more examples.
+
+
+
+---
+
+### Example: Components that can be placed on a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Basic math with a <tage>textInput</tage>:
+  <math name="m1">2 $ti</math> = 
+  <math simplify>$m1</math></p>
+
+<graph>
+  <number anchor="(5,-5)" name="t">0</number>
+  
+  <image source="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Squirrel_in_Chandigarh.jpg/2560px-Squirrel_in_Chandigarh.jpg" 
+    anchor="(-5,-4)" size="small"/>
+  <text anchor="(-5,5)">
+    Type some basic math below
+  </text>
+
+  <textInput anchor="(-5,3)" name="ti"/>
+  
+  <math anchor="(5,3)">x^2 + y^2</math>
+  
+  <booleanInput anchor="(5,5)">
+    <label>Check the box</label>
+  </booleanInput>
+  
+  <callAction 
+    anchor="(5,-3)" 
+    name="toggle" 
+    actionName="toggleAnimation" 
+    target="$squirrelRotation">
+      <label>Start/Stop Squirrel</label>
+  </callAction>
+</graph>
+
+<animateFromSequence 
+  name="squirrelRotation" 
+  target="$t" 
+  from="0" 
+  to="2pi" 
+  step="pi/16" 
+  animationInterval="50" 
+  animationMode="oscillate" 
+  animationOn="false"
+/>
+```
+
+Many different components can be placed on a ` <graph>{:dn}`. If the `anchor` attribute 
+is included, the rendered object is centered at the point specified. Otherwise, the 
+component is centered at $(0,0)$. 
+
+
+Note that ` <mathInput/>{:dn}` components cannot be placed on a ` <graph>{:dn}`. 
+Instead, a ` <textInput/>{:dn}` can be included, and basic math expressions can be 
+performed for math entered into a ` <textInput/>{:dn}`.
+
+
+
+---
+
+### Attribute Example: xmin, xmax, ymin, ymax
+
+
+```doenet-example
+<graph 
+  name="g" 
+  xmin="-1" 
+  xmax="1" 
+  ymin="-2" 
+  ymax="2" 
+  size="small">
+    <point/>
+    <line>y = x</line>
+</graph>
+
+<graph extend="$g" identicalAxisScales/>
+```
+
+Use the `xmin`, `xmax`, `ymin` and `ymax` attributes to adjust the extents of 
+the axis scales. Note that the relative proportions of the axes will automatically 
+adjust to keep the ` <graph>{:dn}` square unless the `identicalAxisScales` attribute 
+is also specified, as illustrated in the second graph.
+
+
+---
+
+### Attribute Example: width
+
+
+```doenet-example
+<p>Enter a width for the graph:
+<mathInput name="w" prefill="80"/> pixels.</p>
+<graph name="g" width="$w">
+  <point/>
+  <line>y = x</line>
+</graph> 
+<p>The size for that width is:
+$g.size</p>
+
+
+```
+
+
+
+The `width` attribute specifies the absolute width of the graph. Doenet determines 
+the `size` category that corresponds to that width and sizes the graph accordingly.
+
+
+
+---
+
+### Attribute Example: size
+
+
+```doenet-example
+<graph name="g" size="small">
+  <point/>
+  <line>y = x</line>
+</graph>
+
+<graph extend="$g" size="tiny"/>
+```
+
+
+
+The `size` attribute specifies one of 5 size categories for the 
+` <graph>{:dn}`: `tiny`, `small`, `medium`, `large`, or `full`.
+
+
+
+---
+
+### Attribute Example: aspectRatio
+
+
+```doenet-example
+<graph name="g" aspectRatio="2/1">
+  <point/>
+  <line>y = x</line>
+</graph>
+
+<graph extend="$g" aspectRatio="1/2"/>
+```
+
+
+
+The `aspectRatio` attribute allows for customization of the graph's default proportions.
+
+
+
+---
+
+### Attribute Example: displayMode
+
+
+```doenet-example
+<graph name="g" displayMode="inline" size="tiny">
+  <point/>
+  <line>y = x</line>
+</graph>
+
+<graph extend="$g" displayMode="block" size="tiny"/>
+```
+
+
+
+The `displayMode` attribute affects how the ` <graph>{:dn}` is positioned on screen. 
+The default mode is "block", which renders the graph centered on screen. The available 
+modes are `inline`, and `block`. 
+
+
+
+---
+
+### Attribute Example: horizontalAlign
+
+
+```doenet-example
+<p>A left graph</p>  
+<graph name="g" displayMode="block" horizontalAlign="left" size="tiny">
+  <point/>
+  <line>y = x</line>
+</graph>
+
+<p>A centered graph (default)</p>
+<graph extend="$g" horizontalAlign="center"/>
+
+<p>A right graph </p>
+<graph extend="$g" horizontalAlign="right"/>
+```
+
+
+
+The `horizontalAlign` attribute specifies the horizontal position on-screen 
+for the default block-mode style graph. Valid values are `left`, `center`, and `right`, 
+with a default of `center`.
+
+

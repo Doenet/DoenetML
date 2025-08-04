@@ -1,0 +1,38 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <caption>{:dn}`
+
+
+` <caption>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders a caption attached to an 
+` <image/>{:dn}` or ` <video/>{:dn}` when nested inside a ` <figure>{:dn}`.
+
+## Attributes and Properties 
+The ` <caption>{:dn}` component has no attributes.
+ <PropDisplay name='caption'/>
+
+---
+
+### Example: Add a ` <caption>{:dn}` to a ` <figure>{:dn}`
+
+
+```doenet-example
+<p>Scroll down to view caption...</p>
+<figure>
+  <image 
+    size="small" 
+    source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg" 
+    description="Black and white engraving of a Doric column capital, corner of 
+      frieze, architrave and cornice"/>
+  <caption>Example of the Doric order in greek architecture.</caption>
+</figure>
+```
+
+
+
+A ` <caption>{:dn}` is used to describe an ` <image>{:dn}` in a ` <figure>{:dn}`.
+
+

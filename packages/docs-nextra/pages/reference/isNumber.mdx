@@ -1,0 +1,36 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <isNumber>{:dn}`
+
+` <isNumber>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types)
+component that returns the boolean value of `true` or `false` depending on whether the value enclosed is a real number.
+
+## Attributes and Properties 
+ <AttrDisplay name='isNumber'/> 
+ <PropDisplay name='isNumber'/>
+
+---
+
+### Example: Basic use
+
+
+```doenet-editor-horiz
+<p>Enter a number (or not): <mathInput name="mi" prefill="0"/></p>
+<p>This value is a real number: </p>
+<isNumber>$mi</isNumber>
+
+<p>Enter a complex number: <mathInput name="ci" prefill="sqrt(-1) + 1" displaySmallAsZero/></p>
+<p>You have entered the complex number: 
+<number name="n2">$ci</number></p>
+
+<p>This value is a real number: </p>
+<isNumber>$n2</isNumber>
+```
+
+
+
+Tne ` <isNumber>{:dn}` component checks to see whether the enclosed value is a real number.
+

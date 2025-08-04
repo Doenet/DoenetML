@@ -5,9 +5,10 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <table>{:dn}`
 
 
-The ` <table>{:dn}` component serves as a container element for data rendered 
+` <table>{:dn}` is a [Sectional](../document_structure/essentialConcepts/#componentTypes)
+component that serves as a container element for data rendered 
 in a `<tabular>{:dn}` format.  Much of the DoenetML for customizing the appearance 
-of a table occurs its ` <tabular>{:dn}`, ` <row>{:dn}`, or ` <cell>{:dn}` children.
+of a table occurs in its ` <tabular>{:dn}`, ` <row>{:dn}`, or ` <cell>{:dn}` children.
 
 ## Attributes and Properties 
  <AttrDisplay name='table'/> 
@@ -20,34 +21,34 @@ of a table occurs its ` <tabular>{:dn}`, ` <row>{:dn}`, or ` <cell>{:dn}` childr
 
 
 ```doenet-editor-horiz
-        <table><title>Fake Weather Statistics</title>
-          <tabular>
-            <row header>
-              <cell>Time</cell>
-              <cell>Mon</cell>
-              <cell>Tue</cell>
-              <cell>Wed</cell>
-            </row>
-            <row>
-              <cell></cell>
-              <cell>🌧</cell>
-              <cell>❄️</cell>
-              <cell>☀️</cell>
-            </row>
-            <row>
-              <cell>AM</cell>
-              <cell>rain</cell>
-              <cell>snow</cell>
-              <cell>sunny</cell>
-            </row>
-            <row>
-              <cell></cell>
-              <cell>50<m>^{\circ}</m></cell>
-              <cell>15<m>^{\circ}</m></cell>
-              <cell>-10<m>^{\circ}</m></cell>
-            </row>
-          </tabular>
-        </table>
+<table><title>Fake Weather Statistics</title>
+  <tabular>
+    <row header>
+      <cell>Time</cell>
+      <cell>Mon</cell>
+      <cell>Tue</cell>
+      <cell>Wed</cell>
+    </row>
+    <row>
+      <cell></cell>
+      <cell>🌧</cell>
+      <cell>❄️</cell>
+      <cell>☀️</cell>
+    </row>
+    <row>
+      <cell>AM</cell>
+      <cell>rain</cell>
+      <cell>snow</cell>
+      <cell>sunny</cell>
+    </row>
+    <row>
+      <cell></cell>
+      <cell>50<m>^{\circ}</m></cell>
+      <cell>15<m>^{\circ}</m></cell>
+      <cell>-10<m>^{\circ}</m></cell>
+    </row>
+  </tabular>
+</table>
 ```
 
 
@@ -156,24 +157,24 @@ To render a thicker line below the header row, use the `bottom` attribute with t
 
 ---
 
-### Example: number
+### Attribute Example: number
 
 
 ```doenet-editor-horiz
-      <table number="false">
-        <tabular top="medium" bottom="medium" left="medium" right="medium">
-          <row bottom="minor">
-            <cell right="minor">Data 1</cell>
-            <cell right="minor">Data 2</cell>
-            <cell>Data 3</cell>
-          </row>
-          <row>
-            <cell right="minor">A</cell>
-            <cell right="minor">B</cell>
-            <cell>C</cell>
-          </row>
-        </tabular>
-      </table>
+<table number="false">
+  <tabular top="medium" bottom="medium" left="medium" right="medium">
+    <row bottom="minor">
+      <cell right="minor">Data 1</cell>
+      <cell right="minor">Data 2</cell>
+      <cell>Data 3</cell>
+    </row>
+    <row>
+      <cell right="minor">A</cell>
+      <cell right="minor">B</cell>
+      <cell>C</cell>
+    </row>
+  </tabular>
+</table>
 ```
 
 
@@ -184,26 +185,26 @@ In the sample code above, the ` <table>{:dn}` component is used in combination w
 
 ---
 
-### Example: suppressTableNameInTitle
+### Attribute Example: suppressTableNameInTitle
 
 
 ```doenet-editor-horiz
-      <table suppressTableNameInTitle="true">
-        <title>Title Only</title>
+<table suppressTableNameInTitle="true">
+  <title>Title Only</title>
 
-        <tabular top="medium" bottom="medium" left="medium" right="medium">
-          <row bottom="minor">
-            <cell right="minor">Data 1</cell>
-            <cell right="minor">Data 2</cell>
-            <cell>Data 3</cell>
-          </row>
-          <row>
-            <cell right="minor">A</cell>
-            <cell right="minor">B</cell>
-            <cell>C</cell>
-          </row>
-        </tabular>
-      </table>
+  <tabular top="medium" bottom="medium" left="medium" right="medium">
+    <row bottom="minor">
+      <cell right="minor">Data 1</cell>
+      <cell right="minor">Data 2</cell>
+      <cell>Data 3</cell>
+    </row>
+    <row>
+      <cell right="minor">A</cell>
+      <cell right="minor">B</cell>
+      <cell>C</cell>
+    </row>
+  </tabular>
+</table>
 ```
 
 

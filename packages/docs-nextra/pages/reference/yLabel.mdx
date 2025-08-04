@@ -1,0 +1,67 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <yLabel>{:dn}`
+
+` <yLabel>{:dn}` is a [Graphical](../document_structure/essentialConcepts/#componentTypes)
+component that specifies a label for the vertical axis on a ` <graph>{:dn}`.
+
+## Attributes and Properties 
+ <AttrDisplay name='yLabel'/> 
+ <PropDisplay name='yLabel'/>
+
+ ---
+
+### Example: ` <yLabel>{:dn}` on a ` <graph>{:dn}`
+
+```doenet-editor-horiz
+<graph size="small">
+  <yLabel><m>y</m></yLabel>
+  <line>y=x</line>
+</graph>
+```
+
+The ` <yLabel>{:dn}` component is a child of a ` <graph>{:dn}`. A ` <yLabel>{:dn}` 
+can contain text, inline display mathematics (` <m>{:dn}`) or  ` <math>{:dn}` components.
+
+
+---
+
+
+### Example: ` <yLabel>{:dn}` on bottom of ` <graph>{:dn}`
+
+```doenet-editor-horiz
+<graph size="small" yLabelPosition="bottom">
+  <yLabel>position, <m>m</m></yLabel>
+  <line>y=x</line>
+</graph>
+```
+
+To change the default top position of 
+the ` <yLabel>{:dn}` to the bottom, apply the `yLabelPosition`
+attribute within the ` <graph>{:dn}` definition.
+
+
+---
+
+
+### Example: Change default ` <yLabel>{:dn}` alignment
+
+```doenet-editor-horiz
+<graph 
+    name="g" 
+    yLabelAlignment="right"  
+    size="small">
+  <yLabel><m>y</m></yLabel>
+  <xLabel><m>x</m></xLabel>
+  <point/>
+  <line>y=x</line>
+</graph>
+```
+
+Use the `yLabelAlignment` attribute within the ` <graph>{:dn}` definition to 
+choose between a left alignment and a right alignment for the ` <yLabel>{:dn}`. The 
+default position is `left`, which means the label appears to the `left` of the vertical axis.

@@ -1,0 +1,127 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <aside>{:dn}`
+
+` <aside>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) component that
+renders a collapsible, boxed section of content that is expanded when the user clicks the banner 
+to display supplementary material.
+
+## Attributes and Properties 
+ <AttrDisplay name='aside'/> 
+ <PropDisplay name='aside'/>
+
+---
+
+### Example: ` <aside>{:dn}` with default title
+
+
+```doenet-editor-horiz
+<section>
+<p>Here is the main content.</p>
+</section>
+<aside>Here is bonus content!</aside>
+```
+
+
+
+An ` <aside>{:dn}` with its default title is automatically numbered in 
+sequence with other sectional components on the page.
+
+
+
+---
+
+### Example: ` <aside>{:dn}` with custom title
+
+
+```doenet-example
+<section>
+<p>Here is the main content.</p>
+</section>
+<aside><title>And now for something completely different...</title>
+  Here is bonus content!
+</aside>
+```
+
+
+
+An ` <aside>{:dn}` with a custom title does not have automatic numbering.
+
+
+
+---
+
+### Attribute Example: startOpen
+
+
+```doenet-example
+<p>Here is the main content.</p>
+<aside startOpen>
+  I really want you to see this before you close it...
+</aside>
+```
+
+
+
+The `startOpen` attribute overrides the default behavior in which 
+the ` <aside>{:dn}` section appears closed upon opening the page.
+
+
+
+---
+
+### Attribute Example: includeParentNumber
+
+
+```doenet-example
+<section>
+  <aside>
+    <p>This aside is nested inside a section. The default number does not include the parent number.</p>
+  </aside>
+</section>
+
+<section>
+  <aside includeParentNumber="true">
+    <p>This aside is nested inside a section. Rendering of the parent section number has been included.</p>
+  </aside>
+</section>
+```
+
+
+
+The `includeParentNumber` attribute is `false` by default for the ` <aside>{:dn}` component 
+(and `true` by default for the ` <section>{:dn}` component).
+
+
+In order to include the number of the parent sectional component, set `includeParentNumber` to `true`.
+
+
+
+---
+
+### Attribute Example: includeAutoNumber
+
+
+```doenet-example
+  <aside><title>Custom title</title>
+    <p>In this aside, the custom title overrides the default numbering of the aside.</p>
+  </aside>
+
+  <aside boxed includeAutoNumber="true"><title>Custom title with auto-numbering</title>
+    <p>In this problem, the number of the aside is still rendered in addition to the custom title.</p>
+  </aside>
+```
+
+
+
+The `includeAutoNumber` attribute is `false` by default for the ` <aside>{:dn}` component. 
+This means that if an aside contains a nested ` <title>{:dn}`, it will not render the 
+default numbering (although it will still be counted in the numbering scheme behind the scenes).
+
+
+In order to display the aside number in addition to the custom ` <title>{:dn}`, set 
+the `includeAutoNumber` attribute to `true`.
+

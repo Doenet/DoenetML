@@ -1,0 +1,72 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <else>{:dn}`
+
+
+` <else>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types) 
+component that is used with the ` <conditionalContent>{:dn}`
+component in creating logical statements with DoenetML.
+
+## Attributes and Properties 
+The ` <else>{:dn}` does not have attributes or properties.
+
+
+---
+
+### Example: ` <else>{:dn}` in a ` <conditionalContent>{:dn}` based on answer
+
+
+```doenet-example
+<answer name="candyQuery" submitLabel="Submit Response">
+    <choice name="yes">I like candy</choice>
+    <choice>I do not like candy</choice>
+</answer>
+
+<conditionalContent>
+  <case condition="$candyQuery.responseHasBeenSubmitted = false">
+    <p>Just answer the question above...</p>
+  </case>
+  <case condition="$yes">
+    <p>That's too bad, I don't have any ;D</p>
+  </case>
+  <else>
+    <p>Good, because I don't have any!</p>
+  </else>
+</conditionalContent>
+```
+
+
+
+The ` <else>{:dn}` component is used to define the third ` <case>{:dn}` response 
+in a ` <conditionalContent>{:dn}` block.
+
+
+
+---
+
+### Example: ` <else>{:dn}` in a ` <conditionalContent>{:dn}` based on textInput
+
+
+```doenet-example
+<p>Type in the letter A, B, or C: <textInput name="userLetter" prefill="type letter here"/></p>
+<conditionalContent>
+  <case condition="$userLetter = A or $userLetter = a">A is for apple.</case>
+  <case condition="$userLetter = B or $userLetter = b">B is for boy.</case>
+  <case condition="$userLetter = C or $userLetter = c">C is for cat.</case>
+  <case condition="$userLetter = type letter here"></case>
+  <else>
+    <p>That was not one of the choices. Please try again...</p>
+  </else>
+</conditionalContent>
+```
+
+
+
+The ` <else>{:dn}` component is used to define a response to all user entries that 
+do not match the given ` <case>{:dn}` conditions in 
+a ` <conditionalContent>{:dn}` block.
+
+

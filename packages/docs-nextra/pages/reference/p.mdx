@@ -1,0 +1,113 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <p>{:dn}`
+
+
+
+
+` <p>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types)
+component that renders a paragraph of text.
+
+
+## Attributes and Properties 
+ The ` <p>{:dn}` component has no attributes.
+ <PropDisplay name='p'/>
+
+---
+
+### Example: Two paragraphs
+
+
+```doenet-editor-horiz
+<p>Chocolate cake sugar plum chocolate bar brownie chupa chups chocolate tart.</p>
+<p>Shortbread chocolate marshmallow macaroon candy canes. Shortbread jujubes chocolate apple pie wafer croissant.</p>
+```
+
+
+
+All text enclosed within an opening and closing ` <p>{:dn}` forms a paragraph.
+
+
+
+---
+
+### Example: ` <p>{:dn}` within sectional components
+
+
+```doenet-editor-horiz
+<section>
+<p>Chocolate cake sugar plum chocolate bar brownie chupa chups chocolate tart.</p>
+</section>
+
+<example>
+<p>Shortbread chocolate marshmallow macaroon candy canes.</p>
+</example>
+
+<exercise>
+<p>Bear claw pastry liquorice jelly beans shortbread sesame snaps.</p>
+</exercise> 
+
+<problem>
+<p>Dessert oat cake marzipan bear claw wafer ice cream ice cream.</p>
+</problem> 
+```
+
+
+
+Paragraphs can be nested within sectional components such as a ` <section>{:dn}`, ` <example>{:dn}`, ` <exercise>{:dn}`, or ` <problem>{:dn}`.
+
+
+
+---
+
+### Example: ` <p>{:dn}` within an ` <li>{:dn}`
+
+
+```doenet-editor-horiz
+<p><alert>Love Potion:</alert></p>
+<ol>
+    <li><p>pickled turnips</p></li>
+    <li><p>eye of toad</p></li>
+    <li><p>powdered birchtree root</p></li>
+  </ol>
+```
+
+
+
+The ` <p>{:dn}` component can be nested inside list items to provide additional line spacing.
+
+
+
+---
+
+### Example: Separate text and math content
+
+
+```doenet-editor-horiz
+<setup>
+  <function name="f">$userFunction</function>
+  <point name="intercept">(0,$$f(0))</point>
+  <line equation="y = $userFunction" name="userLine"/>
+</setup>
+
+<p>Write the equation for a line in slope-intercept form:</p> 
+<p><m>y = </m> <mathInput name="userFunction"/></p>
+<graph grid="1 1" size="small">
+    $intercept
+    $f
+</graph>
+<p>What is the <m>y</m>-intercept of your line?</p>
+  <answer>$$f(0)</answer>
+<p>The slope of your line is:</p> 
+  <answer>$userLine.slope</answer>
+```
+
+
+
+Frequently a ` <p>{:dn}` tag is used to separate lines of text and sections of math content, such as a ` <graph>{:dn}`, a ` <mathInput/>{:dn}`, or an ` <answer>{:dn}`. Try deleting all of the ` <p>{:dn}` tags from the example above to observe the effect.
+
+

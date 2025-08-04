@@ -1,0 +1,217 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <polyline>{:dn}`
+
+
+` <polyline>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a polyline when nested inside a [` <graph>{:dn}`](graph.mdx) component.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='polyline'/> 
+ <PropDisplay name='polyline'/>
+
+---
+
+### Example: Default ` <polyline>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <polyline 
+    vertices="(0,0) (2,2) (-1,5) (-5,1)" 
+  />
+</graph>
+```
+
+
+
+The default ` <polyline>{:dn}` requires the `vertices` attribute as a minimum.
+
+
+
+---
+
+### Example: ` <polyline>{:dn}` constrained to grid
+
+
+```doenet-editor-horiz
+<graph size="small" grid="1 1">
+  <point name="A">(-1,5)
+    <constraints>
+      <constrainToGrid/>
+    </constraints>
+  </point>
+  <point name="B">(0,-1)
+    <constraints>
+      <constrainToGrid/>
+    </constraints>
+  </point>
+  <point name="C">(6,2)
+    <constraints>
+      <constrainToGrid/>
+    </constraints>
+  </point>
+  <polyline vertices="$A $B $C" />
+</graph>      
+```
+
+
+
+The vertices of a ` <polyline>{:dn}` are predefined as constrained points, thereby 
+constraining the polyline to a grid as well.
+
+
+
+---
+
+### Attribute Example: vertices
+
+
+```doenet-example
+<graph size="small">
+  <polyline 
+    name="poly1" 
+    vertices="(0,1) (2,3) (-1,5) (-5,1)" 
+  />
+</graph>
+
+<p><c>vertices</c> = $poly1.vertices</p>
+<p><c>vertices[2]</c> = $poly1.vertices[2]</p>
+<p><c>vertices[2][2]</c> = $poly1.vertices[2][2]</p>
+```
+
+
+
+The `vertices` attribute takes a list of points as its input.
+
+
+
+---
+
+### Attribute Example: draggable
+
+
+```doenet-example
+<p>Try dragging each of the polylines and their vertices.</p>
+
+<graph size="small">
+  <polyline name="poly1" vertices="(-6,2) (-3,-2) (3,5) (-1,4)"/>
+  <polyline name="poly2" vertices="(6,-5) (4,7) (2,2)" styleNumber="2" draggable="false"/>
+</graph>
+
+<p>Blue polyline: <c>draggable</c> = $poly1.draggable</p>
+<p>Red polyline: <c>draggable</c> = $poly2.draggable</p> 
+```
+
+
+
+The `draggable` attribute determines whether the ` <polyline>{:dn}` can be 
+dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+
+
+
+---
+
+### Attribute Example: verticesDraggable
+
+
+```doenet-example
+<p>Try dragging each of the polylines and their vertices.</p>
+
+<graph size="small">
+  <polyline 
+    name="poly1" 
+    vertices="(-6,2) (-3,-2) (3,5) (-1,4)"
+  />
+  <polyline 
+    name="poly2" 
+    vertices="(6,-5) (4,7) (2,2)" 
+    styleNumber="2" 
+    verticesDraggable="false"
+  />
+</graph>
+
+<p>Blue polyline: <c>verticesDraggable</c> = $poly1.verticesDraggable</p>
+<p>Red polyline: <c>verticesDraggable</c> = $poly2.verticesDraggable</p> 
+```
+
+
+
+Vertices are draggable by default. Use the `verticesDraggable` attribute set 
+to false to disable users from changing the proportions of the ` <polyline>{:dn}`. The 
+polyline as a whole can still be repositioned on the ` <graph>{:dn}`.
+
+
+
+---
+
+### Attribute Example: Standard graphical attributes
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle styleNumber="5" filled radius="6" fixed/>
+  <polyline 
+    name="poly1" 
+    vertices="(-6,2) (-3,-2) (3,5) (-1,4)" 
+    hide="$hidePolyline1" 
+    layer="1" 
+    styleNumber="2" 
+    applyStyleToLabel 
+    labelIsName 
+    fixLocation
+  />
+  <polyline 
+    name="poly2" 
+    vertices="(6,-5) (4,7) (2,2)" 
+    styleNumber="3" 
+    applyStyleToLabel 
+    labelIsName
+  />
+</graph>
+
+<booleanInput name="hidePolyline1" labelIsName/>
+<p>Standard graphical attributes:</p>
+  <ul>
+    <li><attr>hide</attr></li>
+    <li><attr>fixLocation</attr></li>
+    <li><attr>layer</attr> (0) is default value.</li>
+    <li><attr>styleNumber</attr> 1 - 6</li>
+    <li><attr>applyStyleToLabel</attr></li>
+    <li><attr>labelIsName</attr></li>
+  </ul>
+```
+
+
+
+The uses of the following standard graphical attributes are 
+illustrated: `hide`, `fixLocation`, `layer`, `styleNumber`, `applyStyleToLabel` and `labelIsName`.
+
+
+
+---
+
+### Property Example: Style properties
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <polyline 
+    name="poly1" 
+    vertices="(-6,2) (-3,-2) (3,5) (-1,4)" 
+    styleNumber="3"
+  />
+</graph>
+
+<p><c>styleDescription</c> = $poly1.styleDescription</p>
+<p><c>styleDescriptionWithNoun</c> = $poly1.styleDescriptionWithNoun</p>
+```
+
+
+
+The `styleDescription` and `styleDescriptionWithNoun`  properties render a 
+text description corresponding to the `styleNumber` of the component.
+

@@ -1,0 +1,229 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <exercise>{:dn}`
+
+
+` <exercise>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) 
+component that renders an auto-numbered block of content. Inline components such as 
+paragraphs (` <p>{:dn}`) and other components can be nested within an ` <exercise>{:dn}` to group 
+and order content. Some examples are: another ` <exercise>{:dn}`, a ` <section>{:dn}`, 
+a ` <figure>{:dn}`, or a ` <problem>{:dn}`.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='exercise'/> 
+ <PropDisplay name='exercise'/>
+
+---
+
+### Example: ` <exercise>{:dn}` with default title
+
+
+```doenet-editor-horiz
+<exercise>
+  <p>An exploratory exercise.</p>
+</exercise>
+
+<section>
+  <p><lorem generateWords="10"/></p>
+</section>
+
+<problem>
+  <p><answer>42</answer></p>
+</problem>
+```
+
+
+
+Within a DoenetML document, default titles for sectional components are auto-numbered. 
+Each sectional component is on the same counter.
+
+
+
+---
+
+### Example: ` <exercise>{:dn}` with custom title
+
+
+```doenet-example
+<exercise><title>Build a water rocket</title>
+  <p><lorem generateWords="10"/></p>
+</exercise>
+```
+
+
+
+A custom ` <exercise>{:dn}` title is creating by 
+providing a ` <title>{:dn}` tag within the ` <exercise>{:dn}`.
+
+
+
+---
+
+### Example: Nesting sectional components
+
+
+```doenet-example
+<exercise><title>This is the main exercise.</title>
+  <p><lorem generateWords="10"/></p>
+
+  <example>
+    <p><lorem generateWords="10"/></p>
+  </example>
+
+</exercise>
+```
+
+
+
+A hierarchy is created by nesting one or more sectional components within an ` <exercise>{:dn}`.
+
+
+
+---
+
+### Example: Named ` <exercise>{:dn}` as a parent reference
+
+
+```doenet-editor-horiz
+<exercise name="ex1" boxed>
+  <number name="x">sqrt(2)</number>  
+  <p><m>x = $x</m></p>
+</exercise>
+
+<exercise name="ex2" boxed>
+  <number name="x">3/4</number>  
+  <p><m>x = $x</m></p>
+</exercise>  
+
+<p>From first exercise: 
+  <m>x_1 = $ex1.x </m></p>
+<p>From second exercise: 
+  <m>x_2 = $ex2.x </m></p>
+```
+
+When reference names are used more than once in the same document,
+they can be distinguished (when outside their parent component) by 
+attaching the name of the parent component to the reference.
+
+Above, the ` <exercise>{:dn}` named `ex1` is the
+parent of the `<number>{:dn}` named `x`. Therefore, when 
+referencing this specific instance of the component with that name, 
+you should use `$ex1.x` as shown.
+
+
+---
+
+### Attribute Example: includeParentNumber
+
+
+```doenet-editor-horiz
+<section boxed>
+  <exercise>
+    <p>This exercise is nested inside a section. The default number does not include the parent number.</p>
+  </exercise>
+</section>
+
+<section boxed>
+  <exercise includeParentNumber="true">
+    <p>This exercise is nested inside a section. Rendering of the parent section number has been included.</p>
+  </exercise>
+</section>
+```
+
+
+
+The `includeParentNumber` attribute is `false` by default for the ` <exercise>{:dn}` component 
+(and `true` by default for the ` <section>{:dn}` component).
+
+
+In order to include the number of the parent sectional component, set `includeParentNumber` to `true`.
+
+
+
+---
+
+### Attribute Example: includeAutoNumber
+
+
+```doenet-editor-horiz
+<exercise boxed><title>Custom title</title>
+  <p>In this exercise, the custom title overrides the default numbering of the exercise.</p>
+</exercise>
+
+<exercise boxed includeAutoNumber="true"><title>Special title</title>
+  <p>In this exercise, the number of the exercise is still rendered in addition to the custom title.</p>
+</exercise>
+```
+
+
+
+The `includeAutoNumber` attribute is `false` by default for the ` <exercise>{:dn}` component. 
+This means that if an exercise contains a nested ` <title>{:dn}`, it will not render the default 
+numbering (although it will still be counted in the numbering scheme behind the scenes).
+
+In order to display the exercise number in addition to the custom ` <title>{:dn}`, set 
+the `includeAutoNumber` attribute to `true`.
+
+
+
+---
+
+### Attribute Example: aggregateScores and sectionWideCheckWork
+
+
+```doenet-example
+<exercise sectionWideCheckWork aggregateScores><title>Multiple questions</title>
+  <p>Enter <m>x</m>: <answer>x</answer></p>
+  <p>Enter <m>y</m>: <answer>y</answer></p>
+  <p>Enter <m>z</m>: <answer>z</answer></p>
+</exercise>
+```
+
+
+
+The `aggregateScores` and `sectionWideCheckWork` attributes together combine validation 
+for all ` <answer>{:dn}` components within the ` <exercise>{:dn}` under a single "Check Work" button.
+
+
+
+---
+
+### Attribute Example: boxed
+
+
+```doenet-example
+<exercise boxed><title>Boxed exercise</title>
+  <p><lorem generateWords="10"/></p>
+</exercise>
+```
+
+
+
+The `boxed` attribute changes the default formatting for a sectional 
+component to one that has a border and a shaded banner for the title.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-editor-horiz
+<booleanInput name="hideExercise">
+  <label>Click here to hide the exercise</label>
+</booleanInput>
+
+<exercise hide="$hideExercise"><title>Now you see me...</title>
+  <p><lorem generateWords="10"/></p>
+</exercise>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.
+

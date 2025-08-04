@@ -1,0 +1,84 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <clampNumber>{:dn}`
+
+
+` <clampNumber>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+component that rounds a number down or up to the 
+endpoints of a specified interval if the number is outside 
+the range of that interval. The default interval is $[0,1]$.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='clampNumber'/> 
+ <PropDisplay name='clampNumber'/>
+
+---
+
+### Example: ` <clampNumber>{:dn}` with default limits
+
+
+```doenet-example
+<p>Enter any number: <mathInput name="n"/></p>   
+<p>Your number, within the default clamped limits is: 
+  <clampNumber>$n</clampNumber>
+</p>   
+```
+
+
+
+The default `lowerValue` for the ` <clampNumber>{:dn}` component is $0$, 
+and the default `upperValue` is $1$.
+
+
+
+---
+
+### Attribute Example: lowerValue
+
+
+```doenet-example
+<p>Enter a number that is <m> < -10</m>: 
+  <mathInput name="n"/>
+</p>   
+
+<p>Your number, within the clamped limits is: 
+  <clampNumber lowerValue="-10">
+    $n
+  </clampNumber>
+</p>
+```
+
+
+
+Use the `lowerValue` attribute to adjust the low interval endpoint 
+for the ` <clampNumber>{:dn}` component. The default value is $0$.
+
+
+
+---
+
+### Attribute Example: upperValue
+
+
+```doenet-example
+<p>Enter a number that is <m> > 10</m>: 
+  <mathInput name="n"/>
+</p>   
+
+<p>Your number, within the clamped limits is: 
+  <clampNumber upperValue="10">
+    $n
+  </clampNumber>
+</p>
+```
+
+
+
+Use the `upperValue` attribute to adjust the high interval 
+endpoint for the ` <clampNumber>{:dn}` component. The default value is $1$.
+
+

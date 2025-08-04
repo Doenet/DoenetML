@@ -1,0 +1,118 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <shuffle>{:dn}`
+
+
+` <shuffle>{:dn}` is a [Math Operator](../document_structure/essentialConcepts/#componentTypes)
+component that re-orders a list of referenced components and creates document variants based on the different possible orders.
+
+## Attributes and Properties 
+ <AttrDisplay name='shuffle'/> 
+The ` <shuffle>{:dn}` component has no properties.
+
+---
+
+### Example: Shuffle a list of numbers
+
+
+```doenet-editor-horiz
+
+<number name="a">1</number>
+<number name="b">2</number>
+<number name="c">3</number>
+<number name="d">4</number>
+
+
+<p>The shuffled list is:  <shuffle>$a $b $c $d</shuffle></p>
+ 
+```
+
+
+
+Four ` <number>{:dn}` components are defined and then re-ordered (which in turn creates document variants) using 
+the ` <shuffle>{:dn}` component.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+
+---
+
+### Example: Shuffle an ordered list
+
+
+```doenet-editor-horiz
+<ol>
+  <shuffle>
+    <li>apple</li>
+    <li>banana</li>
+    <li>kiwi</li>
+    <li>plum</li>
+  </shuffle>
+</ol>
+```
+
+
+
+Four ` <li>{:dn}` (list item) components are defined within an ` <ol>{:dn}` (ordered list) and then re-ordered using the ` <shuffle>{:dn}` component.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Example: Shuffle a ` <textList>{:dn}`
+
+
+```doenet-editor-horiz
+<textList name="animal">chicken duck goose cow</textList>
+
+<p>Hello, <shuffle>$animal</shuffle>!</p>
+```
+
+A named ` <textList>{:dn}` is defined within a ` <setup>{:dn}` block, then re-ordered using the ` <shuffle>{:dn}` component.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+---
+
+### Example: Shuffle rows in a ` <tabular>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Rank the flavors from 1 to 4, where 1 is your favorite.</p>
+
+<tabular top="minor" bottom="minor" left="minor" right="minor">
+  <shuffle>
+    <row>
+      <cell>Vanilla</cell>
+      <cell><mathInput/></cell>
+    </row>
+    <row>
+      <cell>Chocolate</cell>
+      <cell><mathInput/></cell>
+    </row>
+    <row>
+      <cell>Mint Chip</cell>
+      <cell><mathInput/></cell>
+    </row>
+    <row>
+      <cell>Strawberry</cell>
+      <cell><mathInput/></cell>
+    </row>
+  </shuffle>
+</tabular>
+```
+
+The individual ` <row>{:dn}` components within a ` <table>{:dn}` can be re-ordered using the ` <shuffle>{:dn}` component.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.

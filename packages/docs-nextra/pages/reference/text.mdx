@@ -1,0 +1,143 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <text>{:dn}`
+
+
+` <text>{:dn}` is a [Text](../document_structure/essentialConcepts/#componentTypes)
+component that defines a string variable for use in evaluations and boolean expressions, or to store a value for future rendering.
+
+## Attributes and Properties 
+ <AttrDisplay name='text'/> 
+ <PropDisplay name='text'/>
+
+---
+
+### Example: Store a ` <text>{:dn}` for future rendering
+
+
+```doenet-editor-horiz
+<setup>
+<text name="chickenSound">Bak Bak!</text>
+<text name="cowSound">Moo Moo!</text>
+<text name="dogSound">Woof Woof!</text>
+</setup>
+
+<p>The chicken goes $chickenSound</p>
+<p>The cow goes $cowSound</p>
+<p>The dog goes $dogSound</p>
+```
+
+
+
+` <text>{:dn}` values are defined in a ` <setup>{:dn}` and referenced by name later for rendering.
+
+
+
+---
+
+### Example: ` <text>{:dn}` used in a ` <boolean>{:dn}`
+
+
+```doenet-editor-horiz
+<setup>
+<text name="color">green</text>
+</setup>
+
+<p>Enter the complement of red: 
+  <textInput name="userColor"/></p>
+<boolean>$userColor = $color</boolean>
+```
+
+
+
+A ` <text>{:dn}` values is defined in a ` <setup>{:dn}` and referenced by name later in a ` <boolean>{:dn}`.
+
+
+
+---
+
+### Example: ` <text>{:dn}` used on a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <text anchor="(-6,6)">Hello World!</text>
+  <circle radius="5"/>
+</graph>
+```
+
+
+
+A ` <text>{:dn}` values is defined on a ` <graph>{:dn}`. The position of the ` <text>{:dn}` can be adjusted with the `anchor` attribute.
+
+
+
+---
+
+### Example: ` <text>{:dn}` adaptable to ` <math>{:dn}` contexts
+
+
+```doenet-editor-horiz
+<p>a = <text name="a">4</text></p>
+
+<math name="hypotenuse">
+  sqrt(3^2 + $a^2)
+</math> = <math extend="$hypotenuse" simplify/>
+```
+
+
+
+` <text>{:dn}` values inserted into a ` <math>{:dn}` will be parsed as a ` <math>{:dn}` where possible.
+
+
+
+---
+
+### Attribute Example: anchor
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <text name="a" anchor="(-6,6)">Hello World!</text>
+  <circle radius="5"/>
+</graph>
+
+<p><c>a.anchor</c> = $a.anchor</p>   
+```
+
+
+
+The `anchor` attribute determines the initial position of a ` <text>{:dn}` on a ` <graph>{:dn}`.
+
+
+
+---
+
+### Attribute Example: draggable
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <text name="a" anchor="(-6,3)">
+    I'm free!
+  </text>
+  <text 
+    name="b" 
+    anchor="(6,3)" 
+    draggable="false"
+    >
+      I'm stuck!
+  </text>
+</graph>
+
+<p><c>a.draggable</c> = $a.draggable</p>  
+<p><c>b.draggable</c> = $b.draggable</p>     
+```
+
+
+
+The `draggable` attribute determines whether the ` <text>{:dn}` can be dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+

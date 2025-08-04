@@ -1,0 +1,90 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <li>{:dn}`
+
+
+` <li>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) component
+that defines an item in either an ordered list, ` <ol>{:dn}`, or an unordered list, ` <ul>{:dn}`.
+
+## Attributes and Properties 
+ The ` <li>{:dn}` component does not have attributes.
+ <PropDisplay name='li'/>
+
+
+---
+
+### Example: ` <ul>{:dn}` with nested ` <li>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Grocery list:</p>
+<ul>
+  <li>coffee</li>
+  <li>cheese</li>
+  <li>chocolate</li>
+</ul>
+```
+
+
+
+` <ul>{:dn}` renders an unordered list, with list items given by ` <li>{:dn}` 
+children. ` <ul>{:dn}` is a block component and should not contain any 
+components other than ` <li>{:dn}` children. Individual ` <li>{:dn}` children may themselves 
+contain graphs, problems, paragraphs, and other content.
+
+
+
+---
+
+### Example: ` <ol>{:dn}` with nested ` <li>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Homework:</p>
+<ol>
+  <li><m>x + 3x</m></li>
+  <li><m>5x - 2x</m></li>
+  <li><m>8x + 4x</m></li>
+</ol>
+```
+
+
+
+` <ol>{:dn}` renders an ordered list, with list items given by ` <li>{:dn}` children. ` <ol>{:dn}` is 
+a block component and should not contain any components other than ` <li>{:dn}` 
+children. Individual ` <li>{:dn}` children may themselves contain graphs, problems, paragraphs, and other content.
+
+
+
+---
+
+### Example: ` <li>{:dn}` with more content
+
+
+```doenet-editor-horiz
+<ul>
+  <li>
+    <p><lorem generateSentences="2"/></p>
+  </li>
+  <li>
+    <graph size="tiny" displayMode="inline"/>
+  </li>
+  <li>
+    <problem>
+      <p>What is <m>\sqrt{16}</m> 
+        <answer>4</answer>
+      </p>
+    </problem>
+  </li>
+</ul>
+```
+
+
+
+` <ul>{:dn}` and ` <ol>{:dn}` components can only take ` <li>{:dn}` children. Individual 
+` <li>{:dn}` children may themselves contain graphs, problems, paragraphs, and other content.
+
+

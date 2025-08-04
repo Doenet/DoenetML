@@ -1,0 +1,115 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <constrainTo>{:dn}`
+
+
+` <constrainTo>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) component
+ used within a ` <constraints>{:dn}` block to constrain a ` <point>{:dn}` to 
+ another named graphical component (such as a ` <line>{:dn}` or a ` <function>{:dn}`).
+
+## Attributes and Properties 
+ <AttrDisplay name='constrainTo'/> 
+ <PropDisplay name='constrainTo'/>
+
+
+---
+
+### Example: Constrain a ` <point>{:dn}` to a ` <circle>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle name="raceTrack" radius="5"/>
+  <point name="car" labelIsName styleNumber="2">
+    <constraints>
+      <constrainTo>$raceTrack</constrainTo>
+    </constraints>
+  </point>
+</graph>
+<p>The car is located at <m>$car</m>.</p>
+```
+
+
+
+The ` <point>{:dn}` named `car` is constrained to the ` <circle>{:dn}` named 
+`raceTrack` using the ` <constrainTo>{:dn}` component within the ` <constraints>{:dn}` block.
+
+
+
+---
+
+### Example: Constrain a ` <circle>{:dn}` to a ` <line>{:dn}`
+
+
+```doenet-editor
+<p>Drag the $circ.styleDescriptionWithNoun 
+  along the line.
+</p>
+
+<graph size="small">
+  <line name="line1">y = x</line>
+  <point name="p" hide>
+    <constraints>
+      <constrainTo>$line1</constrainTo>
+    </constraints>
+  </point>
+  <circle 
+    name="circ" 
+    center="$p" 
+    radius="3" 
+    styleNumber="2" 
+    filled/>
+</graph>
+```
+
+
+
+To constrain geometric objects other than points, 
+first define a named ` <point>{:dn}` with the desired 
+constraint, and then reference that point within the 
+definition of the geometric object. 
+The original ` <point>{:dn}` can be hidden using the `hide` attribute.
+
+
+
+---
+
+### Example: Construct a draggable tangent ` <line>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Drag the tangent line along the function.</p>
+
+<setup>
+<function name="fprime">
+  <derivative>$f</derivative>
+</function>
+<number name="m">$$fprime($p.x)</number>
+</setup>
+
+<graph size="small">
+  <function name="f">1/4 x^2</function>
+  <line name="line1" through="$p" 
+    slope="$m" styleNumber="2"/>
+  <point name="p" styleNumber="2">
+    <constraints>
+      <constrainTo>$f</constrainTo>
+    </constraints>
+  </point>
+</graph>
+
+<p>Slope = $m</p>
+```
+
+A tangent ` <line>{:dn}` to a ` <function>{:dn}` is defined by 
+referencing a constrained ` <point>{:dn}` in the ` <through>{:dn}` 
+attribute of the ` <line>{:dn}` component. 
+
+
+The `slope` of the ` <line>{:dn}` as the user drags the ` <point>{:dn}` 
+is computed by evaluating the ` <derivative>{:dn}` of the 
+named ` <function>{:dn}` at the referenced `x` property of the ` <point>{:dn}`.
+

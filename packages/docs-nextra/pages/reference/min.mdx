@@ -1,0 +1,76 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <min>{:dn}`
+
+` <min>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+component that renders the minimum value in a list of numbers separated by spaces.
+
+## Attributes and Properties 
+ <AttrDisplay name='min'/> 
+ <PropDisplay name='min'/>
+
+---
+
+### Example: ` <min>{:dn}` of a nested list of numbers
+
+
+```doenet-editor-horiz
+<min>0 2.5 1 4.1 3</min>
+```
+
+
+
+` <min>{:dn}` renders the minimum value in a list of numbers separated by spaces.
+
+
+
+---
+
+### Example: ` <min>{:dn}` of a named list
+
+
+```doenet-editor-horiz
+<numberList name="numList">
+  1.2 9.9 17.3
+</numberList>
+
+<p>Min = <min>$numList</min></p> 
+```
+
+
+
+` <min>{:dn}` renders the minimum value in a named ` <numberList>{:dn}`.
+
+
+
+---
+
+### Example: ` <min>{:dn}` of a randomly selected set of numbers
+
+
+```doenet-editor-horiz
+<selectRandomNumbers 
+  numToSelect="7" 
+  from="-500" 
+  to="500" 
+  type="discreteUniform" 
+  name="randomNumberList"
+/>
+
+<p>The list of random numbers selected is: 
+  $randomNumberList
+</p>
+<p>Minimum Number selected: 
+  <min>$randomNumberList</min>
+</p>
+```
+
+
+
+` <min>{:dn}` renders the minimum value in a list of numbers 
+that are generated with the ` <selectRandomNumbers/>{:dn}` component. 
+
+

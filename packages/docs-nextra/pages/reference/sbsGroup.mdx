@@ -1,0 +1,89 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <sbsGroup>{:dn}`
+
+
+` <sbsGroup>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that serves as a container element for multiple ` <sideBySide>{:dn}` components.
+
+## Attributes and Properties 
+ <AttrDisplay name='sbsGroup'/> 
+ <PropDisplay name='sbsGroup'/>
+
+---
+
+### Example: ` <sbsGroup>{:dn}` without attributes
+
+
+```doenet-editor-horiz
+<sbsGroup>
+  <sideBySide>
+    <spreadsheet/>
+    <graph/>
+  </sideBySide>
+  <sideBySide>
+    <graph/>
+    <spreadsheet/>
+  </sideBySide>
+</sbsGroup>
+```
+
+
+
+In this example, the ` <sbsGroup>{:dn}` container is used without any additional attributes. 
+The default margin between elements is 0.
+
+
+
+---
+
+### Attribute Example: margins
+
+
+```doenet-example
+<sbsGroup margins="5%">
+  <sideBySide>
+    <spreadsheet/>
+    <graph/>
+  </sideBySide>
+  <sideBySide>
+    <graph/>
+    <spreadsheet/>
+  </sideBySide>
+</sbsGroup>
+```
+
+
+
+In this example, two ` <sideBySide>{:dn}` components are grouped together in 
+a unit with the ` <sbsGroup>{:dn}` container. The `margins` attribute provides a 
+margin that applies to both ` <sideBySide>{:dn}` elements.
+
+
+
+---
+
+### Attribute Example: width / widths
+
+
+```doenet-example
+<sbsGroup margins="5%" widths="20% 80%">
+  <sideBySide>
+    <spreadsheet/>
+    <graph/>
+  </sideBySide>
+  <sideBySide>
+    <graph/>
+    <spreadsheet/>
+  </sideBySide>
+</sbsGroup>    
+```
+
+
+
+The `widths` attribute can be used in the ` <sbsGroup>{:dn}` container to 
+set the widths for all of the ` <sideBySide>{:dn}` components contained in the group.
+

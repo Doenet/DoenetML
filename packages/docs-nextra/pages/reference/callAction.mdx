@@ -1,0 +1,596 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <callAction>{:dn}`
+
+
+` <callAction>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+component that triggers an action based on a click interaction or a specified boolean condition. The 
+available actions are:
+- `addChildren`: Adds one or more children to the target component.
+- `deleteChildren`: Deletes one or more children from the target component.
+- `submitAnswer`: Submits the target answer component.
+- `resample`: Resamples the target component.
+- `startAnimation`: Starts the animation of the target component.
+- `stopAnimation`: Stops the animation of the target component.
+- `toggleAnimation`: Toggles the animation of the target component.
+- `playVideo`: Plays the target video component.
+- `pauseVideo`: Pauses the target video component.
+- `navigateToTarget`: Navigates to a specified target, such as a reference link.
+- `copyDoenetMLToClipboard`: Copies the DoenetML of the target component to the clipboard.
+
+## Attributes and Properties 
+ <AttrDisplay name='callAction'/> 
+ <PropDisplay name='callAction'/>
+
+---
+
+### Example: Add a ` <point>{:dn}` child to a ` <graph>{:dn}`
+
+
+```doenet-example
+<callAction actionName="addChildren" target="$g">
+  <point>(2,3)</point>
+  <label>Add point</label>
+</callAction>
+
+<graph name="g" size="small"/> 
+```
+
+
+
+Each time the ` <callAction>{:dn}` button is clicked, a new ` <point>{:dn}` child 
+is added to the graph at $(2,3)$.
+
+
+
+---
+
+### Example: Delete a ` <point>{:dn}` child from a ` <graph>{:dn}`
+
+
+```doenet-example
+<callAction actionName="addChildren" target="$g">
+  <point>(2,3)</point>
+  <label>Add point</label>
+</callAction>
+
+<callAction actionName="deleteChildren" target="$g" number="1">
+  <label>Delete point</label>
+</callAction>
+
+<graph name="g" size="small"/>
+```
+
+
+
+Each time the second ` <callAction>{:dn}` button is clicked, a  ` <point>{:dn}` 
+child that was added previously is deleted from the ` <graph>{:dn}`.
+
+
+
+---
+
+### Example: Perform multiple actions with one click
+
+
+```doenet-editor-horiz
+<triggerSet>
+  <callAction actionName="resample" target="$x"/>
+  <callAction actionName="resample" target="$y"/>
+  <label>Reposition Point</label>
+</triggerSet>
+<p><m>x = </m> 
+  <sampleRandomNumbers name="x" from="-9" to="9" type="discreteUniform"/>
+</p>
+
+<p><m>y = </m> 
+  <sampleRandomNumbers name="y" from="-9" to="9" type="discreteUniform"/>
+</p>
+
+<graph size="small">
+  <point>($x, $y)</point>
+</graph>
+```
+
+
+
+Multiple ` <callActions>{:dn}` can be performed with the action of one 
+button click when grouped together inside a ` <triggerSet>{:dn}` component.
+
+
+
+---
+
+### Example: Generate new random numbers
+
+
+```doenet-example
+<callAction actionName="resample" target="$numbers">
+  <label>Get new numbers</label>
+</callAction>
+
+<p>
+  <sampleRandomNumbers name="numbers" from="1" to="1000" numSamples="3"/>
+</p>
+```
+
+
+
+Each time the ` <callAction>{:dn}` button is clicked, the ` <sampleRandomNumbers/>{:dn}` component 
+is resampled.
+
+
+
+---
+
+### Attribute Example: labelIsName
+
+
+```doenet-example
+<graph name="g" size="small">
+  <callAction name="AddPoint" actionName="addChildren" target="$g" labelIsName anchor="(-6,4)">
+    <point>(5,2)</point>
+  </callAction>
+</graph>
+```
+
+
+
+Using the `labelIsName` attribute is a shortcut to adding a 
+separate ` <label>{:dn}` child to the ` <callAction>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: anchor
+
+
+```doenet-example
+<graph name="g" size="small">
+  <callAction name="AddPoint" actionName="addChildren" target="$g" labelIsName anchor="(-6,4)">
+    <point>(5,2)</point>
+  </callAction>
+</graph>
+```
+
+
+
+The `anchor` attribute specifies the position of the ` <callAction>{:dn}` button 
+when the ` <callAction>{:dn}` is used inside a ` <graph>{:dn}`.
+
+
+
+---
+
+### Attribute Example: actionName
+
+
+```doenet-example
+<graph name="g" size="small">
+  <callAction name="AddPoint" actionName="addChildren" target="$g" labelIsName anchor="(-6,4)">
+    <point>(5,2)</point>
+  </callAction>
+</graph>
+```
+
+The `actionName` attribute specifies the action to be performed by the ` <callAction>{:dn}` component. 
+
+---
+
+### Attribute Example: actionName="resample"
+
+
+```doenet-editor-horiz
+<callAction actionName="resample" target="$numbers">
+  <label>Get new numbers</label>
+</callAction>
+
+<p>
+  <sampleRandomNumbers name="numbers" from="1" to="1000" numSamples="3"/>
+</p>
+```
+
+
+
+The `resample` specification for the `actionName` acts on 
+the ` <sampleRandomNumbers>{:dn}` component to generate a new set of random numbers.
+
+
+
+---
+
+### Attribute Example: actionName="addChildren"
+
+
+```doenet-editor-horiz
+<graph name="g">
+  <callAction actionName="addChildren" target="$g" anchor="(-5,6)" >
+    <circle/>
+    <point/>
+    <label>Add circle and point</label>
+  </callAction>
+</graph>
+```
+
+
+
+The `addChildren` specification for the `actionName` attribute creates 
+one or more children of the target component.
+
+
+
+---
+
+### Attribute Example: actionName="deleteChildren"
+
+
+```doenet-editor-horiz
+<callAction actionName="addChildren" target="$g">
+  <point>(2,3)</point>
+  <label>Add point</label>
+</callAction>
+
+<callAction actionName="deleteChildren" target="$g" number="1">
+  <label>Delete point</label>
+</callAction>
+
+<graph name="g" size="small"/>
+```
+
+
+
+The `deleteChildren` specification for the `actionName` attribute deletes 
+one or more children of the target component that have been added to 
+the ` <graph>{:dn}` with a ` <callAction>{:dn}`.
+
+
+
+---
+
+### Attribute Example: actionName="submitAnswer"
+
+
+```doenet-editor-horiz
+<p>Adjust the line so that the slope is greater than 1. 
+When you're done, click the red circle.</p>
+<p>Credit = $ans.creditAchieved</p>
+
+<graph grid size="small">
+  <point name="p1" fixed/>
+  <point name="p2" coords="(3,1)" styleNumber="2"/>
+  <line name="line1" through="$p1 $p2"/>
+  <circle 
+    name="circ" 
+    center="(-6,6)" 
+    radius="3" 
+    styleNumber="2" 
+    filled/>
+</graph>
+
+<callAction 
+  actionName="submitAnswer" 
+  target="$ans" 
+  triggerWhenObjectsClicked="$circ"/>
+
+<answer name="ans" hide>
+  <award>
+    <when>$line1.slope > 1</when>
+  </award>
+</answer>
+```
+
+
+
+The `submitAnswer` specification for the `actionName` attribute triggers 
+automatic submission of the target ` <answer>{:dn}` when the condition 
+for the ` <callAction>{:dn}` is satisfied.
+
+
+
+---
+
+### Attribute Example: actionName="startAnimation"
+
+
+```doenet-editor-horiz
+<callAction actionName="startAnimation" target="$countUp">
+  <label>Start</label>
+</callAction>
+
+<p><number name="n">0</number></p>
+<animateFromSequence 
+  name="countUp" 
+  target="$n" 
+  from="0" 
+  to="4" 
+  animationOn="false" 
+  animationInterval="300" 
+  animationMode="increase once"/>
+
+<p><c>animationOn</c> = $countUp.animationOn</p>
+```
+
+
+
+The `startAnimation` specification for the `actionName` attribute acts on a 
+target ` <animateFromSequence/>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: actionName="stopAnimation"
+
+
+```doenet-editor-horiz
+<callAction actionName="stopAnimation" target="$countDown">
+  <label>Stop</label>
+</callAction>
+
+<callAction actionName="startAnimation" target="$countDown">
+  <label>Start</label>
+</callAction>
+
+<p><number name="n">0</number></p>
+<animateFromSequence 
+  name="countDown" 
+  target="$n" 
+  from="0" 
+  to="20" 
+  animationOn="true" 
+  animationInterval="600" 
+  animationMode="decrease"/>
+
+<p><c>animationOn</c> = $countDown.animationOn</p>
+```
+
+
+
+The `stopAnimation` specification for the `actionName` attribute acts on a 
+target ` <animateFromSequence/>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: actionName="toggleAnimation"
+
+
+```doenet-editor-horiz
+<callAction actionName="toggleAnimation" target="$countUp">
+  <label>Start/Stop</label>
+</callAction>
+
+<p><number name="n">0</number></p>
+<animateFromSequence 
+  name="countUp" 
+  target="$n" 
+  from="0" 
+  to="20" 
+  animationOn="false" 
+  animationInterval="300" 
+  animationMode="increase"/>
+
+<p><c>animationOn</c> = $countUp.animationOn</p>
+```
+
+
+
+The `toggleAnimation` specification for the `actionName` attribute 
+acts on a target ` <animateFromSequence/>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: actionName="playVideo"
+
+
+```doenet-editor-horiz
+<callAction actionName="playVideo" target="$v1">
+  <label>Play</label>
+</callAction>
+
+<video name="v1" youtube="B7UmUX68KtE" />
+```
+
+
+
+The `playVideo` specification for the `actionName` attribute acts on a 
+target ` <video/>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: actionName="pauseVideo"
+
+
+```doenet-editor-horiz
+<callAction actionName="playVideo" target="$v1">
+  <label>Play</label>
+</callAction>
+
+<callAction actionName="pauseVideo" target="$v1">
+  <label>Pause</label>
+</callAction>
+
+<video name="v1" youtube="B7UmUX68KtE" />
+```
+
+
+
+The `pauseVideo` specification for the `actionName` attribute 
+acts on a target ` <video/>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: actionName="navigateToTarget"
+
+
+```doenet-editor-horiz
+<p>What mythological creature can only be befriended by gentle maidens?</p>
+<answer name="ans">
+  <choice>Basilisk</choice>
+  <choice>Siren</choice>
+  <choice credit="1">Unicorn</choice>
+</answer>
+
+<callAction 
+  actionName="navigateToTarget" 
+  target="$unicornPage" 
+  triggerWhen="$ans.creditAchieved=1"/>
+
+<ref name="unicornPage" to="https://en.wikipedia.org/wiki/Unicorn" hide/>
+```
+
+
+
+The `navigateToTarget` specification for the `actionName` attribute 
+acts on a target ` <ref/>{:dn}` component. The user is automatically 
+taken to the referenced link when the condition for the ` <callAction>{:dn}` becomes `true`.
+
+
+
+---
+
+### Attribute Example: actionName="copyDoenetMLToClipboard"
+
+
+```doenet-editor-horiz
+<callAction actionName="copyDoenetMLToClipboard" target="$exampleDoenetML">
+  <label>Copy DoenetML</label>
+</callAction>
+
+<div name="exampleDoenetML">
+  <graph size="tiny"/>
+  <slider/>
+  <answer>42</answer>
+</div>
+```
+
+
+
+The `copyDoenetMLToClipboard` specification for the `actionName` attribute 
+acts on a target sectional component.
+
+
+---
+
+### Attribute Example: triggerWhen
+
+
+```doenet-example
+<p>Drag the $p.styleDescriptionWithNoun into quadrant II or III.</p>
+
+<callAction actionName="addChildren" target="$g" triggerWhen="$p.x < 0">
+  <point>(8,0)</point>
+</callAction>
+
+<graph name="g" size="small">
+  <point name="p" styleNumber="2">(8,0)</point>
+</graph>
+```
+
+
+
+The `triggerWhen` attribute takes a boolean condition that triggers 
+the action to occur when the condition is `true`.
+
+
+Note that this process is repeated each time the boolean is newly `true`. 
+To observe this behavior, drag the point back and forth 
+into the negative $x$ region several times. Also, move the blue ` <point>{:dn}` child each 
+time so that you can clearly see the new ` <point>{:dn}` child that appears.
+
+
+
+---
+
+### Attribute Example: triggerWith
+
+
+```doenet-editor-horiz
+<graph name="g" size="small">
+  <circle name="circ" radius="4" filled/>
+</graph>
+
+<p>Trigger a point:</p>
+<updateValue 
+  name="changeColor" 
+  target="$circ.styleNumber" 
+  newValue="2" 
+  type="number" 
+  disabled="$circ.styleNumber= 2">
+    <label>Change circle color</label>
+</updateValue>
+
+<callAction  
+  triggerWith="$changeColor" 
+  actionName="addChildren" 
+  target="$g">
+    <point/>
+</callAction>
+
+<p>Trigger a rectangle:</p>
+<booleanInput name="bool"/>
+<callAction 
+  triggerWith="$bool" 
+  actionName="addChildren" 
+  target="$g" >
+    <rectangle width="4" height="4" center="(0,0)"/>
+</callAction>
+
+<p>Trigger a line:</p>
+<p>Type <m>x</m><answer name="ans">x</answer></p>
+<callAction 
+  triggerWith="$ans" 
+  actionName="addChildren" 
+  target="$g" >
+    <line>y=x</line>
+</callAction>
+```
+
+
+
+The `triggerWith` attribute references a named ` <callAction>{:dn}`, ` <updateValue>{:dn}`, 
+` <triggerSet>{:dn}`, ` <booleanInput>{:dn}`, or an ` <answer>{:dn}`.
+
+
+When the user perfoms any interaction with the referenced 
+component (including submitting an incorrect answer or unchecking a checkbox), 
+the ` <callAction>{:dn}` is performed.
+
+
+
+---
+
+### Attribute Example: triggerWhenObjectsClicked
+
+
+```doenet-editor-horiz
+<p>Click on the $p.styleDescriptionWithNoun to add a circle.</p>
+<callAction 
+  actionName="addChildren" 
+  target="$g" 
+  triggerWhenObjectsClicked="$p">
+  <circle radius="5"/>
+</callAction>
+
+<graph name="g" size="small">
+  <point name="p" styleNumber="2">(-6,6)</point>
+</graph>
+```
+
+
+
+The `triggerWhenObjectsClicked` attribute takes a component reference as input. Any
+graphical component that can be clicked can serve as a trigger.
+
+

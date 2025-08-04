@@ -1,0 +1,101 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <answer>{:dn}`
+
+## Basic Use Examples
+
+
+` <answer>{:dn}` is an [Evaluation](../document_structure/essentialConcepts#component-types) component that
+defines content for which the user is awarded credit or is required to provide a response.
+
+
+The following examples illustrate some of the basic answer forms.  
+See the following pages for more complex examples, attributes and properties.
+
+
+
+
+
+---
+
+### Example: Default math ` <answer>{:dn}`
+```doenet-example
+<p><m>7x + 3x = </m><answer>10x</answer></p>
+```
+
+
+Note that, by default, *any expression* that is mathematically 
+equivalent to $10x$ is considered correct, so the user can type the 
+given expression and receive full credit in this case. See further examples on how to refine this behavior.
+
+
+
+---
+
+### Example: Default text  `<answer>{:dn}`
+```doenet-example
+<p>Type <c>banana</c>: <answer type="text">banana</answer></p>
+```
+
+
+Value entered into the ` <textInput/>{:dn}` must match exactly (default is case-sensitive) to the 
+provided response, excluding white space at the beginning and end.
+
+
+---
+
+### Example: `<answer>{:dn}` with multiple awards
+```doenet-editor-horiz
+<p>Enter a prime number between 0 and 10:
+  <answer>
+    <award>2</award>
+    <award>3</award>
+    <award>5</award>
+    <award>7</award>
+  </answer>
+</p>
+```
+
+One or more  `<award>{:dn}` components enclosing correct responses may be nested inside 
+an  `<answer>{:dn}` component to give credit for different answers. Individual awards may 
+also have different credit values assigned, see further examples on how to refine awarding for partial credit.
+
+---
+
+### Example: `<answer>{:dn}`  with basic logic
+```doenet-editor-horiz
+<p>Enter an even number greater than 6:
+<answer>
+  <mathInput name="userNumber"/>
+  <award>
+    <when>$userNumber > 6 and <mod>$userNumber 2</mod> = 0</when>
+  </award>
+</answer>
+</p>
+```
+
+This example illustrates the use of some simple validation logic that can be constructed 
+with an `<answer>{:dn}` tag that references a named `<mathInput/>{:dn}`. Credit is 
+awarded when the boolean contained within the `<when>{:dn}` component evaluates to true. 
+Multiple `<award>{:dn}` components may also be used for answers with more complex validation logic.
+
+
+---
+
+### Example: `<answer>{:dn}` for graded free-response
+```doenet-example
+<p>Explain how you solved the problem: 
+  <answer type="text" handGraded expanded forceFullCheckworkButton />
+</p>
+```
+
+
+
+The `handGraded` attribute defers grading for a human to score later. 
+ When combined with the `expanded` attribute of a text answer, the result is a 
+ graded free-response style question.  The `forceFullCheckworkButton` attribute was added just for aesthetics.
+
+

@@ -1,0 +1,386 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <line>{:dn}`
+
+` <line>{:dn}`  is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a line when nested inside a ` <graph>{:dn}` component, and renders an equation otherwise.
+
+
+Current functionality supports generation of lines in $\mathbb{R^2}$ through user-specification of: 
+
+1. a single pair of points
+2. through a single point and a specified slope
+3. with an equation, or ` <function>{:dn}`
+
+
+## Attributes and Properties 
+ <AttrDisplay name='line'/> 
+ <PropDisplay name='line'/>
+
+---
+
+### Example: Default ` <line>{:dn}`
+
+
+```doenet-editor-horiz
+<graph>
+  <line name="line1"/>
+</graph>
+<p><c>equation</c>: $line1.equation</p>
+```
+
+
+
+The default ` <line>{:dn}` without any attributes specified (other than a `styleNumber`) is 
+illustrated. This line is not very interesting; it is just the $x$-axis. The equation of the line is 
+copied below the ` <graph>{:dn}`. You can click and drag the line to see this equation updated.
+
+
+
+---
+
+### Example: ` <line>{:dn}` with slope and through point
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <line 
+    name="line1" 
+    slope="-3" 
+    through="(-1,1)" 
+  />
+  <point name="p" styleNumber="2">(5,3)</point>
+  <line 
+    name="line2" 
+    slope="1/2" 
+    through="$p" 
+    styleNumber="2"
+  /> 
+</graph>
+<p>Line 1 <c>equation</c>: $line1.equation</p>
+<p>Line 2 <c>equation</c>: $line2.equation</p>
+```
+
+
+
+Two lines are graphed using both the `slope` and `through` attributes.
+
+
+
+---
+
+### Example: ` <line>{:dn}` through 2 points
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <line 
+    name="line1" 
+    slope="-3" 
+    through="(-1,1) (8,4)" 
+  />
+  <point name="A" styleNumber="2">(-6,-2)</point>
+  <point name="B" styleNumber="2">(5,3)</point>
+  <line 
+    name="line2" 
+    through="$A $B" 
+    styleNumber="2"
+  /> 
+</graph>  
+<p>Line 1 <c>equation</c>: $line1.equation</p>
+<p>Line 2 <c>equation</c>: $line2.equation</p>
+```
+
+
+
+Two lines are graphed by specifying two through points using the `through` attribute.
+
+
+
+---
+
+### Example: ` <line>{:dn}` by equation
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <line name="line1">y = 2x - 4</line>
+  <line name="line2" equation="y = -x + 5"/> 
+</graph>  
+<p>Line 1 <c>equation</c>: $line1.equation</p>
+<p>Line 2 <c>equation</c>: $line2.equation</p>
+```
+
+
+
+Two lines are graphed by providing their equations directly.
+
+
+
+---
+
+### Example: Line as a ` <function>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function name="f1" through="(-2,5) (7,-1)"/>
+  <function name="f2" styleNumber="2">2x + 1</function> 
+</graph>  
+<p><m>f_1(1) = $$f1(1)</m></p>
+<p><m>f_2(1) = $$f2(1)</m></p>
+<p><m>f_2 </m> <c>formula</c>: $f2.formula</p>
+```
+
+
+
+Two lines are defined using the ` <function>{:dn}` component. This 
+is a useful alternative to defining a line with the ` <line>{:dn}` component if 
+the function needs to be evaluated at different input values.
+
+
+
+---
+
+### Attribute Example: through
+
+
+```doenet-example
+<graph size="small">
+  <line name="line1" slope="-3" through="(-1,1) (8,4)" />
+  <point name="A" styleNumber="2">(-6,-2)</point>
+  <point name="B" styleNumber="2">(5,3)</point>
+  <line name="line2" through="$A $B" styleNumber="2"/> 
+</graph>  
+<p>Line 1 <c>equation</c>: $line1.equation</p>
+<p>Line 2 <c>equation</c>: $line2.equation</p>
+```
+
+
+
+Two lines are graphed by specifying two through points using the `through` attribute.
+
+
+
+---
+
+### Attribute Example: slope
+
+
+```doenet-example
+<slider name="m" labelIsName from="-10" to="10"/>
+<graph size="small">
+  <line name="line1" slope="$m"/>
+</graph>
+<p><c>slope</c>: $line1.slope</p>      
+```
+
+
+
+If only the `slope` attribute is specified, the $y$-intercept defaults to $(0,0)$.
+
+
+
+---
+
+### Attribute Example: equation
+
+
+```doenet-example
+<p>Enter an equation for a line (use variables <m>x, y</m>):
+  <mathInput name="userEq"/></p>
+<graph size="small">
+  <line name="line1" equation="$userEq"/>
+</graph>
+<p><c>equation</c>: $line1.equation</p>
+```
+
+
+
+The `equation` attribute takes any linear expression in $x$ and $y$, unless the `variables` attribute is also employed.
+
+
+
+---
+
+### Attribute Example: variables
+
+
+```doenet-editor-horiz
+<p>Enter an equation for a line (use variables <m>t, v</m>):
+  <mathInput name="userEq"/></p>
+<graph size="small">
+  <line name="line1" equation="$userEq" variables="t v"/>
+</graph>
+<p><c>equation</c>: $line1.equation</p>
+```
+
+
+
+The `variables` attribute allows customization of the independent and dependent variable names.
+
+
+
+---
+
+### Attribute Example: Standard graphical attributes
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle 
+    styleNumber="5" 
+    filled radius="6" 
+    fixed
+  />
+  <line 
+    name="lineA" 
+    layer="1" 
+    styleNumber="3" 
+    applyStyleToLabel 
+    labelIsName 
+    hide="$hideLineA" 
+    draggable="false">
+      y = x
+    </line>
+  <line 
+    name="lineB" 
+    applyStyleToLabel 
+    styleNumber="2" 
+    labelIsName 
+    equation="x + y = 0"
+  />
+</graph>
+<booleanInput name="hideLineA" labelIsName/>
+
+<p>Standard graphical attributes:</p>
+    <ul>
+      <li><attr>hide</attr></li>
+      <li><attr>draggable</attr></li>
+      <li><attr>layer</attr> (0) is default value.</li>
+      <li><attr>styleNumber</attr> 1 - 6</li>
+      <li><attr>applyStyleToLabel</attr></li>
+      <li><attr>labelIsName</attr></li>
+    </ul>
+```
+
+
+
+The uses of the following standard graphical attributes are 
+illustrated: `hide`, `draggable`, `layer`, `styleNumber`, `applyStyleToLabel` and `labelIsName`.
+
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <line name="line1" slope="2" through="(5,2)"/>
+</graph>
+
+<p><c>slope</c>: $line1.slope</p>
+<p><c>equation</c>: $line1.equation</p>
+<p><c>variables</c>: $line1.variables</p>
+```
+
+
+
+The above listed attributes of a named ` <line>{:dn}` are also available as properties.
+
+
+
+---
+
+### Property Example: points
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <line name="line1" through="(-4, -2) (5,2)"/>
+  <pointList styleNumber="2">
+    $line1.points
+  </pointList>
+</graph>
+
+<p><c>points</c>: $line1.points</p>
+<p><c>points[2]</c>: $line1.points[2]</p>
+<p><c>points[2][2]</c>: $line1.points[2][2]</p>
+```
+
+
+
+The `points` property of a named ` <line>{:dn}` returns the through points of the line in an array.
+
+
+
+---
+
+### Property Example: xIntercept, yIntercept
+
+
+```doenet-editor-horiz
+<graph size="small" grid>
+  <line name="line1" through="(-8,-2) (4,4)"/>
+  <point styleNumber="2">
+    ($line1.xIntercept,0)
+  </point>
+  <point styleNumber="3">
+    (0,$line1.yIntercept)
+  </point>
+</graph>
+
+<p><c>xIntercept</c>: $line1.xIntercept</p>
+<p><c>yIntercept</c>: $line1.yIntercept</p>     
+```
+
+
+
+The `xIntercept` and `yIntercept` properties return the intercepts of the named ` <line>{:dn}`.
+
+
+
+---
+
+### Property Example: coeff0, coeffVar1, coeffVar2
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <line name="line1" through="(-6,-4) (-2,0)"/>
+</graph>
+
+<p><c>equation</c> = $line1.equation</p>
+<p><c>coeff0</c> = $line1.coeff0</p>
+<p><c>coeffVar1</c> = $line1.coeffVar1</p>
+<p><c>coeffVar2</c> = $line1.coeffVar2</p>
+```
+
+Linear coefficients corresponding to the linear form
+$A x + B y + C = 0$
+can be obtained with the above properties, where $C = $`coeff0`, $B = $`coeffVar2` and $A = $`coeffVar1`.
+
+---
+
+### Property Example: latex
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <line name="line1" through="(-4,-1) (2,2)"/>
+</graph>
+
+<p><c>latex</c>: $line1.latex</p>
+```
+
+
+
+The `latex` property renders the latex code for rendering the equation of the line.
+
+

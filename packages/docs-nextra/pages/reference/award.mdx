@@ -1,0 +1,119 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <award>{:dn}`
+
+## Basic Use Examples
+
+` <award>{:dn}` is 
+an [Evaluation](../document_structure/essentialConcepts#component-types) component 
+that defines conditions for awarding credit and 
+evaluating user responses.  An ` <award>{:dn}` is the child of 
+an [` <answer>{:dn}`](answer1.mdx) and can be used to refine credit awarded 
+in a variety of applications.
+
+Many attributes for ` <answer>{:dn}` can be applied to an ` <award>{:dn}` to 
+control the behavior of just that ` <award>{:dn}`.
+
+The following examples illustrate some of the basic award forms.  
+See the following pages for additional examples on using the attributes and properties.
+
+## Attributes and Properties 
+ <AttrDisplay name='award'/> 
+ <PropDisplay name='award'/>
+
+
+---
+
+### Example: ` <award>{:dn}` multiple correct responses
+
+
+```doenet-example
+<p>1. Enter  <m>a</m> or <m>b</m>:
+  <answer><mathInput name="ans1"/>
+    <award>a</award>
+    <award>b</award>
+  </answer>
+</p>  
+```
+
+
+
+ Multiple ` <award>{:dn}` children can be used within an [` <answer>{:dn}`](answer1.mdx) to ascribe 
+ credit to multiple responses.
+
+
+
+---
+
+### Example: ` <award>{:dn}` based on a boolean
+
+
+```doenet-example
+<p>Enter a number greater than 2:
+  <answer>
+    <mathInput name="input1"/>
+    <award>
+      <when>$input1 > 2</when>
+    </award>
+  </answer>
+</p>
+```
+
+
+
+An ` <answer>{:dn}` can be based on a boolean condition by giving each ` <award>{:dn}` a
+[` <when>{:dn}`](when.mdx)
+child.  An ` <award>{:dn}` will be awarded if its ` <when>{:dn}` evaluates to `true`.
+
+
+
+---
+
+### Example: ` <award>{:dn}` for partial credit
+
+
+```doenet-example
+<p><em>For the following question, first enter <m>\frac{4}{8}</m> and 
+then <m>\frac{1}{2}</m>.</em></p>
+
+<p>Question: Simplify <m>\frac{8}{16}</m>
+<answer symbolicEquality>
+  <award>1/2</award>
+  <award credit="0.5">4/8</award>
+</answer>
+</p>
+```
+
+
+
+The `credit` attribute of the ` <award>{:dn}` component is used to assign partial credit to specific responses.
+
+
+
+---
+
+### Example: ` <award>{:dn}` for tailored feedback
+
+
+```doenet-example
+<p><em>For the following question, first enter <m>\frac{4}{8}</m> 
+and then <m>\frac{1}{2}</m>.</em></p>
+
+<p>Question: Simplify <m>\frac{8}{16}</m>
+  <answer symbolicEquality>
+    <award>1/2</award>
+    <award name="notFully" credit="0">4/8</award>
+  </answer>
+</p>
+
+<feedback condition="$notFully">Simplify further.</feedback>
+```
+
+
+
+A named ` <award>{:dn}` can be referenced within a ` <feedback>{:dn}` to target specific responses.
+
+

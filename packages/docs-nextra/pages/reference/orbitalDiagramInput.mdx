@@ -1,0 +1,229 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <orbitalDiagramInput/>{:dn}`
+
+` <orbitalDiagramInput/>{:dn}` is a [Subject-Specific](../document_structure/essentialConcepts#component-types)
+component that renders an interactive tool for student entry of orbital diagrams.
+
+## Attributes and Properties 
+ <AttrDisplay name='orbitalDiagramInput'/> 
+ <PropDisplay name='orbitalDiagramInput'/>
+
+
+---
+
+### Example: Default ` <orbitalDiagramInput/>{:dn}`
+
+
+```doenet-example
+<atom atomicNumber="6" name="carbon"/>
+
+<p>Draw the orbital diagram for <alert>carbon</alert>. At the left side of each row, include the label for the sublevel shown (1s, 2s, 2p, etc.)</p>
+<orbitalDiagramInput name="userDiagram"/>
+
+<answer>
+  <award>
+    <when>$userDiagram = $carbon.orbitalDiagram
+    </when>
+  </award>
+</answer>
+
+<solution>
+$carbon.orbitalDiagram
+</solution>
+```
+
+
+
+The default ` <orbitalDiagramInput/>{:dn}` contains one row with an empty label. Students 
+complete the diagram by typing in the correct sublevel into the label, and using 
+the buttons to add "box" entry fields and arrows to complete the diagram. Additional 
+rows are also added/removed with the buttons shown above the diagram. Check the 
+solution provided and experiment with the buttons to get a feel for how the tool behaves.
+
+
+
+---
+
+### Attribute Example: prefill
+
+
+```doenet-example
+<atom atomicNumber="5" name="boron"/>
+<atom atomicNumber="9" name="fluorine"/>
+
+<p>Add electrons to the orbital diagram for boron shown below in order to make the orbital diagram for fluorine.</p>
+<orbitalDiagramInput name="userDiagram" prefill="(ud) (ud) (u, , )" prefillLabel="1s 2s 2p"/>
+
+<answer>
+  <award>
+    <when>$userDiagram = $fluorine.orbitalDiagram
+    </when>
+  </award>
+</answer>
+
+<solution>
+<p>The orbital diagram for <alert>fluorine</alert></p>
+$fluorine.orbitalDiagram
+</solution>
+```
+
+
+
+The `prefill` attribute of the ` <orbitalDiagramInput/>{:dn}` component takes as its input either (1) an array of arrow directions listed by row or (2) the `orbitalDiagram` property of a named ` <atom>{:dn}` component. The first input method is illustrated above.
+
+
+To enter the array of arrow directions, use "`u`" for an up arrow and "`d`" for a down arrow. Each row is listed in distinct parentheses. To prefill empty boxes, you can include comma-separated spaces within a row.
+
+
+
+---
+
+### Attribute Example: prefill (2nd method)
+
+
+```doenet-example
+<atom atomicNumber="5" name="boron"/>
+<atom atomicNumber="9" name="fluorine"/>
+
+<p>Add electrons to the orbital diagram for boron shown below in order to make the orbital diagram for fluorine.</p>
+<orbitalDiagramInput name="userDiagram" prefill="$boron.orbitalDiagram"/>
+<answer>
+  <award>
+    <when>$userDiagram = $fluorine.orbitalDiagram
+    </when>
+  </award>
+</answer>
+<solution>
+<p>The orbital diagram for <alert>fluorine</alert></p>
+$fluorine.orbitalDiagram
+</solution>
+```
+
+
+
+The `prefill` attribute of the ` <orbitalDiagramInput/>{:dn}` component takes as its input either (1) an array of arrow directions listed by row or (2) the `orbitalDiagram` property of a named ` <atom>{:dn}` component. The second input method is illustrated above.
+
+
+
+---
+
+### Attribute Example: prefillLabel
+
+
+```doenet-example
+<atom atomicNumber="9" name="fluorine"/>
+
+<p>Add electrons to the blank orbital diagram shown below in order to make the orbital diagram for fluorine.</p>      
+<orbitalDiagramInput name="userDiagram" prefill="() () ( , , )" prefillLabel="1s 2s 2p"/>
+<answer>
+  <award>
+    <when>$userDiagram = $fluorine.orbitalDiagram
+    </when>
+  </award>
+</answer>
+<solution>
+<p>The orbital diagram for <alert>fluorine</alert></p>
+$fluorine.orbitalDiagram
+</solution>
+```
+
+
+
+The `prefillLabel` attribute can be used to specify a prefill of the labels for each row of the ` <orbitalDiagramInput/>{:dn}`. The input for this attribute is a list of text labels, beginning with the label for the bottom row.
+
+
+
+---
+
+### PropertyExample: value
+
+
+```doenet-editor-horiz
+<atom atomicNumber="6" name="carbon"/>
+
+<p>Complete the orbital diagram for <alert>carbon</alert>.</p>
+<orbitalDiagramInput 
+  name="userDiagram" 
+  prefill="$carbon.orbitalDiagram"
+/>
+
+<p><c>value</c> = $userDiagram.value</p>
+```
+
+
+
+The `value` property of the ` <orbitalDiagramInput/>{:dn}` returns a static copy of the user's entered diagram values that is updated with each click interaction.
+
+
+
+---
+
+### Property Example: rows
+
+
+```doenet-editor-horiz
+<atom atomicNumber="6" name="carbon"/>
+
+<p>Complete the orbital diagram for <alert>carbon</alert>.</p>
+<orbitalDiagramInput 
+  name="userDiagram" 
+  prefill="$carbon.orbitalDiagram"
+/>
+
+<p><c>rows</c> = $userDiagram.rows</p>
+```
+
+
+
+The `rows` property of the ` <orbitalDiagramInput/>{:dn}` returns the row values entered in the user's diagram, rearranged such that the most recently entered rows appear on the bottom of the diagram and the first row entered appears on the top of the diagram.
+
+
+
+---
+
+### Property Example: numRows
+
+
+```doenet-editor-horiz
+<atom atomicNumber="6" name="carbon"/>
+
+<p>Complete the orbital diagram for <alert>carbon</alert>.</p>
+<orbitalDiagramInput 
+  name="userDiagram" 
+  prefill="$carbon.orbitalDiagram"
+/>
+
+<p><c>numRows</c> = $userDiagram.numRows</p>
+```
+
+
+
+The `numRows` property of the ` <orbitalDiagramInput/>{:dn}` returns the number of rows entered into the diagram by the user.
+
+
+
+---
+
+### Example: selectedBoxIndex
+
+
+```doenet-editor-horiz
+<atom atomicNumber="6" name="carbon"/>
+
+<p>Complete the orbital diagram for <alert>carbon</alert>.</p>
+<orbitalDiagramInput 
+  name="userDiagram" 
+  prefill="$carbon.orbitalDiagram"
+/>
+
+<p><c>selectedBoxIndex</c> = $userDiagram.selectedBoxIndex</p>
+```
+
+
+
+The `selectedBoxIndex` property of the ` <orbitalDiagramInput/>{:dn}` returns the index number of the diagram box of the active row (numbered from left to right) that is currently highlighted by the user.
+

@@ -1,0 +1,120 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <evaluate/>{:dn}`
+
+` <evaluate/>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
+component which renders the result of a ` <function>{:dn}`evaluated at a specified `input` parameter or parameters.
+This is a self-closing tag; it's tempting to try to nest the function within opening and closing tags, but this is 
+incorrect -- the function to be evaluated 
+must instead be specified within the `function` attribute directly.
+
+## Attributes and Properties 
+ <AttrDisplay name='evaluate'/> 
+ <PropDisplay name='evaluate'/>
+
+
+---
+
+### Example: ` <evaluate/>{:dn}` a function at a user-input
+
+
+```doenet-editor-horiz
+<p><m>f(x) = </m> 
+  <function name="f">x^2 + 1</function>
+</p>
+
+<p>Enter an input value: 
+  <mathInput name="xUser"/>
+</p>
+
+<p><m>f($xUser) = </m>
+  <evaluate function="$f" input="$xUser"/></p>      
+```
+
+
+
+The two required attributes for the ` <evaluate/>{:dn}` component are `function` and `input`.
+
+
+
+---
+
+### Example: ` <evaluate/>{:dn}`  - the shortcut
+
+
+```doenet-editor-horiz
+<p><m>f(x) = </m> 
+  <function name="f">x^2 + 1</function>
+</p>
+
+<p>Enter an input value: 
+  <mathInput name="xUser"/>
+</p>
+
+<p><m>f($xUser) = </m>
+  $$f($xUser)
+</p>
+```
+
+
+
+The shortcut macro for the evaluate component is `$$function(input)`.
+
+
+
+---
+
+### Attribute Example: function
+
+
+```doenet-example
+<function name="g">sin(x)</function>
+<p><m>g(\frac{\pi}{3})</m> = <evaluate function="$g" input="pi/3"/></p>     
+```
+
+
+
+The `function` attribute specifies a target function to evaluate.
+
+
+
+---
+
+### Attribute Example: input
+
+
+```doenet-example
+<function name="h">e^x</function>
+<p><m>h(y)</m> = <evaluate function="$h" input="y"/></p>  
+```
+
+
+
+The `input` attribute specifies an input at which to evaluate the function.
+
+
+
+---
+
+### Attribute Example: forceNumeric
+
+
+```doenet-editor-horiz
+<function name="g">sin(x)</function>
+
+<p><m>g(\frac{\pi}{3})</m> = 
+  <evaluate function="$g" input="pi/3" forceNumeric/>
+</p> 
+```
+
+
+
+The `forceNumeric` attribute forces a numerical evaluation of the function.
+
+
+
+
+

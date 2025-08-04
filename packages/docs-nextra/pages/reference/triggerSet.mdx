@@ -1,0 +1,283 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <triggerSet>{:dn}`
+
+
+` <triggerSet>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes)
+component that combines the actions of multiple ` <updateValue>{:dn}`, ` <triggerSet>{:dn}` and/or ` <callAction>{:dn}` components and allows them to be triggered by a single button click interaction or boolean condition.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='triggerSet'/> 
+ <PropDisplay name='triggerSet'/>
+
+---
+
+### Example: ` <triggerSet>{:dn}` with a button
+
+
+```doenet-editor-horiz
+<p>n = <number name="n">0</number></p>
+<p>animal = <text name="animal">monkey</text></p>
+<p><m>f(x) = </m> 
+  <function name="f">
+    <math name="math1">x^2</math>
+  </function></p>
+
+<triggerSet disabled="$n = 1">
+  <updateValue target="$n" newValue="1"/>
+  <updateValue 
+    target="$animal" 
+    newValue="kangaroo" 
+    type="text"
+  />
+  <updateValue 
+    target="$math1" 
+    newValue="x^3" 
+    type="math"
+  />
+  <label>Change stuff</label>
+</triggerSet>
+```
+
+
+
+A ` <triggerSet>{:dn}` is used to link muliple actions that take place with one button click.
+
+
+
+---
+
+### Example: ` <triggerSet>{:dn}` on a graph
+
+
+```doenet-editor-horiz
+<number name="a">-3</number>
+<graph size="small">
+  <line name="line1" layer="1">y = 2x + $a</line>
+  <circle name="circ" styleNumber="1" filled/>
+
+  <triggerSet 
+    anchor="(-5,5)" 
+    disabled="$circ.styleNumber=6"
+  >
+    <updateValue 
+      target="$a" 
+      newValue="$a + 5" 
+    />
+    <updateValue 
+      target="$circ.radius" 
+      newValue="$circ.radius + 3"
+    />
+    <updateValue 
+      target="$circ.styleNumber" 
+      newValue="$circ.styleNumber + 1"
+    />
+    <label>Change stuff</label>
+  </triggerSet>
+</graph>
+```
+
+
+
+A ` <triggerSet>{:dn}` button can be rendered on a ` <graph>{:dn}`. The position of the button is specified with the `anchor` attribute.
+
+
+
+---
+
+### Attribute Example: triggerWhen
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <line name="line1" layer="1">y = 2x + 3</line>
+  <circle name="circ" styleNumber="1" filled/>
+</graph>
+
+<p>Enter x:
+ <answer name="ans1">x</answer></p>
+
+<triggerSet 
+  triggerWhen="$ans1.creditAchieved = 1"
+>
+  <updateValue 
+    target="$line1.equation" 
+    newValue="y = -x + 3" 
+  />
+  <updateValue 
+    target="$circ.radius" 
+    newValue="5"
+  />
+  <updateValue 
+    target="$circ.styleNumber" 
+    newValue="5"
+  />
+</triggerSet>
+```
+
+
+
+The `triggerWhen` attribute takes a boolean condition as input. When the boolean condition evaluates to `true`, the actions within the ` <triggerSet>{:dn}` are performed.
+
+
+
+---
+
+### Attribute Example: triggerWith
+
+
+```doenet-editor-horiz
+<number name="a">-3</number>
+<booleanInput name="bi"/>
+
+<graph size="small">
+  <line name="line1" layer="1">y = 2x + $a</line>
+  <circle name="circ" styleNumber="1" filled/>
+
+  <triggerSet 
+    anchor="(-5,5)" 
+    triggerWith="$bi" 
+    disabled="$circ.styleNumber=6"
+  >
+      <updateValue target="$a" newValue="$a + 5" />
+      <updateValue 
+        target="$circ.radius" 
+        newValue="$circ.radius + 3"
+      />
+      <updateValue 
+        target="$circ.styleNumber" 
+        newValue="$circ.styleNumber + 1"
+      />
+  </triggerSet>
+</graph>
+```
+
+
+The `triggerWith` attribute takes a component reference as input. When the referenced 
+component has a change in value, the actions within the ` <triggerSet>{:dn}` are performed.
+
+
+
+
+---
+
+### Attribute Example: triggerWhenObjectsClicked
+
+
+```doenet-editor-horiz
+<p>Click on either the circle or the line.</p>
+
+<graph size="small">
+  <line name="line1" layer="1">
+    y = 2x + 3
+  </line>
+  <circle name="circ" styleNumber="1" filled/>
+</graph>
+
+<triggerSet 
+  triggerWhenObjectsClicked="$line1 $circ"
+>
+  <updateValue 
+    target="$line1.equation" 
+    newValue="y = -x + 3" 
+  />
+  <updateValue 
+    target="$circ.radius" 
+    newValue="5"
+  />
+  <updateValue 
+    target="$circ.styleNumber" 
+    newValue="5"
+  />
+</triggerSet>
+```
+
+
+
+The `triggerWhenObjectsClicked` attribute takes a list of target "objects" as its input. Objects are components that have been defined within the graph and can be clicked.
+
+
+
+---
+
+### Attribute Example: anchor
+
+
+```doenet-editor-horiz
+<number name="a">-3</number>
+
+<graph size="small">
+  <line name="line1" layer="1">y = 2x + $a</line>
+  <circle name="circ" styleNumber="1" filled/>
+  <triggerSet 
+    name="trigger" 
+    anchor="(-5,5)" 
+    disabled="$circ.styleNumber=6"
+  >
+    <updateValue 
+      target="$a" 
+      newValue="$a + 1"
+    />
+    <updateValue 
+      target="$circ.radius" 
+      newValue="$circ.radius + 1"
+    />
+    <updateValue 
+      target="$circ.styleNumber" 
+      newValue="$circ.styleNumber + 1"
+    />
+    <label>Change stuff</label>
+  </triggerSet>
+</graph>
+
+<p><c>anchor</c> = $trigger.anchor</p>
+```
+
+
+
+The anchor attribute specifies the position of the ` <triggerSet>{:dn}` button when placed within a ` <graph>{:dn}`.
+
+
+
+---
+
+### Attribute Example: labelIsName
+
+
+```doenet-editor-horiz
+<p>n = <number name="n">0</number></p>
+<p>animal = <text name="animal">monkey</text></p>
+<p><m>f(x) = </m> 
+  <function name="f">
+    <math name="math1">x^2</math>
+  </function></p>
+
+<triggerSet 
+  name="changeStuff"  
+  labelIsName 
+  disabled="$n = 1"
+>
+  <updateValue target="$n" newValue="1"/>
+  <updateValue 
+    target="$animal" 
+    newValue="kangaroo" 
+    type="text"
+  />
+  <updateValue 
+    target="$math1" 
+    newValue="x^3" 
+    type="math"
+  />
+</triggerSet>
+```
+
+
+
+The `labelIsName` attribute is a shortcut to adding a ` <label>{:dn}` child to a ` <triggerSet>{:dn}`.
+
+
+

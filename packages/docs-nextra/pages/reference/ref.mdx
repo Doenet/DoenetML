@@ -1,0 +1,54 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <ref>{:dn}`
+
+
+The ` <ref>{:dn}` component renders a link to another Doenet document or to an external website.
+
+## Attributes and Properties 
+ <AttrDisplay name='ref'/> 
+ <PropDisplay name='ref'/>
+
+---
+
+### Example: ` <ref>{:dn}` to an external website
+
+
+```doenet-editor-horiz
+<p>For more information, see this
+  <ref to="https://en.wikipedia.org/wiki/Pythagorean_theorem">
+    article on the Pythagorean Theorem
+  </ref>
+</p>
+```
+
+
+
+In the example above, the `to` attribute of the ` <ref>{:dn}` component is used with the address of an external 
+webpage to create a link within a paragraph.
+
+
+---
+
+### Attribute Example: createButton
+
+
+```doenet-editor-horiz
+<p>For more information, see this article on
+  <ref to="https://en.wikipedia.org/wiki/Pythagorean_theorem"
+    createButton>
+      The Pythagorean Theorem
+  </ref>
+</p>
+```
+
+
+
+The `createButton` attribute is used render the link in button format.
+
+
+

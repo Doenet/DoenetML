@@ -1,0 +1,291 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <bestFitLine>{:dn}`
+
+` <bestFitLine>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
+component computes a linear regression through a list of points. 
+When nested inside a [` <graph>{:dn}`](graph.mdx), the ` <bestFitLine>{:dn}` component displays a line.  
+The equation for the line of best fit can be rendered by accessing the `equation` property.
+
+## Attributes and Properties 
+ <AttrDisplay name='bestFitLine'/> 
+ <PropDisplay name='bestFitLine'/>
+
+---
+
+### Example: ` <bestFitLine>{:dn}` through 3 points
+
+
+```doenet-example
+ <graph size="small">
+    <bestFitLine data="$p1 $p2 $p3"/>
+    <point name="p1">(-6,-4)</point>
+    <point name="p2">(-2,0)</point>
+    <point name="p3">(5,3)</point>
+  </graph>
+```
+
+
+
+A ` <bestFitLine>{:dn}` is rendered through three named ` <point>{:dn}` components. 
+Note that the data in this example are not specified as `fixed` and when the points are 
+moved the regression line will update accordingly.
+
+
+
+---
+
+### Example: ` <bestFitLine>{:dn}` from user-input
+
+
+```doenet-example
+ <p>Enter 3 points: <mathInput name="input1"/>, <mathInput name="input2"/>, 
+ <mathInput name="input3"/></p>
+
+    <point name="p1">$input1</point>
+    <point name="p2">$input2</point>
+    <point name="p3">$input3</point>
+
+  <graph size="small">
+    <bestFitLine data="$p1 $p2 $p3"/>
+    $p1 
+    $p2
+    $p3
+  </graph>
+```
+
+
+
+A ` <bestFitLine>{:dn}` is rendered through three named ` <point>{:dn}` components. 
+Coordinates for the points are provided by the user with the ` <mathInput/>{:dn}` component.
+
+
+
+---
+
+### Example: Plot data and determine equation
+
+
+```doenet-editor-horiz
+ <p>Add your data points to the graph, approximated to the nearest <m>0.5</m> units.</p>
+  <callAction actionName="addChildren" target="dataGraph">
+    <point>(0,0)
+      <constraints>
+        <constrainToGrid dx="0.5" dy="0.5"/>
+      </constraints>
+    </point>
+    <label>Add data point</label>
+  </callAction>
+  <p>Data: 
+    <asList>
+      <collect name="dataPoints" componentTypes="point" source="dataGraph"/>
+    </asList></p>
+  <graph name="dataGraph" grid>
+    <bestFitLine name="linearFit" data="$dataPoints"/>
+  </graph>
+  <p>The equation of best fit is: $linearFit.equation</p>
+```
+
+
+
+A ` <bestFitLine>{:dn}` is rendered through an arbitrary number of data points generated with a ` <callAction>{:dn}` component that adds ` <point>{:dn}` children to the named ` <graph>{:dn}`.
+
+
+The ` <collect>{:dn}` component gathers the information required from the ` <graph>{:dn}` to provide to the `data` attribute of the ` <bestFitLine>{:dn}` without having to assign individual names to each ` <point>{:dn}`.
+
+
+
+---
+
+### Attribute Example: data
+
+
+```doenet-example
+ <graph size="small">
+    <bestFitLine data="(-6,-4) (-2,0) (5,3)"/>
+  </graph>
+```
+
+
+
+The `data` attribute specifies the data points through which to fit a regression.
+
+
+
+---
+
+### Attribute Example: variables
+
+
+```doenet-example
+<graph size="small">
+  <bestFitLine name="line1" data="(-6,-4) (-2,0) (5,3)" variables="t z"/>
+</graph>
+<p><c>equation</c> = $line1.equation</p>
+```
+
+
+
+The `variables` attribute allows customization of the independent and 
+dependent variable name when rendering the equation of the computed regression line.
+
+
+
+---
+
+### Property Example: equation
+
+
+```doenet-example
+<graph size="small">
+  <bestFitLine name="line1" data="(-6,-4) (-2,0) (5,3)"/>
+</graph>
+<p><c>equation</c> = $line1.equation</p>
+```
+
+
+
+The `equation` property of the named ` <bestFitLine>{:dn}` renders the 
+equation of the computed regression line.
+
+
+
+---
+
+### Property Example: slope
+
+
+```doenet-example
+<graph size="small">
+  <bestFitLine name="line1" data="(-6,-4) (-2,0) (5,3)"/>
+</graph>
+<p><c>slope</c> = $line1.slope</p>
+```
+
+
+
+The `slope` property of the named ` <bestFitLine>{:dn}` renders the slope of the computed regression line.
+
+
+
+---
+
+### Property Example: coeff0, coeffVar1, coeffVar2
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <bestFitLine name="line1" data="(-6,-4) (-2,0) (5,3)"/>
+</graph>
+<p><c>equation</c> = $line1.equation</p>
+<p><c>coeff0</c> = $line1.coeff0</p>
+<p><c>coeffVar1</c> = $line1.coeffVar1</p>
+<p><c>coeffVar2</c> = $line1.coeffVar2</p>
+```
+
+
+
+Linear coefficients corresponding to the linear form
+<me>A x + B y + C = 0</me>
+can be obtained with the above properties, where $C = $`coeff0`, $B = $`coeffVar2` and $A = $`coeffVar1`.
+
+
+
+---
+
+### Property Example: xIntercept, yIntercept
+
+
+```doenet-example
+<graph size="small">
+  <bestFitLine name="line1" data="(-6,-4) (-2,0) (5,3)"/>
+</graph>
+<p><c>xIntercept</c> = $line1.xIntercept</p>
+<p><c>yIntercept</c> = $line1.yIntercept</p>
+```
+
+
+
+Use the `xIntercept` and `yIntercept` properties of the named ` <bestFitLine>{:dn}` to determine the 
+intercepts of the computed regression line.
+
+
+
+---
+
+### Property Example: latex
+
+
+```doenet-example
+<graph size="small">
+  <bestFitLine name="line1" data="(-6,-4) (-2,0) (5,3)"/>
+</graph>
+<p><c>latex</c> = $line1.latex</p>
+```
+
+
+
+The `latex` property renders the latex code for rendering the equation of the computed regression line.
+
+
+
+---
+
+### Property Example: data
+
+
+```doenet-example
+<graph size="small">
+  <bestFitLine name="line1" data="(-6,-4) (-2,0) (5,3)"/>
+  $line1.data{styleNumber="2"}
+</graph>
+<p><c>data</c> = <asList>$line1.data</asList></p>
+<p><c>data[2]</c> = $line1.data[2]</p>
+```
+
+
+
+The `data` property renders two through points computed for the linear regression.
+
+
+
+---
+
+### Property Example: variables
+
+
+```doenet-example
+<graph size="small">
+  <bestFitLine name="line1" data="(-6,-4) (-2,0) (5,3)"/>
+  $line1.data{styleNumber="2"}
+</graph>
+<p><c>variables</c> = <asList>$line1.variables</asList></p>
+```
+
+
+
+The `variables` property renders the two `variables` used when rendering the 
+equation for the linear regression.
+
+
+
+---
+
+### Property Example: numDimensions
+
+
+```doenet-example
+<graph size="small">
+  <bestFitLine name="line1" data="(-6,-4) (-2,0) (5,3)"/>
+</graph>
+<p><c>numDimensions</c> = <asList>$line1.numDimensions</asList></p>
+```
+
+
+
+The `numDimensions` property renders the number of dimensions for the linear regression.
+
+

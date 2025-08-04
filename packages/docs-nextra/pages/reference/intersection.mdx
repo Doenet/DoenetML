@@ -1,0 +1,232 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <intersection>{:dn}`
+
+
+` <intersection>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that determines the intersection point of a pair of graphical objects. These can be ` <line>{:dn}`, ` <circle>{:dn}`, or ` <polygon>{:dn}` components.
+
+The ` <intersection>{:dn}` component renders a point (or points in the case of multiple intersections) 
+when nested inside a ` <graph>{:dn}` component, and renders a coordinate pair (or a list of coordinate pairs) otherwise.
+
+## Attributes and Properties 
+ <AttrDisplay name='intersection'/> 
+ The ` <intersection>{:dn}` component shares properties with the `<point>{:dn}` component
+
+
+---
+
+### Example: ` <intersection>{:dn}` of two lines
+
+
+```doenet-editor-horiz
+<p>Try dragging each of the lines to observe 
+changes in the intersection.</p>
+<p>The intersection point is: $IP</p>
+
+<graph size="small">
+  <line name="line1">y = x</line>
+  <line name="line2" styleNumber="2">
+    2y + 3x = 4
+  </line>
+  <intersection 
+    name="IP" 
+    styleNumber="5">
+      $line1 $line2
+  </intersection>
+</graph>
+```
+
+
+
+When inside a ` <graph>{:dn}`, the ` <intersection>{:dn}` component renders a point. 
+Outside the graph, the coordinates of the intersection are rendered.
+
+
+
+---
+
+### Example: ` <intersection>{:dn}` of line and polygon
+
+
+```doenet-editor-horiz
+<p>Try dragging the line to observe changes 
+in the intersection points.</p>
+<p>The intersection points are: $intPoints</p>
+
+<graph size="small">
+  <line name="line1">y = x</line>
+  <regularPolygon 
+    name="pentagon" 
+    numSides="5" 
+    radius="4" 
+    styleNumber="2"
+  />
+  <intersection 
+    name="intPoints" 
+    styleNumber="5">
+      $line1 $pentagon
+  </intersection>
+</graph>
+
+<p>The second intersection point is: 
+  $intPoints[2]</p>
+```
+
+
+
+When more than one ` <intersection>{:dn}` occurs between the specified components, 
+the intersection points are stored in an array. Individual points can be accessed with array notation.
+
+
+
+---
+
+### Example: ` <intersection>{:dn}` of circle and polyline
+
+
+```doenet-editor-horiz
+<p>Adjust the vertices of the polyline or drag the circle to 
+create different numbers of intersection points.</p>
+
+<graph size="small">
+  <point name="p1">(-5,-4)</point>
+  <point name="p2">(-1,6)</point>
+  <point name="p3">(2,-7)</point>
+  <point name="p4">(4,5)</point>
+  <polyline 
+    name="pline" 
+    vertices="$p1 $p2 $p3 $p4"
+  />
+  <circle name="circ1" styleNumber="2" radius="4"/>
+  <intersection 
+    name="intPoints" 
+    styleNumber="5">
+      $pline $circ1
+  </intersection>
+</graph>
+
+<p>The intersection points are: $intPoints</p>
+<p>The second intersection point is: $intPoints[2]</p>
+```
+
+When more than one ` <intersection>{:dn}` occurs between the specified components, 
+the intersection points are stored in an array. Individual 
+points can be accessed with array notation.
+
+---
+
+### Example: No ` <intersection>{:dn}` exists
+
+
+```doenet-editor-horiz
+<p>Components which do not intersect return nothing. 
+Drag the circle and line to create conditions where 
+intersections do and do not exist.</p>
+
+<graph size="small">
+  <line name="line1">y = x - 5</line>
+  <circle name="circ1" styleNumber="2" radius="3"/>
+  <intersection 
+    name="intPoints" 
+    styleNumber="5">
+      $line1 $circ1
+  </intersection>
+</graph>
+<p>The intersection points are: $intPoints</p>
+<p>The second intersection point is: $intPoints[2]</p>
+```
+
+Doenet does not return anything when no ` <intersection>{:dn}` exists.
+
+---
+
+### Example: Overlapping lines
+
+
+```doenet-editor-horiz
+<p>Overlapping lines return nothing. Adjust the slope of the line to 
+create conditions where intersections do and do not exist.</p>
+
+<slider name="m" from="-3" to="3" initialValue="1">
+  <label>m</label>
+</slider>
+
+<graph size="small">
+  <line name="line1">y = x</line>
+  <line name="line2" styleNumber="2">y = $m x</line>
+  <intersection 
+    name="ip" 
+    styleNumber="5">
+      $line1 $line2
+  </intersection>
+</graph>
+
+<p>The intersection point is: $ip</p>
+```
+
+Doenet does not return anything when lines directly overlap.
+
+---
+
+### Example: Collinear edges and lines
+
+
+```doenet-editor-horiz
+<p>Using the slider, drag the line across the graph 
+to observe the intersection behavior.</p>
+
+<slider name="a" from="-2" to="6" initialValue="0">
+  <label><m>x</m></label>
+</slider>
+
+<graph size="small">
+  <line name="line1">x = $a</line>
+  <rectangle 
+    name="rect1" 
+    width="4" 
+    height="4" 
+    fixLocation
+  />
+  <intersection 
+    name="intPoints" 
+    styleNumber="5">
+      $line1 $rect1
+  </intersection>
+</graph>
+
+<p>The intersection points are: $intPoints</p>
+```
+
+When a line and the edge of a polygon overlap, only the 
+endpoints of the overlapped region are counted as intersection points. 
+
+---
+
+### Attribute Example: styleNumber
+
+
+```doenet-editor-horiz
+<p>Use the slider to adjust the 
+  <attr>styleNumber</attr> of the intersection points.</p>
+<slider name="n" from="1" to="6">
+  <label>styleNumber</label>
+</slider>
+
+<graph size="small">
+  <line name="line1">y = x</line>
+  <rectangle name="rect1" width="4" height="4"/>
+  <intersection 
+    name="intPoints" 
+    styleNumber="$n">
+      $line1 $rect1
+  </intersection>
+</graph>
+```
+
+The style of an ` <intersection>{:dn}` component can be adjusted 
+with the `styleNumber` attribute in the same manner as a ` <point>{:dn}`.
+

@@ -1,0 +1,475 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <matrixInput/>{:dn}`
+
+` <matrixInput/>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
+component renders an empty matrix with blanks for user-input of entries.
+
+## Attributes and Properties 
+ <AttrDisplay name='matrixInput'/> 
+ <PropDisplay name='matrixInput'/>
+
+---
+
+### Example: Default `<matrixInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Fill in the entries of the matrix. 
+Click (r+) or (c+) to add a row or a column, 
+and (r-) or (c-) to delete a row or a column.</p>
+
+<matrixInput name="userMatrix"/>
+<p>userMatrix = $userMatrix</p>
+```
+
+
+
+The default ` <matrixInput/>{:dn}` contains a single input blank. Additional 
+rows and columns are added with rendered size control buttons.
+
+
+
+---
+
+### Example: A blank 2x3 ` <matrixInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<matrixInput 
+  name="userMatrix" 
+  numRows="2" 
+  numColumns="3" 
+  showSizeControls="false"
+/>
+
+<p>userMatrix = $userMatrix</p>
+```
+
+
+
+To show a ` <matrixInput/>{:dn}` of a specific, unchangeable size, 
+use the `numRows` and the `numColumns` attributes. Set the `showSizeControls` 
+attribute to `false` to prevent the user from altering the size.
+
+
+
+---
+
+### Example: Retrieving an entry from a ` <matrixInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<matrixInput name="A" numRows="2"/>
+
+<p><c>A.matrix[2][1]</c> = $A.matrix[2][1]</p>  
+```
+
+
+Individual entries of the matrix can be accessed using array 
+notation with the `matrix` property.
+
+
+
+---
+
+### Example: Operations with ` <matrixInput/>{:dn}` - defined matrices
+
+
+```doenet-editor-horiz
+<p><m>A = </m>
+  <matrixInput 
+    name="A" 
+    numRows="2" 
+    numColumns="2" 
+    showSizeControls="false"
+    defaultEntry="2"
+  />
+</p>
+
+<p><m>B = </m>
+  <matrixInput 
+    name="B" 
+    numRows="2" 
+    numColumns="2" 
+    showSizeControls="false"
+    defaultEntry="3"
+    />
+  </p>
+
+<p><m>A + B = 
+  <math name="sum" simplify>$A + $B</math>
+</m></p>
+<p><m>A B = 
+  <math name="product" simplify expand>$A $B</math>
+</m></p>
+<p><m>2 B = 
+  <math name="scalarMult" simplify>2 $B</math>
+</m></p>
+```
+
+
+
+Basic matrix operations can be performed with named ` <matrixInput/>{:dn}` components. See 
+the ` <matrix>{:dn}` component for additional examples.
+
+
+
+---
+
+### Example: Prefill a ` <matrixInput/>{:dn}` with a ` <matrix>{:dn}`
+
+
+```doenet-editor-horiz
+<setup>
+  <matrix name="A">
+    <row>1 2 3</row>
+    <row>4 5 6</row>
+    <row>7 8 9</row>
+  </matrix>
+</setup>
+
+<p>Adjust the given matrix so that it is symmetric: 
+  <m>B = </m>
+  <matrixInput name="B" prefill="$A"/>
+</p>
+```
+
+
+
+To easily prefill a ` <matrixInput/>{:dn}` with specific entries, first 
+define a ` <matrix>{:dn}` and reference it by name within the `prefill` attribute 
+of the ` <matrixInput/>{:dn}`.
+
+
+
+---
+
+### Attribute Example: numRows / numColumns
+
+
+```doenet-example
+<matrixInput name="A" numRows="2" numColumns="3"/>
+<p><m>A = $A</m></p>
+```
+
+
+
+A ` <matrixInput/>{:dn}` of a specific size can be initialized with the `numRows` and the `numColumns` attributes.
+
+
+
+---
+
+### Attribute Example: showSizeControls
+
+
+```doenet-example
+<p>Show size controls: 
+  <booleanInput 
+    name="buttonsOn" 
+    prefill="true"
+  /> $buttonsOn 
+</p>
+
+<p><m>A = </m>
+  <matrixInput 
+    name="A" 
+    numRows="2" 
+    numColumns="3" 
+    showSizeControls="$buttonsOn"
+  />
+</p>
+```
+
+
+
+The default size control buttons can be hidden by setting the `showSizeControls` attribute to `false`.
+
+
+
+---
+
+### Attribute Example: prefill
+
+
+```doenet-example
+<matrix name="prefillMatrix">
+  <row>1 2 3</row>
+  <row>4 5 6</row>
+</matrix>
+
+
+<p><m>A = </m>
+  <matrixInput name="A" prefill="$prefillMatrix"/>
+</p>      
+```
+
+
+
+To easily prefill a ` <matrixInput/>{:dn}` with specific entries, first define a ` <matrix>{:dn}` and reference it by name within the `prefill` attribute of the ` <matrixInput/>{:dn}`.
+
+
+
+---
+
+### Attribute Example: defaultEntry
+
+
+```doenet-example
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="3" 
+  defaultEntry="1"
+/>
+
+<p><m>A = $A</m></p>    
+```
+
+
+
+Use the `defaultEntry` attribute to change the prefilled value for a matrix of a specified size; the default value is an empty input box.
+
+
+
+---
+
+### Attribute Example: format
+
+
+```doenet-editor-horiz
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="2" 
+  format="latex" 
+  prefill="\begin{matrix}a & b\\c & d\end{matrix}" 
+/>
+
+<p><m>A = $A</m></p>    
+```
+
+
+
+The `format` attribute gives the option for prefilled ` <matrixInput/>{:dn}` components to contain content formatted in LaTeX. If supported, expressions entered in the prefill of the ` <matrixInput/>{:dn}` will be parsed by Doenet as math components and may be used in further computations. 
+
+
+
+---
+
+### Attribute Example: functionSymbols
+
+
+```doenet-editor-horiz
+<p>Construct a matrix using function symbols <m>f(x), g(x), h(x)</m>:</p>
+
+<p>With attribute:
+<matrixInput 
+  name="A"
+  showSizeControls="false"
+  numRows="2" 
+  numColumns="2"
+  functionSymbols="f g h"
+  prefill="$prefillA"
+/>
+</p>
+<p><m>A^2 = 
+  <math simplify expand>$A $A</math></m></p>
+```
+
+
+
+The `functionSymbols` attribute is used to specify when a character is formatted as a function that takes an argument in parentheses. Default = "f", "g"; type = <em>textList</em>
+
+
+Try deleting the specification `functionSymbols="f g h"` from the example above to observe the difference in the simplification of $A^2$.
+
+
+
+---
+
+### Attribute Example: splitSymbols
+
+
+```doenet-editor-horiz
+<p>
+  <matrix name="model">
+    <row>xx yy</row>
+    <row>xy xyz</row>
+  </matrix>
+</p>
+
+<p>Step 1: Enter the matrix shown above in the input box below.</p>
+  <matrixInput 
+    name="A" 
+    numRows="2" 
+    numColumns="2" 
+    splitSymbols="false" 
+    showSizeControls="false"/>
+
+<p>Step 2: Add spaces in between some of 
+the entries in the input boxes above.</p>
+
+<p><m>A^2 = 
+  <math simplify expand>$A $A</math>
+</m></p> 
+
+<p>Step 3: To compare to the default behavior, delete 
+the <c>splitSymbols="false"</c> specification 
+in the code to the right.</p>
+```
+
+
+
+The `splitSymbols` attribute is used to modify the default mathematical simplification of multicharacter values in a ` <mathInput/>{:dn}` (think of each entry in a ` <matrixInput/>{:dn}` as a ` <mathInput/>{:dn}`). By default, Doenet assumes adjacent characters are single variables multiplied together, and "splits" them during parsing. So, for example, multicharacter values such as `xyz` are interpreted as the product $x \cdot y \cdot z$. However, if you wish to treat a grouping of symbols as a single variable, you can turn off this behavior by specifying `splitSymbols="false"`.
+
+
+
+---
+
+### Attribute Example: bindValueTo
+
+
+```doenet-editor-horiz
+<p>Click and drag the head of the vector on the graph.</p>
+<graph>
+  <vector name="v">(5,6)</vector>
+</graph>
+
+<matrixInput 
+  name="A" 
+  bindValueTo="$v" 
+  showSizeControls="false"
+/>
+
+<p><m>A = $A</m></p>    
+```
+
+
+
+The `bindValueTo` attribute is used to create a bidirectional link between the value of a ` <matrixInput/>{:dn}` and that of another component. This attribute accepts a reference to a named math component or the property of a named component as input.
+
+
+
+---
+
+### Attribute Example: minComponentWidth
+
+
+```doenet-editor-horiz
+<p>Adjust the slider to change the width of the matrix input boxes:</p>
+<slider name="m" from="10" to="100" step="10">
+  <label>minComponentWidth</label>
+</slider>
+
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="3" 
+  defaultEntry="1" 
+  minComponentWidth="$m"
+/>
+<p><m>A = $A</m></p>    
+```
+
+
+
+The `minComponentWidth` attribute adjusts the width of the individual ` <mathInput/>{:dn}` components within the ` <matrixInput/>{:dn}`.
+
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<matrix name="prefill">
+  <row>1 2</row>
+  <row>3 4</row>
+</matrix>
+
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="2" 
+  prefill="$prefill"
+/>
+
+<p><c>numRows</c> = $A.numRows</p>
+<p><c>numColumns</c> = $A.numColumns</p>
+<p><c>showSizeControls</c> = $A.showSizeControls</p>      
+<p><c>prefill</c> = $A.prefill</p> 
+<p><c>format</c> = $A.format</p>
+<p><c>functionSymbols</c> = $A.functionSymbols</p>  
+<p><c>splitSymbols</c> = $A.splitSymbols</p> 
+```
+
+
+
+The attributes shown above are also accessible as properties.
+
+
+---
+
+### Property Example: valueChanged / immediateValueChanged
+
+
+```doenet-editor-horiz
+<matrix name="prefill">
+  <row>1 2</row>
+  <row>3 4</row>
+</matrix>
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="2" 
+  prefill="$prefill"
+/>
+
+<p><c>valueChanged</c> = $A.valueChanged</p>
+<p><c>immediateValueChanged</c> = $A.immediateValueChanged</p>
+```
+
+
+
+The `valueChanged` property returns the boolean value of whether the ` <matrixInput/>{:dn}` has been changed by the user when the page is updated (which occurs when the user clicks elsewhere, hits Enter, or interacts with another part of the page).
+
+
+The `immediateValueChanged` property returns the boolean value of whether the ` <matrixInput/>{:dn}` has been changed by the user immediately as they are typing into the input.
+
+
+
+---
+
+### Property Example: value / immediateValue
+
+
+```doenet-editor-horiz
+<matrix name="prefill">
+  <row>1 2</row>
+  <row>3 4</row>
+</matrix>
+
+<matrixInput 
+  name="A" 
+  numRows="2" 
+  numColumns="2" 
+  prefill="$prefill"
+/>
+
+<p><c>value</c> = $A.value</p>
+<p><c>immediateValue</c> = $A.immediateValue</p>
+```
+
+
+
+The `value` property returns the value stored in the ` <matrixInput/>{:dn}` since the most current page update (which occurs when the user clicks elsewhere, hits Enter, or interacts with another part of the page).
+
+
+The `immediateValue` property returns the value stored in the ` <matrixInput/>{:dn}`, updated immediately as the user is typing it in.
+

@@ -1,0 +1,342 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <curve>{:dn}`
+
+## Property Examples
+
+The following examples illustrate use of the ` <curve>{:dn}` tag properties.  
+
+---
+
+### Property Example: Attributes as properties - all curves
+
+
+```doenet-example
+<graph size="small">
+  <curve name="curve1" through="(1,5) (-3,-6) (1,0) (-6,3)">
+    <bezierControls>(3,-3) (-2,4) (5,3) (3,3)</bezierControls>
+    <label><m>C_1</m></label>
+  </curve>  
+</graph>
+
+<p><c>draggable</c> = $curve1.draggable</p>
+<p><c>labelPosition</c> = $curve1.labelPosition</p>
+<p><c>flipFunction</c> = $curve1.flipFunction</p>
+<p><c>numDiscretizationPoints</c> = $curve1.numDiscretizationPoints</p>
+<p><c>styleNumber</c> = $curve1.styleNumber</p>
+<p><c>label</c> = $curve1.label</p>
+<p><c>hide</c> = $curve1.hide</p>
+<p><c>layer</c> = $curve1.layer</p>
+```
+
+
+
+The general ` <curve>{:dn}` attributes shown above are also available as properties.
+
+
+
+---
+
+### Property Example: Attributes as properties - bezier curves
+
+
+```doenet-example
+<graph size="small">
+  <curve name="curve1" through="(1,5) (-3,-6) (1,0) (-6,3)">
+    <bezierControls>(3,-3) (-2,4) (5,3) (3,3)</bezierControls>
+    <label><m>C_1</m></label>
+  </curve>  
+</graph>
+
+<p><c>splineTension</c> = $curve1.splineTension</p>
+<p><c>splineForm</c> = $curve1.splineForm</p>
+<p><c>extrapolateForward, extrapolateBackward</c> = $curve1.extrapolateForward, $curve1.extrapolateBackward</p>
+```
+
+
+
+The bezier ` <curve>{:dn}` attributes shown above are also available as properties.
+
+
+
+---
+
+### Property Example: Attributes as properties - parametric curves
+
+
+```doenet-example
+<graph size="small">
+  <curve name="curve1" variable="t" parMin="pi/2" parMax="3pi/2">
+    (6cos(t), 6sin(t))
+  </curve>  
+</graph>
+
+<p><c>parMin</c> = $curve1.parMin</p>
+<p><c>parMax</c> = $curve1.parMax</p>
+```
+
+
+
+The parametric ` <curve>{:dn}` attributes shown above are also available as properties.
+
+
+
+---
+
+### Property Example: numDimensions
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <curve name="curve1" variable="t">
+    (6cos(t), 6sin(t))
+  </curve>  
+</graph>
+
+<p><c>numDimensions</c> = $curve1.numDimensions</p>
+```
+
+
+
+The `numDimensions` property renders the number of dimensions of the ` <curve>{:dn}`.
+
+
+
+---
+
+### Property Example: throughPoints
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <curve 
+    name="curve1" 
+    through="(4,6) (7,-2) (-1,4) (-8,0)"
+  /> 
+</graph>
+
+<p><c>throughPoints</c> = $curve1.throughPoints</p>
+<p><c>throughPoints[2]</c> = $curve1.throughPoints[2]</p>
+<p><c>throughPoints[2][2]</c> = $curve1.throughPoints[2][2]</p>
+```
+
+
+
+The `throughPoints` property stores the specified 
+through points of the ` <curve>{:dn}` in an array. Individual 
+through points and through point coordinates can be accessed using array notation.
+
+
+
+---
+
+### Property Example: vectorControlDirections
+
+
+```doenet-example
+<graph size="small">
+  <curve name="curve1" through="(1,5) (-3,-6) (1,0) (-6,3)">
+    <bezierControls>
+      <controlVectors>(3,-3)</controlVectors>
+      <controlVectors direction="both">(-2,4) (1,6)</controlVectors>
+      <controlVectors direction="next">(5,3)</controlVectors>
+      <controlVectors>(3,3)</controlVectors>
+    </bezierControls>
+  </curve>
+</graph>
+
+<p><c>vectorControlDirections</c> = $curve1.vectorControlDirections</p>
+<p><c>vectorControlDirections[2]</c> = $curve1.vectorControlDirections[2]</p>
+```
+
+
+
+The `vectorControlDirections` property stores the specified control 
+directions of the bezier curve ` <controlVectors>{:dn}` in an array. Individual 
+control vector directions at an indexed through point can be accessed using array notation.
+
+
+
+---
+
+### Property Example: hiddenControls
+
+
+```doenet-example
+<graph size="small">
+  <curve name="curve1" through="(1,5) (-3,-6) (1,0) (-6,3)">
+    <bezierControls>
+      <controlVectors hide>(3,-3)</controlVectors>
+      <controlVectors direction="both">(-2,4) (1,6)</controlVectors>
+      <controlVectors direction="next" hide>(5,3)</controlVectors>
+      <controlVectors>(3,3)</controlVectors>
+    </bezierControls>
+  </curve>
+</graph>
+
+<p><c>hiddenControls</c> = $curve1.hiddenControls</p>
+<p><c>hiddenControls[2]</c> = $curve1.hiddenControls[2]</p>
+```
+
+
+
+The `hiddenControls` property stores an array of boolean values that are `true` if 
+the control vectors at the indexed through point are hidden from the user 
+using the `hide` attribute. The status at an individual through point can be rendered using array notation.
+
+
+
+---
+
+### Property Example: controlVectors
+
+
+```doenet-example
+<graph size="small">
+  <curve name="curve1" through="(1,5) (-3,-6) (1,0) (-6,3)">
+    <bezierControls>
+      <controlVectors>(3,-3)</controlVectors>
+      <controlVectors direction="both">(-2,4) (1,6)</controlVectors>
+      <controlVectors direction="next">(5,3)</controlVectors>
+      <controlVectors>(3,3)</controlVectors>
+    </bezierControls>
+  </curve>
+</graph>
+
+<p><c>controlVectors</c> = $curve1.controlVectors</p>
+```
+
+
+
+The `controlVectors` property stores the computed control vectors of a bezier 
+curve in an array. Individual control control vectors and displacements at 
+an indexed through point can be accessed using array notation.
+
+
+
+---
+
+### Property Example: controlPoints
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <curve 
+    name="curve1" 
+    through="(1,5) (-3,-6) (1,0) (-6,3)">
+      <bezierControls>
+        (3,-3) (-2,4) (5,3) (3,3)
+      </bezierControls>
+  </curve> 
+</graph>
+
+<p><c>controlPoints</c> = $curve1.controlPoints</p>
+```
+
+
+
+The `controlPoints` property stores an array of control points - points 
+at each end of the bezier control handles.
+
+
+
+---
+
+### Property Example: numXCriticalPoints, numYCriticalPoints
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <curve 
+    name="curve1" 
+    through="(-2,6) (0,0) (1,1) (-6,3)">
+      <bezierControls>
+        (3,1) (0,2) (7,3) (3,3)
+      </bezierControls>
+  </curve> 
+  $curve1.xCriticalPoints{styleNumber="2"}
+  $curve1.yCriticalPoints{styleNumber="3"}
+</graph>
+
+<p><c>numXCriticalPoints</c> = $curve1.numXCriticalPoints</p>
+<p><c>numYCriticalPoints</c> = $curve1.numYCriticalPoints</p>
+```
+
+
+
+---
+
+### Property Example: xCriticalPoints, yCriticalPoints
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <curve 
+    name="curve1" 
+    through="(-2,6) (0,0) (1,1) (-6,3)">
+      <bezierControls>
+        (3,1) (0,2) (7,3) (3,3)
+      </bezierControls>
+  </curve> 
+  $curve1.xCriticalPoints{styleNumber="2"}
+  $curve1.yCriticalPoints{styleNumber="3"}
+</graph>
+
+<p><c>xCriticalPoints</c> = $curve1.xCriticalPoints</p>
+<p><c>yCriticalPoints</c> = $curve1.yCriticalPoints</p>
+```
+
+
+
+---
+
+### Property Example: numCurvatureChangePoints
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <curve 
+    name="curve1" 
+    through="(-2,6) (0,0) (1,1) (-6,3)">
+    <bezierControls>
+      (3,1) (0,2) (5,3) (3,3)
+    </bezierControls>
+  </curve> 
+  $curve1.curvatureChangePoints{styleNumber="2"}
+</graph>
+
+<p><c>numCurvatureChangePoints</c> = $curve1.numCurvatureChangePoints</p>
+```
+
+
+
+The `numCurvatureChangePoints` property returns the number of inflection points found when computing the curve.
+
+
+
+---
+
+### Property Example: curvatureChangePoints
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <curve 
+    name="curve1" 
+    through="(-2,6) (0,0) (1,1) (-6,3)">
+      <bezierControls>
+        (3,1) (0,2) (5,3) (3,3)
+      </bezierControls>
+  </curve> 
+  $curve1.curvatureChangePoints{styleNumber="2"}
+</graph>
+
+<p><c>curvatureChangePoints</c> = $curve1.curvatureChangePoints</p>
+```
+
+The `curvatureChangePoints` property stores the inflection points 
+found when computing the curve in an array.
+

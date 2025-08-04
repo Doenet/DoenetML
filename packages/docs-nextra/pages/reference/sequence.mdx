@@ -1,0 +1,167 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <sequence>{:dn}`
+
+` <sequence>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+component that defines a sequence of numerical (or alphabetical) values.
+
+## Attributes and Properties 
+ <AttrDisplay name='sequence'/> 
+The `<sequence>{:dn}` component does not have properties.
+
+---
+
+### Example: Default ` <sequence>{:dn}`
+
+
+```doenet-editor-horiz
+<sequence name="s"/>
+
+<p>The third value in the sequence is <c>s[3]</c> = $s[3]</p>
+```
+
+
+
+The default ` <sequence>{:dn}` lists values from $1$ to $10$ with `step` size $1$.
+
+
+
+---
+
+### Example: Using a ` <sequence>{:dn}` with a ` <repeat>{:dn}`
+
+
+```doenet-editor-horiz
+<sequence name="s" from="-8" to="8" step="2"/>
+
+<graph>
+<repeat for="$s" valueName="i">
+  <point>($i, $i)</point>
+  </repeat>
+</graph>
+
+```
+
+
+
+A ` <sequence>{:dn}` can be used to define the iteration for a `<repeat>{:dn}`.
+Another way to accomplish this would be to use the `<repeatForSequence>{:dn}` component.
+
+
+---
+
+
+### Example: the sum of a ` <sequence>{:dn}`
+
+
+```doenet-editor-horiz
+<sum>
+  <sequence from="1" to="20" step="2"/>
+</sum>
+
+```
+
+
+
+In the sample code below, the sum of all values in a sequence is obtained by nesting the ` <sequence/>{:dn}` in a [` <sum>{:dn}`](sum.mdx) component. This technique works for multiple sequence as well.
+
+
+
+---
+
+### Attribute Example: from, to
+
+
+```doenet-editor-horiz 
+<sequence name="s" from="12" to="17"/>
+
+<p>The third value in the sequence is <c>s[3]</c> = $s[3]</p>   
+```
+
+
+
+Use the `from` and `to` attributes to specify the endpoints of the ` <sequence>{:dn}`.
+
+
+
+---
+
+### Attribute Example: step
+
+
+```doenet-editor-horiz
+<sequence name="s" from="12" to="27" step="3"/>
+
+<p>The third value in the sequence is <c>s[3]</c> = $s[3]</p> 
+```
+
+
+
+Use the `step` attribute to specify the stepping increment for the ` <sequence>{:dn}`
+
+
+
+---
+
+### Attribute Example: length
+
+
+```doenet-editor-horiz
+<sequence name="s" from="12" length="6" step="3"/>
+
+<p>The third value in the sequence is <c>s[3]</c> = $s[3]</p> 
+```
+
+
+
+Use the `length` attribute to specify the number of terms in the ` <sequence>{:dn}`.
+
+
+
+---
+
+### Attribute Example: exclude
+
+
+```doenet-editor-horiz
+<sequence 
+  name="s" 
+  from="12" 
+  length="6" 
+  step="3" 
+  exclude="18"
+/>
+
+<p>The third value in the sequence is <c>s[3]</c> = $s[3]</p> 
+```
+
+
+
+The `exclude` attribute excludes terms from the ` <sequence>{:dn}`.
+
+
+
+---
+
+### Attribute Example: type
+
+
+```doenet-editor-horiz
+<sequence 
+  name="alpha" 
+  from="c" 
+  step="2" 
+  length="9" 
+  type="letters"
+/>
+
+<p>The third value in the sequence is <c>alpha[3]</c> = $alpha[3]</p> 
+```
+
+
+
+The `type` attribute takes as an input either `number` or `letters`, and defaults to `number`.
+

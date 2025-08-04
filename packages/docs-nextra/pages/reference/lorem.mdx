@@ -1,0 +1,99 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# `<lorem/>{:dn}`
+
+
+` <lorem/>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types)
+component that renders random lorem-ipsum filler text.  The amount of text generated is controlled by attribute specification of the number of words, sentences, and paragraphs.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='lorem'/> 
+ <PropDisplay name='lorem'/>
+
+
+---
+
+### Attribute Example: generateWords
+
+
+```doenet-editor-horiz
+<lorem generateWords="10"/>
+```
+
+
+
+Specify the number of words to generate with the `generateWords` attribute.
+
+
+
+---
+
+### Attribute Example: generateSentences
+
+
+```doenet-editor-horiz
+<lorem generateSentences="4"/>
+```
+
+
+
+Specify the number of sentences to generate with the `generateSentences` attribute.
+
+
+
+---
+
+### Attribute Example: generateParagraphs
+
+
+```doenet-editor-horiz
+<lorem generateParagraphs="2"/>
+```
+
+
+
+Specify the number of paragraphs to generate with the `generateParagraphs` attribute.
+
+
+
+---
+
+### Attribute Example: minSentencesPerParagraph, maxSentencesPerParagraph
+
+
+```doenet-editor-horiz
+<lorem 
+  generateParagraphs="1" 
+  minSentencesPerParagraph="2" 
+  maxSentencesPerParagraph="3"
+/>
+```
+
+
+
+You can control the length of generated paragraphs with the `minSentencesPerParagraph` and `maxSentencesPerParagraph` attributes. The default minimum is four paragraphs and the default maximum is eight paragraphs.
+
+
+
+---
+
+### Attribute Example: minWordsPerSentence, maxWordsPerSentence
+
+
+```doenet-editor-horiz
+<lorem 
+	generateSentences="1" 
+	minWordsPerSentence="9" 
+	maxWordsPerSentence="10"
+/>
+```
+
+
+
+You can control the length of generated sentences with the `minWordsPerSentence` and `maxWordsPerSentence` attributes. The default minimum is four words and the default maximum is eight words.
+
+

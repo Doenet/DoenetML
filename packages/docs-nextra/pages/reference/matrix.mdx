@@ -1,0 +1,293 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <matrix>{:dn}`
+
+` <matrix>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types)
+component that defines/renders a matrix for use in computations.
+
+## Attributes and Properties 
+ <AttrDisplay name='matrix'/> 
+ <PropDisplay name='matrix'/>
+
+
+---
+
+### Example: Create a ` <matrix>{:dn}` from rows
+
+
+```doenet-editor-horiz
+<p><m>A = </m>
+  <matrix name="A">
+    <row>1 2 3</row>
+    <row>4 5 6</row>
+    <row>7 8 9</row>
+  </matrix>
+</p>
+<p><m>a_{23} = $A.matrix[2][3]</m></p>
+```
+
+
+
+Matrices can be quickly defined by listing row entries within nested ` <row>{:dn}` components. 
+Individual entries can be accessed using array notation with the `matrix` property.
+
+
+
+---
+
+### Example: Create a ` <matrix>{:dn}` from columns
+
+
+```doenet-editor-horiz
+<p><m>A = </m>
+  <matrix name="A">
+    <column>1 2 3</column>
+    <column>4 5 6</column>
+    <column>7 8 9</column>
+  </matrix>
+</p>
+<p><m>a_{23} = $A.matrix[2][3]</m></p>
+```
+
+
+
+Matrices can be quickly defined by listing column entries within nested ` <column>{:dn}` components. Individual 
+entries can be accessed using array notation with the `matrix` property.
+
+
+
+---
+
+### Example: Create a ` <matrix>{:dn}` of a given size
+
+
+```doenet-editor-horiz
+<p><m>A = </m>
+  <matrix name="A" 
+          numRows="2"     
+          numColumns="3"/>
+</p>
+<p><m>B = </m>
+  <matrix name="B" 
+          numRows="3" 
+          numColumns="2" 
+          defaultEntry="1"/>
+</p>  
+```
+
+
+
+A ` <matrix>{:dn}` of a given size can be generated using the `numRows` and the `numColumns` attributes. By 
+default, a zero matrix will be defined; to modify this use the `defaultEntry` attribute.
+
+
+
+---
+
+### Example: Create a ` <matrix>{:dn}` from user-input rows
+
+
+```doenet-editor-horiz
+<p>Enter the rows of your matrix (separate entries with commas)</p>
+<p>First row: 
+  <mathInput name="row1"/></p>
+
+<p>Second row: <mathInput name="row2"/></p>
+<p><m>A = </m>
+  <matrix name="A">
+    <row>$row1</row>
+    <row>$row2</row>
+  </matrix>
+</p>
+<p><m>a_{21} = $A.matrix[2][1]</m></p> 
+```
+
+
+
+This example shows one method of populating the entries of a ` <matrix>{:dn}` from user-input. See 
+also, ` <matrixInput>{:dn}`.
+
+
+
+---
+
+### Example: ` <matrix>{:dn}` addition/ subtraction
+
+
+```doenet-editor-horiz
+<p>Let <m>A = </m>
+  <matrix name="A">
+    <row>1 2 3</row>
+    <row>4 5 6</row>
+  </matrix>,
+</p>
+<p>and let <m>B = </m>
+  <matrix name="B">
+    <row>1 1 1</row>
+    <row>2 2 2</row>
+  </matrix>.</p>
+<p>Then, 
+  <m>A + B = 
+    <math simplify>$A + $B</math>
+  </m>.</p>     
+```
+
+
+
+The ` <math>{:dn}` component with the `simplify` attribute performs matrix addition and subtraction. 
+
+
+
+---
+
+### Example: ` <matrix>{:dn}` multiplication
+
+
+```doenet-editor-horiz
+<p>Let <m>A = </m>
+  <matrix name="A">
+    <row>1 2 3</row>
+    <row>4 5 6</row>
+  </matrix>,
+</p>
+<p>and let <m>B = </m>
+  <matrix name="B">
+    <row>1 1</row>
+    <row>2 2</row>
+    <row>3 3</row>
+  </matrix>.</p>
+<p>Then, 
+  <m>A B = 
+    <math simplify expand>$A $B</math>
+  </m>.</p>     
+```
+
+
+
+The ` <math>{:dn}` component, along with both the `simplify` and `expand` attributes, 
+performs matrix multiplication.
+
+
+
+---
+
+### Example: Multiplication by a scalar
+
+
+```doenet-editor-horiz
+<p>Let <m>A = </m>
+  <matrix name="A">
+    <row>1 2 3</row>
+    <row>4 5 6</row>
+  </matrix>.
+</p>
+<slider name="a" from="1" to="5">
+  <label><m>a</m></label>
+</slider>
+<p>Then, 
+  <m>a A = 
+    <math simplify>$a $A</math>
+  </m>.</p>     
+```
+
+
+
+The ` <math>{:dn}` component with the `simplify` attribute performs matrix multiplication by a scalar.
+
+
+
+---
+
+### Example: ` <matrix>{:dn}` from geometry
+
+
+```doenet-editor-horiz
+<graph>
+  <vector name="v1">(3,4)</vector>
+  <vector name="v2" styleNumber="2">(-2,7)</vector>
+</graph>
+<p><m>A = </m>
+  <matrix>
+    <column>
+      ($v1[1]) 
+      ($v1[2])
+    </column>
+    <column>
+      ($v2[1]) 
+      ($v2[2])
+    </column>
+  </matrix>
+</p>
+```
+
+
+
+A coefficient matrix can be constructed from vectors or other 
+geometric objects by referencing the objects within the ` <row>{:dn}` or ` <column>{:dn}` 
+components. The references should be enclosed in parentheses.
+
+
+
+---
+
+### Attribute Example: numRows / numColumns
+
+
+```doenet-example
+<p><m>A = </m>
+  <matrix name="A" 
+          numRows="2"     
+          numColumns="3"/>
+</p>
+```
+
+
+
+With `numRows` and `numColumns`, a zero matrix of a given size can be defined.
+
+
+
+---
+
+### Attribute Example: defaultEntry
+
+
+```doenet-example
+<p><m>A = </m>
+  <matrix name="A" 
+          defaultEntry="1"
+          numRows="2"     
+          numColumns="3"/>
+</p>
+```
+
+
+
+Use the `defaultEntry` attribute to change the prefilled value for a matrix 
+of a specified size; the default value is $0$.
+
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<p><m>A = </m>
+  <matrix name="A">
+    <row>1 2</row>
+    <row>3 4</row>
+    <row>5 6</row>
+  </matrix>
+</p>
+<p><c>numRows</c> = $A.numRows</p>
+```
+
+
+
+The `numRows` attribute is also accesible as a property.
+

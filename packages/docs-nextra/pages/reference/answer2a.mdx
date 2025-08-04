@@ -1,0 +1,363 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <answer>{:dn}`
+
+## Attribute Examples Part 1
+
+The following examples illustrate use of the ` <answer>{:dn}` tag attributes.  
+
+## Attributes
+ <AttrDisplay name='answer'/> 
+
+---
+
+### Example: disabled
+```doenet-example
+  <p>Answer this to activate the next problem: 
+    <m>2 - 1 = </m><answer name="ans1" symbolicEquality>1</answer></p>
+  <p>Next problem: <m>$ans1.submittedResponse + 1 = </m>
+    <answer name="ans2" disabled="$ans1.creditAchieved != 1" symbolicEquality>2</answer></p>
+```
+
+
+
+The condition within the `disabled` attribute is  `true` until the 
+user achieves credit for the first ` <answer>{:dn}`.
+
+
+The `symbolicEquality` attribute was added to prevent mathematical operations 
+in the answer validation, so that, for example, `2-1` is not a correct 
+answer to the first question.
+
+
+
+---
+
+### Example: weight
+```doenet-example
+  <document name="assignment">
+    <p>Question 1 (important)</p>
+    <p><m>1 + 1 = </m>
+    <answer weight="2" name="ans1">2</answer></p>
+
+    <p>Question 2 (less important)</p>
+    <p><m>1 + 2 = </m>
+    <answer name="ans2">3</answer></p>
+
+    <p>Credit for question 1: $ans1.creditAchieved</p>
+    <p>Credit for question 2: $ans2.creditAchieved</p>
+    <p>Total credit for assignment: $assignment.creditAchieved</p>
+  </document>
+```
+
+This example illustrates the use the `weight` attribute 
+within an ` <answer>{:dn}`. Use `weight` to reduce or enhance the 
+proportion of total credit on the page obtained for a correct response to a  
+single ` <answer>{:dn}`. By default, each ` <answer>{:dn}` has an equal weight of $1$. 
+
+---
+
+### Example: inline
+```doenet-example
+<p>The complementary color for red is 
+  <answer inline>
+    <choice>blue</choice>
+    <choice credit="1">green</choice>
+    <choice>yellow</choice>
+  </answer>.
+</p>
+<p>What is the complementary color for purple?
+  <answer>
+    <choice>blue</choice>
+    <choice>green</choice>
+    <choice credit="1">yellow</choice>
+  </answer>
+</p>
+```
+
+For a multiple choice question, the `inline` attribute causes the choices to displayed using an inline format.
+
+
+
+---
+
+### Example: handGraded
+```doenet-example
+<p>In one sentence, describe the theme of the story: 
+  <answer type="text" handGraded expanded/>
+</p>
+```
+
+The `handGraded` attribute is applied when auto-grading is not possible or 
+preferred. The student's responses are stored for future grading.
+
+---
+
+### Example: matchPartial
+```doenet-editor-horiz
+<p>Enter an even number greater than 6:
+  <answer matchPartial>
+    <mathInput name="userNumber"/>
+    <award>
+      <when>$userNumber > 6 and <mod>$userNumber 2</mod> = 0</when>
+    </award>
+  </answer></p>
+
+<p>What is <m>(1,2,3)+(4,5,6)</m>? <answer matchPartial>(5,7,9)</answer></p>
+<p>Select all the warm colors:
+  <answer matchPartial selectMultiple>
+    <choice credit="1">yellow</choice>
+    <choice>green</choice>
+    <choice credit="1">orange</choice>
+    <choice credit="1">red</choice>
+    <choice>blue</choice>
+  </answer></p>
+```
+
+
+
+When the `matchPartial` attribute is applied, an automated partial 
+credit evaluation will be attempted, potentially giving credit between 0 and 1.  Without the `matchPartial` attribute, the response 
+must be completely correct before it receives credit.
+
+
+The automated partial credit algorithm will attempt to break up logical conditions into pieces, look 
+separately at components of vectors, and award partially matched choices.
+
+
+More fine grained control can be obtained by adding multiple ` <award>{:dn}` children to an ` <answer>{:dn}` and giving 
+each ` <award>{:dn}` a different `credit` attribute.
+
+
+For comparison of vectors, the attributes `matchByExactPositions` and `unorderedCompare` influence the partial credit algorithm.
+
+
+
+---
+
+### Example: symbolicEquality
+```doenet-example
+<p>Your responses to these questions must exactly match our answers!</p>
+<p><m>2x + 5x = </m>
+  <answer symbolicEquality>7x</answer>
+</p>
+<p><m>x^2 + 2x^2 + 3x + x</m>
+  <answer symbolicEquality>3x^2 + 4x</answer>
+</p> 
+```
+
+
+
+Note that you cannot repeat the original expression in the first question, and you cannot commute the terms in the second question.
+
+
+For answer validation that is more liberal (but still stricter than the default numerical checker), 
+combine `symbolicEquality` with the `simplifyOnCompare` and `expandOnCompare` attributes.
+
+
+
+---
+
+### Example: forceFullCheckWorkButton
+```doenet-example
+<p><m>2x + 5x = </m>
+  <answer>7x</answer>
+</p>
+<p><m>2x + 5x</m>
+  <answer forceFullCheckworkButton>7x</answer>
+</p>  
+<p><m>2x + 5x</m>
+  <answer forceFullCheckworkButton submitLabel="check!">7x</answer>
+</p>
+<p>Move the below point to the first quadrant.
+  <answer><award><when>
+    $P.x > 0 & $P.y>0
+  </when></award></answer>
+</p>
+<graph size="small">
+  <point name="P" />
+</graph>
+```
+
+
+
+When an ` <answer>{:dn}` has an input field inside it, it will, by default use a small checkwork button to the right of the 
+input field.  To override this default and use the large button, add the  `forceFullCheckWorkButton` attribute.
+
+
+An answer without an input field always uses the large button.
+
+
+With the large button, it is also possible to customize the message on the button using the `submitLabel` attribute.
+
+
+
+---
+
+### Example: simplifyOnCompare
+```doenet-editor-horiz
+<p>Enter anything mathematically equivalent to <m>x^2+2x+1</m>: 
+  <answer>x^2+2x+1</answer></p>
+
+<p>Enter <m>x^2+2x+1</m> exactly: 
+  <answer symbolicEquality>x^2+2x+1</answer></p>
+
+<p>Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored): 
+  <answer symbolicEquality simplifyOnCompare>x^2+2x+1</answer></p>
+
+<p>Pick level of simplification:
+  <choiceInput name="simpOnComp" inline preselectChoice="1">
+    <choice>none</choice>
+    <choice>numbersPreserveOrder</choice>
+    <choice>numbers</choice>
+    <choice>full</choice>
+  </choiceInput>
+</p>
+
+<p>
+  Enter <m>x^2+2x+1</m>:
+  <answer symbolicEquality simplifyOnCompare="$simpOnComp">x^2+2x+1</answer></p>
+```
+
+
+
+Specifying the `symbolicEquality` attribute switches to a symbolic answer-checker that demands exact syntatical equality.  The symbolic equality can be relaxed with the `simplifyOnCompare` attribute.
+
+
+The `simplifyOnCompare` attribute has four options:
+
+* `simplifyOnCompare="none"`: the default value of demanding exact equality.
+* `simplifyOnCompare="full"` (or simply `simplifyOnCompare` by itself): apply currently available simplification routines before checking.  Does not include expanding factored expressions.
+* `simplifyOnCompare="numbers"`: simplify numerical expressions like `1+2` but not algebraic expressions.  Permute terms and factors into a canonical order before checking equality.
+* `simplifyOnCompare="numbersPreserveOrder"`: simplify numbers but without permuting terms or factors.
+
+
+
+To include expansion of factored expressions, you can add the `expandOnCompare` attribute.
+
+
+
+---
+
+### Example: expandOnCompare
+```doenet-editor-horiz
+<p>Enter anything mathematically equivalent to <m>x^2+2x+1</m>: 
+  <answer>x^2+2x+1</answer></p>
+
+<p>Enter <m>x^2+2x+1</m> exactly: 
+  <answer symbolicEquality>x^2+2x+1</answer></p>
+
+<p>Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored): 
+  <answer symbolicEquality simplifyOnCompare>x^2+2x+1</answer></p>
+
+<p>Enter <m>x^2+2x+1</m> in factored or unfactored form: 
+  <answer symbolicEquality simplifyOnCompare expandOnCompare>x^2+2x+1</answer></p>
+```
+
+The default comparison is a numerical answer-checker with a liberal definition of equality.  
+Specifying the `symbolicEquality` attribute switches to a symbolic answer-checker 
+that demands exact syntactical equality.  The symbolic equality can be relaxed with 
+the `simplifyOnCompare` attribute. To expand factor expressions prior to comparison, you should also include the `expandOnCompare` attribute.
+
+---
+
+### Example: unorderedCompare
+```doenet-example
+<p>Enter <m>1,2,3,4,5</m> :
+  <answer>
+    <mathList>1 2 3 4 5</mathList>
+  </answer></p>
+
+<p>Now enter <m>1,2,3,4,5</m>, but scramble the order up :
+  <answer unorderedCompare>
+    <mathList>1 2 3 4 5</mathList>
+  </answer></p>
+
+<p>Again, enter <m>1,2,3,4,5</m>, but scramble the order up :
+  <answer>
+    <mathList unordered>1 2 3 4 5</mathList>
+  </answer></p>
+```
+
+
+
+When multiple values are compared within a single ` <answer>{:dn}` tag, the 
+default behavior is to match the order of the sequenced values. If order is 
+irrelevant, use the `unorderedCompare` attribute.
+
+
+`unorderedCompare` can be used with list components (e.g., ` <mathList>{:dn}`, ` <numberList>{:dn}`, 
+and ` <textList>{:dn}`) as well as the ` <math>{:dn}` component containing a list (e.g, $1,2,3$), tuple 
+(e.g., $(1,2,3)$) or array (e.g., $[1,2,3]$).
+
+
+Alternatively, and for more control over what is ordered, one can add the `unordered` attribute 
+directly to a list component or a ` <math>{:dn}`, which will cause an unordered comparison 
+to be used when comparing it to anything else.
+
+
+
+---
+
+### Example: matchByExactPositions
+```doenet-example
+<p>Earn partial credit by getting some of the components of <m>(1,2,3,4)</m> correct:</p>
+<answer matchPartial matchByExactPositions>(1,2,3,4)</answer>
+
+<p>Earn partial credit by getting some of the numbers <m>1,2,3,4</m> entered in order:</p>
+<p><answer matchPartial>1,2,3,4</answer></p>
+```
+
+
+
+The attribute `matchByExactPositions` influences how the `matchPartial` calculates partial 
+credit involving vectors, lists, and related quantities.  Without `matchByExactPositions`, 
+the vectors $(3,1,2)$ and $(1,2,3)$ would be deemed by `matchPartial` to have a 67% match, as 
+both contain the sequence $1,2$, even though no components match.  With `matchByExactPositions`, 
+they would have a 0% match, as none of the first, second or third coordinates match.
+
+
+In general, for a comparison of vectors, one would want to include `matchByExactPositions` along 
+with `matchPartial` to give partial credit only for matches in a coordinate.  For comparing 
+ordered lists, `matchByExactPositions` may not be desired.
+
+
+`matchByExactPositions` implies an ordered comparison, so attributes like `unorderedCompare` and `unordered` are ignored.
+
+
+
+---
+
+### Example: numAwardsCredited
+```doenet-example
+<p>Enter an even number greater than 6:
+<answer numAwardsCredited="2">
+  <mathInput name="userNumber"/>
+  <award credit="0.5"><when>
+    $userNumber > 6
+  </when></award>
+  <award credit="0.5"><when>
+    <mod>$userNumber 2</mod> = 0
+  </when></award>
+</answer>
+</p>
+```
+
+
+
+By default, if an ` <answer>{:dn}` has multiple ` <award>{:dn}` children, only a single 
+award will be credited.  If multiple awards match, then the award with the largest credit 
+will be chosen (with order in the document breaking ties).
+
+
+The behavior can be changed by setting the `numAwardsCredited` attribute to an 
+integer larger than the default of 1.  If `numAwardsCredited="2"`, then up to two ` <award>{:dn}`s can 
+be matched, and the credit achieved will the sum of their corresponding credits (up to a maximum of 1).
+
+
+Combining multiple ` <award>{:dn}`s with `numAwardsCredited` can be an approach for 
+assigning partial credit based on different required aspects of the answer.
+

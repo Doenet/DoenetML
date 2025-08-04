@@ -37,23 +37,24 @@ The available attributes and properties vary by component. See the [Component Ex
 ## Component Types
 The components in DoeneML can be categorized into several functional types that characterize their most common use-case and functionality. The system presented here is not a formal, programmatic characterization; it is intended to mainly help authors of DoenetML find and select useful components when building activities, and to make learning components easier. 
 
-To see a list of components organized by type, see the [Index by Component Type](./doenetML_components/componentTypes.mdx) page.
+To see a list of components organized by type, see the [Index by Component Type](../reference/componentTypes.mdx) page.
 
 The different types are:
 
 | Type of Component    | Description                                                                              |
 | -------------------- | ---------------------------------------------------------------------------------------- |
-| **Paragraph Markup** | used within a paragraph, or `<p>` tag to change the way text is rendered                 |
-| **Sectional**        | used to structure content on the page; may have auto-numbering                           |
-| **Input**            | used to gather user-input, such as text-boxes, multiple-choice selections, or checkboxes |
-| **Graphical**        | used to render interactive elements on a graph                                           |
-| **Display Math**     | used to render LaTeX; does not invoke the CAS                                            |
-| **Math**             | used to define mathematical content; can be symbolic or numerical                        |
-| **Math Operator**    | used to perform mathematical operations                                                  |
-| **General Operator** | used to perform operations on math and non-math components                               |
-| **Logic**            | used to define boolean conditions                                                        |
-| **Evaluation**       | used with answer validation and awarding of credit                                       |
-| **Text**             | any component that uses text strings outside the context of a paragraph                  |
+| [**Paragraph Markup**](../reference/componentTypes.mdx) | used within a paragraph, or `<p>` tag to change the way text is rendered                 |
+| [**Sectional**](../reference/componentTypes#sectionalComponents.mdx)        | used to structure content on the page; may have auto-numbering                           |
+| [**Input**](../reference/componentTypes#inputComponents.mdx)            | used to gather user-input, such as text-boxes, multiple-choice selections, or checkboxes |
+| [**Graphical**](../reference/componentTypes#graphicalComponents.mdx)        | used to render interactive elements on a graph                                           |
+| [**Display Math**](../reference/componentTypes#displayMathComponents.mdx)     | used to render LaTeX; does not invoke the CAS                                            |
+| [**Math**](../reference/componentTypes#mathComponents.mdx)             | used to define mathematical content; can be symbolic or numerical                        |
+| [**Math Operator**](../reference/componentTypes#mathOperatorComponents.mdx)    | used to perform mathematical operations                                                  |
+| [**General Operator**](../reference/componentTypes#generalOperatorComponents.mdx) | used to perform operations on math and non-math components                               |
+| [**Logic**](../reference/componentTypes#logicComponents.mdx)           | used to define boolean conditions                                                        |
+| [**Evaluation**](../reference/componentTypes#evaluationComponents.mdx)       | used with answer validation and awarding of credit                                       |
+| [**Text**](../reference/componentTypes#textComponents.mdx)             | any component that uses text strings outside the context of a paragraph                  |
+| [**Subject-specific**](../reference/componentTypes#subjectSpecificComponents.mdx) | components that are unique to a specific STEM field, such as chemistry or physics      |
 
 Some components may belong to more than one functional type, such as a `<sequence>`, which can generate either a numerical or a text sequence, or a `<mathInput>` which collects student's mathematical responses and also stores the value as a Math Component for use in computations by the CAS.
 

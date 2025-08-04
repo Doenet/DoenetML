@@ -1,0 +1,255 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <parabola>{:dn}`
+
+` <parabola>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a parabola when nested inside a [` <graph>{:dn}`](graph.mdx) component.
+
+## Attributes and Properties 
+ <AttrDisplay name='parabola'/> 
+ <PropDisplay name='parabola'/>
+
+
+---
+
+### Example: Default ` <parabola>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <parabola/>
+</graph>
+```
+
+
+
+The default ` <parabola>{:dn}` renders the graph of the equation $y = x^2$. It is not draggable.
+
+
+
+---
+
+### Example: ` <parabola>{:dn}` passing through 3 points
+
+
+```doenet-editor-horiz
+<p>Drag the points to change the shape of the parabola.</p>
+<graph size="small">
+  <point name="A" coords="(-5,-3)"/>
+  <point name="B" coords="(1,6)"/>
+  <point name="C" coords="(7,2)"/>
+  <parabola 
+    name="parab1" 
+    through="$A $B $C" 
+    styleNumber="2"
+  />
+</graph> 
+
+$parab1.equation
+```
+
+
+
+A ` <parabola>{:dn}` can be rendered when 3 throughPoints are specified with the `through` attribute.
+
+
+
+---
+
+### Example: ` <parabola>{:dn}` with vertex and throughPoint
+
+
+```doenet-editor-horiz
+<graph size="small" grid="1 1">
+  <point name="V" styleNumber="5">(0,0)
+    <constraints>
+      <constrainToGrid/>
+    </constraints>
+  </point>
+  <point name="P" styleNumber="5">(-2,-4)
+    <constraints>
+      <constrainToGrid/>
+    </constraints>
+  </point>
+  <parabola 
+    name="parab1" 
+    vertex="$V" 
+    through="$P" 
+    styleNumber="2"
+  />
+</graph> 
+
+$parab1.equation
+```
+
+
+
+A ` <parabola>{:dn}` can be rendered by specifying the `vertex` and a single throughPoint.
+
+
+
+---
+
+### Attribute Example: through
+
+
+```doenet-example
+<graph size="small">
+  <parabola 
+    name="parab1" 
+    vertex="(2,2)" 
+    through="(5,-8)"
+  />
+</graph>
+
+<p><c>throughPoints</c> = $parab1.throughPoints</p>
+```
+
+
+
+The `through` attribute specifies a point or points the parabola passes through.
+
+
+
+---
+
+### Attribute Example: vertex
+
+
+```doenet-example
+<graph size="small">
+  <parabola 
+    name="parab1" 
+    vertex="(2,2)" 
+    through="(5,-8)"
+  />
+</graph>
+
+<p><c>vertex</c> = $parab1.vertex</p>
+```
+
+
+
+The `vertex` attribute specifies the maximum or minimum point on the parabola.
+
+
+
+---
+
+### Example: flipFunction
+
+
+```doenet-example
+<graph>
+  <parabola flipFunction/>
+  <parabola 
+    vertex="(4,4)" 
+    flipFunction 
+    styleNumber="2"
+  />
+</graph>
+```
+
+
+
+The `flipFunction` attribute is used to define a quadratic function in $y$.
+
+
+
+---
+
+### Attribute Example: Standard graphical attributes
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle styleNumber="5" filled radius="6" fixed/>
+  <parabola 
+    name="parabola1" 
+    through="(4,9)" 
+    vertex="(2,3)" 
+    hide="$hideParabola1" 
+    layer="1" 
+    styleNumber="2" 
+    applyStyleToLabel 
+    labelIsName 
+    fixLocation
+  />
+  <parabola 
+    name="parabola2" 
+    through="(-6,-4)" 
+    vertex="(-4,3)" 
+    styleNumber="3" 
+    applyStyleToLabel 
+    labelIsName
+  />
+</graph>
+
+<booleanInput name="hideParabola1" labelIsName/>
+<p>Standard graphical attributes:</p>
+<ul>
+  <li><attr>hide</attr></li>
+  <li><attr>layer</attr> (0) is default value.</li>
+  <li><attr>styleNumber</attr> 1 - 6</li>
+  <li><attr>applyStyleToLabel</attr></li>
+  <li><attr>labelIsName</attr></li>
+</ul>
+```
+
+
+
+The uses of the following standard graphical attributes are illustrated: `hide`, `layer`, `styleNumber`, `applyStyleToLabel` and `labelIsName`.
+
+
+
+---
+
+### Property Example: Style properties
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <parabola 
+    name="parab1" 
+    vertex="(-2,2)" 
+    through="(5,-5)" 
+    styleNumber="3"
+  />
+</graph>
+
+<p><c>styleDescription</c> = $parab1.styleDescription</p>
+<p><c>styleDescriptionWithNoun</c> = $parab1.styleDescriptionWithNoun</p>
+```
+
+
+
+The `styleDescription` and `styleDescriptionWithNoun` properties render a text description corresponding to the `styleNumber` of the component.
+
+
+
+---
+
+### Property Example: a, b, c
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <parabola name="parab1" vertex="(0,-1)" through="(2,1)"/>
+</graph>
+<p><c>a</c> = $parab1.a</p>
+<p><c>b</c> = $parab1.b</p>
+<p><c>c</c> = $parab1.c</p>
+<p><m>ax^2 + bx + c = </m>
+  <math simplify="numbersPreserveOrder">
+    $parab1.a x^2 + $parab1.b x + $parab1.c
+  </math>
+</p>
+```
+
+
+
+The `a, b` and `c` properties return the coefficients of the parabola's equation in general form.
+

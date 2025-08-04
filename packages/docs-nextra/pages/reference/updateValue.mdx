@@ -1,0 +1,245 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <updateValue>{:dn}`
+
+
+` <updateValue>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
+component that changes the value or property of a named component based on a button click interaction or a boolean condition.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='updateValue'/> 
+ <PropDisplay name='updateValue'/>
+
+---
+
+### Example: Change the color of a ` <circle>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle name="circ" radius="6" filled/>
+</graph>
+
+<updateValue 
+  target="$circ.styleNumber" 
+  newValue="2" 
+  disabled="$circ.styleNumber = 2"
+>
+  <label>Change color</label>
+</updateValue>
+```
+
+
+
+An ` <updateValue>{:dn}` is used to change the `styleNumber` property of a named ` <circle>{:dn}` from the default value ($1$) to $2$. Once this change occurs, the button becomes disabled.
+
+
+
+---
+
+### Example: Change the value of a ` <number>{:dn}`
+
+
+```doenet-editor-horiz
+<number name="n">1</number>
+
+<p>
+<updateValue target="$n" newValue="$n + 1">
+  <label>Add 1</label>
+</updateValue>
+</p>      
+```
+
+
+
+An ` <updateValue>{:dn}` is used to change the value of a ` <number>{:dn}` based on the number's current value.
+
+
+
+---
+
+### Attribute Example: target
+
+
+```doenet-editor-horiz
+<updateValue 
+  target="$circ.radius" 
+  newValue="2"
+  disabled="$circ.radius = 2"
+>
+  <label>Shrink circle</label>
+</updateValue>
+
+<graph size="small">
+  <circle name="circ" radius="8"/>
+</graph>
+```
+
+
+
+The `target` attribute specifies which component or component property to update.
+
+
+
+---
+
+### Attribute Example: type
+
+
+```doenet-editor-horiz
+<updateValue 
+  target="$character" 
+  type="text" 
+  newValue="prince" 
+  disabled="$character = prince"
+>
+  <label>Kiss frog</label>
+</updateValue>
+
+<p>This is a <alert><text name="character">frog</text></alert>.</p>
+```
+
+
+
+The `type` attribute specifies the type of component that is changing. The default type is `math`, and valid values are `math`, `number`, `boolean`, or `text`.
+
+
+
+---
+
+### Attribute Example: newValue
+
+
+```doenet-editor-horiz
+<updateValue 
+  target="$line1.equation" 
+  newValue="y = -3x - 1"
+>
+  <label>Change equation of the line</label>
+</updateValue>
+
+<graph size="small">
+  <line name="line1">y = x</line>
+</graph>
+```
+
+
+
+The `newValue` attribute specifies the new value for the target or target property. 
+
+
+
+---
+
+### Attribute Example: disabled
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle name="circ" radius="6" filled/>
+</graph>
+
+<updateValue 
+  target="$circ.styleNumber" 
+  newValue="2" 
+  disabled="$circ.styleNumber = 2"
+>
+  <label>Change color</label>
+</updateValue>
+```
+
+
+
+The `disabled` attribute takes a boolean condition. When the condition evaluates to `true`, the button becomes disabled.
+
+
+---
+
+### Attribute Example: triggerWhen
+
+
+```doenet-editor-horiz
+<updateValue 
+  triggerWhen="$ans1.creditAchieved = 1" 
+  target="$circ.styleNumber" 
+  newValue="1"
+/>
+
+<p>What is the radius of the circle? 
+  <answer name="ans1">$circ.radius</answer></p>   
+
+<graph size="small" name="g" grid>
+  <circle name="circ" styleNumber="2" radius="6" filled fixLocation/>
+</graph>
+```
+
+
+
+The `triggerWhen` attribute establishes a boolean condition for triggering when the value should be updated. In this case, the circle turns blue when the correct answer is entered.
+
+
+
+---
+
+### Attribute Example: triggerWith
+
+
+```doenet-editor-horiz
+<updateValue 
+  name="movePoint" 
+  target="$p" 
+  newValue="(5,5)"
+>
+  <label>Move point and change color</label>
+</updateValue>
+
+<updateValue 
+  triggerWith="$movePoint"
+  target="$p.styleNumber" 
+  newValue="2"
+/>
+
+<graph size="small">
+  <point name="p"/>
+</graph>     
+```
+
+
+
+The `triggerWith` attribute allows the update to occur based on interaction with another specified component. In this way, the actions of two or more ` <updateValue>{:dn}` components may be chained together.
+
+
+
+---
+
+### Attribute Example: triggerWhenObjectsClicked
+
+
+```doenet-editor-horiz
+<updateValue 
+  triggerWhenObjectsClicked="$p $message" 
+  target="$p.styleNumber" 
+  newValue="2"
+/>
+
+<p>Click the point or the label to change the point's color.</p>
+
+<graph size="small">
+  <point name="p"/>
+  <label anchor="(6,4)" name="message">Or, click here</label>
+</graph> 
+```
+
+
+
+Updates can be triggered by click interactions with graphical components defined within a ` <graph>{:dn}` using the `triggerWhenObjectsClicked` attribute.
+
+
+
+---
+
+

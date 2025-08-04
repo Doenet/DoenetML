@@ -1,0 +1,60 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <footnote>{:dn}`
+
+` <footnote>{:dn}` is a [Paragraph Markup](../document_structure/essentialConcepts#component-types) 
+component that renders a numbered footnote above and to the right of the content it is adjacent to.
+
+## Attributes and Properties 
+The  ` <footnote>{:dn}` component does not have attributes.
+ <PropDisplay name='footnote'/>
+
+---
+
+### Example: Default ` <footnote>{:dn}`
+
+
+```doenet-example
+<p>The Loch Ness monster<footnote>some more credible information about the monster</footnote></p>
+```
+
+
+
+A ` <footnote>{:dn}` is placed beside related content.
+
+
+
+---
+
+### Attribute Example: text
+
+
+```doenet-example
+<p>The Abominable Snowman<footnote name="foot1">some more credible information about the monster</footnote></p>
+<p><c>text</c> = $foot1.text</p>
+```
+
+
+
+The  `text` property renders the text value of the named ` <footnote>{:dn}`.
+
+
+
+---
+
+### Property Example: footnoteTag
+
+
+```doenet-example
+<p>The Mothman<footnote name="foot1">some more credible information about the monster</footnote></p>
+<p><c>footnoteTag</c> = $foot1.footnoteTag</p>
+```
+
+
+
+The  `footnoteTag` property renders the index associated with the named ` <footnote>{:dn}`.
+
+

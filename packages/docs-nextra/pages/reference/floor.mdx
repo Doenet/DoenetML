@@ -1,0 +1,52 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <floor>{:dn}`
+
+
+` <floor>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
+component that renders the result of the $\text{floor}$ function applied to the enclosed numerical expression or 
+math input.  The $\text{floor}$ function returns the greatest integer less than or equal to a given rational number.
+
+## Attributes and Properties 
+ <AttrDisplay name='floor'/> 
+ <PropDisplay name='floor'/>
+
+
+---
+
+### Example: ` <floor>{:dn}` function of nested value
+
+
+```doenet-example
+<m>\lfloor 4.8 \rfloor = <floor>4.8</floor></m>
+```
+
+
+
+A ` <floor>{:dn}` component returns the result of the $\text{floor}$ function evaluated at the enclosed `math`.
+
+
+
+---
+
+### Example: ` <floor>{:dn}` function of `<mathInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<m>y = </m> <mathInput name="y"/>
+
+<p>The <m>\mathrm{floor}</m> of <m>y</m> is: 
+  <me>\lfloor y \rfloor = 
+    <floor>$y</floor>
+  </me>
+</p>
+```
+
+
+
+A ` <floor>{:dn}` component returns the result of the $\text{floor}$ function evaluated at a user-specified value.
+
+

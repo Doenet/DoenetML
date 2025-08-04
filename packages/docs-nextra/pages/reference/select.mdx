@@ -6,7 +6,9 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <select>{:dn}`
 
 
-` <select>{:dn}` selects values from a list or from a group of nested [` <option>{:dn}`](option.mdx) components at random and assigns them names using the `assignNames` attribute.
+` <select>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+component that selects values from a list or from a group of 
+nested [` <option>{:dn}`](option.mdx) components at random. Selections generate variants of the document.
 
 ## Attributes and Properties 
  <AttrDisplay name='select'/> 
@@ -17,17 +19,19 @@ import { AttrDisplay, PropDisplay } from "../../components"
 ### Example: Default ` <select>{:dn}`
 
 
-```doenet-editor-horiz
-
-<select name="defaultSelect">1/z x^2 y xyz e^x</select>
+```doenet-editor-horiz 
+<select name="defaultSelect">
+  1/z x^2 y xyz e^x
+</select>
 
 <p>Math selected = $defaultSelect</p>
 ```
 
+The default selection type is `math`. If options are simple math expressions these can be 
+placed in a space-selected list between the opening and closing ` <select>{:dn}` tags.
 
-
-The default selection type is math. If options are simple math expressions these can be placed in a space-selected list between the opening and closing ` <select>{:dn}` tags.
-
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
@@ -47,10 +51,10 @@ The default selection type is math. If options are simple math expressions these
 <p>Animal selected = $animalSelect</p>
 ```
 
-
-
 A text is selected from a group of options.
 
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
@@ -59,39 +63,48 @@ A text is selected from a group of options.
 
 
 ```doenet-editor-horiz
-
-<select name="groupSelect" numToSelect="2" assignNames="(txt1 num1 math1) (txt2 num2 math2)">
+<select name="groupSelect" numToSelect="2">
   <option>
-    <text>horse</text>
-    <number>pi</number>
-    <math>pi^2</math>
+    <text name="animal">horse</text>
+    <number name="num">pi</number>
+    <math name="math">pi^2</math>
   </option>
   <option>
-    <text>monkey</text>
-    <number>e</number>
-    <math>e^x</math>
+    <text name="animal">monkey</text>
+    <number name="num">e</number>
+    <math name="math">e^x</math>
   </option>
   <option>
-    <text>mouse</text>
-    <number>sqrt(2)</number>
-    <math>sqrt(2)</math>
-  </option>
-  <option>
-    <text>frog</text>
-    <number>sin(pi/2)</number>
-    <math>sin(pi/2)</math>
+    <text name="animal">mouse</text>
+    <number name="num">sqrt(2)</number>
+    <math name="math">sqrt(2)</math>
   </option>
 </select>
+<hr/>
 
-<p>The selected array = <asList>$groupSelect</asList></p>
-<p>The second selected number = $num2</p>
-<p>The first selected math = $math1</p>
+<p>The selected array = $groupSelect</p>
+<p>The second selected number: 
+  <c>groupSelect[2][2]</c> = $groupSelect[2][2]</p>
+<p>Another way to reference this: 
+  <c>groupSelect[2].num</c> = $groupSelect[2].num</p><hr/>
+
+<p>The first selected animal:
+  <c>groupSelect[1][1]</c> = $groupSelect[1][1]</p>
+<p>Another way to reference this:
+  <c>groupSelect[1].animal</c> = $groupSelect[1].animal</p>
 ```
 
 
 
-Multiple component types can be selected together and given individually assigned names. In this case, the components should be defined by type within the ` <option>{:dn}` block. 
+Multiple component types can be selected together within a single option, as a group. In order to reference
+a child of an `<option>{:dn}` that has been selected, first use the index of the selection desired (in the
+case of muliple selections), then either (1) the desired child can be referenced by index or (2) the
+desired child can be given a name (make sure to create the same names for that particular child over
+the range of all possible options) and then referenced by name.
 
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 ---
@@ -100,27 +113,38 @@ Multiple component types can be selected together and given individually assigne
 
 
 ```doenet-editor-horiz
+<select name="roll" numToSelect="2" withReplacement="true">
+  <option>
+    <selectFromSequence from="1" to="6" name="firstDie"/>
+    <selectFromSequence from="1" to="6" name="secondDie"/>
+  </option>
+</select>
 
-  <select numToSelect="2" withReplacement="true" assignNames="(roll1a roll1b) (roll2a roll2b)">
-    <option>
-      <selectFromSequence from="1" to="6" name="firstDie"/>
-      <selectFromSequence from="1" to="6" name="secondDie"/>
-    </option>
-  </select>
+<p>A pair of dice are rolled two times, and the goal is for the sum of the dice to equal 6 at least once. Did you succeed?</p>
+<p>Roll 1: ($roll[1][1], $roll[1][2]) 
+  <boolean name="b1">
+    $roll[1][1] + $roll[1][2] = 6
+  </boolean>
+</p>
+<p>Roll 2: ($roll[2][1], $roll[2][2]) 
+  <boolean name="b2">
+    $roll[2][1] + $roll[2][2] = 6
+  </boolean>
+</p>
 
-<p>Two dice are rolled, and the goal is for the sum of the dice to equal 6. Did you succeed?</p>
-<p>Roll 1: ($roll1a, $roll1b) <boolean name="b1">$roll1a + $roll1b = 6</boolean></p>
-<p>Roll 2: ($roll2a, $roll2b) <boolean name="b2">$roll2a + $roll2b = 6</boolean></p>
 <p hide="($b1 = false and $b2 = false)">Yes! You rolled a 6!</p>
 <p hide="($b1 = true or $b2 = true)">Bummer. You did not roll a 6...</p>
 ```
 
 
 
-In this example, two pairs of named values are assigned with the ` <select>{:dn}` component. When values are to be grouped for selection, they should be enclosed in parentheses in the `assignNames` attribute. In this example, all selections are made from the same [` <option>{:dn}`](option.mdx) component, but results are varied because each selection item is a <ref uri="doenet:activityId=_HtetAL1AhP13dJyv4sP2H">` <selectFromSequence/>{:dn}`</ref> component. The first "die value" in each roll of two dice is chosen from the first ` <selectFromSequence/>{:dn}`, and the second "die value" is determined by the second ` <selectFromSequence/>{:dn}`, for both of the "rolls" selected.
+In this example, two pairs of values are assigned to each `<option>{:dn}` within 
+the ` <select>{:dn}` component. In the references shown in this example, the first index
+refers to the selection made from the ` <select>{:dn}` component, and the second index
+refers to the child component within the `<option>{:dn}` that was selected.
 
-
-Select a new page variant to see different variants of the document.
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 
@@ -130,74 +154,84 @@ Select a new page variant to see different variants of the document.
 
 
 ```doenet-editor-horiz
+<setup>
+<selectFromSequence name="s" numToSelect="2" from="-5" to="5" exclude="0"/>
+  <number name="a" extend="$s[1]"/>
+  <number name="b" extend="$s[2]"/>
 
-<selectFromSequence numToSelect="4" from="-5" to="5" exclude="0" assignNames="a b" type="math"/>
-<select numToSelect="2" assignNames="(g) (h)" type="function">
+<select name="f" numToSelect="2" type="function">
   <option>
     <function>x^2</function>
   </option>
   <option>
-    <function styleNumber="2" simplify>$a cos($b x)</function>
+    <function styleNumber="2" simplify>
+      $a cos($b x)
+    </function>
   </option>
   <option>
-    <function styleNumber="3" simplify>$a x^3+$b</function>
+    <function styleNumber="3" simplify>
+      $a x^3 + $b
+    </function>
   </option>
   <option>
-    <function styleNumber="4" simplify>$a sin(x)-$b</function>
+    <function styleNumber="4" simplify>
+      $a sin(x) - $b
+    </function>
   </option>
 </select>
+</setup>
+
+<p>The selected function <m>g(x) =  
+  <math extend="$f[1].formula" simplify/>
+</m></p>
+
+<p>The selected function <m>h(x) =  
+  <math extend="$f[2].formula" simplify/>
+</m></p>
 
 <graph>
-  $g $h
-  <point x="0" y="$$g(0)" styleNumber="2"/>
-  <point x="0" y="$$h(0)"/>
+  $f[1] $f[2]
+  <point x="0" y="$$f[1](0)" styleNumber="2"/>
+  <point x="0" y="$$f[2](0)"/>
   <legend>
     <label><m>g(x)</m></label>
     <label><m>h(x)</m></label>
   </legend>
 </graph>
-<p>The selected function <m>g(x) = $g.formula{simplify}</m></p>
-<p>The selected function <m>h(x) = $h.formula{simplify}</m></p>
 ```
 
 
 
-In this example, two [` <function>{:dn}`](function.mdx)s are randomly selected from a list of [` <option>{:dn}`](option.mdx) components nested within a ` <select>{:dn}`. The final functions are further varied by specifying coefficients and constants that have been generated using a <ref uri="doenet:activityId=_HtetAL1AhP13dJyv4sP2H">` <selectFromSequence/>{:dn}`</ref> component. 
+In this example, two [` <function>{:dn}`](function.mdx)s are randomly selected 
+from a list of ` <option>{:dn}` components nested within a ` <select>{:dn}`. The 
+final functions are further varied by specifying coefficients and constants that 
+have been generated using a ` <selectFromSequence/>{:dn}` component. Note that the
+selected coefficients have been renamed as numbers for simplicity when writing the
+function formulas.
 
 
-Select a new page variant to see different variants of the document.
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
 
 
 
 ---
 
-### Example: assignNames
+### Example: Assigning names to selected values
 
 
 ```doenet-editor-horiz
+<setup>
+<select name="s" numToSelect="3">
+  3/4 x 98 pi^2 2y sqrt(3) z^3
+</select>
 
-  <select assignNames="f">f g h u v w</select>
-  <select assignNames="x">x y z t</select>
+<!--Assign coefficient names: -->
+<math name="a" extend="$s[1]"/>
+<math name="b" extend="$s[2]"/>
+<math name="c" extend="$s[3]"/>
+</setup>
 
-<p>Randomized function and variable name: <m>$f($x)</m></p>
-```
-
-
-
-The `assignNames` attribute allows you to specify names for values selected with a ` <select>{:dn}`.
-
-
-
----
-
-### Example: numToSelect
-
-
-```doenet-editor-horiz
-
-  <select numToSelect="3" assignNames="a b c">
-    3/4 x 98 pi^2 2y
-  </select>
 
 <p>Randomized <tag>math</tag> values:</p>
 <p><m>a = $a</m></p>
@@ -207,25 +241,34 @@ The `assignNames` attribute allows you to specify names for values selected with
 
 
 
-The ` <select>{:dn}` component is used to randomly select three [` <math>{:dn}`](math.mdx) values and assign them names using the `numToSelect` attribute. Different page variants (which can be accessed from the left-side menu) will have different selected ` <math>{:dn}` values.
+The ` <select>{:dn}` component is used to randomly select three [` <math>{:dn}`](math.mdx) values using the `numToSelect` attribute.
+
+As an author, it can sometimes become tedius to refer to indexed values (such as `s[2]`) every time you 
+want to reference a selected value in subsequent code. If this is the case, descriptive names can be assigned to each selection by defining
+unique components which reference individual selected values.
+
+Different page variants (which can be accessed from the left-side menu) will have different selected ` <math>{:dn}` values.
 
 
 
 ---
 
-### Example: withReplacement
+### Attribute Example: withReplacement
 
 
 ```doenet-editor-horiz
-
-  <select numToSelect="4" withReplacement="true" assignNames="x1 x2 x3 x4">
+<select 
+  name="x"
+  numToSelect="4" 
+  withReplacement="true"
+  >
     sqrt(2) x^2
-  </select>
+</select>
 
-<p>x1 = $x1</p>
-<p>x2 = $x2</p>
-<p>x3 = $x3</p>
-<p>x4 = $x4</p>
+<p>x1 = $x[1]</p>
+<p>x2 = $x[2]</p>
+<p>x3 = $x[3]</p>
+<p>x4 = $x[4]</p>
 ```
 
 
@@ -236,25 +279,26 @@ Use the `withReplacement` attribute if the options listed may be selected more t
 
 ---
 
-### Example: type
+### Attribute Example: type
 
 
 ```doenet-editor-horiz
-
-<select numToSelect="2" assignNames="color1 color2">
-  red orange yellow green blue indigo violet
-</select>
-<select numToSelect="2" assignNames="color3 color4" type="text">
+<select numToSelect="2" name="color">
   red orange yellow green blue indigo violet
 </select>
 
-<p>The first butterfly was $color1 and $color2.</p>
-<p>The second butterfly was $color3 and $color4.</p> 
+<select numToSelect="2" name="colorText" type="text">
+  red orange yellow green blue indigo violet
+</select>
+
+<p>The first butterfly was $color[1] and $color[2].</p>
+<p>The second butterfly was $colorText[1] and $colorText[2].</p> 
 ```
 
 
 
-The `type` attribute alerts Doenet to the type of component to select.  The default type is math; therefore, text will render as math unless otherwise specified. 
+The `type` attribute alerts Doenet to the type of component to select.  The default type is `math`; therefore, text 
+will render as `math` unless otherwise specified. 
 
 
 

@@ -1,0 +1,292 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <circle>{:dn}`
+
+
+` <circle>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a circle when nested inside a ` <graph>{:dn}`.
+
+## Attributes and Properties 
+ <AttrDisplay name='circle'/> 
+ <PropDisplay name='circle'/>
+
+
+---
+
+### Example: Default ` <circle>{:dn}`
+
+
+```doenet-example
+<graph size="small">
+    <circle/>
+  </graph>      
+```
+
+
+
+This is a default ` <circle>{:dn}` without any additional attributes specified. 
+It has a default radius of $1$ and center at $(0,0)$.
+
+
+
+---
+
+### Example: ` <circle>{:dn}` with center and radius
+
+
+```doenet-example
+<graph size="small">
+  <circle center="(2,3)" radius="4"/>
+</graph>
+```
+
+
+
+The `center` and `radius` of the circle are specified as attributes.
+
+
+
+---
+
+### Example: ` <circle>{:dn}` through 3 points
+
+
+```doenet-example
+<graph size="small">
+  <circle through="(-4,-2) (2,-4) (0,6)"/>
+</graph>
+```
+
+
+
+Three points the circle passes through are specified using the `through` attribute.
+
+
+
+---
+
+### Attribute Example: through
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle 
+    name="circle1" 
+    through="(-6,1) (0,-4) (5,3)"/>
+  $circle1.throughPoints
+  <point extend="$circle1.center" styleNumber="5"/> 
+</graph>
+
+<graph size="small">
+  <circle 
+    name="circle2" 
+    through="(-2,-2) (1, 4)"/>
+  $circle2.throughPoints 
+  <point extend="$circle2.center" styleNumber="5"/>
+</graph>
+
+<graph size="small">
+  <circle 
+    name="circle3" 
+    radius="2" 
+    through="(3,-3)"/>
+  $circle3.throughPoints 
+  <point extend="$circle3.center" styleNumber="5"/>
+</graph>
+
+<graph size="small">
+  <circle 
+    name="circle4" 
+    center="(-1,1)" 
+    through="(5,5)"/>
+  $circle4.throughPoints 
+  <point extend="$circle4.center" styleNumber="5"/> 
+</graph>
+```
+
+
+The `through` attribute can be used to specify one to three through-points 
+and can be used in combination with other attributes.
+
+
+---
+
+### Attribute Example: center
+
+
+```doenet-editor-horiz
+<graph size="small" grid>
+  <point name="O" styleNumber="2">
+    (2,3)
+    <constraints>
+      <constrainToGrid/>
+    </constraints>
+  </point>
+  <circle name="circle1" center="$O" radius="2"/>
+</graph>
+
+<p><c>center</c> = $circle1.center</p>
+<p><c>center.x</c> = $circle1.center.x</p>
+```
+
+
+
+The `center` attribute references a constrained point, thereby 
+restricting the movement of the ` <circle>{:dn}` to a grid.
+
+
+
+---
+
+### Attribute Example: radius
+
+
+```doenet-editor-horiz
+<p>Enter radius: <mathInput name="r"/></p>
+  <graph size="small" grid>
+    <circle name="circle1" radius="$r"/>
+  </graph>
+
+<p><c>radius</c> = $circle1.radius</p>
+```
+
+
+
+A ` <circle>{:dn}` is defined with default center at the origin 
+and a `radius` specified with a user-input.
+
+
+
+---
+
+### Attribute Example: filled
+
+
+```doenet-example
+<graph size="small">
+  <circle radius="1" center="(-7,0)" filled/>
+  <circle radius="1" center="(-4.5,0)" filled styleNumber="2"/>
+  <circle radius="1" center="(-1.5,0)" filled styleNumber="3"/>
+  <circle radius="1" center="(1.5,0)" filled styleNumber="4"/>
+  <circle radius="1" center="(4.5,0)" filled styleNumber="5"/>
+  <circle radius="1" center="(7,0)" filled styleNumber="6"/>
+</graph>
+```
+
+
+
+Use the `filled` attribute to fill in a ` <circle>{:dn}` with the 
+color corresponding to its `styleNumber`.
+
+
+
+---
+
+### Attribute Example: Standard graphical attributes
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle styleNumber="5" filled radius="6" fixed/>
+  <circle 
+    name="circleA" 
+    layer="1" 
+    styleNumber="3" 
+    applyStyleToLabel 
+    labelIsName 
+    hide="$hideCircleA" 
+    draggable="false" 
+    center="(2,2)" 
+    radius="5"/>
+  <circle 
+    name="circleB" 
+    applyStyleToLabel 
+    styleNumber="2" 
+    labelIsName 
+    center="(-5,-5)" 
+    radius="4"/>
+</graph>
+
+<booleanInput name="hideCircleA" labelIsName/>
+
+<p>Standard graphical attributes:</p>
+    <ul>
+      <li><attr>hide</attr></li>
+      <li><attr>draggable</attr></li>
+      <li><attr>layer</attr> (0) is default value.</li>
+      <li><attr>styleNumber</attr> 1 - 6</li>
+      <li><attr>applyStyleToLabel</attr></li>
+      <li><attr>labelIsName</attr></li>
+    </ul>
+```
+
+
+
+The uses of the following standard graphical attributes are illustrated: 
+`hide`, `draggable`, `layer`, `styleNumber`, `applyStyleToLabel` and `labelIsName`.
+
+
+Layers: By adjusting the `layer` attribute number, geometry can be placed 
+in front of or behind other geometry. The default `layer` number is 0; all 
+higher numbers are placed in front.
+
+
+
+---
+
+### Attribute Example: throughPoints
+
+
+```doenet-editor-horiz
+<graph  size="small">
+  <circle name="circle1" through="(-4,-2) (2,-4) (0,6)"/>
+  $circle1.throughPoints
+</graph>
+<p><c>throughPoints</c> = $circle1.throughPoints</p>
+<p><c>throughPoints[2]</c> = $circle1.throughPoints[2]</p>
+<p><c>throughPoints[2][2]</c> = 
+  $circle1.throughPoints[2][2]
+</p>
+```
+
+The `throughPoints` property renders the values of the points specified 
+in the `through` attribute stored in an array. These can be rendered on a 
+` <graph>{:dn}` or as a `math`. Enclose the copy macro in an ` <asList>{:dn}` 
+component for clarity when rendering as a `math`.
+
+
+Individual through-points or coordinates of individual through-points 
+can be accessed using array notation.
+
+
+
+---
+
+### Property Example: Style properties
+
+
+```doenet-editor-horiz
+<graph  size="small">
+  <circle name="circle1" filled styleNumber="2"/>
+</graph>
+
+<p><c>styleDescription</c> = $circle1.styleDescription</p>
+<p><c>styleDescriptionWithNoun</c> = 
+  $circle1.styleDescriptionWithNoun
+</p>
+<p><c>fillStyleDescription</c> = 
+  $circle1.fillStyleDescription
+</p>
+<p><c>borderStyleDescription</c> = 
+  $circle1.borderStyleDescription
+</p>
+```
+
+The `styleDescription`, `styleDescriptionWithNoun`, `fillStyleDescription`, 
+and `borderStyleDescription` properties render a text description 
+corresponding to the `styleNumber` of the component.
+
+

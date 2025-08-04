@@ -1,0 +1,159 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <ray>{:dn}`
+
+
+` <ray>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a geometrical ray (one endpoint; the opposite side continuous), when 
+nested inside a [` <graph>{:dn}`](graph.mdx).
+
+A ` <ray>{:dn}` may be specified with: 
+
+1. the `endpoint` and the `through` attributes
+2. the `endpoint` and the `direction` attributes
+
+## Attributes and Properties 
+ <AttrDisplay name='ray'/> 
+ <PropDisplay name='ray'/>
+
+
+---
+
+### Example: ` <ray>{:dn}` defined directly
+
+
+```doenet-editor-horiz
+<p>Ray <m>AB</m> begins at point $rayAB.endpoint and extends in the 
+direction $rayAB.direction, passing through point <m>B</m> at $rayAB.through.</p>
+
+<graph size="small">
+  <ray 
+    name="rayAB" 
+    endpoint="(-1,-1)" 
+    through="(3,5)"
+  />
+</graph>
+```
+
+
+
+The ` <ray>{:dn}` component is defined directly by specifying coordinates within 
+the `endpoint` and `through` attributes. (Alternatively, a tuple may be directly 
+specified in the `direction` attribute). 
+
+The user can manipulate the position of the `ray` by dragging the ray itself, but 
+the direction remains constant.
+
+
+
+---
+
+### Example: ` <ray>{:dn}` defined with rendered through-point
+
+
+```doenet-editor-horiz
+<p>Ray <m>AB</m> begins at point $rayAB.endpoint and extends 
+in the direction $rayAB.direction, passing through point <m>B</m> 
+at $rayAB.through.</p>
+
+<graph size="small">
+  <point 
+    name="A" 
+    labelIsName 
+    labelPosition="upperleft">
+      (-3,-4)
+  </point>
+  <point 
+    name="B" 
+    labelIsName 
+    styleNumber="2">
+      (2,5)
+  </point>
+  <ray 
+    name="rayAB"
+    endpoint="$A" 
+    through="$B" 
+  />
+</graph>
+```
+
+
+
+The ` <ray>{:dn}` component is used with the `endpoint` and `through` attributes. Note that, if no `endpoint` is specified, the default is $(0,0)$.
+
+
+The user can manipulate both the direction and the endpoint of the ` <ray>{:dn}` by dragging the points.
+
+
+
+---
+
+### Example: ` <ray>{:dn}` defined with endpoint and direction
+
+
+```doenet-editor-horiz
+<p>Ray <m>AB</m> begins at point $rayAB.endpoint and 
+extends in the direction $rayAB.direction.</p>
+
+<graph size="small">
+  <point 
+    name="A" 
+    labelIsName 
+    labelPosition="upperleft">
+      (-3,-4)
+  </point>
+  <ray 
+    name="rayAB"
+    endpoint="$A" 
+    direction="(1,1)" 
+  />
+</graph>
+```
+
+
+
+If both the `through` and `direction` attributes are specified and not consistent, Doenet prioritizes the `direction`.
+
+
+
+---
+
+### Example: Adjust direction of a ` <ray>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Ray <m>AB</m> begins at point $rayAB.endpoint and extends in the 
+direction $rayAB.direction. Adjust the direction vector or type in a 
+direction vector below, to adjust the line segment's direction</p>
+
+<p><m>\langle x_1, x_2 \rangle = \langle</m>
+  <mathInput bindValueTo="$dirVector.x1"/>, 
+  <mathInput bindValueTo="$dirVector.x2"/> <m>\rangle</m>
+</p>
+
+<graph size="small">
+  <point 
+    name="A" 
+    labelIsName 
+    labelPosition="upperleft">
+      (-3,-4)
+    </point>
+  <vector 
+    name="dirVector" 
+    styleNumber="2">
+      (-1,1)
+  </vector>
+  <ray 
+    name="rayAB" 
+    endpoint="$A" 
+    direction="$dirVector"
+  />
+</graph>
+```
+
+
+
+If the `direction` attribute references another component, such as a ` <vector>{:dn}` or a ` <mathInput/>{:dn}`, the user can manipulate the direction of the line segment.
+

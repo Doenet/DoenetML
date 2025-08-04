@@ -1,0 +1,122 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <hint>{:dn}`
+
+
+
+` <hint>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders a hidden block of content that can be expanded when its banner is clicked 
+or can be rendered visible only when triggered by specific user interactions.
+
+
+## Attributes and Properties 
+The ` <hint>{:dn}` does not have attributes.
+ <PropDisplay name='hint'/>
+
+
+
+---
+
+### Example: ` <hint>{:dn}` that is always visible
+
+
+```doenet-example
+<p>What food item below was NOT invented in America?
+  <answer>
+    <choice>Hot Dogs</choice>
+    <choice>Cotton Candy</choice>
+    <choice credit="1">Pizza</choice>
+  </answer>
+</p>
+<hint>According to popular belief, both Hot
+  Dogs and Cotton Candy were invented at the
+  1904 World's Fair in St. Louis.
+</hint> 
+```
+
+The ` <hint>{:dn}` banner is not triggered by any specific conditions and 
+is always accessible to the user. The content of the ` <hint>{:dn}` is made 
+available by clicking on the hint banner. 
+
+---
+
+### Example: ` <hint>{:dn}` only visible for specified interactions
+
+
+```doenet-editor-horiz
+<p>What is the smallest prime number?
+  <answer name="ans1">2</answer>
+    <hint hide="$ans1 != 1">
+      By convention the number 1 is not prime.  Try again!
+    </hint>
+</p>
+```
+
+
+
+The conditions under which a ` <hint>{:dn}` is visible can be tailored to 
+specific user interactions using the ` <hide>{:dn}` attribute.
+
+
+
+---
+
+### Example: Hide a ` <hint>{:dn}` until user answers twice
+
+
+```doenet-editor-horiz
+<p>Given the line <math>y = 1/2 x - 4</math>, 
+what is the <m>y</m>-intercept?
+  <answer name="ans">-4</answer>
+
+  <hint 
+    hide="($ans.nSubmissions < 2) or ($ans.creditAchieved = 1)">
+    Think of the slope-intercept form of a line: <m>y = mx + b</m>
+  </hint>
+</p>
+```
+
+Properties of the named ` <answer>{:dn}` component are referenced by the 
+boolean condition listed in the `hide` attribute of the ` <hint>{:dn}`. In 
+this case, if the user answers incorrectly 2 or more times, the `hide` attribute 
+of the ` <hint>{:dn}` will become `false`, and the ` <hint>{:dn}` will appear.
+
+---
+
+### Property Example: open
+
+
+```doenet-editor-horiz
+<p>Open and close the hint.</p>
+
+<hint name="myHint">Here is a tip.</hint>
+
+<p><c>open</c> = $myHint.open</p>
+```
+
+
+
+The `open` property renders the boolean value corresponding to whether 
+the ` <hint>{:dn}` is currently open.
+
+
+
+---
+
+### Property Example: title
+
+
+```doenet-editor-horiz
+<hint name="myHint"><title>Top Secret</title>
+  Here is a tip.</hint>
+
+<p><c>title</c> = $myHint.title</p>
+```
+
+
+
+The `title` property renders the title associated with the ` <hint>{:dn}`.
+
+

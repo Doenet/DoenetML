@@ -1,0 +1,58 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <intComma>{:dn}`
+
+` <intComma>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
+component which inserts commas into a large integer when rendering. 
+
+## Attributes and Properties 
+ <AttrDisplay name='intComma'/> 
+ <PropDisplay name='intComma'/>
+
+---
+
+### Example: basic use
+
+
+```doenet-editor-horiz
+<p>Without <tag>intComma</tag>:  54321</p>
+<p>With <tag>intComma</tag>: <intComma>54321</intComma></p>
+```
+
+
+
+The ` <intComma>{:dn}` component inserts commas for readability in large numbers.
+
+
+
+---
+
+### Example: using named references - display only
+
+
+```doenet-example
+<p> Displaying results with <tag>intComma</tag>:</p>
+
+  <number name= "a">132134123</number>
+  <number name= "b">1242342345</number>
+  <number name= "c">$a+$b</number>
+
+<p><m><intComma>$a</intComma> + <intComma>$b</intComma> = <intComma>$c</intComma></m></p>
+<p>But note, you cannot define numbers this way and later use them for evaluation:</p>
+
+  <number name= "d"><intComma>132134123</intComma></number>
+  <number name= "e"><intComma>1242342345</intComma></number>
+  <number name= "f"><intComma>$a + $b</intComma></number>
+
+  <m>$d + $e = $f</m>
+```
+
+
+
+Note that the ` <intComma>{:dn}` component must be enclosed around each individual 
+reference in numerical computations. In addition, this component can only be used after 
+computations are performed, during final rendering.
+

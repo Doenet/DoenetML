@@ -1,0 +1,219 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <when>{:dn}`
+
+
+` <when>{:dn}` is an [Evaluation](../document_structure/essentialConcepts/#componentTypes)
+component that is used for creating boolean conditions within an [` <award>{:dn}`](award.mdx).
+
+## Attributes and Properties 
+ <AttrDisplay name='when'/> 
+ <PropDisplay name='when'/>
+
+---
+
+### Example: ` <when>{:dn}` in an ` <award>{:dn}` with ` <mathInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<p>1. Enter  <m>a</m> or <m>b</m>:
+  <answer><mathInput name="ans1"/>
+    <award>
+      <when>
+        $ans1 = a or $ans1 = b
+      </when>
+    </award>
+  </answer>
+</p>
+```
+
+
+
+` <when>{:dn}` is used to specify the boolean condition within an ` <award>{:dn}`.
+
+
+
+---
+
+### Example: ` <when>{:dn}` in an ` <award>{:dn}` with graphical input
+
+
+```doenet-editor-horiz
+<p>Draw a circle of radius 6 by dragging out from the center point.</p>
+<answer>
+    <award>
+      <when>
+        $userCircle.radius = 6
+      </when>
+    </award>
+</answer>
+
+<graph size="small" grid>
+  <point name="center" fixed coords="(0,0)"/>
+  <point name="dragPt" styleNumber="2">
+    <constraints><constrainToGrid/></constraints>
+  </point>
+  <circle name="userCircle" center="$center" through="$dragPt" filled/>
+</graph>
+```
+
+
+
+` <when>{:dn}` is used to specify the boolean condition within an ` <award>{:dn}`. In 
+this case, the boolean is based on graphical interactions performed by the user to update the radius of the named ` <circle/>{:dn}`.
+
+
+
+---
+
+### Example: ` <when>{:dn}` in an ` <award>{:dn}` with ` <textInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<p>What color is the complement of purple? 
+<textInput name="userColor"/>
+  <answer name="ans" type="text">
+    <award caseInsensitiveMatch>
+      <when>
+        $userColor = yellow
+      </when>
+    </award>
+  </answer>
+</p>
+```
+
+
+
+` <when>{:dn}` is used to specify the boolean condition within an ` <award>{:dn}`. In 
+this case, the boolean is based on the value of a ` <textInput/>{:dn}`.
+
+
+
+---
+
+### Attribute Example: matchPartial
+
+
+```doenet-editor-horiz
+<p>List all prime numbers less than <m>10</m>: 
+  <mathInput name="primeList"/>.</p>
+<answer>
+  <award unOrderedCompare>
+    <when matchPartial="true">
+      $primeList = <mathList>2 3 5 7</mathList>
+    </when>
+  </award>
+</answer>
+```
+
+
+
+The `matchPartial` attribute signifies that partial credit is to be awarded if any part of the 
+enclosed boolean condition is true.
+
+
+
+---
+
+### Property Example: value
+
+
+```doenet-editor-horiz
+<p>List all prime numbers less than <m>10</m>: 
+  <mathInput name="primeList"/>.</p>
+<answer>
+  <award unOrderedCompare>
+    <when name="w1" matchPartial>
+      $primeList = <mathList>2 3 5 7</mathList>
+    </when>
+  </award>
+</answer>
+
+<p><c>value</c> = $w1.value</p>
+```
+
+
+
+The `value` property renders the value of the boolean condition enclosed by the ` <when>{:dn}` component.
+
+
+
+---
+
+### Property Example: fractionSatisfied
+
+
+```doenet-editor-horiz
+<p>List all prime numbers less than <m>10</m>: 
+  <mathInput name="primeList"/>.</p>
+<answer>
+  <award unOrderedCompare>
+    <when name="w1" matchPartial="true">
+      $primeList = <mathList>2 3 5 7</mathList>
+    </when>
+  </award>
+</answer>
+
+<p><c>fractionSatisfied</c> = $w1.fractionSatisfied</p>
+```
+
+
+
+The `fractionSatisfied` property renders the fractional value corresponding to 
+which portion of the boolean condition enclosed by the ` <when>{:dn}` evaluates to `true`.
+
+
+
+---
+
+### Property Example: conditionSatisfied
+
+
+```doenet-editor-horiz
+<p>List all prime numbers less than <m>10</m>: 
+  <mathInput name="primeList"/>.</p>
+<answer>
+  <award unOrderedCompare>
+    <when name="w1" matchPartial>
+      $primeList = <mathList>2 3 5 7</mathList>
+    </when>
+  </award>
+</answer>
+
+<p><c>conditionSatisfied</c> = $w1.conditionSatisfied</p>
+```
+
+
+
+The `conditionSatisfied` property renders the boolean value corresponding to 
+whether the ` <when>{:dn}` condition has been satisfied.
+
+
+
+---
+
+### Property Example: matchPartial
+
+
+```doenet-editor-horiz
+<p>List all prime numbers less than <m>10</m>: 
+  <mathInput name="primeList"/>.</p>
+<answer>
+  <award unOrderedCompare>
+    <when name="w1" matchPartial>
+      $primeList = <mathList>2 3 5 7</mathList>
+    </when>
+  </award>
+</answer>
+
+<p><c>matchPartial</c> = $w1.matchPartial</p>
+```
+
+
+
+The `matchPartial` attribute of the ` <when>{:dn}` component is also accessible as a property.
+
+

@@ -1,0 +1,131 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <regionBetweenCurveXAxis>{:dn}`
+
+
+ ` <regionBetweenCurveXAxis>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
+ component that renders a shaded region on a graph between a specified function and the $x$-axis.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='regionBetweenCurveXAxis'/> 
+ <PropDisplay name='regionBetweenCurveXAxis'/>
+
+
+---
+
+### Example: Render shading between a function and the x-axis
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function name="f">x</function>
+  <regionBetweenCurveXAxis 
+    function="$f" 
+    boundaryValues="-3 8"
+  />
+</graph>
+```
+
+
+
+The ` <regionBetweenCurveXAxis>{:dn}` component shades in the region between a function 
+and the $x$-axis over a specified interval.
+
+
+
+---
+
+### Attribute Example: function
+
+
+```doenet-example
+<graph size="small" xmin="-1" xmax="6" ymin="-3">
+  <function name="f">x^2</function>
+  <regionBetweenCurveXAxis function="$f" boundaryValues="0 3"/>
+</graph>
+```
+
+
+
+The `function` attribute takes a named function reference as input.
+
+
+
+---
+
+### Attribute Example: boundaryValues
+
+
+```doenet-example
+<slider name="upperLimit" from="-pi" to="pi" step="pi/8"/>
+<graph size="small" xmin="-2pi" xmax="2pi" ymin="-2" ymax="2" xTickScaleFactor="pi">
+  <function name="f" styleNumber="2">sin(x)</function>
+  <regionBetweenCurveXAxis 
+    name="shadedRegion" 
+    function="$f" 
+    boundaryValues="-pi $upperLimit" 
+    styleNumber="2"
+  />
+</graph>     
+
+<p><c>boundaryValues</c> = $shadedRegion.boundaryValues</p>
+```
+
+
+
+The `boundaryValues` attribute accepts a list of $x$-values or numerical references that define the endpoints of the shaded interval.
+
+
+
+---
+
+### Attribute Example: styleNumber
+
+
+```doenet-example
+<slider name="styleNum" from="1" to="6" step="1"/>
+
+<graph size="small" xmin="-1" xmax="6" ymin="-3">
+  <function name="f">x^2</function>
+  <regionBetweenCurveXAxis 
+    function="$f" 
+    boundaryValues="0 3" 
+    styleNumber="$styleNum"
+  />
+</graph>      
+```
+
+
+
+The ` <regionBetweenCurveXAxis>{:dn}` component accepts the `styleNumber` attribute. Default styleNumbers range from $1$ to $6$.
+
+
+
+---
+
+### Property Example: styleDescription/ styleDescriptionWithNoun
+
+
+```doenet-editor-horiz
+<slider name="styleNum" from="1" to="6" step="1"/>
+<graph size="tiny" xmin="-1" xmax="6" ymin="-3">
+  <function name="f">x^2</function>
+  <regionBetweenCurveXAxis 
+    name="styledRegion" 
+    function="$f" 
+    boundaryValues="0 3" 
+    styleNumber="$styleNum"
+  />
+</graph>  
+
+<p><c>styleDescription</c> = $styledRegion.styleDescription</p>
+<p><c>styleDescriptionWithNoun</c> = $styledRegion.styleDescriptionWithNoun</p>
+```
+
+
+
+Since users can override styles and so may see different colors and line styles, don't directly refer to the colors and line styles you create.  Instead, use the properties `styleDescription` and `styleDescriptionWithNoun`.  With those properties, the text will change to match the displayed styles.
+

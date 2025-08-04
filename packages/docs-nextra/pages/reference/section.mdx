@@ -1,0 +1,229 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <section>{:dn}`
+
+
+` <section>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders an auto-numbered block of content. Inline components such as 
+paragraphs (` <p>{:dn}`) and other components can be nested within a ` <section>{:dn}` to 
+group and order content. Some examples are: another ` <section>{:dn}`, 
+a ` <figure>{:dn}`, or a `<problem>{:dn}`.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='section'/> 
+ <PropDisplay name='section'/>
+
+
+---
+
+### Example: ` <section>{:dn}` with default title
+
+
+```doenet-editor-horiz
+<section>
+  <p><lorem generateWords="10"/></p>
+</section>
+
+
+<example>
+  <p>Interactive activity here.</p>
+</example>
+
+<problem>
+  <p><answer>42</answer></p>
+</problem>
+```
+
+
+
+Within a DoenetML document, default titles for sectional components are 
+auto-numbered. Each sectional component is on the same counter.
+
+
+
+---
+
+### Example: `<section>{:dn}` with custom title
+
+
+```doenet-editor-horiz
+<section><title>Latest news</title>
+  <p>Doenet taking the world by storm!</p>
+</section>
+```
+
+
+
+A custom ` <section>{:dn}` title is creating by providing a ` <title>{:dn}` 
+tag within the ` <section>{:dn}`.
+
+
+
+---
+
+### Example: How to create a subsection
+
+
+```doenet-editor-horiz
+<section><title>This is the main section.</title>
+  <p><lorem generateWords="10"/></p>
+  <section><title>This is a subsection</title>
+    <p><lorem generateWords="10"/></p>
+  </section>
+</section>
+```
+
+
+
+A subsection is created by nesting one or more sections within a ` <section>{:dn}`.
+
+
+
+---
+
+### Example: named ` <section>{:dn}` as a parent reference
+
+
+```doenet-editor-horiz
+<section name="treeSection" boxed>
+  <text name="plant">Weeping Willow</text>
+  <p>$plant</p>
+</section>
+
+<section name="flowerSection" boxed>
+  <text name="plant">Daffodil</text>
+  <p>$plant</p>
+</section>
+
+<p>From first section: 
+  The plant is $treeSection.plant.</p>
+<p>From second section: 
+  The plant is $flowerSection.plant.</p>
+```
+
+When reference names are used more than once in the same document,
+they can be distinguished (when outside their parent component) by 
+attaching the name of the parent component to the reference.
+
+
+Above, the ` <section>{:dn}` named `treeSection` is the
+parent of the `<text>{:dn}` named `plant`. Therefore, when 
+referencing this specific instance of the component with that name, 
+you should use `$treeSection.plant` as shown.
+
+
+---
+
+### Attribute Example: includeParentNumber
+
+
+```doenet-example
+<section boxed>
+  <section>
+    <p>This content is inside a nested section. The default number includes the parent number as well.</p>
+  </section>
+</section>
+<section boxed>
+  <section includeParentNumber="false">
+    <p>This content is inside a nested section. Rendering of the parent section number has been repressed.</p>
+  </section>
+</section>
+```
+
+
+
+The `includeParentNumber` attribute is `true` by default for the ` <section>{:dn}` component (and `false` for other sectional components, such as ` <problem>{:dn}` and ` <exercise>{:dn}`). This allows the default numbering system to include the number of the parent sectional component, followed by the number of the ` <section>{:dn}`.
+
+
+If it is preferable to display the section number without the parent section preceding it, set the `includeParentNumber` attribute to `false`.
+
+
+
+---
+
+### Attribute Example: includeAutoNumber
+
+
+```doenet-example
+  <section boxed><title>Custom title</title>
+    <p>In this section, the custom title overrides the default numbering of the section.</p>
+  </section>
+
+  <section boxed includeAutoNumber="true">
+    <title>Special title</title>
+    <p>In this section, the number of the section is still rendered in addition to the custom title.</p>
+  </section>
+```
+
+
+
+The `includeAutoNumber` attribute is `false` by default for the ` <section>{:dn}` component. This 
+means that if a section contains a nested ` <title>{:dn}`, it will not render the default 
+numbering (although it will still be counted in the numbering scheme behind the scenes).
+
+
+In order to display the section number in addition to the custom ` <title>{:dn}`, set 
+the `includeAutoNumber` attribute to `true`.
+
+
+
+---
+
+### Attribute Example: aggregateScores and sectionWideCheckWork
+
+
+```doenet-example
+<section sectionWideCheckWork aggregateScores><title>Multiple questions</title>
+  <p>Enter <m>x</m>: <answer>x</answer></p>
+  <p>Enter <m>y</m>: <answer>y</answer></p>
+  <p>Enter <m>z</m>: <answer>z</answer></p>
+</section>
+```
+
+
+
+The `aggregateScores` and `sectionWideCheckWork` attributes together combine 
+validation for all ` <answer>{:dn}` components within the ` <section>{:dn}` under a 
+single "Check Work" button.
+
+
+---
+
+### Attribute Example: boxed
+
+
+```doenet-example
+<section boxed><title>Boxed section</title>
+  <p><lorem generateWords="10"/></p>
+</section>
+```
+
+
+
+The `boxed` attribute changes the default formatting for section to one 
+that has a border and a shaded banner for the title.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideSection">
+  <label>Click here to hide the section</label>
+</booleanInput>
+
+<section hide="$hideSection"><title>Now you see me...</title>
+  <p><lorem generateWords="10"/></p>
+</section>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.
+

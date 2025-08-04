@@ -1,0 +1,270 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <derivative>{:dn}`
+
+` <derivative>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
+component that renders the derivative of basic elementary functions 
+(including polynomial, exponential, and trigonometric functions.)
+
+## Attributes and Properties 
+ <AttrDisplay name='derivative'/> 
+ <PropDisplay name='derivative'/>
+
+
+
+---
+
+### Example: ` <derivative>{:dn}` of a nested function
+
+
+```doenet-editor-horiz
+<derivative name="fPrime">
+  1/6 x^3 + x
+</derivative>
+<graph size="small">
+  $fPrime
+</graph>
+```
+
+
+
+A ` <derivative>{:dn}` renders the derivative of the enclosed math expression, 
+if the expression can be interpreted as a function in $x$.
+
+
+
+---
+
+### Example: ` <derivative>{:dn}` of a named function
+
+
+```doenet-editor-horiz
+<p><m>f(x) = </m> 
+  <function name="f">e^(3x)</function>
+</p>
+
+<p><m>\frac{df}{dx} = </m>
+  <derivative name="fPrime">$f</derivative></p>
+<graph size="small">
+  $fPrime
+</graph>
+```
+
+
+
+A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`.
+
+
+
+---
+
+### Example: ` <derivative>{:dn}` of a function of a different variable
+
+
+```doenet-editor-horiz
+<p><m>g(y) = </m>
+  <function name="g" variables="y">
+    sin(y)+k
+  </function>
+</p>
+
+<p><m>\frac{d}{dy}($g) = </m> 
+  <derivative>$g</derivative>
+</p>
+```
+
+
+
+A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`. 
+The ` <function>{:dn}` is defined in terms of $y$ with the `variables` attribute 
+and this information is carried over when evaluating the derivative.
+
+
+
+---
+
+### Example: Partial derivatives
+
+
+```doenet-editor-horiz
+<p><m>f(x,z) = </m>
+<function name="f" variables="x z">
+  sec(z) + 3x^2
+</function>
+</p>
+
+<p><m>\frac{\partial f}{\partial x} = </m>
+  <derivative derivVariables="x">
+    $f
+  </derivative>
+</p>
+
+<p><m>\frac{\partial f}{\partial z} = </m>
+  <derivative derivVariables="z">
+    $f
+  </derivative>
+</p>
+```
+
+
+
+A ` <derivative>{:dn}` renders the derivative of the named ` <function>{:dn}`. 
+The ` <function>{:dn}` is defined in terms of $x$ and $z$ with the `variables` attribute. 
+The variable for differentiation of the partial derivative is specified with the `derivVariables` attribute.
+
+
+
+---
+
+### Example: Higher-order derivatives
+
+
+```doenet-editor-horiz
+<p><m>\frac{\partial^2 f }{\partial x^2}
+  ( x^2 \cos t) = </m>
+  <derivative variables="x" 
+    derivVariables="x x" name="fPrime">
+    x^2 cos(t)
+  </derivative>
+</p>
+```
+
+
+
+Higher-order derivatives can be rendered by entering multiple values in the `derivVariables` attribute.
+
+
+
+---
+
+### Attribute Example: derivVariables
+
+
+```doenet-example
+<p><m>h(y,z) = </m>
+<function name="h" variables="y z">
+  y z^2 + 2z cos(y)
+</function>
+</p>
+
+<p><m>\frac{\partial h}{\partial y} = </m>
+  <derivative derivVariables="y">
+    $h
+  </derivative>
+</p>
+
+<p><m>\frac{\partial h}{\partial z} = </m>
+  <derivative derivVariables="z">
+    $h
+  </derivative>
+</p>
+
+<p><m>\frac{\partial^2 h}{\partial z \partial y} = </m>
+  <derivative derivVariables="z y">
+    $h
+  </derivative>
+</p>
+```
+
+
+
+The `derivVariables` attribute specifies the variable of 
+differentiation (or a list of variables to differentiate with respect to) for multivariable functions.
+
+
+
+---
+
+### Attribute Example: variables
+
+
+```doenet-example
+<p><m>\frac{d}{dt}( x \cos(t)) = </m>
+  <derivative variables="t">
+    x cos(t)
+  </derivative>
+</p>
+```
+
+
+
+The `variables` attribute can be used to specify the 
+function variable if not specified by ` <function>{:dn}` definition.
+
+
+
+---
+
+### Property Example: nInputs
+
+
+```doenet-example
+<p><m>\frac{\partial f}{\partial x}( x \cos(t)) = </m>
+  <derivative variables="x t" derivVariables="x" name="fPrime">
+    x cos(t)
+  </derivative>
+</p>
+
+<p><c>numInputs</c> = $fPrime.numInputs</p>
+```
+
+
+
+The `numInputs` property returns the number of inputs associated with the enclosed function.
+
+
+
+---
+
+### Property Example: numDerivatives
+
+
+```doenet-example
+<p><m>\frac{\partial}{\partial t} \bigg(
+  \frac{\partial^2 f }{\partial x^2}
+  ( x^2 \cos t)\bigg) = </m>
+  <derivative variables="x t" 
+    derivVariables="x x t" name="fPrime">
+    x^2 cos(t)
+  </derivative>
+</p>
+
+<p><c>numDerivatives</c> = $fPrime.numDerivatives</p>
+```
+
+
+
+The `numDerivatives` property returns the number of differentiations performed on the enclosed function.
+
+
+
+---
+
+### Example: attributes as properties
+
+
+```doenet-editor-horiz
+<p><m>\frac{\partial}{\partial t} \bigg(
+  \frac{\partial^2 f }{\partial x^2}
+  ( x^2 \cos t)\bigg) = </m>
+  <derivative variables="x t" 
+    derivVariables="x x t" name="fPrime">
+    x^2 cos(t)
+  </derivative>
+</p>
+
+<p><c>variables</c> = 
+  $fPrime.variables
+</p>
+<p><c>derivVariables</c> = 
+  $fPrime.derivVariables
+</p>
+```
+
+
+
+Both attributes of the ` <derivative>{:dn}` component are also accessible as properties.
+

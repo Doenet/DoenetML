@@ -1,0 +1,106 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <case>{:dn}`
+
+
+` <case>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types)
+component that defines an individual block of content triggered when 
+the its condition is met within a ` <conditionalContent>{:dn}`.
+
+## Attributes and Properties 
+ <AttrDisplay name='case'/> 
+ <PropDisplay name='case'/>
+
+---
+
+### Example: ` <case>{:dn}` inside of ` <conditionalContent>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Choose a letter: 
+  <choiceInput inline name="letter">
+    <choice>A</choice>
+    <choice>B</choice>
+    <choice>C</choice>
+  </choiceInput>    
+</p>
+<conditionalContent>
+  <case condition="$letter.selectedIndices = 1">
+    <p>A is for apple.</p>
+  </case>
+  <case condition="$letter.selectedIndices = 2">
+    <p>B is for balloon.</p>
+  </case>
+  <case condition="$letter.selectedIndices = 3">
+    <p>C is for cat.</p>
+  </case>  
+</conditionalContent>      
+```
+
+
+
+Each ` <case>{:dn}` component defines content that is only rendered 
+when the specified `condition` attribute is `true`.
+
+
+
+---
+
+### Attribute Example: condition
+
+
+```doenet-editor-horiz
+ <p>Enter an integer 
+    <answer name="intAns" weight="0" showCorrectness="false">
+      <mathInput name="int"/>
+    </answer></p>
+
+    <boolean name="even"><mod>$int 2</mod> = 0</boolean>
+    <boolean name="isInt"><integer>$int</integer> = $int</boolean>
+
+<conditionalContent>
+  <case condition="$even and $isInt">
+    <p>You've entered an even integer.</p>
+  </case>
+  <case condition="!$even and $isInt">
+    <p>You've entered an odd integer.</p>
+  </case>
+  <case condition="!$isInt and $intAns.responseHasBeenSubmitted">
+    <p>That number is not an integer.</p>
+  </case>
+</conditionalContent>
+```
+
+
+
+Each ` <case>{:dn}` component defines content that is 
+only rendered when the specified `condition` attribute is `true`.
+
+
+
+---
+
+### Property Example: conditionSatisfied
+
+
+```doenet-example
+<p>Type 1 or 2: <mathInput name="mi"/></p>
+<conditionalContent>
+  <case name="case1" condition="$mi = 1">
+    <p>You've entered a 1.</p>
+  </case>
+  <case name="case2" condition="$mi = 2">
+    <p>You've entered a 2.</p>
+  </case>
+</conditionalContent>
+<p><c>conditionSatisfied</c> for case 1 = $case1.conditionSatisfied</p>
+<p><c>conditionSatisfied</c> for case 2 = $case2.conditionSatisfied</p>   
+```
+
+
+
+The `conditionSatisfied` property returns `true` if the specified ` <case>{:dn}` evaluates to `true`, and `false` otherwise.
+

@@ -1,0 +1,170 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <mrow>{:dn}`
+
+` <mrow>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
+component that renders a single line within a block of aligned display mathematics when 
+nested within the ` <md>{:dn}` or the ` <mdn>{:dn}` component.
+
+## Attributes and Properties 
+ <AttrDisplay name='mrow'/> 
+ <PropDisplay name='mrow'/>
+
+---
+
+### Example: ` <md>{:dn}` with nested ` <mrow>{:dn}` children
+
+
+```doenet-editor-horiz
+<p>The trigonometric ratios for the angle <m>\theta = \pi/2</m>:
+  <md>
+    <mrow>\sin(\theta) &= 1</mrow>
+    <mrow>\cos(\theta) &= 0</mrow>
+    <mrow>\tan(\theta) &= \text{undefined}</mrow>
+  </md>
+</p>  
+```
+
+
+
+The data contained within an ` <md>{:dn}` block must be contained in 
+an ` <mrow>{:dn}`.  Equations and content will align vertically 
+where the `&` symbol is entered in each row. 
+
+
+
+---
+
+### Example: ` <mdn>{:dn}` with nested ` <mrow>{:dn}` children
+
+
+```doenet-editor-horiz
+<p>The trigonometric ratios for the angle <m>\theta = \pi/2</m>:
+  <mdn>
+    <mrow>\sin(\theta) &= 1</mrow>
+    <mrow>\cos(\theta) &= 0</mrow>
+    <mrow>\tan(\theta) &= \text{undefined}</mrow>
+  </mdn>
+</p>  
+```
+
+
+
+The data contained within an ` <mdn>{:dn}` block must be contained in 
+an ` <mrow>{:dn}`.  Equations and content will align vertically where the `&` symbol is entered in each row. 
+
+
+
+---
+
+### Example: ` <mrow>{:dn}` cannot contain ` <answer>{:dn}` or ` <mathInput/>{:dn}`
+
+
+```doenet-editor-horiz
+<p>The following will not render as intended:</p>
+<md>
+  <mrow>x = <answer name="ans1">x</answer></mrow>
+  <mrow>y = <mathInput/></mrow>
+</md>
+```
+
+
+
+An ` <mrow>{:dn}` component cannot contain an ` <answer>{:dn}` or a ` <mathInput/>{:dn}`.
+
+
+
+---
+
+### Example: ` <mrow>{:dn}` with referenced ` <math>{:dn}`
+
+
+```doenet-example
+<p><m>f(x) = <function name="f" variables="x">x^2</function></m></p>
+<p><m>g(y) = <function name="g" variables="y">sqrt(y)</function></m></p>
+<p><m>h(z) = <function name="h" variables="z">sin(z)</function></m></p>
+
+<p>The first derivatives of functions <m>f(x)</m>, <m>g(y)</m> and <m>h(z)</m> are:
+  <md>
+    <mrow>\frac{df}{dx} &= 
+      <derivative derivVariables="x">$f</derivative>
+    </mrow>
+    <mrow>\frac{dg}{dy} &= 
+      <derivative derivVariables="y">$g</derivative>
+    </mrow>
+    <mrow>\frac{dh}{dz} &= 
+      <derivative derivVariables="z">$h</derivative>
+    </mrow>    
+  </md>
+</p>  
+```
+
+
+
+Computational DoenetML components, such as ` <math>{:dn}`, or ` <derivative>{:dn}`, can be nested within or referenced within an ` <mrow>{:dn}` component.
+
+
+Exceptions: The ` <answer>{:dn}` component, the ` <mathInput/>{:dn}` component, and other ` <md>{:dn}` components cannot be nested within an ` <mrow>{:dn}` component.
+
+
+
+---
+
+### Attribute Example: number
+
+
+```doenet-editor-horiz
+<mdn name="eqBlock">
+  <mrow>x + y + z &= 0</mrow>
+  <mrow>x - y &= 0</mrow>
+  <mrow number="false">2x + y - z &= 5</mrow>
+</mdn>  
+```
+
+
+
+The `number` attribute can be set to `false` to prevent the default numbering of an individual ` <mrow>{:dn}` within an ` <mdn>{:dn}`.
+
+
+
+---
+
+### Property Example: latex
+
+
+```doenet-editor-horiz
+<md>
+  <mrow>\frac{x}{2} &= 4</mrow>
+  <mrow>x + \sqrt{y} &= 3</mrow>
+</md>
+
+<p><c>latex</c> = $_mrow1.latex</p>      
+```
+
+
+
+The `latex` property returns the LaTeX code for rendering the ` <mrow>{:dn}`.
+
+
+
+---
+
+### Property Example: text
+
+
+```doenet-editor-horiz
+<md>
+  <mrow>\frac{x}{2} &= 4</mrow>
+  <mrow>x + \sqrt{y} &= 3</mrow>
+</md>
+
+<p><c>text</c> = $_mrow1.text</p>  
+```
+
+
+
+The `text` property returns the text value of the ` <mrow>{:dn}`.
+

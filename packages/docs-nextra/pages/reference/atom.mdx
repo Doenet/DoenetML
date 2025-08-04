@@ -1,0 +1,137 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <atom>{:dn}`
+
+
+` <atom>{:dn}` is a [Subject-specific](../document_structure/essentialConcepts#component-types) 
+component that renders the atomic symbol for an element, and contains numerous built-in chemical properties.
+
+## Attributes and Properties 
+ <AttrDisplay name='atom'/> 
+ <PropDisplay name='atom'/>
+
+---
+
+### Example: Define an ` <atom>{:dn}` with atomic number
+
+
+```doenet-example
+<atom name="hydrogen" atomicNumber="1"/>, 
+<atom name="helium" atomicNumber="2"/>, 
+<atom name="lithium" atomicNumber="3"/>
+
+<p>At standard temperature and pressure, hydrogen is a $hydrogen.phaseAtSTP.</p>
+
+<p>The atomic mass of helium is $helium.atomicMass <m>\text{amu}</m>.</p> 
+
+<p>The orbital diagram for lithium is $lithium.orbitalDiagram </p>
+```
+
+
+
+An ` <atom>{:dn}` component may defined by specifying either its atomic number or 
+its symbol. Once defined, there are many built-in properties of ` <atom>{:dn}` that 
+can be accessed.
+
+
+
+---
+
+### Example: Define an ` <atom>{:dn}` with its symbol
+
+
+```doenet-example
+<atom name="hydrogen" symbol="H"/>, 
+<atom name="helium" symbol="He"/>, 
+<atom name="lithium" symbol="Li"/>
+
+<p>At standard temperature and pressure, hydrogen is a $hydrogen.phaseAtSTP.</p>
+
+<p>The atomic mass of helium is $helium.atomicMass <m>\text{amu}</m>.</p> 
+
+<p>The orbitalDiagram for lithium is $lithium.orbitalDiagram </p>
+```
+
+
+
+An ` <atom>{:dn}` component may defined by specifying either its atomic number 
+or its symbol. Once defined, there are many built-in properties of ` <atom>{:dn}` that 
+can be accessed.
+
+
+
+---
+
+### Attribute Example: symbol
+
+
+```doenet-editor-horiz
+<p>Type in the symbol for gold: <textInput name="ti" prefill=""/></p>
+
+<atom symbol="$ti"/>
+<boolean>$ti = Au</boolean>
+```
+
+
+
+The `symbol` attribute takes the atom's chemical symbol as input.
+
+
+
+---
+
+### Attribute Example: atomicNumber
+
+
+```doenet-editor-horiz
+<p>Type in the atomic number for carbon: <mathInput name="mi"/></p>
+
+<atom atomicNumber="$mi"/>
+<boolean>$mi = 6</boolean>
+```
+
+
+
+The `atomicNumber` attribute takes the atom's atomic number as input.
+
+
+
+---
+
+### Example: All the properties at once
+
+
+```doenet-editor-horiz
+<atom name="oxygen" symbol="O"/>
+
+<p><c>atomicNumber</c> = $oxygen.atomicNumber</p>
+<p><c>symbol</c> = $oxygen.symbol</p>
+<p><c>name</c> = $oxygen.name</p>
+<p><c>group</c> = $oxygen.group</p>
+<p><c>atomicMass</c> = $oxygen.atomicMass</p>
+<p><c>phaseAtSTP</c> = $oxygen.phaseAtSTP</p>
+<p><c>chargeOfCommonIon</c> = $oxygen.chargeOfCommonIon</p>
+<p><c>metalCategory</c> = $oxygen.metalCategory</p>
+<p><c>groupName</c> = $oxygen.groupName</p>
+<p><c>period</c> = $oxygen.period</p>
+<p><c>ionizationEnergy</c> = $oxygen.ionizationEnergy</p>
+<p><c>meltingPoint</c> = $oxygen.meltingPoint</p>
+<p><c>boilingPoint</c> = $oxygen.boilingPoint</p>
+<p><c>atomicRadius</c> = $oxygen.atomicRadius</p>
+<p><c>density</c> = $oxygen.density</p>
+<p><c>electronegativity</c> = $oxygen.electronegativity</p>
+<p><c>electronConfiguration</c> = $oxygen.electronConfiguration</p>
+<p><c>orbitalDiagram</c> = </p>
+      <p>$oxygen.orbitalDiagram</p>
+<p><c>math</c> = $oxygen.math</p>
+<p><c>latex</c> = $oxygen.latex</p>
+```
+
+
+
+The listing above includes all of the chemical properties currently 
+available to the ` <atom>{:dn}` component.
+

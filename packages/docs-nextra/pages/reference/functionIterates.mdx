@@ -1,0 +1,39 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <functionIterates>{:dn}`
+
+` <functionIterates>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+component that evaluates a function over a specified number of iterations of its argument.
+
+## Attributes and Properties 
+ <AttrDisplay name='functionIterates'/> 
+ <PropDisplay name='functionIterates'/>
+
+---
+
+### Example: simple function iteration
+
+
+```doenet-editor-horiz
+<p><m>f(x) = 
+    <function name="f">2x</function></m></p>
+
+<functionIterates 
+    name="fI" 
+    function="$f" 
+    numIterates="3" 
+    initialValue="1"
+/>
+<p>Iterates: $fI.iterates</p>
+```
+
+
+
+In this example, the ` <function>{:dn}` is first defined, then referenced 
+in the ` <functionIterates>{:dn}` component in the `function` attribute. 
+The `numIterates` attribute, which specifies the number of iterations to 
+perform, and the `initialValue` attribute are required.
+

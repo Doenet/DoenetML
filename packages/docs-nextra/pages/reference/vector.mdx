@@ -1,0 +1,323 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <vector>{:dn}`
+
+` <vector>{:dn}` is a [Graphical](../document_structure/essentialConcepts/#componentTypes)
+component that renders a vector when nested within a [` <graph>{:dn}`](graph.mdx). Outside a graph, it can be used in vector computations.
+
+## Attributes and Properties 
+ <AttrDisplay name='vector'/> 
+ <PropDisplay name='vector'/>
+
+
+---
+
+### Example: Default ` <vector>{:dn}`
+
+
+```doenet-editor-horiz
+<graph 
+  size="small" 
+  xmin="-2" 
+  xmax="2" 
+  ymin="-2" 
+  ymax="2">
+    <vector name="v"/>
+</graph>
+
+<p><m>v = $v</m></p>
+```
+
+
+
+A default ` <vector>{:dn}` without any additional attributes has `tail` at the origin and `head` at $(1,0)$.
+
+
+
+---
+
+### Example: ` <vector>{:dn}` math
+
+
+```doenet-editor-horiz
+<p><m>a = </m><vector name="a">(1,2)</vector></p>
+<p><m>b = </m><vector name="b">(3,4)</vector></p>
+
+<p><m>a + b = </m>
+  <math simplify>$a + $b</math>
+</p>
+
+<p><m>a - b = </m>
+  <math simplify>$a - $b</math>
+</p>
+
+<p><m>c \ \bf{a} = </m> 
+  <math simplify>c $a</math>
+</p>
+```
+
+
+
+A ` <vector>{:dn}` within a ` <math>{:dn}` follows vector operations.
+
+
+
+---
+
+### Attribute Example: x,y
+
+
+```doenet-editor-horiz
+<p>Drag the head and the tail of the vector, or the vector itself.</p>
+
+<graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <vector name="v1" x="3" y="4"/>
+</graph>
+
+<p><c>x</c> = $v1.x</p>
+<p><c>y</c> = $v1.y</p>      
+```
+
+
+
+The `x` and `y` attributes allow the vector to be specified by its coordinates or row 
+elements for a vector given by $\bf{v} = (x, y)$.
+
+
+
+---
+
+### Attribute Example: xs
+
+
+```doenet-editor-horiz
+<p>Drag the head and the tail of the vector, or the vector itself.</p>
+
+<graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <vector name="v" xs="3 4" tail="(1,1)"/>
+</graph>
+
+<p><c>v[1]</c> = $v[1]</p>  
+<p><c>v[2]</c> = $v[2]</p>   
+```
+
+
+
+The `xs` attribute allows the vector to be specified by its displacements in list format. To 
+access or render the list information, use index notation.
+
+
+
+---
+
+### Attribute Example: displacement
+
+
+```doenet-editor-horiz
+<p>Drag the head and the tail of the vector, or the vector itself.</p>
+
+<graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <vector 
+    name="v" 
+    displacement="(3,4)" 
+    tail="(1,1)"
+  />
+</graph>
+
+<p><c>displacement</c> = $v.displacement</p>
+<p><c>displacement[2]</c> = $v.displacement[2]</p>
+```
+
+
+
+Use the `displacement` property to specify the displacement of the vector in each direction from its tail position.
+
+
+
+---
+
+### Attribute Example: head, tail
+
+
+```doenet-editor-horiz
+<p>Drag the head and the tail of the vector, or the vector itself.</p>
+<graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <vector name="v" head="(4,5)" tail="(1,1)"/>
+</graph>
+
+<p><c>head</c> = $v.head</p>
+<p><c>head[2]</c> = $v.head[2]</p>  
+<p><c>tail</c> = $v.tail</p>
+<p><c>tail[2]</c> = $v.tail[2]</p>   
+```
+
+
+
+Use `head` and `tail` to specify the head and tail coordinates of the vector directly.
+
+
+
+---
+
+### Attribute Example: displayWithAngleBrackets
+
+
+```doenet-example
+<vector name="v" displayWithAngleBrackets>(1,2)</vector>      
+```
+
+
+
+If this is the desired rendering format, use the attribute `displayWithAngleBrackets`.
+
+
+
+---
+
+### Attribute Example: draggable
+
+
+```doenet-example
+<p>Try to drag the head and the tail of each vector, or the vectors themselves.</p>
+<graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <vector name="v1" tail="(-2,0)">(3,4)
+    <label>Draggable</label>
+  </vector>
+  <vector name="v2" styleNumber="2" draggable="false" tail="(-2,-3)">(3,4)
+    <label>Not draggable</label>
+  </vector>
+</graph>
+
+<p><c>v1.draggable</c> = $v1.draggable</p>
+<p><c>v2.draggable</c> = $v2.draggable</p>
+```
+
+
+
+The `draggable` attribute determines whether the ` <point>{:dn}` can be dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+
+
+
+---
+
+### Attribute Example: headDraggable, tailDraggable
+
+
+```doenet-example
+<booleanInput name="hD">
+  <label>Head draggable</label>
+</booleanInput>
+<booleanInput name="tD">
+  <label>Tail draggable</label>
+</booleanInput>
+
+<graph size="small" grid="1 1" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <vector name="v1" headDraggable="$hD" tailDraggable="$tD">(3,4)</vector>
+</graph>
+
+<p><c>headDraggable</c> = $v1.headDraggable</p>
+<p><c>tailDraggable</c> = $v1.tailDraggable</p>
+```
+
+
+
+The head and tail of a ` <vector>{:dn}` are draggable by default. Use the `headDraggable` or `tailDraggable` attribute set to false to disable users from changing the direction and length of the ` <vector>{:dn}`. The vector as a whole can still be repositioned on the ` <graph>{:dn}`.
+
+
+
+---
+
+### Attribute Example: Standard graphical attributes
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle styleNumber="5" filled radius="6" fixed/>
+  <vector 
+    name="vectorA" 
+    xs="5 6" 
+    layer="1" 
+    styleNumber="2" 
+    hide="$hideVectorA" 
+    fixLocation 
+    applyStyleToLabel 
+    labelIsName
+  />
+  <vector 
+    name="vectorB" 
+    xs="-5 -3"
+    styleNumber="3" 
+    applyStyleToLabel 
+    labelIsName
+  />
+</graph>
+
+<booleanInput name="hideVectorA" labelIsName/>
+<p>Standard graphical attributes:</p>
+    <ul>
+      <li><attr>hide</attr></li>
+      <li><attr>fixLocation</attr></li>
+      <li><attr>layer</attr> (0) is default value.</li>
+      <li><attr>styleNumber</attr> 1 - 6</li>
+      <li><attr>applyStyleToLabel</attr></li>
+      <li><attr>labelIsName</attr></li>
+    </ul>
+```
+
+
+
+The uses of the following standard graphical attributes are illustrated: `hide`, `fixLocation`, `layer`, `styleNumber`, `applyStyleToLabel` and `labelIsName`.
+
+
+
+---
+
+### Property Example: numDimensions
+
+
+```doenet-example
+<vector name="v1">(3,4)</vector>
+<p><c>numDimensions</c> = $v1.numDimensions</p>
+```
+
+
+
+The `numDimensions` property returns the number of dimesions of the ` <vector>{:dn}`.
+
+
+
+---
+
+### Property Example: magnitude
+
+
+```doenet-example
+<vector name="v1">(3,4)</vector>
+<p><c>magnitude</c> = $v1.magnitude</p>
+```
+
+
+
+The `magnitude` property renders the magnitude of the named ` <vector>{:dn}`.
+
+
+
+---
+
+### Property Example: latex
+
+
+```doenet-example
+<vector name="v1" displayWithAngleBrackets>(3,4)</vector>
+<p><c>latex</c> = $v1.latex</p>
+```
+
+
+
+The `latex` property renders the latex code for rendering the named ` <vector>{:dn}`.
+
+
+---

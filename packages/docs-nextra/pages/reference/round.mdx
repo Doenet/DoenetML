@@ -1,0 +1,68 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <round>{:dn}`
+
+`<round>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+component that renders a numerical value rounded to the user-specified number of decimal places or digits.  Default rounding is to the nearest integer.
+
+## Attributes and Properties 
+ <AttrDisplay name='round'/> 
+ <PropDisplay name='round'/>
+
+---
+
+### Example: Default rounding
+
+
+```doenet-editor-horiz
+<p>Enter a number to be rounded: <mathInput name="n"/></p>
+<p>Rounded number = <round>$n</round></p>
+```
+
+
+
+Default rounding is to the nearest integer.
+
+
+
+---
+
+### Example: numDecimals
+
+
+```doenet-editor-horiz
+<p>Enter a number with more than 2 decimal places: 
+  <mathInput name="n"/></p>
+<p>Rounded number = 
+  <round numDecimals="2">$n</round>
+</p>  
+```
+
+
+
+The `numDecimals` attribute specifies how many decimal places to round to.
+
+
+
+---
+
+### Example: numDigits
+
+
+```doenet-editor-horiz
+<p>Enter a number with more than 2 significant figures: 
+  <mathInput name="n"/></p>
+<p>Rounded number = 
+  <round numDigits="2">$n</round>
+</p>
+```
+
+
+
+The `numDigits` attribute specifies how many significant figures to round to.
+
+

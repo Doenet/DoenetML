@@ -1,0 +1,48 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <mod>{:dn}`
+
+` <mod>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+component that accepts a list of two numerical inputs $a$ and $b$ (separated by a space) and 
+returns the value of $a \bmod b$.
+
+## Attributes and Properties 
+ <AttrDisplay name='mod'/> 
+ <PropDisplay name='mod'/>
+
+---
+
+### Example: ` <mod>{:dn}` with direct input
+
+
+```doenet-editor-horiz
+<p><m>61\ \bmod 12 = <mod>61 12</mod></m></p>
+```
+
+
+
+The ` <mod>{:dn}` component is used with two direct numerical inputs.
+
+
+
+---
+
+### Example: ` <mod>{:dn}` used within an ` <answer>{:dn}`
+
+
+```doenet-editor-horiz
+<problem>
+<p>What is <m>7 \bmod 5</m>?
+  <answer><mod>7 5</mod></answer>
+</p>
+</problem>
+```
+
+
+
+The ` <mod>{:dn}` component is used within an ` <answer>{:dn}`.
+
+

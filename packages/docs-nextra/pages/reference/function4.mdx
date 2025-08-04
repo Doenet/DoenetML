@@ -1,0 +1,277 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <function>{:dn}`
+
+## Property Examples
+
+
+The following examples illustrate use of the ` <function>{:dn}` tag properties.  
+
+## Property
+ <PropDisplay name='function'/> 
+
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<p><m>f(x)=<function name="f">x^2</function></m></p>
+
+<p>variables = $f.variables</p>
+<p>numInputs = $f.numInputs</p>
+<p>symbolic = $f.symbolic</p>
+<p>simplify = $f.simplify</p>
+<p>expand = $f.expand</p>
+<p>displayDigits = $f.displayDigits</p>
+<p>displayDecimals = $f.displayDecimals</p>
+<p>displaySmallAsZero = $f.displaySmallAsZero</p>
+<p>padZeros = $f.padZeros</p>
+<p>xscale = $f.xscale</p>
+<p>yscale = $f.yscale</p>
+<p>labelIsName = $f.labelIsName</p>
+<p>applyStyleToLabel = $f.applyStyleToLabel</p>
+<p>labelPosition = $f.labelPosition</p>
+<p>layer = $f.layer</p>
+```
+
+
+
+The ` <function>{:dn}` attributes listed above are also accessible as properties.
+
+
+
+---
+
+### Property Example: numOutputs
+
+
+```doenet-editor-horiz
+<p><m>f(x)=<function name="f">x^2</function></m>,
+  <m>g(x)=<function name="g">(x,1,-x)</function></m>
+</p>
+
+<p>dimension of <m>f</m>: $f.numOutputs</p>
+
+<p>dimension of <m>g</m>: $g.numOutputs</p>
+```
+
+
+
+The `numOutputs` property of a function is the dimension of its range.
+
+
+
+---
+
+### Property Example: formula
+
+
+```doenet-editor-horiz
+<p>Let <m>f(x) = 
+  <function name="f">(x+1)(x-1)</function></m>.</p>
+
+<p>formula for <m>f</m>: $f.formula</p>
+
+<p>Render expanded formula:</p>
+<math expand>f(x) = $f.formula</math>
+```
+
+If a function is defined by a formula, the `formula` property gives that formula.
+If the `expand` or `simplify` attributes are used, these are applied only during evaluation
+, so they do not effect the `formula` property.
+To simplify or expand the formula property of a function, you should
+nest it inside a `<math>{:dn}` with the appropriate attributes.
+
+The `formula` property isn't currently implemented for interpolated functions.
+
+
+
+---
+
+### Property Example: latex
+
+
+```doenet-editor-horiz
+<p>Let <m>f(x)=<function name="f">x/y</function></m>.</p>
+
+<p>The latex of the formula of <m>f</m> is <c>$f.latex</c>.  
+We could redisplay it as math with <m>$f.latex</m>, which looks just 
+like the formula $f.formula.</p>
+```
+
+
+
+The `latex` property gives the LaTeX of the function's formula.
+
+
+
+---
+
+### Property Example: numMinima
+
+
+```doenet-example
+<p>The number of minima of <m>f(x) = 
+	<function name="f">x^4 - x^2</function></m> is $f.numMinima.
+</p>
+
+<p>The number of minima found for <m>g(x) = 
+	<function name="g">cos(pi x/10)</function></m> is $g.numMinima.</p>
+```
+
+The property `numMinima` gives the number of minima calculated for a function of a single variable.  By default, it looks for minima in the interval $[-100,100]$.  This interval can be changed with the `xscale` attribute.
+
+---
+
+### Property Example: minima/minimumLocations/minimumValues
+
+
+```doenet-example
+<p>The minima of <m>f(x) = 
+	<function name="f">x^4/4 - x^2</function></m> are $f.minima.  
+	The minimum locations are $f.minimumLocations.  
+	The minimum values are $f.minimumValues.</p>
+
+<graph size="small">
+	$f
+	$f.minima
+</graph>
+```
+
+The property `minima` gives the minima of a function of a single variable 
+as an array of points.  The property `minimumLocations` gives the values of the 
+independent variable where the minima occur.  The property `minimumValues` 
+gives the values of the function at the minima.
+
+By default, minima are calculated in the interval $[-100,100]$.   
+This interval can be changed with the `xscale` attribute.
+
+---
+
+### Property Example: numMaxima
+
+
+```doenet-example
+<p>The number of maxima of <m>f(x) = 
+	<function name="f">x^2 - x^4</function></m> is $f.numMaxima.</p>
+
+<p>The number of maxima found for <m>g(x) = 
+	<function name="g">cos(pi x/10)</function></m> is $g.numMaxima.</p>
+```
+
+
+
+The property `numMaxima` gives the number of maxima calculated for a 
+function of a single variable.  By default, it looks for maxima in the interval $[-100,100]$.  
+This interval can be changed with the `xscale` attribute.
+
+
+
+---
+
+### Property Example: maxima/maximumLocations/maximumValues
+
+
+```doenet-example
+<p>The maxima of <m>f(x) = 
+	<function name="f">x^2 - x^4/4</function></m> are $f.maxima.  
+	The maximum locations are $f.maximumLocations.  
+	The maximum values are $f.maximumValues.</p>
+
+<graph size="small">
+	$f
+	$f.maxima
+</graph>
+```
+
+The property `maxima` gives the maxima of a function of a single variable as 
+an array of points.  The property `maximumLocations` gives the values of the 
+independent variable where the maxima occur.  The property `maximumValues` gives 
+the values of the function at the maxima.
+
+By default, maxima are calculated in the interval $[-100,100]$.   This interval 
+can be changed with the `xscale` attribute.
+
+---
+
+### Property Example: numExtrema
+
+
+```doenet-example
+<p>The number of extrema of <m>f(x) = 
+	<function name="f">x^2 - x^4</function></m> is $f.numExtrema.</p>
+
+<p>The number of extrema found for <m>g(x) = 
+	<function name="g">cos(pi x/10)</function></m> is $g.numExtrema.</p>
+```
+
+
+
+The property `numExtrema` gives the number of extrema calculated for a 
+function of a single variable.  By default, it looks for maxima in the interval $[-100,100]$.  
+This interval can be changed with the `xscale` attribute.
+
+
+
+---
+
+### Property Example: extrema/extremumLocations/extremumValues
+
+
+```doenet-example
+<p>The extrema of <m>f(x) = 
+	<function name="f">x^4/4 - x^2</function></m> are $f.extrema.  
+	The extremum locations are $f.extremumLocations.  
+	The extremum values are $f.extremumValues.</p>
+
+<graph size="small">
+	$f
+	$f.extrema
+</graph>
+```
+
+The property `extrema` gives the extrema of a function of a single variable as 
+an array of points.  The property `extremumLocations` gives the values of the 
+independent variable where the extrema occur.  The property `extremumValues` gives 
+the values of the function at the extrema.
+
+By default, extrema are calculated in the interval $[-100,100]$.   This 
+interval can be changed with the `xscale` attribute.
+
+
+---
+
+### Property Example: styleDescription/styleDescriptionWithNoun
+
+
+```doenet-example
+<setup>
+<styleDefinitions>
+	<styleDefinition styleNumber="3" lineColor="green" lineStyle="dashed" lineWidth="1" />
+</styleDefinitions>
+</setup>
+
+<graph>
+	<function name="f">sin(x)</function>
+	<function name="g" styleNumber="2">2cos(x/2)</function>
+	<function name="h" styleNumber="3">1 - x</function>
+</graph>
+
+<p>The function <m>f</m> is $f.styleDescription.  It is a $f.styleDescriptionWithNoun.</p>
+<p>The function <m>g</m> is $g.styleDescription.  It is a $g.styleDescriptionWithNoun.</p>
+<p>The function <m>h</m> is $h.styleDescription.  It is a $h.styleDescriptionWithNoun.</p>
+```
+
+
+
+Since users can override styles and so may see different colors and line styles, 
+don't directly refer to the colors and line styles you create.  Instead, use the 
+properties `styleDescription` and `styleDescriptionWithNoun`.  With those properties, 
+the text will change to match the displayed styles.
+

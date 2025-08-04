@@ -1,0 +1,103 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <and>{:dn}`
+
+
+` <and>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types) component
+which checks to see whether all enclosed ` <boolean>{:dn}` references are `true`.
+
+## Attributes and Properties 
+The `<and>{:dn}` component has no attributes or properties.
+
+
+---
+
+<a id="boolean-ex"></a>
+
+### Example: `<and>{:dn}` in a `<boolean>{:dn}`
+```doenet-editor-horiz
+<p>Enter a number between 5 and 10, excluding 7:
+  <mathInput name="n"/></p>
+      
+<boolean name="check1">$n > 5</boolean>
+<boolean name="check2">$n < 10</boolean>
+<boolean name="check3">$n != 7</boolean>
+      
+<p>You have entered a number between 5 and 10, excluding 7:
+  <boolean>
+    <and>$check1 $check2 $check3</and>
+  </boolean></p>
+```
+
+The `<and>{:dn}` component functions as the boolean operator `and` or `&`, and checks to see 
+whether all enclosed `<boolean>{:dn}` references are `true`. 
+
+---
+
+<a id="award-ex"></a>
+### Example: `<and>{:dn}` in an `<award>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Move the point to the intersection of the circle and the line in the 
+first quadrant. (Scroll down to check work.)</p>
+      
+<graph size="small">
+  <point name="p">
+    <constraints>
+      <attractTo>$line1</attractTo>
+      <attractTo>$circ1</attractTo>
+    </constraints>
+  </point>
+  <circle name="circ1" center="(0,0)" radius="4" fixed/>
+  <line name="line1" fixed>y = 3/2 x - 2</line>
+</graph>
+
+<answer>
+  <award>
+    <when>
+      <and>$onCircle $onLine $firstQuad</and>
+    </when>
+  </award>
+</answer>
+
+<boolean name="onCircle" allowedErrorInNumbers="0.01">
+  ($p.y)^2 + ($p.x)^2 = 16</boolean>
+<boolean name="onLine" allowedErrorInNumbers="0.01">
+  $p.y = 3/2 $p.x - 2</boolean>
+<boolean name="firstQuad">
+  $p.x > 0 and $p.y > 0</boolean>
+```
+
+An `<and>{:dn}` component is used to construct a compound boolean from three referenced `<boolean>{:dn}` components 
+within an `<award>{:dn}`.
+
+
+---
+
+
+<a id="alternative-ex"></a>
+### Example: An alternative to `<and>{:dn}`
+```doenet-editor-horiz
+<p>Enter a number between 5 and 10, excluding 7:
+  <mathInput name="n"/></p>
+      
+<boolean name="check1">$n > 5</boolean>
+<boolean name="check2">$n < 10</boolean>
+<boolean name="check3">$n != 7</boolean>
+      
+<p>You have entered a number between 5 and 10, excluding 7:
+  <boolean>$check1 and $check2 and $check3</boolean>
+</p>
+```
+
+The word `and` may be typed directly within any component that takes a boolean 
+expression, such as an `<award>{:dn}`, a `<when>{:dn}`, or a `<boolean>{:dn}`. The text syntax *must* be used within a 
+boolean expression inside an attribute's specification (since components such as `<and>{:dn}` are not 
+permissible in attribute specification). Compare the syntax in the example above 
+with that in [the example with `<and>{:dn}` in a `<boolean>{:dn}`](#boolean-ex). 
+

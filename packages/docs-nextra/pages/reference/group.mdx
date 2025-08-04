@@ -1,0 +1,79 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <group>{:dn}`
+
+
+` <group>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+component that collects individual DoenetML components into a single named element.
+
+## Attributes and Properties 
+ <AttrDisplay name='group'/> 
+ <PropDisplay name='group'/>
+
+
+---
+
+### Example: Grouping points for graphing
+
+
+```doenet-editor-horiz
+
+<group name="points">
+  <point>(-4,1)</point>
+  <point>(-1,7)</point>
+  <point>(5,4)</point>
+  <point>(3,-5)</point>
+</group>
+<polygon 
+  name="polygon1" 
+  vertices="$points" 
+  styleNumber="5"
+/>
+
+<graph>
+  $points
+  $polygon1
+</graph>
+
+<p>The group <c>points</c> contains: $points.</p>
+```
+
+
+
+A ` <group>{:dn}` of ` <point>{:dn}` components is defined in a ` <setup>{:dn}` block. 
+All of the points can then be rendered on a ` <graph>{:dn}` at once using a 
+single reference to the name of the ` <group>{:dn}`, `$points`.
+
+
+
+---
+
+### Example: A ` <group>{:dn}` of different components
+
+
+```doenet-editor-horiz
+<booleanInput name="hideGroup1">
+  <label>Hide group 1</label>
+</booleanInput>
+
+<graph name="graph1" size="small">
+  <group name="group1" hide="$hideGroup1">
+    <line styleNumber="2">y = 2x + 3</line>
+    <point styleNumber="2">(6,6)</point>
+    <rectangle 
+      vertices="(-4,-2) (3,2)" 
+      styleNumber="2"/>
+  </group>
+  <circle radius="6"/>
+  <line>y = -x</line>
+</graph>
+```
+
+
+
+A ` <group>{:dn}` need not be composed of a single type of element. 
+Objects defined within a ` <group>{:dn}` can be collectively hidden.
+

@@ -1,0 +1,46 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <div>{:dn}`
+
+` <div>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types) 
+component that groups doenetML content into an unformatted container that can be named.
+
+## Attributes and Properties 
+The ` <div>{:dn}` component does not have attributes.
+ <PropDisplay name='div'/>
+
+
+---
+
+### Example: ` <div>{:dn}` as a general container element
+
+
+```doenet-editor-horiz
+<booleanInput name="hideContent">
+  <label>Hide the <tag>div</tag></label>
+</booleanInput>
+
+<div name="contentDiv" hide="$hideContent">
+  <p><lorem generateWords="10"/></p>
+  <graph size="tiny"/>
+  <slider/>
+</div>
+
+<booleanInput name="copyContent">
+  <label>Copy the <tag>div</tag></label>
+</booleanInput>
+
+<conditionalContent condition="$copyContent=true">
+  $contentDiv
+</conditionalContent>
+```
+
+
+
+A ` <div>{:dn}` can be used to group portions of 
+content that are to be collectively hidden or copied.
+
+

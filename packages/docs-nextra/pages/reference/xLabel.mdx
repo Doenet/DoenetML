@@ -1,0 +1,44 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <xLabel>{:dn}`
+
+
+` <xLabel>{:dn}` is a [Graphical](../document_structure/essentialConcepts/#componentTypes)
+component that specifies a label for the horizontal axis on a ` <graph>{:dn}`.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='xLabel'/> 
+ <PropDisplay name='xLabel'/>
+
+---
+
+### Example: ` <xLabel>{:dn}` on a ` <graph>{:dn}`
+
+```doenet-editor-horiz
+<graph size="small">
+  <xLabel><m>x</m></xLabel>
+  <line>y=x</line>
+</graph>
+```
+
+The ` <xLabel>{:dn}` component is a child of a ` <graph>{:dn}`. An ` <xLabel>{:dn}` 
+can contain text, inline display mathematics (` <m>{:dn}`) or  ` <math>{:dn}` components.
+
+---
+
+### Example: ` <xLabel>{:dn}` on left side
+
+```doenet-editor-horiz
+<graph size="small" xLabelPosition="left">
+  <xLabel>position, <m>m</m></xLabel>
+  <line>y=x</line>
+</graph>
+```
+
+To change the default right-side position of 
+the ` <xLabel>{:dn}` to the left side, apply the `xLabelPosition`
+attribute within the ` <graph>{:dn}` definition.

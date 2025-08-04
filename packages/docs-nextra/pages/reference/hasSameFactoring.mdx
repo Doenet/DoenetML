@@ -1,0 +1,45 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <hasSameFactoring>{:dn}`
+
+` <hasSameFactoring>{:dn}`  is an [Evaluation](../document_structure/essentialConcepts#component-types)
+component that returns the boolean value of `true` or `false` depending on 
+whether the two enclosed ` <math>{:dn}` or math references are factored in the same way.
+
+## Attributes and Properties 
+ <AttrDisplay name='hasSameFactoring'/> 
+ <PropDisplay name='hasSameFactoring'/>
+
+---
+
+### Example: basic use
+
+
+```doenet-editor-horiz
+<setup>
+  <math name="expr">(x + 1)(x + 2)</math>
+</setup>
+
+<p>Factor <math extend="$expr" expand/>
+  : </p>
+    <mathInput name="mi"/>
+
+<p>Same factoring: 
+<hasSameFactoring>$mi $expr</hasSameFactoring></p> 
+```
+
+
+
+The ` <hasSameFactoring>{:dn}` component is used to check that the user has 
+supplied a factored expression, while preserving some flexibility in the 
+manner of response. In order to evaluate to `true`, the entered expression must:
+
+* contain two distinct binomial terms
+* be mathematically equivalent to the factored expression
+
+These requirements may be restricted further if desired, by applying additional 
+attributes to ` <hasSameFactoring>{:dn}`.
+

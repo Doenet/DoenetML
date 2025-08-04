@@ -1,0 +1,357 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <function>{:dn}`
+
+## Attribute Examples Part 2
+
+
+The following examples illustrate use of the ` <function>{:dn}` tag attributes.  
+
+## Attributes
+ <AttrDisplay name='function'/> 
+
+---
+
+### Attribute Example: maxima
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function 
+    name="f" 
+    maxima="(4,5) (7,-3)" 
+  />
+  <function 
+    name="g" 
+    maxima="(-7,-8) (,-6)" 
+    styleNumber="2" 
+  />
+  <function 
+    name="h" 
+    maxima="(-7,4) (-1,)" 
+    styleNumber="3" 
+  />
+</graph>
+```
+
+
+
+One way to specify required features of an interpolated function is set the `maxima` to a 
+list of points that should be maxima of the function.
+
+The `maxima` points can have an empty $x$- or $y$-coordinate, in which case 
+the missing values will be determined algorithmically.
+
+The attributes `xscale` and `yscale` will be used to determine aspects of the 
+maxima that aren't specified as well as the shape of the function.
+
+If additional features (`minima`, `extrema`, `through`) of the function are specified, 
+the function may have additional maxima that were not given by the `maxima` attribute.
+
+
+
+---
+
+### Attribute Example: extrema
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function 
+    name="f"
+    extrema="(4,5) (7,-3)" 
+  />
+  <function 
+    name="g" 
+    extrema="(-7,-8) (,-6)" 
+    styleNumber="2" 
+  />
+  <function 
+    name="h" 
+    extrema="(-7,4) (-1,)" 
+    styleNumber="3" 
+  />
+</graph>
+```
+
+
+
+One way to specify required features of an interpolated function is set the `extrema` to a 
+list of points that should be extrema of the function.
+
+The `extrema` points can have an empty $x$- or $y$-coordinate, in which case the 
+missing values will be determined algorithmically.
+
+The attributes `xscale` and `yscale` will be used to determine aspects of the 
+extrema that aren't specified as well as the shape of the function.
+
+If additional features (`minima`, `maxima`, `through`) of the function are specified, 
+the function may have additional extrema that were not given by the `extrema` attribute.
+
+
+
+---
+
+### Attribute Example: through
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function 
+    name="f" 
+    through="(4,5) (7,-3)" 
+  />
+  <function 
+    name="g" 
+    through="(-7,-4) (3,-6) (8,1)" 
+    styleNumber="2" 
+  />
+</graph>
+```
+
+
+
+One way to specify required features of an interpolated function is set the `through` attribute 
+to a list of points that the function should pass through.
+
+To specify the slope of the function at the through points, use the `throughSlopes` attribute.
+
+
+
+---
+
+### Attribute Example: throughSlopes
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function 
+    name="f" 
+    through="(4,5) (7,-3)" 
+    throughSlopes="1 -1" 
+  />
+  <function 
+    name="g" 
+    through="(-7,-4) (3,-6) (8,1)"  
+    throughSlopes="0 1/2 3" 
+    styleNumber="2" 
+  />
+</graph>
+```
+
+
+
+When the `through` attribute specifies a list of points that the function should pass 
+through, the `throughPoints` can specify the slope of the function at those points.
+
+
+
+---
+
+### Attribute Example: xscale
+
+
+```doenet-example
+<ol>
+
+  <li>Influence on range of calculated extrema
+    <p>
+      <m>g(x)=<function name="g">cos(pi x/40)</function></m>,
+      <m>h(x)=<function name="h" xscale="0.5">cos(pi x/40)</function></m>
+    </p>
+    <p>Maxima of <m>g</m>: $g.maxima</p>
+    <p>Maxima of <m>h</m>: $h.maxima</p>
+  </li>
+
+  <li>Influence on location of underspecified extrema
+    <graph size="small">
+      <function name="g1" maxima="(-8,6)" minima="(,3) (,3)"/>
+      <function name="g2" maxima="(-8,6)" minima="(,3) (,3)" xscale="4" styleNumber="2"/>
+      <function name="g3" maxima="(-8,6)" minima="(,3) (,3)" xscale="0.1" styleNumber="3"/>
+    </graph>
+
+    <p>The $g1.styleDescription curve has a default xscale of $g1.xscale, 
+    the $g2.styleDescription curve has an xscale of $g2.xscale, 
+    and the $g3.styleDescription curve has an xscale of $g3.xscale.</p>
+  </li>
+
+</ol>
+```
+
+The `xscale` is used to determine the range of $x$-values over which to look for function extrema.
+
+The `xscale` attribute also influences the position of extrema when they are specified without an $x$-component.
+
+
+
+---
+
+### Attribute Example: yscale
+
+
+```doenet-example
+<graph size="small">
+  <function name="f1" minima="(4,5)" maxima="(6,)" />
+  <function name="f2" minima="(4,5)" maxima="(6,)" yscale="4" styleNumber="2" />
+  <function name="f3" minima="(4,5)" maxima="(6,)" yscale="0.1" styleNumber="3" />
+</graph>
+
+<p>The $f1.styleDescription curve has a default yscale of $f1.yscale, 
+the $f2.styleDescription curve has a yscale of $f2.yscale, and the 
+$f3.styleDescription curve has a yscale of $f3.yscale.</p>
+```
+
+The `yscale` attribute influences the position of extrema when they are specified without an $y$-component.
+
+
+---
+
+### Attribute Example: labelIsName
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function name="f" labelIsName>
+    6 - x
+  </function>
+  <function name="g" styleNumber="2">
+    (1+x)/(6-x)
+    <label>
+      Here is <m>\frac{1+x}{6-x}</m>
+    </label>
+  </function>
+</graph>
+```
+
+
+
+The `labelIsName` attribute will label the graph of function by its name.
+
+To add a custom name instead, add a ` <label>{:dn}` child to the ` <function>{:dn}`.
+
+Disclaimer: Sometimes the auto-generated location of labels is inconvenient with 
+the `<function>{:dn}` component.  If this happens, one alternative is to
+use a separate `<label>{:dn}` component on the 
+graph and give it an exact location using the `anchor` attribute. (See the `<label>{:dn}`
+component for some examples of this.)
+
+
+---
+
+### Attribute Example: applyStyleToLabel
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function 
+    name="f" 
+    labelIsName 
+    applyStyleToLabel>
+      6 - x
+  </function>
+
+  <function 
+    name="g" 
+    styleNumber="2" 
+    applyStyleToLabel>
+      (1+x)/(6-x)
+    <label>
+      Here is <m>\frac{1+x}{6-x}</m>
+    </label>
+  </function>
+</graph>
+```
+
+
+
+If the `applyStyleToLabel` attribute is set, then the `lineColor` from the 
+selected style is applied to the label text.
+
+
+
+---
+
+### Attribute Example: labelPosition
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function 
+    name="f" 
+    labelIsName 
+    labelPosition="lowerRight">
+      x + 6
+  </function>
+
+  <function 
+    name="g" 
+    styleNumber="2" 
+    labelPosition="lowerRight">
+      (1+x)/(6-x)
+    <label>
+      Here is <m>\frac{1+x}{6-x}</m>
+    </label>
+  </function>
+</graph>
+```
+
+
+
+The `labelPosition` attribute changes the location of the label relative to the graph of the function.  Valid options are:
+
+
+* upperRight (the default)
+* upperLeft
+* lowerRight
+* lowerLeft
+* top
+* bottom
+* left
+* right
+
+
+Disclaimer: Sometimes the auto-generated location of labels (even with the `labelPosition` attribute) 
+is inconvenient with the `<function>{:dn}` component.  If this happens, one alternative is to
+use a separate `<label>{:dn}` component on the 
+graph and give it an exact location using the `anchor` attribute. (See the `<label>{:dn}`
+component for some examples of this.)
+
+---
+
+### Attribute Example: layer
+
+
+```doenet-editor-horiz
+<setup>
+  <styleDefinitions>
+    <styleDefinition 
+      styleNumber="2" 
+      fillOpacity="1" 
+    />
+  </styleDefinitions>
+</setup>
+
+<graph size="small">
+  <circle 
+    radius="4" 
+    filled 
+    styleNumber="2" 
+    layer="2" 
+  />
+  <function layer="3">6 - x^2</function>
+  <function>x^2 - 5</function>
+</graph>
+```
+
+
+
+To make sure an object appears on top of another object in graph, one can use the `layer` attribute 
+to put the object in a higher layer.
+
+Objects default to be in layer 0.  Layers 0-9 are supported.
+
+
+

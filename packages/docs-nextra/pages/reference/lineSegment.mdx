@@ -1,0 +1,269 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <lineSegment>{:dn}`
+
+` <lineSegment>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a line segment when nested within a [` <graph>{:dn}`](graph.mdx) component.
+
+## Attributes and Properties 
+ <AttrDisplay name='lineSegment'/> 
+ <PropDisplay name='lineSegment'/>
+
+---
+
+### Example: Default ` <lineSegment>{:dn}`
+
+
+```doenet-example
+<graph size="small" xmin="-2" xmax="2" ymin="-2" ymax="2">
+  <lineSegment/>
+</graph>
+```
+
+
+
+Without any attributes, the default ` <lineSegment>{:dn}` has endpoints $(0,0)$ and $(1,0)$.
+
+
+
+---
+
+### Example: ` <lineSegment>{:dn}` with rendered endpoints
+
+
+```doenet-example
+<graph size="small">
+  <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
+  <pointList styleNumber="2">
+    $segment1.endpoints
+  </pointList>
+</graph>
+```
+
+
+
+The `endpoints` property of a named ` <lineSegment>{:dn}` can be 
+rendered on a ` <graph>{:dn}` with the macro `$name.property`.
+
+
+
+---
+
+### Example: ` <lineSegment>{:dn}` constrained to a grid
+
+
+```doenet-editor-horiz
+<graph size="small" grid="1 1">
+  <point name="A" styleNumber="4">(0,0)
+    <constraints><constrainToGrid/></constraints>
+  </point>
+  <point name="B" styleNumber="4">(6,6)
+    <constraints><constrainToGrid/></constraints>
+  </point>
+  <lineSegment endpoints="$A $B"/>
+</graph>
+```
+
+
+
+The endpoints of a ` <lineSegment>{:dn}` are predefined as constrained points, 
+thereby constraining the segment to a grid as well.
+
+
+
+---
+
+### Attribute Example: endpoints
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <lineSegment name="segment1" endpoints="(1,2) (3,4)"/>
+</graph>
+
+<p><c>endpoints</c> = $segment1.endpoints</p>
+<p><c>endpoints[2]</c> = $segment1.endpoints[2]</p>
+<p><c>endpoints[2][2]</c> = $segment1.endpoints[2][2]</p>
+```
+
+
+
+The `endpoints` attribute takes as an input a list of two points.
+
+
+
+---
+
+### Attribute Example: draggable
+
+
+```doenet-example
+<p>Try dragging each of the line segments.</p>
+<graph size="small">
+  <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
+  <lineSegment name="segment2" draggable="false" endpoints="(-2,4) (5,-2)" styleNumber="2"/>
+</graph>
+
+<p>Blue lineSegment, <c>draggable</c> = $segment1.draggable</p>
+<p>Red lineSegment, <c>draggable</c> = $segment2.draggable</p>
+```
+
+
+
+The `draggable` attribute determines whether the ` <lineSegment>{:dn}` can be 
+dragged around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+
+
+
+---
+
+### Attribute Example: endpointsDraggable
+
+
+```doenet-example
+<p>Try dragging the endpoints of each of the line segments.</p>
+<graph size="small">
+  <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
+  <lineSegment name="segment2" endpointsDraggable="false" endpoints="(-2,4) (5,-2)" styleNumber="2"/>
+</graph>
+
+<p>Blue lineSegment, <c>endpointsDraggable</c> = $segment1.endpointsDraggable</p>
+<p>Red lineSegment, <c>endpointsDraggable</c> = $segment2.endpointsDraggable</p>
+```
+
+
+
+Endpoints are draggable by default. Use the `endpointsDraggable` attribute set to 
+false to disable users from changing the shape and length of the ` <lineSegment>{:dn}`. The segment 
+as a whole can still be repositioned on the ` <graph>{:dn}`.
+
+
+
+---
+
+### Attribute Example: showCoordsWhenDragging
+
+
+```doenet-example
+<p>Drag the endpoints of each of the line segments.</p>
+<graph size="small">
+  <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
+  <lineSegment name="segment2"  endpoints="(-2,4) (5,-2)" styleNumber="2" showCoordsWhenDragging="false"/>
+</graph>
+
+<p>Blue lineSegment, <c>showCoordsWhenDragging</c> = $segment1.showCoordsWhenDragging</p>
+<p>Red lineSegment, <c>showCoordsWhenDragging</c> = $segment2.showCoordsWhenDragging</p>
+```
+
+
+
+By default, a light-grey set of coordinates is shown while the user drags the 
+endpoints of the line segment. To turn off this default behavior, set the `showCoordsWhenDragging` attribute 
+to false.
+
+
+
+---
+
+### Attribute Example: Standard graphical attributes
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle styleNumber="5" filled radius="6" fixed/>
+  <lineSegment 
+    name="segment1" 
+    endpoints="(0,0) (6,6)" 
+    layer="1" 
+    styleNumber="2" 
+    hide="$hideSegmentA" 
+    fixLocation 
+    applyStyleToLabel 
+    labelIsName
+  />
+  <lineSegment 
+    name="segment2"  
+    endpoints="(-2,4) (5,-2)" 
+    styleNumber="3" 
+    applyStyleToLabel 
+    labelIsName
+  />
+</graph>
+
+<booleanInput name="hideSegmentA" labelIsName/>
+
+<p>Standard graphical attributes:</p>
+    <ul>
+      <li><attr>hide</attr></li>
+      <li><attr>fixLocation</attr></li>
+      <li><attr>layer</attr> (0) is default value.</li>
+      <li><attr>styleNumber</attr> 1 - 6</li>
+      <li><attr>applyStyleToLabel</attr></li>
+      <li><attr>labelIsName</attr></li>
+    </ul>
+```
+
+
+
+The uses of the following standard graphical attributes are 
+illustrated: `hide`, `fixLocation`, `layer`, `styleNumber`, `applyStyleToLabel` and `labelIsName`.
+
+
+
+---
+
+### Property Example: numDimensions
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
+</graph>
+
+<p><c>numDimensions</c> = $segment1.numDimensions</p>
+```
+
+
+
+The `numDimensions` property returns the number of dimesions of the ` <lineSegment>{:dn}`.
+
+
+
+---
+
+### Property Example: length
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
+</graph>
+
+<p><c>length</c> = $segment1.length</p>
+```
+
+
+
+The `length` property returns the length of the ` <lineSegment>{:dn}`.
+
+
+
+---
+
+### Property Example: slope
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
+</graph>
+<p><c>slope</c> = $segment1.slope</p>
+```
+
+
+
+The `slope` property returns the slope of the ` <lineSegment>{:dn}`.
+

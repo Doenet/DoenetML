@@ -1,0 +1,302 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <rectangle>{:dn}`
+
+
+` <rectangle>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) 
+component that renders a rectangle when nested inside a [` <graph>{:dn}`](graph.mdx) component.
+
+## Attributes and Properties 
+ <AttrDisplay name='rectangle'/> 
+ <PropDisplay name='rectangle'/>
+
+---
+
+### Example: Default ` <rectangle>{:dn}`
+
+
+```doenet-editor-horiz
+<graph 
+  size="small" 
+  xmin="-3" 
+  xmax="3" 
+  ymin="-3" 
+  ymax="3">
+    <rectangle/>
+</graph>
+```
+
+
+
+This is a default ` <rectangle>{:dn}` without additional attributes. The vertices 
+can be dragged to change its shape, and the rectangle itself can be repositioned by 
+clicking and dragging on any side.
+
+
+
+---
+
+### Example: ` <rectangle>{:dn}` with center, width and height
+
+
+```doenet-editor-horiz
+<graph 
+  size="small" 
+  xmin="-3" 
+  xmax="3" 
+  ymin="-3" 
+  ymax="3">
+    <rectangle name="rect1" center='(0,0)' width="4" height="2"/>
+</graph>
+```
+
+
+
+A ` <rectangle>{:dn}` can be described by specifying its `center`, `width` and `height` 
+with attributes. The vertices can be dragged to change its shape, and the rectangle 
+itself can be repositioned by clicking and dragging on any side.
+
+
+
+---
+
+### Example: Filled colored ` <rectangle>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small" xmin="-2" xmax="6" ymin="-1" ymax="1">
+  <rectangle filled center="(0,0.25)"/>
+  <rectangle filled center="(1,-0.25)" styleNumber="2"/>
+  <rectangle filled center="(2,0.25)" styleNumber="3"/>
+  <rectangle filled center="(3,-0.25)" styleNumber="4"/>
+  <rectangle filled center="(4,0.25)" styleNumber="5"/>
+  <rectangle filled center="(5,-0.25)" styleNumber="6"/>
+</graph>      
+```
+
+
+
+The `filled` attribute renders the rectangle with default shading to match the styleNumber.
+
+
+
+---
+
+### Example: ` <rectangle>{:dn}` from vertices
+
+
+```doenet-editor-horiz
+<p>Drag the corners of the rectangle to change its shape.</p>
+
+<graph size="small" grid>
+  <rectangle vertices="(-3,-4) (5,6)" name="rect"/>
+  <rectangle styleNumber="2" name="default"/>
+  $rect.vertices[1]
+  $rect.vertices[3]
+</graph>  
+
+<p><c>vertices</c> = $rect.vertices</p>
+```
+
+
+
+Use the `vertices` attribute to specify a list of the two opposite corner 
+points of the rectangle (lower left and upper right); default: vertices="(0,0) (1,1)"
+
+
+
+---
+
+### Example: ` <rectangle>{:dn}` constrained to a grid
+
+
+```doenet-editor-horiz
+<p>Drag the corners of the rectangle to change its shape.</p>
+
+<graph size="small" grid>
+  <point name="v1">(-2,-2)
+    <constraints>
+      <constrainToGrid/>
+    </constraints>
+  </point>
+  <point name="v2">(2,4)
+    <constraints>
+      <constrainToGrid/>
+    </constraints>
+  </point>
+  <rectangle vertices="$v1 $v2" filled/>
+</graph>
+```
+
+
+
+A rectangle is effectively constrained to an integer grid by referencing two 
+constrained points in the `vertices` attribute.
+
+
+
+---
+
+### Attribute Example: center
+
+
+```doenet-example
+<p>Drag the center point to shift the rectangle's position</p>
+
+<graph size="small" xmin="-2" xmax="2" ymin="-2" ymax="2">
+  <rectangle center="(0,0)" name="rect"/>
+  <point extend="$rect.center" styleNumber="2"/>
+</graph>
+<p><c>center</c> = $rect.center</p>
+```
+
+
+
+Use the `center` attribute to specify the center point of the rectangle. If not specified,
+the default center position is $(0.5, 0.5)$.
+
+
+
+---
+
+### Attribute Example: width, height
+
+
+```doenet-example
+<p>Drag the corners of the rectangle to change its shape.</p>
+<graph size="small">
+  <rectangle height="4" width="7" name="rect"/>
+</graph>
+
+<p><c>width</c> = $rect.width</p>
+<p><c>height</c> = $rect.height</p>
+```
+
+
+
+Use the `width` and `height` attributes to specify the proportions of the ` <rectangle>{:dn}` directly. 
+If not specified, the default values for `width` and `height` are both $1$.
+
+
+
+---
+
+### Attribute Example: vertices
+
+
+```doenet-editor-horiz
+<p>Drag the corners of the rectangle to change its shape.</p>
+
+<graph>
+  <rectangle vertices="(-3,-4) (5,6)" name="rect"/>
+  <point extend="$rect.vertices[1]"/>
+  <point extend="$rect.vertices[3]"/>
+</graph>
+
+<p><c>vertices</c> = $rect.vertices</p>
+```
+
+
+
+Use the `vertices` attribute to specify a list of the two opposite corner points of the rectangle (lower left and upper right); default: vertices="(0,0) (1,1)"
+
+
+
+---
+
+### Attribute Example: verticesDraggable
+
+
+```doenet-example
+<p>Drag the rectangle around the graph.</p>
+
+<graph>
+  <rectangle vertices="(-3,-4) (5,6)" name="rect" verticesDraggable="false"/>
+</graph>
+
+<p><c>vertices</c> = $rect.vertices</p>
+<p><c>width</c> = $rect.width</p>
+<p><c>height</c> = $rect.height</p>
+```
+
+
+
+Vertices are draggable by default. Use the `verticesDraggable` attribute set to `false` to 
+disable users from changing the proportions of the ` <rectangle>{:dn}`. The rectangle as a 
+whole can still be repositioned on the ` <graph>{:dn}`.
+
+
+
+---
+
+### Attribute Example: Standard graphical attributes
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle styleNumber="5" filled radius="6" fixed/>
+  <rectangle 
+    name="A" 
+    layer="1" 
+    styleNumber="3" 
+    applyStyleToLabel 
+    labelIsName 
+    hide="$hideRectangleA" 
+    draggable="false" 
+    filled 
+    width="2" 
+    height="5"
+  />
+  <rectangle 
+    name="B" 
+    applyStyleToLabel 
+    styleNumber="2" 
+    labelIsName 
+    vertices="(-8,-8) (-3,0)"
+  />
+</graph>
+
+<booleanInput name="hideRectangleA" labelIsName/>
+<p>Standard graphical attributes:</p>
+    <ul>
+      <li><attr>hide</attr></li>
+      <li><attr>draggable</attr></li>
+      <li><attr>layer</attr> (0) is default value.</li>
+      <li><attr>styleNumber</attr> 1 - 6</li>
+      <li><attr>applyStyleToLabel</attr></li>
+      <li><attr>labelIsName</attr></li>
+    </ul>
+```
+
+
+
+The uses of the following standard graphical attributes are illustrated: `hide`, `draggable`, `layer`, `styleNumber`, `applyStyleToLabel` and `labelIsName`.
+
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <rectangle vertices="(-3,-4) (7,6)" name="rect"/>
+</graph>
+
+<p><c>center</c> = $rect.center</p>
+<p><c>center[2]</c> = $rect.center[2]</p>
+<p><c>width</c> = $rect.width</p>
+<p><c>height</c> = $rect.height</p>
+<p><c>vertices</c> = $rect.vertices</p>
+<p><c>vertices[2]</c> = $rect.vertices[2]</p>
+<p><c>vertices[2][1]</c> = $rect.vertices[2][1]</p>
+<p><c>verticesDraggable</c> = $rect.verticesDraggable</p>
+```
+
+
+
+The above listed attributes of a named ` <rectangle>{:dn}` are also available as properties.
+

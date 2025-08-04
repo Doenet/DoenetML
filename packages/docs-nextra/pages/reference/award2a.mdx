@@ -1,0 +1,220 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <award>{:dn}`
+
+## Attribute Examples Part 1
+
+The following examples illustrate use of the ` <award>{:dn}` tag attributes.  
+
+---
+
+
+### Attribute Example: credit
+```doenet-example
+<p><em>For the following question, first enter <m>\frac{4}{8}</m> and 
+then <m>\frac{1}{2}</m>.</em></p>
+
+<p>Question: Simplify <m>\frac{8}{16}</m>
+<answer symbolicEquality>
+  <award>1/2</award>
+  <award credit="0.5">4/8</award>
+</answer>
+</p>
+```
+
+
+
+By default, a matched ` <award>{:dn}` will give full credit of 1.  Specify a 
+smaller value of the `credit` attribute cause the ` <award>{:dn}` to give partial credit.
+
+
+---
+
+### Attribute Example: matchPartial
+```doenet-editor-horiz
+<p>Enter an even number greater than 6:
+  <answer>
+    <mathInput name="userNumber"/>
+    <award matchPartial>
+      <when>$userNumber > 6 and <mod>$userNumber 2</mod> = 0</when>
+    </award>
+  </answer>
+</p>
+
+<p>What is <m>(1,2,3)+(4,5,6)</m>? 
+  <answer>
+    <award matchPartial>(5,7,9)</award></answer>
+</p>
+```
+
+
+
+When the `matchPartial` attribute is applied, an automated partial credit evaluation will be attempted, 
+potentially giving credit between 0 and 1.  Without the `matchPartial` attribute, the response must 
+be completely correct before it receives credit.
+
+
+The automated partial credit algorithm will attempt to break up logical conditions into pieces and 
+look separately at components of vectors.
+
+
+For comparison of vectors, the attributes `matchByExactPositions` and `unorderedCompare` influence 
+the partial credit algorithm.
+
+
+
+---
+
+### Attribute Example: symbolicEquality
+```doenet-editor-horiz
+<p>Your responses to these questions must exactly match our answers!</p>
+<p><m>2x + 5x = </m>
+  <answer>
+    <award symbolicEquality>7x</award>
+  </answer>
+</p>
+
+<p><m>x^2 + 2x^2 + 3x + x</m>
+  <answer>
+    <award symbolicEquality>3x^2 + 4x</award>
+  </answer>
+</p> 
+```
+
+
+
+Note that you cannot repeat the original expression in the first question, and you cannot 
+commute the terms in the second question.
+
+
+For answer validation that is more liberal (but still stricter than the default 
+numerical checker), combine `symbolicEquality` with the `simplifyOnCompare` and 
+`expandOnCompare` attributes.
+
+
+
+---
+
+### Attribute Example: symbolicEquality with simplifyOnCompare
+```doenet-editor-horiz
+<p>Enter anything mathematically equivalent to <m>x^2+2x+1</m>: 
+  <answer>
+    <award>x^2+2x+1</award>
+  </answer></p>
+
+<p>Enter <m>x^2+2x+1</m> exactly: 
+  <answer>
+    <award symbolicEquality>x^2+2x+1</award>
+  </answer></p>
+
+<p>Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored): 
+  <answer>
+    <award symbolicEquality simplifyOnCompare>x^2+2x+1</award>
+  </answer></p>
+
+<p>Pick a level of simplification:
+  <choiceInput name="simpOnComp" inline preselectChoice="1">
+    <choice>none</choice>
+    <choice>numbersPreserveOrder</choice>
+    <choice>numbers</choice>
+    <choice>full</choice>
+  </choiceInput>
+</p>
+
+<p>
+  Enter <m>x^2+2x+1</m>:
+  <answer>
+    <award symbolicEquality simplifyOnCompare="$simpOnComp">x^2+2x+1</award>
+  </answer></p>
+```
+
+
+
+Specifying the `symbolicEquality` attribute switches to a symbolic answer-checker that 
+demands exact syntatical equality.  The symbolic equality can be relaxed with the `simplifyOnCompare` attribute.
+
+
+The `simplifyOnCompare` attribute has four options:
+<ol>
+* `simplifyOnCompare="none"`: the default value of demanding exact equality.
+* `simplifyOnCompare="full"` (or simply `simplifyOnCompare` by itself): apply currently available simplification routines before checking.  Does not include expanding factored expressions.
+* `simplifyOnCompare="numbers"`: simplify numerical expressions like `1+2` but not algebraic expressions.  Permute terms and factors into a canonical order before checking equality.
+* `simplifyOnCompare="numbersPreserveOrder"`: simplify numbers but without permuting terms or factors.
+</ol>
+
+
+To include expansion of factored expressions, you can add the `expandOnCompare` attribute.
+
+
+
+---
+
+### Attribute Example: symbolicEquality with expandOnCompare
+```doenet-editor-horiz
+<p>Enter anything mathematically equivalent to <m>x^2+2x+1</m>: 
+  <answer>
+    <award>x^2+2x+1</award>
+  </answer></p>
+
+<p>Enter <m>x^2+2x+1</m> exactly: 
+  <answer>
+    <award symbolicEquality>x^2+2x+1</award>
+  </answer></p>
+
+<p>Enter <m>x^2+2x+1</m> or some mathematically equivalent forms (not factored): 
+  <answer>
+    <award symbolicEquality simplifyOnCompare>x^2+2x+1</award>
+  </answer></p>
+
+<p>Enter <m>x^2+2x+1</m> in factored or unfactored form: 
+  <answer>
+    <award symbolicEquality simplifyOnCompare expandOnCompare>x^2+2x+1</award>
+  </answer></p>
+```
+
+The default comparison is a numerical answer-checker with a liberal definition of 
+equality. Specifying the `symbolicEquality` attribute switches to a symbolic 
+answer-checker that demands exact syntatical equality. The symbolic equality can be 
+relaxed with the `simplifyOnCompare` attribute. To expand factor expressions prior to 
+comparison, you should also include the `expandOnCompare` attribute.
+
+
+---
+
+### Attribute Example: unorderedCompare and unordered
+```doenet-editor-horiz
+<p>Enter <m>1,2,3,4,5</m> :
+  <answer><award>
+    <mathList>1 2 3 4 5</mathList>
+  </award></answer></p>
+
+<p>Now enter <m>1,2,3,4,5</m>, but scramble the order up :
+  <answer><award unorderedCompare>
+    <mathList>1 2 3 4 5</mathList>
+  </award></answer></p>
+
+<p>Again, enter <m>1,2,3,4,5</m>, but scramble the order up :
+  <answer><award>
+    <mathList unordered>1 2 3 4 5</mathList>
+  </award></answer></p>
+```
+
+
+
+When multiple values are compared within a single ` <award>{:dn}` tag, the default behavior 
+is to match the order of the sequenced values. If order is irrelevant, use the `unorderedCompare` attribute.
+
+
+`unorderedCompare` can be used with list components (e.g., ` <mathList>{:dn}`, ` <numberList>{:dn}`, 
+and ` <textList>{:dn}`) as well as the ` <math>{:dn}` component containing a list (e.g, `1,2,3`), 
+tuple (e.g., `(1,2,3)`) or array (e.g., `[1,2,3]`).
+
+
+Alternatively, and for more control over what is ordered, one can add the `unordered` attribute 
+directly to a list component or a ` <math>{:dn}`, which will cause an unordered comparison to 
+be used when comparing it to anything else.
+
+

@@ -1,0 +1,58 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <mean>{:dn}`
+
+` <mean>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types) 
+component which renders the arithmetic mean of the enclosed values.
+
+## Attributes and Properties 
+ <AttrDisplay name='mean'/> 
+ <PropDisplay name='mean'/>
+
+---
+
+### Example: ` <mean>{:dn}` of a nested list of numbers
+
+
+```doenet-editor-horiz
+<p><m>\mathbb{A} = \{1, 2, 3, -1\}</m></p>
+
+<p>The mean of <m>\mathbb{A}= 
+  <mean>1 2 3 -1</mean></m>
+</p>
+```
+
+
+Numbers are listed directly within opening and closing tags of the ` <mean>{:dn}` 
+component. The ` <m>{:dn}` component is used for mathematical desplay.
+
+
+
+---
+
+### Example: ` <mean>{:dn}` of named ` <mathInput/>{:dn}` components
+
+
+```doenet-editor-horiz
+<p>Choose three numbers: </p>
+<p><m>x = </m> <mathInput name="x"/></p>
+<p><m>y = </m> <mathInput name="y"/></p> 
+<p><m>z = </m> <mathInput name="z"/></p>
+<p>  
+The mean of your three numbers <m>\{$x, $y, $z\}</m> is:  
+  <m>
+    <number>
+      <mean>$x $y $z</mean>
+    </number>
+  </m>
+</p>
+```
+
+
+
+In this example, three ` <mathInput/>{:dn}` components 
+are referenced using the `$name` notation within the ` <mean>{:dn}` component.
+

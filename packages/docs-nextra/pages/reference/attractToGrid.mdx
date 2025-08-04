@@ -1,0 +1,107 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <attractToGrid/>{:dn}`
+
+` <attractToGrid>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) component that 
+is used to within a ` <point>{:dn}` to attract it to a specified grid. This component must be
+nested within a [` <constraints>{:dn}`](constraints.mdx) block. 
+
+## Attributes and Properties 
+ <AttrDisplay name='attractToGrid'/> 
+ <PropDisplay name='attractToGrid'/>
+
+
+---
+
+### Example: Attract `<point>{:dn}` to a grid, default behavior
+```doenet-example
+<graph xmin="-4" xmax="4" ymin="-4" ymax="4" grid>
+  <point>
+    <constraints>
+      <attractToGrid/>
+    </constraints>
+  </point>
+</graph>
+```
+
+The default grid spacing for attraction for a `<point>{:dn}` with 
+the `<attractToGrid>{:dn}` constraint is 1.
+
+
+---
+
+### Attribute Example: dx, dy
+```doenet-example
+<graph grid="2 4">
+  <point>
+    <constraints>
+      <attractToGrid dx="2" dy="4"/>
+    </constraints>
+  </point>
+</graph>
+```
+
+The `dx` and `dy` attributes allow for customization of the attraction grid. 
+Note that it is not required to display the grid in the graph; this is done for illustration.
+
+
+---
+
+### Attribute Example: xOffset, yOffset
+```doenet-editor-horiz
+<graph grid="5 5">
+  <point styleNumber="2" layer="2">
+    <constraints>
+      <attractToGrid dx="5" xOffset="1" dy="5" yOffset="1" includeGridlines="true"/>
+      </constraints>
+    </point>
+    <point styleNumber="6" fixed>(6, 6)</point>
+    <point styleNumber="6" fixed>(-4, 6)</point>
+    <point styleNumber="6" fixed>(-4, -4)</point>
+    <point styleNumber="6" fixed>(6, -4)</point>
+</graph>
+```
+
+With the `xOffset` and `yOffset` attributes, the spacing of attraction gridlines can be adjusted to a 
+specific offset of the specified `dx` and `dy`.
+
+The grey points are included as an illustration of where the offset attraction grids occur.
+
+
+---
+
+### Attribute Example: xThreshold, yThreshold
+```doenet-editor-horiz
+<graph grid="2 4">
+  <point>
+    <constraints>
+      <attractToGrid dx="2" xthreshold="0.1" dy="4" ythreshold="1" />
+      </constraints>
+  </point>
+</graph>
+```
+
+The `xThreshold` and `yThreshold` attributes can be used to control how close the `<point>{:dn}` must be to 
+a grid for attraction to take effect. Notice the different behavior above when dragging the point 
+close to the $x$ gridlines and $y$ gridlines.
+
+---
+
+### Property Example: Attributes as properties
+```doenet-editor-horiz
+<graph grid="1 4" size="small">
+  <point>
+    <constraints>
+      <attractToGrid name="gridAttract" xthreshold="0.1" dy="4" yOffset="1" />
+      </constraints>
+  </point>
+</graph>
+<p><c>dx, dy</c> = $gridAttract.dx, $gridAttract.dy</p>
+<p><c>xOffset, yOffset</c> = $gridAttract.xOffset, $gridAttract.yOffset</p>
+<p><c>xThreshold, yThreshold</c> = $gridAttract.xThreshold, $gridAttract.yThreshold</p>
+```
+
+The attributes of `<attractToGrid/>{:dn}` shown in the example above are also available as properties.

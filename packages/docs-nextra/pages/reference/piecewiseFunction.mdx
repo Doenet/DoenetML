@@ -1,0 +1,237 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <piecewiseFunction>{:dn}`
+
+
+` <piecewiseFunction>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a piecewise defined function that can be evaluated and graphed in the same manner 
+as a ` <function>{:dn}` component.
+
+
+In order to evaluate a piecewiseFunction, the function attribute `symbolic` must be 
+set to `false`, to force numerical evaluation.
+
+
+*Disclaimer*: currently, piecewise functions cannot be used with the` <derivative>{:dn}` component. 
+Individual ` <function>{:dn}` children need to be differentiated independently. Open and closed 
+endpoints must also be graphed as independent components (see [` <endpoint>{:dn}`](endpoint.mdx).)
+
+## Attributes and Properties 
+ <AttrDisplay name='piecewiseFunction'/> 
+ <PropDisplay name='piecewiseFunction'/>
+
+---
+
+### Example: A simple three-part ` <piecewiseFunction>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <piecewiseFunction name="f" symbolic="false">
+    <function domain="(-infinity,-5)">
+      x
+    </function>
+    <function domain="[-5,3)">
+      1/4 x^2
+    </function>
+    <function domain="[3,infinity)">
+      9/4
+    </function>
+  </piecewiseFunction>
+</graph>
+
+<p><me>f(x) = $f</me></p>
+<p>Evaluate the function at several inputs:</p>
+<p><m>f(-8) = $$f(-8)</m></p>
+<p><m>f(1) = $$f(1)</m></p>
+<p><m>f(5) = $$f(5)</m></p>     
+```
+
+
+
+The ` <piecewiseFunction>{:dn}` component is defined by assigning ` <function>{:dn}` children 
+for each distinct region of the function's domain. The named ` <piecewiseFunction>{:dn}` can 
+then be evaluated in the same manner as the ` <function>{:dn}` component using 
+the `$$functionName(input)` evaluation macro.
+
+
+*Note*: When using a ` <piecewiseFunction>{:dn}` for evaluation, it is necessary to include 
+the function attribute `symbolic="false"` to force numerical evaluation.
+
+
+
+---
+
+### Example: Adding endpoints graphically to a ` <piecewiseFunction>{:dn}`
+
+
+```doenet-editor-horiz
+<setup>
+  <!--Define continuous base functions-->
+  <function name="Hminus">0</function>
+  <function name="Hplus">1</function>
+  
+  <!--Define piecewise function; restrict domains-->
+  <piecewiseFunction name="H" symbolic="false">
+    <function extend="$Hminus" 
+              domain="(-infinity,0)"/>
+    <function name="Hzero" 
+              domain="[0,0]">1/2
+    </function>
+    <function extend="$Hplus" 
+              domain="(0,infinity)"/>  
+  </piecewiseFunction>
+</setup>
+
+<p>The piecewise constant Heaviside step function (using the half-maximum convention), is given by:
+  <me>H(x) = $H</me>
+</p>
+
+<graph xmin="-2" xmax="2" ymin="-1" ymax="2">
+  $H
+  <endpoint open>(0,$$Hminus(0))</endpoint>
+  <endpoint open>(0,$$Hplus(0))</endpoint>
+  <endpoint>(0, $$H(0))</endpoint>
+</graph>
+
+<p>Evaluate the function at several inputs:</p>
+<p><m>H(-3) = $$H(-3)</m></p>
+<p><m>H(0) = $$H(0)</m></p>
+<p><m>H(3) = $$H(3)</m></p>
+```
+
+Doenet only evaluates functions at points strictly in their specified domains. Therefore, 
+in order to locate endpoints of open intervals for graphing, it may be necessary to define 
+a set of base functions with unrestricted domains. In the example shown, the child functions 
+themselves (and therefore the endpoint evaluations) are trivial, but the same method will 
+work for more complex functions as well.
+
+These predefined functions can then be copied into the definition of the ` <piecewiseFunction>{:dn}` 
+using the `extend` attribute, and the precise domains can be specified for each. This allows for 
+the single ` <piecewiseFunction>{:dn}` to then be used for 
+1. graphing the linear component of the function, 
+2. for correctly rendering the equation of the piecewise function outside the graph, and 
+3. for correct mathematical evaluation at all points in the domain.
+
+Note: When using a ` <piecewiseFunction>{:dn}` for evaluation, it is necessary to include the 
+function attribute `symbolic="false"` to force numerical evaluation.
+
+---
+
+### Example: How domains are interpreted
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <piecewiseFunction name="f" symbolic="false" domain="(-8,8)">
+    <function domain="(-5,-2)">
+      -2
+    </function>
+    <function domain="[-5,5]">
+      1
+    </function>
+    <function domain="(3,6)">
+      3
+    </function>
+    <function>0</function>    
+  </piecewiseFunction>
+</graph>
+<p><m>f(x) = $f</m></p>
+<p>Evaluate the function at several inputs:</p>
+<p><m>f(-3) = $$f(-3)</m></p>
+<p><m>f(4) = $$f(4)</m></p>
+<p><m>f(7) = $$f(7)</m></p> 
+<p><m>f(9) = $$f(9)</m></p>    
+```
+
+
+
+Domains may be specified for the parent ` <piecewiseFunction>{:dn}`, and also for all individual child functions. When two domains overlap, the previously defined ` <function>{:dn}` governs. Finally, when no domain is specified for a given function, that function assumes the domain not occupied by all of the other defined functions.
+
+
+<em>Note</em>: When using a ` <piecewiseFunction>{:dn}` for evaluation, it is necessary to include the function attribute `symbolic="false"` to force numerical evaluation.
+
+
+
+---
+
+### Attribute Example: domain
+
+
+```doenet-example
+<graph>
+<piecewiseFunction 
+  name="f" 
+  domain="(-5,5)">
+    <function domain="(-infinity,0)">
+      -3
+    </function>
+    <function domain="[0, infinity)">
+      3
+    </function>
+</piecewiseFunction>
+</graph>
+```
+
+
+
+The `domain` attribute can be used to specify an overarching domain 
+for the ` <piecewiseFunction>{:dn}`.
+
+
+
+---
+
+### Attribute Example: variable/ variables
+
+
+```doenet-example
+<p><m>f(t) = $f</m></p>
+<graph>
+<piecewiseFunction name="f" variables="t">
+  <function domain="(0,Infinity)">x</function>
+  <function domain="(-Infinity, 0]" variables="y">2-y</function>
+</piecewiseFunction>
+</graph>
+```
+
+
+
+The `variables` attribute changes the overarching variable used for 
+the ` <piecewiseFunction>{:dn}`, but individual ` <function>{:dn}` variables may differ. 
+At this time (update forthcoming), the child functions will still look for a default 
+independent variable of $x$.
+
+
+
+
+
+---
+
+### Property Example: minima/ maxima
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <piecewiseFunction name="f">
+    <function domain="(-infinity, 0)">
+      1/4(x+4)^2 - 4</function>
+    <function domain="[0,Infinity)">
+      -1/4(x - 4)^2 + 4</function>
+  </piecewiseFunction>
+  $f.maxima $f.minima
+</graph>
+
+<me>f(x)=$f</me>    
+<p>Minima of f: $f.minima</p>
+<p>Maxima of f: $f.maxima</p>
+```
+
+
+
+Local maxima and minima of the ` <piecewiseFunction>{:dn}` are rendered with the `maxima/minima` 
+properties.
+

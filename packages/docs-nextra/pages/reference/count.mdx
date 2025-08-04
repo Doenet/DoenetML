@@ -1,0 +1,55 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <count>{:dn}`
+
+` <count>{:dn}` renders the length of a list of items.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='count'/> 
+ <PropDisplay name='count'/>
+
+
+---
+
+### Example: Count a ` <mathList>{:dn}`
+
+
+```doenet-editor-horiz
+<mathList name="grades">99 100 75 89 92 90</mathList>
+<p>Number of entries = 
+  <count>$grades</count></p>
+```
+
+
+
+The ` <count>{:dn}` component renders the length of a named ` <mathList>{:dn}`.
+
+
+
+---
+
+### Example: Count number of collected items
+
+
+```doenet-editor-horiz
+<callAction actionName="addChildren" target="g">
+  <point/>
+  <label>Add Point</label>
+</callAction>
+<graph name="g" size="small"/>
+<p>Number of points = 
+  <count>
+    <collect name="collectedPoints" componentTypes="point" source="g"/>
+  </count>
+</p>
+$collectedPoints
+```
+
+
+
+The ` <count>{:dn}` component renders the number of ` <point>{:dn}` children collected from a ` <graph>{:dn}`.
+
+

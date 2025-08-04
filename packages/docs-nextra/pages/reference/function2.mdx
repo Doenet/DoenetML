@@ -1,0 +1,416 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <function>{:dn}`
+
+## Attribute Examples Part 1
+
+
+The following examples illustrate use of the ` <function>{:dn}` tag attributes.  
+
+## Attributes
+ <AttrDisplay name='function'/> 
+
+---
+
+### Attribute Example: domain
+
+
+```doenet-editor-horiz
+<p>Let <m>f(x) = 
+  <function 
+    name="f" 
+    domain="[-4,2)">
+      x^2-8
+  </function>
+</m> with domain <m>x \in [-4,2)</m>.</p>
+
+<p>
+  <m>f(a) = $$f(a)</m>, 
+  <m>f(-5) = $$f(-5)</m>, 
+  <m>f(-4) = $$f(-4)</m>, 
+  <m>f(-1) = $$f(-1)</m>, 
+  <m>f(2) = $$f(2)</m>
+</p>
+
+<graph size="small">
+  $f
+</graph>
+
+<p><m>g = 
+  <function name="g" 
+    extend="$f" 
+    symbolic="false" 
+  />
+  </m> is the numerical version of <m>f</m>.
+</p>
+
+<p>
+  <m>g(a) = $$g(a)</m>, 
+  <m>g(-5) = $$g(-5)</m>, 
+  <m>g(-4) = $$g(-4)</m>, 
+  <m>g(-1) = $$g(-1)</m>, 
+  <m>g(2) = $$g(2)</m>
+</p>
+
+
+<p><m>h(x,y) = 
+  <function 
+    name="h" 
+    variables="x y" 
+    domain="(-1,2) [3,6]">
+      xy
+    </function>
+  </m> defined on the domain 
+  <m>(x,y) \in  (-1,2) \times [3,6]</m>.
+</p>
+<p>
+  <m>h(a,b) = $$h(a,b)</m>, 
+  <m>h(1,3) = $$h(1,3)</m>,  
+  <m>h(2,3) = $$h(2,3)</m>
+</p>
+```
+
+
+
+The `domain` attribute accepts a list of intervals for the domain, with one 
+interval per variable.  At present, DoenetML supports only rectangular domains 
+specified by the product of these intervals.
+
+For symbolic functions (the default), evaluating at a symbolic point ignores the domain.
+
+
+
+---
+
+### Attribute Example: variable/variables
+
+
+```doenet-example
+<p><m>f(x) = 
+  <function name="f">x/y</function>
+  </m>, <m>f(3)=$$f(3)</m>
+</p>
+
+<p><m>g(y) = 
+  <function name="g" variable="y">x/y</function>
+  </m>, <m>g(3)=$$g(3)</m>
+</p>
+
+<p><m>h(y,x) = 
+  <function name="h" variables="y x">x/y</function>
+  </m>, <m>h(3,7)=$$h(3,7)</m>
+</p>
+```
+
+
+
+By default, a ` <function>{:dn}` will be based on the single variable $x$.
+Use the `variable` or `variables` attribute to create a function based a different variable or multiple variables.
+
+
+
+---
+
+### Attribute Example: numInputs
+
+
+```doenet-example
+<p><m>f(x,y) = 
+  <function numInputs="2" name="f">x/y</function>
+</m>, <m>f(a,b) = $$f(a,b)</m>
+</p>
+
+<p><m>g(x,y,z) = 
+  <function numInputs="3" name="g">x/y+z</function>
+  </m>, <m>g(a,b,c) = $$g(a,b,c)</m>
+</p>
+
+<p><m>h(x_1,x_1,x_3,x_4) = 
+  <function numInputs="4" name="h">x_1/x_2-x_3/x_4</function>
+  </m>, <m>h(a,b,c,d) = $$h(a,b,c,d)</m>
+</p>
+```
+
+
+
+The `numInputs` will override the number of inputs that would be otherwise be 
+determined by the `variable` or `variables` attribute.
+
+
+If fewer variables than `numInputs` are specified, they will be chosen from either 
+$x,y,z$ or, $x_1, x_2, \ldots,$ depending if `numInputs` is larger than 4.
+
+
+
+
+---
+
+### Attribute Example: symbolic
+
+
+```doenet-example
+<p>
+  <m>f(x) = <function name="f">1/x</function></m>
+  <m>g(x) = <function name="g" symbolic="false">1/x</function></m>
+</p>
+
+<p><m>f(3) = $$f(3)</m>, <m>f(a) = $$f(a)</m></p>
+<p><m>g(3) = $$g(3)</m>, <m>g(a) = $$g(a)</m></p>
+
+<p>Force evaluate <m>f</m> as numeric:</p>
+<p>
+  <m>f(3) = <evaluate function="$f" input="3" forceNumeric /></m>,
+  <m>f(a) = <evaluate function="$f" input="a" forceNumeric /></m>
+</p>
+
+<p>Force evaluate <m>g</m> as symbolic:</p>
+<p>
+  <m>g(3) = <evaluate function="$g" input="3" forceSymbolic /></m>,
+  <m>g(a) = <evaluate function="$g" input="a" forceSymbolic /></m>
+</p>
+```
+
+
+
+A function, by default, is evaluated symbolically.  If the `symbolic` attribute is specified 
+as false, then the function will be evaluated numerically.  Numeric evaluation is more efficient, 
+but it can only return a number.
+
+
+If one evaluates using the full syntax of an ` <evaluate>{:dn}` component (as opposed to 
+the shortcut evaluation macro `$$f(x,y)`), then one can use the attributes `forceNumeric` or `forceSymbolic`
+to force numerical or symbolic evaluation independent of the `symbolic` attribute.
+
+
+
+---
+
+### Attribute Example: simplify
+
+
+```doenet-editor-horiz
+<p>Without <attr>simplify="none"</attr>:
+  <m>f(x) = 
+    <function name="f">x + x</function>
+  </m>
+</p> 
+<p><m>f(3) = $$f(3)</m></p> 
+
+
+<p>With <attr>simplify="none"</attr>:
+  <m>g(x) = 
+    <function name="g" simplify="none">
+      x + x
+    </function></m>
+</p>
+<p><m>g(3) = $$g(3)</m></p>
+```
+
+
+
+By default, a function will simplify the result of its evaluation.
+To reduce or eliminate the simplification, one can specify a different value for `simplify`.
+
+
+The `simplify` atttribute has four options:
+
+* `simplify="none"`: no simplification.
+* `simplify="full"` (or simply `simplify` by itself): apply currently available simplification routines.  
+  Does not include expanding factored expressions.
+* `simplify="numbers"`: simplify numerical expressions like `1+2` but not algebraic expressions.  
+  Permute terms and factors into a canonical order.
+* `simplify="numbersPreserveOrder"`: simplify numbers but without permuting terms or factors.
+
+
+
+To include expansion of factored expressions, you can add the `expand` attribute.
+
+
+The `simplify` attribute does not affect the formula itself, only the result after evaluation.
+
+
+
+---
+
+### Attribute Example: expand
+
+
+```doenet-editor-horiz
+<p>Without <attr>expand</attr>: 
+  <m>f(x) = 
+  <function name="f">x(x + a)</function>
+  </m>
+</p>
+<p><m>f(3)=$$f(3)</m></p>
+
+<p>With <attr>expand</attr>: 
+  <m>g(x) = 
+  <function name="g" expand>x(x + a)</function>
+  </m>
+</p> 
+<p><m>g(3) = $$g(3)</m></p>
+```
+
+
+
+By default, a function will not expand factored expressions in the result of its evaluation.  
+Specifying the `expand` attribute will expand the result.
+
+The `expand` attribute does not affect the formula itself, only the result after evaluation.
+
+
+
+---
+
+### Attribute Example: displayDigits/displayDecimals
+
+
+```doenet-example
+<p>
+  <m>f(x) = 
+    <function name="f" symbolic="false">1/x</function></m>,
+  <m>g(x) = 
+    <function name="g" symbolic="false" displayDigits="4">1/x</function></m>
+  <m>h(x) = 
+    <function name="h" symbolic="false" displayDecimals="4">1/x</function></m>
+</p> 
+
+<p>By default, display three digits or two decimals places, whichever is greater:</p>
+<p>
+  <m>f(126) = $$f(126)</m>, 
+  <m>f(0.0000035) = $$f(0.0000035)</m>
+</p>
+<p>Display four digits:</p>
+<p>
+  <m>g(126) = $$g(126)</m>, 
+  <m>g(0.0000035) = $$g(0.0000035)</m>
+</p>
+<p>Display four decimal places:</p>
+<p>
+  <m>h(126) = $$h(126)</m>,
+  <m>h(0.0000035) = $$h(0.0000035)</m>
+</p>
+```
+
+
+
+By default, numbers in the result of a function evaluation will be displayed as rounded to 
+three digits or to two decimal places, whichever includes more digits.  The `displayDigits` 
+attribute will change the number of digits, and the `displayDecimals` attribute will change 
+the number of decimal places.
+
+
+Note: these display rounding settings do not affect the actual value of the numbers in 
+the expression.  All available digits will be used if the expression is used in another 
+calculation unless one uses the ` <round>{:dn}` component to explicitly round numbers.
+
+
+
+---
+
+### Attribute Example: displaySmallAsZero
+
+
+```doenet-example
+<p>
+  <m>f(x) = 
+    <function name="f" symbolic="false">e^(-x^2)</function></m>,
+  <m>g(x) = 
+    <function name="g" symbolic="false" displaySmallAsZero="false">e^(-x^2)</function></m>,
+  <m>h(x) = 
+    <function name="h" symbolic="false" displaySmallAsZero="10^(-20)">e^(-x^2)</function></m>
+</p>
+
+<p>By default, small numbers (with absolute value smaller than 
+  <m>10^{-14}</m>) are displayed as zero.</p>
+<p>
+  <m>f(5) = $$f(5)</m>, 
+  <m>f(6) = $$f(6)</m>
+</p>
+
+<p>Don't display small numbers as zero.</p>
+<p>
+  <m>g(6) = $$g(6)</m>,
+  <m>g(7) = $$g(7)</m>
+</p>
+
+<p>Display numbers smaller than <m>10^{-20}</m> in absolute value as zero.</p>
+<p>
+  <m>h(6) = $$h(6)</m>,
+  <m>h(7) = $$h(7)</m>
+</p>
+```
+
+
+
+The default value of the `displaySmallAsZero` attribute is $10^{-14}$, which means that, 
+when evaluating a function, numerical values smaller than that value will appear as zero.  This 
+behavior can be altered by changing the value of `displaySmallAsZero` to a different number, or 
+even setting it to "false".
+
+
+
+---
+
+### Attribute Example: padZeros
+
+
+```doenet-example
+<p>
+  <m>f(x) = 
+    <function name="f" symbolic="false" displayDecimals="2">x/10</function></m>,
+  <m>g(x) = 
+    <function name="g" symbolic="false" displayDecimals="2" padZeros>x/10</function></m>
+</p>
+<p><m>f(1)=$$f(1)</m>, <m>g(1)=$$g(1)</m></p>
+```
+
+
+
+If the `padZeros` is set, then numbers will be displayed padded with zeros 
+so that all the digits from the combination of `displayDigits` and `displayDecimals` will be shown.
+
+
+
+---
+
+### Attribute Example: minima
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <function 
+    name="f" 
+    minima="(4,5) (7,-3)" 
+  />
+  <function 
+    name="g" 
+    minima="(-7,-8) (,-6)" 
+    styleNumber="2" 
+  />
+  <function 
+    name="h" 
+    minima="(-7,4) (-1,)" 
+    styleNumber="3" 
+  />
+</graph>
+```
+
+
+
+One way to specify required features of an interpolated function is set the `minima` to a list of points that 
+should be minima of the function.
+
+The `minima` points can have an empty $x$- or $y$-coordinate, in which case the missing 
+values will be determined algorithmically.
+
+The attributes `xscale` and `yscale` will be used to determine aspects of the minima that 
+aren't specified as well as the shape of the function.
+
+If additional features (`maxima`, `extrema`, `through`) of the function are specified, 
+the function may have additional minima that were not given by the `minima` attribute.
+
+

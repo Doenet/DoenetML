@@ -1,0 +1,134 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <booleanList>{:dn}`
+
+` <booleanList>{:dn}` is a [Logic](../document_structure/essentialConcepts#component-types)
+component that stores multiple [` <boolean>{:dn}`](boolean.mdx) components within a list.
+
+## Attributes and Properties 
+ <AttrDisplay name='booleanList'/> 
+ <PropDisplay name='booleanList'/>
+
+
+---
+
+### Example: Accessing an item in a ` <booleanList>{:dn}`
+
+
+```doenet-example
+<p>A list of boolean values: 
+  <booleanList name="correctResponses">
+    true true false true false
+  </booleanList>
+</p>
+<p>The second item in the list is a <alert>$correctResponses[2]</alert>.</p>
+```
+
+
+
+Individual [` <boolean>{:dn}`](boolean.mdx) components are listed directly between the opening 
+and closing ` <booleanInput>{:dn}` tags, with spaces to separate list items.
+
+The individual list items can be accessed with 
+the index of the desired item.
+
+
+
+---
+
+### Example: ` <booleanList>{:dn}` from user-input
+
+
+```doenet-editor-horiz
+<p>Check each box if you agree:</p>
+  <ol>
+    <li>All food goes better with hot sauce 
+      <booleanInput name="tf1"/></li>
+    <li>Fall is the best season 
+      <booleanInput name="tf2"/></li>
+    <li>Coffee is better than tea 
+      <booleanInput name="tf3"/></li>
+  </ol>
+
+<p>Your list of responses is: 
+  <booleanList name="tfList">$tf1 $tf2 $tf3</booleanList>
+</p>
+
+<p>The third item in the list is a <alert>$tfList[3]
+</alert> and the first item is a <alert>$tf1</alert>.</p>
+```
+
+The user is prompted to provide three agree/disagree type responses with 
+the ` <booleanInput/>{:dn}` component. 
+These are gathered into a ` <booleanList>{:dn}`..
+
+---
+
+### Attribute Example: unordered
+
+
+```doenet-editor-horiz
+Check two of the boxes, in any order:
+<p>
+  <booleanInput name="b1"/>
+  <booleanInput name="b2"/>
+  <booleanInput name="b3"/>
+  <booleanInput name="b4"/>
+</p>
+
+<answer>
+  <award>
+    <when>
+      <booleanList unordered="true">
+        $b1 $b2 $b3 $b4
+      </booleanList> = 
+      <booleanList>1 1 0 0</booleanList>
+    </when>
+  </award>
+</answer>  
+```
+
+
+The `unordered` attribute is specified in order to make 
+comparisons between boolean lists without regard to order.
+The ` <booleanList>{:dn}` component is ordered by default.
+
+
+
+---
+
+### Attribute Example: maxNumber
+
+
+```doenet-example
+  <p>Specify <attr>maxNumber</attr> for the <tag>booleanList</tag>: 
+    <mathInput name="n"/></p>
+  <p>List = 
+  <booleanList name="list" maxNumber="$n">
+   0 1 0 1 1 1 0 0 1 1 0 0
+  </booleanList>
+  </p>
+```
+
+
+
+Use the `maxNumber` attribute to limit the number of boolean values 
+rendered by the ` <booleanList>{:dn}`.
+
+---
+
+### Property Example: numComponents
+
+
+```doenet-example
+  <booleanList name="bList">0 1 0 1 1 1 0 0 1</booleanList>
+  <p><c>numComponents</c> = $bList.numComponents</p>
+```
+
+
+
+The `numComponents` property renders the number of boolean values stored in the list.
+

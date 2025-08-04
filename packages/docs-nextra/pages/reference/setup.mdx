@@ -7,12 +7,13 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 
-` <setup>{:dn}`is a [**Sectional**](../document_structure/essentialConcepts/#componentTypes) component that acts as a container element 
-for defining other components. Content defined within the ` <setup>{:dn}` portion will not be rendered.
+` <setup>{:dn}`is a [Sectional](../document_structure/essentialConcepts/#componentTypes) component that 
+acts as a container element for defining other components. Content defined within the ` <setup>{:dn}` 
+portion will not be rendered.
 
 ## Attributes and Properties 
 
-The ` <setup>{:dn}` component has no attributes or props.
+The ` <setup>{:dn}` component has no attributes or properties.
 
 ---
 
@@ -26,7 +27,7 @@ The ` <setup>{:dn}` component has no attributes or props.
   <math name="c">sqrt($a^2+$b^2)</math>
 </setup>
 
-<p>Given a triangle with side lengths $a and $b, the length of the hypotenuse is given by <me>$c = $c{simplify}.</me>
+<p>Given a triangle with side lengths $a and $b, the length of the hypotenuse is given by <me>$c = <math extend="$c" simplify/>.</me>
 </p>
 ```
 
@@ -74,7 +75,11 @@ Components can be defined in a ` <setup>{:dn}` and referenced later in the docum
       $p != (-3,2)
     </boolean>
   </setup>
-  <updateValue target="p.styleNumber" triggerWhen="$pMoved" newValue="2" type="number"/>
+  <updateValue 
+    target="$p.styleNumber" 
+    triggerWhen="$pMoved" 
+    newValue="2"
+  />
 </graph>
 ```
 

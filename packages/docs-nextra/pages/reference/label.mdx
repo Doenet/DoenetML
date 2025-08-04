@@ -1,0 +1,320 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <label>{:dn}`
+
+
+` <label>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
+component that renders a label on a ` <graph>{:dn}`, button, or checkbox.
+
+## Attributes and Properties 
+ <AttrDisplay name='label'/> 
+ <PropDisplay name='label'/>
+
+---
+
+### Example: ` <label>{:dn}` a ` <point>{:dn}` on a ` <graph>{:dn}`
+
+
+```doenet-example
+<graph size="small">
+  <point name="pointA">(3,4)
+    <label>A</label>
+  </point>
+</graph>
+<p><c>label</c> = $pointA.label</p>
+```
+
+
+
+Any graphical component (such as a ` <point>{:dn}`, ` <line>{:dn}`, or ` <curve>{:dn}`) will 
+accept a ` <label>{:dn}` component as a child.
+
+
+
+---
+
+### Example: A stand-alone ` <label>{:dn}` on a ` <graph>{:dn}`
+
+
+```doenet-example
+<graph size="small">
+  <point name="A" labelIsName>(3,4)
+    <constraints><constrainToGrid/></constraints>
+  </point>
+  <label anchor="(-5,8)">Move point A to <m>(0,0)</m></label>
+</graph>
+<answer>
+  <award><when>$A = (0,0)</when></award>
+</answer>     
+```
+
+
+
+A ` <label>{:dn}` can be placed within a ` <graph>{:dn}` directly (not as a child of a graphical component). Use the `anchor` attribute to position the ` <label>{:dn}`.
+
+
+
+---
+
+### Example: ` <label>{:dn}` a checkbox
+
+
+```doenet-example
+<booleanInput>
+  <label>Check if you agree</label>
+</booleanInput>
+```
+
+
+
+A checkbox is rendered by the ` <booleanInput>{:dn}` component. The ` <booleanInput>{:dn}` component takes a ` <label>{:dn}` child.
+
+
+
+---
+
+### Example: ` <label>{:dn}` an ` <updateValue>{:dn}`
+
+
+```doenet-editor-horiz
+<p><m>n = <number name="n">1</number></m></p>
+<updateValue 
+  name="addOne" 
+  target="$n" 
+  newValue="$n + 1" 
+  type="number">
+    <label>Add <m>1</m> to <m>n</m></label>
+</updateValue>
+```
+
+
+
+The ` <updateValue>{:dn}` component, when triggered based on a button click 
+interaction, can take a ` <label>{:dn}` child.
+
+
+
+---
+
+### Example: ` <label>{:dn}` a ` <callAction>{:dn}`
+
+
+```doenet-editor-horiz
+<callAction 
+  actionName="addChildren" 
+  target="$g">
+    <point>(2,3)</point>
+    <label>Add point</label>
+</callAction>
+<graph name="g" size="small"/>      
+```
+
+
+
+The ` <callAction>{:dn}` component, when triggered based on a button click interaction, 
+can take a ` <label>{:dn}` child.
+
+
+
+---
+
+### Example: ` <label>{:dn}` a ` <triggerSet>{:dn}`
+
+
+```doenet-editor-horiz
+<triggerSet>
+  <updateValue 
+    target="$A.styleNumber" 
+    newValue="2"
+  />
+  <updateValue 
+    target="$A.coords" 
+    newValue="(-3,-3)" 
+  />
+  <label>
+    Change point color and position
+  </label>
+</triggerSet>
+
+<graph size="small">
+  <point name="A" coords="(4,4)" styleNumber="3"/>
+</graph>
+```
+
+
+
+The ` <callAction>{:dn}` component, when triggered based on a 
+button click interaction, can take a ` <label>{:dn}` child.
+
+
+
+---
+
+### Example: ` <label>{:dn}` within a ` <legend>{:dn}`
+
+
+```doenet-editor-horiz
+<graph>
+  <function name="f">(x-2)^2 + 2</function>
+  <point name="V" styleNumber="2" applyStyleToLabel>(2,$$f(2))</point>
+  <line name="line1" styleNumber="3">y = x</line>
+  <legend position="upperleft">
+    <label><m>f(x)</m></label>
+    <label><m>V = $V.coords</m></label>
+    <label><m>$line1.equation</m></label>
+  </legend>
+</graph>
+```
+
+
+
+A ` <legend>{:dn}` can be given ` <label>{:dn}` children. Labels are assigned to components in the 
+order in which they are defined within the graph.
+
+
+
+---
+
+### Example: ` <label>{:dn}` a ` <textInput>{:dn}` on a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Enter the coordinates of the point shown in the graph below.</p>
+<p>Check student's answer:
+
+  <math name="userCoords">$input</math>
+
+<answer>
+  <award><when>$userCoords = $pointA</when></award>
+</answer></p>
+
+<graph xmin="-2" ymin="-2">
+  <point name="pointA" fixed>(3,4)</point>
+  <textInput name="input" anchor="(4,5)" width="30px">
+    <label><m>(x, y) = </m></label>
+  </textInput>
+</graph>
+```
+
+
+
+Although a ` <mathInput/>{:dn}` cannot be placed on a ` <graph>{:dn}`, a ` <textInput/>{:dn}` can be 
+placed on a graph to gather basic numerical or algebraic responses. These responses can then be 
+redefined as a ` <math>{:dn}` for use in an ` <award>{:dn}`. The ` <textInput/>{:dn}` on the graph 
+can take a ` <label>{:dn}` child to prompt the desired input.
+
+
+
+---
+
+### Attribute Example: forObject
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <circle 
+    name="circ" 
+    center="(0,0)" 
+    through="(6,0)" 
+    filled 
+    styleNumber="6"
+  />
+  <lineSegment 
+    name="r" 
+    endpoints="$circ.throughPoints[1] $circ.center" 
+    styleNumber="2"
+  />
+  <legend>
+    <label forObject="$r">
+      radius = $r.length
+    </label>
+    <label forObject="$circ">
+      circumference
+    </label>
+  </legend>
+</graph>     
+```
+
+
+
+The `forObject` attribute is used with a ` <label>{:dn}` nested inside a ` <legend>{:dn}` to override 
+the default label ordering. The default label ordering within a legend matches the order in which 
+components are defined within the ` <graph>{:dn}`.
+
+
+
+---
+
+### Attribute Example: draggable
+
+
+```doenet-example
+<graph size="small">
+  <label anchor="(5,5)" name="label1">Draggable!</label>
+  <label draggable="false" anchor="(-5,-5)">Not Draggable!</label>
+</graph>    
+<p><c>draggable</c> = $label1.draggable</p>
+```
+
+
+
+The `draggable` attribute determines whether the ` <label>{:dn}` can be dragged 
+around the ` <graph>{:dn}`. All graphical objects are draggable by default.
+
+
+
+---
+
+### Property Example: text
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <label anchor="(-6,5)" name="label1">A pretty label</label>
+</graph>    
+<p><c>text</c> = $label1.text</p>
+```
+
+
+
+The `text` property returns the text value of the named ` <label>{:dn}`.
+
+
+
+---
+
+### Property Example: latex
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <label anchor="(6,6)" name="label1"><m>\frac{3}{4}</m></label>
+</graph>    
+<p><c>latex</c> = $label1.latex</p>
+```
+
+
+
+The `latex` property returns the latex code for rendering the named ` <label>{:dn}`.
+
+
+
+---
+
+### Property Example: value
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <label anchor="(2,5)" name="label1"><math simplify>15/3</math></label>
+</graph>    
+<p><c>value</c> = $label1.value</p>
+```
+
+
+
+The `value` property returns the value stored with the named ` <label>{:dn}`.
+

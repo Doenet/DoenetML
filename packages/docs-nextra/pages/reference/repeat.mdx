@@ -1,0 +1,221 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <repeat>{:dn}`
+
+` <repeat>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+component that performs the requested operations in an iterative manner over the component specified (typically,
+this is a list or an array). If the specified component is a `<sequence>{:dn}`, a shorter method is to
+use the [` <repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
+
+The behavior of the ` <repeat>{:dn}` component is similar to a for loop in other programming languages. 
+
+
+## Attributes and Properties 
+ <AttrDisplay name='repeat'/> 
+` <repeat>{:dn}` does not have any properties.
+
+---
+
+### Example: ` <repeat>{:dn}` a series of rectangles within a ` <graph>{:dn}`
+
+
+```doenet-editor-horiz
+<numberList name="n">
+  1 1 2 3 5 8 13
+</numberList>
+
+<graph 
+  size="small" 
+  xmin="-1" 
+  xmax="8" 
+  ymin="-2" 
+  ymax="14">
+    <repeat 
+      for="$n" 
+      valueName="v" 
+      indexName="i">
+        <rectangle 
+          center="($i, $v/2)" 
+          width="1" 
+          height="$v" 
+          filled/>
+  </repeat>
+</graph>      
+```
+
+
+
+A ` <repeat>{:dn}` can be used to generate multiple graphical elements at once when placed within a ` <graph>{:dn}`.
+
+
+
+---
+
+### Example: ` <repeat>{:dn}` a user-specified number of inputs
+
+
+```doenet-editor-horiz
+<p>How many answers do you have? 
+  <mathInput name="n"/></p>
+
+<sequence name="s" from="1" to="$n" hide/>
+
+<p><m>x = </m>
+<repeat name="inputs" for="$s">
+  <mathInput/>
+</repeat>
+</p>
+
+<p>Here are your answers: 
+  <c>inputs[1]</c> = $inputs[1], 
+  <c>inputs[2]</c> = $inputs[2], 
+  <c>inputs[n]</c> = $inputs[$n]</p>
+```
+
+
+
+A ` <repeat>{:dn}` can be used to generate a user-specified number of ` <mathInput>{:dn}` components.
+For an alternative way to do this, see the [` <repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
+
+---
+
+### Example: ` <repeat>{:dn}` a list of ` <text>{:dn}` elements
+
+
+```doenet-editor-horiz
+<setup>
+<textList name="plant">
+  tree flower cactus
+</textList>
+</setup>
+
+<p>Say hello to a list of plants:
+  <repeat for="$plant" valueName="p">
+    <p>Hello, $p!</p>
+  </repeat>
+</p> 
+
+<p>The second plant is a <c>plant[2]</c> = $plant[2].</p>
+```
+
+
+
+A ` <repeat>{:dn}` can be used with non-mathematical components as well. Individual
+entries can be accessed using array notation.
+
+
+
+
+### Example: Use `<repeat>{:dn}` in a combinatoric way
+
+
+```doenet-editor-horiz
+<p>Names: 
+  <textList name="names">Donald Kermit Elmo</textList>
+</p>
+<p>Toys:
+  <textList name="toys">whistles yo-yos</textList>
+</p> 
+<p>Number of toys:
+  <numberList name="numToys">7 2 5</numberList>
+</p><hr/>
+
+<repeat name="nameR" for="$names" valueName="N">
+  <repeat name="toyR" for="$toys" valueName="t">
+    <repeat name="numR" for="$numToys" valueName="n">
+      <p>$N has $n $t.</p>
+    </repeat>
+  </repeat>
+</repeat><hr/>
+
+<p>The third number of the first toy, belonging to the second name is reference by 
+  <c>nameR[2].toyR[1].numR[3]</c>: 
+  $nameR[2].toyR[1].numR[3]
+</p>
+```
+
+
+Use nested `<repeat>{:dn}` components to iterate across all combinations of the specified components.
+
+---
+
+
+
+### Example: Use `<repeat>{:dn}` in a selective way
+
+
+```doenet-editor-horiz
+<p>Names: 
+  <textList name="names">Donald Kermit Elmo</textList>
+</p>
+<p>Toys:
+  <select 
+    name="toys" 
+    numToSelect="3" 
+    withReplacement>
+      <option>whistles</option>
+      <option>yo-yos</option>
+  </select>
+</p>
+<p>Number of toys:
+  <select name="num" numToSelect="3">
+    7 2 5
+  </select>
+</p><hr/>
+
+<repeat 
+  name="nameR" 
+  for="$names" 
+  valueName="N" 
+  indexName="i"
+  >
+    <p>$N has $num[$i] $toys[$i].</p>
+</repeat><hr/>
+
+<p>The second name has <c>nameR[2]</c>: 
+  $nameR[2]
+</p>
+```
+
+To achieve parallel iterative behavior, a combination of the `indexName` and `valueName`
+attributes can be used.
+
+
+---
+
+
+### Example: Generate a user-specified number of random `<point>{:dn}` components
+
+```doenet-editor-horiz
+<p>How many points do you want to generate?
+  <mathInput name="n"/></p>
+<em>(Note, more than 10 takes some processing time...)</em>
+
+<sequence name="s" from="1" to="$n" hide/>
+
+<graph>
+  <repeat name="randomPoints" for="$s">
+    <point>
+      (<sampleRandomNumbers 
+         from="-10" to="10"/>, 
+      <sampleRandomNumbers 
+        from="-10" to="10"/>)
+    </point>
+  </repeat>
+</graph>
+
+<p>The generated points are: 
+  <c>randomPoints</c> = $randomPoints
+</p>
+
+<p>The <m>n^{th}</m> generated point is: 
+  <c>randomPoints[$n]</c> = $randomPoints[$n]
+</p>
+```
+
+
+A ` <repeat>{:dn}` can be used to generate a user-specified number of randomly placed `<point>{:dn}` components.
+For an alternative way to do this, see the [`<repeatForSequence>{:dn}`](repeatForSequence.mdx) component.

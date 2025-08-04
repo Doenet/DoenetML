@@ -1,0 +1,180 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <numberList>{:dn}`
+
+` <numberList>{:dn}` defines a collection, or list, of [` <number>{:dn}`](number.mdx) components. Some 
+components that accept a ` <numberList>{:dn}` as an input include ` <function>{:dn}`, ` <repeat>{:dn}`, 
+and ` <award>{:dn}`.
+
+## Attributes and Properties 
+ <AttrDisplay name='numberList'/> 
+ <PropDisplay name='numberList'/>
+
+---
+
+### Example: Defining a ` <numberList>{:dn}` and retrieving a value
+
+
+```doenet-editor-horiz
+<p>Here is a list of numbers, with one missing piece. What do you want it to be? 
+  <mathInput name="userNumber"/>
+</p>
+<p>You've selected: <number>$userNumber</number></p>
+
+<numberList name="nList">
+  e $userNumber pi^2 cos(pi/3)
+</numberList>
+
+<p>The second element in the list is: 
+  $nList[2]
+</p>
+```
+
+
+
+The ` <numberList>{:dn}` component stores a list of "numbers", 
+or ` <number>{:dn}` components. Array notation can be used to access an individual element in the list.
+
+
+
+---
+
+### Example: A ` <numberList>{:dn}` from multiple ` <mathInput/>{:dn}` components
+
+
+```doenet-editor-horiz
+<p>Let's build a list of numbers:</p>
+
+<p>Type <m>\frac{5}{3}</m>: 
+  <mathInput name="mi1"/>
+</p>
+
+<p>Type <m>\pi</m>: 
+  <mathInput name="mi2"/>
+</p>
+
+<p>Type <m>\sqrt{2}</m>: 
+  <mathInput name="mi3"/>
+</p>
+
+<numberList name="asList">
+  $mi1 $mi2 $mi3
+</numberList>
+<p>The second element in the user's list is: 
+  <m>$asList[2]</m>
+</p>
+```
+
+
+
+Combining a number of user-inputs into a ` <numberList>{:dn}` can be achieved by 
+referencing the named component between the opening and closing tags, separated by spaces.
+
+
+
+---
+
+### Example: A ` <numberList>{:dn}` for function evaluation
+
+
+```doenet-editor-horiz
+<numberList name="inputList">
+  1 2 3
+</numberList>
+<p><m>f(x, y, z) = 
+  <function name="f" variables="x y z">
+    x^2 + y^2 + z^2
+  </function>
+</m></p>
+
+<p><m>f($inputList) = 
+  <evaluate 
+    function="$f" 
+    input="$inputList"
+  />
+</m></p>
+
+<p>Alternate notation (using evaluation macro):</p>
+<p><m>f($inputList) = $$f($inputList)</m></p>
+```
+
+
+
+Here, a ` <numberList>{:dn}` stores multiple input values to be used in the subsequent code for function evaluation.
+
+
+
+---
+
+### Attribute Example: unordered
+
+
+```doenet-editor-horiz
+<p>Type <m>3, 4, 5</m>: 
+  <mathInput name="mi1" minWidth="20px"/>, 
+  <mathInput name="mi2" minWidth="20px"/>, 
+  <mathInput name="mi3" minWidth="20px"/>
+</p>
+<p>
+<numberList name="nL" unordered>
+  $mi1 $mi2 $mi3
+</numberList></p>
+<p>Check if equal to <m>{4,5,3}</m>:
+  <boolean>
+    $nL = <numberList>4 5 3</numberList>
+  </boolean></p>
+```
+
+
+
+If a ` <numberList>{:dn}` is defined with the `unordered` attribute, 
+comparisons (for validation in an ` <award>{:dn}` or a ` <boolean>{:dn}` for example) are unordered automatically.
+
+
+
+---
+
+### Attribute Example: maxNumber
+
+
+```doenet-editor-horiz
+<p>Enter a list of 3 or more numbers (separated by commas): 
+  <mathInput name="mi1"/>
+</p>
+
+<p><mathList name="mL">$mi1</mathList></p>
+
+<p>
+  <numberList name="nL" maxNumber="2">
+    $mL[1] $mL[2] $mL[3]
+  </numberList>
+</p>
+
+<p>$nL</p>
+```
+
+
+
+The `maxNumber` attribute imposes a limit on the number of numbers that can be stored in the list.
+
+
+
+---
+
+### Property Example: numComponents
+
+
+```doenet-editor-horiz
+<numberList name="nL">1^2 2^2 3^2 4^2</numberList> 
+
+<p><c>numComponents</c> = $nL.numComponents</p> 
+```
+
+
+
+The `numComponents` property returns the number of elements stored in a ` <numberList>{:dn}`.
+
+

@@ -1,0 +1,61 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <mdn>{:dn}`
+
+
+The ` <mdn>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types) 
+component that renders a block of numbered, aligned display mathematics when used in 
+combination with the ` <mrow/>{:dn}` component.
+
+## Attributes and Properties 
+ <AttrDisplay name='mdn'/> 
+ <PropDisplay name='mdn'/>
+ 
+---
+
+### Example: ` <mdn>{:dn}` with Latex input
+
+
+```doenet-editor-horiz
+<mdn>
+  <mrow>\sin(x) + 2 &= 3</mrow>
+  <mrow>\frac{y}{2}-3 &= 2</mrow>
+  <mrow number="false">8z &= 32</mrow>
+</mdn>   
+```
+
+
+
+In the sample code above, the ` <mdn>{:dn}` component is used with 
+nested ` <mrow>{:dn}` components to create aligned, numbered equations.  Equations 
+align vertically where the text `&` is entered in the ` <mrow>{:dn}`. Note that the 
+numbering of an individual ` <mrow>{:dn}` within an ` <mdn>{:dn}` can be 
+suppressed by setting the `number` attribute of the ` <mrow>{:dn}` to `false`.
+
+
+
+---
+
+### Example: ` <mdn>{:dn}` with nested ` <math>{:dn}` 
+
+
+```doenet-editor-horiz
+<mdn>
+  <mrow>
+    y &= \frac{1}{x}
+  </mrow>
+  <mrow>
+    z &= <math>1/x^2</math>
+  </mrow>
+</mdn>
+```
+
+
+
+Although ` <mdn>{:dn}` is a Display Math component and is designed
+to accept expressions in LaTeX, it is also acceptable to nest content
+within a ` <math>{:dn}` component. The text marker `&` must occur
+outside any nested ` <math>{:dn}` components.

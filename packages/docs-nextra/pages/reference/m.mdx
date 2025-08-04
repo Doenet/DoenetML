@@ -1,0 +1,90 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <m>{:dn}`
+
+
+` <m>{:dn}` is a [Display Math](../document_structure/essentialConcepts#component-types)
+component that renders inline mathematical content.  The ` <m>{:dn}` tag accepts Latex and 
+DoenetML mathematical content as input.
+
+For displaying mathematics alone on a line by itself, see ` <me>{:dn}`, ` <men>{:dn}` 
+or ` <md>{:dn}`,` <mdn>{:dn}` (for aligned mathematics). See also ` <math>{:dn}`
+for mathematical manipulations using a computer algebra system.
+
+## Attributes and Properties 
+ <AttrDisplay name='m'/> 
+ <PropDisplay name='m'/>
+
+---
+
+### Example: ` <m>{:dn}` inside a paragraph
+
+
+```doenet-editor-horiz
+<p>In this example, <m>F=5.27</m> <m>kN</m> applied in the <m>y</m> direction.</p>
+```
+
+
+
+The ` <m>{:dn}` component is used to format isolated content within a section of 
+text that has been enclosed within a ` <p>{:dn}`, or paragraph component. 
+
+
+
+---
+
+### Example: ` <m>{:dn}` in combination with ` <math>{:dn}`
+
+
+```doenet-editor-horiz
+<math name="expr">x^2 + y^2</math>
+<p><m>f(x,y) = $expr</m></p>
+```
+
+
+
+An ` <m>{:dn}` tag encloses an inline math expression that also contains a 
+reference to a named ` <math>{:dn}`.
+
+
+
+---
+
+### Example: ` <m>{:dn}` in combination with <tage>mathInput</tage>
+
+
+```doenet-editor-horiz
+<p>Enter a function in <m>x</m>: 
+  <mathInput name="mi"/></p>
+<p><m>f(x) = $mi</m></p>
+```
+
+
+
+An ` <m>{:dn}` tag encloses an inline math expression that also contains a 
+reference to a named ` <mathInput/>{:dn}`. Note that a ` <mathInput/>{:dn}` cannot 
+be *defined* within an ` <m>{:dn}` component.
+
+
+
+---
+
+### Example: ` <m>{:dn}` in combination with ` <answer>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Simplify <m>x \cdot x = </m> 
+  <answer symbolicEquality>x^2</answer></p>    
+```
+
+
+
+An ` <m>{:dn}` tag encloses an inline math expression that precedes 
+an ` <answer>{:dn}`. Note that an ` <answer>{:dn}` cannot be *defined* within 
+an ` <m>{:dn}` component.
+
+

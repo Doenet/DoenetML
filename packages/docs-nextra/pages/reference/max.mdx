@@ -1,0 +1,78 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <max>{:dn}`
+
+` <max>{:dn}` is a [Math Operator](../document_structure/essentialConcepts#component-types)
+component that renders the maximum value in a list of numbers separated by spaces.
+
+## Attributes and Properties 
+ <AttrDisplay name='max'/> 
+ <PropDisplay name='max'/>
+
+
+---
+
+### Example: ` <max>{:dn}` of a nested list of numbers
+
+
+```doenet-editor-horiz
+<max>0 2.5 1 4.1 3</max>
+```
+
+
+
+` <max>{:dn}` renders the maximum value in a list of numbers separated by spaces.
+
+
+
+---
+
+### Example: ` <max>{:dn}` of a named list
+
+
+```doenet-editor-horiz
+<numberList name="numList">
+  1.2 9.9 17.3
+</numberList>
+
+<p>Max = <max>$numList</max></p> 
+```
+
+
+
+` <max>{:dn}` renders the maximum value in a named ` <numberList>{:dn}`.
+
+
+
+---
+
+### Example: ` <max>{:dn}` of a randomly selected set of numbers
+
+
+```doenet-editor-horiz
+<selectRandomNumbers 
+  numToSelect="7" 
+  from="-500" 
+  to="500" 
+  type="discreteUniform" 
+  name="randomNumberList"
+/>
+
+<p>The list of random numbers selected is: 
+ <m>$randomNumberList</m>
+</p>
+
+<p>Maximum Number selected: 
+  <max>$randomNumberList</max>
+</p>
+```
+
+
+
+` <max>{:dn}` renders the maximum value in a list of numbers that are generated 
+with the ` <selectRandomNumbers/>{:dn}` component. 
+
+

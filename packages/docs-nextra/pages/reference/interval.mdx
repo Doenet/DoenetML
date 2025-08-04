@@ -1,0 +1,76 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+
+# ` <interval>{:dn}`
+
+` <interval>{:dn}` is a [Math](../document_structure/essentialConcepts#component-types) 
+component that renders an interval.
+
+## Attributes and Properties 
+ <AttrDisplay name='interval'/> 
+ <PropDisplay name='interval'/>
+
+---
+
+### Example: Check if a value is contained in an ` <interval>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Check to see if <m>x</m> is in the first interval:</p> 
+<p><m>x = </m><mathInput name="x"/></p>
+
+<p>Interval: 
+  <interval name="int1">
+    [2, 5) union (6, 10]
+  </interval>
+</p>
+
+<p><m>x \in $int1</m>: 
+  <boolean>$x subset $int1</boolean>
+</p>
+
+<p>Check to see if <m>y</m> is in the second interval:</p>
+<p><m>y = </m><mathInput name="y"/></p>
+
+<p>Interval: 
+  <interval name="int2" simplify>
+    [-1, 4) intersect (-3, 2]
+  </interval>
+</p>
+
+<p><m>y \in $int2</m>: 
+  <boolean>$y subset $int2</boolean>
+</p>
+```
+
+
+
+The ` <interval>{:dn}` component recognizes the following terms:
+  * union
+  * intersect
+  * \cup (must use `format="latex"`) 
+  * \cap (must use `format="latex"`)
+
+Defined intervals can be referenced in `<boolean>{:dn}` comparisons.
+
+
+
+---
+
+### Example: ` <interval>{:dn}` as a `<function>{:dn}` domain
+
+
+```doenet-editor-horiz
+<interval name="int1">(-2, 2)</interval>
+<graph size="small">
+  <function domain="$int1">x^2</function>
+</graph>
+```
+
+A named ` <interval>{:dn}` component is referenced in the `domain`
+attribute of a graphed `<function>{:dn}`.
+
+

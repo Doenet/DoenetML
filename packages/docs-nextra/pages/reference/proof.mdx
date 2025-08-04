@@ -1,0 +1,73 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <proof>{:dn}`
+
+
+A ` <proof>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component. It is unnumbered and collapsible. Its rendered appearance is similar to an ` <aside>{:dn}`.
+
+## Attributes and Properties 
+ <AttrDisplay name='proof'/> 
+ <PropDisplay name='proof'/>
+
+---
+
+### Example: ` <proof>{:dn}` with default title
+
+
+```doenet-editor-horiz
+<proof>
+  <p>Proof here.</p>
+</proof>
+<section>
+  <p><lorem generateWords="10"/></p>
+</section>
+<aside>
+  <p>Some interesting supplemental info.</p>
+</aside>
+<problem>
+  <p><answer>42</answer></p>
+</problem>
+```
+
+
+
+Within a DoenetML document, default titles for sectional components are auto-numbered. Sectional components such as ` <section>{:dn}` and ` <problem>{:dn}` are on the same counter, but a ` <proof>{:dn}` is not part of the document's default numbering schema.
+
+
+
+---
+
+### Example: ` <proof>{:dn}` with custom title
+
+
+```doenet-editor-horiz
+<proof><title>Proof of this cool theorem</title>
+  <p><lorem generateWords="10"/></p>
+</proof>
+```
+
+
+
+A custom ` <proof>{:dn}` title is creating by providing a ` <title>{:dn}` tag within the ` <proof>{:dn}`.
+
+
+
+---
+
+### Attribute Example: startOpen
+
+
+```doenet-editor-horiz
+<proof startOpen><title>Don't pass me by - I'm important!</title>
+  <p><lorem generateWords="10"/></p>
+</proof>
+```
+
+
+
+The `startOpen` attribute renders the ` <proof>{:dn}` box as open; it must be clicked once to close.
+

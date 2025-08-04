@@ -1,0 +1,195 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <option>{:dn}`
+
+
+` <option>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
+component that defines a selection element within a [` <select>{:dn}`](select.mdx) block. 
+If only ` <math>{:dn}` type components are to be selected, the ` <option>{:dn}` 
+component can be excluded and selection items can simply be listed with a space between list items. 
+However, if multiple types or complex selections are required, the ` <option>{:dn}` component is necessary.
+
+
+When varying component types are used as options, such as 
+a ` <text>{:dn}`, ` <function>{:dn}`, 
+or ` <number>{:dn}`, these tags are nested within the ` <option>{:dn}` tag.
+
+## Attributes and Properties 
+ <AttrDisplay name='option'/> 
+ <PropDisplay name='option'/>
+
+---
+
+### Example: ` <option>{:dn}` type math
+
+
+```doenet-editor-horiz
+<select name="x">
+  <option><math>a + b</math></option>
+  <option><math>a - b</math></option>
+  <option><math>a^2 b</math></option>
+</select>
+
+<select name="y">(a + b) (a - b) (a^2 b)</select>
+
+<p>The selected value for <m>x</m>: $x</p>
+<p>The selected value for <m>y</m>: $y</p>
+```
+
+
+
+Three options for a variable name are nested within a ` <select>{:dn}`. The 
+type of each ` <option>{:dn}` must be specified.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Example: ` <option>{:dn}` type text
+
+
+```doenet-editor-horiz
+
+<select name="plant">
+  <option><text>oak tree</text></option>
+  <option><text>sunflower</text></option>
+  <option><text>rose</text></option>
+</select>
+
+<p>The selected plant is: $plant</p>
+```
+
+
+
+Three options for a variable name are nested within a ` <select>{:dn}`. The 
+type of each ` <option>{:dn}` must be specified.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Example: ` <option>{:dn}` type vector
+
+
+```doenet-editor-horiz
+<select name="force1">
+  <option><vector>(-4,3)</vector></option>
+  <option><vector>(3,7)</vector></option>
+  <option><vector>(8,-1)</vector></option>
+</select>
+
+<p>The selected vector is: $force1</p>
+<graph size="small">
+  $force1
+</graph>
+```
+
+
+
+Three options for a variable name are nested within a ` <select>{:dn}`. The 
+type of each ` <option>{:dn}` must be specified.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Example: Multiple ` <option>{:dn}` types within a ` <select>{:dn}`
+
+
+```doenet-editor-horiz
+<select name="s" numToSelect="4" hide>
+  <option><number>2</number></option>
+  <option><text>pikachu</text></option>
+  <option><math>sqrt(81)</math></option>
+  <option><boolean>1 + 1 = 3</boolean></option>
+</select>
+<p>Selection a is $s[1]</p>
+<p>Selection b is $s[2]</p>
+<p>Selection c is $s[3]</p>
+<p>Selection d is $s[4]</p>
+<p>Click page variants to see other randomized values assigned.</p>  
+```
+
+
+
+The ` <option>{:dn}` component is used to define multiple 
+component types as choices within a ` <select>{:dn}` block.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Example: Retrieving ` <option>{:dn}` selections with multiple elements
+
+
+```doenet-editor-horiz
+<select name="s" numToSelect="3">
+  <option>
+    <number>1</number>
+    <number>2</number>
+  </option>
+  <option>
+    <number>3</number>
+    <number>4</number>
+  </option>
+  <option>
+    <number>5</number>
+    <number>6</number>
+  </option>
+  <option>
+    <number>7</number>
+    <number>8</number>
+  </option>
+</select>
+<p><m>(x1, y1) = ($s[1][1], $s[1][2])</m></p>
+<p><m>(x2, y2) = ($s[2][1], $s[2][2])</m></p>
+<p><m>(x3, y3) = ($s[3][1], $s[3][2])</m></p>
+
+<p>Click page variants to see other randomized values assigned.</p>  
+```
+
+It is possible to group several components for selection within a single ` <option>{:dn}` component.
+In order to reference a specific component within a selected ` <option>{:dn}`, use array notation. 
+The first index of the array notation refers to the selected ` <option>{:dn}` component, and the
+second index refers to the specific component within the ` <option>{:dn}` component.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+---
+
+### Attribute Example: selectWeight
+
+
+```doenet-editor-horiz
+<select name="n" numToSelect="10" withReplacement="true" hide>
+  <option selectWeight="2"><text>red</text></option>
+  <option selectWeight="1"><text>green</text></option>
+  <option selectWeight="1"><text>yellow</text></option>
+</select>
+<p>Selection n1 is $n[1]</p>
+<p>Selection n2 is $n[2]</p>
+<p>Selection n3 is $n[3]</p>
+<p>Selection n4 is $n[4]</p>
+<p>Selection n5 is $n[5]</p>
+<p>Selection n6 is $n[6]</p>
+<p>Selection n7 is $n[7]</p>
+<p>Selection n8 is $n[8]</p>
+<p>Selection n9 is $n[9]</p>
+<p>Selection n10 is $n[10]</p>
+<p>Click page variants to see other randomized values assigned.</p>      
+```
+
+
+
+The ` <option>{:dn}` component is used with the `selectWeight` attribute. This attribute takes any numerical value and defaults to 1. In the case below, the `red` option is twice as likely to be selected during recursive selections (note that the ` <select>{:dn}` component has attribute specification `withReplacement="true"`) as the `green` or `yellow` options.
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.

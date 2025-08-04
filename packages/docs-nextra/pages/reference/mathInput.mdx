@@ -1,0 +1,407 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <mathInput/>{:dn}`
+
+
+` <mathInput/>{:dn}` is an [Input](../document_structure/essentialConcepts#component-types)
+component that renders a user-input field that stores mathematical content. 
+When referenced, a named ` <mathInput/>{:dn}` can be used in computations in the same manner 
+as a ` <math>{:dn}` component.
+
+## Attributes and Properties 
+ <AttrDisplay name='mathInput'/> 
+ <PropDisplay name='mathInput'/>
+
+---
+
+### Example: Assign a name to user-input math expression
+
+
+```doenet-editor-horiz
+<p>Type <c>x^2 + sqrt4 - 1/y</c>: 
+  <mathInput name="userExpression"/></p>
+<p>You've typed: $userExpression</p>
+```
+
+
+
+A ` <mathInput/>{:dn}` renders an input field for storing and naming user-provided math expressions.
+
+
+
+---
+
+### Example: Do some math with user-input
+
+
+```doenet-editor-horiz
+<p>Enter <c>pi/4</c>: <mathInput name="userAngle"/></p>
+  <p>
+    <math name="sinOfUserAngle">sin($userAngle)</math> = 
+    <number>$sinOfUserAngle</number>
+  </p>
+```
+
+
+
+A named ` <mathInput/>{:dn}` can be referenced within a ` <math>{:dn}` for computations.
+
+
+
+---
+
+### Example: ` <mathInput/>{:dn}` with structured prefill
+
+
+```doenet-editor-horiz
+<p>Simplify.</p>
+  <math>2/10</math> = 
+    <answer symbolicEquality="true">
+      <mathInput name="userFraction" prefill=" / "/>
+      <award>1/5</award>
+    </answer>
+  <p>You answered $userFraction</p>
+```
+
+
+
+A ` <mathInput/>{:dn}` can incorporate a `prefill` with shaded blanks.
+
+
+
+---
+
+### Attribute Example: prefill
+
+
+```doenet-example
+<mathInput name="userInput" prefill="x^() sin()" />
+<p>You entered: $userInput</p>
+```
+
+
+
+The `prefill` attribute can be used to specify an initial value of 
+the ` <mathInput/>{:dn}`, or a template for anticipated responses. Blank spaces, 
+if used, are rendered as grey input boxes. 
+
+
+
+---
+
+### Attribute Example: prefillLatex
+
+
+```doenet-example
+<mathInput name="userInput" prefillLatex="\binom{n}{ }"/>
+<p>You entered: <m>$userInput.rawRendererValue</m></p>
+```
+
+
+
+The most common way to enter LaTex in a `prefill` is to use the `format = "latex"` attribute. 
+However, the `prefillLatex` attribute is a means of preserving non-standard formatting 
+which is typically removed when LaTeX is parsed as a math component. 
+
+
+
+---
+
+### Attribute Example: format
+
+
+```doenet-example
+<p>Enter a fraction (LaTeX prefill):
+  <mathInput name="fraction1" prefill="\frac{ }{ }" format="latex" />
+</p>
+
+<p>Enter a fraction (default prefill):
+  <mathInput name="fraction2" prefill=" / " />
+</p>
+
+<p><m>$fraction1 + $fraction2 = 
+  <math name="sumOfFractions" simplify>$fraction1 + $fraction2</math></m></p>
+```
+
+
+
+The `format` attribute gives the option for prefilled ` <mathInput/>{:dn}` components 
+to contain content formatted in LaTex. If supported, expressions entered in the 
+prefill of the ` <mathInput/>{:dn}` will be parsed by Doenet as math components and 
+may be used in further computations. 
+
+
+
+---
+
+### Attribute Example: functionSymbols
+
+
+```doenet-editor-horiz
+<p>Type <m>h(x) = x^2</m> (without <attr>functionSymbols</attr>):
+ <mathInput name="function1"/></p>
+<p>You've entered $function1</p>
+
+<p>Type <m>h(x) = x^2</m> (with <attr>functionSymbols</attr>):
+ <mathInput name="function2" functionSymbols="h"/></p>
+<p>You've entered $function2</p>
+```
+
+
+
+The `functionSymbols` attribute is used to specify when a character is formatted as a 
+function that takes an argument in parentheses. The default values that are automatically
+considered functions symbols are `f` and `g`.
+
+
+
+---
+
+### Attribute Example: splitSymbols
+
+
+```doenet-example
+<p>With <attr>splitSymbols="true"</attr>, by default:
+  <mathInput name='mi1' prefill="xyz"/></p>
+<p>The square of $mi1 is <math simplify>$mi1^2</math>.</p>
+      -------------------------
+<p>With <attr>splitSymbols="false"</attr>:
+   <mathInput splitSymbols="false" name="mi2" prefill="xyz" /></p>
+<p>Notice how adding spaces between the characters above will change this value.</p>   
+<p>The square of $mi2 is <math simplify>$mi2^2</math>.</p>   
+```
+
+
+
+The `splitSymbols` attribute is used to modify the default mathematical simplification of 
+multicharacter values in a ` <mathInput/>{:dn}`. By default, Doenet assumes adjacent characters 
+are single variables multiplied together, and "splits" them during parsing. So, for example, 
+multicharacter values such as `xyz` are interpreted as the product $x \cdot y \cdot z$. However, 
+if you wish to treat a grouping of symbols as a single variable, you can turn off this 
+behavior by specifying `splitSymbols="false"`.
+
+
+
+---
+
+### Attribute Example: bindValueTo
+
+
+```doenet-editor-horiz
+<p>First try dragging the points, and observe the input box. 
+Then, try changing the value in the input box.</p>
+
+<graph size="small">
+  <point name="A" labelIsName>(1,2)</point>
+  <point name="B" labelIsName>(-3,-4)</point>
+  <point name="C" labelIsName>(5,-2)</point>
+  <circle name="circ" through="$A $B $C" />
+</graph>
+
+<p>The bound radius of the circle through the points $A, $B, and $C is 
+  <mathInput bindValueTo="$circ.radius" />. 
+</p> 
+```
+
+
+
+The `bindValueTo` attribute is used to create a bidirectional link between the 
+value of a ` <mathInput/>{:dn}` and that of another component. This attribute 
+accepts a reference to a named math component or the property of a named component as input.
+
+
+
+---
+
+### Attribute Example: unionFromU
+
+
+```doenet-example
+<p>Type <m>A U B</m> (with spaces between): 
+  <mathInput name="union" unionFromU />.</p>
+<p>Value interpreted as $union.</p>
+
+<p>Type <m>A U B</m> (with spaces between): 
+  <mathInput name="noUnion" />.</p>
+<p>Value interpreted as $noUnion, a product of three variables.</p>
+```
+
+
+
+By default, an uppercase "U" entered in a ` <mathInput/>{:dn}` will be interpreted as 
+the letter U. To enter a union, one can use the virtual keyboard (by clicking button at 
+the bottom of the screen), and finding the $\cup$ symbol in the keyboard's Set menu.  
+(Or, if one knows LaTeX, one could type `\cup` for union.)
+
+
+
+---
+
+### Attribute Example: hideNaN
+
+
+```doenet-example
+<p><mathInput name="mi1"><number /></mathInput> = $mi1</p>
+<p><mathInput name="mi2" hideNaN="false"><number /></mathInput> = $mi2</p>
+```
+
+
+
+By default, the text NaN is suppressed within the ` <mathInput/>{:dn}` box. To override this 
+behavior, the `hideNaN` attribute may be set to false.
+
+
+
+---
+
+### Attribute Example: removeStrings
+
+
+```doenet-example
+<p>Enter <m>20\%</m> 
+  <mathInput name="mi1" /> = $mi1
+</p>
+
+<p>Enter <m>20\%</m> 
+  <mathInput name="mi2" removeStrings="%" /> = $mi2
+</p>
+
+<p>Removing the string character allows the mathInput to be used in further calculations:</p>
+  <p>$mi1 of <m>50 = <math simplify>($mi2/100) 50 </math></m></p>
+```
+
+
+
+The `removeStrings` attribute allows Doenet to ignore elements of a user's input which cannot be parsed into a math.
+
+
+
+---
+
+### Attribute Example: minWidth
+
+
+```doenet-example
+<p>Enter <m>ax^2 + bx + c</m>: 
+  <mathInput name="mi1"/> = $mi1
+</p>
+
+<p>Enter <m>ax^2 + bx + c</m>: 
+  <mathInput name="mi2" minWidth="100" /> = $mi2
+</p>
+
+<p>Enter <m>ax</m>: 
+  <mathInput name="mi3" minWidth="20"/> = $mi3
+</p>
+```
+
+
+
+The `minWidth` attribute is set to 50 by default. Adjust this value for a longer or shorter input box.
+
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<mathInput name="mi1" prefill="3/4 x"/>
+
+<p><c>prefill</c> = $mi1.prefill</p>
+<p><c>format</c> = $mi1.format</p>
+<p><c>functionSymbols</c> = $mi1.functionSymbols</p>
+<p><c>splitSymbols</c> = $mi1.splitSymbols</p>
+<p><c>unionFromU</c> = $mi1.unionFromU</p>
+<p><c>hideNaN</c> = $mi1.hideNaN</p>
+<p><c>minWidth</c> = $mi1.minWidth</p>
+
+<mathInput 
+  name="mi2" 
+  prefillLatex="\left( \frac{3}{4} \right) x"/>
+
+<p><c>prefillLatex</c> = $mi2.prefillLatex</p>
+<p><c>format</c> = $mi2.format</p>
+```
+
+
+
+The above-listed attributes of ` <mathInput/>{:dn}` are also accessible as properties.
+
+
+
+---
+
+### Property Example: value
+
+
+```doenet-example
+<mathInput name="mi1"/> = $mi1
+
+<p><c>value</c> = $mi1.value</p>
+```
+
+
+
+The `value` property renders the value stored in the ` <mathInput>{:dn}` after the user has 
+clicked Enter (or mouse-clicked on another part of the screen).
+
+
+
+---
+
+### Property Example: immediateValue
+
+
+```doenet-example
+<mathInput name="mi1"/> = $mi1
+
+<p><c>immediateValue</c> = $mi1.immediateValue</p>
+```
+
+
+
+The `immediateValue` property contains the value the user enters into the input as they are typing.
+
+
+
+---
+
+### Property Example: text
+
+
+```doenet-example
+<p>Enter an expression with text and math:
+<mathInput name="mi1"/> </p>
+
+<p><c>text</c> = $mi1.text</p>
+<p><c>mi1</c> = $mi1</p> 
+```
+
+
+
+The `text` property of a ` <mathInput/>{:dn}` stores its content as a string.
+
+
+
+---
+
+### Property Example: rawRendererValue
+
+
+```doenet-example
+<p>Type an expression involving latex, or using a mathematical operator.</p>
+<mathInput name="mi1"/>
+
+<p><c>rawRendererValue</c> = $mi1.rawRendererValue</p>
+<p><c>mi1</c> = $mi1</p> 
+```
+
+
+
+The `rawRendererValue` property stores/renders the LaTeX code required for rendering the math expression, updated as the user types.
+

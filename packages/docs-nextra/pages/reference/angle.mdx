@@ -1,0 +1,276 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <angle>{:dn}`
+
+
+` <angle>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) component 
+which renders a geometric angle when nested inside a [` <graph>{:dn}`](graph.mdx) component.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='angle'/> 
+ <PropDisplay name='angle'/>
+
+
+---
+
+### Example: Angle between two lines
+
+
+```doenet-example
+<graph size="small" xmax="6" ymin="-6">
+  <line name="line1">y = 1/2 x + 4</line>
+  <line name="line2">y = -x  - 1</line>
+  <angle betweenLines="$line1 $line2" radius="3"/>
+</graph>
+```
+
+
+
+Two lines are created within a ` <graph>{:dn}` using the ` <line>{:dn}` component. 
+The ` <angle>{:dn}` component is specified by referencing those lines by name with the `betweenLines` attribute.
+
+
+
+---
+
+### Example: Angle between three points
+
+
+```doenet-example
+<graph size="small" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <angle through="(5,-3) (0,0) (5,4)"/>
+</graph>
+```
+
+
+
+Three points define the angle with the `through` attribute.
+
+
+
+---
+
+### Example: Angle specified by user-input
+
+
+```doenet-editor-horiz
+Angle in radians: <mathInput name="userAngle"/>
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <angle>$userAngle</angle>
+</graph>
+```
+
+
+
+The user is prompted to enter an angle with the ` <mathInput/>{:dn}` component. 
+This angle is then referenced by name within the opening and closing ` <angle>{:dn}` tags.
+
+
+
+---
+
+### Attribute Example: radius
+
+
+```doenet-example
+  <graph size="small">
+    <angle degrees="65" radius="5"/>
+  </graph>
+```
+
+
+
+The `radius` attribute is used to change the radius of the angle symbol shown on the graph. Default = 1; type = <em>math</em>.
+
+
+
+---
+
+### Attribute Example: chooseReflexAngle
+
+
+```doenet-editor-horiz
+  <graph>
+    <point name="A" fixed>(5, -3)</point>
+    <point name="B" fixed>(0, 0)</point>
+    <point name="C" styleNumber="2">(5, 4)</point>
+    <angle through="$A $B $C" chooseReflexAngle="never" radius="3"/>
+    <angle through="$A $B $C" chooseReflexAngle="always" styleNumber="2"/>
+    <angle through="$A $B $C" chooseReflexAngle="allowed" styleNumber="3" radius="2"/>
+  </graph>
+```
+
+
+
+The `chooseReflexAngle` attribute is used to change the behavior of angle representation, where more than one angle is possible. The attribute accepts three possible text values: `always`, `never` (default), and `allowed`. 
+
+
+The blue angle in the graph illustrates the condition where the default condition where the reflex angle (or angle greater than $180^\circ$) is *never* selected.
+
+
+By contrast, the red angle illustrates the condition where the reflex angle is *always* selected.
+
+
+Finally, the orange angle takes the specified through-points in a counter-clockwise 
+direction and illustrates the case where `chooseReflexAngle = "allowed"` has been selected. The 
+resulting angle may be a reflex angle or not a reflex angle depending on the position of the 
+points. Try dragging the red square (point C) to observe this difference in behavior. Default = "never"; type = <em>text</em>.
+
+
+
+---
+
+### Attribute Example: inDegrees
+
+
+```doenet-example
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <angle name="a" inDegrees degrees="30"/>
+</graph>
+The angle <m>a</m> is $a
+```
+
+
+
+The `inDegrees` attribute specifies that the output of the angle when defined or 
+copied outside the graph should have units of degrees. Default = "false"; type = <em>boolean</em>.
+
+
+
+---
+
+### Attribute Example: degrees
+
+
+```doenet-example
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <angle degrees="30"/>
+</graph>
+```
+
+
+
+The `degrees` attribute specifies the measure of the angle in degrees; type = <em>math</em>.
+
+
+
+---
+
+### Attribute Example: radians
+
+
+```doenet-example
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <angle radians="pi/2"/>
+</graph>
+```
+
+
+
+The `radians` attribute specifies the measure of the angle in radians; type = <em>math</em>. Note that 
+radians are the default units for angles in DoenetML.
+
+
+
+---
+
+### Attribute Example: through
+
+
+```doenet-editor-horiz
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <point name="p1">(5, -3)</point>
+  <point name="p2">(0, 0)</point>
+  <point name="p3">(5, 4)</point>
+  <angle through="$p1 $p2 $p3"/>
+</graph>
+```
+
+
+
+The `through` attribute accepts three points through which to construct the angle. Type = <em>pointList</em>.
+
+
+
+---
+
+### Attribute Example: betweenLines
+
+
+```doenet-editor-horiz
+<graph>
+  <point name="A" labelIsName>(-8, 2)</point>
+  <point name="B" labelIsName>(-4,-3)</point>
+  <point name="C" labelIsName>(6, 4)</point>
+  <line name="AB" through="$A $B"/>
+  <line name="BC" through="$B $C"/>
+  <angle betweenLines="$AB $BC"/>
+</graph>
+```
+
+
+
+The `betweenLines` attribute accepts two lines to construct the angle between. Type = <em>lineList</em>.
+
+
+
+---
+
+### Attribute Example: emphasizeRightAngle
+
+
+```doenet-example
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <angle radians="pi/2" emphasizeRightAngle="false"/>
+</graph>
+```
+
+
+
+By default, right angles are shown with a square symbol. Use the `emphasizeRightAngle` attribute set to false 
+to negate this default convention. Default = "true", type = <em>boolean</em>.
+
+
+
+---
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <angle name="alpha" radians="pi/2"/>
+</graph>
+<p><c>radians</c> = $alpha.radians</p>
+<p><c>degrees</c> = $alpha.degrees</p>
+<p><c>chooseReflexAngle</c> = $alpha.chooseReflexAngle</p>
+```
+
+
+
+The above listed ` <angle>{:dn}` attributes are also accessible as properties.
+
+
+
+---
+
+### Property Example: Angle, value
+
+
+```doenet-editor-horiz
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <angle name="alpha" radians="pi/2"/>
+</graph>
+<p><c>angle</c> = $alpha.angle</p>
+<p><c>value</c> = $alpha.value</p>
+```
+
+
+
+The `angle` and `value` properties returns the value of the angle in default radians.
+
+

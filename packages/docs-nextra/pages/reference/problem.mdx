@@ -1,0 +1,221 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+# ` <problem>{:dn}`
+
+
+` <problem>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that renders an auto-numbered block of content. Inline components such as paragraphs 
+(`<p>{:dn}`) and other components can be nested within an ` <problem>{:dn}` to group and order 
+content. Some examples are: another ` <problem>{:dn}`, a ` <section>{:dn}`, a ` <figure>{:dn}`, or 
+an ` <example>{:dn}`.
+
+## Attributes and Properties 
+ <AttrDisplay name='problem'/> 
+ <PropDisplay name='problem'/>
+
+---
+
+### Example: ` <problem>{:dn}` with default title
+
+
+```doenet-editor-horiz
+<problem>
+  <p><answer>42</answer></p>
+</problem>
+
+<section>
+  <p><lorem generateWords="10"/></p>
+</section>
+
+<exercise>
+  <p>Build a water rocket.</p>
+</exercise>
+```
+
+
+
+Within a DoenetML document, default titles for sectional components are auto-numbered. 
+Each sectional component is on the same counter.
+
+
+
+---
+
+### Example: ` <problem>{:dn}` with custom title
+
+
+```doenet-editor-horiz
+<problem>
+  <title>Factor the trinomial</title>
+    <p><m>x^2 + 3x + 2 = </m>
+      <answer symbolicEquality>
+        <mathInput name="userInput"/>
+        <award>
+          <when>
+            <hasSameFactoring>
+              <math>(x+2)(x+1)</math>
+              $userInput
+            </hasSameFactoring>
+          </when>
+        </award>
+      </answer>
+    </p>
+</problem>
+```
+
+
+
+A custom ` <problem>{:dn}` title is creating by providing a ` <title>{:dn}` tag 
+within the ` <problem>{:dn}`.
+
+
+
+---
+
+### Example: Nesting sectional components
+
+
+```doenet-editor-horiz
+<problem>
+  <title>This is the main problem.</title>
+    <p>Move the point.</p>
+    <graph size="tiny">
+      <point name="p"/>
+    </graph>
+    <answer>
+      <award><when>$p != (0,0)</when></award>
+    </answer>
+
+  <example><title>Nested example</title>
+    <p><lorem generateWords="10"/></p>
+  </example>
+</problem>
+```
+
+
+
+A hierarchy is created by nesting one or more sectional components within an ` <problem>{:dn}`.
+
+
+---
+
+### Attribute Example: includeParentNumber
+
+
+```doenet-example
+<section boxed>
+  <problem>
+    <p>This problem is nested inside a section. The default number does not include the parent number.</p>
+  </problem>
+</section>
+
+<section boxed>
+  <problem includeParentNumber="true">
+    <p>This exercise is nested inside a section. Rendering of the parent section number has been included.</p>
+  </problem>
+</section>
+```
+
+
+
+The `includeParentNumber` attribute is `false` by default for the ` <problem>{:dn}` component (and `true` by default for the ` <section>{:dn}` component).
+
+
+In order to include the number of the parent sectional component, set `includeParentNumber` to `true`.
+
+
+
+---
+
+### Attribute Example: includeAutoNumber
+
+
+```doenet-example
+<problem boxed>
+  <title>Custom title</title>
+    <p>In this problem, the custom title overrides the default numbering of the problem.</p>
+</problem>
+
+<problem boxed includeAutoNumber="true">
+  <title>Special title</title>
+    <p>In this problem, the number of the problem is still rendered in addition to the custom title.</p>
+</problem>
+```
+
+
+
+The `includeAutoNumber` attribute is `false` by default for the ` <problem>{:dn}` component. This means that if a problem contains a nested ` <title>{:dn}`, it will not render the default numbering (although it will still be counted in the numbering scheme behind the scenes).
+
+
+In order to display the problem number in addition to the custom ` <title>{:dn}`, set the `includeAutoNumber` attribute to `true`.
+
+
+
+---
+
+### Attribute Example: aggregateScores and sectionWideCheckWork
+
+
+```doenet-example
+<problem sectionWideCheckWork aggregateScores>
+  <title>Multiple questions</title>
+    <p>Enter <m>x</m>: <answer>x</answer></p>
+    <p>Enter <m>y</m>: <answer>y</answer></p>
+    <p>Enter <m>z</m>: <answer>z</answer></p>
+</problem>
+```
+
+
+
+The `aggregateScores` and `sectionWideCheckWork` attributes together combine validation for all ` <answer>{:dn}` components within the ` <problem>{:dn}` under a single "Check Work" button.
+
+
+---
+
+### Attribute Example: boxed
+
+
+```doenet-example
+<problem boxed>
+  <title>Boxed problem</title>
+    <p>Move the point.</p>
+    <graph size="tiny">
+      <point name="p"/>
+    </graph>
+
+    <answer>
+      <award><when>$p != (0,0)</when></award>
+    </answer>  
+</problem>
+```
+
+
+
+The `boxed` attribute changes the default formatting for a sectional component to one that has a border and a shaded banner for the title.
+
+
+
+---
+
+### Attribute Example: hide
+
+
+```doenet-example
+<booleanInput name="hideProblem">
+  <label>Click here to hide the problem</label>
+</booleanInput>
+
+<problem hide="$hideProblem">
+  <title>Now you see me...</title>
+    <p>Type "sassafras" 
+      <answer type="text">sassafras</answer>.
+    </p>
+</problem>
+```
+
+
+
+The `hide` attribute takes a boolean as input and can be used with any rendered component.
+
