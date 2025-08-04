@@ -10,7 +10,7 @@ component that defines a sequence of numerical (or alphabetical) values.
 
 ## Attributes and Properties 
  <AttrDisplay name='sequence'/> 
- <PropDisplay name='sequence'/>
+The `<sequence>{:dn}` component does not have properties.
 
 ---
 
@@ -38,7 +38,7 @@ The default ` <sequence>{:dn}` lists values from $1$ to $10$ with `step` size $1
 <sequence name="s" from="-8" to="8" step="2"/>
 
 <graph>
-<repeat for="$s" itemName="i">
+<repeat for="$s" valueName="i">
   <point>($i, $i)</point>
   </repeat>
 </graph>

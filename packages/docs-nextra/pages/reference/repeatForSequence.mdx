@@ -28,7 +28,7 @@ Its behavior is similar to a for loop in other programming languages.
     from="0" 
     to="2pi" 
     step="pi/4" 
-    itemName="v">
+    valueName="v">
       <point>(5 cos($v), 5 sin($v))</point>
   </repeatForSequence>
 </graph> 
@@ -81,8 +81,8 @@ using array notation.
 
 ```doenet-example
 <graph xmin="-1" xmax="19" ymin="-1" ymax="12" identicalAxisScales>
-<repeatForSequence name="shapeGrid" from="3" to="17" step="7" itemName="xC" indexName="i">
-  <repeatForSequence from="2" to="10" step="4" itemName="yC">
+<repeatForSequence name="shapeGrid" from="3" to="17" step="7" valueName="xC" indexName="i">
+  <repeatForSequence from="2" to="10" step="4" valueName="yC">
     <regularPolygon numSides="5" center="($xC, $yC)" styleNumber="$i" filled/>
   </repeatForSequence>
 </repeatForSequence>

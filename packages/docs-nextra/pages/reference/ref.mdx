@@ -2,18 +2,16 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 
 import { AttrDisplay, PropDisplay } from "../../components"
 
-## Attributes and Properties 
- <AttrDisplay name='ref'/> 
- <PropDisplay name='ref'/>
+
 
 # ` <ref>{:dn}`
 
 
-
-
-
 The ` <ref>{:dn}` component renders a link to another Doenet document or to an external website.
 
+## Attributes and Properties 
+ <AttrDisplay name='ref'/> 
+ <PropDisplay name='ref'/>
 
 ---
 
@@ -21,82 +19,36 @@ The ` <ref>{:dn}` component renders a link to another Doenet document or to an e
 
 
 ```doenet-editor-horiz
-<p><lorem generateSentences="3"/> 
-  For more information, see <ref uri="https://en.wikipedia.org/wiki/Pythagorean_theorem">this article</ref></p>
+<p>For more information, see this
+  <ref to="https://en.wikipedia.org/wiki/Pythagorean_theorem">
+    article on the Pythagorean Theorem
+  </ref>
+</p>
 ```
 
 
 
-In the sample code above, the uri attribute of the ` <ref>{:dn}` component is used with the address of an external webpage to create a link within a paragraph.
-
+In the example above, the `to` attribute of the ` <ref>{:dn}` component is used with the address of an external 
+webpage to create a link within a paragraph.
 
 
 ---
 
-### Example: ` <ref>{:dn}` to another doenet document
+### Attribute Example: createButton
 
 
 ```doenet-editor-horiz
-<p>Find out more about the <ref uri="doenet:activityId=_STMxLaf-ic80S9duBU1WK">rectangle</ref> component.</p>
+<p>For more information, see this article on
+  <ref to="https://en.wikipedia.org/wiki/Pythagorean_theorem"
+    createButton>
+      The Pythagorean Theorem
+  </ref>
+</p>
 ```
 
 
 
-In the sample code above, the uri attribute of the ` <ref>{:dn}` component is used with the syntax: `"doenet:activityId=_activityId"`. The activityId of an activity occurs in the activity's url, following the type of page. So, for example, this URL is:
-
-
-
-`https://www.doenet.org/publiceditor/_v9Fd4g-lLDO_e_LsrtgJ9/_2INJUzFPghpha8EUBmc7s`
-
-
-
-and its activityId is the string of digits following `/publiceditor/`, which is `_v9Fd4g-lLDO_e_LsrtgJ9`.
-
-
-
----
-
-### Example: uri
-
-
-```doenet-editor-horiz
-<p>Click 
-  <ref uri="doenet:doenetId=_DG5JOeFNTc5rpWuf2uA-q">here</ref>
-  to go back to the index</p>
-```
-
-
-
-In the sample code below, the uri attribute of the ` < ref >{:dn}` component is used with the string input "doenet:doenetID=(insert DoenetID)" to create a link to a Doenet document.
-
-
-
----
-
-### Example: createButton
-
-
-```doenet-editor-horiz
-      <p>Click 
-  <ref uri="doenet:doenetId=_DG5JOeFNTc5rpWuf2uA-q" createButton="true">here</ref> 
-    to go back to the index</p>
-```
-
-
-
-The createButton attribute is used render the link in button format.
-
-
-
----
-
-### Example: textType *
-
-
-```doenet-editor-horiz
-```
-
-
+The `createButton` attribute is used render the link in button format.
 
 
 

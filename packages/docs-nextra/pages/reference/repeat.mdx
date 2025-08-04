@@ -7,7 +7,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ` <repeat>{:dn}` is a [General Operator](../document_structure/essentialConcepts#component-types)
 component that performs the requested operations in an iterative manner over the component specified (typically,
-this is a list or an array). If the specified component is a `<sequence{:dn}>`, a shorter method is to
+this is a list or an array). If the specified component is a `<sequence>{:dn}`, a shorter method is to
 use the [` <repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
 
 The behavior of the ` <repeat>{:dn}` component is similar to a for loop in other programming languages. 
@@ -35,7 +35,7 @@ The behavior of the ` <repeat>{:dn}` component is similar to a for loop in other
   ymax="14">
     <repeat 
       for="$n" 
-      itemName="v" 
+      valueName="v" 
       indexName="i">
         <rectangle 
           center="($i, $v/2)" 
@@ -93,7 +93,7 @@ For an alternative way to do this, see the [` <repeatForSequence>{:dn}`](repeatF
 </setup>
 
 <p>Say hello to a list of plants:
-  <repeat for="$plant" itemName="p">
+  <repeat for="$plant" valueName="p">
     <p>Hello, $p!</p>
   </repeat>
 </p> 
@@ -123,9 +123,9 @@ entries can be accessed using array notation.
   <numberList name="numToys">7 2 5</numberList>
 </p><hr/>
 
-<repeat name="nameR" for="$names" itemName="N">
-  <repeat name="toyR" for="$toys" itemName="t">
-    <repeat name="numR" for="$numToys" itemName="n">
+<repeat name="nameR" for="$names" valueName="N">
+  <repeat name="toyR" for="$toys" valueName="t">
+    <repeat name="numR" for="$numToys" valueName="n">
       <p>$N has $n $t.</p>
     </repeat>
   </repeat>
@@ -169,7 +169,7 @@ Use nested `<repeat>{:dn}` components to iterate across all combinations of the 
 <repeat 
   name="nameR" 
   for="$names" 
-  itemName="N" 
+  valueName="N" 
   indexName="i"
   >
     <p>$N has $num[$i] $toys[$i].</p>
