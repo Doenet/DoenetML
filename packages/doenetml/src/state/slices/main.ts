@@ -142,8 +142,12 @@ export const mainThunks = {
                 let previousRendererState =
                     mainSlice.selectors.componentInfo(getState())[rendererName];
 
+                // TODO: create a test that reproduces the situation where `previousRendererState` is not defined at this stage.
+                // One case where the variable `previousRendererState` can be `undefined` is in a React dev server
+                // where functions are called twice to test robustness.
+                // In this case, one can get a new core and a new `coreId` so that `rendererName` no longer corresponds to a saved state.
                 childrenInstructions2 =
-                    previousRendererState.childrenInstructions;
+                    previousRendererState?.childrenInstructions ?? null;
             } else {
                 childrenInstructions2 = childrenInstructions;
             }
