@@ -373,4 +373,16 @@ describe("v06 to v07 update", () => {
         </module>`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
+
+    it.skip("selectFromSequence with assignNames gets converted", async () => {
+        source = `<selectFromSequence assignNames="n" /> $n`;
+        correctSource = `<selectFromSequence name="n" /> $n`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it.skip("selectFromSequence selecting 2 with assignNames gets converted", async () => {
+        source = `<selectFromSequence assignNames="n m" numToSelect="2" /> $n $m`;
+        correctSource = `<selectFromSequence name="n" numToSelect="2" /> $n[1] $n[2]`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
 });
