@@ -4,6 +4,7 @@ import { DastRoot, DastRootV6 } from "@doenet/parser";
 import { visit } from "@doenet/parser";
 import { isDastElement } from "@doenet/parser";
 import { toXml } from "@doenet/parser";
+export { toXml } from "@doenet/parser";
 import { reparseAttribute } from "./reparse-attribute";
 import {
     correctAttributeCapitalization,
