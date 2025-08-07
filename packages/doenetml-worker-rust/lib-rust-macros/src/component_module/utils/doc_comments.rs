@@ -7,9 +7,10 @@ pub fn doc_comment_from_attrs(attrs: &[syn::Attribute]) -> Option<String> {
                 let meta = &attr.meta;
                 if let syn::Meta::NameValue(nv) = meta
                     && let syn::Expr::Lit(lit) = &nv.value
-                        && let syn::Lit::Str(lit) = &lit.lit {
-                            return Some(lit.value());
-                        }
+                    && let syn::Lit::Str(lit) = &lit.lit
+                {
+                    return Some(lit.value());
+                }
             }
             None
         })

@@ -91,11 +91,12 @@ fn component_name_from_attrs(attrs: &[syn::Attribute]) -> Option<syn::Ident> {
     for attr in attrs {
         let meta = &attr.meta;
         if let Meta::List(list) = meta
-            && list.path.is_ident("owning_component") {
-                let tokens = &list.tokens;
-                let ident = format_ident!("{}", quote! {#tokens}.to_string());
-                return Some(ident);
-            }
+            && list.path.is_ident("owning_component")
+        {
+            let tokens = &list.tokens;
+            let ident = format_ident!("{}", quote! {#tokens}.to_string());
+            return Some(ident);
+        }
     }
     None
 }
