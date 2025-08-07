@@ -4,7 +4,6 @@ import { DastRoot, DastRootV6 } from "@doenet/parser";
 import { visit } from "@doenet/parser";
 import { isDastElement } from "@doenet/parser";
 import { toXml } from "@doenet/parser";
-export { toXml } from "@doenet/parser";
 import { reparseAttribute } from "./reparse-attribute";
 import {
     correctAttributeCapitalization,
@@ -70,7 +69,8 @@ export async function updateSyntaxFromV06toV07(
     options?: Options,
 ) {
     const parsed = lezerToDastV6(dastStr);
-    return await updateSyntaxFromV06toV07_root(parsed, options || {});
+    const result = await updateSyntaxFromV06toV07_root(parsed, options || {});
+    return { ...result, xml: toXml(result.dast) };
 }
 
 /**
