@@ -27,7 +27,7 @@ impl ContentRefs {
         &self.0
     }
 
-    pub fn iter(&self) -> std::slice::Iter<ContentRef> {
+    pub fn iter(&'_ self) -> std::slice::Iter<'_, ContentRef> {
         self.0.iter()
     }
 
@@ -79,7 +79,7 @@ impl AnnotatedContentRefs {
         &self.0
     }
 
-    pub fn iter(&self) -> std::slice::Iter<(ContentRef, ElementRefAnnotation)> {
+    pub fn iter(&'_ self) -> std::slice::Iter<'_, (ContentRef, ElementRefAnnotation)> {
         self.0.iter()
     }
 
@@ -126,8 +126,10 @@ const _: () = {
     // Manually declare the type of `ContentRef` for Typescript. This is a workaround because we intercept the serialization
     // process and turn all `ContentRef` into `FlatDastElementContent` before serializing.
     #[declare]
+    #[allow(unused)]
     type ContentRef = FlatDastElementContent;
     #[declare]
+    #[allow(unused)]
     type AnnotatedContentRefs = Vec<FlatDastElementContent>;
 };
 

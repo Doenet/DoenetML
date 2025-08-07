@@ -32,11 +32,10 @@ impl<'a> Iterator for ParentIterator<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let unwrap_parent_index = |idx: Index| {
-            if let Some(stop_idx) = self.stop_idx {
-                if idx == stop_idx {
+            if let Some(stop_idx) = self.stop_idx
+                && idx == stop_idx {
                     return None;
                 }
-            }
             let parent = self.flat_root_or_fragment.get_node(idx);
             if let FlatNode::Element(parent) = parent {
                 Some(parent)

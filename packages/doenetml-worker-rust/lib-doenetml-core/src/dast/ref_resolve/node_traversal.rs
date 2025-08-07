@@ -102,8 +102,8 @@ impl Resolver {
 
                                 if sources.any(|source| *source == origin_source) {
                                     // If there is a subsequent source, determine if `name_with_source` matches the new source.
-                                    if let Some(next_source) = sources.next() {
-                                        if name_with_source.source_doc == *next_source {
+                                    if let Some(next_source) = sources.next()
+                                        && name_with_source.source_doc == *next_source {
                                             visited[*idx] = true;
                                             return Some(ResolverEdge {
                                                 origin,
@@ -114,7 +114,6 @@ impl Resolver {
                                                 ),
                                             });
                                         }
-                                    }
                                 }
                             }
                             None

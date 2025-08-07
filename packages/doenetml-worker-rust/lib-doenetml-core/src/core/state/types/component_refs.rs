@@ -10,7 +10,7 @@ use anyhow::anyhow;
 #[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
 pub struct ComponentRefs(pub Vec<ComponentIdx>);
 impl ComponentRefs {
-    pub fn iter(&self) -> std::slice::Iter<ComponentIdx> {
+    pub fn iter(&'_ self) -> std::slice::Iter<'_, ComponentIdx> {
         self.0.iter()
     }
 }
