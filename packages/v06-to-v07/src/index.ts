@@ -69,7 +69,8 @@ export async function updateSyntaxFromV06toV07(
     options?: Options,
 ) {
     const parsed = lezerToDastV6(dastStr);
-    return await updateSyntaxFromV06toV07_root(parsed, options || {});
+    const result = await updateSyntaxFromV06toV07_root(parsed, options || {});
+    return { ...result, xml: toXml(result.dast) };
 }
 
 /**
