@@ -55,12 +55,12 @@ impl<SkipFn: RawSkipFn> Iterator for DescendantReverseTopologicalIteratorRaw<'_,
             }
 
             // If the node should be skipped, mark it as visited and continue.
-            if let Some(ref skip_fn) = self.skip_fn {
-                if skip_fn.skip(index) {
-                    self.visited[index] = true;
-                    self.remaining_indices.pop();
-                    continue;
-                }
+            if let Some(ref skip_fn) = self.skip_fn
+                && skip_fn.skip(index)
+            {
+                self.visited[index] = true;
+                self.remaining_indices.pop();
+                continue;
             }
 
             // If the node has no unvisited children, that's the node we want
