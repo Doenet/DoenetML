@@ -102,18 +102,18 @@ impl Resolver {
 
                                 if sources.any(|source| *source == origin_source) {
                                     // If there is a subsequent source, determine if `name_with_source` matches the new source.
-                                    if let Some(next_source) = sources.next() {
-                                        if name_with_source.source_doc == *next_source {
-                                            visited[*idx] = true;
-                                            return Some(ResolverEdge {
-                                                origin,
-                                                origin_source: *next_source,
-                                                referent: *idx,
-                                                edge_type: ResolverEdgeType::Name(
-                                                    name_with_source.name.clone(),
-                                                ),
-                                            });
-                                        }
+                                    if let Some(next_source) = sources.next()
+                                        && name_with_source.source_doc == *next_source
+                                    {
+                                        visited[*idx] = true;
+                                        return Some(ResolverEdge {
+                                            origin,
+                                            origin_source: *next_source,
+                                            referent: *idx,
+                                            edge_type: ResolverEdgeType::Name(
+                                                name_with_source.name.clone(),
+                                            ),
+                                        });
                                     }
                                 }
                             }

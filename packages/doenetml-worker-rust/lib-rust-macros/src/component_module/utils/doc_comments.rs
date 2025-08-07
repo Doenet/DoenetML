@@ -5,12 +5,11 @@ pub fn doc_comment_from_attrs(attrs: &[syn::Attribute]) -> Option<String> {
         .filter_map(|attr| {
             if attr.path().is_ident("doc") {
                 let meta = &attr.meta;
-                if let syn::Meta::NameValue(nv) = meta {
-                    if let syn::Expr::Lit(lit) = &nv.value {
-                        if let syn::Lit::Str(lit) = &lit.lit {
-                            return Some(lit.value());
-                        }
-                    }
+                if let syn::Meta::NameValue(nv) = meta
+                    && let syn::Expr::Lit(lit) = &nv.value
+                    && let syn::Lit::Str(lit) = &lit.lit
+                {
+                    return Some(lit.value());
                 }
             }
             None

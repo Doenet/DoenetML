@@ -524,10 +524,10 @@ impl FlatFragment {
             .max_by_key(|x| *x)
             .map(|x| x + 1)
             .unwrap_or_default();
-        if let Some(idx) = self.parent_idx {
-            if idx + 1 > n {
-                return idx + 1;
-            }
+        if let Some(idx) = self.parent_idx
+            && idx + 1 > n
+        {
+            return idx + 1;
         }
         n
     }
@@ -585,7 +585,7 @@ impl FlatRootOrFragment<'_> {
 
     /// Iterate over the parent elements of a node.
     /// If for some reason the node has a non-element parent, the iterator will panic.
-    pub fn parent_iter(&self, start_idx: Index) -> ParentIterator {
+    pub fn parent_iter(&'_ self, start_idx: Index) -> ParentIterator<'_> {
         let start = self.get_node(start_idx);
         let stop_idx = match self {
             FlatRootOrFragment::Root(_) => None,

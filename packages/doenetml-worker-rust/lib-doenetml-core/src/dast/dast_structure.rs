@@ -249,11 +249,11 @@ pub struct DastAttribute {
 
 impl DastAttribute {
     pub fn get_string_value(&self) -> Result<String, NoValueFound> {
-        if self.children.len() == 1 {
-            if let DastTextRefElementContent::Text(name_text) = &self.children[0] {
-                // have string attribute
-                return Ok(name_text.value.clone());
-            }
+        if self.children.len() == 1
+            && let DastTextRefElementContent::Text(name_text) = &self.children[0]
+        {
+            // have string attribute
+            return Ok(name_text.value.clone());
         }
 
         Err(NoValueFound)
@@ -262,11 +262,11 @@ impl DastAttribute {
     pub fn get_string_value_or_implicit_true(&self) -> Result<String, NoValueFound> {
         if self.children.is_empty() {
             return Ok("true".to_string());
-        } else if self.children.len() == 1 {
-            if let DastTextRefElementContent::Text(name_text) = &self.children[0] {
-                // have string attribute
-                return Ok(name_text.value.clone());
-            }
+        } else if self.children.len() == 1
+            && let DastTextRefElementContent::Text(name_text) = &self.children[0]
+        {
+            // have string attribute
+            return Ok(name_text.value.clone());
         }
 
         Err(NoValueFound)

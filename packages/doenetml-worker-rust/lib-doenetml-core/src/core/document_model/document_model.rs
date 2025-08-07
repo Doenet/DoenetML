@@ -76,7 +76,7 @@ impl DocumentModel {
             .init_from_builder(builder);
     }
 
-    pub fn get_dependency_graph(&self) -> Ref<DependencyGraph> {
+    pub fn get_dependency_graph(&'_ self) -> Ref<'_, DependencyGraph> {
         self.dependency_graph.borrow()
     }
 

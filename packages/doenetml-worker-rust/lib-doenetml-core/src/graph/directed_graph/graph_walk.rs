@@ -12,9 +12,9 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
     ///
     /// Panics if a cycle is detected.
     pub fn descendants_topological_multiroot<A: Borrow<Node>>(
-        &self,
+        &'_ self,
         start_nodes: &[A],
-    ) -> DescendantTopologicalIterator<Node> {
+    ) -> DescendantTopologicalIterator<'_, Node> {
         let start_indices = start_nodes
             .iter()
             .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
@@ -68,9 +68,9 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
     /// That is, if there is an edge `a -> b`, the node `a` will be visited before `b`.
     /// Panics if a cycle is detected.
     pub fn ancestors_topological_multiroot<A: Borrow<Node>>(
-        &self,
+        &'_ self,
         start_nodes: &[A],
-    ) -> DescendantTopologicalIterator<Node> {
+    ) -> DescendantTopologicalIterator<'_, Node> {
         let start_indices = start_nodes
             .iter()
             .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
