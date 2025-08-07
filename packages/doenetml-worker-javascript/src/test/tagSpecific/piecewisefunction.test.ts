@@ -1694,6 +1694,23 @@ describe("Piecewise Function Tag Tests", async () => {
 \\end{cases}`);
     });
 
+    it("latex is marked forRenderer", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <piecewiseFunction name="f">
+      <function domain="(1,3)">x</function>
+      <function domain="[4,5)">x^2</function>
+    </piecewiseFunction>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        const fIdx = await resolvePathToNodeIdx("f");
+
+        expect(core.core?._components![fIdx].state.latex.forRenderer).eq(true);
+    });
+
     it("extrema of a function with piecewise function child", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
