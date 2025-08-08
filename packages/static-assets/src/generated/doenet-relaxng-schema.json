@@ -85116,19 +85116,7 @@
                         "false"
                     ]
                 },
-                "creditFactorByAttempt": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "creditReductionPerAttempt": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "creditReductionLimit": {
+                "creditByAttempt": {
                     "optional": true,
                     "type": [
                         "string"
@@ -85614,18 +85602,8 @@
                     "isArray": false
                 },
                 {
-                    "name": "creditFactorByAttempt",
+                    "name": "creditByAttempt",
                     "type": "numberList",
-                    "isArray": false
-                },
-                {
-                    "name": "creditReductionPerAttempt",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "creditReductionLimit",
-                    "type": "number",
                     "isArray": false
                 },
                 {

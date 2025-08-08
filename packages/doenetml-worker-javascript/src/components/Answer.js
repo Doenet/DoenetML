@@ -170,43 +170,15 @@ export default class Answer extends InlineComponent {
 
         // A list of factors that will multiply the original credit achieved to adjust it based on the number
         // of incorrect attempts submitted.
-        // For example, given `<answer creditFactorByAttempt="1 0.7 0.5" />`,
+        // For example, given `<answer creditByAttempt="1 0.7 0.5" />`,
         // a correct answer on the first attempt would get full credit,
         // obtaining the correct answer after one incorrect response would give 70% credit,
         // while getting the correct response after two or more incorrect responses would yield 50% credit.
-        attributes.creditFactorByAttempt = {
+        attributes.creditByAttempt = {
             createComponentOfType: "numberList",
-            createStateVariable: "creditFactorByAttempt",
+            createStateVariable: "creditByAttempt",
             defaultValue: [],
             public: true,
-        };
-
-        // If `creditFactorByAttempt` is not supplied, then `creditReductionPerAttempt` can specify a value
-        // to subtract from the credit for each incorrect attempt.
-        // For example, given `<answer creditReductionPerAttempt="0.4" />`,
-        // a correct answer on the first attempt would get full credit,
-        // obtaining the correct after one incorrect response would give 60% credit,
-        // while getting the response after two incorrect responses would yield 20% credit.
-        // With three or more incorrect responses, credit is prevented by going negative by the value of `creditReductionLimit`,
-        // which defaults to 0.99, meaning the credit doesn't drop below 1%.
-        attributes.creditReductionPerAttempt = {
-            createComponentOfType: "number",
-            createStateVariable: "creditReductionPerAttempt",
-            defaultValue: 0,
-            public: true,
-            clamp: [0, 1],
-        };
-
-        // The maximum amount of credit reduced by incorrect answers when `creditReductionPerAttempt` is in force.
-        // It defaults to `0.99`.
-        // If the previous example were modified to `<answer creditReductionPerAttempt="0.4" creditReductionLimit="0.6" />`,
-        // then the credit after two or more in correct responses would stay at 40%.
-        attributes.creditReductionLimit = {
-            createComponentOfType: "number",
-            createStateVariable: "creditReductionLimit",
-            defaultValue: 0.99,
-            public: true,
-            clamp: [0, 1],
         };
 
         attributes.splitSymbols = {
@@ -1493,26 +1465,19 @@ export default class Answer extends InlineComponent {
         stateVariableDefinitions.creditIsReducedByAttempt = {
             forRenderer: true,
             returnDependencies: () => ({
-                creditFactorByAttempt: {
+                creditByAttempt: {
                     dependencyType: "stateVariable",
-                    variableName: "creditFactorByAttempt",
-                },
-                creditReductionPerAttempt: {
-                    dependencyType: "stateVariable",
-                    variableName: "creditReductionPerAttempt",
+                    variableName: "creditByAttempt",
                 },
             }),
             definition({ dependencyValues }) {
                 let creditIsReducedByAttempt = false;
 
-                if (dependencyValues.creditFactorByAttempt.length > 0) {
+                if (dependencyValues.creditByAttempt.length > 0) {
                     creditIsReducedByAttempt =
-                        dependencyValues.creditFactorByAttempt.some(
+                        dependencyValues.creditByAttempt.some(
                             (reduction) => reduction < 1,
                         );
-                } else {
-                    creditIsReducedByAttempt =
-                        dependencyValues.creditReductionPerAttempt > 0;
                 }
 
                 return { setValue: { creditIsReducedByAttempt } };
@@ -1674,17 +1639,9 @@ export default class Answer extends InlineComponent {
         stateVariableDefinitions.nextCreditFactor = {
             forRenderer: true,
             returnDependencies: () => ({
-                creditFactorByAttempt: {
+                creditByAttempt: {
                     dependencyType: "stateVariable",
-                    variableName: "creditFactorByAttempt",
-                },
-                creditReductionPerAttempt: {
-                    dependencyType: "stateVariable",
-                    variableName: "creditReductionPerAttempt",
-                },
-                creditReductionLimit: {
-                    dependencyType: "stateVariable",
-                    variableName: "creditReductionLimit",
+                    variableName: "creditByAttempt",
                 },
                 numIncorrectSubmissions: {
                     dependencyType: "stateVariable",
@@ -1694,9 +1651,8 @@ export default class Answer extends InlineComponent {
             definition({ dependencyValues }) {
                 let nextCreditFactor = 1;
 
-                if (dependencyValues.creditFactorByAttempt.length > 0) {
-                    const factorByAttempt =
-                        dependencyValues.creditFactorByAttempt;
+                if (dependencyValues.creditByAttempt.length > 0) {
+                    const factorByAttempt = dependencyValues.creditByAttempt;
                     const effectiveAttempt = Math.min(
                         dependencyValues.numIncorrectSubmissions,
                         factorByAttempt.length - 1,
@@ -1705,16 +1661,6 @@ export default class Answer extends InlineComponent {
                         1,
                         Math.max(0, factorByAttempt[effectiveAttempt]),
                     );
-                } else if (
-                    dependencyValues.creditReductionPerAttempt > 0 &&
-                    dependencyValues.numIncorrectSubmissions > 0
-                ) {
-                    const reduction = Math.min(
-                        dependencyValues.creditReductionLimit,
-                        dependencyValues.creditReductionPerAttempt *
-                            dependencyValues.numIncorrectSubmissions,
-                    );
-                    nextCreditFactor = 1 - reduction;
                 }
 
                 return { setValue: { nextCreditFactor } };

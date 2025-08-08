@@ -192,36 +192,32 @@ export function createCheckWorkComponent(
         );
     }
 
-    if (SVs.numAttemptsLeft < 1) {
-        checkWorkComponent = (
-            <>
-                {checkWorkComponent}
-                <span>(no attempts remaining)</span>
-            </>
-        );
-    } else if (SVs.numAttemptsLeft === 1) {
-        checkWorkComponent = (
-            <>
-                {checkWorkComponent}
-                <span>(1 attempt remaining)</span>
-            </>
-        );
-    } else if (Number.isFinite(SVs.numAttemptsLeft)) {
-        checkWorkComponent = (
-            <>
-                {checkWorkComponent}
-                <span>({SVs.numAttemptsLeft} attempts remaining)</span>
-            </>
-        );
-    }
+    let messages = [];
 
     if (SVs.creditIsReducedByAttempt) {
-        const message =
-            SVs.numIncorrectSubmissions === 0
-                ? "wrong answers reduce credit"
-                : SVs.creditAchieved > 0
-                  ? `credit reduced by ${Math.round(100 * SVs.creditFactorUsed)}% due to ${SVs.numPreviousIncorrectSubmissions} wrong answer${SVs.numPreviousIncorrectSubmissions > 1 ? "s" : ""}`
-                  : `credit will be reduced by ${Math.round(100 * SVs.nextCreditFactor)}% due to ${SVs.numIncorrectSubmissions} wrong answer${SVs.numIncorrectSubmissions > 1 ? "s" : ""}`;
+        if (SVs.numIncorrectSubmissions === 0) {
+            messages.push("Max credit available: 100%");
+        } else if (SVs.creditAchieved > 0) {
+            messages.push(
+                `Max credit available: ${Math.round(100 * SVs.creditFactorUsed)}%`,
+            );
+        } else {
+            messages.push(
+                `Max credit available: ${Math.round(100 * SVs.nextCreditFactor)}%`,
+            );
+        }
+    }
+
+    if (SVs.numAttemptsLeft < 1) {
+        messages.push("no attempts remaining");
+    } else if (SVs.numAttemptsLeft === 1) {
+        messages.push("1 attempt remaining");
+    } else if (Number.isFinite(SVs.numAttemptsLeft)) {
+        messages.push(`${SVs.numAttemptsLeft} attempts remaining`);
+    }
+
+    if (messages.length > 0) {
+        const message = messages.join("; ");
         checkWorkComponent = (
             <>
                 {checkWorkComponent}
