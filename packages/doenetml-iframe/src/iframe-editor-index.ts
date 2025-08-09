@@ -3,6 +3,7 @@
 declare const editorId: string;
 declare const doenetEditorProps: object;
 declare const haveEditorCallbacks: string[];
+declare const ComlinkEditor: { wrap: Function; windowEndpoint: Function };
 interface Window {
     renderDoenetEditorToContainer: (
         container: Element,
@@ -42,15 +43,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         "doenetmlChangeCallback",
         "immediateDoenetmlChangeCallback",
         "documentStructureCallback",
+        "fetchExternalDoenetML",
     ];
+    const wrappedCallbacks = ComlinkEditor.wrap(
+        ComlinkEditor.windowEndpoint(self.parent),
+    );
     for (const callback of callbackNames) {
         callbackOverrides[callback] = haveEditorCallbacks.includes(callback)
-            ? (args: unknown) => {
-                  messageParentFromEditor({
-                      callback,
-                      args,
-                  });
-              }
+            ? wrappedCallbacks[callback]
             : undefined;
     }
 

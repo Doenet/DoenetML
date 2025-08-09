@@ -1,6 +1,7 @@
 import React from "react";
 
 import { watchForResize } from "./resize-watcher";
+import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
 import { findAllNewlines, getLineCharRange } from "@doenet/utils";
@@ -165,40 +166,32 @@ export function DoenetViewer({
                 //@ts-ignore
                 return setInErrorState(data.error);
             }
-
-            switch (data.callback) {
-                case "reportScoreAndStateCallback": {
-                    return doenetViewerProps.reportScoreAndStateCallback?.(
-                        data.args,
-                    );
-                }
-                case "setIsInErrorState": {
-                    return doenetViewerProps.setIsInErrorState?.(data.args);
-                }
-                case "generatedVariantCallback": {
-                    return doenetViewerProps.generatedVariantCallback?.(
-                        data.args,
-                    );
-                }
-                case "documentStructureCallback": {
-                    return doenetViewerProps.documentStructureCallback?.(
-                        data.args,
-                    );
-                }
-                case "initializedCallback": {
-                    return doenetViewerProps.initializedCallback?.(data.args);
-                }
-                case "setErrorsAndWarningsCallback": {
-                    return doenetViewerProps.setErrorsAndWarningsCallback?.(
-                        data.args,
-                    );
-                }
-            }
         };
         if (ref.current) {
             window.addEventListener("message", listener);
         }
         const clearResize = watchForResize(ref, () => height, setHeight);
+
+        const callbacks = {
+            reportScoreAndStateCallback:
+                doenetViewerProps.reportScoreAndStateCallback,
+            setIsInErrorState: doenetViewerProps.setIsInErrorState,
+            generatedVariantCallback:
+                doenetViewerProps.generatedVariantCallback,
+            documentStructureCallback:
+                doenetViewerProps.documentStructureCallback,
+            initializedCallback: doenetViewerProps.initializedCallback,
+            setErrorsAndWarningsCallback:
+                doenetViewerProps.setErrorsAndWarningsCallback,
+            fetchExternalDoenetML: doenetViewerProps.fetchExternalDoenetML,
+        };
+
+        if (ref.current) {
+            Comlink.expose(
+                callbacks,
+                Comlink.windowEndpoint(ref.current.contentWindow!),
+            );
+        }
 
         return () => {
             window.removeEventListener("message", listener);
@@ -339,27 +332,25 @@ export function DoenetEditor({
                 //@ts-ignore
                 return setInErrorState(data.error);
             }
-
-            switch (data.callback) {
-                case "doenetmlChangeCallback": {
-                    return doenetEditorProps.doenetmlChangeCallback?.(
-                        data.args,
-                    );
-                }
-                case "immediateDoenetmlChangeCallback": {
-                    return doenetEditorProps.immediateDoenetmlChangeCallback?.(
-                        data.args,
-                    );
-                }
-                case "documentStructureCallback": {
-                    return doenetEditorProps.documentStructureCallback?.(
-                        data.args,
-                    );
-                }
-            }
         };
         if (ref.current) {
             window.addEventListener("message", listener);
+        }
+
+        const callbacks = {
+            doenetmlChangeCallback: doenetEditorProps.doenetmlChangeCallback,
+            immediateDoenetmlChangeCallback:
+                doenetEditorProps.immediateDoenetmlChangeCallback,
+            documentStructureCallback:
+                doenetEditorProps.documentStructureCallback,
+            fetchExternalDoenetML: doenetEditorProps.fetchExternalDoenetML,
+        };
+
+        if (ref.current) {
+            Comlink.expose(
+                callbacks,
+                Comlink.windowEndpoint(ref.current.contentWindow!),
+            );
         }
 
         return () => {

@@ -34,6 +34,7 @@ export function createHtmlForDoenetViewer(
         "documentStructureCallback",
         "initializedCallback",
         "setErrorsAndWarningsCallback",
+        "fetchExternalDoenetML",
     ];
     for (const callback of callbackNames) {
         if (callback in doenetViewerProps) {
@@ -52,7 +53,8 @@ export function createHtmlForDoenetViewer(
             const viewerId = "${id}";
             const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
             const haveViewerCallbacks = ${JSON.stringify(haveViewerCallbacks)};
-            
+            import * as ComlinkViewer from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
+
             // This source code has been compiled by vite and should be directly included.
             // It assumes that viewerId, doenetViewerProps, and haveViewerCallbacks are defined in the global scope.
             ${viewerIframeJsSource}
@@ -83,6 +85,7 @@ export function createHtmlForDoenetEditor(
         "doenetmlChangeCallback",
         "immediateDoenetmlChangeCallback",
         "documentStructureCallback",
+        "fetchExternalDoenetML",
     ];
     for (const callback of callbackNames) {
         if (callback in doenetEditorProps) {
@@ -101,6 +104,7 @@ export function createHtmlForDoenetEditor(
             const editorId = "${id}";
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};
             const haveEditorCallbacks = ${JSON.stringify(haveEditorCallbacks)};
+            import * as ComlinkEditor from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
             
             // This source code has been compiled by vite and should be directly included.
             // It assumes that editorId, doenetEditorProps, and have EditorCallbacks are defined in the global scope.
