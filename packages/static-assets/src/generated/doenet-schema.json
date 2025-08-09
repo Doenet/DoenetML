@@ -52641,13 +52641,7 @@
                     ]
                 },
                 {
-                    "name": "creditFactorByAttempt"
-                },
-                {
-                    "name": "creditReductionPerAttempt"
-                },
-                {
-                    "name": "creditReductionLimit"
+                    "name": "creditByAttempt"
                 },
                 {
                     "name": "splitSymbols",
@@ -52838,18 +52832,8 @@
                     "isArray": false
                 },
                 {
-                    "name": "creditFactorByAttempt",
+                    "name": "creditByAttempt",
                     "type": "numberList",
-                    "isArray": false
-                },
-                {
-                    "name": "creditReductionPerAttempt",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "creditReductionLimit",
-                    "type": "number",
                     "isArray": false
                 },
                 {
