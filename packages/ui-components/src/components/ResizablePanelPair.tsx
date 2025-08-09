@@ -34,7 +34,7 @@ export function ResizablePanelPair({
             for (const entry of entries) {
                 const width = entry.contentRect.width;
                 const desiredDirection =
-                    width < 430 ? "vertical" : "horizontal";
+                    width < 430 ? "vertical" : preferredDirection;
                 if (desiredDirection !== direction) {
                     setDirection(desiredDirection);
                 }
