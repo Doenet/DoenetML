@@ -56,7 +56,7 @@ export function createHtmlForDoenetViewer(
             import * as ComlinkViewer from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
 
             // This source code has been compiled by vite and should be directly included.
-            // It assumes that viewerId, doenetViewerProps, and haveViewerCallbacks are defined in the global scope.
+            // It assumes that viewerId, doenetViewerProps, haveViewerCallbacks, and ComlinkViewer are defined in the global scope.
             ${viewerIframeJsSource}
         </script>
         <div id="root">
@@ -107,7 +107,7 @@ export function createHtmlForDoenetEditor(
             import * as ComlinkEditor from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
             
             // This source code has been compiled by vite and should be directly included.
-            // It assumes that editorId, doenetEditorProps, and have EditorCallbacks are defined in the global scope.
+            // It assumes that editorId, doenetEditorProps, haveEditorCallbacks, and ComlinkViewer are defined in the global scope.
             ${editorIframeJsSource}
         </script>
         <div id="root">
