@@ -55,6 +55,12 @@ describe("v06 to v07 update", () => {
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
+    it.skip("removes newNamespace attribute, different capitalization", async () => {
+        source = `<graph name="g" newNameSpace><point name="p" /></graph>`;
+        correctSource = `<graph name="g"><point name="p" /></graph>`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
     it("macro path slashes get turned into dots", async () => {
         source = `$(foo/bar[3][4][$(b/c).d].baz)`;
         correctSource = `$foo.bar[3][4][$b.c.d].baz`;
@@ -119,6 +125,26 @@ describe("v06 to v07 update", () => {
         `);
     });
 
+    it.skip("../ in attributes that are turned into references gets removed", async () => {
+        source = `<update target="x/../bar" />`;
+        correctSource = `<update target="$bar" />`;
+
+        let res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeAttributeSyntax: true,
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+
+        source = `<number copySource="x/../bar" />`;
+        correctSource = `<number extend="$bar" />`;
+
+        res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeAttributeSyntax: true,
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+    });
+
     it("attributes aren't lost when turning slashes get turned into dots", async () => {
         source = `$foo.bar{baz="abc"}`;
         correctSource = `$foo.bar{baz="abc"}`;
@@ -141,6 +167,12 @@ describe("v06 to v07 update", () => {
     it("ref element target attribute becomes to", async () => {
         source = `<ref target="$foo" />`;
         correctSource = `<ref to="$foo" />`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it.skip("ref element uri attribute becomes to", async () => {
+        source = `<ref uri="https://doenet.org" />`;
+        correctSource = `<ref to="https://doenet.org" />`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
@@ -358,6 +390,21 @@ describe("v06 to v07 update", () => {
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 
+    it.skip("map with assignNames and no name gets converted to a repeatForSequence", async () => {
+        source = `
+        <map assignNames="a b">
+            <template newNamespace><math name="m">$v^2</math><number name="n">$i^2</number></template>
+            <sources alias="v" indexAlias="i">
+               <sequence from="3" to="4" />
+            </sources>
+        </map>
+        $(a/m) $(a/n) $(b/m) $(b/n)`;
+        correctSource = `
+        <repeatForSequence from="3" to="4" name="a" valueName="v" indexName="i"><math name="m">$v^2</math><number name="n">$i^2</number></repeatForSequence>
+        $a[1].m $a[1].n $a[2].m $a[2].n`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
     it("module gets converted to its new format", async () => {
         source = `
         <module name="m">
@@ -383,6 +430,30 @@ describe("v06 to v07 update", () => {
     it.skip("selectFromSequence selecting 2 with assignNames gets converted", async () => {
         source = `<selectFromSequence assignNames="n m" numToSelect="2" /> $n $m`;
         correctSource = `<selectFromSequence name="n" numToSelect="2" /> $n[1] $n[2]`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it.skip("selectFromSequence with assignNames and name", async () => {
+        source = `<selectFromSequence assignNames="n m" name="s" numToSelect="2" /> $n $m $s`;
+        correctSource = `<selectFromSequence name="s" numToSelect="2" /> $s[1] $s[2] $s`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it.skip("select with assignNames gets converted", async () => {
+        source = `<select assignNames="n" >a b c d</select> $n`;
+        correctSource = `<select name="n" >a b c d</select> $n`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it.skip("select selecting 2 with assignNames gets converted", async () => {
+        source = `<select assignNames="n m" numToSelect="2" >a b c d</select> $n $m`;
+        correctSource = `<select name="n" numToSelect="2" >a b c d</select> $n[1] $n[2]`;
+        expect(toXml(await updateSyntax(source))).toEqual(correctSource);
+    });
+
+    it.skip("select with assignNames and name", async () => {
+        source = `<select name="s" assignNames="n m" numToSelect="2" >a b c d</select> $n $m $s`;
+        correctSource = `<select name="s" numToSelect="2" >a b c d</select> $s[1] $s[2] $s`;
         expect(toXml(await updateSyntax(source))).toEqual(correctSource);
     });
 });
