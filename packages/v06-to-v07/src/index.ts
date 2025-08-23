@@ -1,10 +1,10 @@
 import { Plugin, unified } from "unified";
 import { VFile } from "vfile";
-import { DastRoot, DastRootV6 } from "@doenet/parser";
+import { DastElementV6, DastRoot, DastRootV6 } from "@doenet/parser";
 import { visit } from "@doenet/parser";
 import { isDastElement } from "@doenet/parser";
 import { toXml } from "@doenet/parser";
-import { reparseAttribute } from "./reparse-attribute";
+import { reparseAttribute, reparseAttributeV6 } from "./reparse-attribute";
 import {
     correctAttributeCapitalization,
     correctElementCapitalization,
@@ -36,12 +36,12 @@ export async function updateSyntaxFromV06toV07_root(
     options: Options,
 ) {
     let processor = unified()
-        .use(upgradePathSlashesToDots)
         .use(correctElementCapitalization)
         .use(correctAttributeCapitalization)
+        .use(ensureDollarBeforeNamesOnSpecificAttributes)
+        .use(upgradePathSlashesToDots)
         .use(removeNewNamespaceAttribute)
         .use(upgradeRefElement)
-        .use(ensureDollarBeforeNamesOnSpecificAttributes)
         .use(copySourceToExtendOrCopy)
         .use(upgradeCollectElement)
         .use(upgradeMapElement)
@@ -78,8 +78,8 @@ export async function updateSyntaxFromV06toV07(
  */
 const ensureDollarBeforeNamesOnSpecificAttributes: Plugin<
     [],
-    DastRoot,
-    DastRoot
+    DastRootV6,
+    DastRootV6
 > = () => {
     const ATTRIBUTES_NEEDING_DOLLAR = new Set([
         "target",
@@ -90,6 +90,7 @@ const ensureDollarBeforeNamesOnSpecificAttributes: Plugin<
         "updateWith",
         "forObject",
         "paginator",
+        "copySource",
     ]);
 
     return (tree) => {
@@ -97,15 +98,19 @@ const ensureDollarBeforeNamesOnSpecificAttributes: Plugin<
             if (!isDastElement(node)) {
                 return;
             }
+            const _node = node as DastElementV6;
             // Check the attributes to see if they need dollar sings
-            for (const [name, attr] of Object.entries(node.attributes)) {
+            for (const [name, attr] of Object.entries(_node.attributes)) {
+                const attrValue = toXml(attr.children).trim();
                 if (
                     attr.type === "attribute" &&
                     ATTRIBUTES_NEEDING_DOLLAR.has(name) &&
-                    !toXml(attr.children).trim().startsWith("$")
+                    !attrValue.startsWith("$")
                 ) {
-                    const attrValue = "$" + toXml(attr.children).trim();
-                    attr.children = reparseAttribute(attrValue);
+                    const newAttrValue = attrValue.startsWith("(")
+                        ? `$${attrValue}`
+                        : `$(${attrValue})`;
+                    attr.children = reparseAttributeV6(newAttrValue);
                 }
             }
         });
@@ -136,7 +141,10 @@ const copySourceToExtendOrCopy: Plugin<[], DastRoot, DastRoot> = () => {
                     ? "copy"
                     : "extend";
 
-            let extendValue = `$${toXml(copySourceAttr.children).trim()}`;
+            const baseValue = toXml(copySourceAttr.children).trim();
+            let extendValue = baseValue.startsWith("$")
+                ? baseValue
+                : `$${baseValue}`;
             copySourceAttr.name = targetTag;
             // If there is a `copyProp` attribute, then add it after a `.` to the `extend` attribute
             if (copyPropAttr) {
@@ -189,6 +197,7 @@ const upgradeRefElement: Plugin<[], DastRoot, DastRoot> = () => {
                 return;
             }
             renameAttrInPlace(node, "target", "to");
+            renameAttrInPlace(node, "uri", "to");
         });
     };
 };

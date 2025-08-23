@@ -55,7 +55,7 @@ describe("v06 to v07 update", () => {
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
-    it.skip("removes newNamespace attribute, different capitalization", async () => {
+    it("removes newNamespace attribute, different capitalization", async () => {
         source = `<graph name="g" newNameSpace><point name="p" /></graph>`;
         correctSource = `<graph name="g"><point name="p" /></graph>`;
         expect(await updateSyntax(source)).toEqual(correctSource);
@@ -121,7 +121,7 @@ describe("v06 to v07 update", () => {
         `);
     });
 
-    it.skip("../ in attributes that are turned into references gets removed", async () => {
+    it("../ in attributes that are turned into references gets removed", async () => {
         source = `<update target="x/../bar" />`;
         correctSource = `<update target="$bar" />`;
 
@@ -164,7 +164,7 @@ describe("v06 to v07 update", () => {
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
-    it.skip("ref element uri attribute becomes to", async () => {
+    it("ref element uri attribute becomes to", async () => {
         source = `<ref uri="https://doenet.org" />`;
         correctSource = `<ref to="https://doenet.org" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);

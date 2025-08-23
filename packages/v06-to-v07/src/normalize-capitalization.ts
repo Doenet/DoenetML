@@ -5,6 +5,7 @@ import {
     DastElementContent,
     DastRoot,
     DastRootContent,
+    DastRootV6,
     isDastElement,
     visit,
 } from "@doenet/parser";
@@ -33,6 +34,7 @@ const AFFECTED_ATTRIBUTES = [
     "componentType",
     "componentTypes",
     "name",
+    "newNamespace",
 ];
 
 /**
@@ -41,8 +43,8 @@ const AFFECTED_ATTRIBUTES = [
  */
 export const correctAttributeCapitalization: Plugin<
     [],
-    DastRoot,
-    DastRoot
+    DastRootV6,
+    DastRootV6
 > = () => {
     const correctCapitalization = Object.fromEntries(
         AFFECTED_ATTRIBUTES.map((attr) => [attr.toLowerCase(), attr]),
@@ -88,8 +90,8 @@ export const correctAttributeCapitalization: Plugin<
  */
 export const correctElementCapitalization: Plugin<
     [],
-    DastRoot,
-    DastRoot
+    DastRootV6,
+    DastRootV6
 > = () => {
     const componentInfoObjects = createComponentInfoObjects();
     const correctCapitalization = Object.keys(
