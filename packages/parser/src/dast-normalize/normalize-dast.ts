@@ -16,6 +16,11 @@ import { selectSugar } from "./component-sugar/select";
 import { postponeRenderSugar } from "./component-sugar/postponeRender";
 import { pluginEnforceValidNames } from "./enforce-valid-names";
 import { pretzelSugar } from "./component-sugar/pretzel";
+import { lezerToDast } from "../lezer-to-dast";
+import { Parser, HtmlRenderer } from "commonmark";
+
+const commonMarkParser = new Parser();
+const commonMarkRenderer = new HtmlRenderer();
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
@@ -25,13 +30,15 @@ export function normalizeDocumentDast(
     dast: DastRoot,
     addCompatibilityNames = false,
 ) {
+    console.log(dast);
     let processor = unified()
         .use(pluginRemoveCommentsInstructionsAndDocStrings)
         .use(pluginChangeCdataToText)
         .use(pluginEnsureDocumentElement)
         .use(pluginConvertPretextAttributes)
         .use(pluginEnforceValidNames)
-        .use(pluginExpandAliasedElements);
+        .use(pluginExpandAliasedElements)
+        .use(pluginTextToMarkdown);
     if (addCompatibilityNames) {
         processor = processor.use(pluginAddCompatibilityNames);
     }
@@ -49,6 +56,29 @@ const pluginChangeCdataToText: Plugin<[], DastRoot, DastRoot> = () => {
             if (node.type === "cdata") {
                 // @ts-ignore
                 node.type = "text";
+            }
+        });
+    };
+};
+
+/**
+ * Interpret all text nodes that are children of the root node as Markdown, transforming them to HTML.
+ */
+const pluginTextToMarkdown: Plugin<[], DastRoot, DastRoot> = () => {
+    return (tree) => {
+        visit(tree, (node, visitInfo) => {
+            // All text nodes that are children of the root node are interpreted as Markdown.
+            if (node.type === "text" && visitInfo.parents.length === 1) {
+                const html = commonMarkRenderer.render(
+                    commonMarkParser.parse(node.value),
+                );
+                // Parse this HTML into a DAST tree, then replace the text node with the new DAST tree.
+                const dast = lezerToDast(html);
+                visitInfo.parents[0].children.splice(
+                    visitInfo.index!,
+                    1,
+                    ...(dast.children as DastElementContent[]),
+                );
             }
         });
     };
