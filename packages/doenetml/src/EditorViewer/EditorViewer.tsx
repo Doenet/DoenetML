@@ -525,11 +525,24 @@ export function EditorViewer({
                                 typeof x.variantInfo.index === "number"
                             ) {
                                 const index = x.variantInfo.index;
-                                setVariants({
-                                    index,
-                                    numVariants,
-                                    allPossibleVariants,
-                                });
+
+                                // If the variant generated does not match the variant prescribed,
+                                // set the variants state variable to match.
+                                if (
+                                    index !== variants.index ||
+                                    numVariants !== variants.numVariants ||
+                                    allPossibleVariants.some(
+                                        (v, i) =>
+                                            v !==
+                                            variants.allPossibleVariants[i],
+                                    )
+                                ) {
+                                    setVariants({
+                                        index,
+                                        numVariants,
+                                        allPossibleVariants,
+                                    });
+                                }
                             }
                         }
                     }}
