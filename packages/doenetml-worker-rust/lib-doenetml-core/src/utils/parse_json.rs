@@ -1,16 +1,7 @@
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 
 use crate::components::prelude::PropValue;
-
-/// The structure of the json argument in a call to dispatch_action.
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ActionStructure {
-    component_idx: usize,
-    action_name: String,
-    args: HashMap<String, ArgValue>,
-}
 
 /// Each value in an action args must be a quantity that can be converted
 /// into a `PropValue` or a vector of `PropValue`.
