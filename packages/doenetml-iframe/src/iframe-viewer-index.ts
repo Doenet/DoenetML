@@ -3,6 +3,7 @@
 declare const viewerId: string;
 declare const doenetViewerProps: object;
 declare const haveViewerCallbacks: string[];
+declare const ComlinkViewer: { wrap: Function; windowEndpoint: Function };
 interface Window {
     renderDoenetViewerToContainer: (
         container: Element,
@@ -45,15 +46,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         "documentStructureCallback",
         "initializedCallback",
         "setErrorsAndWarningsCallback",
+        "fetchExternalDoenetML",
     ];
+
+    const wrappedCallbacks = ComlinkViewer.wrap(
+        ComlinkViewer.windowEndpoint(self.parent),
+    );
     for (const callback of callbackNames) {
         callbackOverrides[callback] = haveViewerCallbacks.includes(callback)
-            ? (args: unknown) => {
-                  messageParentFromViewer({
-                      callback,
-                      args,
-                  });
-              }
+            ? wrappedCallbacks[callback]
             : undefined;
     }
 
