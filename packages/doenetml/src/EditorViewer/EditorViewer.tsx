@@ -5,7 +5,7 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { Button, ResizablePanelPair, UiButton } from "@doenet/ui-components";
+import { ResizablePanelPair, UiButton } from "@doenet/ui-components";
 import { RxUpdate } from "react-icons/rx";
 // @ts-ignore
 import VariantSelect from "./VariantSelect";
@@ -17,25 +17,18 @@ import {
 } from "./ErrorWarningResponseTabs";
 import { ErrorRecord, nanInfinityReviver, WarningRecord } from "@doenet/utils";
 import { nanoid } from "nanoid";
-import { toXml } from "@doenet/parser";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { formatResponse } from "../utils/responses";
 import { ResizableCollapsiblePanelPair } from "@doenet/ui-components";
-import { BsArrowBarUp, BsExclamationTriangleFill } from "react-icons/bs";
+import { BsExclamationTriangleFill } from "react-icons/bs";
 import "./editor-viewer.css";
 import {
-    Menu,
-    MenuButton,
-    MenuItem,
-    MenuProvider,
     Select,
     SelectItem,
     SelectPopover,
     SelectProvider,
     useTabStore,
 } from "@ariakit/react";
-import { vfileMessageToLSPDiagnostic } from "./vfile-message-to-diagnostic";
-import { DiagnosticSeverity } from "vscode-languageserver-protocol/browser";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
@@ -309,8 +302,7 @@ export function EditorViewer({
     const tabStore = useTabStore();
     const codeMirror = (
         <CodeMirror
-            value={editorDoenetML}
-            // TODO: read only isn't working <codeEditor disabled />
+            value={initialDoenetML}
             readOnly={readOnly}
             onBlur={() => {
                 window.clearTimeout(updateValueTimer.current ?? undefined);
