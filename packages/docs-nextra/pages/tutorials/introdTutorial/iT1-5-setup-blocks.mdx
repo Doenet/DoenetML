@@ -8,7 +8,7 @@ In the following example, the numbers $a$, $b$, and $c$ are defined as `<math>` 
 $b^2 - 4 a c$
 . None of those definitions and computation are displayed on screen, but all four numbers are used later on.
 
-```doenet {1,9}
+```doenet-editor-horiz
 <setup>  
   <math name="a">2</math>
   <math name="b">8</math>
@@ -25,11 +25,10 @@ $b^2 - 4 a c$
 
 <p>Discriminant: $discr</p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 For comparison, here's the same code with `<setup>` and `</setup>` removed. The four numbers from the `<setup>` block are all displayed on screen, which is confusing to the user!
 
-```doenet
+```doenet-editor-horiz
 <math name="a">2</math>
 <math name="b">8</math>
 <math name="c">6</math>
@@ -44,7 +43,6 @@ For comparison, here's the same code with `<setup>` and `</setup>` removed. The 
 
 <p>Discriminant: $discr</p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 Throughout the rest of this tutorial, we'll frequently use `<setup>` for definitions and computations that don't need to appear on screen.
 
