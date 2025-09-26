@@ -1357,4 +1357,27 @@ describe("Graph tag tests", async () => {
                 .yMax,
         ).eq(10);
     });
+
+    it("fixed graph implies fixAxes", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" fixed />
+    
+    <boolean extend="$g.fixAxes" name="fixAxes" />
+
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.fixed,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.fixAxes,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fixAxes")].stateValues
+                .value,
+        ).eq(true);
+    });
 });
