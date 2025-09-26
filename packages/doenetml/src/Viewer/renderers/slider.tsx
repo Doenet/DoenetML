@@ -10,8 +10,13 @@ import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
 import { MathJax } from "better-react-mathjax";
 
-let round_to_decimals = (x: number, n: number) =>
-    me.round_numbers_to_decimals(x, n).tree as number;
+let round_to_decimals = (x: number, n: number) => {
+    try {
+        return me.round_numbers_to_decimals(x, n).tree as number;
+    } catch (_e) {
+        return NaN;
+    }
+};
 
 const SliderContainer = styled.div<{ labeled: boolean; noTicked: boolean }>`
     width: fit-content;
