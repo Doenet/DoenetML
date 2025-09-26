@@ -163,10 +163,8 @@ export default class Graph extends BlockComponent {
         };
         attributes.fixAxes = {
             createComponentOfType: "boolean",
-            createStateVariable: "fixAxes",
+            createStateVariable: "fixAxesPreliminary",
             defaultValue: false,
-            public: true,
-            forRenderer: true,
         };
         attributes.grid = {
             createComponentOfType: "text",
@@ -241,6 +239,33 @@ export default class Graph extends BlockComponent {
             stateVariableDefinitions,
             returnRoundingStateVariableDefinitions(),
         );
+
+        stateVariableDefinitions.fixAxes = {
+            forRenderer: true,
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                fixAxesPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "fixAxesPreliminary",
+                },
+                fixed: {
+                    dependencyType: "stateVariable",
+                    variableName: "fixed",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        fixAxes:
+                            dependencyValues.fixAxesPreliminary ||
+                            dependencyValues.fixed,
+                    },
+                };
+            },
+        };
 
         stateVariableDefinitions.xLabel = {
             forRenderer: true,
