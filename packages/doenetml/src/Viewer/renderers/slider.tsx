@@ -280,14 +280,18 @@ function generateNumericLabels(
     }
 }
 
-function findMaxValueWidth(points: number[]) {
+function findMaxValueWidth(points: (number | string)[]) {
     let currWidth = points.reduce(function (a, b) {
         return +a > b.toString().length ? +a : b.toString().length;
     });
     return +currWidth * 12;
 }
 
-function generateTextLabels(points: number[], div_width: number, SVs) {
+function generateTextLabels(
+    points: string[],
+    div_width: number,
+    SVs: Record<string, any>,
+) {
     let maxValueWidth = findMaxValueWidth(points);
     const length = Object.keys(points).length;
 
@@ -363,7 +367,11 @@ function xPositionToValue(ref: number, div_width: number, start_val: number) {
     return start_val + ref / div_width;
 }
 
-function nearestValue(refval: number, points: number[], SVs) {
+function nearestValue(
+    refval: number,
+    points: number[],
+    SVs: Record<string, any>,
+) {
     let index = Math.max(
         0,
         Math.min(SVs.numItems - 1, Math.round(refval - SVs.firstItem)),
@@ -435,14 +443,10 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                 <ActionButtonGroup style={{ marginBottom: "12px" }}>
                     <ActionButton
                         value="Prev"
-                        onClick={(e: KeyboardEvent) => handlePrevious(e)}
+                        onClick={handlePrevious}
                         disabled
                     />
-                    <ActionButton
-                        value="Next"
-                        onClick={(e: KeyboardEvent) => handleNext(e)}
-                        disabled
-                    />
+                    <ActionButton value="Next" onClick={handleNext} disabled />
                 </ActionButtonGroup>
             );
         } else {
@@ -667,7 +671,7 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
         }
     }
 
-    function handleNext(e: KeyboardEvent) {
+    function handleNext() {
         if (index === SVs.numItems - 1) {
             return;
         }
@@ -690,7 +694,7 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
         setIndex(index + 1);
     }
 
-    function handlePrevious(e: KeyboardEvent) {
+    function handlePrevious() {
         if (index === 0) {
             return;
         }
@@ -715,9 +719,9 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
 
     function handleKeyDown(e: KeyboardEvent) {
         if (e.key === "ArrowLeft") {
-            return handlePrevious(e);
+            return handlePrevious();
         } else if (e.key === "ArrowRight") {
-            return handleNext(e);
+            return handleNext();
         }
     }
 
@@ -745,12 +749,12 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
             <ActionButtonGroup style={{ marginBottom: "12px" }}>
                 <ActionButton
                     value="Prev"
-                    onClick={(e: KeyboardEvent) => handlePrevious(e)}
+                    onClick={handlePrevious}
                     id={`${id}-prevbutton`}
                 ></ActionButton>
                 <ActionButton
                     value="Next"
-                    onClick={(e: KeyboardEvent) => handleNext(e)}
+                    onClick={handleNext}
                     id={`${id}-nextbutton`}
                 ></ActionButton>
             </ActionButtonGroup>
