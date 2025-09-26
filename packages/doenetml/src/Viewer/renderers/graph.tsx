@@ -380,6 +380,9 @@ export default React.memo(function Graph(props) {
             yaxis.current = null;
         }
 
+        board.attr.zoom.wheel = !SVs.fixAxes;
+        board.attr.pan.enabled = !SVs.fixAxes;
+
         if (showNavigation) {
             if (!previousShowNavigation.current) {
                 addNavigationButtons();
