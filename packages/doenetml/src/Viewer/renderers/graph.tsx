@@ -380,6 +380,9 @@ export default React.memo(function Graph(props) {
             yaxis.current = null;
         }
 
+        board.attr.zoom.wheel = !SVs.fixAxes;
+        board.attr.pan.enabled = !SVs.fixAxes;
+
         if (showNavigation) {
             if (!previousShowNavigation.current) {
                 addNavigationButtons();
@@ -925,7 +928,7 @@ export default React.memo(function Graph(props) {
     }
 
     function removeNavigationButtons() {
-        for (let i = 7; i >= 1; i--) {
+        for (let i = 3; i >= 1; i--) {
             let button = document.querySelector(
                 "#" + cesc(id) + `_navigationbar > :first-child`,
             );
