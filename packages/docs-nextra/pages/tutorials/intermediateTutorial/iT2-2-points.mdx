@@ -13,28 +13,27 @@ In DoenetML, a point is defined using the `<point>` tag. By default, a point wil
   
 You can graph a point by including it inside of `<graph>` and `</graph>` tags. Alternatively, you can define a point within the regular text of your document, in which case Doenet will render its coordinates. If you want to define a point outside of a `<graph>` component, but don't want the coordinates displayed, you can place the definition in a setup block. Even if you create a point outside of a `<graph>` component, you can still display it within a graph by referencing it with `$pointName`.
 
-The following example illustrates everything we've discussed so far about points. In the test editor, try changing some of the coordinates and clicking update to make sure you understand the definitions.
+The following example illustrates everything we've discussed so far about points. Try changing some of the coordinates and clicking *Update* to make sure you understand the definitions.
 
-```doenet
+```doenet-editor-horiz
 <setup>
   <point name="A">(-8,2)</point>
 </setup>
 
 <m>B = </m> <point name="B" coords="(6,6)" />
 
-<graph showNavigation="false">
+<graph fixAxes>
   $A
   $B
   <point x="4" y="-4" />
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 By default, points can be dragged around, which updates their coordinates throughout your document. In particular: if you move the second point, $B$, its coordinates are updated above the graph.
 
 A key feature of DoenetML is that these kinds of updates are *bidrectional*, as demonstrated below. In the following example, you can use the `<mathInput/>` to adjust the coordinates of $P$, and the point will move. But if you drag $P$ to a new location in the graph, the contents of the `<mathInput/>` object will also update!
 
-```doenet
+```doenet-editor-horiz
 <p>
   <m>P = </m> 
   <mathInput name="Pcoords" 
@@ -42,25 +41,24 @@ A key feature of DoenetML is that these kinds of updates are *bidrectional*, as 
              displayDigits="3" />
 </p>
 
-<graph showNavigation="false" size="small">
+<graph fixAxes size="small">
   <point>$Pcoords</point>
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 You can see another neat feature of Doenet in the above example, although it's more relevant when using Doenet activities than authoring them. Use the input box to change the coordinates of $P$ to something which is outside of the grid -- say, $(20,2)$. The point will disappear, but Doenet will draw a small arrow on the side of the graph to let you know there's a point beyond the border. You can click and drag on that arrow to bring $P$ back into view! (If you don't want those arrows when a point is off-screen, you can include the `hideOffGraphIndicator` attribute in the definition of your point.)
 
 ### Point Labels
 Similar to `<slider> `and `<graph>` objects, you can provide a label for a point with a nested `<label>` tag. Labels are placed above and to the right of a point, but you can adjust the location using the `labelPosition` attribute. The valid positions are: `top`, `left`, `right`, `bottom`, `upperleft`, `upperright`, `lowerleft`, and `lowerright`.
 
-Often, you want the name and label of your point to be the same. To avoid the hassle of typing nested tags,
+Often, you want the name and label of your point to be the same. You can code the information redundantly with nested tags as in this example:
 ```doenet
      <point name="P" coords="(4,5)"><label>P</label></point>
 ```
 
-DoenetML provides a shortcut attribute called `labelIsName` which uses the name of the point as its label:
-```doenet
-<graph showNavigation="false">
+But, DoenetML also provides a shortcut attribute called `labelIsName` which uses the name of the point as its label:
+```doenet-editor-horiz
+<graph fixAxes>
   
   <point name="A" labelPosition="right" labelIsName>
     (-8,2)
@@ -75,7 +73,6 @@ DoenetML provides a shortcut attribute called `labelIsName` which uses the name 
   
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 Labels are printed in plain text, unless you use `<m>` or `<math>` inside of a `<label>` child. If you look carefully at the three points above, you'll notice that $A$ was rendered with MathJax, in a different font than $B$ and $C$.
 
@@ -84,28 +81,27 @@ Earlier, you learned how to use `styleNumber` to distinguish between function gr
 
 ```doenet-example
 <graph xmin="0" xmax="7" ymin="-1" ymax="1" 
-           showNavigation="false" identicalAxisScales
+           fixAxes identicalAxisScales
            displayXAxis="false" displayYAxis="false" >  
 
-      <map>
-        <template><point labelPosition="bottom" styleNumber="$i">
-          ($i,0)
-          <label>$i</label>
-        </point></template>
-        <sources alias="i"><sequence from="1" to="6" /></sources>
-      </map>
+  <repeatForSequence from="1" to="6" valueName="i">
+    <point labelPosition="bottom" styleNumber="$i">
+      ($i,0)
+      <label>$i</label>
+    </point>
+  </repeatForSequence>
 
-    </graph>
+</graph>
 ```
 
-Before continuing, try adjusting the `styleNumber` of a point in one of the examples above. Click "update" and make sure the point's style changes.
+Before continuing, try adjusting the `styleNumber` of a point in one of the examples above. Click *Update* and make sure the point's style changes.
 
 ### Point Arithmetic
 DoenetML supports some basic arithmetic operations with points, essentially treating them like vectors. By combining scalar multiplication and addition, you can easily find and plot the midpoint of two points. (Normally we'd refer to the midpoint of a line segment, but we haven't learned how to graph line segments yet!)
 
 *Reminder: In DoenetML you can refer to an object before it is defined, as long as it is defined somewhere in your document. In the following code, the computations with $P$ and $Q$ are done at the beginning, even though those points are defined in the `<graph>` below.*
 
-```doenet
+```doenet-editor-horiz
 <p><m>3\cdot P = 
   <math simplify>3*$P</math></m>
 </p>
@@ -117,7 +113,7 @@ DoenetML supports some basic arithmetic operations with points, essentially trea
 <p><m>\dfrac{P+Q}{2} = 
   <math simplify name="midpt">(1/2)*($P+$Q)</math></m></p>
 
-<graph showNavigation="false" size="small"
+<graph fixAxes size="small"
        xmin="-1" ymin="-1">
 
   <point name="P" coords="(2,8)" labelIsName />
@@ -129,7 +125,6 @@ DoenetML supports some basic arithmetic operations with points, essentially trea
         
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 Notice that you can drag $P$ and $Q$ around in the graph, and everything else updates appropriately. However, you can't click on the midpoint $M$ and drag it around. That's because it's a *dependent* object; in other words, its coordinates depend on both $P$ and $Q$. Changing $M$ would require changing $P$, or $Q$, or both. Since Doenet isn't sure which of those three options you want, it doesn't let you move $M$ at all.
 
@@ -138,8 +133,7 @@ Now go back and add the attribute `fixed` to the definition of $Q$,
 <point name="Q" coords="(6,3)" labelisName fixed/>
 ```
 
-and then click "update." As you can guess, the `fixed` attribute tells Doenet that the coordinates of $Q$ are fixed, i.e. can't be changed by the user. Verify that you can drag $P$ but not $Q$. Here's the surprise: you can now click and drag on the midpoint $M$-- try it to be sure! Now that $Q$ is fixed, Doenet knows the only way $M$ can change is if $P$ moves, so it will go ahead and make that change when you drag the midpoint.
+and then click *Update*. As you can guess, the `fixed` attribute tells Doenet that the coordinates of $Q$ are fixed, i.e. can't be changed by the user. Verify that you can drag $P$ but not $Q$. Here's the surprise: you can now click and drag on the midpoint $M$-- try it to be sure! Now that $Q$ is fixed, Doenet knows the only way $M$ can change is if $P$ moves, so it will go ahead and make that change when you drag the midpoint.
 
 ### Next Steps
 In the next section, we'll move up from points to line segments, rays, and lines. Then we'll learn about so-called "properties" in Doenet, before moving on to more complicated shapes like polygons.
-import { DoenetExample } from "../../../components"

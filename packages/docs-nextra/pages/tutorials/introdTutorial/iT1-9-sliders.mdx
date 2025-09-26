@@ -2,7 +2,7 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
 
 # Sliders
 
-Earlier you learned how to use `<mathInput>` to allow users to input text. Sliders are another common way for readers to input values or control an on-screen activity. By default, the (self-closing) tag `<slider/>` creates the following generic slider:
+Earlier you learned how to use `<mathInput>` to allow users to input math expressions. Sliders are another common way for readers to input values or control an on-screen activity. By default, the (self-closing) tag `<slider/>` creates the following generic slider:
 
 ```doenet-example
 <slider />
@@ -12,16 +12,15 @@ You can drag the point right and left to choose a value from 0 to 10. The defaul
 
 ### Common Slider Options
 
-The following example illustrates how to adjust the minimum and maximum values of a slider, the step size, and more. In the test editor, be sure to experiment with the code and click "update" to see how these attributes work.
+The following example illustrates how to adjust the minimum and maximum values of a slider, the step size, and more. Be sure to experiment with the code and click *Update* to see how these attributes work.
 
-```doenet
+```doenet-editor-horiz
 <slider showValue="false" />
 
 <slider from="5" to="20" step="3" initialValue="8"/>
 
 <slider from="0" to="1" step="0.001" showTicks="false" />
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 For completeness, here's a rundown of the attributes in those examples:
 
@@ -40,7 +39,7 @@ For completeness, here's a rundown of the attributes in those examples:
 ### Customized Slider Labels
 We can adjust the label on a slider using the `<label>` tag. This is a separate tag, not an attribute, and it must be nested between `<slider>` and `</slider>`; we can't use the "self-closing" style tag in this situation. This is demonstrated in the code below. We've also given the slider a name attribute, so that we can use its value in a calculation.
 
-```doenet
+```doenet-editor-horiz
 <slider from="-40" to="40" step="1" 
   initialValue="0" name="tempC">
   <label>Temp (<m>{}^{\circ}C</m>)</label>
@@ -52,14 +51,13 @@ We can adjust the label on a slider using the `<label>` tag. This is a separate 
   </m>
 </p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 *(For those who don't live in a climate where the Celsius and Fahrenheit temperatures can be the same: the from and to values were chosen to reflect common temperatures in Minnesota. Yes, it gets cold. Yes, we're ok with that. No, we don't want to move!)*
 
 ### Binding Sliders and Inputs
 Sometimes you want to provide your readers with maximum flexibility, and allow them to change a value using an input box *or* a slider! We can do that with the following code. The `<mathInput/>` is named $x$, and its value is used in the computation of `$$f($x)`. But we've used the `bindValueTo` attribute to ensure that the value of $x$ will always match the value of `xSlider`.
 
-```doenet
+```doenet-editor-horiz
 <p>Let <m>f(x) = <function name="f">x^2+1</function></m>.</p>
 
 <p>Choose a value of <m>x</m> (or adjust slider):</p>
@@ -69,18 +67,16 @@ Sometimes you want to provide your readers with maximum flexibility, and allow t
 
 <p><m>f($x) = $$f($x)</m></p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 Try adjusting the slider, and notice that the value in the `<mathInput/>` box is updated as well. Conversely, if you enter a number like $3$ or $4$ in the box, the value of the slider will be updated. Finally, try entering some numbers in the box which are not possible values for the slider (e.g. $1.7$, $\frac{3}{2}$, or $2 \pi$). Notice that DoenetML will choose the closest valid value of the slider, and update both the slider and input box accordingly.
 
 **Warning!** You can also bind the value of a slider to an input box... but you shouldn't! That approach leads to the following unexpected behavior. In the code below, instead of including the `bindValueTo="$xSlider"` attribute in the `<mathInput/>` tag, we've bound the slider to the input box instead:
 
-```doenet
+```doenet-editor-horiz
 <p><m>x = </m> <mathInput name="x" /></p>
 
 <slider from="0" to="5" step="1" name="xSlider" bindValueTo="$x" /> 
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 If you adjust the slider, you'll see that the value of the input box is updated as well. Similarly, if you enter $1$ or $2$ in the input box, the slider will be updated. But now enter $3.8$ in the input box. You'll see that the slider will choose the closest valid value, but the input box will not update to $4$. Its value stays at $3.8$. At best this would be confusing to your readers, because two values which are supposed to be the same are actually different. At worst it could cause other parts of your code to break!
 
