@@ -98,8 +98,6 @@ export function createCheckWorkComponent(
             : SVs.submitLabelNoCorrectness;
         const checkWorkLabel = showText ? <>&nbsp; {checkWorkText}</> : "";
 
-        console.log({ checkWorkText });
-
         checkWorkComponent = (
             <Button
                 id={id + "_submit"}
