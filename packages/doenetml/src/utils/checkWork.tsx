@@ -93,16 +93,12 @@ export function createCheckWorkComponent(
     let checkWorkComponent;
 
     if (validationState === "unvalidated") {
-        const checkWorkText = showText ? (
-            <>
-                &nbsp;{" "}
-                {SVs.showCorrectness
-                    ? SVs.submitLabel
-                    : SVs.submitLabelNoCorrectness}
-            </>
-        ) : (
-            ""
-        );
+        const checkWorkText = SVs.showCorrectness
+            ? SVs.submitLabel
+            : SVs.submitLabelNoCorrectness;
+        const checkWorkLabel = showText ? <>&nbsp; {checkWorkText}</> : "";
+
+        console.log({ checkWorkText });
 
         checkWorkComponent = (
             <Button
@@ -111,12 +107,13 @@ export function createCheckWorkComponent(
                 disabled={disabled}
                 style={checkWorkStyle}
                 onClick={submitAnswer}
+                aria-label={checkWorkText}
             >
                 <FontAwesomeIcon
                     icon={faLevelDownAlt as IconProp}
                     transform={{ rotate: 90 }}
                 />
-                {checkWorkText}
+                {checkWorkLabel}
             </Button>
         );
     } else if (SVs.showCorrectness) {
@@ -125,50 +122,52 @@ export function createCheckWorkComponent(
                 document.documentElement,
             ).getPropertyValue("--mainGreen");
 
-            const checkWorkText = showText ? <>&nbsp; Correct</> : "";
+            const correctLabel = showText ? <>&nbsp; Correct</> : "";
 
             checkWorkComponent = (
                 <Button
                     id={id + "_correct"}
                     style={checkWorkStyle}
                     tabIndex={checkWorkTabIndex}
+                    aria-label="Correct"
                 >
                     <FontAwesomeIcon icon={faCheck as IconProp} />
-                    {checkWorkText}
+                    {correctLabel}
                 </Button>
             );
         } else if (validationState === "incorrect") {
             checkWorkStyle.backgroundColor = getComputedStyle(
                 document.documentElement,
             ).getPropertyValue("--mainRed");
-            const checkWorkText = showText ? <>&nbsp; Incorrect</> : "";
+            const incorrectLabel = showText ? <>&nbsp; Incorrect</> : "";
             checkWorkComponent = (
                 <Button
                     id={id + "_incorrect"}
                     style={checkWorkStyle}
                     tabIndex={checkWorkTabIndex}
+                    aria-label="Incorrect"
                 >
                     <FontAwesomeIcon icon={faTimes as IconProp} />
-                    {checkWorkText}
+                    {incorrectLabel}
                 </Button>
             );
         } else {
             // partialcorrect
             checkWorkStyle.backgroundColor = "#efab34";
             const percent = Math.round(SVs.creditAchieved * 100);
-            const checkWorkText = showText
-                ? SVs.creditIsReducedByAttempt
-                    ? `${percent}% Credit`
-                    : `${percent}% Correct`
-                : `${percent} %`;
+            const partialText = SVs.creditIsReducedByAttempt
+                ? `${percent}% Credit`
+                : `${percent}% Correct`;
+            const partialLabel = showText ? partialText : `${percent} %`;
 
             checkWorkComponent = (
                 <Button
                     id={id + "_partial"}
                     style={checkWorkStyle}
                     tabIndex={checkWorkTabIndex}
+                    aria-label={partialText}
                 >
-                    {checkWorkText}
+                    {partialLabel}
                 </Button>
             );
         }
@@ -185,6 +184,7 @@ export function createCheckWorkComponent(
                 id={id + "_saved"}
                 style={checkWorkStyle}
                 tabIndex={checkWorkTabIndex}
+                aria-label="Response Saved"
             >
                 <FontAwesomeIcon icon={faCloud as IconProp} />
                 &nbsp; Response Saved
