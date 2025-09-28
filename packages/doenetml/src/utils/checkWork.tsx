@@ -15,7 +15,7 @@ const Button = styled.button`
     display: inline-block;
     color: white;
     background-color: var(--mainBlue);
-    padding: 2px;
+    padding: "1px 6px 1px 6px";
     /* border: var(--mainBorder); */
     border: none;
     border-radius: var(--mainBorderRadius);
@@ -75,9 +75,17 @@ export function createCheckWorkComponent(
 
     const disabled = SVs.disabled;
 
-    let checkWorkStyle: React.CSSProperties = {
+    const checkWorkStyle: React.CSSProperties = {
         cursor: "pointer",
-        padding: "1px 6px 1px 6px",
+    };
+
+    const statusStyle: React.CSSProperties = {
+        padding: "1px 4px 1px 4px",
+        marginRight: "4px",
+        borderRadius: "5px",
+        height: "22px",
+        display: "inline-block",
+        verticalAlign: "middle",
     };
 
     let checkWorkTabIndex = 0;
@@ -97,6 +105,7 @@ export function createCheckWorkComponent(
             ? SVs.submitLabel
             : SVs.submitLabelNoCorrectness;
         const checkWorkLabel = showText ? <>&nbsp; {checkWorkText}</> : "";
+        const title = showText ? undefined : checkWorkText;
 
         checkWorkComponent = (
             <Button
@@ -110,48 +119,58 @@ export function createCheckWorkComponent(
                 <FontAwesomeIcon
                     icon={faLevelDownAlt as IconProp}
                     transform={{ rotate: 90 }}
+                    aria-hidden={true}
+                    title={title}
                 />
                 {checkWorkLabel}
             </Button>
         );
     } else if (SVs.showCorrectness) {
         if (validationState === "correct") {
-            checkWorkStyle.backgroundColor = getComputedStyle(
+            statusStyle.backgroundColor = getComputedStyle(
                 document.documentElement,
             ).getPropertyValue("--mainGreen");
 
             const correctLabel = showText ? <>&nbsp; Correct</> : "";
+            const title = showText ? undefined : "Correct";
 
             checkWorkComponent = (
-                <Button
+                <span
                     id={id + "_correct"}
-                    style={checkWorkStyle}
-                    tabIndex={checkWorkTabIndex}
+                    style={statusStyle}
                     aria-label="Correct"
                 >
-                    <FontAwesomeIcon icon={faCheck as IconProp} />
+                    <FontAwesomeIcon
+                        icon={faCheck as IconProp}
+                        aria-hidden={true}
+                        title={title}
+                    />
                     {correctLabel}
-                </Button>
+                </span>
             );
         } else if (validationState === "incorrect") {
-            checkWorkStyle.backgroundColor = getComputedStyle(
+            statusStyle.backgroundColor = getComputedStyle(
                 document.documentElement,
             ).getPropertyValue("--mainRed");
             const incorrectLabel = showText ? <>&nbsp; Incorrect</> : "";
+            const title = showText ? undefined : "Incorrect";
             checkWorkComponent = (
-                <Button
+                <span
                     id={id + "_incorrect"}
-                    style={checkWorkStyle}
-                    tabIndex={checkWorkTabIndex}
+                    style={statusStyle}
                     aria-label="Incorrect"
                 >
-                    <FontAwesomeIcon icon={faTimes as IconProp} />
+                    <FontAwesomeIcon
+                        icon={faTimes as IconProp}
+                        aria-hidden={true}
+                        title={title}
+                    />
                     {incorrectLabel}
-                </Button>
+                </span>
             );
         } else {
-            // partialcorrect
-            checkWorkStyle.backgroundColor = "#efab34";
+            // partial correct
+            statusStyle.backgroundColor = "#efab34";
             const percent = Math.round(SVs.creditAchieved * 100);
             const partialText = SVs.creditIsReducedByAttempt
                 ? `${percent}% Credit`
@@ -159,34 +178,37 @@ export function createCheckWorkComponent(
             const partialLabel = showText ? partialText : `${percent} %`;
 
             checkWorkComponent = (
-                <Button
+                <span
                     id={id + "_partial"}
-                    style={checkWorkStyle}
-                    tabIndex={checkWorkTabIndex}
+                    style={statusStyle}
                     aria-label={partialText}
                 >
                     {partialLabel}
-                </Button>
+                </span>
             );
         }
     } else {
         // showCorrectness is false
-        checkWorkStyle.backgroundColor = "rgb(74, 3, 217)";
-        const checkWorkText = showText ? <>&nbsp; Response Saved</> : "";
+        statusStyle.backgroundColor = "rgb(74, 3, 217)";
+        const responseSavedText = showText ? <>&nbsp; Response Saved</> : "";
+        const title = showText ? undefined : "Response Saved";
 
         if (!showText) {
-            checkWorkStyle.padding = "1px 8px 1px 4px"; // To center the faCloud icon
+            statusStyle.padding = "1px 8px 1px 4px"; // To center the faCloud icon
         }
         checkWorkComponent = (
-            <Button
+            <span
                 id={id + "_saved"}
-                style={checkWorkStyle}
-                tabIndex={checkWorkTabIndex}
+                style={statusStyle}
                 aria-label="Response Saved"
             >
-                <FontAwesomeIcon icon={faCloud as IconProp} />
-                &nbsp; Response Saved
-            </Button>
+                <FontAwesomeIcon
+                    icon={faCloud as IconProp}
+                    aria-hidden={true}
+                    title={title}
+                />
+                {responseSavedText}
+            </span>
         );
     }
 
