@@ -105,7 +105,7 @@ export function createCheckWorkComponent(
             ? SVs.submitLabel
             : SVs.submitLabelNoCorrectness;
         const checkWorkLabel = showText ? <>&nbsp; {checkWorkText}</> : "";
-        const title = showText ? undefined : checkWorkText;
+        const additionalLabel = showText ? undefined : checkWorkText;
 
         checkWorkComponent = (
             <Button
@@ -114,13 +114,13 @@ export function createCheckWorkComponent(
                 disabled={disabled}
                 style={checkWorkStyle}
                 onClick={submitAnswer}
-                aria-label={checkWorkText}
+                aria-label={additionalLabel}
             >
                 <FontAwesomeIcon
                     icon={faLevelDownAlt as IconProp}
                     transform={{ rotate: 90 }}
                     aria-hidden={true}
-                    title={title}
+                    title={additionalLabel}
                 />
                 {checkWorkLabel}
             </Button>
@@ -132,18 +132,18 @@ export function createCheckWorkComponent(
             ).getPropertyValue("--mainGreen");
 
             const correctLabel = showText ? <>&nbsp; Correct</> : "";
-            const title = showText ? undefined : "Correct";
+            const additionalLabel = showText ? undefined : "Correct";
 
             checkWorkComponent = (
                 <span
                     id={id + "_correct"}
                     style={statusStyle}
-                    aria-label="Correct"
+                    aria-label={additionalLabel}
                 >
                     <FontAwesomeIcon
                         icon={faCheck as IconProp}
                         aria-hidden={true}
-                        title={title}
+                        title={additionalLabel}
                     />
                     {correctLabel}
                 </span>
@@ -153,17 +153,17 @@ export function createCheckWorkComponent(
                 document.documentElement,
             ).getPropertyValue("--mainRed");
             const incorrectLabel = showText ? <>&nbsp; Incorrect</> : "";
-            const title = showText ? undefined : "Incorrect";
+            const additionalLabel = showText ? undefined : "Incorrect";
             checkWorkComponent = (
                 <span
                     id={id + "_incorrect"}
                     style={statusStyle}
-                    aria-label="Incorrect"
+                    aria-label={additionalLabel}
                 >
                     <FontAwesomeIcon
                         icon={faTimes as IconProp}
                         aria-hidden={true}
-                        title={title}
+                        title={additionalLabel}
                     />
                     {incorrectLabel}
                 </span>
@@ -176,12 +176,13 @@ export function createCheckWorkComponent(
                 ? `${percent}% Credit`
                 : `${percent}% Correct`;
             const partialLabel = showText ? partialText : `${percent} %`;
+            const additionalLabel = showText ? undefined : partialText;
 
             checkWorkComponent = (
                 <span
                     id={id + "_partial"}
                     style={statusStyle}
-                    aria-label={partialText}
+                    aria-label={additionalLabel}
                 >
                     {partialLabel}
                 </span>
@@ -191,7 +192,7 @@ export function createCheckWorkComponent(
         // showCorrectness is false
         statusStyle.backgroundColor = "rgb(74, 3, 217)";
         const responseSavedText = showText ? <>&nbsp; Response Saved</> : "";
-        const title = showText ? undefined : "Response Saved";
+        const additionalLabel = showText ? undefined : "Response Saved";
 
         if (!showText) {
             statusStyle.padding = "1px 8px 1px 4px"; // To center the faCloud icon
@@ -200,12 +201,12 @@ export function createCheckWorkComponent(
             <span
                 id={id + "_saved"}
                 style={statusStyle}
-                aria-label="Response Saved"
+                aria-label={additionalLabel}
             >
                 <FontAwesomeIcon
                     icon={faCloud as IconProp}
                     aria-hidden={true}
-                    title={title}
+                    title={additionalLabel}
                 />
                 {responseSavedText}
             </span>
