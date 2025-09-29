@@ -38,7 +38,11 @@ describe("Answer Tag Tests", function () {
             let mathInputPartialAnchor = cesc("#" + mathInputName + "_partial");
 
             // cy.get(mathInputAnchor).should('have.value', '');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -46,7 +50,11 @@ describe("Answer Tag Tests", function () {
             cy.log("Type correct answer in");
             cy.get(mathInputAnchor).type(`x+y`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+y');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -55,14 +63,22 @@ describe("Answer Tag Tests", function () {
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+y');
             cy.get(mathInputSubmitAnchor).should("not.exist");
-            cy.get(mathInputCorrectAnchor).should("be.visible");
+            cy.get(mathInputCorrectAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Correct",
+            );
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
 
             cy.log("Add space");
             cy.get(mathInputAnchor).type(`{end} `, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+yz');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -71,14 +87,22 @@ describe("Answer Tag Tests", function () {
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+y');
             cy.get(mathInputSubmitAnchor).should("not.exist");
-            cy.get(mathInputCorrectAnchor).should("be.visible");
+            cy.get(mathInputCorrectAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Correct",
+            );
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
 
             cy.log("Delete space");
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+yz');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -87,14 +111,22 @@ describe("Answer Tag Tests", function () {
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+y');
             cy.get(mathInputSubmitAnchor).should("not.exist");
-            cy.get(mathInputCorrectAnchor).should("be.visible");
+            cy.get(mathInputCorrectAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Correct",
+            );
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
 
             cy.log("Add letter");
             cy.get(mathInputAnchor).type(`{end}z`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+yz');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -102,7 +134,11 @@ describe("Answer Tag Tests", function () {
             cy.log("Delete letter (no longer goes back to saying correct)");
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+y');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -112,7 +148,11 @@ describe("Answer Tag Tests", function () {
                 force: true,
             });
             // cy.get(mathInputAnchor).should('have.value', 'x');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -120,7 +160,11 @@ describe("Answer Tag Tests", function () {
             cy.log("Back to correct (no longer goes back to saying correct)");
             cy.get(mathInputAnchor).type(`{end}+y`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+y');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -129,7 +173,11 @@ describe("Answer Tag Tests", function () {
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+y');
             cy.get(mathInputSubmitAnchor).should("not.exist");
-            cy.get(mathInputCorrectAnchor).should("be.visible");
+            cy.get(mathInputCorrectAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Correct",
+            );
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
 
@@ -138,7 +186,11 @@ describe("Answer Tag Tests", function () {
                 force: true,
             });
             // cy.get(mathInputAnchor).should('have.value', 'x');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -148,13 +200,21 @@ describe("Answer Tag Tests", function () {
             // cy.get(mathInputAnchor).should('have.value', 'x');
             cy.get(mathInputSubmitAnchor).should("not.exist");
             cy.get(mathInputCorrectAnchor).should("not.exist");
-            cy.get(mathInputIncorrectAnchor).should("be.visible");
+            cy.get(mathInputIncorrectAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Incorrect",
+            );
             cy.get(mathInputPartialAnchor).should("not.exist");
 
             cy.log("Add letter");
             cy.get(mathInputAnchor).type(`{end}a`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'xa');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -162,7 +222,11 @@ describe("Answer Tag Tests", function () {
             cy.log("Delete letter (no longer goes back to saying incorrect)");
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -170,7 +234,11 @@ describe("Answer Tag Tests", function () {
             cy.log("Delete all");
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', '');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -180,7 +248,11 @@ describe("Answer Tag Tests", function () {
             );
             cy.get(mathInputAnchor).type(`x`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -190,13 +262,21 @@ describe("Answer Tag Tests", function () {
             // cy.get(mathInputAnchor).should('have.value', 'x');
             cy.get(mathInputSubmitAnchor).should("not.exist");
             cy.get(mathInputCorrectAnchor).should("not.exist");
-            cy.get(mathInputIncorrectAnchor).should("be.visible");
+            cy.get(mathInputIncorrectAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Incorrect",
+            );
             cy.get(mathInputPartialAnchor).should("not.exist");
 
             cy.log("Enter partially correct answer");
             cy.get(mathInputAnchor).type(`{end}+z`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+z');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -207,12 +287,18 @@ describe("Answer Tag Tests", function () {
             cy.get(mathInputSubmitAnchor).should("not.exist");
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
-            cy.get(mathInputPartialAnchor).should("have.text", "32 %");
+            cy.get(mathInputPartialAnchor)
+                .should("have.text", "32 %")
+                .should("have.attr", "aria-label", "32% Correct");
 
             cy.log("Add letter");
             cy.get(mathInputAnchor).type(`{end}z`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+zz');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -222,7 +308,11 @@ describe("Answer Tag Tests", function () {
             );
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+z');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -232,7 +322,11 @@ describe("Answer Tag Tests", function () {
                 force: true,
             });
             // cy.get(mathInputAnchor).should('have.value', 'x');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -242,7 +336,11 @@ describe("Answer Tag Tests", function () {
             );
             cy.get(mathInputAnchor).type(`{end}+z`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+z');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -253,12 +351,18 @@ describe("Answer Tag Tests", function () {
             cy.get(mathInputSubmitAnchor).should("not.exist");
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
-            cy.get(mathInputPartialAnchor).should("have.text", "32 %");
+            cy.get(mathInputPartialAnchor)
+                .should("have.text", "32 %")
+                .should("have.attr", "aria-label", "32% Correct");
 
             cy.log("Enter invalid answer");
             cy.get(mathInputAnchor).type(`{end}/`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+z');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -268,13 +372,21 @@ describe("Answer Tag Tests", function () {
             // cy.get(mathInputAnchor).should('have.value', 'x+z/');
             cy.get(mathInputSubmitAnchor).should("not.exist");
             cy.get(mathInputCorrectAnchor).should("not.exist");
-            cy.get(mathInputIncorrectAnchor).should("be.visible");
+            cy.get(mathInputIncorrectAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Incorrect",
+            );
             cy.get(mathInputPartialAnchor).should("not.exist");
 
             cy.log("Another invalid answer shows submit button again");
             cy.get(mathInputAnchor).type(`{end}^`, { force: true });
             // cy.get(mathInputAnchor).should('have.value', 'x+z/^');
-            cy.get(mathInputSubmitAnchor).should("be.visible");
+            cy.get(mathInputSubmitAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
             cy.get(mathInputCorrectAnchor).should("not.exist");
             cy.get(mathInputIncorrectAnchor).should("not.exist");
             cy.get(mathInputPartialAnchor).should("not.exist");
@@ -284,7 +396,11 @@ describe("Answer Tag Tests", function () {
             // cy.get(mathInputAnchor).should('have.value', 'x+z/^');
             cy.get(mathInputSubmitAnchor).should("not.exist");
             cy.get(mathInputCorrectAnchor).should("not.exist");
-            cy.get(mathInputIncorrectAnchor).should("be.visible");
+            cy.get(mathInputIncorrectAnchor).should(
+                "have.attr",
+                "aria-label",
+                "Incorrect",
+            );
             cy.get(mathInputPartialAnchor).should("not.exist");
         });
     });
