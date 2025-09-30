@@ -80,6 +80,7 @@ export default React.memo(function Graph(props) {
             zoom: { wheel: !SVs.fixAxes, needShift: true },
             pan: { enabled: !SVs.fixAxes, needShift: false },
             grid: haveFixedGrid,
+            title: SVs.description,
         });
 
         newBoard.itemsRenderedLowQuality = {};
