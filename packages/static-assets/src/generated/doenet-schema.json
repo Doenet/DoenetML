@@ -56609,6 +56609,9 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "description"
                 }
             ],
             "properties": [
@@ -56703,11 +56706,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "fixAxes",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "showBorder",
                     "type": "boolean",
                     "isArray": false
@@ -56715,6 +56713,11 @@
                 {
                     "name": "hideOffGraphIndicators",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -56759,6 +56762,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixAxes",
                     "type": "boolean",
                     "isArray": false
                 },
