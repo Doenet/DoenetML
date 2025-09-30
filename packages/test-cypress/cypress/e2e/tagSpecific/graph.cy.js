@@ -385,4 +385,18 @@ describe("Graph Tag Tests", function () {
         cy.get(cesc("#showControls")).click();
         cy.get(cesc("#showControls2")).should("have.text", "true");
     });
+
+    it("graph description is aria-label", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph description="A blank graph" name="g" />
+    `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#g")).should("have.attr", "aria-label", "A blank graph");
+    });
 });

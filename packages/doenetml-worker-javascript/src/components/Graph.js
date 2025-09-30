@@ -188,6 +188,14 @@ export default class Graph extends BlockComponent {
             public: true,
         };
 
+        attributes.description = {
+            createComponentOfType: "text",
+            createStateVariable: "description",
+            defaultValue: "",
+            public: true,
+            forRenderer: true,
+        };
+
         return attributes;
     }
 
