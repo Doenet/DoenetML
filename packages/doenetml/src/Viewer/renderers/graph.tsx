@@ -508,7 +508,6 @@ export default React.memo(function Graph(props) {
             },
             strokeColor: "var(--canvasText)",
             strokeOpacity: 0.5,
-            minorTicks: 4,
             digits: 4,
             drawLabels: SVs.displayYAxisTickLabels,
         };
@@ -589,7 +588,6 @@ export default React.memo(function Graph(props) {
             },
             strokeColor: "var(--canvasText)",
             strokeOpacity: 0.5,
-            // minorTicks: 4,
             digits: 4,
             drawLabels: SVs.displayXAxisTickLabels,
         };
