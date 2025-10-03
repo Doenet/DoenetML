@@ -24,8 +24,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 <odeSystem name="ode" initialconditions="$ic" independentvariable="$ivar" variables="$dvar">
   <rightHandSide>$rhs</rightHandSide>
 </odeSystem>
-<number name="zeroFixed" fixed="true" hide="true">0</number>
-<number name="xPointNonNeg" hide="true"><max>0 $zeroFixed</max></number>
+<number name="zeroFixed" fixed hide>0</number>
+<number name="xPointNonNeg" hide><max>0 $zeroFixed</max></number>
 <graph>
   <function extend="$ode.numericalSolution" name="f" />
   <point name="p" styleNumber="2" showCoordsWhenDragging="false">($xPointNonNeg, $$f($xPointNonNeg))
@@ -51,10 +51,10 @@ The required attributes as well as the ` <rightHandSide>{:dn}` child of the ` <o
 
 <setup>
   <math name="m">$wt/32</math>
-  <math name="kOverM" simplify="true">$k/$m</math>
+  <math name="kOverM" simplify>$k/$m</math>
 </setup>
 
-<odeSystem name="springMass" hideInitialCondition="true" variables="x v" initialConditions="$s2 0">
+<odeSystem name="springMass" hideInitialCondition variables="x v" initialConditions="$s2 0">
   <rightHandSide>v</rightHandSide>
   <rightHandSide>-$kOverM x</rightHandSide>
 </odeSystem>
@@ -78,7 +78,7 @@ in the ` <answer>{:dn}` component using the `allowedErrorInNumbers` attribute.
 
 ```doenet-editor-horiz
 <p>Let <m>\frac{g}{l} = 20</m> for a given pendulum. Then,
-<odeSystem name="pendulum" hideInitialCondition="true" variables="theta omega" initialConditions="1 1" maxIterations="10000"> 
+<odeSystem name="pendulum" hideInitialCondition variables="theta omega" initialConditions="1 1" maxIterations="10000"> 
   <rightHandSide>omega</rightHandSide>
   <rightHandSide>-20 sin(theta)</rightHandSide> 
 </odeSystem></p>
@@ -130,7 +130,7 @@ listed as the second child.
 
 
 ```doenet-editor-horiz
-<odeSystem name="pendulum" hideInitialCondition="true" variables="theta omega" initialConditions="1 1" maxIterations="10000">
+<odeSystem name="pendulum" hideInitialCondition variables="theta omega" initialConditions="1 1" maxIterations="10000">
   <rightHandSide>omega</rightHandSide>
   <rightHandSide>-20 sin(theta)</rightHandSide>
 </odeSystem>
@@ -149,15 +149,15 @@ listed as the second child.
 </m></p>
 <p><m>\omega($t) = <math name="omega">$$omegaFn($t)</math></m></p>
 <p>Scroll down to view the animated simulation.</p>
-<animateFromSequence hide="true" target="$t" from="0" step="0.1" to="10" animationInterval="100" name="animate" />
+<animateFromSequence hide target="$t" from="0" step="0.1" to="10" animationInterval="100" name="animate" />
 <callAction actionName="startAnimation" target="$animate"><label>Start animation</label></callAction>
 <callAction actionName="stopAnimation" target="$animate"><label>Stop animation</label></callAction>
 <p>Simulation</p>
-  <graph displayXaxis="false" displayYaxis="false" xmin="-1" xmax="1" ymin="-1" ymax="1" fixAxes="true">
-    <point name="mid" fixed="true" styleNumber="4">(0,0)</point>
-    <point name="end" fixed="true" x="0.5 sin($theta)" y="-0.5 cos($theta)" hide="true" />
-    <lineSegment endpoints="$mid $end" fixed="true" styleNumber="4" />
-    <circle radius="0.08" center="$end" filled="true" styleNumber="4" />
+  <graph displayXaxis="false" displayYaxis="false" xmin="-1" xmax="1" ymin="-1" ymax="1" fixAxes>
+    <point name="mid" fixed styleNumber="4">(0,0)</point>
+    <point name="end" fixed x="0.5 sin($theta)" y="-0.5 cos($theta)" hide />
+    <lineSegment endpoints="$mid $end" fixed styleNumber="4" />
+    <circle radius="0.08" center="$end" filled styleNumber="4" />
     <angle radius="0.25" through="$end $mid (0,-1)">
       <label><m>\theta=$theta</m></label>
     </angle>  
@@ -176,7 +176,7 @@ Refer to the previous example for the setup of the ` <odeSystem>{:dn}` component
 
 
 ```doenet-editor-horiz
-<odeSystem name="pendulum" hideInitialCondition="true" variables="theta omega" initialConditions="$IC.x $IC.y" maxIterations="10000">
+<odeSystem name="pendulum" hideInitialCondition variables="theta omega" initialConditions="$IC.x $IC.y" maxIterations="10000">
   <rightHandSide>omega</rightHandSide>
   <rightHandSide>-20 sin(theta)</rightHandSide>
 </odeSystem>
@@ -195,11 +195,11 @@ Refer to the previous example for the setup of the ` <odeSystem>{:dn}` component
 </m></p>
 <p><m>\omega($t) = <math name="omega">$$omegaFn($t)</math></m></p>
 <p>Scroll down to view the animated phase plane.</p>
-<animateFromSequence hide="true" target="$t" from="0" step="0.1" to="10" animationInterval="100" name="animate" />
+<animateFromSequence hide target="$t" from="0" step="0.1" to="10" animationInterval="100" name="animate" />
 <callAction actionName="startAnimation" target="$animate"><label>Start animation</label></callAction>
 <callAction actionName="stopAnimation" target="$animate"><label>Stop animation</label></callAction>
 <p>Phase plane</p>
-<graph xmax="pi" xmin="-pi" fixAxes="true">
+<graph xmax="pi" xmin="-pi" fixAxes>
   <xLabel><m>\theta</m></xLabel>
   <yLabel><m>\omega</m></yLabel>
   <point name="IC" layer="1" coords="(1,1)" labelPosition="top" styleNumber="3" showCoordsWhenDragging="false">
@@ -232,7 +232,7 @@ Refer to the example titled "A simple pendulum ODE system" for the setup of the 
 
 
 ```doenet-editor-horiz
-<odeSystem name="pendulum" hideInitialCondition="true" variables="theta omega" initialConditions="$ic_t_theta.y 1" maxIterations="10000">
+<odeSystem name="pendulum" hideInitialCondition variables="theta omega" initialConditions="$ic_t_theta.y 1" maxIterations="10000">
   <rightHandSide>omega</rightHandSide>
   <rightHandSide>-20 sin(theta)</rightHandSide>
 </odeSystem>
@@ -251,17 +251,17 @@ Refer to the example titled "A simple pendulum ODE system" for the setup of the 
 </m></p>
 <p><m>\omega($t) = <math name="omega">$$omegaFn($t)</math></m></p>
 <p>Scroll down to view the animated <m>\theta\; v.\;t</m> graph.</p>
-<animateFromSequence hide="true" target="$t" from="0" step="0.1" to="10" animationInterval="100" name="animate" />
+<animateFromSequence hide target="$t" from="0" step="0.1" to="10" animationInterval="100" name="animate" />
 <callAction actionName="startAnimation" target="$animate"><label>Start animation</label></callAction>
 <callAction actionName="stopAnimation" target="$animate"><label>Stop animation</label></callAction>
 
 <setup>
-  <number name="zeroFixed" fixed="true">0</number>
-  <number name="dv" fixed="true">1</number>
+  <number name="zeroFixed" fixed>0</number>
+  <number name="dv" fixed>1</number>
 </setup>
 
 <p>Angle versus time</p>
-<graph xmin="-1.1" xmax="10" ymin="-pi" ymax="pi" fixAxes="true">
+<graph xmin="-1.1" xmax="10" ymin="-pi" ymax="pi" fixAxes>
   <xLabel><m>t</m></xLabel>
   <yLabel><m>\theta</m></yLabel>
   <curve>
@@ -340,7 +340,7 @@ The default initial value for the independent variable is $0$. To employ a diffe
 <p>To successfully integrate to <m>t=20</m> with a tolerance of 0.000001, you must either decrease <attr>chunksize</attr> or increase <attr>maxIterations</attr>.</p>
 <p>t = <mathInput name="t" prefill="10" /></p>
 <p>tolerance = 
-  <mathInput name="tol" parseScientificNotation="true" prefill="1E-6" />
+  <mathInput name="tol" parseScientificNotation prefill="1E-6" />
   <em>(default = <m>0.000001</m>)</em>
 </p>
 <p>maxIterations = <mathInput name="maxIter" prefill="1000" />
@@ -352,7 +352,7 @@ The default initial value for the independent variable is $0$. To employ a diffe
 <odeSystem name="ode" initialConditions="1" maxIterations="$maxIter" tolerance="$tol" chunkSize="$chunkSize">
   <rightHandSide>x</rightHandSide>
 </odeSystem>
-<function name="f" extend="$ode.numericalSolution[1]" displayDecimals="8" hide="true" />
+<function name="f" extend="$ode.numericalSolution[1]" displayDecimals="8" hide />
 <p><m>f($t) = <number name="apxNum">$$f($t)</number></m></p>
 <p>Exact answer: <m>e^{$t} = <number name="exactNum" displayDecimals="8" styleNumber="2">e^($t)</number></m></p>
 <p>Absolute tolerance <m> = \pm <number displayDecimals="8">$tol $exactNum</number></m></p>
@@ -379,7 +379,7 @@ The solution to an ODE is calculated numerically in batches of the size given by
 <p>To successfully integrate to <m>t=20</m>, you must decrease the tolerance below 0.000001 (alternatively, decrease <attr>chunksize</attr> or increase <attr>maxIterations</attr>).</p>
 <p>t = <mathInput name="t" prefill="10" /></p>
 <p>tolerance = 
-  <mathInput name="tol" parseScientificNotation="true" prefill="1E-6" />
+  <mathInput name="tol" parseScientificNotation prefill="1E-6" />
   <em>(default = <m>0.000001</m>)</em>
 </p>
 <p>maxIterations = <mathInput name="maxIter" prefill="1000" />
@@ -391,9 +391,9 @@ The solution to an ODE is calculated numerically in batches of the size given by
 <odeSystem name="ode" initialConditions="1" maxIterations="$maxIter" tolerance="$tol" chunkSize="$chunkSize">
   <rightHandSide>x</rightHandSide>
 </odeSystem>
-<function name="f" extend="$ode.numericalSolution[1]" displayDecimals="8" hide="true" />
-<p><m>f($t) = <number name="apxNum" renderAsMath="true">$$f($t)</number></m></p>
-<p>Exact answer: <m>e^{$t} = <number name="exactNum" displayDecimals="8" renderAsMath="true" styleNumber="2">e^($t)</number></m></p>
+<function name="f" extend="$ode.numericalSolution[1]" displayDecimals="8" hide />
+<p><m>f($t) = <number name="apxNum" renderAsMath>$$f($t)</number></m></p>
+<p>Exact answer: <m>e^{$t} = <number name="exactNum" displayDecimals="8" renderAsMath styleNumber="2">e^($t)</number></m></p>
 <p>Absolute tolerance <m> = \pm <number displayDecimals="8">$tol $exactNum</number></m></p>
 <p>Error <m> = <number displayDecimals="8">$exactNum - $apxNum</number></m></p>
 <p>Check if tolerance achieved: 
@@ -421,7 +421,7 @@ If solutions do not converge for the specified combination of solution parameter
 <p>To successfully integrate to <m>t=20</m> with a tolerance of 0.000001, you must either decrease <attr>chunksize</attr> or increase <attr>maxIterations</attr>.</p>
 <p>t = <mathInput name="t" prefill="10" /></p>
 <p>tolerance = 
-  <mathInput name="tol" parseScientificNotation="true" prefill="1E-6" />
+  <mathInput name="tol" parseScientificNotation prefill="1E-6" />
   <em>(default = <m>0.000001</m>)</em>
 </p>
 <p>maxIterations = <mathInput name="maxIter" prefill="1000" />
@@ -433,9 +433,9 @@ If solutions do not converge for the specified combination of solution parameter
 <odeSystem name="ode" initialConditions="1" maxIterations="$maxIter" tolerance="$tol" chunkSize="$chunkSize">
   <rightHandSide>x</rightHandSide>
 </odeSystem>
-<function name="f" extend="$ode.numericalSolution[1]" displayDecimals="8" hide="true" />
-<p><m>f($t) = <number name="apxNum" renderAsMath="true">$$f($t)</number></m></p>
-<p>Exact answer: <m>e^{$t} = <number name="exactNum" displayDecimals="8" renderAsMath="true" styleNumber="2">e^($t)</number></m></p>
+<function name="f" extend="$ode.numericalSolution[1]" displayDecimals="8" hide />
+<p><m>f($t) = <number name="apxNum" renderAsMath>$$f($t)</number></m></p>
+<p>Exact answer: <m>e^{$t} = <number name="exactNum" displayDecimals="8" renderAsMath styleNumber="2">e^($t)</number></m></p>
 <p>Absolute tolerance <m> = \pm <number displayDecimals="8">$tol $exactNum</number></m></p>
 <p>Error <m> = <number displayDecimals="8">$exactNum - $apxNum</number></m></p>
 <p>Check if tolerance achieved: 
@@ -600,7 +600,7 @@ The `latex` property stores/renders the LaTeX of the ` <odeSystem>{:dn}`.
 
 
 ```doenet-editor-horiz
-<number name="g" hide="true">9.8</number>
+<number name="g" hide>9.8</number>
 <odeSystem name="ode" variables="x v" initialConditions="0 0">
   <rightHandSide>v</rightHandSide>
   <rightHandSide>$g/5 (x/2 + 1)</rightHandSide>
