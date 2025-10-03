@@ -3236,7 +3236,7 @@ d
                 {
                     doenetML: `
 
-  <p><answer name="answer1" inline creditFactorByAttempt="1 0.6 0.4" disableWrongChoices>
+  <p><answer name="answer1" inline creditByAttempt="1 0.6 0.4" disableWrongChoices>
     <choiceInput name="choiceInput1">
       <choice credit="1">A</choice>
       <choice>B</choice>
@@ -3244,7 +3244,7 @@ d
       <choice>D</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer2" inline creditFactorByAttempt="1 0.6 0.4" disableWrongChoices forceFullCheckworkButton>
+  <p><answer name="answer2" inline creditByAttempt="1 0.6 0.4" disableWrongChoices forceFullCheckworkButton>
     <choiceInput name="choiceInput2">
       <choice credit="1">A</choice>
       <choice>B</choice>
@@ -3260,11 +3260,11 @@ d
 
         cy.get(cesc("#answer1")).should(
             "contain.text",
-            "wrong answers reduce credit",
+            "Max credit available: 100%",
         );
         cy.get(cesc("#answer2")).should(
             "contain.text",
-            "wrong answers reduce credit",
+            "Max credit available: 100%",
         );
 
         cy.log("Submit correct answers");
@@ -3277,11 +3277,11 @@ d
 
         cy.get(cesc("#answer1")).should(
             "contain.text",
-            "wrong answers reduce credit",
+            "Max credit available: 100%",
         );
         cy.get(cesc("#answer2")).should(
             "contain.text",
-            "wrong answers reduce credit",
+            "Max credit available: 100%",
         );
 
         cy.log("Submit incorrect answers");
@@ -3294,11 +3294,11 @@ d
 
         cy.get(cesc("#answer1")).should(
             "contain.text",
-            "credit will be reduced by 60% due to 1 wrong answer",
+            "Max credit available: 60%",
         );
         cy.get(cesc("#answer2")).should(
             "contain.text",
-            "credit will be reduced by 60% due to 1 wrong answer",
+            "Max credit available: 60%",
         );
         cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
         cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
@@ -3313,11 +3313,11 @@ d
 
         cy.get(cesc("#answer1")).should(
             "contain.text",
-            "credit reduced by 60% due to 1 wrong answer",
+            "Max credit available: 60%",
         );
         cy.get(cesc("#answer2")).should(
             "contain.text",
-            "credit reduced by 60% due to 1 wrong answer",
+            "Max credit available: 60%",
         );
         cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
         cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
@@ -3332,11 +3332,11 @@ d
 
         cy.get(cesc("#answer1")).should(
             "contain.text",
-            "credit will be reduced by 40% due to 2 wrong answers",
+            "Max credit available: 40%",
         );
         cy.get(cesc("#answer2")).should(
             "contain.text",
-            "credit will be reduced by 40% due to 2 wrong answers",
+            "Max credit available: 40%",
         );
         cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
         cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
@@ -3353,11 +3353,11 @@ d
 
         cy.get(cesc("#answer1")).should(
             "contain.text",
-            "credit reduced by 40% due to 2 wrong answers",
+            "Max credit available: 40%",
         );
         cy.get(cesc("#answer2")).should(
             "contain.text",
-            "credit reduced by 40% due to 2 wrong answers",
+            "Max credit available: 40%",
         );
         cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
         cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
@@ -3374,11 +3374,11 @@ d
 
         cy.get(cesc("#answer1")).should(
             "contain.text",
-            "credit will be reduced by 40% due to 3 wrong answers",
+            "Max credit available: 40%",
         );
         cy.get(cesc("#answer2")).should(
             "contain.text",
-            "credit will be reduced by 40% due to 3 wrong answers",
+            "Max credit available: 40%",
         );
         cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
         cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
@@ -3397,11 +3397,11 @@ d
 
         cy.get(cesc("#answer1")).should(
             "contain.text",
-            "credit reduced by 40% due to 3 wrong answers",
+            "Max credit available: 40%",
         );
         cy.get(cesc("#answer2")).should(
             "contain.text",
-            "credit reduced by 40% due to 3 wrong answers",
+            "Max credit available: 40%",
         );
         cy.get(cesc("#choiceInput1")).get(`[value="2"]`).should("be.disabled");
         cy.get(cesc("#choiceInput2")).get(`[value="2"]`).should("be.disabled");
