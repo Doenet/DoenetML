@@ -22,6 +22,11 @@ Semantic markup for building interactive web activities.
 
 ## Quickstart
 
+Make sure you have [Rust](https://rust-lang.org/tools/install/) installed.
+```bash
+rustc --version
+```
+
 In root directory, run
 
 ```bash
@@ -37,6 +42,8 @@ npm run dev
 ```
 
 Paste demo code into `src/test/testCode.doenet` and navigate to the URL specified in the console (probably http://localhost:8012 )
+
+Note for Windows users: There are currently some [issues](https://github.com/Doenet/DoenetML/pull/326) with running a local development environment on Windows. We recommend using [WSL](https://learn.microsoft.com/en-us/windows/wsl/setup/environment) for now.
 
 ## Demos
 
