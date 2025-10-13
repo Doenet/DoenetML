@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         "fetchExternalDoenetML",
     ];
     const wrappedCallbacks = ComlinkEditor.wrap(
-        ComlinkEditor.windowEndpoint(self.parent),
+        ComlinkEditor.windowEndpoint(globalThis.parent),
     );
     for (const callback of callbackNames) {
         callbackOverrides[callback] = haveEditorCallbacks.includes(callback)

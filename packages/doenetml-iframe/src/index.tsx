@@ -172,23 +172,9 @@ export function DoenetViewer({
         }
         const clearResize = watchForResize(ref, () => height, setHeight);
 
-        const callbacks = {
-            reportScoreAndStateCallback:
-                doenetViewerProps.reportScoreAndStateCallback,
-            setIsInErrorState: doenetViewerProps.setIsInErrorState,
-            generatedVariantCallback:
-                doenetViewerProps.generatedVariantCallback,
-            documentStructureCallback:
-                doenetViewerProps.documentStructureCallback,
-            initializedCallback: doenetViewerProps.initializedCallback,
-            setErrorsAndWarningsCallback:
-                doenetViewerProps.setErrorsAndWarningsCallback,
-            fetchExternalDoenetML: doenetViewerProps.fetchExternalDoenetML,
-        };
-
         if (ref.current) {
             Comlink.expose(
-                callbacks,
+                doenetViewerProps,
                 Comlink.windowEndpoint(ref.current.contentWindow!),
             );
         }
@@ -338,18 +324,9 @@ export function DoenetEditor({
             window.addEventListener("message", listener);
         }
 
-        const callbacks = {
-            doenetmlChangeCallback: doenetEditorProps.doenetmlChangeCallback,
-            immediateDoenetmlChangeCallback:
-                doenetEditorProps.immediateDoenetmlChangeCallback,
-            documentStructureCallback:
-                doenetEditorProps.documentStructureCallback,
-            fetchExternalDoenetML: doenetEditorProps.fetchExternalDoenetML,
-        };
-
         if (ref.current) {
             Comlink.expose(
-                callbacks,
+                doenetEditorProps,
                 Comlink.windowEndpoint(ref.current.contentWindow!),
             );
         }
