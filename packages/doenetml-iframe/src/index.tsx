@@ -230,6 +230,7 @@ export function DoenetViewer({
         <React.Fragment>
             {addVirtualKeyboard ? <ExternalVirtualKeyboard /> : null}
             <iframe
+                title="Doenet document"
                 ref={ref}
                 srcDoc={createHtmlForDoenetViewer(
                     id,
@@ -404,6 +405,7 @@ export function DoenetEditor({
         <React.Fragment>
             {addVirtualKeyboard ? <ExternalVirtualKeyboard /> : null}
             <iframe
+                title="Doenet Editor"
                 ref={ref}
                 srcDoc={createHtmlForDoenetEditor(
                     id,
