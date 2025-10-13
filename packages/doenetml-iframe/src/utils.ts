@@ -26,21 +26,12 @@ export function createHtmlForDoenetViewer(
     standaloneUrl: string,
     cssUrl: string,
 ) {
-    const haveViewerCallbacks: string[] = [];
-    const callbackNames = [
-        "reportScoreAndStateCallback",
-        "setIsInErrorState",
-        "generatedVariantCallback",
-        "documentStructureCallback",
-        "initializedCallback",
-        "setErrorsAndWarningsCallback",
-        "fetchExternalDoenetML",
-    ];
-    for (const callback of callbackNames) {
-        if (callback in doenetViewerProps) {
-            haveViewerCallbacks.push(callback);
-        }
-    }
+    // Since function props disappear when stringifying
+    // and we'll have access tot them only via proxying with ComLink,
+    // whether or not a function prop was specified is masked.
+    // Since for some callbacks, we have different behavior whether or not it was specified,
+    // we pass an extra variable of the props that were specified.
+    const doenetViewerPropsSpecified: string[] = Object.keys(doenetViewerProps);
 
     return `
     <html style="overflow:hidden">
@@ -52,11 +43,11 @@ export function createHtmlForDoenetViewer(
         <script type="module">
             const viewerId = "${id}";
             const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
-            const haveViewerCallbacks = ${JSON.stringify(haveViewerCallbacks)};
+            const doenetViewerPropsSpecified = ${JSON.stringify(doenetViewerPropsSpecified)};
             import * as ComlinkViewer from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
 
             // This source code has been compiled by vite and should be directly included.
-            // It assumes that viewerId, doenetViewerProps, haveViewerCallbacks, and ComlinkViewer are defined in the global scope.
+            // It assumes that viewerId, doenetViewerPropsSpecified, and ComlinkViewer are defined in the global scope.
             ${viewerIframeJsSource}
         </script>
         <div id="root">
@@ -80,18 +71,12 @@ export function createHtmlForDoenetEditor(
 ) {
     const augmentedProps = { width, height: "100vh", ...doenetEditorProps };
 
-    const haveEditorCallbacks: string[] = [];
-    const callbackNames = [
-        "doenetmlChangeCallback",
-        "immediateDoenetmlChangeCallback",
-        "documentStructureCallback",
-        "fetchExternalDoenetML",
-    ];
-    for (const callback of callbackNames) {
-        if (callback in doenetEditorProps) {
-            haveEditorCallbacks.push(callback);
-        }
-    }
+    // Since function props disappear when stringifying
+    // and we'll have access tot them only via proxying with ComLink,
+    // whether or not a function prop was specified is masked.
+    // Since for some callbacks, we have different behavior whether or not it was specified,
+    // we pass an extra variable of the props that were specified.
+    const doenetEditorPropsSpecified: string[] = Object.keys(augmentedProps);
 
     return `
     <html style="overflow:hidden">
@@ -103,11 +88,11 @@ export function createHtmlForDoenetEditor(
         <script type="module">
             const editorId = "${id}";
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};
-            const haveEditorCallbacks = ${JSON.stringify(haveEditorCallbacks)};
+            const doenetEditorPropsSpecified = ${JSON.stringify(doenetEditorPropsSpecified)};
             import * as ComlinkEditor from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
             
             // This source code has been compiled by vite and should be directly included.
-            // It assumes that editorId, doenetEditorProps, haveEditorCallbacks, and ComlinkViewer are defined in the global scope.
+            // It assumes that editorId, doenetEditorWidth, doenetEditorPropsSpecified, and ComlinkEditor are defined in the global scope.
             ${editorIframeJsSource}
         </script>
         <div id="root">
