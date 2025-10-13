@@ -33,6 +33,7 @@ export function createHtmlForDoenetViewer(
     // we pass an extra variable of the props that were specified.
     const doenetViewerPropsSpecified: string[] = Object.keys(doenetViewerProps);
 
+    // XXX: rather than serving Comlink from the cdn, below, serve it directly
     return `
     <html style="overflow:hidden">
     <head>
