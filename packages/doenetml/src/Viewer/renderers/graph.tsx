@@ -5,7 +5,7 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import me from "math-expressions";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 //@ts-ignore
-import JXG from "./jsxgraph-distrib/jsxgraphcore.mjs";
+import JXG from "jsxgraph";
 // import JXG from './jsxgraph';
 import { cesc } from "@doenet/utils";
 import { JXGObject } from "./jsxgraph-distrib/types";
@@ -80,6 +80,7 @@ export default React.memo(function Graph(props) {
             zoom: { wheel: !SVs.fixAxes, needShift: true },
             pan: { enabled: !SVs.fixAxes, needShift: false },
             grid: haveFixedGrid,
+            title: SVs.description,
         });
 
         newBoard.itemsRenderedLowQuality = {};
@@ -319,6 +320,7 @@ export default React.memo(function Graph(props) {
                 xaxis.current.defaultTicks.setAttribute({
                     drawLabels: SVs.displayXAxisTickLabels,
                 });
+                setMinorTicks(xaxis.current);
                 if (xaxis.current.hasLabel) {
                     let position = "rt";
                     let offset = [5, 10];
@@ -354,6 +356,7 @@ export default React.memo(function Graph(props) {
                 yaxis.current.defaultTicks.setAttribute({
                     drawLabels: SVs.displayYAxisTickLabels,
                 });
+                setMinorTicks(yaxis.current);
                 if (yaxis.current.hasLabel) {
                     let position = "rt";
                     let offset = [-10, -5];
@@ -379,6 +382,9 @@ export default React.memo(function Graph(props) {
             board.removeObject(yaxis.current);
             yaxis.current = null;
         }
+
+        board.attr.zoom.wheel = !SVs.fixAxes;
+        board.attr.pan.enabled = !SVs.fixAxes;
 
         if (showNavigation) {
             if (!previousShowNavigation.current) {
@@ -443,6 +449,23 @@ export default React.memo(function Graph(props) {
         </div>
     );
 
+    function setMinorTicks(axis) {
+        const ticks = axis.defaultTicks;
+        const tickInterval = ticks.getDistanceMajorTicks();
+
+        let mag =
+            10 ** Math.floor(Math.log10(tickInterval)) * ticks.visProp.scale;
+
+        let minorTicks = 4;
+
+        if (Math.abs(tickInterval / mag - 2) < 1e-14) {
+            minorTicks = 3;
+        }
+
+        ticks.visProp.minorticks = minorTicks;
+        ticks.fullUpdate();
+    }
+
     function createYAxis(theBoard) {
         let yaxisOptions = { highlight: false, fixed: true };
         if (SVs.yLabel) {
@@ -486,8 +509,7 @@ export default React.memo(function Graph(props) {
             },
             strokeColor: "var(--canvasText)",
             strokeOpacity: 0.5,
-            // minorTicks: 4,
-            precision: 4,
+            digits: 4,
             drawLabels: SVs.displayYAxisTickLabels,
         };
         if (SVs.yTickScaleFactor !== null) {
@@ -525,118 +547,7 @@ export default React.memo(function Graph(props) {
             yaxisOptions,
         );
 
-        // change default ticks function to decreasing starting tick size
-        yaxis.current.defaultTicks.ticksFunction = function () {
-            var delta, b, dist;
-
-            b = this.getLowerAndUpperBounds(
-                this.getZeroCoordinates(),
-                "ticksdistance",
-            );
-            dist = b.upper - b.lower;
-
-            // only change from JSXgraph: 0.6 * dist became 0.2 * dist
-            delta = Math.pow(10, Math.floor(Math.log(0.2 * dist) / Math.LN10));
-            if (dist <= 6 * delta) {
-                delta *= 0.5;
-            }
-            return delta;
-        };
-
-        // hack JSXgraph tick function so that
-        // if major tick is 2*10^n for some integer n, then have 3 minor ticks,
-        // otherwise have 4 minor ticks
-        // (Other changes are simply to account for fact that
-        // don't have access to Mat and Type)
-        yaxis.current.defaultTicks.generateEquidistantTicks = function (
-            coordsZero,
-            bounds,
-        ) {
-            var tickPosition,
-                eps2 = 1e-6,
-                deltas,
-                // Distance between two major ticks in user coordinates
-                ticksDelta = this.equidistant
-                    ? this.ticksFunction(1)
-                    : this.ticksDelta,
-                ev_it = true,
-                ev_mt = 4;
-            this.visProp.minorticks = 4;
-
-            // Calculate X and Y distance between two major ticks
-            deltas = this.getXandYdeltas();
-
-            // adjust ticks distance
-            ticksDelta *= this.visProp.scale;
-            if (ev_it && this.minTicksDistance > 1e-6) {
-                ticksDelta = this.adjustTickDistance(
-                    ticksDelta,
-                    coordsZero,
-                    deltas,
-                );
-
-                // Only change from JSXgraph function:
-                // check if ticksDelta is 2*10^n for some integer n
-                let mag =
-                    10 ** Math.floor(Math.log10(ticksDelta)) *
-                    this.visProp.scale;
-                if (Math.abs(ticksDelta / mag - 2) < 1e-14) {
-                    ev_mt = 3;
-                    this.visProp.minorticks = 3;
-                }
-                ticksDelta /= ev_mt + 1;
-            } else if (!ev_it) {
-                ticksDelta /= ev_mt + 1;
-            }
-            this.ticksDelta = ticksDelta;
-
-            if (ticksDelta < 1e-6) {
-                return;
-            }
-
-            // Position ticks from zero to the positive side while not reaching the upper boundary
-            tickPosition = 0;
-            if (!this.visProp.drawzero) {
-                tickPosition = ticksDelta;
-            }
-            while (tickPosition <= bounds.upper + eps2) {
-                // Only draw ticks when we are within bounds, ignore case where tickPosition < lower < upper
-                if (tickPosition >= bounds.lower - eps2) {
-                    this.processTickPosition(
-                        coordsZero,
-                        tickPosition,
-                        ticksDelta,
-                        deltas,
-                    );
-                }
-                tickPosition += ticksDelta;
-
-                // Emergency out
-                if (bounds.upper - tickPosition > ticksDelta * 10000) {
-                    break;
-                }
-            }
-
-            // Position ticks from zero (not inclusive) to the negative side while not reaching the lower boundary
-            tickPosition = -ticksDelta;
-            while (tickPosition >= bounds.lower - eps2) {
-                // Only draw ticks when we are within bounds, ignore case where lower < upper < tickPosition
-                if (tickPosition <= bounds.upper + eps2) {
-                    this.processTickPosition(
-                        coordsZero,
-                        tickPosition,
-                        ticksDelta,
-                        deltas,
-                    );
-                }
-                tickPosition -= ticksDelta;
-
-                // Emergency out
-                if (tickPosition - bounds.lower > ticksDelta * 10000) {
-                    break;
-                }
-            }
-        };
+        setMinorTicks(yaxis.current);
 
         theBoard.unsuspendUpdate();
     }
@@ -678,8 +589,7 @@ export default React.memo(function Graph(props) {
             },
             strokeColor: "var(--canvasText)",
             strokeOpacity: 0.5,
-            // minorTicks: 4,
-            precision: 4,
+            digits: 4,
             drawLabels: SVs.displayXAxisTickLabels,
         };
         if (SVs.xTickScaleFactor !== null) {
@@ -720,128 +630,7 @@ export default React.memo(function Graph(props) {
             xaxisOptions,
         );
 
-        // change default ticks function to decreasing starting tick size
-        xaxis.current.defaultTicks.ticksFunction = function () {
-            var delta, b, dist;
-
-            b = this.getLowerAndUpperBounds(
-                this.getZeroCoordinates(),
-                "ticksdistance",
-            );
-            dist = b.upper - b.lower;
-
-            // only change from JSXgraph: 0.6 * dist became 0.2 * dist
-            delta = Math.pow(10, Math.floor(Math.log(0.2 * dist) / Math.LN10));
-            if (dist <= 6 * delta) {
-                delta *= 0.5;
-            }
-            return delta;
-        };
-
-        // hack JSXgraph tick function so that
-        // if major tick is 2*10^n for some integer n, then have 3 minor ticks,
-        // otherwise have 4 minor ticks
-        // (Other changes are simply to account for fact that
-        // don't have access to Mat and Type)
-        xaxis.current.defaultTicks.generateEquidistantTicks = function (
-            coordsZero,
-            bounds,
-        ) {
-            // First change from JSXgraph: increase minTickDistance for larger numbers
-            this.minTicksDistance =
-                2 *
-                Math.max(
-                    2.5,
-                    Math.log10(Math.abs(bounds.lower)),
-                    Math.log10(Math.abs(bounds.upper)),
-                );
-
-            var tickPosition,
-                eps2 = 1e-6,
-                deltas,
-                // Distance between two major ticks in user coordinates
-                ticksDelta = this.equidistant
-                    ? this.ticksFunction(1)
-                    : this.ticksDelta,
-                ev_it = true,
-                ev_mt = 4;
-            this.visProp.minorticks = 4;
-
-            // Calculate X and Y distance between two major ticks
-            deltas = this.getXandYdeltas();
-
-            // adjust ticks distance
-            ticksDelta *= this.visProp.scale;
-            if (ev_it && this.minTicksDistance > 1e-6) {
-                ticksDelta = this.adjustTickDistance(
-                    ticksDelta,
-                    coordsZero,
-                    deltas,
-                );
-
-                // Second change from JSXgraph function:
-                // check if ticksDelta is 2*10^n for some integer n
-                let mag =
-                    10 ** Math.floor(Math.log10(ticksDelta)) *
-                    this.visProp.scale;
-                if (Math.abs(ticksDelta / mag - 2) < 1e-14) {
-                    ev_mt = 3;
-                    this.visProp.minorticks = 3;
-                }
-                ticksDelta /= ev_mt + 1;
-            } else if (!ev_it) {
-                ticksDelta /= ev_mt + 1;
-            }
-            this.ticksDelta = ticksDelta;
-
-            if (ticksDelta < 1e-6) {
-                return;
-            }
-
-            // Position ticks from zero to the positive side while not reaching the upper boundary
-            tickPosition = 0;
-            if (!this.visProp.drawzero) {
-                tickPosition = ticksDelta;
-            }
-            while (tickPosition <= bounds.upper + eps2) {
-                // Only draw ticks when we are within bounds, ignore case where tickPosition < lower < upper
-                if (tickPosition >= bounds.lower - eps2) {
-                    this.processTickPosition(
-                        coordsZero,
-                        tickPosition,
-                        ticksDelta,
-                        deltas,
-                    );
-                }
-                tickPosition += ticksDelta;
-
-                // Emergency out
-                if (bounds.upper - tickPosition > ticksDelta * 10000) {
-                    break;
-                }
-            }
-
-            // Position ticks from zero (not inclusive) to the negative side while not reaching the lower boundary
-            tickPosition = -ticksDelta;
-            while (tickPosition >= bounds.lower - eps2) {
-                // Only draw ticks when we are within bounds, ignore case where lower < upper < tickPosition
-                if (tickPosition <= bounds.upper + eps2) {
-                    this.processTickPosition(
-                        coordsZero,
-                        tickPosition,
-                        ticksDelta,
-                        deltas,
-                    );
-                }
-                tickPosition -= ticksDelta;
-
-                // Emergency out
-                if (tickPosition - bounds.lower > ticksDelta * 10000) {
-                    break;
-                }
-            }
-        };
-
+        setMinorTicks(xaxis.current);
         theBoard.unsuspendUpdate();
     }
 
@@ -925,7 +714,7 @@ export default React.memo(function Graph(props) {
     }
 
     function removeNavigationButtons() {
-        for (let i = 7; i >= 1; i--) {
+        for (let i = 3; i >= 1; i--) {
             let button = document.querySelector(
                 "#" + cesc(id) + `_navigationbar > :first-child`,
             );

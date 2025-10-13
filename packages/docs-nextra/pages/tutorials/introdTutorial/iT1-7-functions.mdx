@@ -17,7 +17,7 @@ To evaluate your function, use the self-closing `<evaluate>` tag as follows:
 
 The following code shows this in action, with both numeric and symbolic input.
 
-```doenet
+```doenet-editor-horiz
 <setup>  
   <function name="f">x^2+1</function>
 </setup>
@@ -25,16 +25,14 @@ The following code shows this in action, with both numeric and symbolic input.
 <p><m>f(4) = <evaluate function="$f" input="4"/></m> </p>
 <p><m>f(a+b) = <evaluate function="$f" input="a+b"/> </m> </p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 In the above example, the function $f$ was defined in the `<setup>` block. If you include a `<function>` within the main text of your document, outside of a setup block, Doenet will render the formula for the function, but not the function name. In that situation, you probably want to include code such as `<m>g(x) = ... </m>` to avoid having a random, "floating" formula in your document:
 
-```doenet
+```doenet-editor-horiz
 <p><function name="f">x^2+1</function></p>
 
 <p><m>g(x) = <function name="g">sin( pi x)</function></m></p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### The `$$` Macro
 In mathematics we spend a lot of time evaluating functions. It would be time consuming and awkward to write `<evaluate function="$functionName" input="inputValue" />` every time you want to plug a value into a function. Fortunately, DoenetML provides a time-saving macro:
@@ -45,7 +43,7 @@ In mathematics we spend a lot of time evaluating functions. It would be time con
 
 The syntax shown above is equivalent to the longer `<evaluate>` tag. Frequently you want to evaluate a function at some number which was provided in a `<mathInput/>` box or defined as a `<math>`, so expressions like `$$f($a)` are extremely common in DoenetML; essentially that expression means "evaluate $f(x)$ at $x = a$."
 
-```doenet
+```doenet-editor-horiz
 <p><m>f(x) = 
   <function name="func">2x+3</function>
 </m>, and <m>f(0) = $$func(0)</m>.</p>
@@ -55,7 +53,6 @@ The syntax shown above is equivalent to the longer `<evaluate>` tag. Frequently 
 
 <p><m>f($a) = $$func($a)</m></p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### `$` vs. `$$`
 It can be confusing for new DoenetML users to remember when to use `$` or `$$`. The key is to remember what they stand for.
@@ -68,7 +65,7 @@ The most common mistake with `$` and `$$` is to define a function named $f$ and 
 
 These behaviors are illustrated in the following example.
 
-```doenet
+```doenet-editor-horiz
 <p>The next two lines are functionally equivalent.  (Pun intended!)</p>
 <p><function name="f">x^2</function></p>
 <p>$f</p>
@@ -78,12 +75,11 @@ These behaviors are illustrated in the following example.
 <p>This will compute <m>f(2)</m>:</p>
 <p>$$f(2)</p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### User-Defined Functions
 In DoenetML documents, we sometimes want to evaluate a function which is provided by the student. (See this [Arclength demonstration](https://www.doenet.org/portfolioviewer/_GreyYWRKHtWjTGfgI8axS), for example.) One way to accomplish this is by having the user enter a formula in a `<mathInput/>`, and then use the value of that input to define a function. See the example below for an example.
 
-```doenet
+```doenet-editor-horiz
 <setup>
   <function name="f">$userFormula</function>
 </setup>
@@ -98,7 +94,6 @@ In DoenetML documents, we sometimes want to evaluate a function which is provide
 
 <p><m>f($x) = $$f($x)</m></p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### Numeric Functions
 *This section is a bit technical and could be skipped if you're just starting to learn DoenetML. It's included for later reference, because the feature described here could be very important to you as you learn to write more complicated DoenetML documents.*
@@ -112,7 +107,7 @@ then you can evaluate f with numeric or symbolic inputs: `$$f(2)` returns 5, and
 
 Sometimes, you might know ahead of time that you will only evaluate a function with numeric inputs. In that case, you can create a "numeric function" (as opposed to "symbolic function") by including the attribute `symbolic="false"` in the function definition. Check out the following example to see how this affects function evaluation.
 
-```doenet
+```doenet-editor-horiz
 <p>Symbolic: <m>f(x) = <function name="f">1/x</function></m></p>
 <p><m> f(2) = $$f(2)</m></p>
 <p><m> f(\pi) = $$f(pi)</m></p>
@@ -125,7 +120,6 @@ Sometimes, you might know ahead of time that you will only evaluate a function w
 <p><m> g(3.1) = $$g(3.1)</m></p>
 <p><m> g(a+b) = $$g(a+b)</m></p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 At the very bottom of the results window (you may have to scroll!), $g(a + b) = NaN$, which is Doenet-speak for "Not a Number." The function $g$ can only handle numeric input; when we try to evaluate $g$ with symbolic input, the evaluation fails.
 

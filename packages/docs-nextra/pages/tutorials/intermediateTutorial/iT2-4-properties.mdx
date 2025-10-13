@@ -35,7 +35,7 @@ The documentation page for each DoenetML component, as found in either the [Alph
 
 As a basic example, the following code uses the $x$ and $y$-coordinates of points $P$ and $Q$ to compute the length of $\overline{PQ}$, via the distance formula. However, it turns out DoenetML already computes that distance; we can access it using the `length` property of the line segment.
 
-```doenet
+```doenet-editor-horiz
 <graph showNavigation="false" size="small">
 
   <point name="P" x="-8" y="-2" />
@@ -54,7 +54,6 @@ As a basic example, the following code uses the $x$ and $y$-coordinates of point
 <p>Using the <c>length</c> property:
 <m>PQ = $PQ.length</m></p> 
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 Drag the endpoints around and double check that the distances are updated correctly. Also notice that we can refer to `$Q.x` and `$Q.y`, even though we defined Q without using the `x` and `y` attributes.
 
@@ -75,29 +74,28 @@ Later in this tutorial we'll cover sequences and other lists of objects in Doene
 
 * Some properties return a list of objects instead of one specific value.
 
-* To refer to the $n^{th}$ object in a list, use the following "array" notation: First, enter the name of the component, followed by the type of object or property that is being accessed, followed by square brackets enclosing the index value desired. The following example shows this notation for three different types of lists; `<mathList>`, `<textList>`, and `<booleanList>`.
+* To refer to the $n^{th}$ object in a list, use the following "array" notation: First, enter the name of the object followed by square brackets enclosing the index value desired. The following example shows this notation for three different types of lists; `<mathList>`, `<textList>`, and `<booleanList>`.
 
-```doenet {2,5,8} 
+```doenet-editor-horiz
 <p>A mathlist: <mathList name="ml">x xy pi^2 sqrt(2)</mathList></p>
-<p>The third "math" in the <tag>mathList</tag> is: $ml.maths[3]</p>
+<p>The third "math" in the <tag>mathList</tag> is: $ml[3]</p>
 
 <p>A textlist: <textList name="tl">red orange yellow green</textList></p>
-<p>The third "text" in the <tag>textList</tag> is: $tl.texts[3]</p>
+<p>The third "text" in the <tag>textList</tag> is: $tl[3]</p>
 
 <p>A booleanlist: <booleanList name="bl">true 1 0 true</booleanList></p>
-<p>The third "boolean" in the <tag>booleanList</tag> is: $bl.booleans[3]</p>
+<p>The third "boolean" in the <tag>booleanList</tag> is: $bl[3]</p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### Doenet Indexes from 1
 
-In some languages, `$listName.prop[0]` would be the first element, but DoenetML starts counting at $1$; the first item in any list (or vector, or map, etc...) is `$listName.prop[1]`.
+In some languages, `$listName[0]` would be the first element, but DoenetML starts counting at $1$; the first item in any list is `$listName[1]`.
 
 ### Array Notation with Graphical Components
 
 The following code demonstrates the use of array notation and properties with graphical components. Two line segments are defined using the `endpoints` attribute; as we saw in the previous section, these endpoints are not drawn by default. However, the reference to `$line2.endpoints` (line 5) is nested within the `<graph>` component. That's why the endpoints of `line2` are displayed, and those of `line1` are not.
 
-Below the graph, you'll find references to the `endpoints` property of both line segements, as well as individual references to specific data from the `endpoints` property list (see lines 10-11).
+Below the graph, you'll find references to the `endpoints` property of both line segments, as well as individual references to specific data from the `endpoints` property list (see lines 10-11).
 
 
 ```doenet-editor-horiz
@@ -115,7 +113,6 @@ Below the graph, you'll find references to the `endpoints` property of both line
 ```
 
 
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 As usual, if you drag either of the line segments or the endpoints, all of the coordinates in the text below the graph will be updated.
 

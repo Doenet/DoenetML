@@ -361,4 +361,42 @@ describe("Graph Tag Tests", function () {
         cy.get(cesc("#ignoreBad")).should("contain.text", "10");
         cy.get(cesc("#ignoreBad")).should("contain.text", "−10");
     });
+
+    it("changing show navigation", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <booleanInput name="showControls" prefill="true" />
+    <graph showNavigation="$showControls" name="g" />
+    <boolean name="showControls2" extend="$g.showNavigation" />
+    `,
+                },
+                "*",
+            );
+        });
+
+        // Make sure render doesn't crash when remove or add navigation buttons
+        cy.get(cesc("#showControls2")).should("have.text", "true");
+
+        cy.get(cesc("#showControls")).click();
+        cy.get(cesc("#showControls2")).should("have.text", "false");
+
+        cy.get(cesc("#showControls")).click();
+        cy.get(cesc("#showControls2")).should("have.text", "true");
+    });
+
+    it("graph description is aria-label", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph description="A blank graph" name="g" />
+    `,
+                },
+                "*",
+            );
+        });
+        cy.get(cesc("#g")).should("have.attr", "aria-label", "A blank graph");
+    });
 });

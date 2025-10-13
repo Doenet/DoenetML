@@ -37,10 +37,10 @@ All of these approaches are possible in DoenetML as well, using various attribut
 We already could graph a line in slope-intercept form $y = mx + b$
 by graphing the function $f(x) = mx + b$. This approach is more general, though; for example, a vertical line $x = c$ doesn't have a valid slope-intercept equation! We can graph a vertical line using `<line>`, but not as a `<function>`.
 
-All three methods are illustrated in the example below. Try adjusting the attributes and clicking "update," to make sure you know how to use each type of definition. Notice how, similar to the `<point>` tag, you can adjust the appearances of lines using styleNumber.
+All three methods are illustrated in the example below. Try adjusting the attributes and clicking *Update*, to make sure you know how to use each type of definition. Notice how, similar to the `<point>` tag, you can adjust the appearances of lines using styleNumber.
 
-```doenet
-<graph showNavigation="false">
+```doenet-editor-horiz
+<graph fixAxes>
 
   <line through="(-8,8) (9,6)" />
   <line through="(0,4)" slope="1/2" styleNumber="2" />
@@ -50,11 +50,10 @@ All three methods are illustrated in the example below. Try adjusting the attrib
   
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 Also similar to `<point>`, you can define a line outside of a `<graph>` object, either in a `<setup>` block or in your regular text. If you define a line (or reference it using `$lineName`) within regular text, Doenet will print an equation of the line.
 
-```doenet
+```doenet-editor-horiz
 <setup>
   <line name="line1" equation="y=6-x" />
 </setup>
@@ -62,12 +61,11 @@ Also similar to `<point>`, you can define a line outside of a `<graph>` object, 
 <p>$line1</p>
 <p><line name="line2" equation="y=x" /></p>
 
-<graph showNavigation="false" size="small">
+<graph fixAxes size="small">
   $line1
   $line2
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 Finally, and again like points, lines can be dragged around in Doenet. Try dragging one of the lines in the previous example, and notice that Doenet will automatically update the equation of the line as it moves. (If you want to prevent this behavior, the `fixed` attribute you learned about in the previous section will prevent a line from moving.)
 
@@ -75,14 +73,13 @@ Finally, and again like points, lines can be dragged around in Doenet. Try dragg
 
 In geometry, we frequently want to define a line $l$ which goes through a point $P$ and is either parallel or perpendicular to some other line $k$. For these applications, the `parallelTo` and `perpendicularTo` attributes can be useful, as shown in the following example.
 
-```doenet
+```doenet-editor-horiz
 <graph>
   <line name="k">y = 3x + 4</line>
   <line through="(1,2)" parallelTo="$k"  styleNumber="2"/>
   <line through="(-1,-2)" perpendicularTo="$k"  styleNumber="3"/>
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### Line Segments and Rays
 The ray $\overrightarrow{PQ}$ starts at its endpoint $P$ (sometimes called its vertex) and goes through $Q$. DoenetML has a `<ray>` tag with attributes that match those terms:
@@ -101,8 +98,8 @@ Similar to defining a `<line>` through two points, the endpoints are separated b
 
 In the example below, you can adjust $\overrightarrow{PQ}$ and $\overline{RS}$ by dragging the four labeled points. You can also drag the ray or line segments themselves, and the labeled points will translate accordingly.
 
-```doenet
-<graph showNavigation="false">
+```doenet-editor-horiz
+<graph fixAxes>
   <point name="P" coords="(-8,8)"  labelIsName />
   <point name="Q" coords="(6,4)"   labelIsName />
   <point name="R" coords="(-6,2)"  labelIsName />
@@ -113,27 +110,24 @@ In the example below, you can adjust $\overrightarrow{PQ}$ and $\overline{RS}$ b
   <lineSegment endpoints="(2,-5) (8,-5)" />
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### Stylish Segments
 As with lines, you can change how rays and segments are displayed on screen using the `styleNumber` attributes. You've already seen how points are displayed with each `styleNumber`. Below you can see points combined with a line segment.
 
 ```doenet-example
 <graph xmin="0" xmax="7.5" ymin="-1" ymax="2" 
-           showNavigation="false" identicalAxisScales
+           fixAxes identicalAxisScales
            displayXAxis="false" displayYAxis="false" >  
 
-      <map>
-        <template><point labelPosition="bottom" styleNumber="$i">
-          ($i,0)
-          <label>$i</label>
-        </point>
-        <lineSegment endpoints="($i,0) ($i+0.5,1)" styleNumber="$i"/>
-        </template>
-        <sources alias="i"><sequence from="1" to="6" /></sources>
-      </map>
+  <repeatForSequence from="1" to="6" valueName="i">
+    <point labelPosition="bottom" styleNumber="$i">
+      ($i,0)
+      <label>$i</label>
+    </point>
+    <lineSegment endpoints="($i,0) ($i+0.5,1)" styleNumber="$i"/>
+  </repeatForSequence>
 
-    </graph>
+</graph>
 ```
 
 ### Geometry Example
@@ -151,8 +145,8 @@ Now that we have points, segments, and rays, we can use DoenetML to create an in
 
     (Note, currently, `<intersection>` works with lines, line segments, rays, polygons and circles.)
 
-```doenet
-<graph showNavigation="false" displayXAxis="false" displayYAxis="false">
+```doenet-editor-horiz
+<graph fixAxes displayXAxis="false" displayYAxis="false">
   <point name="A" coords="(-6,6)" labelIsName />
   <point name="B" coords="(7,4)"  labelIsName />
   <point name="C" coords="(0,-5)" labelIsName labelPosition="bottom"/>
@@ -172,7 +166,6 @@ Now that we have points, segments, and rays, we can use DoenetML to create an in
   <intersection styleNumber="5">$AD $BE</intersection>
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### Next Steps
 There are many more geometric objects you can display in Doenet, including polygons and circles. Before we get to those shapes, however, it's time to take a step back and learn about another DoenetML feature. The next section will cover **properties**, which are an important tool for interacting with DoenetML ccmponents.

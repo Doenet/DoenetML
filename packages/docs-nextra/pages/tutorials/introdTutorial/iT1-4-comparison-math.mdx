@@ -15,7 +15,7 @@ To start, here's a review of the two tags:
 In practice, the behavior of `<m>` and `<math>` can look very similar. Consider the following example.
 
 
-```doenet {5,11}
+```doenet-editor-horiz
 <p>Define two numbers:
   <m name="a">1</m>,
   <m name="b">2</m></p>
@@ -28,13 +28,12 @@ In practice, the behavior of `<m>` and `<math>` can look very similar. Consider 
 <p>Add them together:
   <math name="xySum">$x+$y</math></p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 Although using `<m> `or `<math>` results in the same display: there's a crucial, invisible difference. As described above, `$abSum` is just a string of characters, with no mathematical meaning or value. Conversely, `$xySum` is a mathematical object, with a value which could be simplified, and used in later computations.
 
 To drive this point home: the following code adds simplify to the definition of `xySum`, and also uses the result in a subsequent calculation.
 
-```doenet {5-6}
+```doenet-editor-horiz
 <p>Define two numbers:
   <math name="x">1</math>,
   <math name="y">2</math></p>
@@ -42,11 +41,10 @@ To drive this point home: the following code adds simplify to the definition of 
   <math name="xySum" simplify>$x+$y</math></p>
 <p>Square the result: <math simplify>$xySum^2</math></p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 Those calculations would not be possible with the `<m>` tag. In the following code, `$abSum^2` results in $_^2$, which is Doenet-speak for "the square of some unknown value." Because `$abSum` is a string of characters, not a number or mathematical expression, Doenet does not know how to square it.
 
-```doenet {5-6}
+```doenet-editor-horiz
 <p>Define two numbers:
   <m name="a">1</m>,
   <m name="b">2</m></p>
@@ -54,7 +52,6 @@ Those calculations would not be possible with the `<m>` tag. In the following co
   <m name="abSum">$a+$b</m></p>
 <p>Square the result: <math simplify>$abSum^2</math></p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 With the above example in mind, it's tempting to "play it safe" and use `<math>` tags everywhere. But the extra "internal machinery" associated with `<math>` objects means that `<m>` tags are more efficient with resources, and it's a good idea to use them when possible.
 
@@ -64,7 +61,7 @@ Sometimes it seems like `<m>` will suffice for your purposes, but it's worth pla
 
 Consider the following example, which uses three numbers to create and solve a quadratic equation. (Later in this tutorial you'll learn how to let the user provide these coefficients; for now we'll just define them in the code.)
 
-```doenet {7}
+```doenet-editor-horiz
 <p>Define the coefficients for a quadratic function here: 
   <math name="a">2</math>,
   <math name="b">8</math>,
@@ -76,13 +73,12 @@ Consider the following example, which uses three numbers to create and solve a q
   <math simplify>(-$b - sqrt($b^2- 4*$a*$c))/(2*$a)</math>.
 </p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
-Everything seems to be working! We've used `<m>` tags to display the quadratic equation, because we're not doing any computations there; we're just copying the coefficients into the expression. By contrast, we used `<math>` tags to do the computations with the quadratic formula. (To verify that Doenet is doing the computations, try removing simplify from one of the `<math>` tags and click "Update.")
+Everything seems to be working! We've used `<m>` tags to display the quadratic equation, because we're not doing any computations there; we're just copying the coefficients into the expression. By contrast, we used `<math>` tags to do the computations with the quadratic formula. (To verify that Doenet is doing the computations, try removing simplify from one of the `<math>` tags and click *Update*.)
 
 As it turns out, however, there's a subtle issue with our code. Check out what happens with the `<m>` tag with different coefficients:
 
-```doenet {7}
+```doenet-editor-horiz
 <p>Define the coefficients for a quadratic function here: 
   <math name="a">1</math>,
   <math name="b">-3</math>,
@@ -94,7 +90,6 @@ As it turns out, however, there's a subtle issue with our code. Check out what h
   <math simplify>(-$b - sqrt($b^2- 4*$a*$c))/(2*$a)</math>.
 </p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 Why does the quadratic equation look so strange? The `<m>` tag does no simplifications. It doesn't know (or care) about mathematical conventions such as:
 
@@ -103,7 +98,7 @@ Why does the quadratic equation look so strange? The `<m>` tag does no simplific
 
 How can we ensure that the quadratic equation will always be rendered nicely? It turns out to be trickier than expected. A natural first thought is to use `<math>` instead of `<m>`:
 
-```doenet {7}
+```doenet-editor-horiz
 <p>Define the coefficients for a quadratic function here: 
   <math name="a">1</math>,
   <math name="b">-3</math>,
@@ -113,11 +108,10 @@ How can we ensure that the quadratic equation will always be rendered nicely? It
 <p>Equation: <math>$a x^2 + $b x + $c = 0</math>
 </p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 That's an improvement; when displaying a `<math>` object, Doenet makes some straightforward adjustments such as writing $-3 x$ instead of $+ -3x$, but we still have $1x^2$ at the beginning of the equation. Perhaps we can fix that issue by adding `simplify` to the tag defining the equation?
 
-```doenet {7}
+```doenet-editor-horiz
 <p>Define the coefficients for a quadratic function here: 
   <math name="a">1</math>,
   <math name="b">-3</math>,
@@ -127,13 +121,12 @@ That's an improvement; when displaying a `<math>` object, Doenet makes some stra
 <p>Equation: <math simplify>$a x^2 + $b x + $c = 0</math>
 </p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 We're definitely getting closer! Doenet now displays $x^2 - 3x + 2$ as expected, but the equation still looks a little odd, with $0 = $ at the beginning. That happened because we asked Doenet to simplify the *entire equation*, and not just the quadratic polynomial. Doenet's simplification routines decided that the simpler, constant side of the equation should come first. Mathematically that's fine, but it looks odd to our eyes.
 
 To fix that remaining issue, we should use `<math>` to simplify just the quadratic polynomial, and display the rest of the equation with `<m>`. We could use side-by-side `<math>` and `<m>` tags, or nest them, as shown below. Nesting the tags is preferred, because it ensures the spacing is correct throughout the equation. (In the side-by-side example below, $=$ is too close to the $2$. You could manually leave a space between the side-by-side tags, but experienced HTML users know that it's dicey to expect that blank spaces or lines will be preserved.)
 
-```doenet
+```doenet-editor-horiz
 <p>Define the coefficients for a quadratic function here: 
   <math name="a">1</math>,
   <math name="b">-3</math>,
@@ -146,7 +139,6 @@ To fix that remaining issue, we should use `<math>` to simplify just the quadrat
 <p>Nested: <m><math simplify>$a x^2 + $b x + $c</math>=0</m>
 </p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 The moral of the story: when choosing between `<m>` and `<math>`, it's worth thinking about all the possible values your code might have to deal with, and whether simplifications will ever be necessary!
 

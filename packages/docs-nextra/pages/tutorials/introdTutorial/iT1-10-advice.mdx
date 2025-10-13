@@ -18,7 +18,7 @@ More generally, there are some fairly serious errors that would immediately caus
 
 Along the same lines: if you give Doenet an invalid attribute value, it will generally just ignore the attribute instead of crashing with an error message. In the following code, we made a typo and used a curly bracket in the domain, writing $[0,2\}$ instead of $[0,2]$. Notice that Doenet still defines the function, and does not restrict its domain at all; $f(-1)$ and $f(3)$ are both defined.
 
-```doenet
+```doenet-editor-horiz
 <function name="f" domain="[0,2}">
   x^2
 </function>
@@ -29,19 +29,18 @@ Along the same lines: if you give Doenet an invalid attribute value, it will gen
 <p>$$f(2)</p>
 <p>$$f(3)</p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 On one hand this is very forgiving and helpful, but it can be surprising as well. Suppose you notice that $f(10)$ is defined even though the domain of $f$ is supposed to be $[0,2]$. You might think there's a bug in Doenet's code regarding domains, but in fact (at least in this case) it's author error. For this example, Doenet will issue several warnings that look like this : 
-    *Line #5 Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.*
+    *Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.*
 
-(Note - to view warnings look for the yellow button in the bottom left corner of the text editor.)
+(Note - to view warnings look for the *Warnings* in the bottom left corner of the text editor.)
 
 ### Avoiding Crashes
 There are relatively few reasons why a Doenet document will fail to load, and display an error message instead. The most common are:
 
 * **Omitting a closing tag.** If you omit a closing `</p>`, for example, Doenet will give you an error message similar to
 
-  ***Error:** Invalid DoenetML. Missing closing tag. Expected `</p>`. Found on line 8*
+  **Error:** Invalid DoenetML: The tag `<p>` has no closing tag. Expected a self-closing tag or a `</p>` tag. Found on line 8.
 
     The displayed line number tells you the location of the error in the document.
 
@@ -55,9 +54,7 @@ There are relatively few reasons why a Doenet document will fail to load, and di
 
     * Names cannot begin with a number or an underscore.
 
-    Unlike attributes and tags, names are case-sensitive in DoenetML. A name can match the same text as an attribute; for example,`<math name="domain">4</math>` is valid DoenetML. But we encourage you to avoid this so that you don't cause any confusion.
-
-* **Duplicate component name.** You cannot give two components the same name.
+    Unlike attributes, names are case-sensitive in DoenetML. A name can match the same text as an attribute; for example,`<math name="domain">4</math>` is valid DoenetML. But we encourage you to avoid this so that you don't cause any confusion.
 
 ### Attributes vs. Children
 

@@ -34,6 +34,8 @@ export default class Input extends InlineComponent {
                         "justSubmitted",
                         "creditAchieved",
                         "showCorrectness",
+                        "submitLabel",
+                        "submitLabelNoCorrectness",
                         "numAttemptsLeft",
                         "creditIsReducedByAttempt",
                         "numIncorrectSubmissions",
@@ -184,6 +186,47 @@ export default class Input extends InlineComponent {
                         dependencyValues.showCorrectnessFlag !== false;
                 }
                 return { setValue: { showCorrectness } };
+            },
+        };
+
+        stateVariableDefinitions.submitLabel = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let submitLabel;
+                if (dependencyValues.answerAncestor) {
+                    submitLabel =
+                        dependencyValues.answerAncestor.stateValues.submitLabel;
+                } else {
+                    submitLabel = "";
+                }
+                return { setValue: { submitLabel } };
+            },
+        };
+
+        stateVariableDefinitions.submitLabelNoCorrectness = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let submitLabelNoCorrectness;
+                if (dependencyValues.answerAncestor) {
+                    submitLabelNoCorrectness =
+                        dependencyValues.answerAncestor.stateValues
+                            .submitLabelNoCorrectness;
+                } else {
+                    submitLabelNoCorrectness = "";
+                }
+                return { setValue: { submitLabelNoCorrectness } };
             },
         };
 

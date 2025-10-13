@@ -19,63 +19,58 @@ but you have no control over where the line breaks occur, how far the bullet poi
 
 If you've created a webpage with HTML, you'll feel right at home writing in DoenetML. (And if you haven't, don't worry -- there's not too much to learn!) Content is always contained between opening and closing tags. Just like HTML, tags are denoted with angle brackets, < and >. The closing tag includes an extra slash.
 
-For example, the following text would create a new paragraph:
-```doenet
-     <p>Write the paragraph text here!</p>
+For example, the following text would create a new paragraph.
+```doenet-editor-horiz
+<p>Write the paragraph text here!</p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
+Try adding a second paragraph in the first panel above and clicking the *Update* button; the second panel will display the two paragraphs.
 
 Similarly, the `<em>` tag tells Doenet that the surrounded text should be emphasized, which typically means your web browser will italicize the text.
 
-Below this paragraph, you'll see an example with one line of code using `<p>` and `<em>` tags. To test the code in a live editor, click on the "Test Code" button at the bottom of the example.
+Below, you'll see an example using `<p>` and `<em>` tags.  You can click on the blank line at the bottom and add a new paragraph, surrounded by `<p>` and `</p>`. Then click *Update* to see the results. If you get an error, make sure you've included both the opening tag `<p>` and the closing tags `</p>`.
 
-In your test editor, you can click on the blank line at the bottom and add a new paragraph, surrounded by `<p>` and `</p>`. Then click "update" to see the results. If you get an error, make sure you've included both the opening and ending tags,
-
-```doenet
+```doenet-editor-horiz
 <p>This is a short paragraph, which includes some <em>emphasized</em> text. Similar to other markup languages, DoenetML ignores    extra    spaces
 
 and blank lines.</p>
+
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 As demonstrated above, tags can be nested; the text between `<p>` and `</p>` includes emphasized text, using the `<em>` tag. If you nest tags, you must always close the most "recent" tag before closing any others. For example, once you use an `<em>` inside of a paragraph, you **must** include the closing `</em>` before finishing the paragraph with `</p>`.
 
-In your test editor, try swapping the `</em>` and `</p>` tags, and then click "update." DoenetML will complain that it expected `</em>`, but found something else instead.
+Try swapping the `</em>` and `</p>` tags, and then click <em>Update</em>. DoenetML will complain that it expected `</em>`, but found something else instead.
 
-Similar to HTML, tags in DoenetML are **case-insensitive**. In other words, you could replace any `<em> `tag above with `<EM>`, `<eM>`, or `<Em>`, and the emphasized text will still render correctly.
+Tags in DoenetML are **case-sensitive**. In other words, if replace an `<em> `tag with `<EM>`, `<eM>`, or `<Em>`, you will get an error.
 
 ### Math Expressions in DoenetML
 
 In DoenetML, mathematical expressions are denoted with the `<m>` tag, and are rendered with [MathJax](https://www.mathjax.org/). If an expression or equation is important enough to be centered on a line by itself, use the `<me>` tag instead.
 
-```doenet
+```doenet-editor-horiz
 <p>Consider the function</p>
 
 <me>f(x) = x^2-3x-10.</me>
 
 <p>Then <m>f(x)=0</m> when <m>x=5</m> or <m>x=-2</m>.</p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 For those familiar with LaTeX, the difference between `<m>` and `<me>` is essentially the same as "inline" and "display" mode in LaTeX. Speaking of LaTeX: you can use nearly any valid LaTeX code in `<m>` and `<me>` tags. (You can see the full list of [commands supported by MathJax](https://docs.mathjax.org/en/latest/input/tex/macros/index.html); although you can't embed full text environments in an `<m>`, essentially any code you would use to typeset mathematics should work.) See below for some examples.
 
-```doenet
+```doenet-editor-horiz
 <me>x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}</me>
 
 <me>F(x) = \int_a^x f(t) \, dt</me>
 
 <me>| \angle ABC | = 30^\circ</me>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 The `<m>` and `<me>` tags do not recognize strings such as "sqrt" or "sin" as mathematical functions. To render those functions correctly, use the appropriate LaTeX code:
 
-```doenet
+```doenet-editor-horiz
 <me>\sqrt{a^2+b^2}</me>
 
 <me>\sin{(a+b)}</me>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 A full LaTeX introduction is beyond the scope of this tutorial. If you're not familiar with LaTeX, we highly encourage you to search online for an introduction to typing mathematics in LaTeX, such as [this guide](https://overleaf.com/learn/latex/Mathematical_expressions) from Overleaf.
 
@@ -83,7 +78,7 @@ A full LaTeX introduction is beyond the scope of this tutorial. If you're not fa
 
 Many of the basic HTML tags for formatting text carry over to DoenetML. The code sample below demonstrates paragraphs, lists, and alert (bold) text.
 
-```doenet
+```doenet-editor-horiz
 <p>You've already seen paragraphs and <em>emphasized</em> text.  Although DoenetML does not have a tag for bold text, it does have a tag for <alert>alert text</alert>.</p>
   
 <p>Lists come in two flavors: ordered and unordered.</p>
@@ -101,9 +96,8 @@ Many of the basic HTML tags for formatting text carry over to DoenetML. The code
   <li>code, but with bullet points, not numbers.</li>
 </ul>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
-  Lists can be nexted as well, but be sure the second list is entirely contained between a pair of `<li>` and `</li>` tags in the "parent" list. See the editor below. Try turning one or both of the lists into an ordered list in the test editor and click update to see the results.
+  Lists can be nested as well, but be sure the second list is entirely contained between a pair of `<li>` and `</li>` tags in the "parent" list. See the editor below. Try turning one or both of the lists into an ordered list in the test editor and click update to see the results.
 
 ### Comments
 Occasionally you might want to "comment out" part of your document, i.e. prevent it from being processed by Doenet and displayed on screen. (Perhaps something isn't working correctly, or you're working on a long document and only want a portion of it to render on screen.). DoenetML uses the same comment tag as HTML; anything between `<!-- and -->` will be ignored:
@@ -112,12 +106,11 @@ Occasionally you might want to "comment out" part of your document, i.e. prevent
 ```
 
 You can see a DoenetML comment in action in the following sample:
-```doenet
+```doenet-editor-horiz
 <!-- <p>This paragraph will be ignored by Doenet</p> -->
 
 <p>This text will be displayed.</p>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### For Experienced HTML Users Only
 *(If that doesn't describe you, feel free to skip right over this section!)*
@@ -131,9 +124,7 @@ If you've written a lot of HTML in your life, you'll feel comfortable with the s
 `<code>`: use `<c>` instead.
 
 `<a href="https://doenet.org">link text</a>`:
-Use `<ref uri="https://doenet.org">link text</ref>` instead. Make sure to include `https://` at the beginning of the link.
-
-`<hr/>`: will cause an error.
+Use `<ref to="https://doenet.org">link text</ref>` instead. Make sure to include `https://` at the beginning of the link.
 
 `<h1>` through `<h6>`: will cause an error.
 Instead, you can create headers by including the appropriate text within `<section>` tags. This will create an automatically numbered section in your document (or subsection, if you nest the `<section>` tags). If you wish to give the section a specific name instead, use the `<title>` within the section. 

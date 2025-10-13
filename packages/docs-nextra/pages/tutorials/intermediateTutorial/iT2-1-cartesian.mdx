@@ -5,22 +5,21 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../../components"
 One of the most powerful features of DoenetML is the ability to create complicated graphics with a few lines of code. This section covers the basics of the `<graph>` tag and its attributes, and shows you how to graph a function $y = f(x)$. Later sections will demonstrate how to graph points, lines, polygons, circles, and other objects.
 
 By default, the following code creates the Cartesian grid, which goes from -10 to 10 in both the $x$ and $y$ directions. 
-```doenet
+```doenet-editor-horiz
 <graph></graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 (If all we want is a blank graph, we could use the self-closing `<graph/>` tag. In practice, however, we'll almost always include items between the opening and closing `<graph>`and `</graph>` tags, which is why we've used that style here.)
 
-Take a moment to experiment with the controls at the bottom right of the graph. Clicking the arrows will pan left, down, up and right. The `+` and `-` allow you to zoom in and out, and `o` resets the view.
+Take a moment to experiment with the controls at the bottom right of the graph. The `+` and `-` allow you to zoom in and out, and `o` resets the view. (You can also hold down Shift and scroll to zoom.) You can pan the graph of dragging with the mouse.
 
 
 
 ### Basic Graph Attributes
 
-DoenetML has attributes to adjust various features of a graph: the range of $x$ and $y$ values; whether or not the zoom/navigation controls and a background grid are displayed; whether a border is drawn around the graph; the size of the graph; and whether the graph is centered on the page, or drawn on the left or right edge of the document.
+DoenetML has attributes to adjust various features of a graph: the range of $x$ and $y$ values; whether or not the graph can be zoomed or panned;  whether or not a background grid are displayed; whether a border is drawn around the graph; the size of the graph; and whether the graph is centered on the page, or drawn on the left or right edge of the document.
 
-Rather that listing out all of the possible attributes and values, documentation-style, you can learn these options by experimenting with the controls below. Try adjusting values and see how the graph changes. Doenet also provides you with the corresponding code to create the graph; you can copy and paste that code into your own documents.
+Rather than listing out all of the possible attributes and values, documentation-style, you can learn these options by experimenting with the controls below. Try adjusting values and see how the graph changes. Doenet also provides you with the corresponding code to create the graph; you can copy and paste that code into your own documents.
 
 ```doenet-example
  <tabular top="minor" bottom="minor">
@@ -37,8 +36,8 @@ Rather that listing out all of the possible attributes and values, documentation
       <cell halign="left"><mathInput name="yMin" prefill="-2" /></cell>
       <cell halign="right"><c>ymax</c></cell>
       <cell halign="left"><mathInput name="yMax" prefill="10" /></cell>
-      <cell halign="right"><c>controls</c></cell>
-      <cell halign="left"><booleanInput name="showControls" prefill="true" /></cell>
+      <cell halign="right"><c>fix axes</c></cell>
+      <cell halign="left"><booleanInput name="fixAxes" prefill="false" /></cell>
     </row>
     <row>
       <cell halign="right"><c>size</c></cell>
@@ -71,9 +70,7 @@ Rather that listing out all of the possible attributes and values, documentation
       size="$sizeChoice"
     </conditionalContent>
     <conditionalContent condition="$showGrid">grid</conditionalContent>
-    <conditionalContent condition="! $showControls">
-      showNavigation="$showControls"
-    </conditionalContent>
+    <conditionalContent condition="$fixAxes">fixAxes</conditionalContent>
     <conditionalContent condition="! $showBorder">
       border="$showBorder"
     </conditionalContent>
@@ -84,7 +81,7 @@ Rather that listing out all of the possible attributes and values, documentation
   
   <graph xmin="$xMin" xmax="$xMax" ymin="$yMin" ymax="$yMax"
     size="$sizeChoice" grid="$showGrid"
-    showNavigation="$showControls" 
+    fixAxes="$fixAxes" 
     showBorder="$showBorder"
     horizontalAlign="$alignChoice"/>
 ```
@@ -92,31 +89,34 @@ Rather that listing out all of the possible attributes and values, documentation
 Notice that the `<graph></graph>` code above includes `grid` (which is equivalent to `grid="true"`) when you check the grid box, but the tag does not include `grid="false"` if the grid is turned off. That's because `false` is the default value for `grid`; hence the attribute doesn't need to be included in that case. Similarly, the other attributes are suppressed if their default values are chosen:
 
 * `grid="false"`
-* `showNavigation="false"`
+* `fixAxes="false"`
 * `showBorder="true"`
 * `size="medium"`
 * `horizontalAlign="center"`
 
-One additional attribute which was not demonstrated above is `identicalAxisScales`. By default, Deonet will always display a square graph. If you adjust the ranges of $x$ and $y$, that often means the axes are scaled differently. That's true in the following graph; $x$ ranges from -10 to 10, but $y$ only stretches from -4 to 4.
+One additional attribute which was not demonstrated above is `identicalAxisScales`. By default, Deonet will always display a square graph. If you adjust the ranges of $x$ and $y$, that often means the axes are scaled differently. That's true in the following graph; $x$ ranges from -10 to 10, but $y$ only stretches from -4 to 4. The unit `<circle />` is squashed into an ellipse.
 
-```doenet
-    <graph ymin="-4" ymax="4" showNavigation="false"/>
+```doenet-editor-horiz
+<graph ymin="-4" ymax="4" fixAxes >
+  <circle />
+</graph>
 ```
 
 
-By including the `identicalAxisScales` attribute (equivalent to `identicalAxisScales="true"`), we force Doenet to use the same scaling for both axes, which results in a rectangular graph.
+By including the `identicalAxisScales` attribute (equivalent to `identicalAxisScales="true"`), we force Doenet to use the same scaling for both axes, which results in a rectangular graph.  The unit `<circle />` now displays as a circle.
 
-```doenet
-    <graph ymin="-4" ymax="4" identicalAxisScales="true" showNavigation="false" />
+```doenet-editor-horiz
+<graph ymin="-4" ymax="4" identicalAxisScales="true" fixAxes >
+  <circle />
+</graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### Axes Labels
 
-By default, the axes in Doenet graphs are unlabeled. You can adjust this behavior, but not with an attribute. Similar to the `<label>` tag in a slider, axis labels are provided with tags that are nested between `<graph>` and `</graph>`. (As mentioned in a previous section, they're known as children of the `<graph>` object.) The `<xLabel>` child specifies the label for the horizontal axes, and you can provide a label for the vertical axis with `<yLabel>`. As Either label can contain text, an `<m>` tag, or even a `<math>` object, as shown in the following example.
+By default, the axes in Doenet graphs are unlabeled. You can adjust this behavior, but not with an attribute. Similar to the `<label>` tag in a slider, axis labels are provided with tags that are nested between `<graph>` and `</graph>`. (As mentioned in a previous section, they're known as children of the `<graph>` object.) The `<xLabel>` child specifies the label for the horizontal axes, and you can provide a label for the vertical axis with `<yLabel>`. Either label can contain text, an `<m>` tag, or even a `<math>` object, as shown in the following example.
 
-```doenet {5,6}
-<graph showNavigation="false"
+```doenet-editor-horiz
+<graph fixAxes
        xmin="-1" xmax="8" 
        ymin="-2" ymax="10" >
     <line>y = x/2</line>
@@ -124,12 +124,11 @@ By default, the axes in Doenet graphs are unlabeled. You can adjust this behavio
     <yLabel>dist</yLabel>
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### Graphing Functions
 Graphing a function in DoenetML is easy: simply create your graph, using whichever attributes and labels you want, and then include the function between the opening and closing tags. You can either define the function inside the graph, or define it elsewhere (say, in a `<setup>` block) and simply reference it within the graph using the `$functionName` notation. The example below shows both methods. Notice that Doenet also pays attention to the `domain` of a function when displaying its graph!
 
-```doenet {2-4,8,9}
+```doenet-editor-horiz
 <setup>
   <function name="f" domain="[-2pi,pi]">
     sin(x)-4
@@ -141,38 +140,37 @@ Graphing a function in DoenetML is easy: simply create your graph, using whichev
   <function name="g">x^2+1</function>
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 **Warning**: this could be a good time to go back and review the [difference between `$` and `$$`](../introdTutorial/iT1-7-functions.mdx). In this instance we want `$f`, because we are referencing the entire definition (formula and domain!) of `f` in the `<graph>` object. We are not evaluating `f` at a single point.
 
 If a function changes because of user interaction, e.g. a `<mathInput>` or `<slider>`, then its graph will automatically change as well. Try adjusting the value of $a$ below and notice the effects on the graph.
 
-```doenet
+```doenet-editor-horiz
 <p>Graph of <m>y = (x-1)(x+1)(x-a)</m>.</p>
 
 <slider from="-3" to="3" name="a" step="1" initialValue="2" >
   <label><m>a</m></label>
 </slider>
 
-<graph xmin="-4" xmax="4" ymin="-6" ymax="6" size="small" showNavigation="false">
+<graph xmin="-4" xmax="4" ymin="-6" ymax="6" size="small" fixAxes>
   <function>(x^2-1)(x-$a)</function>
 </graph>
 ```
 
-### A Word about styleNumbers
+### A word about style numbers
 
-If you have multiple functions graphed at once, it can be confusing if they're all the same color and style. In DoenetML you can adjust styles by adding `styleNumber="n"` to a function, where $n$ values for default styles range from 1 to 6. (In fact, $n$ can be any natural number, but by default, the styles repeat once you get beyond 6, unless you have defined custom style numbers using the `<styleDefinition>` component. See the example below for default styles 1 to 3.
+If you have multiple functions graphed at once, it can be confusing if they're all the same color and style. In DoenetML you can adjust styles by adding `styleNumber="n"` to a function, where $n$ values for default styles range from 1 to 6. (In fact, $n$ can be any natural number, but by default, the styles do not change beyond 6, unless you have defined custom style numbers using the `<styleDefinition>` component.) See the example below for default styles 1 to 3.
 
-```doenet
-<graph showNavigation="false">
+```doenet-editor-horiz
+<graph fixAxes>
     <function styleNumber="1">x^2+3</function>
     <function styleNumber="2">ln(x+2)</function>
     <function styleNumber="3">-6</function>
 </graph>
 ```
-The styles associated with each `styleNumber` vary in terms of color and width. Some styles will have solid lines, others might be dotted or dashed. The default styles are chosen to make sure each style is distinguishable from each other. (For example, the colors are chosen from a palatte of colors which still look different to most color-blind users.) In the following example, you can use the slider below to "scroll" through the different possible default style numbers.
+The styles associated with each `styleNumber` vary in terms of color and width. Some styles will have solid lines, others might be dotted or dashed. The default styles are chosen to make sure each style is distinguishable from each other. (For example, the colors are chosen from a palette of colors which still look different to most color-blind users.) In the following example, you can use the slider below to "scroll" through the different possible default style numbers.
 
-```doenet
+```doenet-editor-horiz
 <slider from="1" to="6" step="1" name="styleSlider" width="200px">
     <label>stylenumber</label>
 </slider>
@@ -181,7 +179,6 @@ The styles associated with each `styleNumber` vary in terms of color and width. 
     <function styleNumber="$styleSlider">x sin(5/x)</function>
 </graph>
 ```
-Test code [here](https://www.doenet.org/portfolioeditor/_J1J2N530LyIvVWx64xB8V/_AgzWwqGV6Yy9DfqMyGlFm).
 
 ### Next Steps
 Now that you're acquainted with the basics of Doenet graphs, it's time to learn about more graphical objects. In the coming sections you'll see points, polygons, circles, and more.

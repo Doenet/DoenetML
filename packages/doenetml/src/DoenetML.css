@@ -158,7 +158,7 @@ div.jxgbox input[type="checkbox"] {
 }
 
 /*
-    Copyright 2008-2023
+    Copyright 2008-2025
         Matthias Ehmann,
         Michael Gerhaeuser,
         Carsten Miller,
@@ -198,8 +198,8 @@ div.jxgbox input[type="checkbox"] {
     border-width: 1px;
     border-color: #356aa0;
     border-radius: 10px;
-    margin: 0;
     -webkit-border-radius: 10px;
+    margin: 0;
     -ms-touch-action: none;
     /* "touch-action: none;" is set with JavaScript. */
 }
@@ -215,9 +215,9 @@ div.jxgbox input[type="checkbox"] {
 .JXGtext {
     font-family: Courier, monospace;
     /*
-   * The default font family is now set in
-   * JXG.Options.text.cssdefaultstyle = 'font-family: Arial, Helvetica, Geneva, sans-serif;'
-   */
+     * The default font family is now set in
+     * JXG.Options.text.cssdefaultstyle = 'font-family: Arial, Helvetica, Geneva, sans-serif;'
+     */
 
     /* "background-color: transparent;" may produce artefacts in IE. Solution: setting a color explicitly. */
     background-color: transparent;
@@ -235,6 +235,7 @@ div.jxgbox input[type="checkbox"] {
 .JXGimage {
     /* opacity: 1.0; */
 }
+
 .JXGimageHighlight {
     /* opacity: 0.6; */
 }
@@ -245,6 +246,7 @@ div.jxgbox input[type="checkbox"] {
 }
 
 /* CSS rules for the navigation bar */
+
 .JXG_navigation {
     position: absolute;
     right: 5px;
@@ -260,6 +262,39 @@ div.jxgbox input[type="checkbox"] {
 
 .JXG_navigation_button {
     color: #666;
+}
+
+.JXG_navigation_button_left {
+}
+
+.JXG_navigation_button_right {
+}
+
+.JXG_navigation_button_up {
+}
+
+.JXG_navigation_button_down {
+}
+
+.JXG_navigation_button_out {
+}
+
+.JXG_navigation_button_100 {
+}
+
+.JXG_navigation_button_in {
+}
+
+.JXG_navigation_button_fullscreen {
+}
+
+.JXG_navigation_button_reload {
+}
+
+.JXG_navigation_button_cleartraces {
+}
+
+.JXG_navigation_button_screenshot {
 }
 
 .JXG_navigation_button:hover {
@@ -301,6 +336,63 @@ div.jxgbox input[type="checkbox"] {
     padding: 0;
     width: 100%;
     height: 100%;
+}
+
+/* Classes forn smartlabels */
+
+.smart-label-solid {
+    padding: 1px 7px 1px 7px;
+    margin: 0;
+    color: white;
+    border-radius: 150px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.smart-label-outline {
+    padding: 1px 7px 1px 7px;
+    margin: 0;
+    border: solid 2px black;
+    background-color: white;
+    color: black;
+    border-radius: 15px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.smart-label-pure {
+    padding: 20px 7px 1px 7px;
+    margin: 0;
+    border: none;
+    background-color: transparent;
+    color: black;
+    border-radius: 15px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.smart-label-line,
+.smart-label-point {
+    background-color: #0072b2;
+    border-color: #0072b2;
+}
+
+.smart-label-point {
+    margin-top: 12px;
+}
+
+.smart-label-angle {
+    background-color: #e69f00;
+    border-color: #e69f00;
+    padding: 1px 7px 1px 7px;
+}
+
+.smart-label-polygon,
+.smart-label-circle {
+    background-color: #f0e442;
+    color: black;
+    border-color: #f0e442;
+    padding: 1px 7px 1px 7px;
 }
 
 /**************************************************
