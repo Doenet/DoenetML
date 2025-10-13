@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     ];
 
     const wrappedCallbacks = ComlinkViewer.wrap(
-        ComlinkViewer.windowEndpoint(self.parent),
+        ComlinkViewer.windowEndpoint(globalThis.parent),
     );
     for (const callback of callbackNames) {
         callbackOverrides[callback] = haveViewerCallbacks.includes(callback)
