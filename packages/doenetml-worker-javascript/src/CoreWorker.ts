@@ -431,14 +431,17 @@ export class PublicDoenetMLCore {
     }
 
     /**
-     * Call submitAnswer on all answers in the document
+     * Call submitAnswer on all answers in the document,
+     * then immediately save all document state to the database
      */
     async submitAllAnswers() {
-        return await this.core?.requestAction({
+        await this.core?.requestAction({
             componentIdx: this.core.documentIdx,
             actionName: "submitAllAnswers",
             args: {},
         });
+
+        await this.core?.saveImmediately();
     }
 
     /**
