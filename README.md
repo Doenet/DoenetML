@@ -22,21 +22,24 @@ Semantic markup for building interactive web activities.
 
 ## Quickstart
 
-In root directory, run
+To quickly get started contributing to DoenetML, you can use a
+Codespace and your web browser. Click the green `<> Code` button
+on the GitHub.com page for this repository, choose the
+"Codespaces" tab, then click the green "Create codespace on main"
+button.
 
-```bash
-npm install
-npm run build
-```
+Grab a cup of coffee, and after a few minutes, you should have a
+working development environment in your web browser. Run
+`npm run dev` in a terminal and click the green "Open in Browser"
+button to confirm!
 
-To test code, you can use the `projects/test-viewer` package.
+### Working locally
 
-```bash
-cd packages/test-viewer
-npm run dev
-```
+Your local environment should have Node and Rust installed.
 
-Paste demo code into `src/test/testCode.doenet` and navigate to the URL specified in the console (probably http://localhost:8012 )
+In root directory, run `sh .devcontainer/setup.sh` to install
+dependencies and build packages. After a short wait, you should
+be able to run `npm run dev` and open `http://localhost:8012`.
 
 ## Demos
 
