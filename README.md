@@ -35,11 +35,25 @@ button to confirm!
 
 ### Working locally
 
-Your local environment should have Node and Rust installed.
+Your local environment should have
+[Node](https://nodejs.org/en/download)
+and 
+[Rust](https://rust-lang.org/tools/install/) installed.
+
+```bash
+node --version
+rustc --version
+```
 
 In root directory, run `sh .devcontainer/setup.sh` to install
 dependencies and build packages. After a short wait, you should
 be able to run `npm run dev` and open `http://localhost:8012`.
+
+Note for Windows users: There are currently some
+[issues](https://github.com/Doenet/DoenetML/pull/326)
+with running a local development environment on Windows.
+We recommend using
+[WSL](https://learn.microsoft.com/en-us/windows/wsl/setup/environment) for now.
 
 ## Demos
 

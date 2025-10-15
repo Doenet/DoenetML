@@ -1,8 +1,9 @@
 // All code in this file will be executed in the context of an iframe
 // created by DoenetViewer.
 declare const viewerId: string;
-declare const doenetViewerProps: object;
-declare const haveViewerCallbacks: string[];
+declare const doenetViewerProps: Record<string, any>;
+declare const doenetViewerPropsSpecified: string[];
+declare const ComlinkViewer: { wrap: Function; windowEndpoint: Function };
 interface Window {
     renderDoenetViewerToContainer: (
         container: Element,
@@ -32,39 +33,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Callbacks have to be explicitly overridden here so that they
-    // can message the parent React component (outside the iframe).
-    const callbackOverrides: Record<
-        string,
-        ((args: unknown) => void) | undefined
-    > = {};
-    const callbackNames = [
-        "reportScoreAndStateCallback",
-        "setIsInErrorState",
-        "generatedVariantCallback",
-        "documentStructureCallback",
-        "initializedCallback",
-        "setErrorsAndWarningsCallback",
-    ];
-    for (const callback of callbackNames) {
-        callbackOverrides[callback] = haveViewerCallbacks.includes(callback)
-            ? (args: unknown) => {
-                  messageParentFromViewer({
-                      callback,
-                      args,
-                  });
-              }
-            : undefined;
+    // Reconstruct the props from the serialized doenetViewerProps (from which functions have disappeared)
+    // and the ComLink proxied functions.
+    // Only include the ComLink proxies if the prop was actually specified,
+    // so that the DoenetViewer can customize behavior based on the presence of callbacks.
+    const wrappedDoenetViewerProps = ComlinkViewer.wrap(
+        ComlinkViewer.windowEndpoint(globalThis.parent),
+    );
+
+    const augmentedDoenetViewerProps = { ...doenetViewerProps };
+    augmentedDoenetViewerProps.externalVirtualKeyboardProvided = true;
+    for (const propName of doenetViewerPropsSpecified) {
+        if (!(propName in doenetViewerProps)) {
+            augmentedDoenetViewerProps[propName] =
+                wrappedDoenetViewerProps[propName];
+        }
     }
 
     window.renderDoenetViewerToContainer(
         document.getElementById("root")!,
         undefined,
-        {
-            ...doenetViewerProps,
-            externalVirtualKeyboardProvided: true,
-            ...callbackOverrides,
-        },
+        augmentedDoenetViewerProps,
     );
 });
 

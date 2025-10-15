@@ -35,14 +35,14 @@ The ` <count>{:dn}` component renders the length of a named ` <mathList>{:dn}`.
 
 
 ```doenet-editor-horiz
-<callAction actionName="addChildren" target="g">
+<callAction actionName="addChildren" target="$g">
   <point/>
   <label>Add Point</label>
 </callAction>
 <graph name="g" size="small"/>
 <p>Number of points = 
   <count>
-    <collect name="collectedPoints" componentTypes="point" source="g"/>
+    <collect name="collectedPoints" componentType="point" from="$g"/>
   </count>
 </p>
 $collectedPoints

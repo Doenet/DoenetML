@@ -18,9 +18,9 @@ use super::{
 /// expands to
 /// ```xml
 /// <point name="p" />
-/// <point extend="p" />
+/// <point extend="$p" />
 /// ```
-/// Care is taken to preserve the tag name of the referent. (E.g., a `<point />` maps to a `<point extends="..." />`,
+/// Care is taken to preserve the tag name of the referent. (E.g., a `<point />` maps to a `<point extend="..." />`,
 /// a `<line />` maps to a `<line extend="..." />`, etc.)
 pub struct Expander {}
 
@@ -42,8 +42,8 @@ impl Expander {
             // which will prevent the borrow checker from complaining if we mutate `flat_root` during processing.
             flat_root.nodes[idx] = match mem::take(&mut flat_root.nodes[idx]) {
                 FlatNode::Ref(ref_) => {
-                    // A ref `$f` gets replaced with `<foo extend="f" />` where `foo` is the tag name of the referent.
-                    // e.g. `<point name="p" />$p` becomes `<point name="p" /><point extend="p" />`
+                    // A ref `$f` gets replaced with `<foo extend="$f" />` where `foo` is the tag name of the referent.
+                    // e.g. `<point name="p" />$p` becomes `<point name="p" /><point extend="$p" />`
                     // Expanding a ref is can be done with a single replacement.
 
                     //flat_root.nodes[idx] = resolved
@@ -82,7 +82,7 @@ impl Expander {
                     }
                 }
                 FlatNode::FunctionRef(function_ref) => {
-                    // A function ref `$$f(x)` becomes `<evaluate extend="f"><ol><li>x</li></ol></evaluate>`
+                    // A function ref `$$f(x)` becomes `<evaluate extend="$f"><ol><li>x</li></ol></evaluate>`
                     // This involves creating multiple new nodes and setting them as children of the `evaluate` node.
                     let resolved =
                         match resolver.resolve(&function_ref.path, function_ref.idx, false) {

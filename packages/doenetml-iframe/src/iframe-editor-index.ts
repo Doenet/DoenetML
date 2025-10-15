@@ -1,8 +1,9 @@
 // All code in this file will be executed in the context of an iframe
 // created by DoenetEditor.
 declare const editorId: string;
-declare const doenetEditorProps: object;
-declare const haveEditorCallbacks: string[];
+declare const doenetEditorProps: Record<string, any>;
+declare const doenetEditorPropsSpecified: string[];
+declare const ComlinkEditor: { wrap: Function; windowEndpoint: Function };
 interface Window {
     renderDoenetEditorToContainer: (
         container: Element,
@@ -32,36 +33,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Callbacks have to be explicitly overridden here so that they
-    // can message the parent React component (outside the iframe).
-    const callbackOverrides: Record<
-        string,
-        ((args: unknown) => void) | undefined
-    > = {};
-    const callbackNames = [
-        "doenetmlChangeCallback",
-        "immediateDoenetmlChangeCallback",
-        "documentStructureCallback",
-    ];
-    for (const callback of callbackNames) {
-        callbackOverrides[callback] = haveEditorCallbacks.includes(callback)
-            ? (args: unknown) => {
-                  messageParentFromEditor({
-                      callback,
-                      args,
-                  });
-              }
-            : undefined;
+    // Reconstruct the props from the serialized doenetEditorProps (from which functions have disappeared)
+    // and the ComLink proxied functions.
+    // Only include the ComLink proxies if the prop was actually specified,
+    // so that the DoenetEditor can customize behavior based on the presence of callbacks.
+    const wrappedDoenetEditorProps = ComlinkEditor.wrap(
+        ComlinkEditor.windowEndpoint(globalThis.parent),
+    );
+
+    const augmentedDoenetEditorProps = { ...doenetEditorProps };
+    augmentedDoenetEditorProps.externalVirtualKeyboardProvided = true;
+    for (const propName of doenetEditorPropsSpecified) {
+        if (!(propName in doenetEditorProps)) {
+            augmentedDoenetEditorProps[propName] =
+                wrappedDoenetEditorProps[propName];
+        }
     }
 
     window.renderDoenetEditorToContainer(
         document.getElementById("root")!,
         undefined,
-        {
-            ...doenetEditorProps,
-            externalVirtualKeyboardProvided: true,
-            ...callbackOverrides,
-        },
+        augmentedDoenetEditorProps,
     );
 });
 
