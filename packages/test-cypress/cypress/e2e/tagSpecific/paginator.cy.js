@@ -1121,7 +1121,7 @@ describe("Paginator Tag Tests", function () {
     <setup>
       <problem name="problema">
         <title>A hard problem</title>
-        <p>What is 1+1? <answer><mathInput /><award>2</award></answer></p>
+        <p>What is 1+1? <answer disableAfterCorred="false"><mathInput /><award>2</award></answer></p>
       </problem>
     </setup>
 
@@ -1381,7 +1381,7 @@ describe("Paginator Tag Tests", function () {
       <problem name="problema">
         <variantControl numVariants="1" />
         <title>A hard problem</title>
-        <p>What is 1+1? <answer><mathInput /><award>2</award></answer></p>
+        <p>What is 1+1? <answer disableAfterCorrect="false"><mathInput /><award>2</award></answer></p>
       </problem>
     </setup>
 

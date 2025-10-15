@@ -1262,7 +1262,7 @@ describe("Answer Tag Tests", function () {
     <p>Favorite variable: <mathInput name="var" prefill="x"/></p>
     <p>Second favorite variable: <mathInput name="var2" prefill="y"/></p>
     <p>Enter variable:
-    <answer>
+    <answer disableAfterCorrect="false">
       <mathInput name="ans"/>
       <award><when><math extend="$ans" isResponse /> = $var</when></award>
       <award credit="0.5"><when>$ans = $var2</when></award>
