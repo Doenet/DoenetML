@@ -72,7 +72,7 @@ describe("PeriodicSet tag tests", async () => {
             doenetML: `
     <p>Offsets: <mathInput name="o"/></p>
     <p>Period: <mathInput name="p" /></p>
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
       <award>
         <when>
           <periodicSet name="s1"  offsets="$o" period="$p" />
@@ -303,7 +303,7 @@ describe("PeriodicSet tag tests", async () => {
     <periodicSet name="a"  offsets="$offsets" period="$period" />
     <periodicSet name="b"  offsets="$offsets2" period="$period2" />
     
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
       <award>
         <when><periodicSet extend="$a" name="a2" /> = <periodicSet extend="$b" name="b2" /></when>
       </award>
@@ -639,7 +639,7 @@ describe("PeriodicSet tag tests", async () => {
       <periodicSet name="correct"  offsets="$correct_offsets" period="$correct_period" />
     </setup>
     <p>What is the period?
-      <answer name="period">
+      <answer disableAfterCorrect="false" name="period">
         <mathInput name="period_input" />
         <award><when>
           <isInteger>$period_input/$correct_period</isInteger>
@@ -648,7 +648,7 @@ describe("PeriodicSet tag tests", async () => {
     </p>
 
     <p>How many offsets? 
-      <answer name="number_offsets">
+      <answer disableAfterCorrect="false" name="number_offsets">
         <mathInput name="number_offsets_input" />
         <award><when>
           <isInteger>$number_offsets_input</isInteger>
@@ -681,7 +681,7 @@ describe("PeriodicSet tag tests", async () => {
       </conditionalContent>
     </setup>
     
-    <answer name="answerNoPenalty">
+    <answer disableAfterCorrect="false" name="answerNoPenalty">
       <award>
         <when matchPartial="true">
           $userPeriodicSet = $correct
@@ -691,7 +691,7 @@ describe("PeriodicSet tag tests", async () => {
 
 
     <p>Answer when penalizing redundant offsets: 
-      <answer name="answerPenalty">
+      <answer disableAfterCorrect="false" name="answerPenalty">
         <award credit="$maxCreditRedund">
           <when matchPartial>
             $userPeriodicSet = $correct

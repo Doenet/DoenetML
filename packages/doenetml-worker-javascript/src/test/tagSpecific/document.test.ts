@@ -26,7 +26,7 @@ describe("Document tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <number extend="$_document1.creditAchieved" name="docCa" />
-  <p><answer name="ans">x</answer></p>
+  <p><answer disableAfterCorrect="false" name="ans">x</answer></p>
   <problem>
     <title>Problem with nothing</title>
   </problem>
@@ -71,7 +71,7 @@ describe("Document tag tests", async () => {
   <group>
     <math name="m2">$m1</math>
   </group>
-  <p><answer name="ans"><award>$m2</award></answer></p>
+  <p><answer disableAfterCorrect="false" name="ans"><award>$m2</award></answer></p>
 
   `,
         });
@@ -107,16 +107,16 @@ describe("Document tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <number extend="$_document1.creditAchieved" name="docCa" />
-  <p>x: <answer name="x">x</answer></p>
-  <p>a: <answer name="a" weight="0">a</answer></p>
+  <p>x: <answer disableAfterCorrect="false" name="x">x</answer></p>
+  <p>a: <answer disableAfterCorrect="false" name="a" weight="0">a</answer></p>
   <problem>
-    <p>y: <answer name="y">y</answer></p>
+    <p>y: <answer disableAfterCorrect="false" name="y">y</answer></p>
   </problem>
   <problem weight="0">
-    <p>b: <answer name="b">b</answer></p>
+    <p>b: <answer disableAfterCorrect="false" name="b">b</answer></p>
   </problem>
   <problem>
-    <p>z: <answer name="z">z</answer></p>
+    <p>z: <answer disableAfterCorrect="false" name="z">z</answer></p>
   </problem>
 
   `,

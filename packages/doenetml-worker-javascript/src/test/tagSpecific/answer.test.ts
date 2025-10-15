@@ -1062,7 +1062,7 @@ async function test_answer_multiple_inputs({
 
 describe("Answer tag tests", async () => {
     it("answer sugar from one string", async () => {
-        const doenetML = `<answer name="answer1">x+y</answer>`;
+        const doenetML = `<answer disableAfterCorrect="false" name="answer1">x+y</answer>`;
 
         await test_math_answer({
             doenetML,
@@ -1076,7 +1076,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from one macro", async () => {
         const doenetML = `
     <math name="xy" hide>x+y</math>
-    <answer name="answer1">$xy</answer>`;
+    <answer disableAfterCorrect="false" name="answer1">$xy</answer>`;
 
         await test_math_answer({
             doenetML,
@@ -1089,7 +1089,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from one math", async () => {
         const doenetML = `
-    <answer name="answer1"><math>x+y</math></answer>
+    <answer disableAfterCorrect="false" name="answer1"><math>x+y</math></answer>
   `;
         await test_math_answer({
             doenetML,
@@ -1102,7 +1102,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from one m", async () => {
         const doenetML = `
-    <answer name="answer1"><m>x+y</m></answer>
+    <answer disableAfterCorrect="false" name="answer1"><m>x+y</m></answer>
   `;
         await test_math_answer({
             doenetML,
@@ -1116,7 +1116,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from one macro of an m", async () => {
         const doenetML = `
     <m name="xy" hide>x+y</m>
-    <answer name="answer1">$xy</answer>`;
+    <answer disableAfterCorrect="false" name="answer1">$xy</answer>`;
 
         await test_math_answer({
             doenetML,
@@ -1129,7 +1129,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from one me", async () => {
         const doenetML = `
-    <answer name="answer1"><me>x+y</me></answer>
+    <answer disableAfterCorrect="false" name="answer1"><me>x+y</me></answer>
   `;
         await test_math_answer({
             doenetML,
@@ -1143,7 +1143,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from one macro of an me", async () => {
         const doenetML = `
     <me name="xy" hide>x+y</me>
-    <answer name="answer1">$xy</answer>`;
+    <answer disableAfterCorrect="false" name="answer1">$xy</answer>`;
 
         await test_math_answer({
             doenetML,
@@ -1157,7 +1157,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from macros and string", async () => {
         const doenetML = `
     <setup><math name="x">x</math><math name="y">y</math></setup>
-    <answer name="answer1"><math>$x+$y</math></answer>
+    <answer disableAfterCorrect="false" name="answer1"><math>$x+$y</math></answer>
   `;
 
         await test_math_answer({
@@ -1171,7 +1171,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from maths and string", async () => {
         const doenetML = `
-    <answer name="answer1"><math>x</math>+<math>y</math></answer>
+    <answer disableAfterCorrect="false" name="answer1"><math>x</math>+<math>y</math></answer>
   `;
         await test_math_answer({
             doenetML,
@@ -1185,7 +1185,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from math, macro, and string", async () => {
         const doenetML = `
     <setup><math name="y">y</math></setup>
-    <answer name="answer1"><math>x</math>+$y</answer>
+    <answer disableAfterCorrect="false" name="answer1"><math>x</math>+$y</answer>
   `;
 
         await test_math_answer({
@@ -1199,7 +1199,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from one string, set to text", async () => {
         const doenetML = `
-        <answer name="answer1" type="text">hello there</answer>
+        <answer disableAfterCorrect="false" name="answer1" type="text">hello there</answer>
         `;
 
         await test_text_answer({
@@ -1214,7 +1214,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from one string, set to text, expanded", async () => {
         const doenetML = `
-    <answer name="answer1" type="text" expanded>hello there</answer>
+    <answer disableAfterCorrect="false" name="answer1" type="text" expanded>hello there</answer>
   `;
 
         await test_text_answer({
@@ -1230,7 +1230,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from one macro, set to text", async () => {
         const doenetML = `
     <text name='h'>hello there</text>
-    <answer name="answer1" type="text">$h</answer>
+    <answer disableAfterCorrect="false" name="answer1" type="text">$h</answer>
   `;
 
         await test_text_answer({
@@ -1245,7 +1245,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from one text", async () => {
         const doenetML = `
-    <answer name="answer1"><text>hello there</text></answer>
+    <answer disableAfterCorrect="false" name="answer1"><text>hello there</text></answer>
   `;
 
         await test_text_answer({
@@ -1261,7 +1261,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from text with copySource", async () => {
         const doenetML = `
     <text name='h'>hello there</text>
-    <answer name="answer1"><text extend="$h" /></answer>
+    <answer disableAfterCorrect="false" name="answer1"><text extend="$h" /></answer>
   `;
 
         await test_text_answer({
@@ -1277,7 +1277,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from macro and string, set to text", async () => {
         const doenetML = `
     <setup><text name="h">hello</text></setup>
-    <answer name="answer1" type="text">$h there</answer>
+    <answer disableAfterCorrect="false" name="answer1" type="text">$h there</answer>
   `;
 
         await test_text_answer({
@@ -1292,7 +1292,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from text and string", async () => {
         const doenetML = `
-    <answer name="answer1"><text>hello</text> there</answer>
+    <answer disableAfterCorrect="false" name="answer1"><text>hello</text> there</answer>
   `;
 
         await test_text_answer({
@@ -1308,7 +1308,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from macros and string, does not ignore blank string, set to text", async () => {
         const doenetML = `
     <setup><text name="h">hello</text><text name="t">there</text></setup>
-    <answer name="answer1" type="text">$h $t</answer>
+    <answer disableAfterCorrect="false" name="answer1" type="text">$h $t</answer>
   `;
 
         await test_text_answer({
@@ -1324,7 +1324,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from macro, text, and string, does not ignore blank string", async () => {
         const doenetML = `
     <setup><text name="h">hello</text></setup>
-    <answer name="answer1">$h <text>there</text></answer>
+    <answer disableAfterCorrect="false" name="answer1">$h <text>there</text></answer>
   `;
         await test_text_answer({
             doenetML,
@@ -1340,7 +1340,7 @@ describe("Answer tag tests", async () => {
     // when had only one copy of referring to all submitted responses
     it("answer sugar from one string, set to text, copy all responses", async () => {
         const doenetML = `
-    <answer name="answer1" type="text">hello there</answer>
+    <answer disableAfterCorrect="false" name="answer1" type="text">hello there</answer>
     Submitted responses: <text extend="$answer1.submittedResponses" name="sr1" />
   `;
 
@@ -1380,7 +1380,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from one string, set to boolean", async () => {
         const doenetML = `
-    <answer name="answer1" type="boolean">true</answer>
+    <answer disableAfterCorrect="false" name="answer1" type="boolean">true</answer>
   `;
 
         await test_boolean_answer({
@@ -1394,7 +1394,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from one string, set to boolean 2", async () => {
         const doenetML = `
-    <answer name="answer1" type="boolean">not false</answer>
+    <answer disableAfterCorrect="false" name="answer1" type="boolean">not false</answer>
   `;
 
         await test_boolean_answer({
@@ -1408,7 +1408,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from one boolean", async () => {
         const doenetML = `
-    <answer name="answer1"><boolean>true</boolean></answer>
+    <answer disableAfterCorrect="false" name="answer1"><boolean>true</boolean></answer>
   `;
 
         await test_boolean_answer({
@@ -1423,7 +1423,7 @@ describe("Answer tag tests", async () => {
     it("answer sugar from macro and string, set to boolean", async () => {
         const doenetML = `
     <boolean hide name="b">false</boolean>
-    <answer name="answer1" type="boolean">not $b</answer>
+    <answer disableAfterCorrect="false" name="answer1" type="boolean">not $b</answer>
   `;
 
         await test_boolean_answer({
@@ -1437,7 +1437,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from boolean and string", async () => {
         const doenetML = `
-    <answer name="answer1">not <boolean>false</boolean></answer>
+    <answer disableAfterCorrect="false" name="answer1">not <boolean>false</boolean></answer>
   `;
 
         await test_boolean_answer({
@@ -1452,7 +1452,7 @@ describe("Answer tag tests", async () => {
     it("warning for sugar with invalid type", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer type="bad" name="answer1">x</answer></p>
+  <p><answer disableAfterCorrect="false" type="bad" name="answer1">x</answer></p>
   `,
         });
 
@@ -1468,7 +1468,7 @@ describe("Answer tag tests", async () => {
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(6);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(50);
+        expect(errorWarnings.warnings[0].position.end.column).eq(78);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputIdx =
@@ -1494,22 +1494,22 @@ describe("Answer tag tests", async () => {
     it("warning for award depending on submitted response", async () => {
         const doenetMLs = [
             `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
         <mathInput />
         <award><when>$ans</when></award>
     </answer>`,
             `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
         <mathInput />
         <award><when>$ans.submittedResponse=5</when></award>
     </answer>`,
             `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
         <mathInput />
         <award><when>$ans.submittedResponse1=5</when></award>
     </answer>`,
             `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
         <mathInput />
         <award><when>$ans.submittedResponses=5</when></award>
     </answer>`,
@@ -1596,7 +1596,7 @@ describe("Answer tag tests", async () => {
         }
 
         let doenetML = `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
         <mathInput />
         <award><when>$ans.submittedResponse2=5</when></award>
     </answer>`;
@@ -1613,10 +1613,10 @@ describe("Answer tag tests", async () => {
 
     it("award depending on current response throws error", async () => {
         const doenetMLs = [
-            `<answer name="ans"><mathInput /><award><when>$ans.currentResponse=5</when></award></answer>`,
-            `<answer name="ans"><mathInput /><award><when>$ans.currentResponse1=5</when></award></answer>`,
-            `<answer name="ans"><mathInput /><award><when>$ans.currentResponse2=5</when></award></answer>`,
-            `<answer name="ans"><mathInput /><award><when>$ans.currentResponses=5</when></award></answer>`,
+            `<answer disableAfterCorrect="false" name="ans"><mathInput /><award><when>$ans.currentResponse=5</when></award></answer>`,
+            `<answer disableAfterCorrect="false" name="ans"><mathInput /><award><when>$ans.currentResponse1=5</when></award></answer>`,
+            `<answer disableAfterCorrect="false" name="ans"><mathInput /><award><when>$ans.currentResponse2=5</when></award></answer>`,
+            `<answer disableAfterCorrect="false" name="ans"><mathInput /><award><when>$ans.currentResponses=5</when></award></answer>`,
         ];
 
         for (let doenetML of doenetMLs) {
@@ -1628,7 +1628,7 @@ describe("Answer tag tests", async () => {
 
     it("answer award with math", async () => {
         const doenetML = `
-    <answer name="answer1"><award><math>x+y</math></award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award><math>x+y</math></award></answer>
   `;
 
         await test_math_answer({
@@ -1642,7 +1642,7 @@ describe("Answer tag tests", async () => {
 
     it("answer award with sugared string", async () => {
         const doenetML = `
-    <answer name="answer1"><award>x+y</award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award>x+y</award></answer>
   `;
 
         await test_math_answer({
@@ -1657,7 +1657,7 @@ describe("Answer tag tests", async () => {
     it("answer award with sugared macro", async () => {
         const doenetML = `
     <math name="xy" hide>x+y</math>
-    <answer name="answer1"><award>$xy</award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award>$xy</award></answer>
   `;
 
         await test_math_answer({
@@ -1672,7 +1672,7 @@ describe("Answer tag tests", async () => {
     it("answer award with sugared macros and string", async () => {
         const doenetML = `
     <setup><math name="x">x</math><math name="y">y</math></setup>
-    <answer name="answer1"><award>$x+$y</award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award>$x+$y</award></answer>
   `;
 
         await test_math_answer({
@@ -1687,7 +1687,7 @@ describe("Answer tag tests", async () => {
     it("answer award with sugared macro, math, and string", async () => {
         const doenetML = `
     <setup><math name="x">x</math></setup>
-    <answer name="answer1"><award>$x+<math>y</math></award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award>$x+<math>y</math></award></answer>
   `;
 
         await test_math_answer({
@@ -1701,7 +1701,7 @@ describe("Answer tag tests", async () => {
 
     it("answer award with math, initially unresolved", async () => {
         const doenetML = `
-    <answer name="answer1"><award><math>x+y-3+$n</math></award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award><math>x+y-3+$n</math></award></answer>
 
 
     <number extend="$n3" name="n2" />
@@ -1724,7 +1724,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from mathList", async () => {
         const doenetML = `
-    <answer name="answer1" matchPartial><mathList>x+y z</mathList></answer>
+    <answer disableAfterCorrect="false" name="answer1" matchPartial><mathList>x+y z</mathList></answer>
 
   `;
 
@@ -1743,7 +1743,7 @@ describe("Answer tag tests", async () => {
 
     it("answer award with mathList", async () => {
         const doenetML = `
-    <answer name="answer1" matchPartial><award><mathList>x+y z</mathList></award></answer>
+    <answer disableAfterCorrect="false" name="answer1" matchPartial><award><mathList>x+y z</mathList></award></answer>
 
   `;
 
@@ -1763,7 +1763,7 @@ describe("Answer tag tests", async () => {
     it("answer from mathList", async () => {
         const doenetML = `
     <mathInput name="mi1" /> <mathInput name="mi2" />
-    <answer matchPartial name="answer1"><award><when>
+    <answer disableAfterCorrect="false" matchPartial name="answer1"><award><when>
       <mathList isResponse>$mi1 $mi2</mathList> = <mathList>x+y z</mathList>
     </when></award></answer>
 
@@ -1791,7 +1791,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from numberList", async () => {
         const doenetML = `
-    <answer name="answer1" matchPartial><numberList>1 2</numberList></answer>
+    <answer disableAfterCorrect="false" name="answer1" matchPartial><numberList>1 2</numberList></answer>
 
   `;
 
@@ -1809,7 +1809,7 @@ describe("Answer tag tests", async () => {
 
     it("answer award with numberList", async () => {
         const doenetML = `
-    <answer name="answer1" matchPartial><award><numberList>1 2</numberList></award></answer>
+    <answer disableAfterCorrect="false" name="answer1" matchPartial><award><numberList>1 2</numberList></award></answer>
 
   `;
 
@@ -1828,7 +1828,7 @@ describe("Answer tag tests", async () => {
     it("answer from numberList", async () => {
         const doenetML = `
     <mathInput name="mi1" /> <mathInput name="mi2" />
-    <answer matchPartial name="answer1"><award><when>
+    <answer disableAfterCorrect="false" matchPartial name="answer1"><award><when>
       <numberList isResponse>$mi1 $mi2</numberList> = <numberList>1 2</numberList>
     </when></award></answer>
 
@@ -1856,7 +1856,7 @@ describe("Answer tag tests", async () => {
 
     it("answer award with text", async () => {
         const doenetML = `
-    <answer name="answer1"><award><text>  hello there </text></award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award><text>  hello there </text></award></answer>
 
   `;
 
@@ -1872,7 +1872,7 @@ describe("Answer tag tests", async () => {
 
     it("answer set to text, award with text", async () => {
         const doenetML = `
-    <answer name="answer1" type="text"><award><text>  hello there </text></award></answer>
+    <answer disableAfterCorrect="false" name="answer1" type="text"><award><text>  hello there </text></award></answer>
 
   `;
 
@@ -1888,7 +1888,7 @@ describe("Answer tag tests", async () => {
 
     it("answer set to text, award with sugared string", async () => {
         const doenetML = `
-    <answer name="answer1" type="text"><award>  hello there </award></answer>
+    <answer disableAfterCorrect="false" name="answer1" type="text"><award>  hello there </award></answer>
 
   `;
 
@@ -1905,7 +1905,7 @@ describe("Answer tag tests", async () => {
     it("answer set to text, award with sugared macro and string", async () => {
         const doenetML = `
     <setup><text name="h">hello</text></setup>
-    <answer name="answer1" type="text"><award>$h there</award></answer>
+    <answer disableAfterCorrect="false" name="answer1" type="text"><award>$h there</award></answer>
 
   `;
 
@@ -1921,7 +1921,7 @@ describe("Answer tag tests", async () => {
 
     it("answer award with text and string", async () => {
         const doenetML = `
-    <answer name="answer1"><award><text>hello</text> there</award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award><text>hello</text> there</award></answer>
 
   `;
 
@@ -1938,7 +1938,7 @@ describe("Answer tag tests", async () => {
     it("answer award with text, macro, and string, does not ignore blank string", async () => {
         const doenetML = `
     <setup><text name="h">hello</text></setup>
-    <answer name="answer1"><award>$h <text>there</text></award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award>$h <text>there</text></award></answer>
 
   `;
 
@@ -1954,7 +1954,7 @@ describe("Answer tag tests", async () => {
 
     it("answer award with text, initially unresolved", async () => {
         const doenetML = `
-    <answer name="answer1"><award><text>$n</text></award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award><text>$n</text></award></answer>
 
     <text extend="$n3" name="n2"/>
     <text extend="$text1" name="n"/>
@@ -1978,7 +1978,7 @@ describe("Answer tag tests", async () => {
 
     it("answer sugar from textList", async () => {
         const doenetML = `
-    <answer name="answer1" matchPartial><textList>  hello there </textList></answer>
+    <answer disableAfterCorrect="false" name="answer1" matchPartial><textList>  hello there </textList></answer>
 
   `;
 
@@ -1995,7 +1995,7 @@ describe("Answer tag tests", async () => {
 
     it("answer award with textList", async () => {
         const doenetML = `
-    <answer name="answer1"><award matchPartial><textList>  hello there </textList></award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award matchPartial><textList>  hello there </textList></award></answer>
 
   `;
 
@@ -2013,7 +2013,7 @@ describe("Answer tag tests", async () => {
     it("answer from textList", async () => {
         const doenetML = `
     <textInput name="ti1" /> <textInput name="ti2" />
-    <answer name="answer1"><award matchPartial><when>
+    <answer disableAfterCorrect="false" name="answer1"><award matchPartial><when>
       <textList isResponse>$ti1 $ti2</textList>=<textList>  hello there </textList>
     </when></award></answer>
 
@@ -2036,7 +2036,7 @@ describe("Answer tag tests", async () => {
 
     it("answer award with boolean", async () => {
         const doenetML = `
-    <answer name="answer1"><award><boolean>true</boolean></award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award><boolean>true</boolean></award></answer>
   `;
 
         await test_boolean_answer({
@@ -2050,7 +2050,7 @@ describe("Answer tag tests", async () => {
 
     it("answer set to boolean, award with boolean", async () => {
         const doenetML = `
-    <answer name="answer1" type="boolean"><award><boolean>true</boolean></award></answer>
+    <answer disableAfterCorrect="false" name="answer1" type="boolean"><award><boolean>true</boolean></award></answer>
   `;
 
         await test_boolean_answer({
@@ -2065,7 +2065,7 @@ describe("Answer tag tests", async () => {
     it("answer set to boolean, award with sugared macro and string", async () => {
         const doenetML = `
     <boolean hide name="b">false</boolean>
-    <answer name="answer1" type="boolean"><award>not $b</award></answer>
+    <answer disableAfterCorrect="false" name="answer1" type="boolean"><award>not $b</award></answer>
   `;
 
         await test_boolean_answer({
@@ -2079,7 +2079,7 @@ describe("Answer tag tests", async () => {
 
     it("answer set to boolean, award with sugared string", async () => {
         const doenetML = `
-    <answer name="answer1" type="boolean"><award>not false</award></answer>
+    <answer disableAfterCorrect="false" name="answer1" type="boolean"><award>not false</award></answer>
   `;
 
         await test_boolean_answer({
@@ -2094,7 +2094,7 @@ describe("Answer tag tests", async () => {
     it("answer award with sugared boolean and string", async () => {
         const doenetML = `
     <boolean hide name="b">false</boolean>
-    <answer name="answer1" type="boolean"><award>not <boolean>false</boolean></award></answer>
+    <answer disableAfterCorrect="false" name="answer1" type="boolean"><award>not <boolean>false</boolean></award></answer>
   `;
 
         await test_boolean_answer({
@@ -2109,7 +2109,7 @@ describe("Answer tag tests", async () => {
     it("answer from booleanList", async () => {
         const doenetML = `
     <booleanInput name="bi1" /> <booleanInput name="bi2" />
-    <answer name="answer1"><award matchPartial matchByExactPositions><when>
+    <answer disableAfterCorrect="false" name="answer1"><award matchPartial matchByExactPositions><when>
       <booleanList isResponse>$bi1 $bi2</booleanList>=<booleanList>  false true </booleanList>
     </when></award></answer>
 
@@ -2135,7 +2135,7 @@ describe("Answer tag tests", async () => {
 
     <booleanInput name="bi1" /> <booleanInput name="bi2" />
     <boolean hide name="b">false</boolean>
-    <answer name="answer1"><award><when>
+    <answer disableAfterCorrect="false" name="answer1"><award><when>
         <boolean extend="$bi1" isResponse /> = not $b and <boolean extend="$bi2" isResponse />=$b
     </when></award></answer>
 
@@ -2158,7 +2158,7 @@ describe("Answer tag tests", async () => {
 
     it("answer multiple shortcut awards", async () => {
         const doenetML = `
-    <answer name="answer1"><award><math>x+y</math></award><award credit="0.5"><math>x</math></award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award><math>x+y</math></award><award credit="0.5"><math>x</math></award></answer>
   `;
 
         await test_math_answer({
@@ -2173,7 +2173,7 @@ describe("Answer tag tests", async () => {
 
     it("answer multiple shortcut awards, initially unresolved", async () => {
         const doenetML = `
-    <answer name="answer1"><award><math>$rightAnswer</math></award><award credit="0.5"><math>x-3+$n</math></award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award><math>$rightAnswer</math></award><award credit="0.5"><math>x-3+$n</math></award></answer>
 
     <math name="rightAnswer">x+y-3+$n</math>
     <number extend="$n3" name="n2" />
@@ -2196,7 +2196,7 @@ describe("Answer tag tests", async () => {
 
     it("answer multiple text awards", async () => {
         const doenetML = `
-    <answer name="answer1"><award><text>hello there</text></award><award credit="0.5"><text>bye</text></award></answer>
+    <answer disableAfterCorrect="false" name="answer1"><award><text>hello there</text></award><award credit="0.5"><text>bye</text></award></answer>
 
   `;
 
@@ -2212,7 +2212,7 @@ describe("Answer tag tests", async () => {
 
     it("answer multiple awards, set to text", async () => {
         const doenetML = `
-    <answer name="answer1" type="text"><award><text>hello there</text></award><award credit="0.5"><text>bye</text></award></answer>
+    <answer disableAfterCorrect="false" name="answer1" type="text"><award><text>hello there</text></award><award credit="0.5"><text>bye</text></award></answer>
 
   `;
 
@@ -2228,7 +2228,7 @@ describe("Answer tag tests", async () => {
 
     it("answer multiple string awards, set to text", async () => {
         const doenetML = `
-    <answer name="answer1" type="text"><award>hello there</award><award credit="0.5">bye</award></answer>
+    <answer disableAfterCorrect="false" name="answer1" type="text"><award>hello there</award><award credit="0.5">bye</award></answer>
 
   `;
 
@@ -2245,7 +2245,7 @@ describe("Answer tag tests", async () => {
     it("full answer tag", async () => {
         const doenetML = `
   Enter values that sum to <m>3x</m>: <mathInput name="mi1"/> <mathInput name="mi2"/>
-  <answer name="answer1">
+  <answer disableAfterCorrect="false" name="answer1">
     <award><when><math><math extend="$mi1" isResponse />+<math extend="$mi2" isResponse /></math> = <math>3x</math></when></award>
     <award credit="0.5"><when><math>$mi1+$mi2</math> = <math>3</math></when></award>
   </answer>
@@ -2268,7 +2268,7 @@ describe("Answer tag tests", async () => {
     it("full answer tag, two inputs inside answer, shorter form", async () => {
         const doenetML = `
   Enter values that sum to <m>3x</m>:
-  <answer name="answer1">
+  <answer disableAfterCorrect="false" name="answer1">
     <mathInput name="mi1"/> <mathInput name="mi2"/>
     <award><when>$mi1+$mi2 = 3x</when></award>
     <award credit="0.5"><when>$mi1+$mi2 = 3</when></award>
@@ -2294,7 +2294,7 @@ describe("Answer tag tests", async () => {
 </setup>
 Enter values that sum to <m>3x</m>:
 <mathInput name="mi1" /> <mathInput name="mi2"/>
-<answer name="answer1">
+<answer disableAfterCorrect="false" name="answer1">
     <award extend="$aw1" />
     <award extend="$aw2" />
 </answer>
@@ -2317,7 +2317,7 @@ Enter values that sum to <m>3x</m>:
     it("full answer tag, text inputs", async () => {
         const doenetML = `
   >Enter rain and snow in either order: <textInput name="ti1"/> <textInput name="ti2"/>
-  <answer name="answer1">
+  <answer disableAfterCorrect="false" name="answer1">
     <award><when><text><text extend="$ti1" isResponse /> <text extend="$ti2" isResponse /></text> = <text>rain snow</text></when></award>
     <award><when><text>$ti1 $ti2</text> = <text>snow rain</text></when></award>
     <award credit="0.5"><when>$ti1 = rain</when></award>
@@ -2346,7 +2346,7 @@ Enter values that sum to <m>3x</m>:
     it("answer inequalities", async () => {
         const doenetML = `
 Enter enter number larger than 5 or less than 2: 
-<answer name="answer1">
+<answer disableAfterCorrect="false" name="answer1">
     <mathInput name="m" />
     <award><when>$m > 5</when></award>
     <award><when>$m < <math>2</math></when></award>
@@ -2367,7 +2367,7 @@ Enter enter number larger than 5 or less than 2:
     it("answer extended inequalities", async () => {
         // Number between -1 and 1, inclusive
         let doenetML = `
-<answer name="answer1">
+<answer disableAfterCorrect="false" name="answer1">
     <mathInput name="m" />
     <award><when>-1 <= $m <= 1 </when></award>
 </answer>
@@ -2388,7 +2388,7 @@ Enter enter number larger than 5 or less than 2:
 
         // Number between -1 and 1, exclusive
         doenetML = `
-             <answer name="answer1">
+             <answer disableAfterCorrect="false" name="answer1">
                  <mathInput name="m" />
                  <award><when>-1 < $m < 1 </when></award>
              </answer>
@@ -2409,7 +2409,7 @@ Enter enter number larger than 5 or less than 2:
 
         // Number between -1 and 1, as greater than
         doenetML = `
-             <answer name="answer1">
+             <answer disableAfterCorrect="false" name="answer1">
                  <mathInput name="m" />
                  <award><when>1 > $m >= -1 </when></award>
              </answer>
@@ -2434,7 +2434,7 @@ Enter enter number larger than 5 or less than 2:
 Enter enter number larger than 5 or less than 2: 
   <mathInput name="mi1"/> <mathInput name="mi2"/> <mathInput name="mi3"/>
 
-<answer name="answer1">
+<answer disableAfterCorrect="false" name="answer1">
     <award><when>
       ((<math extend="$mi1" isResponse /> = x
       and <math extend="$mi2" isResponse /> != $mi1)
@@ -2470,7 +2470,7 @@ Enter enter number larger than 5 or less than 2:
     it("answer inside repeat", async () => {
         const doenetML = `
     <repeat name="r" for="1 2 3" valueName="n">
-        <p>Enter <m>x^$n</m>: <answer name="answer1"><award><math>x^$n</math></award></answer></p>
+        <p>Enter <m>x^$n</m>: <answer disableAfterCorrect="false" name="answer1"><award><math>x^$n</math></award></answer></p>
     </repeat>
   `;
 
@@ -2504,7 +2504,7 @@ Enter enter number larger than 5 or less than 2:
 
     it("answer with shuffled choiceInput", async () => {
         const doenetML = `
-The animal is a <answer name="answer1">
+The animal is a <answer disableAfterCorrect="false" name="answer1">
 <choiceInput shuffleOrder>
     <choice credit="0.5">cat</choice>
     <choice credit="1">dog</choice>
@@ -2525,7 +2525,7 @@ The animal is a <answer name="answer1">
 
     it("answer with shuffled sugared choices", async () => {
         const doenetML = `
-The animal is a <answer name="answer1" shuffleOrder>
+The animal is a <answer disableAfterCorrect="false" name="answer1" shuffleOrder>
     <choice credit="0.5">cat</choice>
     <choice credit="1">dog</choice>
     <choice>monkey</choice>
@@ -2544,7 +2544,7 @@ The animal is a <answer name="answer1" shuffleOrder>
 
     it("answer with shuffled sugared choices, preserve last choice", async () => {
         const doenetML = `
-The animal is a <answer name="answer1" shuffleOrder preserveLastChoice>
+The animal is a <answer disableAfterCorrect="false" name="answer1" shuffleOrder preserveLastChoice>
     <choice credit="0.5">cat</choice>
     <choice credit="1">dog</choice>
     <choice>monkey</choice>
@@ -2563,7 +2563,7 @@ The animal is a <answer name="answer1" shuffleOrder preserveLastChoice>
 
     it("answer with choiceInput, fixed order", async () => {
         const doenetML = `
-The animal is a <answer name="answer1">
+The animal is a <answer disableAfterCorrect="false" name="answer1">
 <choiceInput>
     <choice credit="0.5">cat</choice>
     <choice credit="1">dog</choice>
@@ -2589,7 +2589,7 @@ The animal is a <answer name="answer1">
 
     it("answer with sugared choices, fixed order", async () => {
         const doenetML = `
-The animal is a <answer name="answer1">
+The animal is a <answer disableAfterCorrect="false" name="answer1">
     <choice credit="0.5">cat</choice>
     <choice credit="1">dog</choice>
     <choice>monkey</choice>
@@ -2613,7 +2613,7 @@ The animal is a <answer name="answer1">
 
     it("answer with select-multiple choiceInput, fixed order", async () => {
         const doenetML = `
-The animal is a <answer name="answer1">
+The animal is a <answer disableAfterCorrect="false" name="answer1">
 <choiceInput selectMultiple>
     <choice credit="1">cat</choice>
     <choice credit="1">dog</choice>
@@ -2641,7 +2641,7 @@ The animal is a <answer name="answer1">
 
     it("answer with select-multiple choiceInput, fixed order, match partial", async () => {
         const doenetML = `
-The animal is a <answer name="answer1">
+The animal is a <answer disableAfterCorrect="false" name="answer1">
 <choiceInput selectMultiple matchPartial>
     <choice credit="1">cat</choice>
     <choice credit="1">dog</choice>
@@ -2669,7 +2669,7 @@ The animal is a <answer name="answer1">
 
     it("answer with select-multiple sugared choices, fixed order", async () => {
         const doenetML = `
-The animal is a <answer name="answer1" selectMultiple matchPartial>
+The animal is a <answer disableAfterCorrect="false" name="answer1" selectMultiple matchPartial>
     <choice credit="1">cat</choice>
     <choice credit="1">dog</choice>
     <choice>monkey</choice>
@@ -2695,7 +2695,7 @@ The animal is a <answer name="answer1" selectMultiple matchPartial>
 
     it("answer with select-multiple choiceInput, fixed order, match partial in answer", async () => {
         const doenetML = `
-The animal is a <answer name="answer1" matchPartial>
+The animal is a <answer disableAfterCorrect="false" name="answer1" matchPartial>
 <choiceInput selectMultiple>
     <choice credit="1">cat</choice>
     <choice credit="1">dog</choice>
@@ -2723,7 +2723,7 @@ The animal is a <answer name="answer1" matchPartial>
 
     it("answer with choiceInput, no bug when submit first", async () => {
         const doenetML = `
-The animal is a <answer name="answer1">
+The animal is a <answer disableAfterCorrect="false" name="answer1">
 <choiceInput>
     <choice credit="0.5">cat</choice>
     <choice credit="1">dog</choice>
@@ -2752,7 +2752,7 @@ The animal is a <answer name="answer1">
         const doenetML = `
     <p>Num: <mathInput name="num" prefill="3"/></p>
 
-    <answer name="answer1">
+    <answer disableAfterCorrect="false" name="answer1">
     <choiceInput shuffleOrder>
       <repeatForSequence from="0" to="$num-1" valueName="m">
           <choice credit="$m/($num-1)">Get <number displayDigits="3">$m/($num-1)</number></choice>
@@ -2815,7 +2815,7 @@ The animal is a <answer name="answer1">
         const doenetML = `
       <p>Credit for cat: <mathInput name="catCredit" prefill="0.3" /> </p>
       <p>Last option: <textInput prefill="bird" name="last" /></p>
-      <answer name="answer1">
+      <answer disableAfterCorrect="false" name="answer1">
         <choiceInput>
         <choice credit="$catCredit">cat</choice>
         <choice credit="1">dog</choice>
@@ -2880,7 +2880,7 @@ The animal is a <answer name="answer1">
     it("answer, any letter", async () => {
         const doenetML = `
 Enter any letter:
-  <answer name='userx'>
+  <answer disableAfterCorrect="false" name='userx'>
   <mathInput name="userx_input"/>
   <award><when>
     $userx_input elementof {a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}
@@ -2906,7 +2906,7 @@ Enter any letter:
         const doenetML = `
   <p>Enter a set <mathInput name="set" prefill="{1,2,3}" /></p>
   <p>Enter an element of that set: 
-  <answer name="answer1">
+  <answer disableAfterCorrect="false" name="answer1">
   <mathInput name="element" />
   <award>
     <when>$element elementof $set.value</when>
@@ -2953,7 +2953,7 @@ Enter any letter:
 <p>Enter a number larger than one <mathInput name="mi"/></p>
 <p>Say hello: <textInput name="ti"/></p>
 
-<answer name="a"> 
+<answer disableAfterCorrect="false" name="a"> 
     <award matchPartial><when>
     $mi > 1 
     and
@@ -2984,7 +2984,7 @@ Enter any letter:
 <p>Enter a number larger than one <mathInput name="mi"/></p>
 <p>Say hello: <textInput name="ti"/></p>
 
-<answer name="a" matchPartial> 
+<answer disableAfterCorrect="false" name="a" matchPartial> 
     <award><when>
     $mi > 1 
     and
@@ -3019,7 +3019,7 @@ Enter any letter:
           <point name="P">(0,0)</point>
         </graph>
 
-        <answer name="a"> 
+        <answer disableAfterCorrect="false" name="a"> 
           <award><when>
             $mi < <math extend="$P.x" isresPoNse />
           </when></award>
@@ -3063,7 +3063,7 @@ Enter any letter:
     });
 
     it("answer with unicode", async () => {
-        const doenetML = `<answer name="answer1">x+2pi+3gamma+4mu+5xi+6eta</answer>`;
+        const doenetML = `<answer disableAfterCorrect="false" name="answer1">x+2pi+3gamma+4mu+5xi+6eta</answer>`;
 
         await test_math_answer({
             doenetML,
@@ -3080,7 +3080,7 @@ Enter any letter:
         <p>Enter minimum: <mathInput name="min" /></p>
         <p>Enter value larger than $min: <mathInput name="val" /></p>
         
-        <answer name="a"> 
+        <answer disableAfterCorrect="false" name="a"> 
             <award referencesAreResponses="$val"><when>$val > $min</when></award>
         </answer>`;
 
@@ -3118,7 +3118,7 @@ Enter any letter:
         <p>Enter two 2D points, where second to upward and to the right of the first:
          <mathInput name="P" /> <mathInput name="Q" /></p>
 
-        <answer name="a">
+        <answer disableAfterCorrect="false" name="a">
             <considerAsResponses>$P $Q</considerAsResponses>
             <award><when>$Q.x > $P.x and $Q.y > $P.y</when></award>
         </answer>
@@ -3142,7 +3142,7 @@ Enter any letter:
     it("isResponse is not copied", async () => {
         const doenetML = `
         <mathInput name="mi" />
-        <answer name="ans">
+        <answer disableAfterCorrect="false" name="ans">
           <award>
             <when><math extend="$mi" isResponse name="v" /> = x</when>
           </award>
@@ -3169,7 +3169,7 @@ Enter any letter:
     it("isResponse from referencesAreResponses is not copied", async () => {
         const doenetML = `
         <mathInput name="mi" />
-        <answer name="ans">
+        <answer disableAfterCorrect="false" name="ans">
           <award referencesAreResponses="$mi">
             <when><math extend="$mi" name="v" /> = x</when>
           </award>
@@ -3197,7 +3197,7 @@ Enter any letter:
     it("isResponse from referencesAreResponses is not recursively copied", async () => {
         const doenetML = `
         <mathInput name="mi" />
-        <answer name="ans">
+        <answer disableAfterCorrect="false" name="ans">
           <award referencesAreResponses="$mi">
             <when><math name="m">$mi</math> = x</when>
           </award>
@@ -3227,7 +3227,7 @@ Enter any letter:
         <p>Enter minimum: <mathInput name="min" /></p>
         <p>Enter value larger than $min: <mathInput name="val" /></p>
         
-        <answer name="a"> 
+        <answer disableAfterCorrect="false" name="a"> 
             <award ><when>$val > $min</when></award>
         </answer>
         `;
@@ -3269,7 +3269,7 @@ Enter any letter:
         </select>
         
         <p>What does the $animal say?
-          <answer name="ans">
+          <answer disableAfterCorrect="false" name="ans">
             <choiceInput shuffleOrder name="ci">
             <choice credit="$animal=cat" >meow</choice>
             <choice credit="$animal=dog" >woof</choice>
@@ -3350,7 +3350,7 @@ Enter any letter:
         </select>
         
         <p>What does the $s.animal say?
-          <answer name="ans" type="text">
+          <answer disableAfterCorrect="false" name="ans" type="text">
             <award credit="$s.animal=cat" ><text>meow</text></award>
             <award credit="$s.animal=dog" ><text>woof</text></award>
             <award credit="$s.animal=mouse" ><text>squeak</text></award>
@@ -3409,7 +3409,7 @@ Enter any letter:
         <p>Distinct numbers greater than 3:
         <mathInput name="mi1" />
         <mathInput name="mi2" />
-        <answer numAwardsCredited="$nAwards" name="a">
+        <answer disableAfterCorrect="false" numAwardsCredited="$nAwards" name="a">
           <award name="FirstGreater3" credit="0.4" referencesAreResponses="$mi1"><when>$mi1 > 3</when></award>
           <award name="SecondGreater3" credit="0.4" referencesAreResponses="$mi2"><when>$mi2 > 3</when></award>
           <award name="DistinctGreater3" credit="$creditForCombined"><when>$mi1 > 3 and $mi2 > 3 and $mi1 != $mi2</when></award>
@@ -3540,7 +3540,7 @@ Enter any letter:
         <mathInput name="mi1" />
         <mathInput name="mi2" />
         <mathInput name="mi3" />
-        <answer numAwardsCredited="3" name="a">
+        <answer disableAfterCorrect="false" numAwardsCredited="3" name="a">
           <award name="FirstPositive" credit="0.2" referencesAreResponses="$mi1"><when>$mi1 > 0</when></award>
           <award name="SecondPositive" credit="0.2" referencesAreResponses="$mi2"><when>$mi2 > 0</when></award>
           <award name="ThirdPositive" credit="0.2" referencesAreResponses="$mi3"><when>$mi3 > 0</when></award>
@@ -3676,7 +3676,7 @@ Enter any letter:
         <mathInput name="mi1" />
         <mathInput name="mi2" />
         <mathInput name="mi3" />
-        <answer numAwardsCredited="3" name="a">
+        <answer disableAfterCorrect="false" numAwardsCredited="3" name="a">
           <award referencesAreResponses="$mi1 $mi2 $mi3" matchPartial name="right">
             <when>$mi1=x and $mi2=y and $mi3=z</when>
           </award>
@@ -3763,7 +3763,7 @@ Enter any letter:
     
     </sideBySide>
     
-    <answer name="answer1">
+    <answer disableAfterCorrect="false" name="answer1">
       <award><when>$choice1.selectedValue = 4</when></award>
     </answer>
   
@@ -3789,7 +3789,7 @@ Enter any letter:
     });
 
     it("maximum number of attempts", async () => {
-        const doenetML = `<answer name="answer1" maxNumAttempts="2">x</answer>`;
+        const doenetML = `<answer disableAfterCorrect="false" name="answer1" maxNumAttempts="2">x</answer>`;
 
         await test_math_answer({
             doenetML,
@@ -3838,7 +3838,7 @@ Enter any letter:
 
     it("award based on choice text", async () => {
         const doenetML = `
-  <answer name="answer1">
+  <answer disableAfterCorrect="false" name="answer1">
     <choiceInput name="ci">
       <choice name="ca">cat</choice>
       <choice credit="1">dog</choice>
@@ -3866,7 +3866,7 @@ Enter any letter:
 
     it("error expressions are not matched", async () => {
         await test_math_answer({
-            doenetML: `<answer name="answer1">x^</answer>`,
+            doenetML: `<answer disableAfterCorrect="false" name="answer1">x^</answer>`,
             answers: [
                 { latex: "", credit: 0 },
                 { latex: "x^", credit: 0 },
@@ -3875,7 +3875,7 @@ Enter any letter:
         });
 
         await test_math_answer({
-            doenetML: `<answer name="answer1" symbolicEquality>x^</answer>`,
+            doenetML: `<answer disableAfterCorrect="false" name="answer1" symbolicEquality>x^</answer>`,
             answers: [
                 { latex: "", credit: 0 },
                 { latex: "x^", credit: 0 },
@@ -3886,7 +3886,7 @@ Enter any letter:
 
     it("default is to split symbols, sugared answer", async () => {
         const doenetML = `
-<answer name="answer1">xyz</answer>
+<answer disableAfterCorrect="false" name="answer1">xyz</answer>
   `;
         await test_math_answer({
             doenetML,
@@ -3903,7 +3903,7 @@ Enter any letter:
 
     it("default is to split symbols, shortcut award, sugared math", async () => {
         const doenetML = `
-<answer name="answer1"><award>xyz</award></answer>
+<answer disableAfterCorrect="false" name="answer1"><award>xyz</award></answer>
   `;
         await test_math_answer({
             doenetML,
@@ -3920,7 +3920,7 @@ Enter any letter:
 
     it("default is to split symbols, explicit mathInput and math", async () => {
         const doenetML = `
-<answer name="answer1">
+<answer disableAfterCorrect="false" name="answer1">
     <mathInput name="mi" />
     <award><math>xyz</math></award>
 </answer>
@@ -3942,7 +3942,7 @@ Enter any letter:
         const doenetML = `
 <p>split symbols: <booleanInput name="split" /></p>
 <p>Answer: <math name="ans" splitSymbols="$split">xyz</math></p>
-<answer name="answer1">
+<answer disableAfterCorrect="false" name="answer1">
     <mathInput name="mi" splitSymbols="$ans.splitSymbols" />
     <award>$ans</award>
 </answer>
@@ -3982,7 +3982,7 @@ Enter any letter:
     it("with split symbols, sugared answer", async () => {
         const doenetML = `
 <p>split symbols: <booleanInput name="split" /></p>
-<answer splitSymbols="$split" name="answer1">xyz</answer>
+<answer disableAfterCorrect="false" splitSymbols="$split" name="answer1">xyz</answer>
   `;
         await test_math_answer({
             doenetML,
@@ -4019,7 +4019,7 @@ Enter any letter:
     it("with split symbols, shortcut award, sugared math", async () => {
         const doenetML = `
   <p>split symbols: <booleanInput name="split" /></p>
-  <answer splitSymbols="$split" name="answer1">
+  <answer disableAfterCorrect="false" splitSymbols="$split" name="answer1">
     <award>xyz</award>
   </answer>
   `;
@@ -4058,7 +4058,7 @@ Enter any letter:
     it("with split symbols, explicit mathInput and math, but inferred split symbols", async () => {
         const doenetML = `
   <p>split symbols: <booleanInput name="split" /></p>
-  <answer splitSymbols="$split" name="answer1">
+  <answer disableAfterCorrect="false" splitSymbols="$split" name="answer1">
     <mathInput name="mi" />
     <award><math name="ans">xyz</math></award>
   </answer>
@@ -4098,7 +4098,7 @@ Enter any letter:
     it("justSubmitted with expression containing NaN", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <answer name="a"><mathInput name="mi" /><award><math><number>0/0</number>+1</math></award></answer>
+  <answer disableAfterCorrect="false" name="a"><mathInput name="mi" /><award><math><number>0/0</number>+1</math></award></answer>
    `,
         });
 
@@ -4129,7 +4129,7 @@ Enter any letter:
     it("copy justSubmitted attribute", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <answer name="ans">
+  <answer disableAfterCorrect="false" name="ans">
     <mathInput name="mi" />
     <award>1</award>
   </answer>
@@ -4285,28 +4285,28 @@ Enter any letter:
     it.skip("empty mathLists always equal", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <answer name="ans1">
+    <answer disableAfterCorrect="false" name="ans1">
         <award>
             <when>
             <mathList/> = <mathList/>
             </when>
         </award>
     </answer>
-    <answer name="ans2">
+    <answer disableAfterCorrect="false" name="ans2">
         <award>
         <when unorderedCompare>
             <mathList/> = <mathList/>
         </when>
         </award>
     </answer>
-    <answer name="ans3">
+    <answer disableAfterCorrect="false" name="ans3">
         <award>
         <when matchPartial>
             <mathList/> = <mathList/>
         </when>
         </award>
     </answer>
-    <answer name="ans4">
+    <answer disableAfterCorrect="false" name="ans4">
         <award>
         <when unorderedCompare matchPartial>
             <mathList/> = <mathList/>
@@ -4355,7 +4355,7 @@ Enter any letter:
     it("cannot change submitted or changed response", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <answer name="a"><mathInput name="mia" />x</answer>
+  <answer disableAfterCorrect="false" name="a"><mathInput name="mia" />x</answer>
 
   <p>Current Response: <math extend="$a.currentResponse" name="cr" /></p>
   <p>Submitted Response: <math extend="$a.submittedResponse" name="sr" /></p>
@@ -4444,7 +4444,7 @@ Enter any letter:
 
     it("answer award with sugared string, copy award and overwrite properties", async () => {
         const doenetML = `
-<answer name="an">
+<answer disableAfterCorrect="false" name="an">
     <award name="aw">1.1</award>
     <award extend="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
 </answer>
@@ -4464,7 +4464,7 @@ Enter any letter:
 
     it("answer award with full award, copy award and overwrite properties", async () => {
         const doenetML = `
-<answer name="an">
+<answer disableAfterCorrect="false" name="an">
     <mathInput name="mi" />
     <award name="aw"><when>$mi=1.1</when></award>
     <award extend="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
@@ -4485,8 +4485,8 @@ Enter any letter:
 
     it("copied answer mirrors original", async () => {
         const doenetML = `
-  <answer name="ans1">x+y</answer>
-  <answer extend="$ans1" name="ans2" />
+  <answer disableAfterCorrect="false" name="ans1">x+y</answer>
+  <answer disableAfterCorrect="false" extend="$ans1" name="ans2" />
   `;
 
         let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
@@ -4715,8 +4715,8 @@ Enter any letter:
 
     it("copy answer with no link", async () => {
         const doenetML = `
-  <answer name="ans1">x+y</answer>
-  <answer extend="$ans1" name="ans2" link="false" />
+  <answer disableAfterCorrect="false" name="ans1">x+y</answer>
+  <answer disableAfterCorrect="false" extend="$ans1" name="ans2" link="false" />
   `;
 
         let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
@@ -5122,7 +5122,7 @@ Enter any letter:
     it("credit achieved not calculated before submit", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <answer name="ans">
+  <answer disableAfterCorrect="false" name="ans">
     <award name="aw1">x^2-2x+3</award>
     <award name="aw2" credit="0.5" numSignErrorsMatched="1">x^2-2x+3</award>
   </answer>
@@ -5363,7 +5363,7 @@ Enter any letter:
   <graph>
     <point name="P" />
   </graph>
-  <answer numAwardsCredited="2" name="a">
+  <answer disableAfterCorrect="false" numAwardsCredited="2" name="a">
     <mathInput name="mi" />
     <award credit="0.6"><math>x^2</math></award>
     <award credit="0.4" referencesAreResponses="$P.x">
@@ -5415,7 +5415,7 @@ Enter any letter:
     it("derivative works without award", async () => {
         const doenetML = `
 What is the derivative of <function name="f">x^2</function>?
-<answer name="answer1"><derivative>$f</derivative></answer>
+<answer disableAfterCorrect="false" name="answer1"><derivative>$f</derivative></answer>
   `;
         await test_math_answer({
             doenetML,
@@ -5428,7 +5428,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("case-insensitive match, math", async () => {
         await test_math_answer({
-            doenetML: `<answer name="defSugar">x+Y</answer>`,
+            doenetML: `<answer disableAfterCorrect="false" name="defSugar">x+Y</answer>`,
             answers: [
                 { latex: "x+y", credit: 0 },
                 { latex: "x+Y", credit: 1 },
@@ -5440,7 +5440,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_math_answer({
-            doenetML: `<answer caseInsensitiveMatch name="insSugar">x+Y</answer>`,
+            doenetML: `<answer disableAfterCorrect="false" caseInsensitiveMatch name="insSugar">x+Y</answer>`,
             answers: [
                 { latex: "x+y", credit: 1 },
                 { latex: "x+Y", credit: 1 },
@@ -5453,7 +5453,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await test_math_answer({
             doenetML: `
-    <answer name="shortAwards">
+    <answer disableAfterCorrect="false" name="shortAwards">
       <award>x+Y</award>
       <award caseInsensitiveMatch credit="0.5">x+Y</award>
     </answer>`,
@@ -5469,7 +5469,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await test_math_answer({
             doenetML: `
-    <answer name="full">
+    <answer disableAfterCorrect="false" name="full">
       <mathInput name="mi" />
       <award><when>$mi = x+Y</when></award>
       <award credit="0.5"><when caseInsensitiveMatch>$mi = x+Y</when></award>
@@ -5487,7 +5487,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("case-insensitive match, text", async () => {
         await test_text_answer({
-            doenetML: `<answer type="text" name="defSugar">Hello there!</answer>`,
+            doenetML: `<answer disableAfterCorrect="false" type="text" name="defSugar">Hello there!</answer>`,
             answers: [
                 { text: "hello there!", credit: 0 },
                 { text: "Hello there!", credit: 1 },
@@ -5499,7 +5499,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_text_answer({
-            doenetML: `<answer type="text" caseInsensitiveMatch name="insSugar">Hello there!</answer>`,
+            doenetML: `<answer disableAfterCorrect="false" type="text" caseInsensitiveMatch name="insSugar">Hello there!</answer>`,
             answers: [
                 { text: "hello there!", credit: 1 },
                 { text: "Hello there!", credit: 1 },
@@ -5512,7 +5512,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await test_text_answer({
             doenetML: `
-    <answer type="text" name="shortAwards">
+    <answer disableAfterCorrect="false" type="text" name="shortAwards">
       <award>Hello there!</award>
       <award caseInsensitiveMatch credit="0.5">Hello there!</award>
     </answer>`,
@@ -5528,7 +5528,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await test_text_answer({
             doenetML: `
-    <answer name="full">
+    <answer disableAfterCorrect="false" name="full">
       <textInput name="ti" />
       <award><when>$ti = <text>Hello there!</text></when></award>
       <award credit="0.5"><when caseInsensitiveMatch>$ti = <text>Hello there!</text></when></award>
@@ -5546,7 +5546,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("match blanks", async () => {
         await test_math_answer({
-            doenetML: `<answer name="defSugar">_6^14C</answer>`,
+            doenetML: `<answer disableAfterCorrect="false" name="defSugar">_6^14C</answer>`,
             answers: [
                 { latex: "C_6^{14}", credit: 0 },
                 { latex: "_6^{14}C", credit: 0 },
@@ -5555,7 +5555,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_math_answer({
-            doenetML: `<answer matchBlanks name="blankSugar">_6^14C</answer>`,
+            doenetML: `<answer disableAfterCorrect="false" matchBlanks name="blankSugar">_6^14C</answer>`,
             answers: [
                 { latex: "C_6^{14}", credit: 0 },
                 { latex: "_6^{14}C", credit: 1 },
@@ -5564,7 +5564,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_math_answer({
-            doenetML: `<answer name="defShort"><award>_6^14C</award></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" name="defShort"><award>_6^14C</award></answer>`,
             answers: [
                 { latex: "C_6^{14}", credit: 0 },
                 { latex: "_6^{14}C", credit: 0 },
@@ -5573,7 +5573,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_math_answer({
-            doenetML: `<answer name="blankShort" matchBlanks><award>_6^14C</award></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" name="blankShort" matchBlanks><award>_6^14C</award></answer>`,
             answers: [
                 { latex: "C_6^{14}", credit: 0 },
                 { latex: "_6^{14}C", credit: 1 },
@@ -5583,7 +5583,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await test_math_answer({
             doenetML: `
-    <answer name="defFull">
+    <answer disableAfterCorrect="false" name="defFull">
       <mathInput name="mi" />
       <award><when>$mi = _6^14C</when></award>
     </answer>`,
@@ -5596,7 +5596,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         await test_math_answer({
             doenetML: `
-    <answer name="blankFull">
+    <answer disableAfterCorrect="false" name="blankFull">
       <mathInput name="mi" />
       <award><when matchBlanks>$mi = _6^14C</when></award>
     </answer>`,
@@ -5612,15 +5612,15 @@ What is the derivative of <function name="f">x^2</function>?
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   
-  <p><answer name="x"><mathInput name="mi"/>x</answer> 
+  <p><answer disableAfterCorrect="false" name="x"><mathInput name="mi"/>x</answer> 
     <math name="xsr" extend="$x" />
     <math name="xcr" extend="$x.currentResponse" />
   </p>
-  <p><answer name="hello" type="text"><textInput name="ti"/>hello</answer>
+  <p><answer disableAfterCorrect="false" name="hello" type="text"><textInput name="ti"/>hello</answer>
     <text name="hellosr" extend="$hello" />
     <text name="hellocr" extend="$hello.currentResponse" />
   </p>
-  <p><answer name="b" type="boolean"><booleanInput name="bi"/>true</answer> 
+  <p><answer disableAfterCorrect="false" name="b" type="boolean"><booleanInput name="bi"/>true</answer> 
     <boolean name="bsr" extend="$b" />
     <boolean name="bcr" extend="$b.currentResponse" />
   </p>
@@ -5746,7 +5746,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("parse scientific notation", async () => {
         await test_math_answer({
-            doenetML: `<answer name="ans">4E3</answer>`,
+            doenetML: `<answer disableAfterCorrect="false" name="ans">4E3</answer>`,
             answers: [
                 { latex: "4E3", credit: 1 },
                 { latex: "4000", credit: 0 },
@@ -5755,7 +5755,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_math_answer({
-            doenetML: `<answer name="ans"><math>4E3</math></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" name="ans"><math>4E3</math></answer>`,
             answers: [
                 { latex: "4E3", credit: 1 },
                 { latex: "4000", credit: 0 },
@@ -5764,7 +5764,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_math_answer({
-            doenetML: `<answer name="ans"><award><math>4E3</math></award></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" name="ans"><award><math>4E3</math></award></answer>`,
             answers: [
                 { latex: "4E3", credit: 1 },
                 { latex: "4000", credit: 0 },
@@ -5773,7 +5773,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_math_answer({
-            doenetML: `<answer name="ans"><mathInput name="mi" /><award><when><math>4E3</math>=$mi</when></award></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" name="ans"><mathInput name="mi" /><award><when><math>4E3</math>=$mi</when></award></answer>`,
             answers: [
                 { latex: "4E3", credit: 1 },
                 { latex: "4000", credit: 0 },
@@ -5782,7 +5782,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_math_answer({
-            doenetML: `<answer parseScientificNotation name="ans">4E3</answer>`,
+            doenetML: `<answer disableAfterCorrect="false" parseScientificNotation name="ans">4E3</answer>`,
             answers: [
                 { latex: "4E3", credit: 1, overrideResponse: 4000 },
                 { latex: "4000", credit: 1 },
@@ -5791,7 +5791,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_math_answer({
-            doenetML: `<answer parseScientificNotation name="ans"><math>4E3</math></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" parseScientificNotation name="ans"><math>4E3</math></answer>`,
             answers: [
                 { latex: "4E3", credit: 1, overrideResponse: 4000 },
                 { latex: "4000", credit: 1 },
@@ -5800,7 +5800,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_math_answer({
-            doenetML: `<answer parseScientificNotation name="ans"><award><math>4E3</math></award></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" parseScientificNotation name="ans"><award><math>4E3</math></award></answer>`,
             answers: [
                 { latex: "4E3", credit: 1, overrideResponse: 4000 },
                 { latex: "4000", credit: 1 },
@@ -5809,7 +5809,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_math_answer({
-            doenetML: `<answer parseScientificNotation name="ans"><mathInput name="mi" /><award><when><math parseScientificNotation>4E3</math>=$mi</when></award></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" parseScientificNotation name="ans"><mathInput name="mi" /><award><when><math parseScientificNotation>4E3</math>=$mi</when></award></answer>`,
             answers: [
                 { latex: "4E3", credit: 1, overrideResponse: 4000 },
                 { latex: "4000", credit: 1 },
@@ -5820,7 +5820,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("submitted response from matrixInput", async () => {
         const doenetML = `
-  <answer name="ans">
+  <answer disableAfterCorrect="false" name="ans">
     <matrixInput name="mi" numColumns="2" numRows="2" showSizeControls="false" />
     <award><matrix><row>a b</row><row>c d</row></matrix></award>
   </answer>
@@ -5876,7 +5876,7 @@ What is the derivative of <function name="f">x^2</function>?
 </p>
 
 
-<answer name="answer1">
+<answer disableAfterCorrect="false" name="answer1">
     <award>
       <when><function extend="$userFunction" isResponse /> = $correctFunction</when>
     </award>
@@ -5894,7 +5894,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("hand-graded answers", async () => {
         await test_math_answer({
-            doenetML: `<answer handGraded name="a" />`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a" />`,
             answers: [
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
@@ -5902,7 +5902,7 @@ What is the derivative of <function name="f">x^2</function>?
             answerName: "a",
         });
         await test_math_answer({
-            doenetML: `<answer handGraded name="a" type="math" />`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a" type="math" />`,
             answers: [
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
@@ -5910,7 +5910,7 @@ What is the derivative of <function name="f">x^2</function>?
             answerName: "a",
         });
         await test_math_answer({
-            doenetML: `<answer handGraded name="a"><mathInput /></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a"><mathInput /></answer>`,
             answers: [
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
@@ -5918,7 +5918,7 @@ What is the derivative of <function name="f">x^2</function>?
             answerName: "a",
         });
         await test_math_answer({
-            doenetML: `<answer handGraded name="a">x</answer>`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a">x</answer>`,
             answers: [
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
@@ -5926,7 +5926,7 @@ What is the derivative of <function name="f">x^2</function>?
             answerName: "a",
         });
         await test_math_answer({
-            doenetML: `<answer handGraded name="a"><math>x</math></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a"><math>x</math></answer>`,
             answers: [
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
@@ -5934,7 +5934,7 @@ What is the derivative of <function name="f">x^2</function>?
             answerName: "a",
         });
         await test_math_answer({
-            doenetML: `<answer handGraded name="a"><award><math>x</math></award></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a"><award><math>x</math></award></answer>`,
             answers: [
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
@@ -5942,7 +5942,7 @@ What is the derivative of <function name="f">x^2</function>?
             answerName: "a",
         });
         await test_math_answer({
-            doenetML: `<answer handGraded name="a"><mathInput /><award><math>x</math></award></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a"><mathInput /><award><math>x</math></award></answer>`,
             answers: [
                 { latex: "x", credit: 0 },
                 { latex: "y", credit: 0 },
@@ -5951,7 +5951,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_text_answer({
-            doenetML: `<answer handGraded name="a" type="text" />`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a" type="text" />`,
             answers: [
                 { text: "hello", credit: 0 },
                 { text: "bye", credit: 0 },
@@ -5959,7 +5959,7 @@ What is the derivative of <function name="f">x^2</function>?
             answerName: "a",
         });
         await test_text_answer({
-            doenetML: `<answer handGraded name="a"><textInput/></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a"><textInput/></answer>`,
             answers: [
                 { text: "hello", credit: 0 },
                 { text: "bye", credit: 0 },
@@ -5967,7 +5967,7 @@ What is the derivative of <function name="f">x^2</function>?
             answerName: "a",
         });
         await test_text_answer({
-            doenetML: `<answer handGraded name="a"><text>hello</text></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a"><text>hello</text></answer>`,
             answers: [
                 { text: "hello", credit: 0 },
                 { text: "bye", credit: 0 },
@@ -5975,7 +5975,7 @@ What is the derivative of <function name="f">x^2</function>?
             answerName: "a",
         });
         await test_text_answer({
-            doenetML: `<answer handGraded name="a"><award><text>hello</text></award></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a"><award><text>hello</text></award></answer>`,
             answers: [
                 { text: "hello", credit: 0 },
                 { text: "bye", credit: 0 },
@@ -5984,7 +5984,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_answer_multiple_inputs({
-            doenetML: `<answer handGraded name="a"><mathInput /><mathInput /></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a"><mathInput /><mathInput /></answer>`,
             answers: [
                 { values: ["x", "a"], credit: 0 },
                 { values: ["y", "b"], credit: 0 },
@@ -5994,7 +5994,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_answer_multiple_inputs({
-            doenetML: `<answer handGraded name="a"><textInput /><textInput /></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a"><textInput /><textInput /></answer>`,
             answers: [
                 { values: ["hello", "there"], credit: 0 },
                 { values: ["bye", "now"], credit: 0 },
@@ -6004,7 +6004,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_answer_multiple_inputs({
-            doenetML: `<answer handGraded name="a"><mathInput /><textInput /></answer>`,
+            doenetML: `<answer disableAfterCorrect="false" handGraded name="a"><mathInput /><textInput /></answer>`,
             answers: [
                 { values: ["x", "hello"], credit: 0 },
                 { values: ["y", "bye"], credit: 0 },
@@ -6014,7 +6014,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_answer_multiple_inputs({
-            doenetML: `<mathInput name="mi1" /><mathInput name="mi2" /><answer handGraded name="a"><considerAsResponses>$mi1$mi2</considerAsResponses></answer>`,
+            doenetML: `<mathInput name="mi1" /><mathInput name="mi2" /><answer disableAfterCorrect="false" handGraded name="a"><considerAsResponses>$mi1$mi2</considerAsResponses></answer>`,
             answers: [
                 { values: ["x", "a"], credit: 0 },
                 { values: ["y", "b"], credit: 0 },
@@ -6027,7 +6027,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_answer_multiple_inputs({
-            doenetML: `<textInput name="ti1" /><textInput name="ti2" /><answer handGraded name="a"><considerAsResponses>$ti1$ti2</considerAsResponses></answer>`,
+            doenetML: `<textInput name="ti1" /><textInput name="ti2" /><answer disableAfterCorrect="false" handGraded name="a"><considerAsResponses>$ti1$ti2</considerAsResponses></answer>`,
             answers: [
                 { values: ["hello", "there"], credit: 0 },
                 { values: ["bye", "now"], credit: 0 },
@@ -6040,7 +6040,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
 
         await test_answer_multiple_inputs({
-            doenetML: `<mathInput name="mi" /><textInput name="ti" /><answer handGraded name="a"><considerAsResponses>$mi$ti</considerAsResponses></answer>`,
+            doenetML: `<mathInput name="mi" /><textInput name="ti" /><answer disableAfterCorrect="false" handGraded name="a"><considerAsResponses>$mi$ti</considerAsResponses></answer>`,
             answers: [
                 { values: ["x", "hello"], credit: 0 },
                 { values: ["y", "bye"], credit: 0 },
@@ -6055,7 +6055,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("display digits for credit achieved", async () => {
         const doenetML = `
-  <p><answer name="default">
+  <p><answer disableAfterCorrect="false" name="default">
     <mathInput name="miDefault" />
     <award>x</award>
     <award credit="1/3">y</award>
@@ -6063,7 +6063,7 @@ What is the derivative of <function name="f">x^2</function>?
   Credit: <number extend="$default.creditAchieved" name="default_credit" />
   </p>
 
-  <p><answer displayDigitsForCreditAchieved="8" name="long">
+  <p><answer disableAfterCorrect="false" displayDigitsForCreditAchieved="8" name="long">
     <mathInput name="miLong" />
     <award>x</award>
     <award credit="1/3">y</award>
@@ -6111,7 +6111,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("display digits for responses", async () => {
         const doenetML = `
-  <p><answer name="default">
+  <p><answer disableAfterCorrect="false" name="default">
     <mathInput name="miDefault" />
     1.23456789
   </answer
@@ -6120,7 +6120,7 @@ What is the derivative of <function name="f">x^2</function>?
   
   </p>
 
-  <p><answer displayDigitsForResponses="3" name="short">
+  <p><answer disableAfterCorrect="false" displayDigitsForResponses="3" name="short">
     <mathInput name="miShort" />
     1.23456789
   </answer>
@@ -6195,7 +6195,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("display digits for responses, turn math to number", async () => {
         const doenetML = `
-  <p><answer name="default">
+  <p><answer disableAfterCorrect="false" name="default">
     <mathInput name="miDefault" />
     1.23456789
   </answer
@@ -6204,7 +6204,7 @@ What is the derivative of <function name="f">x^2</function>?
   
   </p>
 
-  <p><answer displayDigitsForResponses="3" name="short">
+  <p><answer disableAfterCorrect="false" displayDigitsForResponses="3" name="short">
     <mathInput name="miShort" />
     1.23456789
   </answer>
@@ -6283,7 +6283,7 @@ What is the derivative of <function name="f">x^2</function>?
   <p>Enter a slope: <mathInput name="m" /></p>
 
   <p>If this is the slope at an equilibrium of a discrete dynamical system, the equilibrium is
-  <answer name="a">
+  <answer disableAfterCorrect="false" name="a">
     <choiceInput name="ci" inline="true" shuffleOrder><choice>stable</choice><choice>unstable</choice></choiceInput>
     <award><when>
       $ci.selectedValue
@@ -6432,7 +6432,7 @@ What is the derivative of <function name="f">x^2</function>?
   <p>Require <choiceInput inline="true" name="c"><choice>positive</choice><choice>negative</choice></choiceInput>.</p>
 
   <p>Condition on <m>x</m>:
-  <answer name="a">
+  <answer disableAfterCorrect="false" name="a">
     <mathInput name="x" />
     <award><when>
       $x
@@ -6486,7 +6486,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     <mathInput name="userAns" />
 
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
         <award name="correct">
         <when>$userAns = $c</when> </award>
     </answer>
@@ -6514,7 +6514,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("credit by attempt", async () => {
         const doenetML = `
-    <answer name="ans" creditByAttempt="1 0.8 0.7">x</answer>
+    <answer disableAfterCorrect="false" name="ans" creditByAttempt="1 0.8 0.7">x</answer>
   `;
 
         let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
@@ -6726,7 +6726,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("disable wrong choices", async () => {
         const doenetML = `
-    <answer name="ans" disableWrongChoices>
+    <answer disableAfterCorrect="false" name="ans" disableWrongChoices>
         <choice>A</choice>
         <choice credit="1">B</choice>
         <choice>C</choice>

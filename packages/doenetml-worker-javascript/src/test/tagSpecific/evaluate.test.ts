@@ -349,7 +349,7 @@ describe("Evaluate tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <function variables="u" symbolic name="f" simplify="false">1+u</function>
-  <answer name="ans1">
+  <answer disableAfterCorrect="false" name="ans1">
     <mathInput name="mi" />
     <award><math>1</math></award>
   </answer>

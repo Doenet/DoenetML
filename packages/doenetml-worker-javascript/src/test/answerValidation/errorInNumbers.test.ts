@@ -109,7 +109,7 @@ async function run_two_response_tests({
 describe("Allow error in numbers validation tests", async () => {
     it("expression with single number", async () => {
         const doenetML = `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
       <award allowedErrorInNumbers="0.00001" name="aw">
         log(32x+c)
       </award>
@@ -135,7 +135,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("expression with single number, absolute error", async () => {
         let doenetML = `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
       <award allowedErrorInNumbers="0.00001" allowedErrorIsAbsolute name="aw">
         log(32x+c)
       </award>
@@ -161,14 +161,14 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("don't ignore exponents", async () => {
         let doenetML1 = `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
       <award allowedErrorInNumbers="0.0001">
         10x^2-4
       </award>
     </answer>`;
 
         let doenetML2 = `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
       <award allowedErrorInNumbers="0.0001" includeErrorInNumberExponents>
         10x^2-4
       </award>
@@ -201,7 +201,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("symbolic, expression with single number", async () => {
         const doenetML = `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
       <award symbolicEquality allowedErrorInNumbers="0.00001" name="aw">
         log(32x+c)
       </award>
@@ -227,7 +227,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("symbolic, expression with single number, absolute error", async () => {
         let doenetML = `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
       <award symbolicEquality allowedErrorInNumbers="0.00001" allowedErrorIsAbsolute name="aw">
         log(32x+c)
       </award>
@@ -255,7 +255,7 @@ describe("Allow error in numbers validation tests", async () => {
     // as they randomly failed depending on samples used for numerical equality
     it("symbolic, complicated expression with three numbers", async () => {
         let doenetML = `
-    <answer name="ans" symbolicEquality simplifyOnCompare>
+    <answer disableAfterCorrect="false" name="ans" symbolicEquality simplifyOnCompare>
       <award allowedErrorInNumbers="0.0000001" name="aw">
         10000 exp(7x^2/(0.00003-sqrt(y)))
       </award>
@@ -279,7 +279,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("symbolic, complicated expression with three numbers, absolute error", async () => {
         let doenetML = `
-    <answer name="ans" symbolicEquality allowedErrorIsAbsolute simplifyOnCompare>
+    <answer disableAfterCorrect="false" name="ans" symbolicEquality allowedErrorIsAbsolute simplifyOnCompare>
       <award allowedErrorInNumbers="0.0000001" name="aw">
         10000 exp(7x^2/(0.00003-sqrt(y)))
       </award>
@@ -303,14 +303,14 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("symbolic, don't ignore exponents", async () => {
         let doenetML1 = `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
       <award symbolicEquality allowedErrorInNumbers="0.0001">
         10x^2-4
       </award>
     </answer>`;
 
         let doenetML2 = `
-    <answer name="ans">
+    <answer disableAfterCorrect="false" name="ans">
       <award symbolicEquality allowedErrorInNumbers="0.0001" includeErrorInNumberExponents>
         10x^2-4
       </award>
@@ -343,7 +343,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("symbolic, no simplification", async () => {
         let doenetML = `
-    <answer name="ans" symbolicEquality allowedErrorInNumbers="0.001">
+    <answer disableAfterCorrect="false" name="ans" symbolicEquality allowedErrorInNumbers="0.001">
         2.15234262pi+e*25.602348230
     </answer>
     `;
@@ -363,7 +363,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("symbolic, evaluate numbers, preserve order", async () => {
         let doenetML = `
-    <answer name="ans" symbolicEquality allowedErrorInNumbers="0.001" simplifyOnCompare="numbersPreserveOrder">
+    <answer disableAfterCorrect="false" name="ans" symbolicEquality allowedErrorInNumbers="0.001" simplifyOnCompare="numbersPreserveOrder">
         sin(2pi+1x+4x+pi+6)
     </answer>
     `;
@@ -382,7 +382,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("symbolic, evaluate numbers", async () => {
         let doenetML = `
-    <answer name="ans" symbolicEquality allowedErrorInNumbers="0.001" simplifyOnCompare="numbers">
+    <answer disableAfterCorrect="false" name="ans" symbolicEquality allowedErrorInNumbers="0.001" simplifyOnCompare="numbers">
         sin(2pi+1x+4x+pi+6)
     </answer>
     `;
@@ -401,7 +401,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("symbolic, full simplification", async () => {
         let doenetML = `
-    <answer name="ans" symbolicEquality allowedErrorInNumbers="0.001" simplifyOnCompare>
+    <answer disableAfterCorrect="false" name="ans" symbolicEquality allowedErrorInNumbers="0.001" simplifyOnCompare>
         sin(2pi+1x+4x+pi+6)
     </answer>
     `;
@@ -420,7 +420,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("expression with vector, matchPartial", async () => {
         let doenetML = `
-    <answer name="ans" allowedErrorInNumbers="0.001" matchPartial>
+    <answer disableAfterCorrect="false" name="ans" allowedErrorInNumbers="0.001" matchPartial>
        (log(32x+c), 42)
     </answer>
     `;
@@ -439,7 +439,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("expression with vector, matchPartial, unordered", async () => {
         let doenetML = `
-    <answer name="ans" allowedErrorInNumbers="0.001" matchPartial>
+    <answer disableAfterCorrect="false" name="ans" allowedErrorInNumbers="0.001" matchPartial>
        <math unordered>(log(32x+c), 42)</math>
     </answer>
     `;
@@ -458,7 +458,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("expression with math lists, matchPartial", async () => {
         let doenetML = `
-    <answer name="ans" matchPartial allowedErrorInNumbers="0.001">
+    <answer disableAfterCorrect="false" name="ans" matchPartial allowedErrorInNumbers="0.001">
       <mathInput name="mi1" />
       <mathInput name="mi2" />
       <award>
@@ -481,7 +481,7 @@ describe("Allow error in numbers validation tests", async () => {
 
     it("expression with math lists, matchPartial, unordered", async () => {
         let doenetML = `
-    <answer name="ans" matchPartial allowedErrorInNumbers="0.001">
+    <answer disableAfterCorrect="false" name="ans" matchPartial allowedErrorInNumbers="0.001">
       <mathInput name="mi1" />
       <mathInput name="mi2" />
       <award>

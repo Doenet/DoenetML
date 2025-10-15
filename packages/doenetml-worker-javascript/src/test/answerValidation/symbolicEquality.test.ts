@@ -61,22 +61,22 @@ describe("Symbolic equality tests", async () => {
     <p>Response: <mathInput name="resp" /></p>
 
     <p><math name="m1">1+3</math>: 
-        <answer name="ansS1">
+        <answer disableAfterCorrect="false" name="ansS1">
             <award symbolicEquality="true"><when>$resp=$m1</when></award>
         </answer>
     </p>
     
     <p><math name="m2">3+1</math>: 
-        <answer name="ansS2">
+        <answer disableAfterCorrect="false" name="ansS2">
             <award symbolicEquality="true"><when>$resp=$m2</when></award>
         </answer>
     </p>
 
     <p>Numeric versions</p>
-    <p><answer name="ansN1">
+    <p><answer disableAfterCorrect="false" name="ansN1">
         <award><when>$resp=$m1</when></award>
     </answer></p>
-    <p><answer name="ansN2">
+    <p><answer disableAfterCorrect="false" name="ansN2">
         <award><when>$resp=$m2</when></award>
     </answer></p>
     `;
@@ -109,13 +109,13 @@ describe("Symbolic equality tests", async () => {
     <p>Response: <mathInput name="resp" /></p>
 
     <p><math name="m">1x-0y+-3s</math>: 
-        <answer name="ansS">
+        <answer disableAfterCorrect="false" name="ansS">
             <award symbolicEquality="true"><when>$resp=$m</when></award>
         </answer>
     </p>
     
     <p>Numeric version</p>
-    <p><answer name="ansN">
+    <p><answer disableAfterCorrect="false" name="ansN">
         <award><when>$resp=$m</when></award>
     </answer></p>
     `;
@@ -160,53 +160,53 @@ describe("Symbolic equality tests", async () => {
     <p>Response: <mathInput name="resp" /></p>
 
     <p><math name="m1">z-<number>5</number>x-<number>3</number></math>: 
-        <answer name="ansS1">
+        <answer disableAfterCorrect="false" name="ansS1">
             <award symbolicEquality><when>$resp=$m1</when></award>
         </answer>
     </p>
     <p><math name="m2">z-<math>5</math>x-<math>3</math></math>: 
-        <answer name="ansS2">
+        <answer disableAfterCorrect="false" name="ansS2">
             <award symbolicEquality><when>$resp=$m2</when></award>
         </answer>
     </p>
     <p><math name="m3">z+<number>-5</number>x+<number>-3</number></math>: 
-        <answer name="ansS3">
+        <answer disableAfterCorrect="false" name="ansS3">
             <award symbolicEquality><when>$resp=$m3</when></award>
         </answer>
     </p>
     <p><math name="m4">z+<math>-5</math>x+<math>-3</math></math>: 
-        <answer name="ansS4">
+        <answer disableAfterCorrect="false" name="ansS4">
             <award symbolicEquality><when>$resp=$m4</when></award>
         </answer>
     </p>
     <p><math name="m5">z-<math>5x</math>-3</math>: 
-        <answer name="ansS5">
+        <answer disableAfterCorrect="false" name="ansS5">
             <award symbolicEquality><when>$resp=$m5</when></award>
         </answer>
     </p>
     <p><math name="m6">z+<math>-5x</math>-3</math>: 
-        <answer name="ansS6">
+        <answer disableAfterCorrect="false" name="ansS6">
             <award symbolicEquality><when>$resp=$m6</when></award>
         </answer>
     </p>
 
     <p>Numeric versions</p>
-    <p><answer name="ansN1">
+    <p><answer disableAfterCorrect="false" name="ansN1">
         <award><when>$resp=$m1</when></award>
     </answer></p>
-    <p><answer name="ansN2">
+    <p><answer disableAfterCorrect="false" name="ansN2">
         <award><when>$resp=$m2</when></award>
     </answer></p>
-    <p><answer name="ansN3">
+    <p><answer disableAfterCorrect="false" name="ansN3">
         <award><when>$resp=$m3</when></award>
     </answer></p>
-    <p><answer name="ansN4">
+    <p><answer disableAfterCorrect="false" name="ansN4">
         <award><when>$resp=$m4</when></award>
     </answer></p>
-    <p><answer name="ansN5">
+    <p><answer disableAfterCorrect="false" name="ansN5">
         <award><when>$resp=$m5</when></award>
     </answer></p>
-    <p><answer name="ansN6">
+    <p><answer disableAfterCorrect="false" name="ansN6">
         <award><when>$resp=$m6</when></award>
     </answer></p>
     `;
@@ -345,13 +345,13 @@ describe("Symbolic equality tests", async () => {
 
     <p>
     <math name="m">1x^2+2-0x^2+3+x^2+3x^2+7+4</math>: 
-    <answer name="ansS">
+    <answer disableAfterCorrect="false" name="ansS">
       <award symbolicEquality="true" simplifyOnCompare="numbersPreserveOrder"><when>$resp=$m</when></award>
     </answer>
     </p>
     
     <p>Numeric versions</p>
-    <p><answer name="ansN">
+    <p><answer disableAfterCorrect="false" name="ansN">
       <award><when>$resp=$m</when></award>
     </answer></p>
     `;
@@ -365,13 +365,13 @@ describe("Symbolic equality tests", async () => {
 
     <p>
     <math name="m">1x^2+2-0x^2+3+x^2+3x^2+7+4</math>: 
-    <answer name="ansS" symbolicEquality="true" simplifyOnCompare="numbersPreserveOrder">
+    <answer disableAfterCorrect="false" name="ansS" symbolicEquality="true" simplifyOnCompare="numbersPreserveOrder">
       <award><when>$resp=$m</when></award>
     </answer>
     </p>
     
     <p>Numeric versions</p>
-    <p><answer name="ansN">
+    <p><answer disableAfterCorrect="false" name="ansN">
       <award><when>$resp=$m</when></award>
     </answer></p>
     `;
@@ -385,13 +385,13 @@ describe("Symbolic equality tests", async () => {
 
     <p>
     <math name="m">1x^2+2-0x^2+3+x^2+3x^2+7+4</math>: 
-    <answer name="ansS">
+    <answer disableAfterCorrect="false" name="ansS">
       <award><when symbolicEquality="true" simplifyOnCompare="numbersPreserveOrder">$resp=$m</when></award>
     </answer>
     </p>
     
     <p>Numeric versions</p>
-    <p><answer name="ansN">
+    <p><answer disableAfterCorrect="false" name="ansN">
       <award><when>$resp=$m</when></award>
     </answer></p>
     `;
@@ -405,13 +405,13 @@ describe("Symbolic equality tests", async () => {
 
     <p>
     <math name="m">1x^2+2-0x^2+3+x^2+3x^2+7+4</math>: 
-    <answer name="ansS">
+    <answer disableAfterCorrect="false" name="ansS">
       <award symbolicEquality simplifyOnCompare="numbers"><when>$resp=$m</when></award>
     </answer>
     </p>
     
     <p>Numeric versions</p>
-    <p><answer name="ansN">
+    <p><answer disableAfterCorrect="false" name="ansN">
       <award><when>$resp=$m</when></award>
     </answer></p>
     `;
@@ -450,13 +450,13 @@ describe("Symbolic equality tests", async () => {
 
     <p>
     <math name="m">6x^2 -3x +8x-4 + (2x-3)(4-x)</math>: 
-    <answer name="ansS">
+    <answer disableAfterCorrect="false" name="ansS">
       <award symbolicEquality simplifyOnCompare><when>$resp=$m</when></award>
     </answer>
     </p>
     
     <p>Numeric versions</p>
-    <p><answer name="ansN">
+    <p><answer disableAfterCorrect="false" name="ansN">
       <award><when>$resp=$m</when></award>
     </answer></p>
     `;
@@ -499,13 +499,13 @@ describe("Symbolic equality tests", async () => {
 
     <p>
     <math name="m">(2x-3)(4-x) + sin(x)^2+cos(x)^2</math>: 
-    <answer name="ansS">
+    <answer disableAfterCorrect="false" name="ansS">
       <award symbolicEquality simplifyOnCompare expandOnCompare><when>$resp=$m</when></award>
     </answer>
     </p>
     
     <p>Numeric versions</p>
-    <p><answer name="ansN">
+    <p><answer disableAfterCorrect="false" name="ansN">
       <award><when>$resp=$m</when></award>
     </answer></p>
     `;
@@ -540,14 +540,14 @@ describe("Symbolic equality tests", async () => {
 
     <p>
     What is <math name="expr">-3-4</math>?
-    <answer name="ansS">
+    <answer disableAfterCorrect="false" name="ansS">
       <award symbolicEquality><when>$resp=<math extend="$expr" simplify /></when></award>
     </answer>
     </p>
     
     <p>Numeric versions</p>
     <p>What is $expr? 
-    <answer name="ansN">
+    <answer disableAfterCorrect="false" name="ansN">
       <award><when>$resp=<math extend="$expr" simplify /></when></award>
     </answer></p>
     `;
@@ -575,16 +575,16 @@ describe("Symbolic equality tests", async () => {
     <math name='expAns'>-5 *exp(-t)</math>
     <p>Response: <mathInput name="resp" /></p>
 
-    <answer symbolicEquality simplifyOnCompare name="ansE">
+    <answer disableAfterCorrect="false" symbolicEquality simplifyOnCompare name="ansE">
         <award><when>$resp=$eAns</when></award>
     </answer>
-    <answer symbolicEquality simplifyOnCompare name="ansEXP">
+    <answer disableAfterCorrect="false" symbolicEquality simplifyOnCompare name="ansEXP">
         <award><when>$resp=$expAns</when></award>
     </answer>
-    <answer symbolicEquality simplifyOnCompare name="ansES">
+    <answer disableAfterCorrect="false" symbolicEquality simplifyOnCompare name="ansES">
         <award><when>$resp=$(eAns{simplify})</when></award>
     </answer>
-    <answer symbolicEquality simplifyOnCompare name="ansEXPS">
+    <answer disableAfterCorrect="false" symbolicEquality simplifyOnCompare name="ansEXPS">
         <award><when>$resp=$(expAns{simplify})</when></award>
     </answer>
  

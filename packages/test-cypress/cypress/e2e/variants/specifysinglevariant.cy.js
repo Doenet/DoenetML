@@ -509,14 +509,14 @@ describe("Specifying single variant document tests", function () {
         <choice>c</choice>
       </choiceInput>
       <p name="p1">Selected value: $ci</p>
-      <p name="p2">Enter <selectFromSequence name="n" />. <answer name="ans">$n</answer></p>
+      <p name="p2">Enter <selectFromSequence name="n" />. <answer disableAfterCorrect="false" name="ans">$n</answer></p>
     </group>
 
     <group extend="$g" name="g2" />
 
     <group copy="$g" name="g3" />
 
-    <p name="p3">Enter <selectFromSequence name="m" />. <answer name="ans">$m</answer></p>
+    <p name="p3">Enter <selectFromSequence name="m" />. <answer disableAfterCorrect="false" name="ans">$m</answer></p>
     `;
 
         cy.window().then(async (win) => {

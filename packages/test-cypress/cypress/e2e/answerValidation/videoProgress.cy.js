@@ -23,7 +23,7 @@ describe("Video progress tests", function () {
     <p>Credit achieved: <number displayDecimals="3" name="credit">$_document1.creditAchieved</number></p>
     
     
-    <answer hide name="answer1">
+    <answer disableAfterCorrect="false" hide name="answer1">
       <award credit="$v.fractionWatched"><when>true</when></award>
     </answer>
     

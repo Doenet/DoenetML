@@ -189,23 +189,23 @@ describe("match partial validation tests", async () => {
 
   <mathInput name="resp" />
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial><when>$resp=$ordered</when></award>
   </answer></p>
   
-  <p>Match partial, match by exact positions: <answer name="ansPEP">
+  <p>Match partial, match by exact positions: <answer disableAfterCorrect="false" name="ansPEP">
     <award matchPartial matchByExactPositions><when>$resp=$ordered</when></award>
   </answer></p>
   
-  <p>Match partial, unordered: <answer name="ansPU">
+  <p>Match partial, unordered: <answer disableAfterCorrect="false" name="ansPU">
     <award matchPartial><when>$resp=$unordered</when></award>
   </answer></p>
   
-  <p>Strict equality: <answer name="ansS">
+  <p>Strict equality: <answer disableAfterCorrect="false" name="ansS">
     <award><when>$resp=$ordered</when></award>
   </answer></p>
   
-  <p>Unordered: <answer name="ansU">
+  <p>Unordered: <answer disableAfterCorrect="false" name="ansU">
     <award><when>$resp=$unordered</when></award>
   </answer></p>
     `;
@@ -222,23 +222,23 @@ describe("match partial validation tests", async () => {
 
   <mathInput name="resp" />
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial><when>$resp=$ordered</when></award>
   </answer></p>
   
-  <p>Match partial, match by exact positions: <answer name="ansPEP">
+  <p>Match partial, match by exact positions: <answer disableAfterCorrect="false" name="ansPEP">
     <award matchPartial matchByExactPositions><when>$resp=$ordered</when></award>
   </answer></p>
   
-  <p>Match partial, unordered: <answer name="ansPU">
+  <p>Match partial, unordered: <answer disableAfterCorrect="false" name="ansPU">
     <award matchPartial><when>$resp=$unordered</when></award>
   </answer></p>
   
-  <p>Strict equality: <answer name="ansS">
+  <p>Strict equality: <answer disableAfterCorrect="false" name="ansS">
     <award><when>$resp=$ordered</when></award>
   </answer></p>
   
-  <p>Unordered: <answer name="ansU">
+  <p>Unordered: <answer disableAfterCorrect="false" name="ansU">
     <award><when>$resp=$unordered</when></award>
   </answer></p>
     `;
@@ -255,23 +255,23 @@ describe("match partial validation tests", async () => {
 
   <mathInput name="resp" />
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial><when>$resp=$ordered</when></award>
   </answer></p>
   
-  <p>Match partial, match by exact positions: <answer name="ansPEP">
+  <p>Match partial, match by exact positions: <answer disableAfterCorrect="false" name="ansPEP">
     <award matchPartial matchByExactPositions><when>$resp=$ordered</when></award>
   </answer></p>
   
-  <p>Match partial, unordered: <answer name="ansPU">
+  <p>Match partial, unordered: <answer disableAfterCorrect="false" name="ansPU">
     <award matchPartial><when>$resp=$unordered</when></award>
   </answer></p>
   
-  <p>Strict equality: <answer name="ansS">
+  <p>Strict equality: <answer disableAfterCorrect="false" name="ansS">
     <award><when>$resp=$ordered</when></award>
   </answer></p>
   
-  <p>Unordered: <answer name="ansU">
+  <p>Unordered: <answer disableAfterCorrect="false" name="ansU">
     <award><when>$resp=$unordered</when></award>
   </answer></p>
     `;
@@ -284,23 +284,23 @@ describe("match partial validation tests", async () => {
 
   <mathInput name="resp" />
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial><when>$resp=(1,2,3)</when></award>
   </answer></p>
   
-  <p>Match partial, match by exact positions: <answer name="ansPEP">
+  <p>Match partial, match by exact positions: <answer disableAfterCorrect="false" name="ansPEP">
     <award matchPartial matchByExactPositions><when>$resp=(1,2,3)</when></award>
   </answer></p>
   
-  <p>Match partial, unordered: <answer name="ansPU">
+  <p>Match partial, unordered: <answer disableAfterCorrect="false" name="ansPU">
     <award matchPartial unorderedCompare><when>$resp=(1,2,3)</when></award>
   </answer></p>
   
-  <p>Strict equality: <answer name="ansS">
+  <p>Strict equality: <answer disableAfterCorrect="false" name="ansS">
     <award><when>$resp=(1,2,3)</when></award>
   </answer></p>
   
-  <p>Unordered: <answer name="ansU">
+  <p>Unordered: <answer disableAfterCorrect="false" name="ansU">
     <award unorderedCompare><when>$resp=(1,2,3)</when></award>
   </answer></p>
     `;
@@ -313,23 +313,23 @@ describe("match partial validation tests", async () => {
 
   <mathInput name="resp" />
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial><when>$resp=<math>(1,2,3)</math></when></award>
   </answer></p>
   
-  <p>Match partial, match by exact positions: <answer name="ansPEP">
+  <p>Match partial, match by exact positions: <answer disableAfterCorrect="false" name="ansPEP">
     <award matchPartial matchByExactPositions><when>$resp=<math>(1,2,3)</math></when></award>
   </answer></p>
   
-  <p>Match partial, unordered: <answer name="ansPU" unorderedCompare>
+  <p>Match partial, unordered: <answer disableAfterCorrect="false" name="ansPU" unorderedCompare>
     <award matchPartial><when>$resp=<math>(1,2,3)</math></when></award>
   </answer></p>
   
-  <p>Strict equality: <answer name="ansS">
+  <p>Strict equality: <answer disableAfterCorrect="false" name="ansS">
     <award><when>$resp=<math>(1,2,3)</math></when></award>
   </answer></p>
   
-  <p>Unordered: <answer name="ansU" unorderedCompare>
+  <p>Unordered: <answer disableAfterCorrect="false" name="ansU" unorderedCompare>
     <award><when>$resp=<math>(1,2,3)</math></when></award>
   </answer></p>
     `;
@@ -341,11 +341,11 @@ describe("match partial validation tests", async () => {
         const doenetML = `
   <mathInput name="resp" />
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial><when>$resp=<math>{1,2,3}</math></when></award>
   </answer></p>
   
-  <p>No partial: <answer name="ansS">
+  <p>No partial: <answer disableAfterCorrect="false" name="ansS">
     <award><when>$resp=<math>{1,2,3}</math></when></award>
   </answer></p>`;
 
@@ -397,35 +397,35 @@ describe("match partial validation tests", async () => {
         const doenetML = `
   <mathInput name="resp" />
 
-  <p>Open, match partial: <answer name="ansOP">
+  <p>Open, match partial: <answer disableAfterCorrect="false" name="ansOP">
     <award matchPartial><when>$resp=<math createIntervals>(1,2)</math></when></award>
   </answer></p>
   
-  <p>Open, no partial: <answer name="ansOS">
+  <p>Open, no partial: <answer disableAfterCorrect="false" name="ansOS">
     <award><when>$resp=<math createIntervals>(1,2)</math></when></award>
   </answer></p>
 
-  <p>Closed, match partial: <answer name="ansCP">
+  <p>Closed, match partial: <answer disableAfterCorrect="false" name="ansCP">
     <award matchPartial><when>$resp=<math createIntervals>[1,2]</math></when></award>
   </answer></p>
 
-  <p>Closed, no partial: <answer name="ansCS">
+  <p>Closed, no partial: <answer disableAfterCorrect="false" name="ansCS">
     <award><when>$resp=<math createIntervals>[1,2]</math></when></award>
   </answer></p>
 
-  <p>Left open, match partial: <answer name="ansLP">
+  <p>Left open, match partial: <answer disableAfterCorrect="false" name="ansLP">
     <award matchPartial><when>$resp=<math>(1,2]</math></when></award>
   </answer></p>
 
-  <p>Left open, no partial: <answer name="ansLS">
+  <p>Left open, no partial: <answer disableAfterCorrect="false" name="ansLS">
     <award><when>$resp=<math>(1,2]</math></when></award>
   </answer></p>
 
-  <p>Right open, match partial: <answer name="ansRP">
+  <p>Right open, match partial: <answer disableAfterCorrect="false" name="ansRP">
     <award matchPartial><when>$resp=<math>[1,2)</math></when></award>
   </answer></p>
 
-  <p>Right open, no partial: <answer name="ansRS">
+  <p>Right open, no partial: <answer disableAfterCorrect="false" name="ansRS">
     <award><when>$resp=<math>[1,2)</math></when></award>
   </answer></p>`;
 
@@ -663,7 +663,7 @@ describe("match partial validation tests", async () => {
 
   <section><title>Match partial</title>
 
-  <answer name="ansP">
+  <answer disableAfterCorrect="false" name="ansP">
     <award>
       <when matchPartial>
         <math>
@@ -678,7 +678,7 @@ describe("match partial validation tests", async () => {
 
   <section><title>Match partial, match by exact positions</title>
 
-  <answer name="ansPEP">
+  <answer disableAfterCorrect="false" name="ansPEP">
   <award>
     <when matchPartial matchByExactPositions>
       <math>
@@ -693,7 +693,7 @@ describe("match partial validation tests", async () => {
 
 
   <section><title>Match partial, unordered</title>
-  <answer name="ansPU">
+  <answer disableAfterCorrect="false" name="ansPU">
     <award>
       <when matchPartial>
         <math unordered="true">
@@ -707,7 +707,7 @@ describe("match partial validation tests", async () => {
   </section>
 
   <section><title>Strict equality</title>
-   <answer name="ansS">
+   <answer disableAfterCorrect="false" name="ansS">
    <award>
      <when>
        <math>
@@ -721,7 +721,7 @@ describe("match partial validation tests", async () => {
  </section>
 
   <section><title>Unordered</title>
-    <answer name="ansU">
+    <answer disableAfterCorrect="false" name="ansU">
     <award>
       <when>
         <math unordered="true">
@@ -745,7 +745,7 @@ describe("match partial validation tests", async () => {
 
   <section><title>Match partial</title>
 
-  <answer name="ansP">
+  <answer disableAfterCorrect="false" name="ansP">
     <award>
       <when matchPartial>
         <textList>
@@ -760,7 +760,7 @@ describe("match partial validation tests", async () => {
 
   <section><title>Match partial, match by exact positions</title>
 
-  <answer name="ansPEP">
+  <answer disableAfterCorrect="false" name="ansPEP">
   <award>
     <when matchPartial matchByExactPositions>
       <textList>
@@ -775,7 +775,7 @@ describe("match partial validation tests", async () => {
 
 
   <section><title>Match partial, unordered</title>
-  <answer name="ansPU">
+  <answer disableAfterCorrect="false" name="ansPU">
     <award>
       <when matchPartial>
         <textList unordered="true">
@@ -789,7 +789,7 @@ describe("match partial validation tests", async () => {
   </section>
 
   <section><title>Strict equality</title>
-   <answer name="ansS">
+   <answer disableAfterCorrect="false" name="ansS">
    <award>
      <when>
        <textList>
@@ -803,7 +803,7 @@ describe("match partial validation tests", async () => {
  </section>
 
   <section><title>Unordered</title>
-    <answer name="ansU">
+    <answer disableAfterCorrect="false" name="ansU">
     <award>
       <when>
         <textList unordered="true">
@@ -827,7 +827,7 @@ describe("match partial validation tests", async () => {
 
   <section><title>Match partial</title>
 
-  <answer name="ansP">
+  <answer disableAfterCorrect="false" name="ansP">
     <award>
       <when matchPartial>
         <booleanList>
@@ -842,7 +842,7 @@ describe("match partial validation tests", async () => {
 
   <section><title>Match partial, match by exact positions</title>
 
-  <answer name="ansPEP">
+  <answer disableAfterCorrect="false" name="ansPEP">
   <award>
     <when matchPartial matchByExactPositions>
       <booleanList>
@@ -857,7 +857,7 @@ describe("match partial validation tests", async () => {
 
 
   <section><title>Match partial, unordered</title>
-  <answer name="ansPU">
+  <answer disableAfterCorrect="false" name="ansPU">
     <award>
       <when matchPartial>
         <booleanList unordered="true">
@@ -871,7 +871,7 @@ describe("match partial validation tests", async () => {
   </section>
 
   <section><title>Strict equality</title>
-   <answer name="ansS">
+   <answer disableAfterCorrect="false" name="ansS">
    <award>
      <when>
        <booleanList>
@@ -885,7 +885,7 @@ describe("match partial validation tests", async () => {
  </section>
 
   <section><title>Unordered</title>
-    <answer name="ansU">
+    <answer disableAfterCorrect="false" name="ansU">
     <award>
       <when>
         <booleanList unordered="true">
@@ -973,7 +973,7 @@ describe("match partial validation tests", async () => {
   <mathInput name="m1"/>
   <mathInput name="m2"/>
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial>
       <when>
         $m1 = (1,2)
@@ -983,7 +983,7 @@ describe("match partial validation tests", async () => {
     </award>
   </answer></p>
   
-  <p>Strict equality: <answer name="ansS">
+  <p>Strict equality: <answer disableAfterCorrect="false" name="ansS">
     <award>
       <when>
         $m1 = (1,2)
@@ -1000,7 +1000,7 @@ describe("match partial validation tests", async () => {
   <mathInput name="m1"/>
   <mathInput name="m2"/>
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial>
       <when>
         $m1 = (1,2)
@@ -1010,7 +1010,7 @@ describe("match partial validation tests", async () => {
     </award>
   </answer></p>
   
-  <p>Strict equality: <answer name="ansS">
+  <p>Strict equality: <answer disableAfterCorrect="false" name="ansS">
     <award>
       <when>
         $m1 = (1,2)
@@ -1027,7 +1027,7 @@ describe("match partial validation tests", async () => {
   <mathInput name="m1"/>
   <mathInput name="m2"/>
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial>
       <when>
         $m1 = (1,2)
@@ -1037,7 +1037,7 @@ describe("match partial validation tests", async () => {
     </award>
   </answer></p>
   
-  <p>Strict equality: <answer name="ansS">
+  <p>Strict equality: <answer disableAfterCorrect="false" name="ansS">
     <award>
       <when>
         $m1 = (1,2)
@@ -1057,7 +1057,7 @@ describe("match partial validation tests", async () => {
   <mathInput name="m1"/>
   <mathInput name="m2"/>
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial>
       <when>
         $m1 = (1,2)
@@ -1067,7 +1067,7 @@ describe("match partial validation tests", async () => {
     </award>
   </answer></p>
   
-  <p>No net effect of inner matchPartial: <answer name="ansS">
+  <p>No net effect of inner matchPartial: <answer disableAfterCorrect="false" name="ansS">
     <award>
       <when>
         $m1 = (1,2)
@@ -1087,7 +1087,7 @@ describe("match partial validation tests", async () => {
   <mathInput name="m1"/>
   <mathInput name="m2"/>
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial>
       <when unorderedCompare="false">
         $m1 = (1,2)
@@ -1097,7 +1097,7 @@ describe("match partial validation tests", async () => {
     </award>
   </answer></p>
   
-  <p>Strict equality: <answer name="ansS">
+  <p>Strict equality: <answer disableAfterCorrect="false" name="ansS">
     <award>
       <when unorderedCompare="false">
         $m1 = (1,2)
@@ -1118,7 +1118,7 @@ describe("match partial validation tests", async () => {
   <mathInput name="m1"/>
   <mathInput name="m2"/>
 
-  <p>Match partial: <answer name="ansP">
+  <p>Match partial: <answer disableAfterCorrect="false" name="ansP">
     <award matchPartial>
       <when unorderedCompare="false">
         $m1 = (1,2)
@@ -1128,7 +1128,7 @@ describe("match partial validation tests", async () => {
     </award>
   </answer></p>
   
-  <p>Strict equality: <answer name="ansS">
+  <p>Strict equality: <answer disableAfterCorrect="false" name="ansS">
     <award>
       <when unorderedCompare="false">
         $m1 = (1,2)
@@ -1149,7 +1149,7 @@ describe("match partial validation tests", async () => {
   <p><booleanInput name="y"/></p>
 
   <p>Match partial:
-  <answer name="ansP">
+  <answer disableAfterCorrect="false" name="ansP">
     <award>
       <when matchPartial>
         <booleanList>$u $v</booleanList>
@@ -1165,7 +1165,7 @@ describe("match partial validation tests", async () => {
   </p>
 
   <p>Strict:
-  <answer name="ansS">
+  <answer disableAfterCorrect="false" name="ansS">
     <award>
       <when>
         <booleanList>$u $v</booleanList>
@@ -1270,14 +1270,14 @@ describe("match partial validation tests", async () => {
         const doenetML = `
   <p>
   <mathInput name="mi" />
-  <answer name="ans1">
+  <answer disableAfterCorrect="false" name="ans1">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         $mi = <mathList><math>(1,2)</math><math>(3,4)</math></mathList>
       </when>
     </award>
   </answer>
-  <answer name="ans2">
+  <answer disableAfterCorrect="false" name="ans2">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         <mathList><math>(1,2)</math><math>(3,4)</math></mathList> = $mi
@@ -1293,14 +1293,14 @@ describe("match partial validation tests", async () => {
         const doenetML = `
   <p>
   <mathInput name="mi" />
-  <answer name="ans1">
+  <answer disableAfterCorrect="false" name="ans1">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         $mi = <mathList><math createVectors>(1,2)</math><math createVectors>(3,4)</math></mathList>
       </when>
     </award>
   </answer>
-  <answer name="ans2">
+  <answer disableAfterCorrect="false" name="ans2">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         <mathList><math createVectors>(1,2)</math><math createVectors>(3,4)</math></mathList> = $mi
@@ -1316,14 +1316,14 @@ describe("match partial validation tests", async () => {
         const doenetML = `
   <p>
   <mathInput name="mi" />
-  <answer name="ans1">
+  <answer disableAfterCorrect="false" name="ans1">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         <math createVectors>$mi</math> = <mathList><math>(1,2)</math><math>(3,4)</math></mathList>
       </when>
     </award>
   </answer>
-  <answer name="ans2">
+  <answer disableAfterCorrect="false" name="ans2">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         <mathList><math>(1,2)</math><math>(3,4)</math></mathList> = <math createVectors>$mi</math>
@@ -1339,14 +1339,14 @@ describe("match partial validation tests", async () => {
         const doenetML = `
   <p>
   <mathInput name="mi" />
-  <answer name="ans1">
+  <answer disableAfterCorrect="false" name="ans1">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         <math createVectors>$mi</math> = <mathList><math createVectors>(1,2)</math><math createVectors>(3,4)</math></mathList>
       </when>
     </award>
   </answer>
-  <answer name="ans2">
+  <answer disableAfterCorrect="false" name="ans2">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         <mathList><math createVectors>(1,2)</math><math createVectors>(3,4)</math></mathList> = <math createVectors>$mi</math>
@@ -1362,14 +1362,14 @@ describe("match partial validation tests", async () => {
         const doenetML = `
   <p>
   <mathInput name="mi" />
-  <answer name="ans1">
+  <answer disableAfterCorrect="false" name="ans1">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         $mi = <mathList><math>[1,2)</math><math>(3,4]</math></mathList>
       </when>
     </award>
   </answer>
-  <answer name="ans2">
+  <answer disableAfterCorrect="false" name="ans2">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         <mathList><math>[1,2)</math><math>(3,4]</math></mathList> = $mi
@@ -1395,14 +1395,14 @@ describe("match partial validation tests", async () => {
         const doenetML = `
   <p>
   <mathInput name="mi" />
-  <answer name="ans1">
+  <answer disableAfterCorrect="false" name="ans1">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         $mi = <mathList><math>[1,2]</math><math>[3,4]</math></mathList>
       </when>
     </award>
   </answer>
-  <answer name="ans2">
+  <answer disableAfterCorrect="false" name="ans2">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         <mathList><math>[1,2]</math><math>[3,4]</math></mathList> = $mi
@@ -1428,14 +1428,14 @@ describe("match partial validation tests", async () => {
         const doenetML = `
   <p>
   <mathInput name="mi" />
-  <answer name="ansP">
+  <answer disableAfterCorrect="false" name="ansP">
     <award referencesAreResponses="$mi">
       <when matchPartial>
         $mi = <mathList>(1,2) (3,4)</mathList>
       </when>
     </award>
   </answer>
-  <answer name="ansPU">
+  <answer disableAfterCorrect="false" name="ansPU">
     <award referencesAreResponses="$mi">
       <when matchPartial unorderedCompare>
         $mi = <mathList>(1,2) (3,4)</mathList>

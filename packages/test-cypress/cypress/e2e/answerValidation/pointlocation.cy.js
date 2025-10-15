@@ -11,7 +11,7 @@ describe("Point location validation tests", function () {
     <text name="a">a</text>
     <p>Move point to first quadrant</p>
     <graph><point name="point1">(-3.9,4.5)</point></graph>
-    <p><answer name="answer1">
+    <p><answer disableAfterCorrect="false" name="answer1">
       <award><when>
         $point1.x > 0 and 
         $point1.y > 0

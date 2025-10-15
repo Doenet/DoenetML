@@ -2904,17 +2904,17 @@ describe("Extend and references tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi" prefill="p" />
-    <answer name="answer1">x</answer>
+    <answer disableAfterCorrect="false" name="answer1">x</answer>
 
     <problem name="p1">
-      <answer name="answer2">y</answer>
+      <answer disableAfterCorrect="false" name="answer2">y</answer>
       <p>Credit achieved: <number extend="$p1.creditAchieved" name="ca" /></p>
       <p>Value of mathInput: <math extend="$mi" name="m" /></p>
       <p>Other answer credit achieved: <number extend="$p2.answer2.creditAchieved" name="cao" /></p>
     </problem>
 
     <problem name="p2">
-      <answer name="answer2">z</answer>
+      <answer disableAfterCorrect="false" name="answer2">z</answer>
       <p>Credit achieved: <number extend="$p2.creditAchieved" name="ca" /></p>
       <p>Value of mathInput: <math extend="$mi" name="m" /></p>
       <p>Other answer credit achieved: <number extend="$p1.answer2.creditAchieved" name="cao" /></p>
@@ -6351,7 +6351,7 @@ describe("Extend and references tests", async () => {
     it("correctly wrap replacement changes when verifying to force component type", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-        <answer name="ans">47</answer>
+        <answer disableAfterCorrect="false" name="ans">47</answer>
         <number extend="$ans.submittedResponse" name="num" />
     `,
         });
