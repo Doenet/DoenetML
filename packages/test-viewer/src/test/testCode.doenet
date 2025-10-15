@@ -1,9 +1,12 @@
 <graph>
-    <point name="P" x="3" y="1" />
-    <rectangle width="40" height="40" center="(0,0)" filled name="R" />
+  <point name="P" x="3" y="1" />
+  <rectangle width="40" height="40" center="(0,0)" filled name="R" />
 </graph>
-<number name="n">1</number>
-<updateValue triggerWhenObjectsClicked="P R" newValue="$n+1" target="n" />
+<number name="n">1</number> <updateValue
+  triggerWhenObjectsClicked="$P $R"
+  newValue="$n+1"
+  target="$n"
+/>
 <p>Use this to <m>a < b</m>test DoenetML</p>
 <p>A second paragraph!</p>
 <!-- <graph showNavigation>

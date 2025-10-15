@@ -445,7 +445,7 @@ describe("ref Tag Tests", function () {
     <callAction target="$refCountAside" actionName="navigateToTarget" name="startCount">
       <label>Start counting</label>
     </callAction>
-    <callAction target="$count" actionName="startAnimation" triggerWith="startCount" />
+    <callAction target="$count" actionName="startAnimation" triggerWith="$startCount" />
     <ref name="toAside" to="$aside" hide>Aside</ref>
     <p>
     <callAction target="$toAside" actionName="navigateToTarget" name="go"><label>Go to aside</label></callAction>
