@@ -380,6 +380,16 @@ export default React.memo(function Section(props) {
                         borderTopLeftRadius: "var(--mainBorderRadius)",
                         borderTopRightRadius: "var(--mainBorderRadius)",
                     }}
+                    tabIndex="0"
+                    onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                            callAction({
+                                action: SVs.open
+                                    ? actions.closeSection
+                                    : actions.revealSection,
+                            });
+                        }
+                    }}
                     onClick={() =>
                         callAction({
                             action: SVs.open
