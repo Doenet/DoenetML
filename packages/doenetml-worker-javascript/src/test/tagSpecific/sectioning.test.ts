@@ -565,43 +565,40 @@ describe("Sectioning tag tests", async () => {
         await test_section_credit(core, resolvePathToNodeIdx, check_items);
     });
 
-    it("warning that cannot add section-wide checkwork button if not aggregating scores", async () => {
+    it("section-wide checkwork button implies aggregate scores", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <section sectionWideCheckwork>
-      <p>Enter x: <answer name="ans"><mathInput name="mi" />x</answer></p>
+    <section sectionWideCheckwork name="theSection">
+      <p>Enter x: <answer><mathInput name="mi1" />x</answer></p>
+      <p>Enter y: <answer><mathInput name="mi2" />y</answer></p>
     </section>
     `,
         });
 
         await updateMathInputValue({
             latex: "x",
-            componentIdx: await resolvePathToNodeIdx("mi"),
+            componentIdx: await resolvePathToNodeIdx("mi1"),
             core,
         });
-        await submitAnswer({
-            componentIdx: await resolvePathToNodeIdx("ans"),
-            core,
+
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("theSection"),
+            actionName: "submitAllAnswers",
+            args: {},
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
+            stateVariables[await resolvePathToNodeIdx("theSection")].stateValues
                 .creditAchieved,
-        ).eq(1);
-
-        let errorWarnings = core.core!.errorWarnings;
-
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
-
-        expect(errorWarnings.warnings[0].message).contain(
-            `Cannot create submit all button for <section> because it doesn't aggregate scores.`,
-        );
-        expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(4);
-        expect(errorWarnings.warnings[0].position.end.column).eq(15);
+        ).eq(0.5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("theSection")].stateValues
+                .aggregateScores,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("theSection")].stateValues
+                .sectionWideCheckWork,
+        ).eq(true);
     });
 
     it("paragraphs", async () => {
