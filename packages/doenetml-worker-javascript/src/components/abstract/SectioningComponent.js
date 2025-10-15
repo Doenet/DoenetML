@@ -33,9 +33,8 @@ export class SectioningComponent extends BlockComponent {
         let attributes = super.createAttributesObject();
         attributes.aggregateScores = {
             createComponentOfType: "boolean",
-            createStateVariable: "aggregateScores",
+            createStateVariable: "aggregateScoresPreliminary",
             defaultValue: false,
-            public: true,
         };
         attributes.weight = {
             createComponentOfType: "number",
@@ -590,6 +589,32 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
+        stateVariableDefinitions.aggregateScores = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                aggregateScoresPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "aggregateScoresPreliminary",
+                },
+                sectionWideCheckWork: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionWideCheckWork",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        aggregateScores:
+                            dependencyValues.aggregateScoresPreliminary ||
+                            dependencyValues.sectionWideCheckWork,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.creditAchieved = {
             public: true,
             shadowingInstructions: {
@@ -899,10 +924,6 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "sectionWideCheckWork",
                 },
-                aggregateScores: {
-                    dependencyType: "stateVariable",
-                    variableName: "aggregateScores",
-                },
                 sectionAncestor: {
                     dependencyType: "ancestor",
                     componentType: "_sectioningComponent",
@@ -914,7 +935,7 @@ export class SectioningComponent extends BlockComponent {
                     variableNames: ["suppressAnswerSubmitButtons"],
                 },
             }),
-            definition({ dependencyValues, componentIdx }) {
+            definition({ dependencyValues }) {
                 let warnings = [];
 
                 let createSubmitAllButton = false;
@@ -929,15 +950,8 @@ export class SectioningComponent extends BlockComponent {
                 ) {
                     suppressAnswerSubmitButtons = true;
                 } else if (dependencyValues.sectionWideCheckWork) {
-                    if (dependencyValues.aggregateScores) {
-                        createSubmitAllButton = true;
-                        suppressAnswerSubmitButtons = true;
-                    } else {
-                        warnings.push({
-                            message: `Cannot create submit all button for <section> because it doesn't aggregate scores.`,
-                            level: 1,
-                        });
-                    }
+                    createSubmitAllButton = true;
+                    suppressAnswerSubmitButtons = true;
                 }
 
                 return {
