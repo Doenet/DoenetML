@@ -1,6 +1,7 @@
 import React from "react";
 
 import { watchForResize } from "./resize-watcher";
+import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
 import { findAllNewlines, getLineCharRange } from "@doenet/utils";
@@ -165,40 +166,18 @@ export function DoenetViewer({
                 //@ts-ignore
                 return setInErrorState(data.error);
             }
-
-            switch (data.callback) {
-                case "reportScoreAndStateCallback": {
-                    return doenetViewerProps.reportScoreAndStateCallback?.(
-                        data.args,
-                    );
-                }
-                case "setIsInErrorState": {
-                    return doenetViewerProps.setIsInErrorState?.(data.args);
-                }
-                case "generatedVariantCallback": {
-                    return doenetViewerProps.generatedVariantCallback?.(
-                        data.args,
-                    );
-                }
-                case "documentStructureCallback": {
-                    return doenetViewerProps.documentStructureCallback?.(
-                        data.args,
-                    );
-                }
-                case "initializedCallback": {
-                    return doenetViewerProps.initializedCallback?.(data.args);
-                }
-                case "setErrorsAndWarningsCallback": {
-                    return doenetViewerProps.setErrorsAndWarningsCallback?.(
-                        data.args,
-                    );
-                }
-            }
         };
         if (ref.current) {
             window.addEventListener("message", listener);
         }
         const clearResize = watchForResize(ref, () => height, setHeight);
+
+        if (ref.current) {
+            Comlink.expose(
+                doenetViewerProps,
+                Comlink.windowEndpoint(ref.current.contentWindow!),
+            );
+        }
 
         return () => {
             window.removeEventListener("message", listener);
@@ -237,6 +216,7 @@ export function DoenetViewer({
         <React.Fragment>
             {addVirtualKeyboard ? <ExternalVirtualKeyboard /> : null}
             <iframe
+                title="Doenet document"
                 ref={ref}
                 srcDoc={createHtmlForDoenetViewer(
                     id,
@@ -339,27 +319,16 @@ export function DoenetEditor({
                 //@ts-ignore
                 return setInErrorState(data.error);
             }
-
-            switch (data.callback) {
-                case "doenetmlChangeCallback": {
-                    return doenetEditorProps.doenetmlChangeCallback?.(
-                        data.args,
-                    );
-                }
-                case "immediateDoenetmlChangeCallback": {
-                    return doenetEditorProps.immediateDoenetmlChangeCallback?.(
-                        data.args,
-                    );
-                }
-                case "documentStructureCallback": {
-                    return doenetEditorProps.documentStructureCallback?.(
-                        data.args,
-                    );
-                }
-            }
         };
         if (ref.current) {
             window.addEventListener("message", listener);
+        }
+
+        if (ref.current) {
+            Comlink.expose(
+                doenetEditorProps,
+                Comlink.windowEndpoint(ref.current.contentWindow!),
+            );
         }
 
         return () => {
@@ -413,6 +382,7 @@ export function DoenetEditor({
         <React.Fragment>
             {addVirtualKeyboard ? <ExternalVirtualKeyboard /> : null}
             <iframe
+                title="Doenet Editor"
                 ref={ref}
                 srcDoc={createHtmlForDoenetEditor(
                     id,
