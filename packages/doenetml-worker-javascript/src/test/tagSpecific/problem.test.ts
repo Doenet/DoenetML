@@ -690,7 +690,7 @@ describe("Problem tag tests", async () => {
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
         <answer name="sum3">
-          <award referencesAreResponses="n1 n2">
+          <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
         </answer></p>
@@ -725,7 +725,7 @@ describe("Problem tag tests", async () => {
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
         <answer name="sum3">
-          <award referencesAreResponses="n1 n2">
+          <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
         </answer></p>
@@ -761,7 +761,7 @@ describe("Problem tag tests", async () => {
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
         <answer name="sum3">
-          <award referencesAreResponses="n1 n2">
+          <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
         </answer></p>
@@ -799,7 +799,7 @@ describe("Problem tag tests", async () => {
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
         <answer name="sum3">
-          <award referencesAreResponses="n1 n2">
+          <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
         </answer></p>
@@ -840,7 +840,7 @@ describe("Problem tag tests", async () => {
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
         <answer name="sum3">
-          <award referencesAreResponses="n1 n2">
+          <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
         </answer></p>
@@ -1156,7 +1156,7 @@ describe("Problem tag tests", async () => {
       
           <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
           <answer name="sum3">
-            <award referencesAreResponses="n1 n2">
+            <award referencesAreResponses="$n1 $n2">
               <when>$n1+$n2=3</when>
             </award>
           </answer></p>
@@ -1195,7 +1195,7 @@ describe("Problem tag tests", async () => {
       
           <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
           <answer name="sum3">
-            <award referencesAreResponses="n1 n2">
+            <award referencesAreResponses="$n1 $n2">
               <when>$n1+$n2=3</when>
             </award>
           </answer></p>

@@ -71,7 +71,7 @@ Coordinates for the points are provided by the user with the ` <mathInput/>{:dn}
 
 ```doenet-editor-horiz
  <p>Add your data points to the graph, approximated to the nearest <m>0.5</m> units.</p>
-  <callAction actionName="addChildren" target="dataGraph">
+  <callAction actionName="addChildren" target="$dataGraph">
     <point>(0,0)
       <constraints>
         <constrainToGrid dx="0.5" dy="0.5"/>
@@ -81,7 +81,7 @@ Coordinates for the points are provided by the user with the ` <mathInput/>{:dn}
   </callAction>
   <p>Data: 
     <asList>
-      <collect name="dataPoints" componentTypes="point" source="dataGraph"/>
+      <collect name="dataPoints" componentType="point" from="$dataGraph"/>
     </asList></p>
   <graph name="dataGraph" grid>
     <bestFitLine name="linearFit" data="$dataPoints"/>

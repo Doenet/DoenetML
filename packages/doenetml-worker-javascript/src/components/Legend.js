@@ -145,7 +145,7 @@ export default class Legend extends GraphicalComponent {
                         // XXX: this is not a perfect solution to the fact that we cannot tell
                         // if we are from a reference by looking that the name starts with "__".
                         // Really, we should use the shadow source only if we have reference like $P
-                        // but not if we extend such <point extend="P" name="P2" styleNumber="4" />!!!
+                        // but not if we extend such <point extend="$P" name="P2" styleNumber="4" />!!!
                         // Adding both an imperfect stopgap
                         let shadowSource =
                             dependencyValues[
