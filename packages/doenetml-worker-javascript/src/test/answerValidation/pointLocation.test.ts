@@ -75,7 +75,7 @@ describe("point location validation tests", async () => {
     it("point in first quadrant", async () => {
         let doenetML = `
         <graph><point name="P">(-3.9,4.5)</point></graph>
-        <p><answer name="ans">
+        <p><answer disableAfterCorrect="false" name="ans">
           <award><when>
             $P.x > 0 and 
             $P.y > 0
@@ -125,7 +125,7 @@ describe("point location validation tests", async () => {
                 </constraints>
             </point>
         </graph>
-        <p><answer name="ans"><award><when>
+        <p><answer disableAfterCorrect="false" name="ans"><award><when>
             $A.x{isResponse} = $goal.x and 
             $A.y{isResponse} = $goal.y
         </when></award></answer></p>
@@ -170,7 +170,7 @@ describe("point location validation tests", async () => {
     <graph>
       <point name="A">(4.9, -1.1)</point>
     </graph>
-    <p><answer name="ans">
+    <p><answer disableAfterCorrect="false" name="ans">
       <award><when>
         $distance2 < $criterion2
       </when></award>
@@ -283,7 +283,7 @@ describe("point location validation tests", async () => {
         </constraints>
       </point>
     </graph>
-    <p><answer name="ans">
+    <p><answer disableAfterCorrect="false" name="ans">
       <award matchPartial unorderedCompare referencesAreResponses="$A $B">
         <when>
           ($A, $B) = ($goal1, $goal2)
@@ -314,7 +314,7 @@ describe("point location validation tests", async () => {
         </constraints>
       </point>
     </graph>
-    <p><answer name="ans">
+    <p><answer disableAfterCorrect="false" name="ans">
       <award matchPartial referencesAreResponses="$A $B">
         <when>
           ($A, $B) = ($goal1, $goal2)
@@ -345,7 +345,7 @@ describe("point location validation tests", async () => {
         </constraints>
       </point>
     </graph>
-    <p><answer name="ans">
+    <p><answer disableAfterCorrect="false" name="ans">
       <award matchPartial unorderedCompare referencesAreResponses="$A $B">
         <when>
           ($A, $B) = ((-4.1, 7.4), (6.8, 9.1))
@@ -376,7 +376,7 @@ describe("point location validation tests", async () => {
         </constraints>
       </point>
     </graph>
-    <p><answer name="ans">
+    <p><answer disableAfterCorrect="false" name="ans">
       <award matchPartial referencesAreResponses="$A $B">
         <when>
           ($A, $B) = ((-4.1, 7.4), (6.8, 9.1))
@@ -407,7 +407,7 @@ describe("point location validation tests", async () => {
         </constraints>
       </point>
     </graph>
-    <p><answer name="ans">
+    <p><answer disableAfterCorrect="false" name="ans">
       <award matchPartial unorderedCompare referencesAreResponses="$A $B">
         <when>
           <mathList>$A $B</mathList> = <mathList>$goal1 $goal2</mathList>
@@ -438,7 +438,7 @@ describe("point location validation tests", async () => {
       </repeat>
       
     </graph>
-    <p><answer name="ans">
+    <p><answer disableAfterCorrect="false" name="ans">
       <award matchPartial unorderedCompare referencesAreResponses="$r">
         <when>
           <mathList>$r</mathList> = <mathList>$goal1 $goal2</mathList>
@@ -537,7 +537,7 @@ describe("point location validation tests", async () => {
         </repeat>
       </repeat>
     </graph>
-    <p><answer name="ans">
+    <p><answer disableAfterCorrect="false" name="ans">
       <award matchPartial unorderedCompare referencesAreResponses="$r">
         <when>
           <mathList>$r</mathList> = <mathList>$goal1 $goal2</mathList>

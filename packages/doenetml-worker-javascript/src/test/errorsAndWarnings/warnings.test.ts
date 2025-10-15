@@ -21,7 +21,7 @@ describe("Warning Tests", async () => {
     <regularPolygon extend="$rp" nSides="6" />
     $rp{nSides="8"}
   </graph>
-  <answer maximumNumberOfAttempts="2">
+  <answer disableAfterCorrect="false" maximumNumberOfAttempts="2">
     <choiceInput randomizeOrder>
       <choice>yes</choice>
       <choice>no</choice>

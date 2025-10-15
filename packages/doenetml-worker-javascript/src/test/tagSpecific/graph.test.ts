@@ -776,7 +776,7 @@ describe("Graph tag tests", async () => {
       <yLabel>y</yLabel>
     </graph>
 
-    <answer name="x">x</answer>
+    <answer disableAfterCorrect="false" name="x">x</answer>
     `,
         });
 

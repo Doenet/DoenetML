@@ -42,7 +42,7 @@ const externalDoenetMLs = {
 </point>
 </graph>
 
-<answer name="ans">
+<answer disableAfterCorrect="false" name="ans">
 <award referencesAreResponses="$P">
 <when>
   $P = ($goalx, $goaly)
@@ -648,7 +648,7 @@ describe("Module tag tests", async () => {
             </point>
           </graph>
       
-          <answer name="ans" >
+          <answer disableAfterCorrect="false" name="ans" >
             <award referencesAreResponses="$P">
               <when>
                 $P = ($goalx, $goaly)

@@ -826,23 +826,23 @@ describe("Ion tests", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Enter symbol for common ion of <atom name="Cl" symbol="Cl" />.  
-    <answer name="ansCl" splitSymbols="false"><math><ion>$Cl</ion></math></answer>
+    <answer disableAfterCorrect="false" name="ansCl" splitSymbols="false"><math><ion>$Cl</ion></math></answer>
   </p>
 
   <p>Enter symbol for common ion of <atom name="H" symbol="H" />.  
-    <answer name="ansH" splitSymbols="false"><math><ion extend="$H" /></math></answer>
+    <answer disableAfterCorrect="false" name="ansH" splitSymbols="false"><math><ion extend="$H" /></math></answer>
   </p>
 
   <p>Enter symbol for common ion of <atom name="Mg" symbol="Mg" />.  
-    <answer name="ansMg" splitSymbols="false"><setup><ion name="Mgion" extend="$Mg" /></setup>$Mgion.math</answer>
+    <answer disableAfterCorrect="false" name="ansMg" splitSymbols="false"><setup><ion name="Mgion" extend="$Mg" /></setup>$Mgion.math</answer>
   </p>
 
   <p>Enter symbol for common ion of <atom name="P" symbol="P" />.  
-    <answer name="ansP" splitSymbols="false"><ion>$P</ion></answer>
+    <answer disableAfterCorrect="false" name="ansP" splitSymbols="false"><ion>$P</ion></answer>
   </p>
 
   <p>Enter symbol for common ion of <atom name="S" symbol="S" />.  
-    <answer name="ansS" splitSymbols="false"><ion extend="$S" /></answer>
+    <answer disableAfterCorrect="false" name="ansS" splitSymbols="false"><ion extend="$S" /></answer>
   </p>
 
   `,

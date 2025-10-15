@@ -164,14 +164,14 @@ describe("Problem tag tests", async () => {
     <p>Credit achieved for $doc.title:
     <number extend="$doc.creditAchieved" name="docCa" />, or <number extend="$doc.percentCreditAchieved" name="docPca"/>%</p>
 
-    <p>Enter <m>u</m>: <answer name="ans1">u</answer></p>
+    <p>Enter <m>u</m>: <answer disableAfterCorrect="false" name="ans1">u</answer></p>
 
     <problem name="problem1"><title>Problem 1</title>
       <p>Credit achieved for $problem1.title:
       <number extend="$problem1.creditAchieved" name="problem1Ca" />, or <number extend="$problem1.percentCreditAchieved" name="problem1Pca" />%</p>
 
-      <p>Enter <m>x</m>: <answer name="ans2">x</answer></p>
-      <p>Enter <m>y</m>: <answer name="ans3" weight="2">y</answer></p>
+      <p>Enter <m>x</m>: <answer disableAfterCorrect="false" name="ans2">x</answer></p>
+      <p>Enter <m>y</m>: <answer disableAfterCorrect="false" name="ans3" weight="2">y</answer></p>
 
 
     </problem>
@@ -179,34 +179,34 @@ describe("Problem tag tests", async () => {
       <p>Credit achieved for $problem2.title:
       <number extend="$problem2.creditAchieved" name="problem2Ca" />, or <number extend="$problem2.percentCreditAchieved" name="problem2Pca" />%</p>
 
-      <p>Enter <m>z</m>: <answer name="ans4">z</answer></p>
+      <p>Enter <m>z</m>: <answer disableAfterCorrect="false" name="ans4">z</answer></p>
 
       <problem name="problem21"><title>Problem 2.1</title>
         <p>Credit achieved for $problem21.title:
         <number extend="$problem21.creditAchieved" name="problem21Ca" />, or <number extend="$problem21.percentCreditAchieved" name="problem21Pca" />%</p>
 
-        <p>Enter <m>v</m>: <answer name="ans5" weight="0.5">v</answer></p>
-        <p>Enter <m>w</m>: <answer name="ans6">w</answer></p>
+        <p>Enter <m>v</m>: <answer disableAfterCorrect="false" name="ans5" weight="0.5">v</answer></p>
+        <p>Enter <m>w</m>: <answer disableAfterCorrect="false" name="ans6">w</answer></p>
 
       </problem>
       <problem name="problem22"><title>Problem 2.2</title> 
         <p>Credit achieved for $problem22.title:
         <number extend="$problem22.creditAchieved" name="problem22Ca" />, or <number extend="$problem22.percentCreditAchieved" name="problem22Pca" />%</p>
 
-        <p>Enter <m>q</m>: <answer name="ans7">q</answer></p>
+        <p>Enter <m>q</m>: <answer disableAfterCorrect="false" name="ans7">q</answer></p>
 
         <problem name="problem221"><title>Problem 2.2.1</title>
           <p>Credit achieved for $problem221.title:
           <number extend="$problem221.creditAchieved" name="problem221Ca" />, or <number extend="$problem221.percentCreditAchieved" name="problem221Pca" />%</p>
 
-          <p>Enter <m>r</m>: <answer name="ans8">r</answer></p>
+          <p>Enter <m>r</m>: <answer disableAfterCorrect="false" name="ans8">r</answer></p>
 
         </problem>
         <problem name="problem222"><title>Problem 2.2.2</title>
           <p>Credit achieved for $problem222.title:
           <number extend="$problem222.creditAchieved" name="problem222Ca" />, or <number extend="$problem222.percentCreditAchieved" name="problem222Pca" />%</p>
 
-          <p>Enter <m>s</m>: <answer name="ans9" weight="3">s</answer></p>
+          <p>Enter <m>s</m>: <answer disableAfterCorrect="false" name="ans9" weight="3">s</answer></p>
 
         </problem>
       </problem>
@@ -309,14 +309,14 @@ describe("Problem tag tests", async () => {
     <p>Credit achieved for $doc.title:
     <number extend="$doc.creditAchieved" name="docCa" />, or <number extend="$doc.percentCreditAchieved" name="docPca"/>%</p>
 
-    <p>Enter <m>u</m>: <answer name="ans1">u</answer></p>
+    <p>Enter <m>u</m>: <answer disableAfterCorrect="false" name="ans1">u</answer></p>
 
     <problem name="problem1" weight="0.5"><title>Problem 1</title>
       <p>Credit achieved for $problem1.title:
       <number extend="$problem1.creditAchieved" name="problem1Ca" />, or <number extend="$problem1.percentCreditAchieved" name="problem1Pca" />%</p>
 
-      <p>Enter <m>x</m>: <answer name="ans2">x</answer></p>
-      <p>Enter <m>y</m>: <answer name="ans3" weight="2">y</answer></p>
+      <p>Enter <m>x</m>: <answer disableAfterCorrect="false" name="ans2">x</answer></p>
+      <p>Enter <m>y</m>: <answer disableAfterCorrect="false" name="ans3" weight="2">y</answer></p>
 
 
     </problem>
@@ -324,35 +324,35 @@ describe("Problem tag tests", async () => {
       <p>Credit achieved for $problem2.title:
       <number extend="$problem2.creditAchieved" name="problem2Ca" />, or <number extend="$problem2.percentCreditAchieved" name="problem2Pca" />%</p>
 
-      <p>Enter <m>z</m>: <answer name="ans4">z</answer></p>
+      <p>Enter <m>z</m>: <answer disableAfterCorrect="false" name="ans4">z</answer></p>
 
       <problem name="problem21" weight="3"><title>Problem 2.1</title>
         <p>Credit achieved for $problem21.title:
         <number extend="$problem21.creditAchieved" name="problem21Ca" />, or <number extend="$problem21.percentCreditAchieved" name="problem21Pca" />%</p>
 
 
-        <p>Enter <m>v</m>: <answer name="ans5" weight="0.5">v</answer></p>
-        <p>Enter <m>w</m>: <answer name="ans6">w</answer></p>
+        <p>Enter <m>v</m>: <answer disableAfterCorrect="false" name="ans5" weight="0.5">v</answer></p>
+        <p>Enter <m>w</m>: <answer disableAfterCorrect="false" name="ans6">w</answer></p>
 
       </problem>
       <problem name="problem22" weight="4"><title>Problem 2.2</title>
         <p>Credit achieved for $problem22.title:
         <number extend="$problem22.creditAchieved" name="problem22Ca" />, or <number extend="$problem22.percentCreditAchieved" name="problem22Pca" />%</p>
 
-        <p>Enter <m>q</m>: <answer name="ans7">q</answer></p>
+        <p>Enter <m>q</m>: <answer disableAfterCorrect="false" name="ans7">q</answer></p>
 
         <problem name="problem221" weight="5"><title>Problem 2.2.1</title>
           <p>Credit achieved for $problem221.title:
           <number extend="$problem221.creditAchieved" name="problem221Ca" />, or <number extend="$problem221.percentCreditAchieved" name="problem221Pca" />%</p>
 
-          <p>Enter <m>r</m>: <answer name="ans8">r</answer></p>
+          <p>Enter <m>r</m>: <answer disableAfterCorrect="false" name="ans8">r</answer></p>
 
         </problem>
         <problem name="problem222" weight="1"><title>Problem 2.2.2</title>
           <p>Credit achieved for $problem222.title:
           <number extend="$problem222.creditAchieved" name="problem222Ca" />, or <number extend="$problem222.percentCreditAchieved" name="problem222Pca" />%</p>
 
-          <p>Enter <m>s</m>: <answer name="ans9" weight="3">s</answer></p>
+          <p>Enter <m>s</m>: <answer disableAfterCorrect="false" name="ans9" weight="3">s</answer></p>
 
         </problem>
       </problem>
@@ -674,12 +674,12 @@ describe("Problem tag tests", async () => {
         <problem sectionWideCheckWork="$swcw" name="theProblem">
         <title>Problem 1</title>
       
-        <p>2x: <answer name="twox">2x</answer></p>
+        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
       
-        <p>hello: <answer type="text" name="hello">hello</answer></p>
+        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
 
         <p>banana: 
-        <answer name="fruit">
+        <answer disableAfterCorrect="false" name="fruit">
           <choiceInput name="fruitInput">
             <choice credit="1">banana</choice>
             <choice>apple</choice>
@@ -689,7 +689,7 @@ describe("Problem tag tests", async () => {
         </p>
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-        <answer name="sum3">
+        <answer disableAfterCorrect="false" name="sum3">
           <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
@@ -709,12 +709,12 @@ describe("Problem tag tests", async () => {
         <section aggregateScores sectionWideCheckWork="$swcw" name="theProblem">
         <title>Problem 1</title>
       
-        <p>2x: <answer name="twox">2x</answer></p>
+        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
       
-        <p>hello: <answer type="text" name="hello">hello</answer></p>
+        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
 
         <p>banana: 
-        <answer name="fruit">
+        <answer disableAfterCorrect="false" name="fruit">
           <choiceInput shuffleOrder name="fruitInput">
             <choice credit="1">banana</choice>
             <choice>apple</choice>
@@ -724,7 +724,7 @@ describe("Problem tag tests", async () => {
         </p>
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-        <answer name="sum3">
+        <answer disableAfterCorrect="false" name="sum3">
           <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
@@ -745,12 +745,12 @@ describe("Problem tag tests", async () => {
 
         <p>Document wide checkWork: <booleanInput name="swcw" /></p>
       
-        <p>2x: <answer name="twox">2x</answer></p>
+        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
       
-        <p>hello: <answer type="text" name="hello">hello</answer></p>
+        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
 
         <p>banana: 
-        <answer name="fruit">
+        <answer disableAfterCorrect="false" name="fruit">
           <choiceInput shuffleOrder name="fruitInput">
             <choice credit="1">banana</choice>
             <choice>apple</choice>
@@ -760,7 +760,7 @@ describe("Problem tag tests", async () => {
         </p>
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-        <answer name="sum3">
+        <answer disableAfterCorrect="false" name="sum3">
           <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
@@ -783,12 +783,12 @@ describe("Problem tag tests", async () => {
         <problem sectionWideCheckWork="$swcw" name="theProblem" showCorrectness="false">
         <title>Problem 1</title>
       
-        <p>2x: <answer name="twox">2x</answer></p>
+        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
       
-        <p>hello: <answer type="text" name="hello">hello</answer></p>
+        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
 
         <p>banana: 
-        <answer name="fruit">
+        <answer disableAfterCorrect="false" name="fruit">
           <choiceInput name="fruitInput">
             <choice credit="1">banana</choice>
             <choice>apple</choice>
@@ -798,7 +798,7 @@ describe("Problem tag tests", async () => {
         </p>
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-        <answer name="sum3">
+        <answer disableAfterCorrect="false" name="sum3">
           <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
@@ -824,12 +824,12 @@ describe("Problem tag tests", async () => {
 
         <p>Document wide checkWork: <booleanInput name="swcw" /></p>
       
-        <p>2x: <answer name="twox">2x</answer></p>
+        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
       
-        <p>hello: <answer type="text" name="hello">hello</answer></p>
+        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
 
         <p>banana: 
-        <answer name="fruit">
+        <answer disableAfterCorrect="false" name="fruit">
           <choiceInput shuffleOrder name="fruitInput">
             <choice credit="1">banana</choice>
             <choice>apple</choice>
@@ -839,7 +839,7 @@ describe("Problem tag tests", async () => {
         </p>
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-        <answer name="sum3">
+        <answer disableAfterCorrect="false" name="sum3">
           <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
@@ -1138,14 +1138,14 @@ describe("Problem tag tests", async () => {
         <section aggregateScores sectionWideCheckWork="$swcw" name="theProblem">
         <title>Problem 1</title>
 
-        <p>2x: <answer name="twox">2x</answer></p>
+        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
       
-        <p>hello: <answer type="text" name="hello">hello</answer></p>
+        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
 
         <subsection aggregateScores sectionWideCheckWork name="subProblem">
           <title>Sub problem a</title>
           <p>banana: 
-          <answer name="fruit">
+          <answer disableAfterCorrect="false" name="fruit">
             <choiceInput shuffleOrder name="fruitInput">
               <choice credit="1">banana</choice>
               <choice>apple</choice>
@@ -1155,7 +1155,7 @@ describe("Problem tag tests", async () => {
           </p>
       
           <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-          <answer name="sum3">
+          <answer disableAfterCorrect="false" name="sum3">
             <award referencesAreResponses="$n1 $n2">
               <when>$n1+$n2=3</when>
             </award>
@@ -1177,14 +1177,14 @@ describe("Problem tag tests", async () => {
         <title>The problem</title>
 
         <p>Document wide checkWork: <booleanInput name="swcw" /></p>
-        <p>2x: <answer name="twox">2x</answer></p>
+        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
       
-        <p>hello: <answer type="text" name="hello">hello</answer></p>
+        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
 
         <section aggregateScores sectionWideCheckWork name="subProblem">
           <title>Sub problem a</title>
           <p>banana: 
-          <answer name="fruit">
+          <answer disableAfterCorrect="false" name="fruit">
             <choiceInput shuffleOrder name="fruitInput">
               <choice credit="1">banana</choice>
               <choice>apple</choice>
@@ -1194,7 +1194,7 @@ describe("Problem tag tests", async () => {
           </p>
       
           <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-          <answer name="sum3">
+          <answer disableAfterCorrect="false" name="sum3">
             <award referencesAreResponses="$n1 $n2">
               <when>$n1+$n2=3</when>
             </award>
@@ -1216,16 +1216,16 @@ describe("Problem tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <problem sectionWideCheckWork name="prob1">
-        <answer name="ans1">x</answer>
+        <answer disableAfterCorrect="false" name="ans1">x</answer>
       </problem>
       <problem sectionWideCheckWork name="prob2" submitLabel="Hit it!">
-        <answer name="ans2">x</answer>
+        <answer disableAfterCorrect="false" name="ans2">x</answer>
       </problem>
       <problem sectionWideCheckWork name="prob3" submitLabelNoCorrectness="Guess">
-        <answer name="ans3">x</answer>
+        <answer disableAfterCorrect="false" name="ans3">x</answer>
       </problem>
       <problem sectionWideCheckWork name="prob4" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
-        <answer name="ans4">x</answer>
+        <answer disableAfterCorrect="false" name="ans4">x</answer>
       </problem>
     `,
         });
@@ -1269,7 +1269,7 @@ describe("Problem tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <document documentWideCheckWork name="doc" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
-        <answer name="ans1">x</answer>
+        <answer disableAfterCorrect="false" name="ans1">x</answer>
       </document>
     `,
         });
