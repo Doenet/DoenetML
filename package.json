@@ -35,6 +35,7 @@
         "build": "npm run build --workspace packages/test-viewer",
         "build:all": "npm run build -ws --if-present",
         "clean": "rimraf packages/*/dist",
+        "dev": "npm run dev --workspace packages/doenetml",
         "prettier:check": "prettier --check .",
         "prettier:format": "prettier --write .",
         "test": "npm run test -ws --if-present -- run"

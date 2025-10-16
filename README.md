@@ -22,28 +22,38 @@ Semantic markup for building interactive web activities.
 
 ## Quickstart
 
-Make sure you have [Rust](https://rust-lang.org/tools/install/) installed.
+To quickly get started contributing to DoenetML, you can use a
+Codespace and your web browser. Click the green `<> Code` button
+on the GitHub.com page for this repository, choose the
+"Codespaces" tab, then click the green "Create codespace on main"
+button.
+
+Grab a cup of coffee, and after a few minutes, you should have a
+working development environment in your web browser. Run
+`npm run dev` in a terminal and click the green "Open in Browser"
+button to confirm!
+
+### Working locally
+
+Your local environment should have
+[Node](https://nodejs.org/en/download)
+and 
+[Rust](https://rust-lang.org/tools/install/) installed.
+
 ```bash
+node --version
 rustc --version
 ```
 
-In root directory, run
+In root directory, run `sh .devcontainer/setup.sh` to install
+dependencies and build packages. After a short wait, you should
+be able to run `npm run dev` and open `http://localhost:8012`.
 
-```bash
-npm install
-npm run build
-```
-
-To test code, you can use the `projects/test-viewer` package.
-
-```bash
-cd packages/test-viewer
-npm run dev
-```
-
-Paste demo code into `src/test/testCode.doenet` and navigate to the URL specified in the console (probably http://localhost:8012 )
-
-Note for Windows users: There are currently some [issues](https://github.com/Doenet/DoenetML/pull/326) with running a local development environment on Windows. We recommend using [WSL](https://learn.microsoft.com/en-us/windows/wsl/setup/environment) for now.
+Note for Windows users: There are currently some
+[issues](https://github.com/Doenet/DoenetML/pull/326)
+with running a local development environment on Windows.
+We recommend using
+[WSL](https://learn.microsoft.com/en-us/windows/wsl/setup/environment) for now.
 
 ## Demos
 
