@@ -220,7 +220,7 @@ export function DocViewer({
     }, []);
 
     useEffect(() => {
-        const listener = function (e: MessageEvent) {
+        const listener = async function (e: MessageEvent) {
             if (
                 e.origin !== window.location.origin &&
                 e.origin !== window.parent.location.origin
@@ -252,6 +252,22 @@ export function DocViewer({
                 }
 
                 promiseInfo.resolve({ allowView: e.data.allowView === true });
+            } else if (e.data.subject === "SPLICE.submitAllAnswers") {
+                if (coreInfo.current) {
+                    const actionResult = await callAction({
+                        action: {
+                            actionName: "submitAllAnswers",
+                            componentIdx:
+                                coreInfo.current.documentToRender.componentIdx,
+                        },
+                        args: {},
+                    });
+
+                    window.postMessage({
+                        subject: "SPLICE.submitAllAnswers.response",
+                        success: actionResult,
+                    });
+                }
             }
         };
 

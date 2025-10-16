@@ -151,7 +151,8 @@ export function DoenetViewer({
             // forward response from SPLICE getState or requestSolutionView to iframe
             if (
                 event.data.subject === "SPLICE.getState.response" ||
-                event.data.subject === "SPLICE.requestSolutionView.response"
+                event.data.subject === "SPLICE.requestSolutionView.response" ||
+                event.data.subject == "SPLICE.submitAllAnswers"
             ) {
                 ref.current?.contentWindow?.postMessage(event.data);
                 return;

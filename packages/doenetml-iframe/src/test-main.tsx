@@ -48,6 +48,15 @@ function App() {
                 docId={"1"}
                 fetchExternalDoenetML={fetchExternalDoenetML}
             />
+            <button
+                onClick={() => {
+                    window.postMessage({
+                        subject: "SPLICE.submitAllAnswers",
+                    });
+                }}
+            >
+                Submit all
+            </button>
 
             <h4>DoenetML {STANDALONE_VERSION} (locally-built copy):</h4>
             <DoenetEditor
