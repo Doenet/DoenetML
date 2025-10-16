@@ -139,12 +139,12 @@ export class DoenetPreviewPanel {
                 `default-src 'none';`,
                 `style-src ${webview.cspSource} 'unsafe-inline' 'self';`,
                 // Note: If there is a path-name, it must end with a slash to include subfolders (e.g., https://example.com/foo will not match https://example.com/foo/bar)
-                `script-src 'nonce-${nonce}' 'unsafe-eval' vscode-webview: https://*.vscode-resource.vscode-cdn.net https://cdn.jsdelivr.net/npm/mathjax@3/es5/ https://doenet.vscode-unpkg.net;`,
-                `script-src-elem 'nonce-${nonce}' 'unsafe-eval' vscode-webview: https://*.vscode-resource.vscode-cdn.net https://cdn.jsdelivr.net/npm/mathjax@3/es5/ https://doenet.vscode-unpkg.net http://localhost:3000/static/devextensions/;`,
+                `script-src 'nonce-${nonce}' 'unsafe-eval' vscode-webview: https://*.vscode-resource.vscode-cdn.net https://cdn.jsdelivr.net/npm/mathjax@4 https://doenet.vscode-unpkg.net;`,
+                `script-src-elem 'nonce-${nonce}' 'unsafe-eval' vscode-webview: https://*.vscode-resource.vscode-cdn.net https://cdn.jsdelivr.net/npm/mathjax@4 https://doenet.vscode-unpkg.net http://localhost:3000/static/devextensions/;`,
                 `worker-src blob:;`,
                 `connect-src blob: data:;`,
                 `img-src 'self';`,
-                `font-src https://cdn.jsdelivr.net/npm/mathjax@3/es5/ https://*.vscode-resource.vscode-cdn.net https://doenet.vscode-unpkg.net http://localhost:3000/static/devextensions/;`,
+                `font-src https://cdn.jsdelivr.net/npm/mathjax@4 https://*.vscode-resource.vscode-cdn.net https://doenet.vscode-unpkg.net http://localhost:3000/static/devextensions/;`,
             ].join(" ")}"
           />
           <link rel="stylesheet" type="text/css" href="${stylesUri}">
