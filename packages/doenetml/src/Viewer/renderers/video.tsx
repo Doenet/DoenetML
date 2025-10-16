@@ -29,6 +29,8 @@ export default React.memo(function Video(props) {
     let pollIntervalId = useRef(null);
     let lastSetTimeAction = useRef(null);
 
+    let lastSVsState = useRef(null);
+
     const ref = useRef(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
@@ -379,19 +381,22 @@ export default React.memo(function Video(props) {
 
     if (player.current?.getPlayerState) {
         let playerState = player.current.getPlayerState();
-        if (SVs.state === "playing") {
-            if (
-                playerState === window.YT.PlayerState.UNSTARTED ||
-                playerState === window.YT.PlayerState.PAUSED ||
-                playerState === window.YT.PlayerState.CUED ||
-                playerState === window.YT.PlayerState.ENDED
-            ) {
-                player.current.playVideo();
+        if (SVs.state !== lastSVsState.current) {
+            if (SVs.state === "playing") {
+                if (
+                    playerState === window.YT.PlayerState.UNSTARTED ||
+                    playerState === window.YT.PlayerState.PAUSED ||
+                    playerState === window.YT.PlayerState.CUED ||
+                    playerState === window.YT.PlayerState.ENDED
+                ) {
+                    player.current.playVideo();
+                }
+            } else if (SVs.state === "stopped") {
+                if (playerState === window.YT.PlayerState.PLAYING) {
+                    player.current.pauseVideo();
+                }
             }
-        } else if (SVs.state === "stopped") {
-            if (playerState === window.YT.PlayerState.PLAYING) {
-                player.current.pauseVideo();
-            }
+            lastSVsState.current = SVs.state;
         }
 
         if (SVs.time !== Number(lastSetTimeAction.current)) {
