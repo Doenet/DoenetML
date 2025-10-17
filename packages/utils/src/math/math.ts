@@ -11,4 +11,7 @@ export const mathjaxConfig = {
         },
         displayMath: [["\\[", "\\]"]],
     },
+    output: {
+        displayOverflow: "linebreak",
+    },
 };
