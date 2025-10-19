@@ -32,7 +32,7 @@
         "./packages/*"
     ],
     "scripts": {
-        "build": "npm run build --workspace packages/test-viewer",
+        "build": "npm run build --workspace packages/doenetml",
         "build:all": "npm run build -ws --if-present",
         "clean": "rimraf packages/*/dist",
         "dev": "npm run dev --workspace packages/doenetml",
