@@ -9,7 +9,7 @@
             "version": "latest"
         }
     },
-    "postCreateCommand": "sh .devcontainer/setup.sh",
+    "postCreateCommand": "npm install && npm run build",
     "customizations": {
         "vscode": {
             "extensions": [
