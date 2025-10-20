@@ -9,7 +9,7 @@
             "version": "latest"
         }
     },
-    "postCreateCommand": "npm install && npm run build",
+    "postCreateCommand": "bash scripts/download-latest-artifact.sh && npm install && npm run build",
     "customizations": {
         "vscode": {
             "extensions": [
