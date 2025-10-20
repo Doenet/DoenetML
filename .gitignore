@@ -64,3 +64,5 @@ packages/docs-nextra/public/bundle
 cspell.json
 *.timestamp-*
 .cspell
+
+.cache.zip
