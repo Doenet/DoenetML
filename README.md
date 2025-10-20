@@ -59,8 +59,9 @@ node --version
 rustc --version
 ```
 
-In root directory, run `npm install && npm run build` to install
-dependencies and build packages.
+In root directory, run
+`bash scripts/download-latest-artifact.sh && npm install && npm run build`
+to install dependencies and build packages.
 
 Note for Windows users: There are currently some
 [issues](https://github.com/Doenet/DoenetML/pull/326)
