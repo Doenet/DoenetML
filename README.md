@@ -22,28 +22,51 @@ Semantic markup for building interactive web activities.
 
 ## Quickstart
 
-Make sure you have [Rust](https://rust-lang.org/tools/install/) installed.
+To quickly get started contributing to DoenetML, you can use a
+[Codespace](https://g4m.code4math.org/ch-coding.html#def-codespaces)
+and your web browser (or see below for local installation instructions).
+
+Click the green `<> Code` button
+on the GitHub.com page for this repository, choose the
+"Codespaces" tab, then click the green "Create codespace on main"
+button.
+
+Grab a cup of coffee, and after a few minutes, you should have a
+working development environment in your web browser.
+
+### Development 
+
+Type `npm run dev` into a terminal;
+this will run a development server using the Doenet activity located at
+`/packages/doenetml/dev/testCode.doenet`.
+
+To access this server, open `http://localhost:8012` in your web
+browser. When using Codespaces, you must click this link within the Codespace
+to be redirected to a preview link which looks something like
+`https://random-words-69629pg6qq254gq-8012.app.github.dev/`,
+or click the green "Open in Browser" button that pops up soon after
+you start the server, or find the forwarded address from the "Ports" tab.
+
+### (Optional) Local installation
+
+Your local environment should have
+[Node](https://nodejs.org/en/download)
+and 
+[Rust](https://rust-lang.org/tools/install/) installed.
+
 ```bash
+node --version
 rustc --version
 ```
 
-In root directory, run
+In root directory, run `npm install && npm run build` to install
+dependencies and build packages.
 
-```bash
-npm install
-npm run build
-```
-
-To test code, you can use the `projects/test-viewer` package.
-
-```bash
-cd packages/test-viewer
-npm run dev
-```
-
-Paste demo code into `src/test/testCode.doenet` and navigate to the URL specified in the console (probably http://localhost:8012 )
-
-Note for Windows users: There are currently some [issues](https://github.com/Doenet/DoenetML/pull/326) with running a local development environment on Windows. We recommend using [WSL](https://learn.microsoft.com/en-us/windows/wsl/setup/environment) for now.
+Note for Windows users: There are currently some
+[issues](https://github.com/Doenet/DoenetML/pull/326)
+with running a local development environment on Windows.
+We recommend using
+[WSL](https://learn.microsoft.com/en-us/windows/wsl/setup/environment) for now.
 
 ## Demos
 
