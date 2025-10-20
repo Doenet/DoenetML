@@ -436,9 +436,19 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "creditAchieved",
             },
+            nextCreditFactor: {
+                dependencyType: "stateVariable",
+                variableName: "nextCreditFactor",
+                variablesOptional: true,
+            },
         }),
         definition({ dependencyValues }) {
-            if (dependencyValues.creditAchieved === 1) {
+            const creditAchieved = dependencyValues.creditAchieved;
+            if (
+                creditAchieved === 1 ||
+                (creditAchieved > 0 &&
+                    creditAchieved === dependencyValues.nextCreditFactor)
+            ) {
                 return {
                     setValue: { hasBeenCorrect: true },
                     setEssentialValue: { hasBeenCorrect: true },

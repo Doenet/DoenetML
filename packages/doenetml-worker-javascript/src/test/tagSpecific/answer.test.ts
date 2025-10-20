@@ -6724,6 +6724,65 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.7);
     });
 
+    it("credit by attempt, disable after correct", async () => {
+        const doenetML = `
+    <answer name="ans" creditByAttempt="1 0.8 0.7">x</answer>
+  `;
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answerIdx = await resolvePathToNodeIdx("ans");
+        const mathInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+
+        // submit incorrect answer
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(0);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(1);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.disabled).eq(false);
+
+        // credit for correct answer is reduced
+        // answer is still disabled
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(2);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+        expect(
+            stateVariables[answerIdx].stateValues
+                .numPreviousIncorrectSubmissions,
+        ).eq(1);
+        expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.8);
+        expect(stateVariables[answerIdx].stateValues.disabled).eq(true);
+    });
+
     it("disable wrong choices", async () => {
         const doenetML = `
     <answer disableAfterCorrect="false" name="ans" disableWrongChoices>
