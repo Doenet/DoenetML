@@ -13,7 +13,7 @@ import { keyboardSlice } from "../../state/slices/keyboard";
 import {
     calculateValidationState,
     createCheckWorkComponent,
-} from "../../utils/checkWork";
+} from "./utils/checkWork";
 
 export default function MathInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, sourceOfUpdate, ignoreUpdate, callAction } =

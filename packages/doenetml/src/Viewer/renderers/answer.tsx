@@ -7,7 +7,7 @@ import { AnswerResponseButton } from "./utils/AnswerResponseButton";
 import {
     calculateValidationState,
     createCheckWorkComponent,
-} from "../../utils/checkWork";
+} from "./utils/checkWork";
 
 export default React.memo(function Answer(props: UseDoenetRendererProps) {
     let {
