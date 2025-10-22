@@ -1114,7 +1114,7 @@ describe("Unique variant tests", async () => {
               </p>
             </option>
           </select>
-          <p>Enter the color $s2.p.color: <answer disableAfterCorrect="false" name="ans" type="text">$s2.p.color</answer></p>
+          <p>Enter the color $s2.p.color: <answer name="ans" type="text">$s2.p.color</answer></p>
         </problem>
       </option>
       <option>
@@ -1123,7 +1123,7 @@ describe("Unique variant tests", async () => {
             <option><p name="p">Verb: <select type="text" name="word">run walk jump skip</select></p></option>
             <option><p name="p">Adjective: <select type="text" name="word">soft scary large empty residual limitless</select></p></option>
           </select>
-          <p>Enter the word $s2.p.p.word: <answer disableAfterCorrect="false" name="ans" type="text">$s2.p.word</answer></p>
+          <p>Enter the word $s2.p.p.word: <answer name="ans" type="text">$s2.p.word</answer></p>
         </problem>
       </option>
       <option>
@@ -1131,7 +1131,7 @@ describe("Unique variant tests", async () => {
           <p>Letter
             <selectFromSequence  name="l" type="letters" from="a" to="j" />
           </p>
-          <p>Enter the letter $l: <answer disableAfterCorrect="false" name="ans" type="text">$l</answer></p>
+          <p>Enter the letter $l: <answer name="ans" type="text">$l</answer></p>
         </problem>
       </option>
     </select>
@@ -1558,7 +1558,7 @@ describe("Unique variant tests", async () => {
 
     it("single shuffled choiceInput sugared inside answer", async () => {
         let doenetML = `
-    <answer disableAfterCorrect="false" name="ans" shuffleOrder>
+    <answer name="ans" shuffleOrder>
       <choice credit="1">red</choice>
       <choice>blue</choice>
       <choice>green</choice>
@@ -1928,13 +1928,13 @@ describe("Unique variant tests", async () => {
     <problem>
       <variantControl uniqueVariants />
       <p>Enter <selectFromSequence from="1" to="2" name="m" />:
-        <answer disableAfterCorrect="false" name="ans1">$m</answer>
+        <answer name="ans1">$m</answer>
       </p>
     </problem>
     <problem>
       <variantControl uniqueVariants />
       <p>Enter <selectFromSequence from="3" to="5" name="n" />:
-        <answer disableAfterCorrect="false" name="ans2">$n</answer>
+        <answer name="ans2">$n</answer>
       </p>
     </problem>
     `;
@@ -1951,13 +1951,13 @@ describe("Unique variant tests", async () => {
     <problem>
       <variantControl />
       <p>Enter <selectFromSequence from="1" to="2" name="m" />:
-        <answer disableAfterCorrect="false" name="ans1">$m</answer>
+        <answer name="ans1">$m</answer>
       </p>
     </problem>
     <problem>
       <variantControl />
       <p>Enter <selectFromSequence from="3" to="5" name="n" />:
-        <answer disableAfterCorrect="false" name="ans2">$n</answer>
+        <answer name="ans2">$n</answer>
       </p>
     </problem>
     `;
@@ -1973,12 +1973,12 @@ describe("Unique variant tests", async () => {
         let doenetML = `
     <problem>
       <p>Enter <selectFromSequence from="1" to="2" name="m" />:
-        <answer disableAfterCorrect="false" name="ans1">$m</answer>
+        <answer name="ans1">$m</answer>
       </p>
     </problem>
     <problem>
       <p>Enter <selectFromSequence from="3" to="5" name="n" />:
-        <answer disableAfterCorrect="false" name="ans2">$n</answer>
+        <answer name="ans2">$n</answer>
       </p>
     </problem>
     `;
@@ -1995,13 +1995,13 @@ describe("Unique variant tests", async () => {
     <problem>
       <variantControl numVariants="2" uniqueVariants="false" />
       <p>Enter <selectFromSequence from="1000000" to="2000000" name="m" />:
-        <answer disableAfterCorrect="false" name="ans1">$m</answer>
+        <answer name="ans1">$m</answer>
       </p>
     </problem>
     <problem>
       <variantControl numVariants="3" uniqueVariants="false" />
       <p>Enter <selectFromSequence from="3000000" to="5000000" name="n" />:
-        <answer disableAfterCorrect="false" name="ans2">$n</answer>
+        <answer name="ans2">$n</answer>
       </p>
     </problem>
     `;
@@ -2014,7 +2014,7 @@ describe("Unique variant tests", async () => {
         <problem>
           <variantControl variantNames="first second third" />
           <p>Enter <selectFromSequence from="5" to="7" name="m" />:
-            <answer disableAfterCorrect="false" name="ans">$m</answer>
+            <answer name="ans">$m</answer>
           </p>
         </problem>
         `;

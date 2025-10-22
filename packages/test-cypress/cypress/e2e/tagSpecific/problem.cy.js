@@ -15,12 +15,12 @@ describe("Problem Tag Tests", function () {
         <problem sectionWideCheckwork="$swcw" name="theProblem">
         <title>Problem 1</title>
       
-        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
+        <p>2x: <answer name="twox">2x</answer></p>
       
-        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
+        <p>hello: <answer type="text" name="hello">hello</answer></p>
 
         <p>banana: 
-        <answer disableAfterCorrect="false" name="fruit">
+        <answer name="fruit">
           <choiceInput shuffleOrder name="fruitInput">
             <choice credit="1">banana</choice>
             <choice>apple</choice>
@@ -30,7 +30,7 @@ describe("Problem Tag Tests", function () {
         </p>
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-        <answer disableAfterCorrect="false" name="sum3">
+        <answer name="sum3">
           <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
@@ -231,12 +231,12 @@ describe("Problem Tag Tests", function () {
         <section aggregateScores sectionWideCheckwork="$swcw" name="theProblem">
         <title>Problem 1</title>
       
-        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
+        <p>2x: <answer name="twox">2x</answer></p>
       
-        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
+        <p>hello: <answer type="text" name="hello">hello</answer></p>
 
         <p>banana: 
-        <answer disableAfterCorrect="false" name="fruit">
+        <answer name="fruit">
           <choiceInput shuffleOrder name="fruitInput">
             <choice credit="1">banana</choice>
             <choice>apple</choice>
@@ -246,7 +246,7 @@ describe("Problem Tag Tests", function () {
         </p>
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-        <answer disableAfterCorrect="false" name="sum3">
+        <answer name="sum3">
           <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
@@ -448,12 +448,12 @@ describe("Problem Tag Tests", function () {
 
         <p>Document wide checkwork: <booleanInput name="dwcw" /></p>
       
-        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
+        <p>2x: <answer name="twox">2x</answer></p>
       
-        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
+        <p>hello: <answer type="text" name="hello">hello</answer></p>
 
         <p>banana: 
-        <answer disableAfterCorrect="false" name="fruit">
+        <answer name="fruit">
           <choiceInput shuffleOrder name="fruitInput">
             <choice credit="1">banana</choice>
             <choice>apple</choice>
@@ -463,7 +463,7 @@ describe("Problem Tag Tests", function () {
         </p>
       
         <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-        <answer disableAfterCorrect="false" name="sum3">
+        <answer name="sum3">
           <award referencesAreResponses="$n1 $n2">
             <when>$n1+$n2=3</when>
           </award>
@@ -663,14 +663,14 @@ describe("Problem Tag Tests", function () {
         <section aggregateScores sectionWideCheckwork="$swcw" name="theProblem">
         <title>Problem 1</title>
 
-        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
+        <p>2x: <answer name="twox">2x</answer></p>
       
-        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
+        <p>hello: <answer type="text" name="hello">hello</answer></p>
 
         <subsection aggregateScores sectionWideCheckwork name="subProblem">
           <title>Sub problem a</title>
           <p>banana: 
-          <answer disableAfterCorrect="false" name="fruit">
+          <answer name="fruit">
             <choiceInput shuffleOrder name="fruitInput">
               <choice credit="1">banana</choice>
               <choice>apple</choice>
@@ -680,7 +680,7 @@ describe("Problem Tag Tests", function () {
           </p>
       
           <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-          <answer disableAfterCorrect="false" name="sum3">
+          <answer name="sum3">
             <award referencesAreResponses="$n1 $n2">
               <when>$n1+$n2=3</when>
             </award>
@@ -904,14 +904,14 @@ describe("Problem Tag Tests", function () {
         <title>The problem</title>
 
         <p>Document wide checkwork: <booleanInput name="dwcw" /></p>
-        <p>2x: <answer disableAfterCorrect="false" name="twox">2x</answer></p>
+        <p>2x: <answer name="twox">2x</answer></p>
       
-        <p>hello: <answer disableAfterCorrect="false" type="text" name="hello">hello</answer></p>
+        <p>hello: <answer type="text" name="hello">hello</answer></p>
 
         <section aggregateScores sectionWideCheckwork name="subProblem">
           <title>Sub problem a</title>
           <p>banana: 
-          <answer disableAfterCorrect="false" name="fruit">
+          <answer name="fruit">
             <choiceInput shuffleOrder name="fruitInput">
               <choice credit="1">banana</choice>
               <choice>apple</choice>
@@ -921,7 +921,7 @@ describe("Problem Tag Tests", function () {
           </p>
       
           <p>Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
-          <answer disableAfterCorrect="false" name="sum3">
+          <answer name="sum3">
             <award referencesAreResponses="$n1 $n2">
               <when>$n1+$n2=3</when>
             </award>
@@ -1143,16 +1143,16 @@ describe("Problem Tag Tests", function () {
                     doenetML: `
       <text name="a">a</text>
       <problem sectionWideCheckwork name="prob1">
-        <answer disableAfterCorrect="false" name="ans1">x</answer>
+        <answer name="ans1">x</answer>
       </problem>
       <problem sectionWideCheckwork name="prob2" submitLabel="Hit it!">
-        <answer disableAfterCorrect="false" name="ans2">x</answer>
+        <answer name="ans2">x</answer>
       </problem>
       <problem sectionWideCheckwork name="prob3" submitLabelNoCorrectness="Guess">
-        <answer disableAfterCorrect="false" name="ans3">x</answer>
+        <answer name="ans3">x</answer>
       </problem>
       <problem sectionWideCheckwork name="prob4" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
-        <answer disableAfterCorrect="false" name="ans4">x</answer>
+        <answer name="ans4">x</answer>
       </problem>
     `,
                 },
@@ -1295,7 +1295,7 @@ describe("Problem Tag Tests", function () {
                     doenetML: `
       <document documentWideCheckwork name="doc" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
         <text name="a">a</text>
-        <answer disableAfterCorrect="false" name="ans1">x</answer>
+        <answer name="ans1">x</answer>
       </document>
     `,
                 },
@@ -1363,13 +1363,13 @@ describe("Problem Tag Tests", function () {
           </option>
       </select>
       <p>Enter $fruit.name: 
-        <answer disableAfterCorrect="false" type="text">
+        <answer type="text">
           <textInput name="input1" />
           <award>$fruit.name</award>
         </answer>
       </p>
       <p>Enter $fruit.color: 
-      <answer disableAfterCorrect="false" type="text">
+      <answer type="text">
         <textInput name="input2" />
         <award>$fruit.color</award>
       </answer>
