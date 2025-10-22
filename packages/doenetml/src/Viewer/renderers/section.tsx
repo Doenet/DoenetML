@@ -14,6 +14,10 @@ import { faCaretDown as twirlIsOpen } from "@fortawesome/free-solid-svg-icons";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import {
+    calculateValidationState,
+    createCheckWorkComponent,
+} from "./utils/checkWork";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -45,24 +49,7 @@ export default React.memo(function Section(props) {
         return null;
     }
 
-    let validationState = useRef(null);
-
-    let disabled = SVs.disabled;
-
-    const updateValidationState = () => {
-        validationState.current = "unvalidated";
-        if (SVs.justSubmitted) {
-            if (SVs.creditAchieved === 1) {
-                validationState.current = "correct";
-            } else if (SVs.creditAchieved === 0) {
-                validationState.current = "incorrect";
-            } else {
-                validationState.current = "partialcorrect";
-            }
-        }
-    };
-
-    let submitAllAnswers = () =>
+    const submitAllAnswers = () =>
         callAction({
             action: actions.submitAllAnswers,
         });
@@ -186,115 +173,17 @@ export default React.memo(function Section(props) {
     //   heading = <span id={headingId} style={{fontSize:'.67em'}}>{title}</span>;
     // }
 
-    let checkworkComponent = null;
+    const validationState = calculateValidationState(SVs);
+    let checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState,
+        submitAllAnswers,
+        true,
+    );
 
-    if (SVs.createSubmitAllButton && !SVs.suppressCheckWork) {
-        updateValidationState();
-
-        let checkWorkStyle = {
-            cursor: "pointer",
-            padding: "1px 6px 1px 6px",
-        };
-
-        let checkWorkTabIndex = "0";
-        if (disabled) {
-            checkWorkStyle.backgroundColor = getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGray");
-            checkWorkStyle.color = "black";
-            checkWorkStyle.cursor = "not-allowed";
-            checkWorkTabIndex = "-1";
-        }
-
-        let checkWorkText = SVs.submitLabel;
-        if (!SVs.showCorrectness) {
-            checkWorkText = SVs.submitLabelNoCorrectness;
-        }
-
-        checkworkComponent = (
-            <Button
-                id={id + "_submit"}
-                tabIndex={checkWorkTabIndex}
-                disabled={disabled}
-                style={checkWorkStyle}
-                onClick={submitAllAnswers}
-                onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                        submitAllAnswers();
-                    }
-                }}
-            >
-                <FontAwesomeIcon
-                    icon={faLevelDownAlt}
-                    transform={{ rotate: 90 }}
-                />
-                &nbsp;
-                {checkWorkText}
-            </Button>
-        );
-
-        if (SVs.showCorrectness) {
-            if (validationState.current === "correct") {
-                checkWorkStyle.backgroundColor = getComputedStyle(
-                    document.documentElement,
-                ).getPropertyValue("--mainGreen");
-                checkworkComponent = (
-                    <Button
-                        id={id + "_correct"}
-                        style={checkWorkStyle}
-                        tabIndex={checkWorkTabIndex}
-                    >
-                        <FontAwesomeIcon icon={faCheck} />
-                        &nbsp; Correct
-                    </Button>
-                );
-            } else if (validationState.current === "incorrect") {
-                checkWorkStyle.backgroundColor = getComputedStyle(
-                    document.documentElement,
-                ).getPropertyValue("--mainRed");
-                checkworkComponent = (
-                    <Button
-                        id={id + "_incorrect"}
-                        style={checkWorkStyle}
-                        tabIndex={checkWorkTabIndex}
-                    >
-                        <FontAwesomeIcon icon={faTimes} />
-                        &nbsp; Incorrect
-                    </Button>
-                );
-            } else if (validationState.current === "partialcorrect") {
-                checkWorkStyle.backgroundColor = "#efab34";
-                let percent = Math.round(SVs.creditAchieved * 100);
-                let partialCreditContents = `${percent}% Correct`;
-
-                checkworkComponent = (
-                    <Button
-                        id={id + "_partial"}
-                        style={checkWorkStyle}
-                        tabIndex={checkWorkTabIndex}
-                    >
-                        {partialCreditContents}
-                    </Button>
-                );
-            }
-        } else {
-            // showCorrectness is false
-            if (validationState.current !== "unvalidated") {
-                checkWorkStyle.backgroundColor = "rgb(74, 3, 217)";
-                checkworkComponent = (
-                    <Button
-                        id={id + "_saved"}
-                        style={checkWorkStyle}
-                        tabIndex={checkWorkTabIndex}
-                    >
-                        <FontAwesomeIcon icon={faCloud} />
-                        &nbsp; Response Saved
-                    </Button>
-                );
-            }
-        }
-
-        checkworkComponent = <div>{checkworkComponent}</div>;
+    if (checkWorkComponent) {
+        checkWorkComponent = <div>{checkWorkComponent}</div>;
     }
 
     if (SVs.asList) {
@@ -340,26 +229,22 @@ export default React.memo(function Section(props) {
         });
     }
 
-    //TODO checkwork
     let content = (
         <>
             <a name={id} />
             {heading}
             {children}
-            {checkworkComponent}
+            {checkWorkComponent}
         </>
     );
 
     if (SVs.collapsible) {
-        // if (SVs.open) {
-        // if (SVs.boxed){
-
         let innerContent = null;
         if (SVs.open) {
             innerContent = (
                 <div style={{ display: "block", padding: "6px" }}>
                     {SVs.rendered ? children : <p>Initializing...</p>}
-                    {checkworkComponent}
+                    {checkWorkComponent}
                 </div>
             );
         }
@@ -404,35 +289,6 @@ export default React.memo(function Section(props) {
                 {innerContent}
             </div>
         );
-        // }else{
-        //   content = <>
-        //   <a name={id} />
-        //   <span style={{
-        //     display: "block", backgroundColor: "#ebebeb", cursor: "pointer"}}
-        //     onClick={() => callAction({action: actions.closeSection})}
-        //   >
-        //     <a name={id} />
-        //     {heading}
-        //   </span>
-        //   <span style={{ display: "block", backgroundColor: "white" }} >
-        //     {children}
-        //     {checkworkComponent}
-        //   </span>
-        // </>
-        // }
-
-        // } else {
-        //   content = <>
-        //     <a name={id} />
-        //     <span
-        //       style={{ display: "block", backgroundColor: "#ebebeb", cursor: "pointer"}}
-        //       onClick={() => callAction({action: actions.revealSection})}
-        //     >
-        //       {heading}
-        //     </span>
-        //   </>
-
-        // }
     } else if (SVs.boxed) {
         content = (
             <div
@@ -456,7 +312,7 @@ export default React.memo(function Section(props) {
                 </div>
                 <div style={{ display: "block", padding: "6px" }}>
                     {children}
-                    {checkworkComponent}
+                    {checkWorkComponent}
                 </div>
             </div>
         );
