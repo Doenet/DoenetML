@@ -11,19 +11,19 @@ describe("Ionic Compounds tests", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>What is the ionic compound from <atom name="Li" symbol="Li" /> and <atom name="O" symbol="O" />?
-    <answer disableAfterCorrect="false" name="ansLiO" splitSymbols="false"><ionicCompound name="LiO">$Li$O</ionicCompound></answer>
+    <answer name="ansLiO" splitSymbols="false"><ionicCompound name="LiO">$Li$O</ionicCompound></answer>
   </p>
 
   <p>What is the ionic compound from <atom name="Ca" symbol="Ca" /> and <atom name="P" symbol="P" />?
-    <answer disableAfterCorrect="false" name="ansCaP" splitSymbols="false"><math><ionicCompound name="CaP">$Ca<ion>$P</ion></ionicCompound></math></answer>
+    <answer name="ansCaP" splitSymbols="false"><math><ionicCompound name="CaP">$Ca<ion>$P</ion></ionicCompound></math></answer>
   </p>
  
   <p>What is the ionic compound from <atom name="Mg" symbol="Mg" /> and <atom name="S" symbol="S" />?
-    <answer disableAfterCorrect="false" name="ansMgS" splitSymbols="false"><ionicCompound name="MgS"><ion>$Mg</ion><ion>$S</ion></ionicCompound></answer>
+    <answer name="ansMgS" splitSymbols="false"><ionicCompound name="MgS"><ion>$Mg</ion><ion>$S</ion></ionicCompound></answer>
   </p>
  
   <p>What is the ionic compound from <atom name="Sr" symbol="Sr" /> and <atom name="I" symbol="I" />?
-    <answer disableAfterCorrect="false" name="ansSrI" splitSymbols="false"><ionicCompound name="SrI"><ion>$Sr</ion>$I</ionicCompound></answer>
+    <answer name="ansSrI" splitSymbols="false"><ionicCompound name="SrI"><ion>$Sr</ion>$I</ionicCompound></answer>
   </p>
 
   `,

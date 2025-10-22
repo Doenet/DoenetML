@@ -34,7 +34,7 @@ describe("Specifying single variant document tests", function () {
       <option><p>Chosen letter: <selectFromSequence type="letters" to="g" name="item" /></p></option>
       <option><p>Variable: <select type="text" name="item">u v w x z y</select></p></option>
     </select>
-    <p>Enter item $item as text: <answer disableAfterCorrect="false"><textInput name="textInput1"/><award><text>$(p.item)</text></award></answer></p>
+    <p>Enter item $item as text: <answer><textInput name="textInput1"/><award><text>$(p.item)</text></award></answer></p>
     `;
 
         let firstStringsToInd = {
@@ -364,8 +364,8 @@ describe("Specifying single variant document tests", function () {
       <variantControl numVariants="100"/>
       <selectFromSequence from="1" to="2000000000" exclude="2000000000 3000000000 4000000000 5000000000 6000000000 8000000000 9000000000 1100000000 1200000000 1300000000 1400000000 1500000000 1600000000 1700000000 1900000000" name="m" />
       <selectFromSequence from="1" to="20" exclude="2 3 4 5 6 8 9 11 12 13 14 15 16 17 19" name="n" />
-      <p>Enter $m: <answer disableAfterCorrect="false"><mathInput name="mathInput1" /><award>$m</award></answer></p>
-      <p>Enter $n: <answer disableAfterCorrect="false"><mathInput name="mathInput2" /><award>$n</award></answer></p>
+      <p>Enter $m: <answer><mathInput name="mathInput1" /><award>$m</award></answer></p>
+      <p>Enter $n: <answer><mathInput name="mathInput2" /><award>$n</award></answer></p>
 
       `;
             if (ind > 1) {
@@ -509,14 +509,14 @@ describe("Specifying single variant document tests", function () {
         <choice>c</choice>
       </choiceInput>
       <p name="p1">Selected value: $ci</p>
-      <p name="p2">Enter <selectFromSequence name="n" />. <answer disableAfterCorrect="false" name="ans">$n</answer></p>
+      <p name="p2">Enter <selectFromSequence name="n" />. <answer name="ans">$n</answer></p>
     </group>
 
     <group extend="$g" name="g2" />
 
     <group copy="$g" name="g3" />
 
-    <p name="p3">Enter <selectFromSequence name="m" />. <answer disableAfterCorrect="false" name="ans">$m</answer></p>
+    <p name="p3">Enter <selectFromSequence name="m" />. <answer name="ans">$m</answer></p>
     `;
 
         cy.window().then(async (win) => {

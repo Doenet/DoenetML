@@ -48,7 +48,7 @@ describe("CobwebPolyline Tag Tests", function () {
     showCalculatedValues="$showCalculatedValues" grid="$grid" defaultPoint="$defaultPoint" />
 
   <conditionalContent condition="$checkInitialCondition" name="cc">
-    <p>Initial condition: <answer disableAfterCorrect="false" name="initialCorrect" weight="$initialConditionWeight">
+    <p>Initial condition: <answer name="initialCorrect" weight="$initialConditionWeight">
         <award>
           <when>
             $cobwebApplet.initialCorrect
@@ -62,7 +62,7 @@ describe("CobwebPolyline Tag Tests", function () {
     </p>
   </conditionalContent>
 
-  <p>Correct cobwebbing: <answer disableAfterCorrect="false" name="correctCobwebbing" weight="$cobwebbingWeight">
+  <p>Correct cobwebbing: <answer name="correctCobwebbing" weight="$cobwebbingWeight">
       <award credit="$cobwebApplet.fractionCorrectCobweb">
         <when>true</when>
       </award>
@@ -970,7 +970,7 @@ describe("CobwebPolyline Tag Tests", function () {
     </updateValue>
     <callAction triggerWith="$next" target="$ans" actionName="submitAnswer" />
 
-    <answer disableAfterCorrect="false" name="ans" hide weight="$answerWeight">
+    <answer name="ans" hide weight="$answerWeight">
       <award credit="$stepCompleted/6"><when>true</when></award>
     </answer>
 

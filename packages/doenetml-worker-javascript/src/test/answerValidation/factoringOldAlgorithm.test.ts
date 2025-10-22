@@ -60,7 +60,7 @@ function createDoenetML(polyString: string) {
   
   <p>Answer <mathInput name="resp" /></p>
 
-  <answer disableAfterCorrect="false" name="check" symbolicEquality>
+  <answer name="check" symbolicEquality>
     <award>
       <when>
         $respExpandSimplify = $polyExpandSimplify

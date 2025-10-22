@@ -38,7 +38,7 @@ export function returnStandardAnswerAttributes() {
         disableAfterCorrect: {
             createComponentOfType: "boolean",
             createStateVariable: "disableAfterCorrect",
-            defaultValue: true,
+            defaultValue: false,
             public: true,
         },
 

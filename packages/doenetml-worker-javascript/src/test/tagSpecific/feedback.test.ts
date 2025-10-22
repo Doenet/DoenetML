@@ -167,7 +167,7 @@ describe("Feedback tag tests", async () => {
     it("feedback from answer value or credit", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p><answer disableAfterCorrect="false" name="ans">x+y</answer></p>
+    <p><answer name="ans">x+y</answer></p>
     <feedback name="ffc" condition="$ans.creditAchieved = 1">
         <p name="pfc">You got full credit!</p>
     </feedback>
@@ -186,7 +186,7 @@ describe("Feedback tag tests", async () => {
     it("feedback from answer value or credit, set showFeedback=false", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p><answer disableAfterCorrect="false" name="ans">x+y</answer></p>
+    <p><answer name="ans">x+y</answer></p>
     <feedback name="ffc" condition="$ans.creditAchieved = 1">
         <p name="pfc">You got full credit!</p>
     </feedback>
@@ -206,7 +206,7 @@ describe("Feedback tag tests", async () => {
     it("feedback from award", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p><answer disableAfterCorrect="false" name="ans">
+    <p><answer name="ans">
         <award name="award1"><math>x+y</math></award>
         <award name="award2" credit="0.5"><math>x</math></award>
     </answer></p>
@@ -229,7 +229,7 @@ describe("Feedback tag tests", async () => {
     it("feedback from full awards", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer disableAfterCorrect="false" name="ans">
+  <p><answer name="ans">
     <mathInput name="mi" />
     <award name="award1" credit="0.1"><when>$mi > 1</when></award>
     <award name="award2"><when>$mi > 10</when></award>
@@ -388,7 +388,7 @@ describe("Feedback tag tests", async () => {
     it("feedback from copied awards", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p><answer disableAfterCorrect="false" name="ans1">
+    <p><answer name="ans1">
         <mathInput name="mi1" />
         <award name="xy"><math>x+y</math></award>
         <award name="x" credit="0.5"><math>x</math></award>
@@ -399,7 +399,7 @@ describe("Feedback tag tests", async () => {
     <feedback name="f2" condition="$x.awarded">
         <p>You got award 2.</p>
     </feedback>
-    <p><answer disableAfterCorrect="false" name="ans2">
+    <p><answer name="ans2">
         <mathInput name="mi2" />
         <award extend="$xy" name="xy2" credit="0.5" />
         <award extend="$x" name="x2" credit="1"/>
@@ -677,7 +677,7 @@ describe("Feedback tag tests", async () => {
     it("feedback from multiple choice", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer disableAfterCorrect="false" name="ans">
+  <p><answer name="ans">
     <choiceInput shuffleOrder name="ci">
     <choice name="choice1" credit="0.1">cat</choice>
     <choice name="choice2" credit="1">dog</choice>
@@ -711,7 +711,7 @@ describe("Feedback tag tests", async () => {
     it("feedback from multiple choice, some choices inside shuffle", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer disableAfterCorrect="false" name="ans">
+  <p><answer name="ans">
     <choiceInput name="ci">
     <choice name="choice1" credit="0.1">cat</choice>
     <shuffle>
@@ -747,7 +747,7 @@ describe("Feedback tag tests", async () => {
     it("feedback from multiple choice, copied choices, some choices inside shuffle", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer disableAfterCorrect="false" name="ans1">
+  <p><answer name="ans1">
     <choiceInput name="ci1">
       <choice name="cat1" credit="0.1">cat</choice>
       <shuffle>
@@ -767,7 +767,7 @@ describe("Feedback tag tests", async () => {
     <p>Moo</p>
   </feedback>
 
-  <p><answer disableAfterCorrect="false" name="ans2">
+  <p><answer name="ans2">
     <choiceInput name="ci2">
       <choice extend="$dog1" name="dog2" credit="0.1"/>
       <shuffle>
@@ -931,7 +931,7 @@ describe("Feedback tag tests", async () => {
     it("feedback for any incorrect response", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer disableAfterCorrect="false" type="text" name="ans">hello there</answer></p>
+  <p><answer type="text" name="ans">hello there</answer></p>
   <feedback name="f" condition="$(ans.creditAchieved) != 1 and $(ans.responseHasBeenSubmitted) ">
     <p name="p">Your response <em>$ans.submittedresponse</em> is incorrect.</p>
   </feedback>
@@ -1257,7 +1257,7 @@ describe("Feedback tag tests", async () => {
     it("feedback defined in awards", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer disableAfterCorrect="false" name="ans">
+  <p><answer name="ans">
     <mathInput name="mi" />
     <award name="award1" feedbackCodes="goodjob"><math>sin(pi x)</math></award>
     <award name="award2" credit="0.7" feedbackText="Close, but wrong trigonometric function"><math>cos(pi x)</math></award>
@@ -1291,7 +1291,7 @@ describe("Feedback tag tests", async () => {
     </feedbackDefinitions>
   </setup>
 
-  <p><answer disableAfterCorrect="false" name="ans">
+  <p><answer name="ans">
     <mathInput name="mi" />
     <award name="award1" feedbackCodes="goodJob"><math>sin(pi x)</math></award>
     <award name="award2" credit="0.7" feedbackCodes="wrongTRIG"><math>cos(pi x)</math></award>
@@ -1333,7 +1333,7 @@ describe("Feedback tag tests", async () => {
       </feedbackDefinitions>
     </setup>
 
-    <p><answer disableAfterCorrect="false" name="ans">
+    <p><answer name="ans">
       <mathInput name="mi" />
       <award name="award1" feedbackCodes="goodJob"><math>sin(pi x)</math></award>
       <award name="award2" credit="0.7" feedbackCodes="wrongTRIG"><math>cos(pi x)</math></award>
@@ -1369,7 +1369,7 @@ describe("Feedback tag tests", async () => {
   </setup>
 
 
-  <p><answer disableAfterCorrect="false" name="ans">
+  <p><answer name="ans">
     <mathInput name="mi" />
     <award name="award1" feedbackCodes="goodJob"><math>sin(pi x)</math></award>
     <award name="award2" credit="0.7" feedbackCodes="wrongTRIGbad"><math>cos(pi x)</math></award>
@@ -1548,7 +1548,7 @@ describe("Feedback tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>
-    <answer disableAfterCorrect="false" name="ans">
+    <answer name="ans">
       <choiceInput shuffleOrder name="ci">
       <choice feedbackText="meow" credit="0.5">cat</choice>
       <choice feedbackCodes="goodjob" credit="1">dog</choice>
@@ -1594,7 +1594,7 @@ describe("Feedback tag tests", async () => {
 
 
     <p>
-        <answer disableAfterCorrect="false" name="ans">
+        <answer name="ans">
             <choiceInput shuffleOrder name="ci">
                 <choice feedbackCodes="catsays" credit="0.5">cat</choice>
                 <choice feedbackCodes="DogSays dogalsosays" credit="1">dog</choice>
@@ -1626,7 +1626,7 @@ describe("Feedback tag tests", async () => {
     it("feedback updated with target", async () => {
         let doenetML = `
     <mathInput name="mi" />
-    <answer disableAfterCorrect="false" name="ans">
+    <answer name="ans">
       <award>
         <when>$mi = x</when>
       </award>
@@ -1764,7 +1764,7 @@ describe("Feedback tag tests", async () => {
   <mathInput name="m2" />
   <boolean name="got1">$m1 = x</boolean>
   <boolean name="got2">$m2 = y</boolean>
-  <answer disableAfterCorrect="false" name="ans">
+  <answer name="ans">
     <award>
       <when>$got1 and $got2</when>
     </award>
@@ -2061,7 +2061,7 @@ describe("Feedback tag tests", async () => {
     it("feedback based on fractionSatisfied/creditAchieved of award", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer disableAfterCorrect="false" matchPartial name="ans">
+  <p><answer matchPartial name="ans">
     <mathInput name="mi1" /> <mathInput name="mi2" />
     <award name="small"><when>$mi1 < 1 and $mi2 < 1</when></award>
     <award name="medium" credit="0.5"><when>$mi1 < 2 and $mi2 < 2</when></award>
@@ -2279,7 +2279,7 @@ describe("Feedback tag tests", async () => {
           <graph />
           <ul>
             <li name="li1">
-              x: <answer disableAfterCorrect="false" name="ans"><mathInput name="mi" />x</answer>   
+              x: <answer name="ans"><mathInput name="mi" />x</answer>   
               <feedback name="fb" condition="$ans.numSubmissions > 1">You answered at least twice</feedback>
             </li>
             <li name="li2"><p name="p">$ans</p></li>
@@ -2327,7 +2327,7 @@ describe("Feedback tag tests", async () => {
     it("feedback from numSubmissions", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer disableAfterCorrect="false" name="ans">x</answer></p>
+  <p><answer name="ans">x</answer></p>
   <feedback condition="$ans.numSubmissions > 1">
     <p name="pSub">You answered more than once!</p>
   </feedback>

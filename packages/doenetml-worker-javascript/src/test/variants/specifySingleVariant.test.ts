@@ -210,7 +210,7 @@ describe("Specifying single variant tests", async () => {
             variantNames: specifiedVariantNames,
             extra: `
                 <mathInput name="mi" />
-                <answer disableAfterCorrect="false" name="ans" />
+                <answer name="ans" />
                 <math simplify>$mi+$ans</math>`,
         });
         ({ core, resolvePathToNodeIdx } = await createTestCore({
@@ -506,7 +506,7 @@ describe("Specifying single variant tests", async () => {
       <option><p name="p">Chosen letter: <selectFromSequence type="letters" to="g" name="item" /></p></option>
       <option><p name="p">Variable: <select type="text" name="item">u v w x z y</select></p></option>
     </select>
-    <p>Enter item $s.item as text: <answer disableAfterCorrect="false" name="ans"><textInput name="ti"/><award><text>$(s.item)</text></award></answer></p>
+    <p>Enter item $s.item as text: <answer name="ans"><textInput name="ti"/><award><text>$(s.item)</text></award></answer></p>
     `;
 
         let firstStringsToInd = {
@@ -968,8 +968,8 @@ describe("Specifying single variant tests", async () => {
         <variantControl numVariants="100"/>
         <selectFromSequence name="s1" from="1" to="2000000000" exclude="2000000000 3000000000 4000000000 5000000000 6000000000 8000000000 9000000000 1100000000 1200000000 1300000000 1400000000 1500000000 1600000000 1700000000 1900000000" />
         <selectFromSequence name="s2" from="1" to="20" exclude="2 3 4 5 6 8 9 11 12 13 14 15 16 17 19" />
-        <p>Enter $m: <answer disableAfterCorrect="false" name="ans1"><mathInput name="mi1"/><award>$s1</award></answer></p>
-        <p>Enter $n: <answer disableAfterCorrect="false" name="ans2"><mathInput name="mi2"/><award>$s2</award></answer></p>
+        <p>Enter $m: <answer name="ans1"><mathInput name="mi1"/><award>$s1</award></answer></p>
+        <p>Enter $n: <answer name="ans2"><mathInput name="mi2"/><award>$s2</award></answer></p>
   
         `;
 
@@ -1086,9 +1086,9 @@ describe("Specifying single variant tests", async () => {
         <selectFromSequence name="s1" from="1" to="20" exclude="2 3 4 5 6 8 9 11 12 13 14 15 16 17 19" excludeCombinations="(1 7) (1 10) (1 18) (7 10) (7 18) (7 20) (10 1) (10 7) (10 20) (18 1) (18 7) (18 20) (20 1) (20 10)" numToSelect="2" />
         <selectFromSequence name="s2" type="math" from="x" step="h" length="7" exclude="x+h x+2h x+3h x+5h" excludeCombinations="(x x+4h) (x+4h x+6h) (x+6h x)" numToSelect="2" />
         <selectFromSequence name="s3" type="letters" from="a" to="i" exclude="b c d e f h" excludeCombinations="(a i) (g a) (i g)" numToSelect="2" />
-        <p>Enter $m: <answer disableAfterCorrect="false" name="ans1"><mathInput name="mi1"/><award><math>$s1[1]</math></award></answer></p>
-        <p>Enter $x2: <answer disableAfterCorrect="false" name="ans2"><mathInput name="mi2"/><award><math>$s2[2]</math></award></answer></p>
-        <p>Enter $l1: <answer disableAfterCorrect="false" name="ans3"><textInput name="ti3"/><award><text>$s3[1]</text></award></answer></p>
+        <p>Enter $m: <answer name="ans1"><mathInput name="mi1"/><award><math>$s1[1]</math></award></answer></p>
+        <p>Enter $x2: <answer name="ans2"><mathInput name="mi2"/><award><math>$s2[2]</math></award></answer></p>
+        <p>Enter $l1: <answer name="ans3"><textInput name="ti3"/><award><text>$s3[1]</text></award></answer></p>
         `;
 
         // Test a bunch of variants
@@ -1251,7 +1251,7 @@ describe("Specifying single variant tests", async () => {
             </select>
           </setup>
           <p>Enter $fruit:
-            <answer disableAfterCorrect="false" name="ans" type="text">$fruit</answer>
+            <answer name="ans" type="text">$fruit</answer>
           </p>
         </problem>
         `;
