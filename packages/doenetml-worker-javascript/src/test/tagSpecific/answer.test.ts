@@ -6726,7 +6726,7 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("credit by attempt, disable after correct", async () => {
         const doenetML = `
-    <answer name="ans" creditByAttempt="1 0.8 0.7">x</answer>
+    <answer name="ans" disableAfterCorrect creditByAttempt="1 0.8 0.7">x</answer>
   `;
 
         let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
