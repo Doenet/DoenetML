@@ -48,24 +48,24 @@ function createDoenetML(
     
     <p>Answer <mathInput name="resp" /></p>
     
-    <p>Default setting: <answer disableAfterCorrect="false" name="checkD">
+    <p>Default setting: <answer name="checkD">
       ${createAward()}
       ${partialFactoredString ? createAward({ partial: true }) : ""}
     </answer></p>
-    <p>Restrict division: <answer disableAfterCorrect="false" name="checkRD">
+    <p>Restrict division: <answer name="checkRD">
       ${createAward({ mode: "RD" })}
       ${partialFactoredString ? createAward({ mode: "RD", partial: true }) : ""}
     </answer></p>
-    <p>Monomial factor must match: <answer disableAfterCorrect="false" name="checkMM">
+    <p>Monomial factor must match: <answer name="checkMM">
       ${createAward({ mode: "MM" })}
       ${partialFactoredString ? createAward({ mode: "MM", partial: true }) : ""}
     </answer></p>
-    <p>Allow only sign differences in factors: <answer disableAfterCorrect="false" name="checkSD">
+    <p>Allow only sign differences in factors: <answer name="checkSD">
       ${createAward({ mode: "SD" })}
       ${partialFactoredString ? createAward({ mode: "SD", partial: true }) : ""}
     </answer></p>
     <p>Normal equality:
-      <answer disableAfterCorrect="false" name="checkE"><award><when>$resp=$poly</when></award></answer>
+      <answer name="checkE"><award><when>$resp=$poly</when></award></answer>
     </p>
       `;
 }

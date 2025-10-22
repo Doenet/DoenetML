@@ -12,7 +12,7 @@ describe("Answer Tag Tests", function () {
                 {
                     doenetML: `
   <text name="a">a</text>
-  <p><answer disableAfterCorrect="false" name="answer1">
+  <p><answer name="answer1">
     <award><math>x+y</math></award>
     <award credit="0.3215"><math>x+z</math></award>
   </answer></p>
@@ -411,7 +411,7 @@ describe("Answer Tag Tests", function () {
                 {
                     doenetML: `
   <text name="a">a</text>
-  <p><answer disableAfterCorrect="false" type="text" name="answer1">
+  <p><answer type="text" name="answer1">
     <award><text>hello there</text></award>
     <award credit="0.3215"><text>bye</text></award>
   </answer></p>
@@ -641,7 +641,7 @@ describe("Answer Tag Tests", function () {
                     doenetML: `
   <text name="a">a</text>
   <p>Enter values that sum to <m>3x</m>: <mathInput name="mi1"/> <mathInput name="mi2" />
-  <answer disableAfterCorrect="false" name="answer1">
+  <answer name="answer1">
   <award><when><math><math isResponse extend="$mi1" />+<math isResponse extend="$mi2" /></math> = <math>3x</math></when></award>
   <award credit="0.5"><when><math>$mi1+$mi2</math> = <math>3</math></when></award>
   </answer></p>
@@ -951,7 +951,7 @@ describe("Answer Tag Tests", function () {
                     doenetML: `
         <text name="a">a</text>
         <p>Enter rain and snow in either order: <textInput name="ti1" /> <textInput name="ti2" />
-        <answer disableAfterCorrect="false" name="answer1">
+        <answer name="answer1">
         <award><when><text><text isResponse extend="$ti1" /> <text isResponse extend="$ti2" /></text> = <text>rain snow</text></when></award>
         <award><when><text>$ti1 $ti2</text> = <text>snow rain</text></when></award>
         <award credit="0.5"><when>$ti1 = rain</when></award>
@@ -1262,7 +1262,7 @@ describe("Answer Tag Tests", function () {
     <p>Favorite variable: <mathInput name="var" prefill="x"/></p>
     <p>Second favorite variable: <mathInput name="var2" prefill="y"/></p>
     <p>Enter variable:
-    <answer disableAfterCorrect="false">
+    <answer>
       <mathInput name="ans"/>
       <award><when><math extend="$ans" isResponse /> = $var</when></award>
       <award credit="0.5"><when>$ans = $var2</when></award>
@@ -1423,7 +1423,7 @@ describe("Answer Tag Tests", function () {
                     doenetML: `
       <text name="a">a</text>
       <p>Inline: <booleanInput name="inline" /> </p>
-      <answer disableAfterCorrect="false" inline="$inline" name="answer1">
+      <answer inline="$inline" name="answer1">
         <choiceInput shuffleOrder>
         <choice credit="0.5">cat</choice>
         <choice credit="1">dog</choice>
@@ -1540,7 +1540,7 @@ describe("Answer Tag Tests", function () {
                     doenetML: `
         <p>Enter value larger than 3: <mathInput name="val" /></p>
         
-        <answer disableAfterCorrect="false" name="a"> 
+        <answer name="a"> 
         <award referencesAreResponses="$val"><when>$val > 3</when></award>
         </answer>
         
@@ -1656,70 +1656,70 @@ describe("Answer Tag Tests", function () {
                 {
                     doenetML: `
   <text name="a">a</text>
-  <p><answer disableAfterCorrect="false" name="answer1">x</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer2" maxNumAttempts="2">x</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer3" forceFullCheckworkButton>x</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer4" forceFullCheckworkButton maxNumAttempts="2">x</answer></p>
+  <p><answer name="answer1">x</answer></p>
+  <p><answer name="answer2" maxNumAttempts="2">x</answer></p>
+  <p><answer name="answer3" forceFullCheckworkButton>x</answer></p>
+  <p><answer name="answer4" forceFullCheckworkButton maxNumAttempts="2">x</answer></p>
   
-  <p><answer disableAfterCorrect="false" name="answer5" type="text">hello</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer6" type="text" maxNumAttempts="2">hello</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer7" type="text" forceFullCheckworkButton>hello</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer8" type="text" forceFullCheckworkButton maxNumAttempts="2">hello</answer></p>
+  <p><answer name="answer5" type="text">hello</answer></p>
+  <p><answer name="answer6" type="text" maxNumAttempts="2">hello</answer></p>
+  <p><answer name="answer7" type="text" forceFullCheckworkButton>hello</answer></p>
+  <p><answer name="answer8" type="text" forceFullCheckworkButton maxNumAttempts="2">hello</answer></p>
     
-  <p><answer disableAfterCorrect="false" name="answer9">
+  <p><answer name="answer9">
     <choiceInput name="choiceInput1">
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="answer10" maxNumAttempts="2">
+  <p><answer name="answer10" maxNumAttempts="2">
     <choiceInput name="choiceInput2">
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="answer11" forceFullCheckworkButton>
+  <p><answer name="answer11" forceFullCheckworkButton>
     <choiceInput name="choiceInput3">
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="answer12" forceFullCheckworkButton maxNumAttempts="2">
+  <p><answer name="answer12" forceFullCheckworkButton maxNumAttempts="2">
     <choiceInput name="choiceInput4">
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
   
-  <p><answer disableAfterCorrect="false" name="answer13">
+  <p><answer name="answer13">
     <choiceInput name="choiceInput5" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="answer14" maxNumAttempts="2">
+  <p><answer name="answer14" maxNumAttempts="2">
     <choiceInput name="choiceInput6" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="answer15" forceFullCheckworkButton>
+  <p><answer name="answer15" forceFullCheckworkButton>
     <choiceInput name="choiceInput7" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="answer16" forceFullCheckworkButton maxNumAttempts="2">
+  <p><answer name="answer16" forceFullCheckworkButton maxNumAttempts="2">
     <choiceInput name="choiceInput8" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
 d
-  <p><answer disableAfterCorrect="false" name="answer17" type="boolean">true</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer18" type="boolean" maxNumAttempts="2">true</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer19" type="boolean" forceFullCheckworkButton>true</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer20" type="boolean" forceFullCheckworkButton maxNumAttempts="2">true</answer></p>
+  <p><answer name="answer17" type="boolean">true</answer></p>
+  <p><answer name="answer18" type="boolean" maxNumAttempts="2">true</answer></p>
+  <p><answer name="answer19" type="boolean" forceFullCheckworkButton>true</answer></p>
+  <p><answer name="answer20" type="boolean" forceFullCheckworkButton maxNumAttempts="2">true</answer></p>
    `,
                 },
                 "*",
@@ -2019,17 +2019,17 @@ d
                 {
                     doenetML: `
   <text name="a">a</text>
-  <p><answer disableAfterCorrect="false" name="answer1">x</answer></p>
+  <p><answer name="answer1">x</answer></p>
   <p><answer name="answer2" disableAfterCorrect>x</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer3" forceFullCheckworkButton>x</answer></p>
+  <p><answer name="answer3" forceFullCheckworkButton>x</answer></p>
   <p><answer name="answer4" forceFullCheckworkButton disableAfterCorrect>x</answer></p>
   
-  <p><answer disableAfterCorrect="false" name="answer5" type="text">hello</answer></p>
+  <p><answer name="answer5" type="text">hello</answer></p>
   <p><answer name="answer6" type="text" disableAfterCorrect>hello</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer7" type="text" forceFullCheckworkButton>hello</answer></p>
+  <p><answer name="answer7" type="text" forceFullCheckworkButton>hello</answer></p>
   <p><answer name="answer8" type="text" forceFullCheckworkButton disableAfterCorrect>hello</answer></p>
     
-  <p><answer disableAfterCorrect="false" name="answer9">
+  <p><answer name="answer9">
     <choiceInput name="choiceInput1">
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -2041,7 +2041,7 @@ d
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="answer11" forceFullCheckworkButton>
+  <p><answer name="answer11" forceFullCheckworkButton>
     <choiceInput name="choiceInput3">
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -2054,7 +2054,7 @@ d
     </choiceInput>
   </answer></p>
   
-  <p><answer disableAfterCorrect="false" name="answer13">
+  <p><answer name="answer13">
     <choiceInput name="choiceInput5" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -2066,7 +2066,7 @@ d
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="answer15" forceFullCheckworkButton>
+  <p><answer name="answer15" forceFullCheckworkButton>
     <choiceInput name="choiceInput7" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -2079,9 +2079,9 @@ d
     </choiceInput>
   </answer></p>
 
-  <p><answer disableAfterCorrect="false" name="answer17" type="boolean">true</answer></p>
+  <p><answer name="answer17" type="boolean">true</answer></p>
   <p><answer name="answer18" type="boolean" disableAfterCorrect>true</answer></p>
-  <p><answer disableAfterCorrect="false" name="answer19" type="boolean" forceFullCheckworkButton>true</answer></p>
+  <p><answer name="answer19" type="boolean" forceFullCheckworkButton>true</answer></p>
   <p><answer name="answer20" type="boolean" forceFullCheckworkButton disableAfterCorrect>true</answer></p>
    `,
                 },
@@ -2381,7 +2381,7 @@ d
   </graph>
 
   <p>Move point to <m>(3,4)</m>: </p>
-  <p><answer disableAfterCorrect="false" name="answer1">
+  <p><answer name="answer1">
     <award referencesAreResponses="$A">
       <when>$A = (3,4)</when>
     </award>
@@ -2393,7 +2393,7 @@ d
   </answer></p>
 
   <p>Move point to <m>(-5,6)</m>: </p>
-  <p><answer disableAfterCorrect="false" name="answer3">
+  <p><answer name="answer3">
     <award referencesAreResponses="$A">
       <when>$A = (-5,6)</when>
     </award>
@@ -2407,7 +2407,7 @@ d
   <p><mathInput name="mi" /></p>
 
   <p>Enter <m>x</m> in above blank.</p>
-  <p><answer disableAfterCorrect="false" name="answer5">
+  <p><answer name="answer5">
     <award referencesAreResponses="$mi"><when>$mi=x</when></award>
   </answer></p>
   <p><answer name="answer6" disableAfterCorrect>
@@ -2415,7 +2415,7 @@ d
   </answer></p>
 
   <p>Enter <m>y</m> in above blank.</p>
-  <p><answer disableAfterCorrect="false" name="answer7">
+  <p><answer name="answer7">
     <award referencesAreResponses="$mi"><when>$mi=y</when></award>
   </answer></p>
   <p><answer name="answer8" disableAfterCorrect>
@@ -2506,10 +2506,10 @@ d
                 {
                     doenetML: `
   <text name="a">a</text>
-  <p><answer disableAfterCorrect="false" name="ans1" forceFullCheckworkButton>x</answer></p>
-  <p><answer disableAfterCorrect="false" name="ans2" forceFullCheckworkButton submitLabel="Hit it!">x</answer></p>
-  <p><answer disableAfterCorrect="false" name="ans3" forceFullCheckworkButton submitLabelNoCorrectness="Guess">x</answer></p>
-  <p><answer disableAfterCorrect="false" name="ans4" forceFullCheckworkButton submitLabel="Hit it!" submitLabelNoCorrectness="Guess">x</answer></p>
+  <p><answer name="ans1" forceFullCheckworkButton>x</answer></p>
+  <p><answer name="ans2" forceFullCheckworkButton submitLabel="Hit it!">x</answer></p>
+  <p><answer name="ans3" forceFullCheckworkButton submitLabelNoCorrectness="Guess">x</answer></p>
+  <p><answer name="ans4" forceFullCheckworkButton submitLabel="Hit it!" submitLabelNoCorrectness="Guess">x</answer></p>
   `,
                 },
                 "*",
@@ -2649,25 +2649,25 @@ d
                 {
                     doenetML: `
   <text name="a">a</text>
-  <p><answer disableAfterCorrect="false" name="ans1">
+  <p><answer name="ans1">
     <choiceInput name="choiceInput1">
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="ans2" submitLabel="Hit it!">
+  <p><answer name="ans2" submitLabel="Hit it!">
     <choiceInput name="choiceInput2">
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="ans3" submitLabelNoCorrectness="Guess">
+  <p><answer name="ans3" submitLabelNoCorrectness="Guess">
     <choiceInput name="choiceInput3">
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="ans4" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
+  <p><answer name="ans4" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
     <choiceInput name="choiceInput4">
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -2788,12 +2788,12 @@ d
                 {
                     doenetML: `
   <text name="a">a</text>
-  <p>Enter x: <answer disableAfterCorrect="false" name="x">x</answer></p>
+  <p>Enter x: <answer name="x">x</answer></p>
   <p name="pSubX">Submitted response: $x</p>
   <p name="pCreditX">Credit for this answer: $x.creditAchieved</p>
   
   <p>Select the correct answer:
-  <answer disableAfterCorrect="false" name="correct">
+  <answer name="correct">
     <choice name="choice1" credit="1">correct</choice>
     <choice name="choice2">incorrect</choice>
   </answer></p>
@@ -2805,7 +2805,7 @@ d
   </graph>
   
   <p>Move point P into first quadrant
-    <answer disableAfterCorrect="false" name="firstQuad"><award><when>$P.x > 0 and $P.y > 0</when></award></answer>
+    <answer name="firstQuad"><award><when>$P.x > 0 and $P.y > 0</when></award></answer>
   </p>
   
   <p name="pSubFirstQuad">Submitted response: $firstQuad.submittedResponses</p>
@@ -3236,7 +3236,7 @@ d
                 {
                     doenetML: `
 
-  <p><answer disableAfterCorrect="false" name="answer1" inline creditByAttempt="1 0.6 0.4" disableWrongChoices>
+  <p><answer name="answer1" inline creditByAttempt="1 0.6 0.4" disableWrongChoices>
     <choiceInput name="choiceInput1">
       <choice credit="1">A</choice>
       <choice>B</choice>
@@ -3244,7 +3244,7 @@ d
       <choice>D</choice>
     </choiceInput>
   </answer></p>
-  <p><answer disableAfterCorrect="false" name="answer2" inline creditByAttempt="1 0.6 0.4" disableWrongChoices forceFullCheckworkButton>
+  <p><answer name="answer2" inline creditByAttempt="1 0.6 0.4" disableWrongChoices forceFullCheckworkButton>
     <choiceInput name="choiceInput2">
       <choice credit="1">A</choice>
       <choice>B</choice>

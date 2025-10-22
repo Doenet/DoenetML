@@ -76,7 +76,7 @@ describe("SelectFromSequence Tag Tests", function () {
     
     <math name='S_critical' simplify='full'>$a_over_b</math>
     
-    <answer disableAfterCorrect="false" name='critNumAns'>
+    <answer name='critNumAns'>
     <mathInput name="mi" />
     <award>$S_critical</award>
     </answer>

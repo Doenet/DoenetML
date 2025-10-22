@@ -10,7 +10,7 @@ describe("Pretzel tag tests", async () => {
     it("basic pretzel", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <pretzel name="p" disableAfterCorrect="false">
+    <pretzel name="p">
         <problem>
             <statement name="s1"><p>What is 1+1?</p></statement>
             <givenAnswer name="a1"><p>2</p></givenAnswer>

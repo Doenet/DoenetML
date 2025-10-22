@@ -157,14 +157,14 @@ describe("Sectioning tag tests", async () => {
     <p>Credit achieved for $_document1.title:
     <number extend="$_document1.creditAchieved" name="docCa" />, or <number extend="$_document1.percentCreditAchieved" name="docPca" />%</p>
 
-    <p>Enter <m>u</m>: <answer disableAfterCorrect="false" name="ans1">u</answer></p>
+    <p>Enter <m>u</m>: <answer name="ans1">u</answer></p>
 
     <section name="section1"><title>Section 1</title>
       <p>Credit achieved for $section1.title:
       <number extend="$section1.creditAchieved" name="section1Ca" />, or <number extend="$section1.percentCreditAchieved" name="section1Pca" />%</p>
 
-      <p>Enter <m>x</m>: <answer disableAfterCorrect="false" name="ans2">x</answer></p>
-      <p>Enter <m>y</m>: <answer disableAfterCorrect="false" name="ans3" weight="2">y</answer></p>
+      <p>Enter <m>x</m>: <answer name="ans2">x</answer></p>
+      <p>Enter <m>y</m>: <answer name="ans3" weight="2">y</answer></p>
 
 
     </section>
@@ -172,35 +172,35 @@ describe("Sectioning tag tests", async () => {
       <p>Credit achieved for $section2.title:
       <number extend="$section2.creditAchieved" name="section2Ca" />, or <number extend="$section2.percentCreditAchieved" name="section2Pca" />%</p>
 
-      <p>Enter <m>z</m>: <answer disableAfterCorrect="false" name="ans4">z</answer></p>
+      <p>Enter <m>z</m>: <answer name="ans4">z</answer></p>
 
       <subsection name="section21"><title>Section 2.1</title>
         <p>Credit achieved for $section21.title:
         <number extend="$section21.creditAchieved" name="section21Ca" />, or <number extend="$section21.percentCreditAchieved" name="section21Pca" />%</p>
 
 
-        <p>Enter <m>v</m>: <answer disableAfterCorrect="false" name="ans5" weight="0.5">v</answer></p>
-        <p>Enter <m>w</m>: <answer disableAfterCorrect="false" name="ans6">w</answer></p>
+        <p>Enter <m>v</m>: <answer name="ans5" weight="0.5">v</answer></p>
+        <p>Enter <m>w</m>: <answer name="ans6">w</answer></p>
 
       </subsection>
       <subsection name="section22"><title>Section 2.2</title>
         <p>Credit achieved for $section22.title:
         <number extend="$section22.creditAchieved" name="section22Ca" />, or <number extend="$section22.percentCreditAchieved" name="section22Pca" />%</p>
 
-        <p>Enter <m>q</m>: <answer disableAfterCorrect="false" name="ans7">q</answer></p>
+        <p>Enter <m>q</m>: <answer name="ans7">q</answer></p>
 
         <subsubsection name="section221"><title>Section 2.2.1</title>
           <p>Credit achieved for $section221.title:
           <number extend="$section221.creditAchieved" name="section221Ca" />, or <number extend="$section221.percentCreditAchieved" name="section221Pca" />%</p>
 
-          <p>Enter <m>r</m>: <answer disableAfterCorrect="false" name="ans8">r</answer></p>
+          <p>Enter <m>r</m>: <answer name="ans8">r</answer></p>
 
         </subsubsection>
         <subsubsection name="section222"><title>Section 2.2.2</title>
           <p>Credit achieved for $section222.title:
           <number extend="$section222.creditAchieved" name="section222Ca" />, or <number extend="$section222.percentCreditAchieved" name="section222Pca" />%</p>
 
-          <p>Enter <m>s</m>: <answer disableAfterCorrect="false" name="ans9" weight="3">s</answer></p>
+          <p>Enter <m>s</m>: <answer name="ans9" weight="3">s</answer></p>
 
         </subsubsection>
       </subsection>
@@ -285,14 +285,14 @@ describe("Sectioning tag tests", async () => {
     <p>Credit achieved for $doc.title:
     <number extend="$doc.creditAchieved" name="docCa" />, or <number extend="$doc.percentCreditAchieved" name="docPca" />%</p>
 
-    <p>Enter <m>u</m>: <answer disableAfterCorrect="false" name="ans1">u</answer></p>
+    <p>Enter <m>u</m>: <answer name="ans1">u</answer></p>
 
     <section name="section1" aggregateScores><title>Section 1</title>
       <p>Credit achieved for $section1.title:
       <number extend="$section1.creditAchieved" name="section1Ca" />, or <number extend="$section1.percentCreditAchieved" name="section1Pca" />%</p>
 
-      <p>Enter <m>x</m>: <answer disableAfterCorrect="false" name="ans2">x</answer></p>
-      <p>Enter <m>y</m>: <answer disableAfterCorrect="false" name="ans3" weight="2">y</answer></p>
+      <p>Enter <m>x</m>: <answer name="ans2">x</answer></p>
+      <p>Enter <m>y</m>: <answer name="ans3" weight="2">y</answer></p>
 
 
     </section>
@@ -300,35 +300,35 @@ describe("Sectioning tag tests", async () => {
       <p>Credit achieved for $section2.title:
       <number extend="$section2.creditAchieved" name="section2Ca" />, or <number extend="$section2.percentCreditAchieved" name="section2Pca" />%</p>
 
-      <p>Enter <m>z</m>: <answer disableAfterCorrect="false" name="ans4">z</answer></p>
+      <p>Enter <m>z</m>: <answer name="ans4">z</answer></p>
 
       <subsection name="section21" aggregateScores><title>Section 2.1</title>
         <p>Credit achieved for $section21.title:
         <number extend="$section21.creditAchieved" name="section21Ca" />, or <number extend="$section21.percentCreditAchieved" name="section21Pca" />%</p>
 
 
-        <p>Enter <m>v</m>: <answer disableAfterCorrect="false" name="ans5" weight="0.5">v</answer></p>
-        <p>Enter <m>w</m>: <answer disableAfterCorrect="false" name="ans6">w</answer></p>
+        <p>Enter <m>v</m>: <answer name="ans5" weight="0.5">v</answer></p>
+        <p>Enter <m>w</m>: <answer name="ans6">w</answer></p>
 
       </subsection>
       <subsection name="section22"><title>Section 2.2</title>
         <p>Credit achieved for $section22.title:
         <number extend="$section22.creditAchieved" name="section22Ca" />, or <number extend="$section22.percentCreditAchieved" name="section22Pca" />%</p>
 
-        <p>Enter <m>q</m>: <answer disableAfterCorrect="false" name="ans7">q</answer></p>
+        <p>Enter <m>q</m>: <answer name="ans7">q</answer></p>
 
         <subsubsection name="section221" aggregateScores><title>Section 2.2.1</title>
           <p>Credit achieved for $section221.title:
           <number extend="$section221.creditAchieved" name="section221Ca" />, or <number extend="$section221.percentCreditAchieved" name="section221Pca" />%</p>
 
-          <p>Enter <m>r</m>: <answer disableAfterCorrect="false" name="ans8">r</answer></p>
+          <p>Enter <m>r</m>: <answer name="ans8">r</answer></p>
 
         </subsubsection>
         <subsubsection name="section222" aggregateScores><title>Section 2.2.2</title>
           <p>Credit achieved for $section222.title:
           <number extend="$section222.creditAchieved" name="section222Ca" />, or <number extend="$section222.percentCreditAchieved" name="section222Pca" />%</p>
 
-          <p>Enter <m>s</m>: <answer disableAfterCorrect="false" name="ans9" weight="3">s</answer></p>
+          <p>Enter <m>s</m>: <answer name="ans9" weight="3">s</answer></p>
 
         </subsubsection>
       </subsection>
@@ -426,14 +426,14 @@ describe("Sectioning tag tests", async () => {
     <p>Credit achieved for $doc.title:
     <number extend="$doc.creditAchieved" name="docCa" />, or <number extend="$doc.percentCreditAchieved" name="docPca" />%</p>
 
-    <p>Enter <m>u</m>: <answer disableAfterCorrect="false" name="ans1">u</answer></p>
+    <p>Enter <m>u</m>: <answer name="ans1">u</answer></p>
 
     <section name="section1" aggregateScores weight="0.5"><title>Section 1</title>
       <p>Credit achieved for $section1.title:
       <number extend="$section1.creditAchieved" name="section1Ca" />, or <number extend="$section1.percentCreditAchieved" name="section1Pca" />%</p>
 
-      <p>Enter <m>x</m>: <answer disableAfterCorrect="false" name="ans2">x</answer></p>
-      <p>Enter <m>y</m>: <answer disableAfterCorrect="false" name="ans3" weight="2">y</answer></p>
+      <p>Enter <m>x</m>: <answer name="ans2">x</answer></p>
+      <p>Enter <m>y</m>: <answer name="ans3" weight="2">y</answer></p>
 
 
     </section>
@@ -441,35 +441,35 @@ describe("Sectioning tag tests", async () => {
       <p>Credit achieved for $section2.title:
       <number extend="$section2.creditAchieved" name="section2Ca" />, or <number extend="$section2.percentCreditAchieved" name="section2Pca" />%</p>
 
-      <p>Enter <m>z</m>: <answer disableAfterCorrect="false" name="ans4">z</answer></p>
+      <p>Enter <m>z</m>: <answer name="ans4">z</answer></p>
 
       <subsection name="section21" aggregateScores weight="3"><title>Section 2.1</title>
         <p>Credit achieved for $section21.title:
         <number extend="$section21.creditAchieved" name="section21Ca" />, or <number extend="$section21.percentCreditAchieved" name="section21Pca" />%</p>
 
 
-        <p>Enter <m>v</m>: <answer disableAfterCorrect="false" name="ans5" weight="0.5">v</answer></p>
-        <p>Enter <m>w</m>: <answer disableAfterCorrect="false" name="ans6">w</answer></p>
+        <p>Enter <m>v</m>: <answer name="ans5" weight="0.5">v</answer></p>
+        <p>Enter <m>w</m>: <answer name="ans6">w</answer></p>
 
       </subsection>
       <subsection name="section22" aggregateScores weight="4"><title>Section 2.2</title>
         <p>Credit achieved for $section22.title:
         <number extend="$section22.creditAchieved" name="section22Ca" />, or <number extend="$section22.percentCreditAchieved" name="section22Pca" />%</p>
 
-        <p>Enter <m>q</m>: <answer disableAfterCorrect="false" name="ans7">q</answer></p>
+        <p>Enter <m>q</m>: <answer name="ans7">q</answer></p>
 
         <subsubsection name="section221" aggregateScores weight="5"><title>Section 2.2.1</title>
           <p>Credit achieved for $section221.title:
           <number extend="$section221.creditAchieved" name="section221Ca" />, or <number extend="$section221.percentCreditAchieved" name="section221Pca" />%</p>
 
-          <p>Enter <m>r</m>: <answer disableAfterCorrect="false" name="ans8">r</answer></p>
+          <p>Enter <m>r</m>: <answer name="ans8">r</answer></p>
 
         </subsubsection>
         <subsubsection name="section222" aggregateScores weight="1"><title>Section 2.2.2</title>
           <p>Credit achieved for $section222.title:
           <number extend="$section222.creditAchieved" name="section222Ca" />, or <number extend="$section222.percentCreditAchieved" name="section222Pca" />%</p>
 
-          <p>Enter <m>s</m>: <answer disableAfterCorrect="false" name="ans9" weight="3">s</answer></p>
+          <p>Enter <m>s</m>: <answer name="ans9" weight="3">s</answer></p>
 
         </subsubsection>
       </subsection>
