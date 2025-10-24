@@ -22,8 +22,8 @@ export function attachStandardGraphListeners<T extends JSG.GeometryElement>(
         // Protect against very small unintended drags
         if (
             !viaPointer ||
-            Math.abs(e.x - interactionState.pointerAtDown[0]) > 0.1 ||
-            Math.abs(e.y - interactionState.pointerAtDown[1]) > 0.1
+            Math.abs(e.x - interactionState.pointerAtDown[0]) > 1 ||
+            Math.abs(e.y - interactionState.pointerAtDown[1]) > 1
         ) {
             interactionState.dragActive = true;
         }
