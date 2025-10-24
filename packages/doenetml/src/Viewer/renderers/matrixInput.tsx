@@ -10,7 +10,7 @@ import "./mathInput.css";
 import {
     calculateValidationState,
     createCheckWorkComponent,
-} from "../../utils/checkWork";
+} from "./utils/checkWork";
 
 const Matrix = styled.div`
     position: relative;

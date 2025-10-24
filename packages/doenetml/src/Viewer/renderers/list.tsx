@@ -4,6 +4,10 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import {
+    calculateValidationState,
+    createCheckWorkComponent,
+} from "./utils/checkWork";
 
 export default React.memo(function List(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
@@ -14,6 +18,24 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
 
     if (SVs.hidden) {
         return null;
+    }
+
+    let checkWorkComponent = null;
+
+    if (actions.submitAllAnswers) {
+        const submitAllAnswers = () =>
+            callAction({
+                action: actions.submitAllAnswers,
+            });
+
+        const validationState = calculateValidationState(SVs);
+        checkWorkComponent = createCheckWorkComponent(
+            SVs,
+            id,
+            validationState,
+            submitAllAnswers,
+            true,
+        );
     }
 
     if (SVs._compositeReplacementActiveRange) {
@@ -31,6 +53,7 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
         return (
             <li id={id} ref={ref}>
                 {children}
+                {checkWorkComponent}
             </li>
         );
     } else if (SVs.numbered) {

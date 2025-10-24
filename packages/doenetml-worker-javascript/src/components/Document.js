@@ -5,7 +5,10 @@ import {
 } from "../utils/variants";
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import { returnFeedbackDefinitionStateVariables } from "../utils/feedback";
-import { returnScoredSectionStateVariableDefinition } from "../utils/scoredSection";
+import {
+    returnScoredSectionStateVariableDefinition,
+    submitAllAnswers,
+} from "../utils/scoredSection";
 
 export default class Document extends BaseComponent {
     constructor(args) {
@@ -127,6 +130,8 @@ export default class Document extends BaseComponent {
             stateVariableDefinitions,
             returnScoredSectionStateVariableDefinition(),
         );
+
+        delete stateVariableDefinitions.aggregateScores;
 
         stateVariableDefinitions.titleChildName = {
             forRenderer: true,
@@ -640,23 +645,6 @@ export default class Document extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.suppressCheckWork = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                autoSubmit: {
-                    dependencyType: "flag",
-                    flagName: "autoSubmit",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        suppressCheckWork: dependencyValues.autoSubmit,
-                    },
-                };
-            },
-        };
-
         stateVariableDefinitions.containerTag = {
             forRenderer: true,
             returnDependencies: () => ({}),
@@ -671,36 +659,12 @@ export default class Document extends BaseComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        this.coreFunctions.requestRecordEvent({
-            verb: "submitted",
-            object: {
-                componentIdx: this.componentIdx,
-                componentType: this.componentType,
-            },
+        return submitAllAnswers({
+            component: this,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
         });
-
-        let answersToSubmit = [];
-
-        for (let answer of await this.stateValues.answerDescendants) {
-            if (!(await answer.stateValues.justSubmitted)) {
-                answersToSubmit.push(answer);
-            }
-        }
-
-        let numAnswers = answersToSubmit.length;
-
-        for (let [ind, answer] of answersToSubmit.entries()) {
-            await this.coreFunctions.performAction({
-                componentIdx: answer.componentIdx,
-                actionName: "submitAnswer",
-                args: {
-                    actionId,
-                    sourceInformation,
-                    skipRendererUpdate:
-                        skipRendererUpdate || ind < numAnswers - 1,
-                },
-            });
-        }
     }
 
     recordVisibilityChange({ isVisible }) {

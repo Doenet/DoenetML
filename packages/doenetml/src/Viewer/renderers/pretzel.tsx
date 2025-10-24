@@ -9,7 +9,7 @@ import "./pretzel.css";
 import {
     calculateValidationState,
     createCheckWorkComponent,
-} from "../../utils/checkWork";
+} from "./utils/checkWork";
 
 export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
     let {
