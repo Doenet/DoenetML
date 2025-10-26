@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useRef } from "react";
 import { DocContext } from "../DocViewer";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
@@ -36,9 +36,41 @@ const RefButton = styled.button`
 `;
 
 export default React.memo(function Ref(props: UseDoenetRendererProps) {
-    let { id, SVs, children } = useDoenetRenderer(props);
+    const { id, SVs, children, requestScrollTo } = useDoenetRenderer(props);
 
-    let { doenetViewerUrl } = useContext(DocContext) || {};
+    const { doenetViewerUrl } = useContext(DocContext) || {};
+
+    const aRef = useRef<HTMLAnchorElement>(null);
+
+    const { targetForATag, url, scrollOnlyLink } = getURLFromRef({
+        url: SVs.url,
+        activityId: SVs.activityId,
+        activityUrlPostfix: SVs.activityUrlPostfix,
+        targetRendererId: SVs.targetRendererId,
+        doenetViewerUrl,
+    });
+
+    function handleLinkClick(
+        e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+    ) {
+        if (!scrollOnlyLink) {
+            return;
+        }
+
+        // If requestScrollTo is defined,
+        // then use requestScrollTo to achieve scrolling rather than the default effect of the link.
+        // This is needed, in particular, if doenetml is running inside an iframe
+        if (requestScrollTo) {
+            e.preventDefault();
+
+            const targetId = url.substring(1);
+            const targetElement = document.getElementById(targetId);
+
+            if (targetElement) {
+                requestScrollTo(targetElement.offsetTop);
+            }
+        }
+    }
 
     if (SVs.hidden) {
         return null;
@@ -48,14 +80,6 @@ export default React.memo(function Ref(props: UseDoenetRendererProps) {
     if (children.length === 0) {
         linkContent = SVs.linkText;
     }
-
-    let { targetForATag, url } = getURLFromRef({
-        url: SVs.url,
-        activityId: SVs.activityId,
-        activityUrlPostfix: SVs.activityUrlPostfix,
-        targetRendererId: SVs.targetRendererId,
-        doenetViewerUrl,
-    });
 
     if (SVs.createButton) {
         if (targetForATag === "_blank") {
@@ -90,6 +114,7 @@ export default React.memo(function Ref(props: UseDoenetRendererProps) {
     } else {
         // TODO: we cannot use a `<Link>` since component is not necessarily contained in a <Router>.
         // We need a solution for proper behavior of scrolling
+
         return (
             <a
                 style={{
@@ -99,6 +124,8 @@ export default React.memo(function Ref(props: UseDoenetRendererProps) {
                 target={targetForATag || undefined}
                 id={id}
                 href={url}
+                onClick={handleLinkClick}
+                ref={aRef}
             >
                 {linkContent}
             </a>
@@ -120,15 +147,18 @@ export function getURLFromRef({
     doenetViewerUrl?: string;
 }) {
     let targetForATag: string | null = null;
+    let scrollOnlyLink = false;
 
     if (targetRendererId) {
         url = `#${targetRendererId}`;
+        scrollOnlyLink = true;
     } else if (activityId) {
         url = `${doenetViewerUrl}/${activityId}${activityUrlPostfix}`;
         targetForATag = "_blank";
     } else {
-        targetForATag = url.startsWith("#") ? null : "_blank";
+        scrollOnlyLink = url.startsWith("#");
+        targetForATag = scrollOnlyLink ? null : "_blank";
     }
 
-    return { targetForATag, url };
+    return { targetForATag, url, scrollOnlyLink };
 }

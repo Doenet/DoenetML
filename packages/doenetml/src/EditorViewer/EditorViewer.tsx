@@ -112,7 +112,7 @@ export function EditorViewer({
 
     const updateValueTimer = useRef<number | null>(null);
 
-    const scrollableContainer = useRef<HTMLDivElement>(null);
+    const viewerContainer = useRef<HTMLDivElement>(null);
 
     const [variants, setVariants] = useState({
         index: 1,
@@ -427,6 +427,15 @@ export function EditorViewer({
         );
     }
 
+    function requestScrollTo(offset: number) {
+        if (viewerContainer.current) {
+            viewerContainer.current.scrollTo({
+                top: offset - 40,
+                behavior: "smooth",
+            });
+        }
+    }
+
     const viewerPanel = (
         <div className="viewer-panel" id={id + "-viewer"}>
             <div className="viewer-controls" id={id + "-viewer-controls"}>
@@ -486,11 +495,7 @@ export function EditorViewer({
                     />
                 )}
             </div>
-            <div
-                className="viewer"
-                id={id + "-viewer"}
-                ref={scrollableContainer}
-            >
+            <div className="viewer" id={id + "-viewer"} ref={viewerContainer}>
                 <DocViewer
                     doenetML={viewerDoenetML}
                     flags={{
@@ -544,13 +549,11 @@ export function EditorViewer({
                         documentStructureThenChangeCallback
                     }
                     doenetViewerUrl={doenetViewerUrl}
-                    scrollableContainer={
-                        scrollableContainer.current ?? undefined
-                    }
                     darkMode={darkMode}
                     showAnswerResponseButton={showAnswerResponseButton}
                     answerResponseCounts={answerResponseCounts}
                     fetchExternalDoenetML={fetchExternalDoenetML}
+                    requestScrollTo={requestScrollTo}
                 />
             </div>
         </div>
