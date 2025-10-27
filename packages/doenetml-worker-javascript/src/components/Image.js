@@ -498,7 +498,7 @@ export default class Image extends BlockComponent {
 
     async imageClicked({
         actionId,
-        name,
+        componentIdx,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {

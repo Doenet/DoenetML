@@ -11,6 +11,11 @@ export type LabelPosition =
     | "right"
     | "center";
 
+/**
+ * Distance the mouse pointer has to move between down and up to be consider a drag
+ */
+export const POINTER_DRAG_THRESHOLD = 1;
+
 export function getEffectiveBoundingBox(board: JXGObject) {
     let flippedX = false;
     let flippedY = false;
