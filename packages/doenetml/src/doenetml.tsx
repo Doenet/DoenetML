@@ -89,13 +89,13 @@ export function DoenetViewer({
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
     doenetViewerUrl,
-    scrollableContainer,
     darkMode = "light",
     showAnswerResponseButton = false,
     answerResponseCounts = {},
     includeVariantSelector = false,
     initializeCounters = {},
     fetchExternalDoenetML,
+    requestScrollTo,
     onInit = () => {},
 }: {
     doenetML: string;
@@ -121,13 +121,13 @@ export function DoenetViewer({
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
-    scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     includeVariantSelector?: boolean;
     initializeCounters?: Record<string, number>;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
+    requestScrollTo?: (offset: number) => void;
     /**
      * Called when React has initialized and passed the DOM node that is a parent of
      * the DoenetML UI.
@@ -249,12 +249,12 @@ export function DoenetViewer({
             forceShowSolution={forceShowSolution}
             forceUnsuppressCheckWork={forceUnsuppressCheckWork}
             doenetViewerUrl={doenetViewerUrl}
-            scrollableContainer={scrollableContainer}
             darkMode={darkMode}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
             initializeCounters={initializeCounters}
             fetchExternalDoenetML={fetchExternalDoenetML}
+            requestScrollTo={requestScrollTo}
         />
     );
 

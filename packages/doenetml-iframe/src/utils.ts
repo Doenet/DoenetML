@@ -9,7 +9,7 @@ import editorIframeJsSource from "../dist/iframe-editor/iframe-editor-index.iife
 
 export type DoenetViewerProps = Omit<
     React.ComponentProps<typeof DoenetViewerOrig>,
-    "doenetML" | "scrollableContainer" | "externalVirtualKeyboardProvided"
+    "doenetML" | "externalVirtualKeyboardProvided"
 >;
 export type DoenetEditorProps = Omit<
     React.ComponentProps<typeof DoenetEditorOrig>,

@@ -31,7 +31,6 @@ import {
 
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
-    scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -60,12 +59,12 @@ export function DocViewer({
     setIsInErrorState,
     prefixForIds = "",
     doenetViewerUrl,
-    scrollableContainer,
     darkMode,
     showAnswerResponseButton = false,
     answerResponseCounts = {},
     initializeCounters: prescribedInitializeCounters = {},
     fetchExternalDoenetML,
+    requestScrollTo,
 }: {
     doenetML: string;
     userId?: string;
@@ -89,12 +88,12 @@ export function DocViewer({
     setIsInErrorState?: Function;
     prefixForIds?: string;
     doenetViewerUrl?: string;
-    scrollableContainer?: HTMLDivElement | Window;
     darkMode?: "dark" | "light";
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     initializeCounters?: Record<string, number>;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
+    requestScrollTo?: (offset: number) => void;
 }) {
     // Sometimes components eagerly update before waiting for core to determine their exact state
     // This map from event ids to event values helps keep track of the updates that need to be ignored
@@ -205,7 +204,6 @@ export function DocViewer({
 
     const contextForRenderers = {
         doenetViewerUrl,
-        scrollableContainer,
         darkMode,
         showAnswerResponseButton,
         answerResponseCounts,
@@ -697,8 +695,8 @@ export function DocViewer({
                         activityId,
                         callAction,
                         doenetViewerUrl,
-                        scrollableContainer,
                         fetchExternalDoenetML,
+                        requestScrollTo,
                     }),
                 );
 

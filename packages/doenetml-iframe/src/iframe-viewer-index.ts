@@ -50,6 +50,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // If the parent DoenetViewer was not given a requestScrollTo prop,
+    // then create a requestScrollTo prop that will message the parent
+    // when scroll-only links (with target of the form #anchor) are clicked
+    if (!doenetViewerPropsSpecified.includes("requestScrollTo")) {
+        augmentedDoenetViewerProps.requestScrollTo = (offset: number) => {
+            messageParentFromViewer({ type: "scrollTo", offset });
+        };
+    }
+
     window.renderDoenetViewerToContainer(
         document.getElementById("root")!,
         undefined,
