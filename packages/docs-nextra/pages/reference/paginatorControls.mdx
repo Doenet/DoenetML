@@ -1,0 +1,69 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <paginatorControls>{:dn}`
+
+` <paginatorControls>{:dn}` is a [Sectional](../document_structure/essentialConcepts#component-types)
+component that works alongside the `<paginator>{:dn}` component to provide navigation buttons.
+
+
+## Attributes and Properties 
+ <AttrDisplay name='paginatorControls'/> 
+ <PropDisplay name='paginatorControls'/>
+
+---
+
+### Example: ` <paginatorControls>{:dn}` with a basic ` <paginator>{:dn}`
+
+
+```doenet-editor-horiz
+<paginator name="pages">
+  <section boxed>
+    <lorem generateParagraphs="2"/>
+  </section>
+  <problem boxed>
+    <lorem generateParagraphs="2"/>
+  </problem>
+  <exercise boxed>
+    <lorem generateParagraphs="2"/>
+  </exercise>
+</paginator>
+
+<paginatorControls paginator="$pages"/>
+```
+
+A `<paginator>{:dn}` component creates a separate page for each sectional component it contains. The 
+navigation buttons for the paginator are created using the `<paginatorControls>{:dn}` component, and may be
+positioned either above or below the paginator content. The `paginator` attribute of the 
+`<paginatorControls>{:dn}` component references the name of the associated `<paginator>{:dn}` component.
+
+
+---
+
+### Example: ` <paginatorControls>{:dn}` with custom labels
+
+
+```doenet-editor-horiz
+<paginator name="questions">
+  <question boxed>
+    <p><m><math>sqrt(16)/4</math> = </m>
+      <answer>1</answer></p>
+  </question>
+  <question boxed>
+    <p><m><math>ln(e)</math> = </m><answer>1</answer></p>
+  </question>
+  <question boxed>
+    <p><m><math>sin(pi/2)</math> = </m><answer>1</answer></p>
+  </question>
+</paginator>
+
+<paginatorControls paginator="$questions" 
+  pageLabel="Question" 
+  nextLabel="Next Question" 
+  previousLabel="Previous Question"/>
+```
+
+The `pageLabel`, `nextLabel`, and `previousLabel` attributes of the `<paginatorControls>{:dn}` component
+allow customization of the text displayed on the navigation buttons.

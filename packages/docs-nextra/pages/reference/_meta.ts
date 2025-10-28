@@ -122,6 +122,8 @@ export default {
     or: { title: "or" },
     orbitalDiagramInput: { title: "orbitalDiagramInput" },
     p: { title: "p" },
+    paginator: { title: "paginator" },
+    paginatorControls: { title: "paginatorControls" },
     parabola: { title: "parabola" },
     piecewiseFunction: { title: "piecewiseFunction" },
     point: { title: "point" },
