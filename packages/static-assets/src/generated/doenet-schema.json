@@ -1967,6 +1967,39 @@
                 },
                 {
                     "name": "copy"
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
                 }
             ],
             "properties": [
@@ -1996,6 +2029,31 @@
                     "isArray": false
                 },
                 {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -2018,6 +2076,21 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
                     "isArray": false
                 }
             ],
@@ -2303,6 +2376,39 @@
                 },
                 {
                     "name": "copy"
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
                 }
             ],
             "properties": [
@@ -2332,6 +2438,31 @@
                     "isArray": false
                 },
                 {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -2354,6 +2485,21 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
                     "isArray": false
                 }
             ],
@@ -2639,6 +2785,39 @@
                 },
                 {
                     "name": "copy"
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
                 }
             ],
             "properties": [
@@ -2668,6 +2847,31 @@
                     "isArray": false
                 },
                 {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -2690,6 +2894,21 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
                     "isArray": false
                 }
             ],
@@ -24693,11 +24912,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -24778,6 +24992,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -24790,16 +25019,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -25204,11 +25423,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -25289,6 +25503,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -25301,16 +25530,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -25715,11 +25934,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -25800,6 +26014,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -25812,16 +26041,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -26226,11 +26445,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -26311,6 +26525,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -26323,16 +26552,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -26758,11 +26977,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -26848,6 +27062,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -26860,16 +27089,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -27274,11 +27493,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -27359,6 +27573,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -27371,16 +27600,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -27785,11 +28004,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -27870,6 +28084,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -27882,16 +28111,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -28296,11 +28515,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -28381,6 +28595,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -28393,16 +28622,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -28807,11 +29026,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -28892,6 +29106,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -28904,16 +29133,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -29318,11 +29537,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -29403,6 +29617,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -29415,16 +29644,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -29829,11 +30048,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -29914,6 +30128,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -29926,16 +30155,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -30340,11 +30559,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -30425,6 +30639,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -30437,16 +30666,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -30851,11 +31070,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -30936,6 +31150,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -30948,16 +31177,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -31362,11 +31581,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -31447,6 +31661,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -31459,16 +31688,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -31873,11 +32092,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -31958,6 +32172,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -31970,16 +32199,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -32384,11 +32603,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -32469,6 +32683,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -32481,16 +32710,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -32912,11 +33131,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -32997,6 +33211,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -33009,16 +33238,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -33419,11 +33638,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -33499,6 +33713,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -33511,16 +33740,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -33921,11 +34140,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "weight",
                     "type": "number",
                     "isArray": false
@@ -34001,6 +34215,21 @@
                     "isArray": false
                 },
                 {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false
@@ -34013,16 +34242,6 @@
                 {
                     "name": "title",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -34565,6 +34784,39 @@
                 },
                 {
                     "name": "copy"
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
                 }
             ],
             "properties": [
@@ -34594,6 +34846,31 @@
                     "isArray": false
                 },
                 {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -34616,6 +34893,21 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
                     "isArray": false
                 },
                 {
@@ -40411,6 +40703,39 @@
                 },
                 {
                     "name": "copy"
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
                 }
             ],
             "properties": [
@@ -40440,6 +40765,31 @@
                     "isArray": false
                 },
                 {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -40462,6 +40812,21 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
                     "isArray": false
                 }
             ],
@@ -40747,6 +41112,39 @@
                 },
                 {
                     "name": "copy"
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
                 }
             ],
             "properties": [
@@ -40776,6 +41174,31 @@
                     "isArray": false
                 },
                 {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -40798,6 +41221,21 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
                     "isArray": false
                 }
             ],
@@ -42908,16 +43346,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "title",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "description",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
                     "name": "creditAchieved",
                     "type": "number",
                     "isArray": false
@@ -42925,6 +43353,16 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "title",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
+                    "type": "text",
                     "isArray": false
                 }
             ],
@@ -43647,6 +44085,39 @@
                 },
                 {
                     "name": "copy"
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
                 }
             ],
             "properties": [
@@ -43676,6 +44147,31 @@
                     "isArray": false
                 },
                 {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -43698,6 +44194,21 @@
                 {
                     "name": "doenetML",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
                     "isArray": false
                 },
                 {

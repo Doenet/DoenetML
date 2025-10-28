@@ -16,7 +16,7 @@ describe("Paginator Tag Tests", function () {
     <paginator name="pgn">
       <section name="section1">
         <title name="title1">Page 1</title>
-        <p name="p1">What is 1+1? <answer disableAfterCorrect="false" name="answer1">$two</answer></p>
+        <p name="p1">What is 1+1? <answer name="answer1">$two</answer></p>
         <math hide name="two">2</math>
       </section>
       <section name="section2">
@@ -26,8 +26,8 @@ describe("Paginator Tag Tests", function () {
       <section name="section3">
         <title name="title2">Page 3</title>
         <math hide name="twox">2x</math>
-        <p name="p">What is <m name="mxx">x+x</m>? <answer disableAfterCorrect="false" name="answer2">$twox</answer></p>
-        <p name="p">What is <m name="myy">y+y</m>? <answer disableAfterCorrect="false" name="answer3">2y</answer></p>
+        <p name="p">What is <m name="mxx">x+x</m>? <answer name="answer2">$twox</answer></p>
+        <p name="p">What is <m name="myy">y+y</m>? <answer name="answer3">2y</answer></p>
       </section>
     </paginator>
     <p name="p4">
@@ -41,7 +41,7 @@ describe("Paginator Tag Tests", function () {
     </callAction>
     
     </p>
-    <p name="p5">What is 2+2? <answer disableAfterCorrect="false" name="answer4">4</answer></p>
+    <p name="p5">What is 2+2? <answer name="answer4">4</answer></p>
   
     <p name="p6">Credit achieved: <number extend="$_document1.creditAchieved" name="ca" /></p>
   
@@ -923,13 +923,13 @@ describe("Paginator Tag Tests", function () {
   
     <paginator name="pgn">
       <problem name="problem1">
-        <answer disableAfterCorrect="false" name="answer1" type="text">a</answer>
+        <answer name="answer1" type="text">a</answer>
       </problem>
       <problem name="problem2" weight="2">
-        <answer disableAfterCorrect="false" name="answer2" type="text">b</answer>
+        <answer name="answer2" type="text">b</answer>
       </problem>
       <problem name="problem3" weight="3">
-        <answer disableAfterCorrect="false" name="answer3" type="text">c</answer>
+        <answer name="answer3" type="text">c</answer>
       </problem>
     </paginator>
   
@@ -1121,7 +1121,7 @@ describe("Paginator Tag Tests", function () {
     <setup>
       <problem name="problema">
         <title>A hard problem</title>
-        <p>What is 1+1? <answer disableAfterCorred="false"><mathInput /><award>2</award></answer></p>
+        <p>What is 1+1? <answer><mathInput /><award>2</award></answer></p>
       </problem>
     </setup>
 
@@ -1381,7 +1381,7 @@ describe("Paginator Tag Tests", function () {
       <problem name="problema">
         <variantControl numVariants="1" />
         <title>A hard problem</title>
-        <p>What is 1+1? <answer disableAfterCorrect="false"><mathInput /><award>2</award></answer></p>
+        <p>What is 1+1? <answer><mathInput /><award>2</award></answer></p>
       </problem>
     </setup>
 
@@ -1575,11 +1575,11 @@ describe("Paginator Tag Tests", function () {
     <paginator name="pgn">
       <problem>
         <title name="title1">Problem 1</title>
-        <p>1: <answer disableAfterCorrect="false" type="text"><textInput name="ti1"/><award>1</award></answer></p>
+        <p>1: <answer type="text"><textInput name="ti1"/><award>1</award></answer></p>
       </problem>
       <problem>
         <title name="title2">Problem 2</title>
-        <p>2: <answer disableAfterCorrect="false" type="text"><textInput name="ti2"/><award>2</award></answer></p>
+        <p>2: <answer type="text"><textInput name="ti2"/><award>2</award></answer></p>
       </problem>
     </paginator>
     <p>Credit achieved: <number extend="$_document1.creditAchieved" name="ca" /></p>
@@ -2307,18 +2307,18 @@ describe("Paginator Tag Tests", function () {
 
       <conditionalContent name="cc">
         <case condition="$n=1">
-        <p>Answer x: <answer disableAfterCorrect="false" name="answer">x</answer></p>
+        <p>Answer x: <answer name="answer">x</answer></p>
         </case>
         <case condition="$n=2">
-        <p>Answer y: <answer disableAfterCorrect="false" name="answer">y</answer></p>
+        <p>Answer y: <answer name="answer">y</answer></p>
         </case>
       </conditionalContent>
       
       <conditionalContent condition="$n=1" name="cc1">
-        <p>Answer 2x: <answer disableAfterCorrect="false" name="a">2x</answer></p>
+        <p>Answer 2x: <answer name="a">2x</answer></p>
       </conditionalContent>
       <conditionalContent condition="$n=2" name="cc2">
-        <p>Answer 2y: <answer disableAfterCorrect="false" name="a">2y</answer></p>
+        <p>Answer 2y: <answer name="a">2y</answer></p>
       </conditionalContent>
     </problem>
     
@@ -2330,15 +2330,15 @@ describe("Paginator Tag Tests", function () {
       
       <conditionalContent name="cc1">
         <case condition="$n=1">
-        <p>Answer 1: <answer disableAfterCorrect="false" name="answer">1</answer></p>
+        <p>Answer 1: <answer name="answer">1</answer></p>
         </case>
         <else>
-        <p>Answer 1b: <answer disableAfterCorrect="false" name="answer">1b</answer></p>
+        <p>Answer 1b: <answer name="answer">1b</answer></p>
         </else>
       </conditionalContent>
       
       <conditionalContent condition="$n=1" name="cc2">
-        <p>Answer 2: <answer disableAfterCorrect="false" name="answer">2</answer></p>
+        <p>Answer 2: <answer name="answer">2</answer></p>
       </conditionalContent>
     
     </problem>

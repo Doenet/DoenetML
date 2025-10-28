@@ -20,7 +20,7 @@ describe("Paginator tag tests", async () => {
     <paginator name="pgn">
       <section name="section1">
         <title name="title1">Page 1</title>
-        <p>What is 1+1? <answer disableAfterCorrect="false" name="answer1">$two</answer></p>
+        <p>What is 1+1? <answer name="answer1">$two</answer></p>
         <math hide name="two">2</math>
       </section>
       <section name="section2">
@@ -30,8 +30,8 @@ describe("Paginator tag tests", async () => {
       <section name="section3">
         <title name="title3">Page 3</title>
         <math hide name="twox">2x</math>
-        <p>What is <m name="mxx">x+x</m>? <answer disableAfterCorrect="false" name="answer2">$twox</answer></p>
-        <p>What is <m name="myy">y+y</m>? <answer disableAfterCorrect="false" name="answer3">2y</answer></p>
+        <p>What is <m name="mxx">x+x</m>? <answer name="answer2">$twox</answer></p>
+        <p>What is <m name="myy">y+y</m>? <answer name="answer3">2y</answer></p>
       </section>
     </paginator>
     <p>
@@ -45,7 +45,7 @@ describe("Paginator tag tests", async () => {
     </callAction>
     
     </p>
-    <p>What is 2+2? <answer disableAfterCorrect="false" name="answer4">4</answer></p>
+    <p>What is 2+2? <answer name="answer4">4</answer></p>
   
     <p>Credit achieved: <number extend="$_document1.creditAchieved" name="ca" /></p>
   
@@ -361,11 +361,11 @@ describe("Paginator tag tests", async () => {
     <paginator name="pgn">
       <problem>
         <title>Problem 1</title>
-        <p>1: <answer disableAfterCorrect="false" type="text"><textInput name="ti1"/><award>1</award></answer></p>
+        <p>1: <answer type="text"><textInput name="ti1"/><award>1</award></answer></p>
       </problem>
       <problem>
         <title>Problem 2</title>
-        <p>2: <answer disableAfterCorrect="false" type="text"><textInput name="ti2"/><award>2</award></answer></p>
+        <p>2: <answer type="text"><textInput name="ti2"/><award>2</award></answer></p>
       </problem>
     </paginator>
     <p>Credit achieved: <number extend="$_document1.creditAchieved" name="ca" /></p>

@@ -17,7 +17,7 @@ describe("matching patterns answer tests", async () => {
 
     <p><mathInput name="var" /></p>
     <p>Enter a quadratic expression in the variable <math name="var2" extend="$var" />:
-    <answer disableAfterCorrect="false" name="ans">
+    <answer name="ans">
       <mathInput name="resp" />
       <award><when>
         <matchesPattern name="excludeX1" pattern="$pattern1" excludeMatches="$var" allowImplicitIdentities>

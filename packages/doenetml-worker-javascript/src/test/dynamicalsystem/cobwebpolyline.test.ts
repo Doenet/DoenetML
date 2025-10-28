@@ -26,7 +26,7 @@ describe("cobwebPolyline Tag Tests", async () => {
 
     
   <p>Initial condition is <m>x_0 = 1</m>:
-  <answer disableAfterCorrect="false" name="check_initial">
+  <answer name="check_initial">
     <award><when>
     $P1.coords = <math>(1,0)</math>
     </when></award>
@@ -61,7 +61,7 @@ describe("cobwebPolyline Tag Tests", async () => {
   </subsection>
 
   <p>Cobweb at least three iterations</p>
-  <p><answer disableAfterCorrect="false" name="check_cobweb">
+  <p><answer name="check_cobweb">
   <award credit="$graph1.cobweb.fractionCorrectVerticesAdjusted"><when>true</when></award>
     <considerAsResponses>
       $graph1.cobweb.vertices

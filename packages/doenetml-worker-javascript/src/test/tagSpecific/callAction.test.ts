@@ -2190,7 +2190,7 @@ describe("callAction tag tests", async () => {
 
     <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
 
-    <p>Enter x: <answer disableAfterCorrect="false" name="ans">x</answer></p>
+    <p>Enter x: <answer name="ans">x</answer></p>
 
     <triggerSet name="tset" >
         <label>perform actions</label>

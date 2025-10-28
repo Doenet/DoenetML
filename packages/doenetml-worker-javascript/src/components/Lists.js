@@ -1,6 +1,11 @@
 import BlockComponent from "./abstract/BlockComponent";
 import BaseComponent from "./abstract/BaseComponent";
 import { textFromChildren } from "../utils/text";
+import {
+    returnScoredSectionAttributes,
+    returnScoredSectionStateVariableDefinition,
+    submitAllAnswers,
+} from "../utils/scoredSection";
 
 export class Ol extends BlockComponent {
     constructor(args) {
@@ -143,6 +148,7 @@ export class Li extends BaseComponent {
         super(args);
 
         Object.assign(this.actions, {
+            submitAllAnswers: this.submitAllAnswers.bind(this),
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
         });
     }
@@ -155,6 +161,14 @@ export class Li extends BaseComponent {
 
     static includeBlankStringChildren = true;
 
+    static createAttributesObject() {
+        let attributes = super.createAttributesObject();
+
+        let scoredSectionAttributes = returnScoredSectionAttributes();
+        Object.assign(attributes, scoredSectionAttributes);
+        return attributes;
+    }
+
     static returnChildGroups() {
         return [
             {
@@ -166,6 +180,11 @@ export class Li extends BaseComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnScoredSectionStateVariableDefinition(),
+        );
 
         stateVariableDefinitions.item = {
             forRenderer: true,
@@ -194,6 +213,19 @@ export class Li extends BaseComponent {
         };
 
         return stateVariableDefinitions;
+    }
+
+    async submitAllAnswers({
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        return submitAllAnswers({
+            component: this,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        });
     }
 
     recordVisibilityChange({ isVisible }) {

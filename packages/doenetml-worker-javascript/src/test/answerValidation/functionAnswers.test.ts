@@ -30,7 +30,7 @@ describe("function answer validation tests", async () => {
             <function name="f">cos(2*pi*x)</function>
             
             <p>Enter a number close to an integer:
-            <answer disableAfterCorrect="false" name="ans">
+            <answer name="ans">
               <mathInput name="x" />
               <award credit="$$f($x)">
                 <when>true</when>
@@ -68,7 +68,7 @@ describe("function answer validation tests", async () => {
   <p>Magnitude <mathInput name="magnitude" prefill="1"/></p>
   <function name="f">$magnitude cos(2*pi*(x-$offset)/$period)</function>
   <p>Enter a number:
-  <answer disableAfterCorrect="false" name="ans">
+  <answer name="ans">
     <mathInput name="x" />
     <award credit="$$f($x)">
       <when>true</when>
