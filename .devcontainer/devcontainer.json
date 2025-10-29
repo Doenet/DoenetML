@@ -9,7 +9,7 @@
             "version": "latest"
         }
     },
-    "postCreateCommand": "npm install && npm run build",
+    "postCreateCommand": "export NODE_OPTIONS='--max_old_space_size=6144' && npm install && npm run build",
     "customizations": {
         "vscode": {
             "extensions": [
