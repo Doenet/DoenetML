@@ -1,3 +1,11 @@
+## v0.7.10
+
+- Update doenetml version
+
+## v0.7.9
+
+- Update doenetml version
+
 ## v0.7.8
 
 -   Updates to _doenetToMarkdown_

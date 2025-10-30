@@ -3,14 +3,36 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import {
+    calculateValidationState,
+    createCheckWorkComponent,
+} from "./utils/checkWork";
 
 export default React.memo(function ContainerInline(
     props: UseDoenetRendererProps,
 ) {
-    let { id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
 
     if (SVs.hidden) {
         return null;
+    }
+
+    let checkWorkComponent = null;
+
+    if (actions.submitAllAnswers) {
+        const submitAllAnswers = () =>
+            callAction({
+                action: actions.submitAllAnswers,
+            });
+
+        const validationState = calculateValidationState(SVs);
+        checkWorkComponent = createCheckWorkComponent(
+            SVs,
+            id,
+            validationState,
+            submitAllAnswers,
+            true,
+        );
     }
 
     if (SVs._compositeReplacementActiveRange) {
@@ -23,5 +45,10 @@ export default React.memo(function ContainerInline(
         });
     }
 
-    return <span id={id}>{children}</span>;
+    return (
+        <span id={id}>
+            {children}
+            {checkWorkComponent}
+        </span>
+    );
 });

@@ -13,7 +13,7 @@ import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 import {
     calculateValidationState,
     createCheckWorkComponent,
-} from "../../utils/checkWork";
+} from "./utils/checkWork";
 
 export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, ignoreUpdate, callAction } =

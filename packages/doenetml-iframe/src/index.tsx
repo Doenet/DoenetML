@@ -163,6 +163,27 @@ export function DoenetViewer({
 
             const data = event.data.data;
 
+            // If receive a scrollTo event from the iframe,
+            // that means that a scroll-only link (i.e. with target of the form "#anchor")
+            // was clicked on.
+            // Scroll the window to desired location given the position of the iframe.
+            // Note: if the iframe is in a scrollable container other than window,
+            // then one should pass in a `requestScrollTo` prop to the parent DoenetViewer,
+            // which will be called instead of these `scrollTo` events being sent.
+            if (
+                ref.current &&
+                data.type === "scrollTo" &&
+                typeof data.offset === "number"
+            ) {
+                const iframeTop =
+                    ref.current.getBoundingClientRect().top + window.scrollY;
+                const targetAbsoluteTop = iframeTop + data.offset;
+                window.scrollTo({
+                    top: targetAbsoluteTop - 20,
+                    behavior: "smooth",
+                });
+            }
+
             if (data.error) {
                 //@ts-ignore
                 return setInErrorState(data.error);

@@ -128,7 +128,7 @@
         "hyperformula": "^2.7.1",
         "idb-keyval": "^6.2.1",
         "json-stringify-deterministic": "1.0.12",
-        "jsxgraph": "^1.11.1",
+        "jsxgraph": "^1.12.0",
         "jszip": "^3.10.1",
         "katex": "^0.16.22",
         "lorem-ipsum": "^2.0.8",

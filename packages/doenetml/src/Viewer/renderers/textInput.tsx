@@ -13,7 +13,7 @@ import { JXGObject } from "./jsxgraph-distrib/types";
 import {
     calculateValidationState,
     createCheckWorkComponent,
-} from "../../utils/checkWork";
+} from "./utils/checkWork";
 
 const TextArea = styled.textarea`
     font-size: 14px;

@@ -6,7 +6,11 @@ import {
 } from "../../utils/variants";
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import { returnFeedbackDefinitionStateVariables } from "../../utils/feedback";
-import { returnScoredSectionStateVariableDefinition } from "../../utils/scoredSection";
+import {
+    returnScoredSectionAttributes,
+    returnScoredSectionStateVariableDefinition,
+    submitAllAnswers,
+} from "../../utils/scoredSection";
 
 export class SectioningComponent extends BlockComponent {
     constructor(args) {
@@ -31,53 +35,10 @@ export class SectioningComponent extends BlockComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        attributes.aggregateScores = {
-            createComponentOfType: "boolean",
-            createStateVariable: "aggregateScoresPreliminary",
-            defaultValue: false,
-        };
-        attributes.weight = {
-            createComponentOfType: "number",
-            createStateVariable: "weight",
-            defaultValue: 1,
-            public: true,
-        };
 
-        attributes.sectionWideCheckWork = {
-            createComponentOfType: "boolean",
-            createStateVariable: "sectionWideCheckWork",
-            defaultValue: false,
-            public: true,
-        };
-        attributes.showCorrectness = {
-            createComponentOfType: "boolean",
-            createStateVariable: "showCorrectnessPreliminary",
-            defaultValue: null,
-        };
-        attributes.submitLabel = {
-            createComponentOfType: "text",
-            createStateVariable: "submitLabel",
-            defaultValue: "Check Work",
-            public: true,
-            forRenderer: true,
-        };
-        attributes.submitLabelNoCorrectness = {
-            createComponentOfType: "text",
-            createStateVariable: "submitLabelNoCorrectness",
-            defaultValue: "Submit Response",
-            public: true,
-            forRenderer: true,
-        };
+        let scoredSectionAttributes = returnScoredSectionAttributes();
+        Object.assign(attributes, scoredSectionAttributes);
 
-        attributes.displayDigitsForCreditAchieved = {
-            createComponentOfType: "integer",
-            createStateVariable: "displayDigitsForCreditAchieved",
-            defaultValue: 3,
-            public: true,
-        };
-
-        // attributes.possiblepoints = {default: undefined};
-        // attributes.aggregatebypoints = {default: false};
         attributes.boxed = {
             createComponentOfType: "boolean",
             createStateVariable: "boxed",
@@ -589,195 +550,6 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.aggregateScores = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({
-                aggregateScoresPreliminary: {
-                    dependencyType: "stateVariable",
-                    variableName: "aggregateScoresPreliminary",
-                },
-                sectionWideCheckWork: {
-                    dependencyType: "stateVariable",
-                    variableName: "sectionWideCheckWork",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        aggregateScores:
-                            dependencyValues.aggregateScoresPreliminary ||
-                            dependencyValues.sectionWideCheckWork,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.creditAchieved = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "number",
-                addAttributeComponentsShadowingStateVariables: {
-                    displayDigits: {
-                        stateVariableToShadow: "displayDigitsForCreditAchieved",
-                    },
-                    displayDecimals: {
-                        stateVariableToShadow:
-                            "displayDecimalsForCreditAchieved",
-                    },
-                },
-            },
-            forRenderer: true,
-            defaultValue: 0,
-            hasEssential: true,
-            additionalStateVariablesDefined: [
-                {
-                    variableName: "percentCreditAchieved",
-                    public: true,
-                    shadowingInstructions: {
-                        createComponentOfType: "number",
-                        addAttributeComponentsShadowingStateVariables: {
-                            displayDigits: {
-                                stateVariableToShadow:
-                                    "displayDigitsForCreditAchieved",
-                            },
-                            displayDecimals: {
-                                stateVariableToShadow:
-                                    "displayDecimalsForCreditAchieved",
-                            },
-                        },
-                    },
-                    defaultValue: 0,
-                    hasEssential: true,
-                },
-            ],
-            stateVariablesDeterminingDependencies: [
-                "aggregateScores",
-                "scoredDescendants",
-            ],
-            returnDependencies({ stateValues }) {
-                let dependencies = {
-                    aggregateScores: {
-                        dependencyType: "stateVariable",
-                        variableName: "aggregateScores",
-                    },
-                };
-                if (stateValues.aggregateScores) {
-                    dependencies.scoredDescendants = {
-                        dependencyType: "stateVariable",
-                        variableName: "scoredDescendants",
-                    };
-                    for (let [
-                        ind,
-                        descendant,
-                    ] of stateValues.scoredDescendants.entries()) {
-                        dependencies["creditAchieved" + ind] = {
-                            dependencyType: "stateVariable",
-                            componentIdx: descendant.componentIdx,
-                            variableName: "creditAchieved",
-                        };
-                    }
-                }
-
-                return dependencies;
-            },
-            definition({ dependencyValues }) {
-                if (!dependencyValues.aggregateScores) {
-                    return {
-                        setValue: {
-                            creditAchieved: 0,
-                            percentCreditAchieved: 0,
-                        },
-                    };
-                }
-
-                let creditSum = 0;
-                let totalWeight = 0;
-
-                for (let [
-                    ind,
-                    component,
-                ] of dependencyValues.scoredDescendants.entries()) {
-                    let weight = component.stateValues.weight;
-                    creditSum +=
-                        dependencyValues["creditAchieved" + ind] * weight;
-                    totalWeight += weight;
-                }
-                let creditAchieved;
-                if (totalWeight > 0) {
-                    creditAchieved = creditSum / totalWeight;
-                } else {
-                    // give full credit if there are no scored items
-                    creditAchieved = 1;
-                }
-                let percentCreditAchieved = creditAchieved * 100;
-
-                return { setValue: { creditAchieved, percentCreditAchieved } };
-            },
-        };
-
-        stateVariableDefinitions.creditAchievedIfSubmit = {
-            defaultValue: 0,
-            stateVariablesDeterminingDependencies: [
-                "aggregateScores",
-                "scoredDescendants",
-            ],
-            returnDependencies({ stateValues }) {
-                let dependencies = {
-                    aggregateScores: {
-                        dependencyType: "stateVariable",
-                        variableName: "aggregateScores",
-                    },
-                };
-                if (stateValues.aggregateScores) {
-                    dependencies.scoredDescendants = {
-                        dependencyType: "stateVariable",
-                        variableName: "scoredDescendants",
-                    };
-                    for (let [
-                        ind,
-                        descendant,
-                    ] of stateValues.scoredDescendants.entries()) {
-                        dependencies["creditAchievedIfSubmit" + ind] = {
-                            dependencyType: "stateVariable",
-                            componentIdx: descendant.componentIdx,
-                            variableName: "creditAchievedIfSubmit",
-                        };
-                    }
-                }
-
-                return dependencies;
-            },
-            definition({ dependencyValues }) {
-                if (!dependencyValues.aggregateScores) {
-                    return {
-                        setValue: {
-                            creditAchievedIfSubmit: 0,
-                        },
-                    };
-                }
-
-                let creditSum = 0;
-                let totalWeight = 0;
-
-                for (let [
-                    ind,
-                    component,
-                ] of dependencyValues.scoredDescendants.entries()) {
-                    let weight = component.stateValues.weight;
-                    creditSum +=
-                        dependencyValues["creditAchievedIfSubmit" + ind] *
-                        weight;
-                    totalWeight += weight;
-                }
-                let creditAchievedIfSubmit = creditSum / totalWeight;
-
-                return { setValue: { creditAchievedIfSubmit } };
-            },
-        };
-
         stateVariableDefinitions.generatedVariantInfo = {
             shadowVariable: true,
             additionalStateVariablesDefined: ["isVariantComponent"],
@@ -911,76 +683,6 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.createSubmitAllButton = {
-            forRenderer: true,
-            additionalStateVariablesDefined: [
-                {
-                    variableName: "suppressAnswerSubmitButtons",
-                    forRenderer: true,
-                },
-            ],
-            returnDependencies: () => ({
-                sectionWideCheckWork: {
-                    dependencyType: "stateVariable",
-                    variableName: "sectionWideCheckWork",
-                },
-                sectionAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "_sectioningComponent",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-                documentAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["suppressAnswerSubmitButtons"],
-                },
-            }),
-            definition({ dependencyValues }) {
-                let warnings = [];
-
-                let createSubmitAllButton = false;
-                let suppressAnswerSubmitButtons = false;
-
-                if (
-                    dependencyValues.documentAncestor.stateValues
-                        .suppressAnswerSubmitButtons ||
-                    (dependencyValues.sectionAncestor &&
-                        dependencyValues.sectionAncestor.stateValues
-                            .suppressAnswerSubmitButtons)
-                ) {
-                    suppressAnswerSubmitButtons = true;
-                } else if (dependencyValues.sectionWideCheckWork) {
-                    createSubmitAllButton = true;
-                    suppressAnswerSubmitButtons = true;
-                }
-
-                return {
-                    setValue: {
-                        createSubmitAllButton,
-                        suppressAnswerSubmitButtons,
-                    },
-                    sendWarnings: warnings,
-                };
-            },
-        };
-
-        stateVariableDefinitions.suppressCheckWork = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                autoSubmit: {
-                    dependencyType: "flag",
-                    flagName: "autoSubmit",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        suppressCheckWork: dependencyValues.autoSubmit,
-                    },
-                };
-            },
-        };
-
         return stateVariableDefinitions;
     }
 
@@ -989,34 +691,12 @@ export class SectioningComponent extends BlockComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        this.coreFunctions.requestRecordEvent({
-            verb: "submitted",
-            object: {
-                componentIdx: this.componentIdx,
-                componentType: this.componentType,
-            },
-            result: {
-                creditAchieved: await this.stateValues.creditAchievedIfSubmit,
-            },
+        return submitAllAnswers({
+            component: this,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
         });
-        let numAnswers = await this.stateValues.answerDescendants;
-        for (let [
-            ind,
-            answer,
-        ] of await this.stateValues.answerDescendants.entries()) {
-            if (!(await answer.stateValues.justSubmitted)) {
-                await this.coreFunctions.performAction({
-                    componentIdx: answer.componentIdx,
-                    actionName: "submitAnswer",
-                    args: {
-                        actionId,
-                        sourceInformation,
-                        skipRendererUpdate:
-                            skipRendererUpdate || ind < numAnswers - 1,
-                    },
-                });
-            }
-        }
     }
 
     async revealSection({

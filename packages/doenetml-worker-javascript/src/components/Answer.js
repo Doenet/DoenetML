@@ -1407,6 +1407,26 @@ export default class Answer extends InlineComponent {
                     componentType: "document",
                     variableNames: ["suppressAnswerSubmitButtons"],
                 },
+                pAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "p",
+                    variableNames: ["suppressAnswerSubmitButtons"],
+                },
+                liAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "li",
+                    variableNames: ["suppressAnswerSubmitButtons"],
+                },
+                divAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "div",
+                    variableNames: ["suppressAnswerSubmitButtons"],
+                },
+                spanAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "span",
+                    variableNames: ["suppressAnswerSubmitButtons"],
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let delegateCheckWorkToAncestor = false;
@@ -1415,11 +1435,16 @@ export default class Answer extends InlineComponent {
 
                 if (
                     dependencyValues.documentAncestor.stateValues
-                        .suppressAnswerSubmitButtons
-                ) {
-                    delegateCheckWorkToAncestor = delegateCheckWork = true;
-                } else if (
+                        .suppressAnswerSubmitButtons ||
                     dependencyValues.sectionAncestor?.stateValues
+                        .suppressAnswerSubmitButtons ||
+                    dependencyValues.pAncestor?.stateValues
+                        .suppressAnswerSubmitButtons ||
+                    dependencyValues.liAncestor?.stateValues
+                        .suppressAnswerSubmitButtons ||
+                    dependencyValues.divAncestor?.stateValues
+                        .suppressAnswerSubmitButtons ||
+                    dependencyValues.spanAncestor?.stateValues
                         .suppressAnswerSubmitButtons
                 ) {
                     delegateCheckWorkToAncestor = delegateCheckWork = true;
