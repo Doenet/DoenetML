@@ -40,6 +40,7 @@ export default defineConfig({
         suppressLogPlugin(),
     ],
     server: {
+        host: "0.0.0.0",
         port: 8012,
     },
     define: {
@@ -106,7 +107,7 @@ function transformPackageJson(contents: string, filePath: string) {
         "./dist/package.json",
     );
     if (Array.isArray(pkg.files)) {
-        pkg.files = pkg.files.map((file) =>
+        pkg.files = pkg.files.map((file: string) =>
             getPathRelativeToPackageJson(file, outputPackageJsonPath),
         );
     }
