@@ -8,12 +8,14 @@ use strum_macros::EnumString;
 #[strum(ascii_case_insensitive)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "web", derive(tsify_next::Tsify))]
+#[derive(Default)]
 pub enum DivisionType {
     /// A part of a book.
     Part,
     /// A chapter in a book.
     Chapter,
     /// A section in a book or article.
+    #[default]
     Section,
     /// A subsection in a book or article.
     Subsection,
@@ -51,8 +53,3 @@ impl Display for DivisionType {
     }
 }
 
-impl Default for DivisionType {
-    fn default() -> Self {
-        Self::Section
-    }
-}
