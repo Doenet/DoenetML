@@ -52,4 +52,3 @@ impl Display for DivisionType {
         write!(f, "{display_name}")
     }
 }
-
