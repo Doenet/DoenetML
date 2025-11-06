@@ -8,7 +8,10 @@ import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
 // @ts-ignore
 import me from "math-expressions";
-import { getPositionFromAnchorByCoordinate } from "./utils/graph";
+import {
+    getPositionFromAnchorByCoordinate,
+    POINTER_DRAG_THRESHOLD,
+} from "./utils/graph";
 import { JXGObject } from "./jsxgraph-distrib/types";
 import {
     calculateValidationState,
@@ -310,8 +313,10 @@ export default function TextInput(props: UseDoenetRendererProps) {
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current![1]) >
+                    POINTER_DRAG_THRESHOLD
             ) {
                 dragged.current = true;
             }

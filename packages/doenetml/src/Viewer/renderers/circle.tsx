@@ -9,6 +9,7 @@ import {
 } from "./utils/offGraphIndicators";
 import {
     LabelPosition,
+    POINTER_DRAG_THRESHOLD,
     adjustPointLabelPosition,
     calculatePointLabelAnchor,
     getEffectiveBoundingBox,
@@ -230,8 +231,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current![1]) >
+                    POINTER_DRAG_THRESHOLD
             ) {
                 dragged.current = true;
             }
@@ -378,8 +381,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current![1]) >
+                    POINTER_DRAG_THRESHOLD
             ) {
                 dragged.current = true;
             }
@@ -538,8 +543,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         if (pointerIsDown.current) {
             //Protect against very small unintended move
             if (
-                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current![1]) >
+                    POINTER_DRAG_THRESHOLD
             ) {
                 pointerMovedSinceDown.current = true;
             }

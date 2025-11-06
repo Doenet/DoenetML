@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
+import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 
 export default React.memo(function Polygon(props) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -177,8 +178,10 @@ export default React.memo(function Polygon(props) {
         if (pointerIsDown.current) {
             //Protect against very small unintended move
             if (
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current[0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current[1]) >
+                    POINTER_DRAG_THRESHOLD
             ) {
                 pointerMovedSinceDown.current = true;
             }
@@ -227,8 +230,8 @@ export default React.memo(function Polygon(props) {
         //Protect against very small unintended drags
         if (
             !viaPointer ||
-            Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-            Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+            Math.abs(e.x - pointerAtDown.current[0]) > POINTER_DRAG_THRESHOLD ||
+            Math.abs(e.y - pointerAtDown.current[1]) > POINTER_DRAG_THRESHOLD
         ) {
             draggedPoint.current = i;
 
