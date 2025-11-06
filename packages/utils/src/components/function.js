@@ -796,7 +796,7 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
                     );
                     fArgs[code] = childF(input);
                 } catch (e) {
-                    return NaN;
+                    return me.fromAst("\uff3f");
                 }
             }
 

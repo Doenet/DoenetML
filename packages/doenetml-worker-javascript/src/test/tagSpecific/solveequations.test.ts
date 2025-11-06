@@ -393,4 +393,18 @@ describe("SolveEquations tag tests", async () => {
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
         expect(errorWarnings.warnings[0].position.end.column).eq(57);
     });
+
+    it("solve composition of equations", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f1">x</function>
+    <function name="f2">$$f1(x/2)</function>
+    <solveEquations name="solve">$$f2(x) = 1</solveEquations>
+    <p>Number of solutions: <number extend="$solve.numSolutions" name="num" /></p>
+    <p name="sols">Solutions: <mathList extend="$solve.solutions" displayDigits="5" /></p>
+  `,
+        });
+
+        await check_solutions(core, resolvePathToNodeIdx, [2]);
+    });
 });
