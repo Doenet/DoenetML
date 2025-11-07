@@ -443,7 +443,7 @@ export default React.memo(function Graph(props) {
         <div style={outerStyle} ref={ref}>
             <a name={id} />
             <div id={id} className="jxgbox" style={divStyle}/>
-            <BoardContext.Provider value={board} aria-hidden="true">
+            <BoardContext.Provider value={board}>
                 {children}
             </BoardContext.Provider>
         </div>
