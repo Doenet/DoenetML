@@ -106,7 +106,7 @@ export default React.memo(function Figure(props: UseDoenetRendererProps) {
     }
 
     return (
-        <figure id={id} style={{ margin: "12px 0" }} ref={ref}>
+        <figure id={id} style={{ margin: "12px 0" }} ref={ref} aria-labelledby={id + "_caption"}>
             {childrenToRender}
             <figcaption id={id + "_caption"}>
                 <Measure onResize={handleResize}>

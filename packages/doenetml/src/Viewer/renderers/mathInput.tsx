@@ -262,7 +262,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
     return (
         <React.Fragment>
             <span id={id}>
-                <label style={{ display: "inline-flex", maxWidth: "100%" }}>
+                <label 
+                    style={{ display: "inline-flex", maxWidth: "100%" }}
+                    // Add a class to hide the label if the prop is set
+                    className={SVs.visuallyHidden ? "visually-hidden" : ""}
+                >
                     {label}
                     <span
                         className="mathInputWrapper"
@@ -294,6 +298,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
                                     textareaRef.current =
                                         document.createElement("textarea");
                                     textareaRef.current.disabled = SVs.disabled;
+                                    textareaRef.current.setAttribute(
+                                    "aria-label",
+                                    SVs.label || "Math input field", // Use SVs.label or a fallback
+                                );
                                     return textareaRef.current;
                                 },
                             }} //more commands go here
