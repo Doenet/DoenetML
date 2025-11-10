@@ -263,10 +263,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         <React.Fragment>
             <span id={id}>
                 <label 
-                    style={{ display: "inline-flex", maxWidth: "100%" }}
-                    // Add a class to hide the label if the prop is set
-                    className={SVs.visuallyHidden ? "visually-hidden" : ""}
-                >
+                    style={{ display: "inline-flex", maxWidth: "100%" }}>
                     {label}
                     <span
                         className="mathInputWrapper"
