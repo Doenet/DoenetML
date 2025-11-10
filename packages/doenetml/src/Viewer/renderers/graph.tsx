@@ -442,7 +442,7 @@ export default React.memo(function Graph(props) {
     return (
         <div style={outerStyle} ref={ref}>
             <a name={id} />
-            <div id={id} className="jxgbox" style={divStyle}/>
+            <div id={id} className="jxgbox" style={divStyle} />
             <BoardContext.Provider value={board}>
                 {children}
             </BoardContext.Provider>
