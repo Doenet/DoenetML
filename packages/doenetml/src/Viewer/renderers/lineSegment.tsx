@@ -63,7 +63,9 @@ export default React.memo(function LineSegment(props) {
     function createLineSegmentJXG() {
         if (
             SVs.numericalEndpoints.length !== 2 ||
-            SVs.numericalEndpoints.some((x) => x.length !== 2)
+            SVs.numericalEndpoints.some(
+                (x) => x.length !== 2 || x.some((v) => !Number.isFinite(v)),
+            )
         ) {
             lineSegmentJXG.current = null;
             point1JXG.current = null;
@@ -560,7 +562,9 @@ export default React.memo(function LineSegment(props) {
             createLineSegmentJXG();
         } else if (
             SVs.numericalEndpoints.length !== 2 ||
-            SVs.numericalEndpoints.some((x) => x.length !== 2)
+            SVs.numericalEndpoints.some(
+                (x) => x.length !== 2 || x.some((v) => !Number.isFinite(v)),
+            )
         ) {
             deleteLineSegmentJXG();
         } else {
