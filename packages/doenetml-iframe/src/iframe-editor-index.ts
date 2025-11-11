@@ -41,12 +41,12 @@ ComlinkEditor.expose(
 
 /**
  * Render the DoenetEditor to the container after reconstructing the props.
- * 
+ *
  * Reconstruct the props from the serialized `doenetEditorProps` (from which functions have disappeared)
  * and the ComLink proxied functions specified in `args`.
  * Only include the ComLink proxies if the prop was actually specified,
  * so that the DoenetEditor can customize behavior based on the presence of callback
- * 
+ *
  * Note that Comlink is unable to send proxied functions as an values of an object,
  * but must be direct arguments of the function.
  * To indicate the functions names, the arguments are a series of string key names

@@ -23,7 +23,5 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#P1")).should("have.text", "(1,0)");
         cy.get(cesc("#P2")).should("have.text", "(1,2i)");
-
-
     });
 });
