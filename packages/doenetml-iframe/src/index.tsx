@@ -187,19 +187,41 @@ export function DoenetViewer({
             if (data.error) {
                 //@ts-ignore
                 return setInErrorState(data.error);
+            } else if (data.iframeReady) {
+                // if `iframeReady`, then Comlink.expose has been called in the iframe
+                // and we can call `renderViewerWithFunctionProps`
+
+                if (ref.current) {
+                    const viewerIframe: Comlink.Remote<{
+                        renderViewerWithFunctionProps: (
+                            ...args: (string | Function)[]
+                        ) => void;
+                    }> = Comlink.wrap(
+                        Comlink.windowEndpoint(ref.current.contentWindow!),
+                    );
+
+                    // Note that Comlink is unable to send proxied functions as an values of an object,
+                    // but must be direct arguments of the function.
+                    // To indicate the functions names, the arguments are a series of string key names
+                    // followed by the proxied function with that name.
+                    const proxiedFunctions: (string | Function)[] = [];
+                    for (const key in doenetViewerProps) {
+                        const prop = doenetViewerProps[key];
+                        if (typeof prop === "function") {
+                            proxiedFunctions.push(key);
+                            proxiedFunctions.push(Comlink.proxy(prop));
+                        }
+                    }
+                    viewerIframe?.renderViewerWithFunctionProps(
+                        ...proxiedFunctions,
+                    );
+                }
             }
         };
         if (ref.current) {
             window.addEventListener("message", listener);
         }
         const clearResize = watchForResize(ref, () => height, setHeight);
-
-        if (ref.current) {
-            Comlink.expose(
-                doenetViewerProps,
-                Comlink.windowEndpoint(ref.current.contentWindow!),
-            );
-        }
 
         return () => {
             window.removeEventListener("message", listener);
@@ -340,17 +362,39 @@ export function DoenetEditor({
             if (data.error) {
                 //@ts-ignore
                 return setInErrorState(data.error);
+            } else if (data.iframeReady) {
+                // if `iframeReady`, then Comlink.expose has been called in the iframe
+                // and we can call `renderEditorWithFunctionProps`
+
+                if (ref.current) {
+                    const editorIframe: Comlink.Remote<{
+                        renderEditorWithFunctionProps: (
+                            ...args: (string | Function)[]
+                        ) => void;
+                    }> = Comlink.wrap(
+                        Comlink.windowEndpoint(ref.current.contentWindow!),
+                    );
+
+                    // Note that Comlink is unable to send proxied functions as an values of an object,
+                    // but must be direct arguments of the function.
+                    // To indicate the functions names, the arguments are a series of string key names
+                    // followed by the proxied function with that name.
+                    const proxiedFunctions: (string | Function)[] = [];
+                    for (const key in doenetEditorProps) {
+                        const prop = doenetEditorProps[key];
+                        if (typeof prop === "function") {
+                            proxiedFunctions.push(key);
+                            proxiedFunctions.push(Comlink.proxy(prop));
+                        }
+                    }
+                    editorIframe?.renderEditorWithFunctionProps(
+                        ...proxiedFunctions,
+                    );
+                }
             }
         };
         if (ref.current) {
             window.addEventListener("message", listener);
-        }
-
-        if (ref.current) {
-            Comlink.expose(
-                doenetEditorProps,
-                Comlink.windowEndpoint(ref.current.contentWindow!),
-            );
         }
 
         return () => {
