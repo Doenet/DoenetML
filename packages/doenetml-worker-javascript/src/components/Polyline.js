@@ -15,6 +15,7 @@ export default class Polyline extends GraphicalComponent {
         Object.assign(this.actions, {
             movePolyline: this.movePolyline.bind(this),
             finalizePolylinePosition: this.finalizePolylinePosition.bind(this),
+            reflectPolyline: this.reflectPolyline.bind(this),
             polylineClicked: this.polylineClicked.bind(this),
             polylineFocused: this.polylineFocused.bind(this),
         });
@@ -109,6 +110,13 @@ export default class Polyline extends GraphicalComponent {
             createComponentOfType: "number",
             createStateVariable: "minShrink",
             defaultValue: 0.1,
+        };
+
+        attributes.allowReflection = {
+            createComponentOfType: "boolean",
+            createStateVariable: "allowReflection",
+            defaultValue: true,
+            public: true,
         };
 
         Object.assign(attributes, returnRoundingAttributes());
@@ -1149,6 +1157,7 @@ export default class Polyline extends GraphicalComponent {
                 stateValues,
                 arraySize,
                 workspace,
+                overrides,
             }) {
                 // console.log(`inverseArrayDefinition of vertices of polyline`);
                 // console.log(desiredStateVariableValues);
@@ -1195,13 +1204,62 @@ export default class Polyline extends GraphicalComponent {
 
                     let rotateOrDilate = allowRotation || allowDilation;
 
-                    if (!(rotateOrDilate || allowTranslation)) {
-                        // Since preserve similarity and we don't have a mechanism for reflection,
-                        // there are no changes possible if don't allow rotation, dilation or translation
+                    const isReflection = Boolean(overrides?.isReflection);
+
+                    if (!(rotateOrDilate || allowTranslation || isReflection)) {
+                        // Since preserve similarity,
+                        // there are no changes possible if don't allow reflection, rotation, dilation or translation
                         return { success: false };
                     }
 
-                    if (rotateOrDilate) {
+                    if (isReflection) {
+                        const desired_vertices = [];
+
+                        for (
+                            let pointInd = 0;
+                            pointInd < arraySize[0];
+                            pointInd++
+                        ) {
+                            desired_vertices.push([]);
+
+                            for (let dim = 0; dim < arraySize[1]; dim++) {
+                                desired_vertices[pointInd].push(
+                                    convertValueToMathExpression(
+                                        workspace[`${pointInd},${dim}`],
+                                    ),
+                                );
+                            }
+                        }
+
+                        if (globalDependencyValues.haveConstrainedVertices) {
+                            if (await stateValues.inStickyGroup) {
+                                let stickyObjectIndex =
+                                    await stateValues.stickyObjectIndex;
+                                let stickyVerticesConstraintFunction =
+                                    await stateValues.stickyVerticesConstraintFunction;
+
+                                desired_vertices =
+                                    stickyVerticesConstraintFunction(
+                                        {
+                                            unconstrainedVertices:
+                                                desired_vertices,
+                                            closed: globalDependencyValues.closed,
+                                            enforceRigid: true,
+                                            allowRotation,
+                                            shrinkThreshold: true,
+                                            rotationPoint,
+                                        },
+                                        { objectInd: stickyObjectIndex },
+                                    );
+                            }
+                        }
+
+                        console.log({ desired_vertices });
+                        instructions.push({
+                            setDependency: "unconstrainedVertices",
+                            desiredValue: desired_vertices,
+                        });
+                    } else if (rotateOrDilate) {
                         // we keep the rotation point fixed and rotate and/or dilate around the rotation point
 
                         // Note: we need to use the rotation point and vertices that are unaffected by the constraints.
@@ -2176,6 +2234,62 @@ export default class Polyline extends GraphicalComponent {
             actionId,
             sourceInformation,
             skipRendererUpdate,
+        });
+    }
+
+    async reflectPolyline({
+        sourceDetails,
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!(await this.stateValues.allowReflection)) {
+            return;
+        }
+
+        const vertices = await this.stateValues.vertices;
+
+        const centroid = calculateNumericalCentroid(vertices);
+
+        const numericalVertices = await this.stateValues.numericalVertices;
+
+        const reflectedVertices = numericalVertices.map((vert) => [
+            2 * centroid[0] - vert[0],
+            // 2 * centroid[1] - vert[1],
+            vert[1],
+        ]);
+
+        let vertexComponents = {};
+
+        for (const [idx, vert] of reflectedVertices.entries()) {
+            vertexComponents[idx + ",0"] = me.fromAst(vert[0]);
+            vertexComponents[idx + ",1"] = me.fromAst(vert[1]);
+        }
+
+        await this.coreFunctions.performUpdate({
+            updateInstructions: [
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "vertices",
+                    value: vertexComponents,
+                    sourceDetails,
+                    overrides: { isReflection: true },
+                },
+            ],
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+            event: {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    pointCoordinates: reflectedVertices,
+                },
+            },
         });
     }
 
