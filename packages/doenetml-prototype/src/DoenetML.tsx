@@ -13,7 +13,6 @@ export type DoenetMLFlags = {
     allowLoadState: boolean;
     allowSaveState: boolean;
     allowLocalState: boolean;
-    allowSaveSubmissions: boolean;
     allowSaveEvents: boolean;
     autoSubmit: boolean;
 };
@@ -26,11 +25,10 @@ export const defaultFlags: DoenetMLFlags = {
     solutionDisplayMode: "button",
     showFeedback: true,
     showHints: true,
-    allowLoadState: false,
-    allowSaveState: false,
+    allowLoadState: true,
+    allowSaveState: true,
     allowLocalState: false,
-    allowSaveSubmissions: false,
-    allowSaveEvents: false,
+    allowSaveEvents: true,
     autoSubmit: false,
 };
 

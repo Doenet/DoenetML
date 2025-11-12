@@ -36,10 +36,10 @@ const defaultFlags: DoenetMLFlags = {
     solutionDisplayMode: "button",
     showFeedback: true,
     showHints: true,
-    allowLoadState: false,
-    allowSaveState: false,
+    allowLoadState: true,
+    allowSaveState: true,
     allowLocalState: false,
-    allowSaveEvents: false,
+    allowSaveEvents: true,
     autoSubmit: false,
 };
 
