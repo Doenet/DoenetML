@@ -14,6 +14,7 @@ export default React.memo(function Polygon(props) {
     const board = useContext(BoardContext);
 
     let polygonJXG = useRef(null);
+    let pointsJXG = useRef([]);
 
     let pointCoords = useRef(null);
     let draggedPoint = useRef(null);
@@ -137,17 +138,23 @@ export default React.memo(function Polygon(props) {
 
         board.suspendUpdate();
 
-        let pts = [];
+        pointsJXG.current = [];
 
         for (let [ind, p] of SVs.numericalVertices.entries()) {
             let pointAttributes = { ...jsxPointAttributes.current };
             if (!vertexIndicesDraggable.current.includes(ind)) {
                 pointAttributes.visible = false;
             }
-            pts.push(board.create("point", [...p], pointAttributes));
+            pointsJXG.current.push(
+                board.create("point", [...p], pointAttributes),
+            );
         }
 
-        let newPolygonJXG = board.create("polygon", pts, jsxPolygonAttributes);
+        let newPolygonJXG = board.create(
+            "polygon",
+            pointsJXG.current,
+            jsxPolygonAttributes,
+        );
         newPolygonJXG.isDraggable = !fixLocation.current;
 
         initializePoints(newPolygonJXG);
@@ -222,6 +229,11 @@ export default React.memo(function Polygon(props) {
         polygonJXG.current.off("hit");
         board.removeObject(polygonJXG.current);
         polygonJXG.current = null;
+
+        for (const pt of pointsJXG.current) {
+            board.removeObject(pt);
+        }
+        pointsJXG.current = [];
     }
 
     function dragHandler(i, e) {
@@ -491,6 +503,7 @@ export default React.memo(function Polygon(props) {
                         pointAttributes,
                     );
                     polygonJXG.current.addPoints(newPoint);
+                    pointsJXG.current.push(newPoint);
                 }
                 initializePoints(polygonJXG.current);
             } else if (SVs.numVertices < previousNumVertices.current) {
@@ -508,6 +521,8 @@ export default React.memo(function Polygon(props) {
                     polygonJXG.current.removePoints(
                         polygonJXG.current.vertices[i],
                     );
+                    const pointToDelete = pointsJXG.current.pop();
+                    board.removeObject(pointToDelete);
                 }
                 initializePoints(polygonJXG.current);
             }
