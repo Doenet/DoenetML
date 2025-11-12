@@ -1213,7 +1213,7 @@ export default class Polyline extends GraphicalComponent {
                     }
 
                     if (isReflection) {
-                        const desired_vertices = [];
+                        let desired_vertices = [];
 
                         for (
                             let pointInd = 0;
@@ -1245,9 +1245,8 @@ export default class Polyline extends GraphicalComponent {
                                                 desired_vertices,
                                             closed: globalDependencyValues.closed,
                                             enforceRigid: true,
-                                            allowRotation,
-                                            shrinkThreshold: true,
-                                            rotationPoint,
+                                            allowRotation: false,
+                                            shrinkThreshold: false,
                                         },
                                         { objectInd: stickyObjectIndex },
                                     );
