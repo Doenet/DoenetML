@@ -7276,6 +7276,167 @@ describe("Polygon tag tests", async () => {
         await testPolygonCopiedTwice({ vertices, core, resolvePathToNodeIdx });
     });
 
+    it("Reflect polygon", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph name="g1">
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />
+
+  </graph>
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
+  </graph>
+  <graph extend="$g2" name="g3" />
+  `,
+        });
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        await testPolygonCopiedTwice({ vertices, core, resolvePathToNodeIdx });
+
+        const centroid = vertices.reduce(
+            (a, c) => [a[0] + c[0], a[1] + c[1]],
+            [0, 0],
+        );
+        centroid[0] /= 4;
+        centroid[1] /= 4;
+
+        const reflectedVertices = vertices.map((vert) => [
+            2 * centroid[0] - vert[0],
+            vert[1],
+        ]);
+
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
+            actionName: "reflectPolygon",
+            args: {},
+        });
+
+        await testPolygonCopiedTwice({
+            vertices: reflectedVertices,
+            core,
+            resolvePathToNodeIdx,
+        });
+
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
+            actionName: "reflectPolygon",
+            args: {},
+        });
+
+        await testPolygonCopiedTwice({ vertices, core, resolvePathToNodeIdx });
+    });
+
+    it("Reflect rigid polygon", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph name="g1">
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" rigid />
+
+  </graph>
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
+  </graph>
+  <graph extend="$g2" name="g3" />
+  `,
+        });
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        await testPolygonCopiedTwice({ vertices, core, resolvePathToNodeIdx });
+
+        const centroid = vertices.reduce(
+            (a, c) => [a[0] + c[0], a[1] + c[1]],
+            [0, 0],
+        );
+        centroid[0] /= 4;
+        centroid[1] /= 4;
+
+        const reflectedVertices = vertices.map((vert) => [
+            2 * centroid[0] - vert[0],
+            vert[1],
+        ]);
+
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
+            actionName: "reflectPolygon",
+            args: {},
+        });
+
+        await testPolygonCopiedTwice({
+            vertices: reflectedVertices,
+            core,
+            resolvePathToNodeIdx,
+        });
+
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
+            actionName: "reflectPolygon",
+            args: {},
+        });
+
+        await testPolygonCopiedTwice({ vertices, core, resolvePathToNodeIdx });
+    });
+
+    it("Cannot reflect polygon if allowReflections is false", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph name="g1">
+    <point>(3,7)</point>
+    <point>(-4,-1)</point>
+    <point>(8,2)</point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" allowReflection="false" />
+
+  </graph>
+  <graph name="g2">
+    <polygon extend="$g1.pg" name="pg" />
+    <pointList extend="$pg.vertices" name="vs" />
+  </graph>
+  <graph extend="$g2" name="g3" />
+  `,
+        });
+
+        let vertices = [
+            [3, 7],
+            [-4, -1],
+            [8, 2],
+            [-3, 4],
+        ];
+
+        await testPolygonCopiedTwice({ vertices, core, resolvePathToNodeIdx });
+
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("g1.pg"),
+            actionName: "reflectPolygon",
+            args: {},
+        });
+
+        // reflection was not successful
+
+        await testPolygonCopiedTwice({ vertices, core, resolvePathToNodeIdx });
+    });
+
     it("style description changes with theme", async () => {
         const doenetML = `
     <setup>

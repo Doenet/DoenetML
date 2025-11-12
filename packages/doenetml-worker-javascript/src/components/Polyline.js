@@ -1254,7 +1254,6 @@ export default class Polyline extends GraphicalComponent {
                             }
                         }
 
-                        console.log({ desired_vertices });
                         instructions.push({
                             setDependency: "unconstrainedVertices",
                             desiredValue: desired_vertices,
