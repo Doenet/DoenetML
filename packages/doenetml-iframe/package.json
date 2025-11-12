@@ -6,7 +6,10 @@
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
-    "repository": "github:Doenet/DoenetML",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Doenet/DoenetML.git"
+    },
     "files": [
         "/dist"
     ],
