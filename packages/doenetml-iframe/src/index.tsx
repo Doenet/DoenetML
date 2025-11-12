@@ -205,8 +205,9 @@ export function DoenetViewer({
                     // To indicate the functions names, the arguments are a series of string key names
                     // followed by the proxied function with that name.
                     const proxiedFunctions: (string | Function)[] = [];
-                    for (const key in doenetViewerProps) {
-                        const prop = doenetViewerProps[key];
+                    for (const [key, prop] of Object.entries(
+                        doenetViewerProps,
+                    )) {
                         if (typeof prop === "function") {
                             proxiedFunctions.push(key);
                             proxiedFunctions.push(Comlink.proxy(prop));
@@ -380,8 +381,9 @@ export function DoenetEditor({
                     // To indicate the functions names, the arguments are a series of string key names
                     // followed by the proxied function with that name.
                     const proxiedFunctions: (string | Function)[] = [];
-                    for (const key in doenetEditorProps) {
-                        const prop = doenetEditorProps[key];
+                    for (const [key, prop] of Object.entries(
+                        doenetEditorProps,
+                    )) {
                         if (typeof prop === "function") {
                             proxiedFunctions.push(key);
                             proxiedFunctions.push(Comlink.proxy(prop));
