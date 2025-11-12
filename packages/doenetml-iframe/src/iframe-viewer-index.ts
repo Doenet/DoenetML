@@ -3,7 +3,7 @@
 declare const viewerId: string;
 declare const doenetViewerProps: Record<string, any>;
 declare const doenetViewerPropsSpecified: string[];
-declare const ComlinkViewer: { wrap: Function; windowEndpoint: Function };
+declare const ComlinkViewer: { expose: Function; windowEndpoint: Function };
 interface Window {
     renderDoenetViewerToContainer: (
         container: Element,
@@ -32,21 +32,35 @@ document.addEventListener("DOMContentLoaded", async () => {
             error: "Invalid DoenetML version or DoenetML package not found",
         });
     }
+});
 
-    // Reconstruct the props from the serialized doenetViewerProps (from which functions have disappeared)
-    // and the ComLink proxied functions.
-    // Only include the ComLink proxies if the prop was actually specified,
-    // so that the DoenetViewer can customize behavior based on the presence of callbacks.
-    const wrappedDoenetViewerProps = ComlinkViewer.wrap(
-        ComlinkViewer.windowEndpoint(globalThis.parent),
-    );
+ComlinkViewer.expose(
+    { renderViewerWithFunctionProps },
+    ComlinkViewer.windowEndpoint(globalThis.parent),
+);
 
+/**
+ * Render the DoenetEditor to the container after reconstructing the props.
+ *
+ * Reconstruct the props from the serialized `doenetEditorProps` (from which functions have disappeared)
+ * and the ComLink proxied functions specified in `args`.
+ * Only include the ComLink proxies if the prop was actually specified,
+ * so that the DoenetEditor can customize behavior based on the presence of callback
+ *
+ * Note that Comlink is unable to send proxied functions as an values of an object,
+ * but must be direct arguments of the function.
+ * To indicate the functions names, the arguments are a series of string key names
+ * followed by the proxied function with that name.
+ */
+function renderViewerWithFunctionProps(...args: (string | Function)[]) {
     const augmentedDoenetViewerProps = { ...doenetViewerProps };
     augmentedDoenetViewerProps.externalVirtualKeyboardProvided = true;
     for (const propName of doenetViewerPropsSpecified) {
         if (!(propName in doenetViewerProps)) {
-            augmentedDoenetViewerProps[propName] =
-                wrappedDoenetViewerProps[propName];
+            const idx = args.indexOf(propName);
+            if (idx !== -1) {
+                augmentedDoenetViewerProps[propName] = args[idx + 1];
+            }
         }
     }
 
@@ -64,7 +78,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         undefined,
         augmentedDoenetViewerProps,
     );
-});
+}
+
+messageParentFromViewer({ iframeReady: true });
 
 // The iframe forwards all SPLICE messages that aren't a response to its parent.
 // Exception: SPLICE.submitAllAnswers is initiated by the app, so the logic is reversed.
