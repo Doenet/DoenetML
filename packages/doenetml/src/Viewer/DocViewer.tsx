@@ -807,6 +807,11 @@ export function DocViewer({
                 docId,
             });
         } else {
+            console.log("SPLICE.reportScoreAndState", {
+                data,
+                activityId,
+                docId,
+            });
             window.postMessage({
                 data,
                 subject: "SPLICE.reportScoreAndState",
@@ -946,6 +951,14 @@ export function DocViewer({
             (resolve, reject) => {
                 getStatePromiseResolve = resolve;
                 getStatePromiseReject = reject;
+                console.log("SPLICE.getState", {
+                    messageId,
+                    cid,
+                    activityId,
+                    docId,
+                    attemptNumber,
+                    userId,
+                });
                 window.postMessage({
                     subject: "SPLICE.getState",
                     messageId,
