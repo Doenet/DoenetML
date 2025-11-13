@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
-import { movePoint, updateMathInputValue } from "../utils/actions";
+import {
+    movePoint,
+    submitAnswer,
+    updateMathInputValue,
+} from "../utils/actions";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -14,7 +19,7 @@ describe("Sort tag tests", async () => {
         pName = "pList",
         replacements_all_of_type,
     }: {
-        core;
+        core: PublicDoenetMLCore;
         resolvePathToNodeIdx: ResolvePathToNodeIdx;
         sorted_result: string[];
         pName?: string;
@@ -769,5 +774,30 @@ describe("Sort tag tests", async () => {
         }
 
         expect(result.sort()).eqls(sorted_result.sort());
+    });
+
+    it("in answer award", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+
+<answer name="ans">
+  <award><when allowedErrorInNumbers="0.1">
+    <sort>$x</sort> = $y
+  </when></award>
+</answer>
+
+<numberList name="y">3 4</numberList>
+<numberList name="x">4 3</numberList>
+
+  `,
+        });
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
     });
 });
