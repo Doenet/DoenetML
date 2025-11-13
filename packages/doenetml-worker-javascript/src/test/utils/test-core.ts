@@ -53,7 +53,7 @@ const defaultFlags: DoenetMLFlags = {
     solutionDisplayMode: "button",
     showFeedback: true,
     showHints: true,
-    allowLoadState: true,
+    allowLoadState: false,
     allowSaveState: true,
     allowLocalState: false,
     allowSaveEvents: true,
