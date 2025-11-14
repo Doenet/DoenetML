@@ -598,6 +598,22 @@ function newComponentIndicesForAttributesFromSerialized(
 
         const idxSource = attributeIdxSources[attrName];
 
+        if (!idxSource) {
+            // If index source for attribute does not exist, then create new component index for attributes.
+
+            // Note: this is possible since this code can be called when expanding shadowing composite components,
+            // in which case attributes of the shadowed composite's replacement may not have been copies
+            const attrResult = newComponentIndicesForAttributes(
+                { [attrName]: attribute },
+                nComponents,
+                idxMap,
+            );
+
+            newAttributes[attrName] = attrResult.attributes[attrName];
+            nComponents = attrResult.nComponents;
+            continue;
+        }
+
         if (attribute.type === "component") {
             if (idxSource.type !== "component") {
                 //console.log({ attributes, attributeIdxSources });
