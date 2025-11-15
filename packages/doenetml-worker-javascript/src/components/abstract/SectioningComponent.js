@@ -61,6 +61,13 @@ export class SectioningComponent extends BlockComponent {
             public: true,
         };
 
+        attributes.noAutoTitle = {
+            createComponentOfType: "boolean",
+            createStateVariable: "noAutoTitle",
+            defaultValue: false,
+            public: true,
+        };
+
         attributes.includeAutoNameIfNoTitle = {
             createComponentOfType: "boolean",
             createStateVariable: "includeAutoNameIfNoTitle",
@@ -87,6 +94,18 @@ export class SectioningComponent extends BlockComponent {
 
         attributes.renameTo = {
             createComponentOfType: "text",
+        };
+
+        attributes.completedColor = {
+            createComponentOfType: "text",
+            createStateVariable: "completedColor",
+            defaultValue: "var(--lightGreen)",
+        };
+
+        attributes.inProgressColor = {
+            createComponentOfType: "text",
+            createStateVariable: "inProgressColor",
+            defaultValue: "var(--mainGray)",
         };
 
         return attributes;
@@ -305,6 +324,24 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
+        stateVariableDefinitions.hideChildren = {
+            returnDependencies: () => ({
+                parentChildrenToHideChildren: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "childrenToHideChildren",
+                },
+            }),
+            definition({ dependencyValues, componentIdx }) {
+                let hideChildren = Boolean(
+                    dependencyValues.parentChildrenToHideChildren?.includes(
+                        componentIdx,
+                    ),
+                );
+
+                return { setValue: { hideChildren } };
+            },
+        };
+
         stateVariableDefinitions.childIndicesToRender = {
             returnDependencies: () => ({
                 titleChildren: {
@@ -328,6 +365,10 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "asList",
                 },
+                hideChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "hideChildren",
+                },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 let childIndicesToRender = [];
@@ -343,21 +384,25 @@ export class SectioningComponent extends BlockComponent {
                     if (dependencyValues.asList) {
                         // if asList, then only include titleChild, sections, introduction, and conclusion
                         if (
-                            child.componentIdx ===
+                            !dependencyValues.hideChildren &&
+                            (child.componentIdx ===
                                 dependencyValues.titleChildName ||
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: child.componentType,
-                                baseComponentType: "_sectioningComponent",
-                            }) ||
-                            ["introduction", "conclusion"].includes(
-                                child.componentType,
-                            )
+                                componentInfoObjects.isInheritedComponentType({
+                                    inheritedComponentType: child.componentType,
+                                    baseComponentType: "_sectioningComponent",
+                                }) ||
+                                ["introduction", "conclusion"].includes(
+                                    child.componentType,
+                                ))
                         ) {
                             childIndicesToRender.push(ind);
                         }
                     } else if (
-                        typeof child !== "object" ||
-                        !allTitleChildNames.includes(child.componentIdx) ||
+                        (!dependencyValues.hideChildren &&
+                            (typeof child !== "object" ||
+                                !allTitleChildNames.includes(
+                                    child.componentIdx,
+                                ))) ||
                         child.componentIdx === dependencyValues.titleChildName
                     ) {
                         childIndicesToRender.push(ind);
@@ -366,6 +411,7 @@ export class SectioningComponent extends BlockComponent {
 
                 return { setValue: { childIndicesToRender } };
             },
+            markStale: () => ({ updateRenderedChildren: true }),
         };
 
         // Determine if the rendered children start with an `<introduction>`
@@ -467,6 +513,10 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "includeAutoNumberIfNoTitle",
                 },
+                noAutoTitle: {
+                    dependencyType: "stateVariable",
+                    variableName: "noAutoTitle",
+                },
             }),
             definition({ dependencyValues }) {
                 let titlePrefix = "";
@@ -477,13 +527,15 @@ export class SectioningComponent extends BlockComponent {
                 let includeAutoNumber =
                     (dependencyValues.includeAutoNumber ||
                         (!haveTitleChild &&
-                            dependencyValues.includeAutoNumberIfNoTitle)) &&
+                            dependencyValues.includeAutoNumberIfNoTitle &&
+                            !dependencyValues.noAutoTitle)) &&
                     !dependencyValues.prerender;
 
                 let includeAutoName =
                     dependencyValues.includeAutoName ||
                     (!haveTitleChild &&
-                        dependencyValues.includeAutoNameIfNoTitle);
+                        dependencyValues.includeAutoNameIfNoTitle &&
+                        !dependencyValues.noAutoTitle);
 
                 if (includeAutoNumber) {
                     if (includeAutoName) {
@@ -514,6 +566,61 @@ export class SectioningComponent extends BlockComponent {
                 }
 
                 return { setValue: { title, titlePrefix } };
+            },
+        };
+
+        stateVariableDefinitions.titleColor = {
+            // Note: currently title color is used only when boxed or collapsible
+            forRenderer: true,
+            returnDependencies: () => ({
+                completedColor: {
+                    dependencyType: "stateVariable",
+                    variableName: "completedColor",
+                },
+                inProgressColor: {
+                    dependencyType: "stateVariable",
+                    variableName: "inProgressColor",
+                },
+                parentCompletedColor: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "completedColor",
+                },
+                parentInProgressColor: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "inProgressColor",
+                },
+                creditAchieved: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditAchieved",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                let titleColor = dependencyValues.inProgressColor;
+                if (dependencyValues.creditAchieved === 1) {
+                    if (!usedDefault.completedColor) {
+                        titleColor = dependencyValues.completedColor;
+                    } else if (
+                        typeof dependencyValues.parentCompletedColor ===
+                        "string"
+                    ) {
+                        titleColor = dependencyValues.parentCompletedColor;
+                    } else {
+                        titleColor = dependencyValues.completedColor;
+                    }
+                } else {
+                    if (!usedDefault.inProgressColor) {
+                        titleColor = dependencyValues.inProgressColor;
+                    } else if (
+                        typeof dependencyValues.parentInProgressColor ===
+                        "string"
+                    ) {
+                        titleColor = dependencyValues.parentInProgressColor;
+                    } else {
+                        titleColor = dependencyValues.inProgressColor;
+                    }
+                }
+
+                return { setValue: { titleColor } };
             },
         };
 
