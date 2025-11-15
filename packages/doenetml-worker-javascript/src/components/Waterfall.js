@@ -31,6 +31,12 @@ export default class Waterfall extends SectioningComponent {
 
         attributes.noAutoTitle.defaultValue = true;
 
+        attributes.revealAll = {
+            createComponentOfType: "boolean",
+            createStateVariable: "revealAllPreliminary",
+            defaultValue: false,
+        };
+
         return attributes;
     }
 
@@ -89,6 +95,34 @@ export default class Waterfall extends SectioningComponent {
             },
         };
 
+        stateVariableDefinitions.revealAll = {
+            returnDependencies: () => ({
+                waterfallAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "waterfall",
+                    variableNames: ["revealAll"],
+                },
+                revealAllPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "revealAllPreliminary",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                let revealAll = false;
+                if (!usedDefault.revealAllPreliminary) {
+                    revealAll = dependencyValues.revealAllPreliminary;
+                } else if (dependencyValues.waterfallAncestor) {
+                    revealAll =
+                        dependencyValues.waterfallAncestor.stateValues
+                            .revealAll;
+                } else {
+                    dependencyValues.revealAllPreliminary;
+                }
+
+                return { setValue: { revealAll } };
+            },
+        };
+
         // rename childIndicesToRender to childIndicesToRenderOriginal
         // so that start with original indices and only remove additional ones
         renameStateVariable({
@@ -121,8 +155,23 @@ export default class Waterfall extends SectioningComponent {
                         "setups",
                     ],
                 },
+                revealAll: {
+                    dependencyType: "stateVariable",
+                    variableName: "revealAll",
+                },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
+                // If `revealAll` is set, then use original values
+                if (dependencyValues.revealAll) {
+                    return {
+                        setValue: {
+                            childIndicesToRender:
+                                dependencyValues.childIndicesToRenderOriginal,
+                            childrenToHideChildren: [],
+                        },
+                    };
+                }
+
                 const childIndicesToRender = [];
                 const childrenToHideChildren = [];
 

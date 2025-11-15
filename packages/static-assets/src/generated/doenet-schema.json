@@ -80827,6 +80827,13 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "revealAll",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [

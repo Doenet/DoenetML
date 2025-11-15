@@ -130986,6 +130986,13 @@
                         "true",
                         "false"
                     ]
+                },
+                "revealAll": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
