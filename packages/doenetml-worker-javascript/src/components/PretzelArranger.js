@@ -211,10 +211,6 @@ export default class PretzelArranger extends CompositeComponent {
         stateVariableDefinitions.statements = {
             additionalStateVariablesDefined: ["givenAnswers", "validProblems"],
             returnDependencies: () => ({
-                numProblems: {
-                    dependencyType: "stateVariable",
-                    variableName: "numProblems",
-                },
                 serializedProblemChildren: {
                     dependencyType: "stateVariable",
                     variableName: "serializedProblemChildren",
@@ -306,7 +302,19 @@ export default class PretzelArranger extends CompositeComponent {
             const prevAnswer =
                 givenAnswers[(problemIdx - 1 + numProblems) % numProblems];
 
-            replacements.push(prevAnswer);
+            if (prevAnswer === null) {
+                replacements.push({
+                    type: "serialized",
+                    componentType: "span",
+                    componentIdx: nComponents++,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
+                    children: [],
+                });
+            } else {
+                replacements.push(prevAnswer);
+            }
             replacements.push({
                 type: "serialized",
                 componentType: "textInput",
@@ -332,7 +340,19 @@ export default class PretzelArranger extends CompositeComponent {
                 state: {},
                 children: [],
             });
-            replacements.push(thisStatement);
+            if (thisStatement === null) {
+                replacements.push({
+                    type: "serialized",
+                    componentType: "statement",
+                    componentIdx: nComponents++,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
+                    children: [],
+                });
+            } else {
+                replacements.push(thisStatement);
+            }
         }
 
         return {
