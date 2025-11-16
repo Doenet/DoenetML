@@ -123,21 +123,9 @@ export default class Waterfall extends SectioningComponent {
             },
         };
 
-        // rename childIndicesToRender to childIndicesToRenderOriginal
-        // so that start with original indices and only remove additional ones
-        renameStateVariable({
-            stateVariableDefinitions,
-            oldName: "childIndicesToRender",
-            newName: "childIndicesToRenderOriginal",
-        });
-
-        stateVariableDefinitions.childIndicesToRender = {
+        stateVariableDefinitions.childrenToHide = {
             additionalStateVariablesDefined: ["childrenToHideChildren"],
             returnDependencies: () => ({
-                childIndicesToRenderOriginal: {
-                    dependencyType: "stateVariable",
-                    variableName: "childIndicesToRenderOriginal",
-                },
                 hideFutureSections: {
                     dependencyType: "stateVariable",
                     variableName: "hideFutureSections",
@@ -146,83 +134,62 @@ export default class Waterfall extends SectioningComponent {
                     dependencyType: "stateVariable",
                     variableName: "numCompleted",
                 },
-                allChildren: {
+                children: {
                     dependencyType: "child",
-                    childGroups: [
-                        "anything",
-                        "variantControls",
-                        "titles",
-                        "setups",
-                    ],
+                    childGroups: ["anything"],
                 },
                 revealAll: {
                     dependencyType: "stateVariable",
                     variableName: "revealAll",
                 },
+                hideChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "hideChildren",
+                },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
-                // If `revealAll` is set, then use original values
+                // If `revealAll` is set, then nothing hidden
                 if (dependencyValues.revealAll) {
                     return {
                         setValue: {
-                            childIndicesToRender:
-                                dependencyValues.childIndicesToRenderOriginal,
+                            childrenToHide: [],
                             childrenToHideChildren: [],
                         },
                     };
                 }
 
-                const childIndicesToRender = [];
+                const childrenToHide = [];
                 const childrenToHideChildren = [];
-
-                let numAnythingChildren = 0;
-                const otherChildTypes = ["variantControl", "title", "setup"];
 
                 for (const [
                     idx,
                     child,
-                ] of dependencyValues.allChildren.entries()) {
-                    if (
-                        dependencyValues.childIndicesToRenderOriginal.includes(
-                            idx,
-                        )
-                    ) {
-                        if (
-                            numAnythingChildren <= dependencyValues.numCompleted
-                        ) {
-                            childIndicesToRender.push(idx);
-                        } else if (
-                            !dependencyValues.hideFutureSections &&
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: child.componentType,
-                                baseComponentType: "_sectioningComponent",
-                            })
-                        ) {
-                            childrenToHideChildren.push(child.componentIdx);
-                            childIndicesToRender.push(idx);
+                ] of dependencyValues.children.entries()) {
+                    if (idx <= dependencyValues.numCompleted) {
+                        if (dependencyValues.hideChildren) {
+                            childrenToHide.push(child.componentIdx);
                         }
-                    }
-
-                    const isAnythingChild = !otherChildTypes.some((cType) =>
+                    } else if (
+                        !dependencyValues.hideChildren &&
+                        !dependencyValues.hideFutureSections &&
                         componentInfoObjects.isInheritedComponentType({
                             inheritedComponentType: child.componentType,
-                            baseComponentType: cType,
-                        }),
-                    );
-
-                    if (isAnythingChild) {
-                        numAnythingChildren++;
+                            baseComponentType: "_sectioningComponent",
+                        })
+                    ) {
+                        childrenToHideChildren.push(child.componentIdx);
+                    } else {
+                        childrenToHide.push(child.componentIdx);
                     }
                 }
 
                 return {
                     setValue: {
-                        childIndicesToRender,
+                        childrenToHide,
                         childrenToHideChildren,
                     },
                 };
             },
-            markStale: () => ({ updateRenderedChildren: true }),
         };
 
         return stateVariableDefinitions;

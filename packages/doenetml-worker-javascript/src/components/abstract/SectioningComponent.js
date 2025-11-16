@@ -365,13 +365,9 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "asList",
                 },
-                hideChildren: {
-                    dependencyType: "stateVariable",
-                    variableName: "hideChildren",
-                },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
-                let childIndicesToRender = [];
+                const childIndicesToRender = [];
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
                     (x) => x.componentIdx,
@@ -384,25 +380,21 @@ export class SectioningComponent extends BlockComponent {
                     if (dependencyValues.asList) {
                         // if asList, then only include titleChild, sections, introduction, and conclusion
                         if (
-                            !dependencyValues.hideChildren &&
-                            (child.componentIdx ===
+                            child.componentIdx ===
                                 dependencyValues.titleChildName ||
-                                componentInfoObjects.isInheritedComponentType({
-                                    inheritedComponentType: child.componentType,
-                                    baseComponentType: "_sectioningComponent",
-                                }) ||
-                                ["introduction", "conclusion"].includes(
-                                    child.componentType,
-                                ))
+                            componentInfoObjects.isInheritedComponentType({
+                                inheritedComponentType: child.componentType,
+                                baseComponentType: "_sectioningComponent",
+                            }) ||
+                            ["introduction", "conclusion"].includes(
+                                child.componentType,
+                            )
                         ) {
                             childIndicesToRender.push(ind);
                         }
                     } else if (
-                        (!dependencyValues.hideChildren &&
-                            (typeof child !== "object" ||
-                                !allTitleChildNames.includes(
-                                    child.componentIdx,
-                                ))) ||
+                        typeof child !== "object" ||
+                        !allTitleChildNames.includes(child.componentIdx) ||
                         child.componentIdx === dependencyValues.titleChildName
                     ) {
                         childIndicesToRender.push(ind);
@@ -410,6 +402,43 @@ export class SectioningComponent extends BlockComponent {
                 }
 
                 return { setValue: { childIndicesToRender } };
+            },
+            markStale: () => ({ updateRenderedChildren: true }),
+        };
+
+        stateVariableDefinitions.childrenToHide = {
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    childGroups: [
+                        "anything",
+                        "variantControls",
+                        "titles",
+                        "setups",
+                    ],
+                },
+                titleChildName: {
+                    dependencyType: "stateVariable",
+                    variableName: "titleChildName",
+                },
+                hideChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "hideChildren",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const childrenToHide = [];
+
+                for (let child of dependencyValues.allChildren) {
+                    if (
+                        dependencyValues.hideChildren &&
+                        child.componentIdx !== dependencyValues.titleChildName
+                    ) {
+                        childrenToHide.push(child.componentIdx);
+                    }
+                }
+
+                return { setValue: { childrenToHide } };
             },
             markStale: () => ({ updateRenderedChildren: true }),
         };
