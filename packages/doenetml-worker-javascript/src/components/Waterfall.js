@@ -10,18 +10,6 @@ export default class Waterfall extends SectioningComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.completedColor = {
-            createComponentOfType: "text",
-            createStateVariable: "completedColor",
-            defaultValue: "var(--lightGreen)",
-        };
-
-        attributes.inProgressColor = {
-            createComponentOfType: "text",
-            createStateVariable: "inProgressColor",
-            defaultValue: "var(--mainGray)",
-        };
-
         attributes.hideFutureSections = {
             createComponentOfType: "boolean",
             createStateVariable: "hideFutureSections",
