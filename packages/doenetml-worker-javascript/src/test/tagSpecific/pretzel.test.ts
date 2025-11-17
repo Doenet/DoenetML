@@ -114,4 +114,99 @@ describe("Pretzel tag tests", async () => {
             }
         }
     });
+
+    it("pretzel with missing statements and givenAnswers", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pretzel name="p">
+        <problem>
+        </problem>
+        <problem>
+            <givenAnswer name="a2"><p>3</p></givenAnswer>
+        </problem>
+        <problem>
+            <statement name="s3"><p>What is 1+3?</p></statement>
+        </problem>
+        <problem>
+            <statement name="s4"><p>What is 1+4?</p></statement>
+            <givenAnswer name="a4"><p>5</p></givenAnswer>
+        </problem>
+    </pretzel>
+    `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            "Invalid pretzel as a problem is missing a <statement> or a <givenAnswer>",
+        );
+        expect(errorWarnings.warnings[0].level).eq(1);
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.start.column).eq(5);
+        expect(errorWarnings.warnings[0].position.end.line).eq(15);
+        expect(errorWarnings.warnings[0].position.end.column).eq(15);
+        expect(errorWarnings.warnings[0].level).eq(1);
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("a2")]
+                    .activeChildren[0].componentIdx
+            ].stateValues.text,
+        ).eq("3");
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("s3")]
+                    .activeChildren[0].componentIdx
+            ].stateValues.text,
+        ).eq("What is 1+3?");
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("s4")]
+                    .activeChildren[0].componentIdx
+            ].stateValues.text,
+        ).eq("What is 1+4?");
+        expect(
+            stateVariables[
+                stateVariables[await resolvePathToNodeIdx("a4")]
+                    .activeChildren[0].componentIdx
+            ].stateValues.text,
+        ).eq("5");
+
+        const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+        const problemOrder = pretzel.stateValues.problemOrder;
+
+        // make sure pretzel is still correct even if add an offset to the numbers
+        for (const offset of [0, 1, 11]) {
+            for (let i = 1; i <= 4; i++) {
+                const idx = problemOrder.indexOf(i);
+                const input = pretzel.activeChildren[idx * 3 + 1];
+
+                await updateTextInputValue({
+                    text: `${offset + i}`,
+                    componentIdx: input.componentIdx,
+                    core,
+                });
+
+                await submitAnswer({
+                    componentIdx: pretzel.componentIdx,
+                    core,
+                });
+
+                stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+
+                // when i==4, then all answer correspond, so it should be correct
+                expect(
+                    stateVariables[pretzel.componentIdx].stateValues
+                        .creditAchieved,
+                ).eq(i === 4 ? 1 : 0);
+            }
+        }
+    });
 });

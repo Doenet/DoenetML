@@ -105301,6 +105301,13 @@
                     "type": [
                         "string"
                     ]
+                },
+                "coprimeCombinations": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [],
@@ -105343,6 +105350,11 @@
                 },
                 {
                     "name": "sortResults",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "coprimeCombinations",
                     "type": "boolean",
                     "isArray": false
                 },

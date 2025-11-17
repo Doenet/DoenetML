@@ -65280,6 +65280,13 @@
                 },
                 {
                     "name": "excludeCombinations"
+                },
+                {
+                    "name": "coprimeCombinations",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -65320,6 +65327,11 @@
                 },
                 {
                     "name": "sortResults",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "coprimeCombinations",
                     "type": "boolean",
                     "isArray": false
                 },
