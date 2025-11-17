@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { renderersLoadComponent } from "./DocViewer";
 import { ComponentInfo, mainSlice, useAppSelector } from "../state";
+import { DoenetMLFlags } from "../doenetml";
 
 export type UseDoenetRendererProps = {
     coreId: string;
@@ -19,6 +20,7 @@ export type UseDoenetRendererProps = {
     doenetViewerUrl?: string;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     requestScrollTo?: (offset: number) => void;
+    flags: DoenetMLFlags;
 };
 
 // TODO: potentially remove initializeChildrenOnConstruction
@@ -98,6 +100,7 @@ export default function useDoenetRenderer(
             callAction: props.callAction,
             fetchExternalDoenetML: props.fetchExternalDoenetML,
             requestScrollTo: props.requestScrollTo,
+            flags: props.flags,
         };
 
         let rendererClass =
@@ -154,5 +157,6 @@ export default function useDoenetRenderer(
         doenetViewerUrl: props.doenetViewerUrl,
         fetchExternalDoenetML: props.fetchExternalDoenetML,
         requestScrollTo: props.requestScrollTo,
+        flags: props.flags,
     };
 }
