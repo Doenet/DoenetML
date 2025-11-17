@@ -224,7 +224,7 @@
         "blockQuote",
         "stickyGroup",
         "pretzel",
-        "waterfall",
+        "cascade",
         "pointList",
         "intervalList",
         "vectorList"
@@ -4046,7 +4046,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -4938,7 +4938,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -5830,7 +5830,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -38403,7 +38403,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -39424,7 +39424,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -40445,7 +40445,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -41466,7 +41466,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -42508,7 +42508,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -43534,7 +43534,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -44555,7 +44555,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -45576,7 +45576,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -46597,7 +46597,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -47618,7 +47618,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -48639,7 +48639,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -49660,7 +49660,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -50681,7 +50681,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -51702,7 +51702,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -52723,7 +52723,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -53744,7 +53744,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -54785,7 +54785,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -55805,7 +55805,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -56820,7 +56820,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -58066,7 +58066,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -64006,7 +64006,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 }
             ],
             "textChildrenAllowed": false,
@@ -65055,7 +65055,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -66761,7 +66761,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -67653,7 +67653,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -68500,7 +68500,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -69307,7 +69307,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -70140,7 +70140,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -71345,7 +71345,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 }
             ],
             "textChildrenAllowed": true,
@@ -72158,7 +72158,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -77213,7 +77213,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -90950,7 +90950,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -95741,7 +95741,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -97592,7 +97592,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -99115,7 +99115,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 }
             ],
             "textChildrenAllowed": true,
@@ -99831,7 +99831,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 }
             ],
             "textChildrenAllowed": true,
@@ -101020,7 +101020,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -101858,7 +101858,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -106270,7 +106270,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -108686,7 +108686,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -110592,7 +110592,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -112523,7 +112523,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -113325,7 +113325,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -114139,7 +114139,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -116084,7 +116084,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -116866,7 +116866,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -117659,7 +117659,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -118876,7 +118876,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 }
             ],
             "textChildrenAllowed": true,
@@ -120335,7 +120335,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -121145,7 +121145,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -123404,7 +123404,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -125251,7 +125251,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -129991,7 +129991,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"
@@ -130811,9 +130811,9 @@
                 }
             ]
         },
-        "waterfall": {
+        "cascade": {
             "type": "element",
-            "name": "waterfall",
+            "name": "cascade",
             "attributes": {
                 "name": {
                     "optional": true,
@@ -131684,7 +131684,7 @@
                     "ref": "pretzel"
                 },
                 {
-                    "ref": "waterfall"
+                    "ref": "cascade"
                 },
                 {
                     "ref": "pointList"

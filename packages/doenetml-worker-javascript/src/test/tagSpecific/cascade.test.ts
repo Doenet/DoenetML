@@ -6,12 +6,12 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Waterfall tag tests", async () => {
-    it("basic waterfall", async () => {
+describe("Cascade tag tests", async () => {
+    it("basic cascade", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<waterfall name="w">
-  <title>My waterfall</title>
+<cascade name="w">
+  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
@@ -33,7 +33,7 @@ describe("Waterfall tag tests", async () => {
     <p name="p">What is 3-4? <answer name="ans">-1</answer></p>
   </section>
 
-</waterfall>
+</cascade>
 
 <p name="pNumCompleted">numCompleted: $w.numCompleted</p>
 
@@ -49,7 +49,7 @@ describe("Waterfall tag tests", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("w")].stateValues
                     .title,
-            ).eq("My waterfall");
+            ).eq("My cascade");
             expect(
                 stateVariables[await resolvePathToNodeIdx("w")].stateValues
                     .numCompleted,
@@ -231,8 +231,8 @@ describe("Waterfall tag tests", async () => {
     it("hideFutureSections", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<waterfall name="w" hideFutureSections>
-  <title>My waterfall</title>
+<cascade name="w" hideFutureSections>
+  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
@@ -254,7 +254,7 @@ describe("Waterfall tag tests", async () => {
     <p name="p">What is 3-4? <answer name="ans">-1</answer></p>
   </section>
 
-</waterfall>
+</cascade>
 
 <p name="pNumCompleted">numCompleted: $w.numCompleted</p>
 
@@ -270,7 +270,7 @@ describe("Waterfall tag tests", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("w")].stateValues
                     .title,
-            ).eq("My waterfall");
+            ).eq("My cascade");
             expect(
                 stateVariables[await resolvePathToNodeIdx("w")].stateValues
                     .numCompleted,
@@ -422,34 +422,34 @@ describe("Waterfall tag tests", async () => {
         await check_values(3);
     });
 
-    it("waterfall in waterfall", async () => {
+    it("cascade in cascade", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<waterfall name="w1">
-  <title>My waterfall</title>
+<cascade name="w1">
+  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
 
-    <waterfall name="w2">
+    <cascade name="w2">
       <p name="p1">What is 1+1? <answer name="ans">2</answer></p>
       <div>
         <p name="p2">What is 1-1? <answer name="ans">0</answer></p>
         <p name="p3">What is 2+2? <answer name="ans">4</answer></p>
       </div>
-    </waterfall>
+    </cascade>
   </section>
 
   <section boxed name="section2">
     <title>Second part</title>
     
-    <waterfall name="w3">
+    <cascade name="w3">
       <p name="p1">What is 3+4? <answer name="ans">7</answer></p>
       <p name="p2">What is 3-4? <answer name="ans">-1</answer></p>
-    </waterfall>
+    </cascade>
   </section>
 
-</waterfall>
+</cascade>
 
   `,
         });
@@ -467,7 +467,7 @@ describe("Waterfall tag tests", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("w1")].stateValues
                     .title,
-            ).eq("My waterfall");
+            ).eq("My cascade");
             expect(
                 stateVariables[await resolvePathToNodeIdx("w1")].stateValues
                     .numCompleted,
@@ -650,34 +650,34 @@ describe("Waterfall tag tests", async () => {
         await check_values(2, 2, 2);
     });
 
-    it("waterfall in waterfall, reveal all", async () => {
+    it("cascade in cascade, reveal all", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<waterfall name="w1" revealAll>
-  <title>My waterfall</title>
+<cascade name="w1" revealAll>
+  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
 
-    <waterfall name="w2">
+    <cascade name="w2">
       <p name="p1">What is 1+1? <answer name="ans">2</answer></p>
       <div>
         <p name="p2">What is 1-1? <answer name="ans">0</answer></p>
         <p name="p3">What is 2+2? <answer name="ans">4</answer></p>
       </div>
-    </waterfall>
+    </cascade>
   </section>
 
   <section boxed name="section2">
     <title>Second part</title>
     
-    <waterfall name="w3">
+    <cascade name="w3">
       <p name="p1">What is 3+4? <answer name="ans">7</answer></p>
       <p name="p2">What is 3-4? <answer name="ans">-1</answer></p>
-    </waterfall>
+    </cascade>
   </section>
 
-</waterfall>
+</cascade>
 
   `,
         });
@@ -695,7 +695,7 @@ describe("Waterfall tag tests", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("w1")].stateValues
                     .title,
-            ).eq("My waterfall");
+            ).eq("My cascade");
             expect(
                 stateVariables[await resolvePathToNodeIdx("w1")].stateValues
                     .numCompleted,
@@ -878,11 +878,11 @@ describe("Waterfall tag tests", async () => {
         await check_values(2, 2, 2);
     });
 
-    it("change waterfall colors", async () => {
+    it("change cascade colors", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<waterfall name="w" inProgressColor="yellow" completedColor="blue">
-  <title>My waterfall</title>
+<cascade name="w" inProgressColor="yellow" completedColor="blue">
+  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
@@ -904,7 +904,7 @@ describe("Waterfall tag tests", async () => {
     <p name="p">What is 3-4? <answer name="ans">-1</answer></p>
   </section>
 
-</waterfall>
+</cascade>
 
 <p name="pNumCompleted">numCompleted: $w.numCompleted</p>
 
@@ -920,7 +920,7 @@ describe("Waterfall tag tests", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("w")].stateValues
                     .title,
-            ).eq("My waterfall");
+            ).eq("My cascade");
             expect(
                 stateVariables[await resolvePathToNodeIdx("w")].stateValues
                     .numCompleted,

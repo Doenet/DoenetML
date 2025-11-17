@@ -168,7 +168,7 @@ import BlockQuote from "./components/BlockQuote";
 import StickyGroup from "./components/StickyGroup";
 import Pretzel from "./components/Pretzel";
 import PretzelArranger from "./components/PretzelArranger";
-import Waterfall from "./components/Waterfall";
+import Cascade from "./components/Cascade";
 
 //Extended
 import * as ComponentSize from "./components/abstract/ComponentSize";
@@ -364,7 +364,7 @@ const componentTypeArray = [
     StickyGroup,
     Pretzel,
     PretzelArranger,
-    Waterfall,
+    Cascade,
 
     BaseComponent,
     InlineComponent,

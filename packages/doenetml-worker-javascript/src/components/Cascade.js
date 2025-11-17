@@ -1,8 +1,8 @@
 import { renameStateVariable } from "../utils/stateVariables";
 import { SectioningComponent } from "./abstract/SectioningComponent";
 
-export default class Waterfall extends SectioningComponent {
-    static componentType = "waterfall";
+export default class Cascade extends SectioningComponent {
+    static componentType = "cascade";
     static rendererType = "section";
 
     static includeBlankStringChildren = false;
@@ -85,9 +85,9 @@ export default class Waterfall extends SectioningComponent {
 
         stateVariableDefinitions.revealAll = {
             returnDependencies: () => ({
-                waterfallAncestor: {
+                cascadeAncestor: {
                     dependencyType: "ancestor",
-                    componentType: "waterfall",
+                    componentType: "cascade",
                     variableNames: ["revealAll"],
                 },
                 revealAllPreliminary: {
@@ -99,10 +99,9 @@ export default class Waterfall extends SectioningComponent {
                 let revealAll = false;
                 if (!usedDefault.revealAllPreliminary) {
                     revealAll = dependencyValues.revealAllPreliminary;
-                } else if (dependencyValues.waterfallAncestor) {
+                } else if (dependencyValues.cascadeAncestor) {
                     revealAll =
-                        dependencyValues.waterfallAncestor.stateValues
-                            .revealAll;
+                        dependencyValues.cascadeAncestor.stateValues.revealAll;
                 } else {
                     dependencyValues.revealAllPreliminary;
                 }
