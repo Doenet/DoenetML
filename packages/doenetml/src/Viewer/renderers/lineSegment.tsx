@@ -147,7 +147,7 @@ export default React.memo(function LineSegment(props) {
 
         let jsxPointAttributes = Object.assign({}, jsxSegmentAttributes);
         Object.assign(jsxPointAttributes, {
-            withLabel: false,
+            withlabel: false,
             fixed: false,
             highlight: true,
             fillColor: "none",
