@@ -82,25 +82,6 @@ function renderViewerWithFunctionProps(...args: (string | Function)[]) {
 
 messageParentFromViewer({ iframeReady: true });
 
-// The iframe forwards all SPLICE messages that aren't a response to its parent.
-// Exception: SPLICE.submitAllAnswers is initiated by the app, so the logic is reversed.
-// Do forward SPLICE.submitAllAnswers.response but don't forward SPLICE.submitAllAnswers
-window.addEventListener("message", (e) => {
-    if (e.origin !== window.parent.location.origin) {
-        return;
-    }
-    if (
-        e.data.subject?.startsWith("SPLICE") &&
-        (!e.data.subject?.endsWith("response") ||
-            e.data.subject.endsWith("submitAllAnswers.response")) &&
-        !e.data.subject.endsWith("submitAllAnswers")
-    ) {
-        window.parent.postMessage(e.data);
-    } else if (e.data.subject === "requestAnswerResponses") {
-        window.parent.postMessage(e.data);
-    }
-});
-
 /**
  * Send a message to the parent React component.
  * @param data

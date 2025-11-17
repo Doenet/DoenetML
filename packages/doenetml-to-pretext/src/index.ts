@@ -17,6 +17,7 @@ const defaultFlags = {
     allowSaveState: true,
     allowLocalState: false,
     allowSaveEvents: true,
+    messageParent: false,
     autoSubmit: false,
 };
 

@@ -51,7 +51,7 @@ export function createHtmlForDoenetViewer(
             // It assumes that viewerId, doenetViewerProps, doenetViewerPropsSpecified, and ComlinkViewer are defined in the global scope.
             ${viewerIframeJsSource}
         </script>
-        <div id="root">
+        <div id="root" data-doenet-message-parent="true">
             <script type="text/doenetml">${doenetML}</script>
         </div>
     </body>
@@ -96,7 +96,7 @@ export function createHtmlForDoenetEditor(
             // It assumes that editorId, doenetEditorProps, doenetEditorPropsSpecified, and ComlinkEditor are defined in the global scope.
             ${editorIframeJsSource}
         </script>
-        <div id="root">
+        <div id="root" data-doenet-message-parent="true">
             <script type="text/doenetml">${doenetML}</script>
         </div>
     </body>
