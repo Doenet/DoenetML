@@ -508,6 +508,7 @@ export function EditorViewer({
                         allowSaveState: false,
                         allowLocalState: false,
                         allowSaveEvents: showResponses,
+                        messageParent: false,
                         readOnly: false,
                     }}
                     activityId={activityId}

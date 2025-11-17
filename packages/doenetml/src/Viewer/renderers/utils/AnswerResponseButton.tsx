@@ -6,6 +6,7 @@ import {
     TooltipAnchor,
 } from "@ariakit/react";
 import "./AnswerResponseButton.css";
+import { DoenetMLFlags } from "../../../doenetml";
 
 export function AnswerResponseButton({
     answerId,
@@ -13,12 +14,14 @@ export function AnswerResponseButton({
     activityId,
     docId,
     numResponses = 0,
+    flags,
 }: {
     answerId: string;
     answerComponentIdx: number;
     activityId: string;
     docId: string;
     numResponses?: number;
+    flags: DoenetMLFlags;
 }) {
     return (
         <TooltipProvider>
@@ -26,13 +29,18 @@ export function AnswerResponseButton({
                 <Button
                     className="doenet-button action-button answer-response-button"
                     onClick={() => {
-                        window.postMessage({
+                        const message = {
                             subject: "requestAnswerResponses",
                             answerComponentIdx,
                             answerId,
                             activityId,
                             docId,
-                        });
+                        };
+                        if (flags.messageParent && window.parent) {
+                            window.parent.postMessage(message);
+                        } else {
+                            window.postMessage(message);
+                        }
                     }}
                 >
                     {numResponses}
