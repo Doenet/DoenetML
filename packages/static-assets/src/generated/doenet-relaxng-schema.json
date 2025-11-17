@@ -58208,6 +58208,13 @@
                         "string"
                     ]
                 },
+                "allowReflection": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -58358,6 +58365,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -79403,6 +79415,13 @@
                         "string"
                     ]
                 },
+                "allowReflection": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -79504,6 +79523,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -79793,6 +79817,13 @@
                         "string"
                     ]
                 },
+                "allowReflection": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -79901,6 +79932,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -80215,6 +80251,13 @@
                         "string"
                     ]
                 },
+                "allowReflection": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -80323,6 +80366,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -80637,6 +80685,13 @@
                         "string"
                     ]
                 },
+                "allowReflection": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -80763,6 +80818,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -81092,6 +81152,13 @@
                         "string"
                     ]
                 },
+                "allowReflection": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -81260,6 +81327,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -104652,6 +104724,13 @@
                     "type": [
                         "string"
                     ]
+                },
+                "coprimeCombinations": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [],
@@ -104694,6 +104773,11 @@
                 },
                 {
                     "name": "sortResults",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "coprimeCombinations",
                     "type": "boolean",
                     "isArray": false
                 },

@@ -35404,6 +35404,13 @@
                     "name": "minShrink"
                 },
                 {
+                    "name": "allowReflection",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -35511,6 +35518,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -48321,6 +48333,13 @@
                     "name": "minShrink"
                 },
                 {
+                    "name": "allowReflection",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -48400,6 +48419,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -48666,6 +48690,13 @@
                     "name": "minShrink"
                 },
                 {
+                    "name": "allowReflection",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -48752,6 +48783,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -49043,6 +49079,13 @@
                     "name": "minShrink"
                 },
                 {
+                    "name": "allowReflection",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -49129,6 +49172,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -49420,6 +49468,13 @@
                     "name": "minShrink"
                 },
                 {
+                    "name": "allowReflection",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -49515,6 +49570,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -49821,6 +49881,13 @@
                     "name": "minShrink"
                 },
                 {
+                    "name": "allowReflection",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -49937,6 +50004,11 @@
                 },
                 {
                     "name": "allowTranslation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "allowReflection",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -64826,6 +64898,13 @@
                 },
                 {
                     "name": "excludeCombinations"
+                },
+                {
+                    "name": "coprimeCombinations",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -64866,6 +64945,11 @@
                 },
                 {
                     "name": "sortResults",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "coprimeCombinations",
                     "type": "boolean",
                     "isArray": false
                 },
