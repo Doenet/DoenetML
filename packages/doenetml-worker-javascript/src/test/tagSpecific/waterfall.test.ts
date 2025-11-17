@@ -987,7 +987,7 @@ describe("Waterfall tag tests", async () => {
                 stateVariables[await resolvePathToNodeIdx("section3")]
                     .stateValues.titleColor,
             ).eq(
-                stateVariables[await resolvePathToNodeIdx("section3q")]
+                stateVariables[await resolvePathToNodeIdx("section3")]
                     .stateValues.creditAchieved < 1
                     ? "yellow"
                     : "blue",
