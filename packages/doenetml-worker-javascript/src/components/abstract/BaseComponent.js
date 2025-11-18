@@ -488,17 +488,29 @@ export default class BaseComponent {
                     dependencyType: "adapterSourceStateVariable",
                     variableName: "hidden",
                 },
-            }),
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    hidden: Boolean(
-                        dependencyValues.parentHidden ||
-                            dependencyValues.sourceCompositeHidden ||
-                            dependencyValues.adapterSourceHidden ||
-                            dependencyValues.hide,
-                    ),
+                parentChildrenToHide: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "childrenToHide",
                 },
             }),
+            definition: ({ dependencyValues, componentIdx }) => {
+                return {
+                    setValue: {
+                        hidden: Boolean(
+                            dependencyValues.parentHidden ||
+                                dependencyValues.sourceCompositeHidden ||
+                                dependencyValues.adapterSourceHidden ||
+                                dependencyValues.hide ||
+                                (Array.isArray(
+                                    dependencyValues.parentChildrenToHide,
+                                ) &&
+                                    dependencyValues.parentChildrenToHide.includes(
+                                        componentIdx,
+                                    )),
+                        ),
+                    },
+                };
+            },
             markStale: () => ({ updateParentRenderedChildren: true }),
             inverseDefinition({ desiredStateVariableValues }) {
                 return {

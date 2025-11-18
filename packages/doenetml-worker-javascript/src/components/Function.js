@@ -1553,10 +1553,14 @@ export default class Function extends InlineComponent {
                                                 .fReevaluate,
                                         inputMathFs:
                                             mathGrandChild.stateValues.inputMaths.map(
-                                                (x) =>
-                                                    x
-                                                        .subscripts_to_strings()
-                                                        .f(),
+                                                (x) => {
+                                                    const x_transformed =
+                                                        x.subscripts_to_strings();
+                                                    return (args) =>
+                                                        x_transformed
+                                                            .substitute(args)
+                                                            .strings_to_subscripts();
+                                                },
                                             ),
                                     };
                                     needToReevaluate = true;
@@ -1667,8 +1671,14 @@ export default class Function extends InlineComponent {
                                         mathChild.stateValues.fReevaluate,
                                     inputMathFs:
                                         mathChild.stateValues.inputMaths.map(
-                                            (x) =>
-                                                x.subscripts_to_strings().f(),
+                                            (x) => {
+                                                const x_transformed =
+                                                    x.subscripts_to_strings();
+                                                return (args) =>
+                                                    x_transformed
+                                                        .substitute(args)
+                                                        .strings_to_subscripts();
+                                            },
                                         ),
                                 },
                             };

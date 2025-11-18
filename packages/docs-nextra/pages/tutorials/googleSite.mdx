@@ -1,4 +1,56 @@
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
+
 # How to Embed DoenetML in a Google Site
+
+From the main Google Sites interface, choose the "Embed" option from the "Insert" menu on the right side of the screen.
+
+You will see two options: "By URL" and "Embed Code". Choose "Embed Code".
+
+In the text box that appears, paste the following embed code, editing the content inside 
+the `<script type="text/doenetml">` tags to include your desired DoenetML content.:
+
+```html
+<!doctype html>
+<html>
+    <script
+        type="module"
+        src="https://cdn.jsdelivr.net/npm/@doenet/standalone@latest/doenet-standalone.js"
+    ></script>
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@doenet/standalone@latest/style.css"
+    />
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document
+                .querySelectorAll(".doenetml-viewer")
+                .forEach((container) => {
+                    renderDoenetViewerToContainer(container);
+                });
+        });
+    </script>
+    <body>
+        <div style="display: flex; justify-content: center;"> 
+            <div class="doenetml-viewer" style="width: 850px">
+                <script type="text/doenetml">
+
+
+                    <p>Insert your DoenetML content here.</p>
+
+                    <p>For example:</p>
+                    <graph>
+                      <regularPolygon numVertices="5" sideLength="5" />
+                    </graph>
+
+
+                </script>
+            </div>  
+        </div>
+    </body>
+</html>
+
+
+
+```

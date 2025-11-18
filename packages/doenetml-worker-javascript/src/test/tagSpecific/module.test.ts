@@ -1325,4 +1325,95 @@ describe("Module tag tests", async () => {
                 .text,
         ).eq("1");
     });
+
+    it("extend copied module containing component with attribute", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <module name='m1'>
+            <point y='1' name="p"/>
+        </module>
+        
+        <module name='m2' copy='$m1' />
+        <module extend='$m2' name="m3" />
+
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 0, 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 0, 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 0, 1]);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("m1.p"),
+            x: 2,
+            y: 3,
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 2, 3]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 0, 1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 0, 1]);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("m2.p"),
+            x: 4,
+            y: 5,
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 2, 3]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 4, 5]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 4, 5]);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("m3.p"),
+            x: 6,
+            y: 7,
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 2, 3]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 6, 7]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3.p")].stateValues
+                .coords.tree,
+        ).eqls(["vector", 6, 7]);
+    });
 });

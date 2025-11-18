@@ -42,6 +42,7 @@ type DoenetMLFlags = {
     allowSaveState: boolean;
     allowLocalState: boolean;
     allowSaveEvents: boolean;
+    messageParent: boolean;
     autoSubmit: boolean;
 };
 
@@ -54,9 +55,10 @@ const defaultFlags: DoenetMLFlags = {
     showFeedback: true,
     showHints: true,
     allowLoadState: false,
-    allowSaveState: false,
+    allowSaveState: true,
     allowLocalState: false,
-    allowSaveEvents: false,
+    allowSaveEvents: true,
+    messageParent: false,
     autoSubmit: false,
 };
 

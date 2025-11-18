@@ -258,7 +258,7 @@ export default React.memo(function Section(props) {
             >
                 <div
                     style={{
-                        backgroundColor: "var(--mainGray)",
+                        backgroundColor: SVs.titleColor,
                         cursor: "pointer",
                         padding: "6px",
                         borderBottom: SVs.open ? "var(--mainBorder)" : "none",
@@ -302,7 +302,7 @@ export default React.memo(function Section(props) {
                     style={{
                         padding: "6px",
                         borderBottom: "var(--mainBorder)",
-                        backgroundColor: "var(--mainGray)",
+                        backgroundColor: SVs.titleColor,
                         borderTopLeftRadius: "var(--mainBorderRadius)",
                         borderTopRightRadius: "var(--mainBorderRadius)",
                     }}

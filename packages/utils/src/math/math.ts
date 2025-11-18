@@ -8,6 +8,7 @@ export const mathjaxConfig = {
             var: ["\\mathrm{#1}", 1],
             csch: "\\operatorname{csch}",
             sech: "\\operatorname{sech}",
+            erf: "\\operatorname{erf}",
         },
         displayMath: [["\\[", "\\]"]],
     },

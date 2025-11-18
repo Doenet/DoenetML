@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
+import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 
 export default React.memo(function Polygon(props) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -13,6 +14,7 @@ export default React.memo(function Polygon(props) {
     const board = useContext(BoardContext);
 
     let polygonJXG = useRef(null);
+    let pointsJXG = useRef([]);
 
     let pointCoords = useRef(null);
     let draggedPoint = useRef(null);
@@ -136,17 +138,23 @@ export default React.memo(function Polygon(props) {
 
         board.suspendUpdate();
 
-        let pts = [];
+        pointsJXG.current = [];
 
         for (let [ind, p] of SVs.numericalVertices.entries()) {
             let pointAttributes = { ...jsxPointAttributes.current };
             if (!vertexIndicesDraggable.current.includes(ind)) {
                 pointAttributes.visible = false;
             }
-            pts.push(board.create("point", [...p], pointAttributes));
+            pointsJXG.current.push(
+                board.create("point", [...p], pointAttributes),
+            );
         }
 
-        let newPolygonJXG = board.create("polygon", pts, jsxPolygonAttributes);
+        let newPolygonJXG = board.create(
+            "polygon",
+            pointsJXG.current,
+            jsxPolygonAttributes,
+        );
         newPolygonJXG.isDraggable = !fixLocation.current;
 
         initializePoints(newPolygonJXG);
@@ -177,8 +185,10 @@ export default React.memo(function Polygon(props) {
         if (pointerIsDown.current) {
             //Protect against very small unintended move
             if (
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current[0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current[1]) >
+                    POINTER_DRAG_THRESHOLD
             ) {
                 pointerMovedSinceDown.current = true;
             }
@@ -219,6 +229,11 @@ export default React.memo(function Polygon(props) {
         polygonJXG.current.off("hit");
         board.removeObject(polygonJXG.current);
         polygonJXG.current = null;
+
+        for (const pt of pointsJXG.current) {
+            board.removeObject(pt);
+        }
+        pointsJXG.current = [];
     }
 
     function dragHandler(i, e) {
@@ -227,8 +242,8 @@ export default React.memo(function Polygon(props) {
         //Protect against very small unintended drags
         if (
             !viaPointer ||
-            Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-            Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+            Math.abs(e.x - pointerAtDown.current[0]) > POINTER_DRAG_THRESHOLD ||
+            Math.abs(e.y - pointerAtDown.current[1]) > POINTER_DRAG_THRESHOLD
         ) {
             draggedPoint.current = i;
 
@@ -488,6 +503,7 @@ export default React.memo(function Polygon(props) {
                         pointAttributes,
                     );
                     polygonJXG.current.addPoints(newPoint);
+                    pointsJXG.current.push(newPoint);
                 }
                 initializePoints(polygonJXG.current);
             } else if (SVs.numVertices < previousNumVertices.current) {
@@ -505,6 +521,8 @@ export default React.memo(function Polygon(props) {
                     polygonJXG.current.removePoints(
                         polygonJXG.current.vertices[i],
                     );
+                    const pointToDelete = pointsJXG.current.pop();
+                    board.removeObject(pointToDelete);
                 }
                 initializePoints(polygonJXG.current);
             }

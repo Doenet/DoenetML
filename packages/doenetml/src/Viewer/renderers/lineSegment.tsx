@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
+import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 
 export default React.memo(function LineSegment(props) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -62,7 +63,9 @@ export default React.memo(function LineSegment(props) {
     function createLineSegmentJXG() {
         if (
             SVs.numericalEndpoints.length !== 2 ||
-            SVs.numericalEndpoints.some((x) => x.length !== 2)
+            SVs.numericalEndpoints.some(
+                (x) => x.length !== 2 || x.some((v) => !Number.isFinite(v)),
+            )
         ) {
             lineSegmentJXG.current = null;
             point1JXG.current = null;
@@ -144,7 +147,7 @@ export default React.memo(function LineSegment(props) {
 
         let jsxPointAttributes = Object.assign({}, jsxSegmentAttributes);
         Object.assign(jsxPointAttributes, {
-            withLabel: false,
+            withlabel: false,
             fixed: false,
             highlight: true,
             fillColor: "none",
@@ -409,8 +412,10 @@ export default React.memo(function LineSegment(props) {
         if (pointerIsDown.current) {
             //Protect against very small unintended move
             if (
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current[0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current[1]) >
+                    POINTER_DRAG_THRESHOLD
             ) {
                 pointerMovedSinceDown.current = true;
             }
@@ -423,8 +428,8 @@ export default React.memo(function LineSegment(props) {
         //Protect against very small unintended drags
         if (
             !viaPointer ||
-            Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-            Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+            Math.abs(e.x - pointerAtDown.current[0]) > POINTER_DRAG_THRESHOLD ||
+            Math.abs(e.y - pointerAtDown.current[1]) > POINTER_DRAG_THRESHOLD
         ) {
             draggedPoint.current = i;
 
@@ -557,7 +562,9 @@ export default React.memo(function LineSegment(props) {
             createLineSegmentJXG();
         } else if (
             SVs.numericalEndpoints.length !== 2 ||
-            SVs.numericalEndpoints.some((x) => x.length !== 2)
+            SVs.numericalEndpoints.some(
+                (x) => x.length !== 2 || x.some((v) => !Number.isFinite(v)),
+            )
         ) {
             deleteLineSegmentJXG();
         } else {

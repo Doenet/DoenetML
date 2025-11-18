@@ -9421,7 +9421,7 @@ class AttributePrimitiveDependency extends StateVariableDependency {
 
             if (parent) {
                 value = parent.attributes[this.attributeName];
-                if (value) {
+                if (value && value.type === "primitive") {
                     value = value.primitive.value;
                 } else {
                     value = null;

@@ -6,7 +6,10 @@ import { Button } from "@doenet/ui-components";
 import { BoardContext } from "./graph";
 // @ts-ignore
 import me from "math-expressions";
-import { getPositionFromAnchorByCoordinate } from "./utils/graph";
+import {
+    getPositionFromAnchorByCoordinate,
+    POINTER_DRAG_THRESHOLD,
+} from "./utils/graph";
 import { cesc } from "@doenet/utils";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
@@ -164,8 +167,10 @@ export default React.memo(function ButtonComponent(
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current![1]) >
+                    POINTER_DRAG_THRESHOLD
             ) {
                 dragged.current = true;
             }

@@ -10,6 +10,7 @@ import {
     VERTEX_LAYER_OFFSET,
 } from "./graph";
 import { DocContext } from "../DocViewer";
+import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 
 export default React.memo(function Curve(props) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -282,8 +283,8 @@ export default React.memo(function Curve(props) {
                 visible: false,
                 withLabel: false,
                 fixed: true,
-                strokeColor: "var(--mainGray)",
-                highlightStrokeColor: "var(--mainGray)",
+                strokeColor: "#404040",
+                highlightStrokeColor: "#404040",
                 layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
                 strokeWidth: 1,
                 highlightStrokeWidth: 1,
@@ -294,8 +295,8 @@ export default React.memo(function Curve(props) {
                 fixed: false,
                 fillColor: "none",
                 strokeColor: "none",
-                highlightFillColor: "var(--mainGray)",
-                highlightStrokeColor: "var(--mainGray)",
+                highlightFillColor: "#404040",
+                highlightStrokeColor: "#404040",
                 strokeWidth: 1,
                 highlightStrokeWidth: 1,
                 layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
@@ -303,8 +304,8 @@ export default React.memo(function Curve(props) {
                 showInfoBox: SVs.showCoordsWhenDragging,
             };
             throughPointAlwaysVisible.current = {
-                fillcolor: "var(--mainGray)",
-                strokecolor: "var(--mainGray)",
+                fillcolor: "#404040",
+                strokecolor: "#404040",
             };
             throughPointHoverVisible.current = {
                 fillcolor: "none",
@@ -315,10 +316,10 @@ export default React.memo(function Curve(props) {
                 visible: false,
                 withLabel: false,
                 fixed: false,
-                fillColor: "var(--mainGray)",
-                strokeColor: "var(--mainGray)",
-                highlightFillColor: "var(--mainGray)",
-                highlightStrokeColor: "var(--mainGray)",
+                fillColor: "#404040",
+                strokeColor: "#404040",
+                highlightFillColor: "#404040",
+                highlightStrokeColor: "#404040",
                 strokeWidth: 1,
                 highlightStrokeWidth: 1,
                 layer: 10 * SVs.layer + CONTROL_POINT_LAYER_OFFSET,
@@ -371,8 +372,10 @@ export default React.memo(function Curve(props) {
         if (pointerIsDown.current) {
             //Protect against very small unintended move
             if (
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current[0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current[1]) >
+                    POINTER_DRAG_THRESHOLD
             ) {
                 pointerMovedSinceDown.current = true;
             }

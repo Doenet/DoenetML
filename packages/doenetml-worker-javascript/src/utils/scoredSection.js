@@ -178,13 +178,18 @@ export function returnScoredSectionStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "sectionWideCheckWork",
             },
+            parentChildrenAggregateScores: {
+                dependencyType: "parentStateVariable",
+                variableName: "childrenAggregateScores",
+            },
         }),
         definition({ dependencyValues }) {
             return {
                 setValue: {
                     aggregateScores:
                         dependencyValues.aggregateScoresPreliminary ||
-                        dependencyValues.sectionWideCheckWork,
+                        dependencyValues.sectionWideCheckWork ||
+                        dependencyValues.parentChildrenAggregateScores,
                 },
             };
         },

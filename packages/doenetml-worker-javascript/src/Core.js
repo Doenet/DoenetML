@@ -12166,6 +12166,10 @@ export default class Core {
         inverseDefinitionArgs.shadowedVariable = instruction.shadowedVariable;
         inverseDefinitionArgs.sourceDetails = instruction.sourceDetails;
 
+        if (instruction.overrides) {
+            inverseDefinitionArgs.overrides = instruction.overrides;
+        }
+
         let stateVariableForWorkspace = stateVariable;
 
         if (stateVarObj.isArrayEntry) {

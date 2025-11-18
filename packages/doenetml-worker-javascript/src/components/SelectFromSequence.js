@@ -15,6 +15,7 @@ import {
     estimateNumberOfNumberCombinationsExcluded,
     mergeContainingNumberCombinations,
 } from "../utils/excludeCombinations";
+import me from "math-expressions";
 
 export default class SelectFromSequence extends Sequence {
     static componentType = "selectFromSequence";
@@ -44,6 +45,12 @@ export default class SelectFromSequence extends Sequence {
         attributes.excludeCombinations = {
             createComponentOfType: "_componentListOfListsWithSelectableType",
         };
+        attributes.coprimeCombinations = {
+            createComponentOfType: "boolean",
+            createStateVariable: "coprimeCombinations",
+            defaultValue: false,
+            public: true,
+        };
         return attributes;
     }
 
@@ -65,8 +72,23 @@ export default class SelectFromSequence extends Sequence {
                     dependencyType: "stateVariable",
                     variableName: "numToSelect",
                 },
+                coprimeCombinations: {
+                    dependencyType: "stateVariable",
+                    variableName: "coprimeCombinations",
+                },
             }),
             definition: function ({ dependencyValues }) {
+                const warnings = [];
+                if (
+                    dependencyValues.coprimeCombinations &&
+                    dependencyValues.type !== "number"
+                ) {
+                    warnings.push({
+                        message:
+                            "coprimeCombinations ignored since not selecting numbers",
+                        level: 1,
+                    });
+                }
                 if (dependencyValues.excludeCombinations !== null) {
                     let excludedCombinations =
                         dependencyValues.excludeCombinations.stateValues.lists
@@ -90,13 +112,26 @@ export default class SelectFromSequence extends Sequence {
                                 break;
                             }
                         }
-                    }
 
+                        if (dependencyValues.coprimeCombinations) {
+                            warnings.push({
+                                message:
+                                    "coprimeCombinations ignored since excludeCombinations specified",
+                                level: 1,
+                            });
+                        }
+                    }
                     return {
                         setValue: { excludedCombinations },
+                        sendWarnings: warnings,
                     };
                 } else {
-                    return { setValue: { excludedCombinations: [] } };
+                    return {
+                        setValue: {
+                            excludedCombinations: [],
+                        },
+                        sendWarnings: warnings,
+                    };
                 }
             },
         };
@@ -158,6 +193,10 @@ export default class SelectFromSequence extends Sequence {
                 excludedCombinations: {
                     dependencyType: "stateVariable",
                     variableName: "excludedCombinations",
+                },
+                coprimeCombinations: {
+                    dependencyType: "stateVariable",
+                    variableName: "coprimeCombinations",
                 },
                 type: {
                     dependencyType: "stateVariable",
@@ -337,6 +376,29 @@ export default class SelectFromSequence extends Sequence {
             } else {
                 console.log(
                     `cannot determine unique variants of selectFromSequence as numToSelect isn't constant number.`,
+                );
+                return { success: false };
+            }
+        }
+
+        let coprimeCombinationsComponent =
+            serializedComponent.attributes.coprimeCombinations?.component;
+        if (coprimeCombinationsComponent) {
+            // only implemented if know that coprimeCombinations is false,
+            // i.e., if have an boolean with a single string child that is "false"
+            if (
+                !(
+                    coprimeCombinationsComponent.componentType === "boolean" &&
+                    coprimeCombinationsComponent.children?.length === 1 &&
+                    typeof coprimeCombinationsComponent.children[0] ===
+                        "string" &&
+                    coprimeCombinationsComponent.children[0]
+                        .trim()
+                        .toLowerCase() === "false"
+                )
+            ) {
+                console.log(
+                    `cannot determine unique variants of selectFromSequence as cannot determine coprimeCombinations is always false.`,
                 );
                 return { success: false };
             }
@@ -787,7 +849,7 @@ function makeSelection({ dependencyValues }) {
         };
     }
 
-    // if desiredIndices is specfied, use those
+    // if desiredIndices is specified, use those
     if (
         dependencyValues.variants &&
         dependencyValues.variants.desiredVariant !== undefined
@@ -904,7 +966,10 @@ function makeSelection({ dependencyValues }) {
 
     let numCombinationsExcluded = dependencyValues.excludedCombinations.length;
 
+    let coprimeCombinations = dependencyValues.coprimeCombinations;
+
     if (dependencyValues.type === "number") {
+        let errorMessage = null;
         numCombinationsExcluded = estimateNumberOfNumberCombinationsExcluded({
             excludedCombinations: dependencyValues.excludedCombinations,
             numValues:
@@ -912,11 +977,79 @@ function makeSelection({ dependencyValues }) {
             withReplacement: dependencyValues.withReplacement,
             numToSelect: dependencyValues.numToSelect,
         });
+
+        if (coprimeCombinations) {
+            const lastNumber =
+                dependencyValues.from +
+                (dependencyValues.length - 1) * dependencyValues.step;
+            if (numCombinationsExcluded > 0) {
+                // No need to send warning since already sent
+                // in definition of excludeCombinations
+                coprimeCombinations = false;
+            } else if (
+                !Number.isInteger(dependencyValues.from) ||
+                !Number.isInteger(dependencyValues.step) ||
+                dependencyValues.from <= 0 ||
+                lastNumber <= 0
+            ) {
+                errorMessage =
+                    "Cannot select coprime combinations as not selecting positive integers.";
+            } else if (
+                me.math.gcd(dependencyValues.from, dependencyValues.step) !== 1
+            ) {
+                errorMessage = `Cannot select coprime numbers. All possible values share a common factor. (Specified values of "from" or "to" must be coprime with "step".)`;
+            } else if (dependencyValues.numToSelect === 1) {
+                coprimeCombinations = false;
+            } else if (
+                dependencyValues.length - dependencyValues.exclude.length <=
+                1
+            ) {
+                // It is possible that there is only one number to choose from,
+                // in which case, we cannot select coprime numbers, unless that number is 1.
+                // We have to verify that there is more than one number available only if 1 isn't a possibility.
+                if (
+                    dependencyValues.from > 1 ||
+                    dependencyValues.exclude.includes(1)
+                ) {
+                    if (dependencyValues.length <= 1) {
+                        errorMessage =
+                            "Cannot select coprime combinations from a single number that is not 1.";
+                    } else {
+                        const possibleValues =
+                            returnSequenceValues(dependencyValues);
+
+                        if (possibleValues.length <= 1) {
+                            errorMessage =
+                                "Cannot select coprime combinations from a single number that is not 1.";
+                        }
+                    }
+                }
+            }
+        }
+
+        if (errorMessage) {
+            return {
+                setEssentialValue: {
+                    errorMessage: errorMessage,
+                    selectedValues: null,
+                    selectedIndices: null,
+                },
+                setValue: {
+                    errorMessage: errorMessage,
+                    selectedValues: null,
+                    selectedIndices: null,
+                },
+            };
+        }
+    } else {
+        // No need to send warning since already sent
+        // in definition of excludeCombinations
+        coprimeCombinations = false;
     }
 
     let selectedValues, selectedIndices;
 
-    if (numCombinationsExcluded === 0) {
+    if (numCombinationsExcluded === 0 && !coprimeCombinations) {
         let selectedObj = selectValuesAndIndices({
             stateValues: dependencyValues,
             numUniqueRequired: numUniqueRequired,
@@ -1083,14 +1216,24 @@ function makeSelection({ dependencyValues }) {
                 continue;
             }
 
+            if (coprimeCombinations && me.math.gcd(...selectedValues) !== 1) {
+                continue;
+            }
+
             foundValidCombination = true;
             break;
         }
 
         if (!foundValidCombination) {
-            // this won't happen, as occurs with prob < 10^(-30)
-            let errorMessage =
-                "By extremely unlikely fluke, couldn't select combination of random values";
+            let errorMessage;
+            if (coprimeCombinations) {
+                errorMessage =
+                    "Could not select coprime numbers. All possible values share a common factor.";
+            } else {
+                // this won't happen, as occurs with prob < 10^(-30)
+                errorMessage =
+                    "By extremely unlikely fluke, couldn't select combination of random values";
+            }
             return {
                 setEssentialValue: {
                     errorMessage,

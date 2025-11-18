@@ -261,10 +261,16 @@ export function DocViewer({
                         args: {},
                     });
 
-                    window.postMessage({
+                    const message = {
                         subject: "SPLICE.submitAllAnswers.response",
                         success: actionResult,
-                    });
+                    };
+
+                    if (flags.messageParent && window.parent) {
+                        window.parent.postMessage(message);
+                    } else {
+                        window.postMessage(message);
+                    }
                 }
             }
         };
@@ -807,12 +813,20 @@ export function DocViewer({
                 docId,
             });
         } else {
-            window.postMessage({
+            const message = {
                 data,
                 subject: "SPLICE.reportScoreAndState",
                 activityId,
                 docId,
-            });
+            };
+
+            console.log(message);
+
+            if (flags.messageParent && window.parent) {
+                window.parent.postMessage(message);
+            } else {
+                window.postMessage(message);
+            }
         }
     }
 
@@ -946,7 +960,8 @@ export function DocViewer({
             (resolve, reject) => {
                 getStatePromiseResolve = resolve;
                 getStatePromiseReject = reject;
-                window.postMessage({
+
+                const message = {
                     subject: "SPLICE.getState",
                     messageId,
                     cid,
@@ -954,7 +969,15 @@ export function DocViewer({
                     docId,
                     attemptNumber,
                     userId,
-                });
+                };
+
+                console.log(message);
+
+                if (flags.messageParent && window.parent) {
+                    window.parent.postMessage(message);
+                } else {
+                    window.postMessage(message);
+                }
             },
         );
 
@@ -1175,12 +1198,20 @@ export function DocViewer({
     }
 
     function sendEvent(data: any) {
-        window.postMessage({
+        const message = {
             ...data,
             subject: "SPLICE.sendEvent",
             activityId,
             docId,
-        });
+        };
+
+        console.log(message);
+
+        if (flags.messageParent && window.parent) {
+            window.parent.postMessage(message);
+        } else {
+            window.postMessage(message);
+        }
     }
 
     /**
@@ -1205,7 +1236,8 @@ export function DocViewer({
             (resolve, reject) => {
                 requestSolutionPromiseResolve = resolve;
                 requestSolutionPromiseReject = reject;
-                window.postMessage({
+
+                const message = {
                     subject: "SPLICE.requestSolutionView",
                     messageId,
                     activityId,
@@ -1213,7 +1245,15 @@ export function DocViewer({
                     attemptNumber,
                     userId,
                     componentIdx,
-                });
+                };
+
+                console.log(message);
+
+                if (flags.messageParent && window.parent) {
+                    window.parent.postMessage(message);
+                } else {
+                    window.postMessage(message);
+                }
             },
         );
 

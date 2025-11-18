@@ -54,14 +54,19 @@ export function renderDoenetViewerToContainer(
         const value = normalizeBooleanAttr(attr.value);
         attrs[name] = value;
     }
-    const { addVirtualKeyboard, sendResizeEvents, ...rest } = attrs;
+    const { addVirtualKeyboard, sendResizeEvents, ...flags } = attrs;
     const resizeWatcher = new ResizeWatcher();
+
+    if (config && "flags" in config) {
+        Object.assign(flags, config.flags);
+        delete config.flags;
+    }
 
     ReactDOM.createRoot(container).render(
         <DoenetViewer
             doenetML={doenetMLSource}
             addVirtualKeyboard={addVirtualKeyboard}
-            flags={rest}
+            flags={flags}
             onInit={(r) => {
                 if (sendResizeEvents) {
                     resizeWatcher.watch(r);
@@ -111,8 +116,15 @@ export function renderDoenetEditorToContainer(
         attrs[name] = value;
     }
 
+    // DoenetEditor doesn't accept flags, so only attribute using is addVirtualKeyboard
+    const { addVirtualKeyboard } = attrs;
+
     ReactDOM.createRoot(container).render(
-        <DoenetEditor doenetML={doenetMLSource} {...attrs} {...config} />,
+        <DoenetEditor
+            doenetML={doenetMLSource}
+            addVirtualKeyboard={addVirtualKeyboard}
+            {...config}
+        />,
     );
 }
 

@@ -7,7 +7,10 @@ import { MathJax } from "better-react-mathjax";
 // @ts-ignore
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
-import { getPositionFromAnchorByCoordinate } from "./utils/graph";
+import {
+    getPositionFromAnchorByCoordinate,
+    POINTER_DRAG_THRESHOLD,
+} from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 
@@ -232,8 +235,10 @@ export default React.memo(function MathComponent(
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current![0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current![1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current![0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current![1]) >
+                    POINTER_DRAG_THRESHOLD
             ) {
                 dragged.current = true;
             }
@@ -366,8 +371,10 @@ export default React.memo(function MathComponent(
         if (pointerIsDown.current && pointerAtDown.current) {
             //Protect against very small unintended move
             if (
-                Math.abs(e.x - pointerAtDown.current[0]) > 0.1 ||
-                Math.abs(e.y - pointerAtDown.current[1]) > 0.1
+                Math.abs(e.x - pointerAtDown.current[0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                Math.abs(e.y - pointerAtDown.current[1]) >
+                    POINTER_DRAG_THRESHOLD
             ) {
                 pointerMovedSinceDown.current = true;
             }

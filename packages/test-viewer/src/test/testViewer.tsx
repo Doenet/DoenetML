@@ -217,6 +217,7 @@ export default function TestViewer() {
                 allowSaveState: false,
                 allowLocalState: false,
                 allowSaveEvents: false,
+                messageParent: false,
                 autoSubmit: false,
             }}
             activityId=""

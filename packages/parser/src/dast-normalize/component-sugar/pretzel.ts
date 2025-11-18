@@ -16,6 +16,7 @@ export function pretzelSugar(node: DastElement) {
             children: node.children,
             attributes: {},
             source_doc: node.source_doc,
+            position: node.position,
         },
     ];
 }
