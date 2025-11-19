@@ -13,7 +13,7 @@ const defaultFlags = {
     solutionDisplayMode: "button",
     showFeedback: true,
     showHints: true,
-    allowLoadState: false,
+    allowLoadState: true,
     allowSaveState: true,
     allowLocalState: false,
     allowSaveEvents: true,
