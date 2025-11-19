@@ -171,17 +171,7 @@ export function DocViewer({
         promiseResolve?: (value: any) => void;
     } | null>(null);
 
-    // Promises representing outstanding requests to get the state of the document.
-    // Keyed by the messageId of the SPLICE message requesting the state.
-    const getStatePromises = useRef<
-        Record<
-            string,
-            {
-                resolve: (value: Record<string, any>) => void;
-                reject: (value: unknown) => void;
-            }
-        >
-    >({});
+    const messageIdFromGetState = useRef<string | null>(null);
 
     // Promises representing outstanding requests to view the solution.
     // Keyed by the messageId of the SPLICE message requesting the solution view.
@@ -229,16 +219,34 @@ export function DocViewer({
                 return;
             }
             if (e.data.subject === "SPLICE.getState.response") {
-                let promiseInfo = getStatePromises.current[e.data.messageId];
-                if (!promiseInfo) {
-                    return;
-                }
-                delete getStatePromises.current[e.data.messageId];
+                if (
+                    messageIdFromGetState.current === e.data.messageId &&
+                    e.data.loadedState &&
+                    e.data.state
+                ) {
+                    // Reset error messages, core.
+                    // Then process loaded state and initialize
 
-                if (e.data.success) {
-                    promiseInfo.resolve(e.data);
-                } else {
-                    promiseInfo.reject(e.data);
+                    if (errMsg !== null) {
+                        setErrMsg(null);
+                        setIsInErrorState?.(false);
+                    }
+
+                    coreId.current = nanoid();
+                    initialCoreData.current = null;
+                    coreInfo.current = null;
+                    setDocumentRenderer(null);
+                    coreCreated.current = false;
+                    coreCreationInProgress.current = false;
+                    loadedInitialState.current = false;
+
+                    processLoadedDocState(e.data.state);
+
+                    if (render) {
+                        startCore();
+                    } else {
+                        setStage("readyToCreateCore");
+                    }
                 }
             } else if (
                 e.data.subject === "SPLICE.requestSolutionView.response"
@@ -903,18 +911,13 @@ export function DocViewer({
                     if (initialState) {
                         processLoadedDocState(initialState);
                     } else if (initialState === undefined) {
-                        let resp = await getStateViaSplice({
+                        requestStateViaSplice({
                             cid: cid.current,
                             activityId,
                             docId,
                             attemptNumber,
                             userId,
                         });
-                        if (resp.loadedState) {
-                            if (resp.state) {
-                                processLoadedDocState(resp.state);
-                            }
-                        }
                     }
                 } catch (e: any) {
                     setIsInErrorState?.(true);
@@ -939,7 +942,7 @@ export function DocViewer({
         }
     }
 
-    function getStateViaSplice({
+    function requestStateViaSplice({
         cid,
         activityId,
         docId,
@@ -953,50 +956,26 @@ export function DocViewer({
         userId?: string;
     }) {
         let messageId = nanoid();
-        let getStatePromiseResolve: (value: Record<string, any>) => void,
-            getStatePromiseReject: (value: unknown) => void;
 
-        let getStatePromise = new Promise<Record<string, any>>(
-            (resolve, reject) => {
-                getStatePromiseResolve = resolve;
-                getStatePromiseReject = reject;
+        messageIdFromGetState.current = messageId;
 
-                const message = {
-                    subject: "SPLICE.getState",
-                    messageId,
-                    cid,
-                    activityId,
-                    docId,
-                    attemptNumber,
-                    userId,
-                };
-
-                console.log(message);
-
-                if (flags.messageParent && window.parent) {
-                    window.parent.postMessage(message);
-                } else {
-                    window.postMessage(message);
-                }
-            },
-        );
-
-        getStatePromises.current[messageId] = {
-            resolve: getStatePromiseResolve!,
-            reject: getStatePromiseReject!,
+        const message = {
+            subject: "SPLICE.getState",
+            messageId,
+            cid,
+            activityId,
+            docId,
+            attemptNumber,
+            userId,
         };
 
-        const MESSAGE_TIMEOUT = 15000;
+        console.log(message);
 
-        setTimeout(() => {
-            if (!getStatePromises.current[messageId]) {
-                return;
-            }
-            delete getStatePromises.current[messageId];
-            getStatePromiseReject({ message: "Time out loading doc state" });
-        }, MESSAGE_TIMEOUT);
-
-        return getStatePromise;
+        if (flags.messageParent && window.parent) {
+            window.parent.postMessage(message);
+        } else {
+            window.postMessage(message);
+        }
     }
 
     function processLoadedDocState(data: Record<string, any>) {
