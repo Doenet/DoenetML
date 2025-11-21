@@ -105,7 +105,7 @@
         "@vitest/web-worker": "^3.2.4",
         "@vscode/test-web": "^0.0.70",
         "autoprefixer": "^10.4.21",
-        "better-react-mathjax": "^2.3.0",
+        "better-react-mathjax": "^2.4.0-beta-1",
         "bootstrap": "^5.3.6",
         "chalk": "^5.4.1",
         "classnames": "^2.5.1",
