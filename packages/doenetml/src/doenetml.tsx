@@ -262,10 +262,7 @@ export function DoenetViewer({
 
     return (
         <ReduxProvider store={store}>
-            <MathJaxContext
-                config={mathjaxConfig}
-                src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js"
-            >
+            <MathJaxContext config={mathjaxConfig} version={4}>
                 <div
                     ref={(r) => {
                         ref.current = r;
@@ -387,10 +384,7 @@ export function DoenetEditor({
 
     return (
         <ReduxProvider store={store}>
-            <MathJaxContext
-                config={mathjaxConfig}
-                src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js"
-            >
+            <MathJaxContext config={mathjaxConfig} version={4}>
                 <WrapWithKeyboard
                     addVirtualKeyboard={addVirtualKeyboard}
                     externalVirtualKeyboardProvided={
