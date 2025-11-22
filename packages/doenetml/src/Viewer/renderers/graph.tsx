@@ -80,7 +80,6 @@ export default React.memo(function Graph(props) {
             zoom: { wheel: !SVs.fixAxes, needShift: true },
             pan: { enabled: !SVs.fixAxes, needShift: false },
             grid: haveFixedGrid,
-            title: SVs.description,
         });
 
         newBoard.itemsRenderedLowQuality = {};
@@ -224,8 +223,10 @@ export default React.memo(function Graph(props) {
     if (!board) {
         return (
             <div style={outerStyle} ref={ref}>
-                <a name={id} />
-                <div id={id} className="jxgbox" style={divStyle} />
+                <div aria-label={SVs.description} role="img">
+                    <a name={id} />
+                    <div id={id} className="jxgbox" style={divStyle} />
+                </div>
             </div>
         );
     }
@@ -441,11 +442,13 @@ export default React.memo(function Graph(props) {
 
     return (
         <div style={outerStyle} ref={ref}>
-            <a name={id} />
-            <div id={id} className="jxgbox" style={divStyle} />
-            <BoardContext.Provider value={board}>
-                {children}
-            </BoardContext.Provider>
+            <div aria-label={SVs.description} role="img">
+                <a name={id} />
+                <div id={id} className="jxgbox" style={divStyle} />
+                <BoardContext.Provider value={board}>
+                    {children}
+                </BoardContext.Provider>
+            </div>
         </div>
     );
 

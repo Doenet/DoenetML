@@ -77,32 +77,34 @@ export function CodeMirror({
     }, [documentId, readOnly]);
 
     return (
-        <ReactCodeMirror
-            style={{ height: "100%" }}
-            value={value}
-            readOnly={readOnly}
-            editable={!readOnly}
-            basicSetup={{
-                indentOnInput: true,
-                highlightActiveLine: !readOnly,
-                highlightActiveLineGutter: !readOnly,
-            }}
-            onChange={(editor, update) => {
-                if (onChange) {
-                    onChange(update.state.doc.toString());
-                }
-            }}
-            onUpdate={(viewUpdate) => {
-                for (const tr of viewUpdate.transactions) {
-                    if (tr.selection && onCursorChange) {
-                        onCursorChange(tr.selection);
+        <div className="mathjax_ignore">
+            <ReactCodeMirror
+                style={{ height: "100%" }}
+                value={value}
+                readOnly={readOnly}
+                editable={!readOnly}
+                basicSetup={{
+                    indentOnInput: true,
+                    highlightActiveLine: !readOnly,
+                    highlightActiveLineGutter: !readOnly,
+                }}
+                onChange={(editor, update) => {
+                    if (onChange) {
+                        onChange(update.state.doc.toString());
                     }
-                }
-            }}
-            onBlur={() => onBlur && onBlur()}
-            onFocus={() => onFocus && onFocus()}
-            height="100%"
-            extensions={extensions}
-        />
+                }}
+                onUpdate={(viewUpdate) => {
+                    for (const tr of viewUpdate.transactions) {
+                        if (tr.selection && onCursorChange) {
+                            onCursorChange(tr.selection);
+                        }
+                    }
+                }}
+                onBlur={() => onBlur && onBlur()}
+                onFocus={() => onFocus && onFocus()}
+                height="100%"
+                extensions={extensions}
+            />
+        </div>
     );
 }

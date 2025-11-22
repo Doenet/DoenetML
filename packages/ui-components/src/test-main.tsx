@@ -23,7 +23,6 @@ import ".";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <MathJaxContext
-        src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js"
         config={{
             startup: {
                 typeset: true,
