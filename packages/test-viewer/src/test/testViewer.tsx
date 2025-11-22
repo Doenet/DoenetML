@@ -239,7 +239,9 @@ export default function TestViewer() {
                         Test DoenetML
                         <div style={{ marginLeft: "12px" }}>
                             <Button
-                                onClick={() => setControlsVisible((was) => !was)}
+                                onClick={() =>
+                                    setControlsVisible((was) => !was)
+                                }
                                 value={buttonText + " controls"}
                             />
                         </div>
