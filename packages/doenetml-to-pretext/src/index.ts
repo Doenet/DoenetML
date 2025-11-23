@@ -15,6 +15,7 @@ const defaultFlags = {
     showHints: true,
     allowLoadState: true,
     allowSaveState: true,
+    saveRendererState: false,
     allowLocalState: false,
     allowSaveEvents: true,
     messageParent: false,
