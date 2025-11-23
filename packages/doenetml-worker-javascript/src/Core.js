@@ -13111,10 +13111,14 @@ export default class Core {
             this.cumulativeStateVariableChanges,
             serializedComponentsReplacer,
         );
-        let rendererStateString = JSON.stringify(
-            this.rendererState,
-            serializedComponentsReplacer,
-        );
+        let rendererStateString = null;
+
+        if (this.flags.saveRendererState) {
+            rendererStateString = JSON.stringify(
+                this.rendererState,
+                serializedComponentsReplacer,
+            );
+        }
 
         if (this.flags.allowLocalState) {
             await idb_set(

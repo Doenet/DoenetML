@@ -506,6 +506,7 @@ export function EditorViewer({
                         autoSubmit: false,
                         allowLoadState: false,
                         allowSaveState: false,
+                        saveRendererState: false,
                         allowLocalState: false,
                         allowSaveEvents: showResponses,
                         messageParent: false,

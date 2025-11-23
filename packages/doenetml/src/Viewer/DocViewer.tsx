@@ -892,16 +892,18 @@ export function DocViewer({
                     localInfo.coreState,
                     serializedComponentsReviver,
                 );
-                const rendererState = JSON.parse(
-                    localInfo.rendererState,
-                    serializedComponentsReviver,
-                );
+                const rendererState =
+                    localInfo.rendererState &&
+                    JSON.parse(
+                        localInfo.rendererState,
+                        serializedComponentsReviver,
+                    );
                 const coreInfo = JSON.parse(
                     localInfo.coreInfo,
                     serializedComponentsReviver,
                 );
 
-                if (rendererState.__componentNeedingUpdateValue) {
+                if (rendererState?.__componentNeedingUpdateValue) {
                     callAction({
                         action: {
                             actionName: "updateValue",
@@ -1010,12 +1012,11 @@ export function DocViewer({
     function processLoadedDocState(data: Record<string, any>) {
         let coreInfo = JSON.parse(data.coreInfo, serializedComponentsReviver);
 
-        let rendererState = JSON.parse(
-            data.rendererState,
-            serializedComponentsReviver,
-        );
+        let rendererState =
+            data.rendererState &&
+            JSON.parse(data.rendererState, serializedComponentsReviver);
 
-        if (rendererState.__componentNeedingUpdateValue) {
+        if (rendererState?.__componentNeedingUpdateValue) {
             callAction({
                 action: {
                     actionName: "updateValue",

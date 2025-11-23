@@ -13,6 +13,7 @@ export function CypressTest() {
         showHints: boolean;
         allowLoadState: boolean;
         allowSaveState: boolean;
+        saveRendererState: boolean;
         allowLocalState: boolean;
         allowSaveEvents: boolean;
         autoSubmit: boolean;
@@ -30,6 +31,7 @@ export function CypressTest() {
         showHints: true,
         allowLoadState: false,
         allowSaveState: false,
+        saveRendererState: false,
         allowLocalState: false,
         allowSaveEvents: false,
         autoSubmit: false,
@@ -78,6 +80,9 @@ export function CypressTest() {
     );
     const [allowSaveState, setAllowSaveState] = useState(
         testSettings.allowSaveState,
+    );
+    const [saveRendererState, setSaveRendererState] = useState(
+        testSettings.saveRendererState,
     );
     const [allowLocalState, setAllowLocalState] = useState(
         testSettings.allowLocalState,
@@ -326,6 +331,27 @@ export function CypressTest() {
                     <label>
                         {" "}
                         <input
+                            id="testRunner_saveRendererState"
+                            type="checkbox"
+                            checked={saveRendererState}
+                            onChange={() => {
+                                testSettings.saveRendererState =
+                                    !testSettings.saveRendererState;
+                                localStorage.setItem(
+                                    "test settings",
+                                    JSON.stringify(testSettings),
+                                );
+                                setSaveRendererState((was: boolean) => !was);
+                                setUpdateNumber((was: number) => was + 1);
+                            }}
+                        />
+                        Allow Save Page State
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        {" "}
+                        <input
                             id="testRunner_allowLocalState"
                             type="checkbox"
                             checked={allowLocalState}
@@ -519,6 +545,7 @@ export function CypressTest() {
                     showHints,
                     allowLoadState,
                     allowSaveState,
+                    saveRendererState,
                     allowLocalState,
                     allowSaveEvents,
                     autoSubmit,

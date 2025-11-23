@@ -12,6 +12,7 @@ export type DoenetMLFlags = {
     showHints: boolean;
     allowLoadState: boolean;
     allowSaveState: boolean;
+    saveRendererState: boolean;
     allowLocalState: boolean;
     allowSaveEvents: boolean;
     messageParent: boolean;
@@ -28,6 +29,7 @@ export const defaultFlags: DoenetMLFlags = {
     showHints: true,
     allowLoadState: true,
     allowSaveState: true,
+    saveRendererState: false,
     allowLocalState: false,
     allowSaveEvents: true,
     messageParent: false,
