@@ -11,7 +11,6 @@ window.addEventListener("message", (event) => {
         console.log(event.data.score);
         console.log(event.data.state);
     } else if (event.data.subject == "SPLICE.sendEvent") {
-        console.log(event.data.location);
         console.log(event.data.name);
         console.log(event.data.data);
     }

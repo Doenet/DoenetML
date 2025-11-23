@@ -213,10 +213,6 @@ export default function TestViewer() {
                 showFeedback,
                 showHints,
                 solutionDisplayMode: "button",
-                allowLoadState: false,
-                allowSaveState: false,
-                allowLocalState: false,
-                allowSaveEvents: false,
                 messageParent: false,
                 autoSubmit: false,
             }}

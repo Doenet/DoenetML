@@ -82,7 +82,12 @@ export function DocViewer({
     requestedVariantIndex: number;
     initialState?: Record<string, any> | null;
     setErrorsAndWarningsCallback?: Function;
-    reportScoreAndStateCallback?: Function;
+    reportScoreAndStateCallback?: (data: {
+        score: number;
+        state: unknown;
+        activityId: string;
+        docId: string;
+    }) => void;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
     setIsInErrorState?: Function;
@@ -219,33 +224,46 @@ export function DocViewer({
                 return;
             }
             if (e.data.subject === "SPLICE.getState.response") {
-                if (
-                    messageIdFromGetState.current === e.data.messageId &&
-                    e.data.loadedState &&
-                    e.data.state
-                ) {
-                    // Reset error messages, core.
-                    // Then process loaded state and initialize
+                if (messageIdFromGetState.current === e.data.message_id) {
+                    if (e.data.state) {
+                        // Reset error messages, core.
+                        // Then process loaded state and initialize
 
-                    if (errMsg !== null) {
-                        setErrMsg(null);
-                        setIsInErrorState?.(false);
+                        if (errMsg !== null) {
+                            setErrMsg(null);
+                            setIsInErrorState?.(false);
+                        }
+
+                        coreId.current = nanoid();
+                        initialCoreData.current = null;
+                        coreInfo.current = null;
+                        setDocumentRenderer(null);
+                        coreCreated.current = false;
+                        coreCreationInProgress.current = false;
+                        loadedInitialState.current = false;
+
+                        processLoadedDocState(e.data.state);
+
+                        if (render) {
+                            startCore();
+                        } else {
+                            setStage("readyToCreateCore");
+                        }
                     }
-
-                    coreId.current = nanoid();
-                    initialCoreData.current = null;
-                    coreInfo.current = null;
-                    setDocumentRenderer(null);
-                    coreCreated.current = false;
-                    coreCreationInProgress.current = false;
-                    loadedInitialState.current = false;
-
-                    processLoadedDocState(e.data.state);
-
-                    if (render) {
-                        startCore();
+                } else if (e.data.error) {
+                    const error = e.data.error;
+                    setIsInErrorState?.(true);
+                    if (
+                        typeof error === "object" &&
+                        "code" in error &&
+                        "message" in error
+                    ) {
+                        console.log(
+                            `error ${error.code} getting state: ${error.message}`,
+                        );
+                        setErrMsg(error.message);
                     } else {
-                        setStage("readyToCreateCore");
+                        setErrMsg("Invalid response to getState");
                     }
                 }
             } else if (
@@ -813,19 +831,29 @@ export function DocViewer({
         }
     }
 
-    function reportScoreAndStateCallback(data: unknown) {
+    function reportScoreAndStateCallback({
+        score,
+        state,
+    }: {
+        score: number;
+        state: unknown;
+    }) {
         if (specifiedReportScoreAndStateCallback) {
             specifiedReportScoreAndStateCallback({
-                data,
+                score,
+                state,
                 activityId,
                 docId,
             });
         } else {
+            let messageId = nanoid();
             const message = {
-                data,
+                score,
+                state,
                 subject: "SPLICE.reportScoreAndState",
-                activityId,
-                docId,
+                activity_id: activityId,
+                doc_id: docId,
+                message_id: messageId,
             };
 
             console.log(message);
@@ -961,12 +989,13 @@ export function DocViewer({
 
         const message = {
             subject: "SPLICE.getState",
-            messageId,
+            message_id: messageId,
             cid,
-            activityId,
-            docId,
-            attemptNumber,
-            userId,
+            domain_id: "Doenet",
+            activity_id: activityId,
+            doc_id: docId,
+            attempt_number: attemptNumber,
+            user_id: userId,
         };
 
         console.log(message);
@@ -1178,10 +1207,10 @@ export function DocViewer({
 
     function sendEvent(data: any) {
         const message = {
-            ...data,
+            data,
             subject: "SPLICE.sendEvent",
-            activityId,
-            docId,
+            message_id: nanoid(),
+            name: data.verb,
         };
 
         console.log(message);
@@ -1218,12 +1247,12 @@ export function DocViewer({
 
                 const message = {
                     subject: "SPLICE.requestSolutionView",
-                    messageId,
-                    activityId,
-                    docId,
-                    attemptNumber,
-                    userId,
-                    componentIdx,
+                    message_id: messageId,
+                    activity_id: activityId,
+                    doc_id: docId,
+                    attempt_number: attemptNumber,
+                    user_id: userId,
+                    component_idx: componentIdx,
                 };
 
                 console.log(message);
