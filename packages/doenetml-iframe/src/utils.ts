@@ -34,6 +34,7 @@ export function createHtmlForDoenetViewer(
     const doenetViewerPropsSpecified: string[] = Object.keys(doenetViewerProps);
 
     // XXX: rather than serving Comlink from the cdn, below, serve it directly
+    // TODO: rather tha load the doenet logo from doenet.org, serve it directly
     return `
     <html style="overflow:hidden">
     <head>
@@ -52,6 +53,10 @@ export function createHtmlForDoenetViewer(
             ${viewerIframeJsSource}
         </script>
         <div id="root" data-doenet-message-parent="true">
+            <div class="doenet-loading" style="text-align:center">
+                <p><img src="https://www.doenet.org/Doenet_Logo_Frontpage.png"/></p>
+                <p>Waiting on the page to load...</p>
+            </div>
             <script type="text/doenetml">${doenetML}</script>
         </div>
     </body>
