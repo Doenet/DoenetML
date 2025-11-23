@@ -233,11 +233,14 @@ export default function TestViewer() {
                 <h3>
                     <div style={{ display: "flex" }}>
                         Test DoenetML
-                        <Button
-                            onClick={() => setControlsVisible((was) => !was)}
-                            value={buttonText + " controls"}
-                            style={{ marginLeft: "12px" }}
-                        />
+                        <div style={{ marginLeft: "12px" }}>
+                            <Button
+                                onClick={() =>
+                                    setControlsVisible((was) => !was)
+                                }
+                                value={buttonText + " controls"}
+                            />
+                        </div>
                         <label style={{ marginLeft: "4px", fontSize: "18px" }}>
                             <input
                                 type="checkbox"
