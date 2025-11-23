@@ -110,7 +110,12 @@ export function DoenetViewer({
     render?: boolean;
     requestedVariantIndex?: number;
     initialState?: Record<string, any> | null;
-    reportScoreAndStateCallback?: Function;
+    reportScoreAndStateCallback?: (data: {
+        score: number;
+        state: unknown;
+        activityId: string;
+        docId: string;
+    }) => void;
     setIsInErrorState?: Function;
     generatedVariantCallback?: Function;
     documentStructureCallback?: Function;

@@ -22,7 +22,10 @@ export type UpdateRenderersCallback = (arg: {
     errorWarnings?: { errors: any[]; warnings: any[] };
     init?: boolean;
 }) => void;
-export type ReportScoreAndStateCallback = (data: unknown) => void;
+export type ReportScoreAndStateCallback = (data: {
+    score: number;
+    state: unknown;
+}) => void;
 export type RequestAnimationFrame = (args: {
     action: { actionName: string; componentIdx?: string };
     actionArgs: Record<string, any>;
