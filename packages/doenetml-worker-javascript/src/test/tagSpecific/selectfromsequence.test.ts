@@ -1792,7 +1792,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("select two coprime numbers from 1 to 4", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="1" to="4" coprimeCombinations />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="1" to="4" coprime />`;
         const valid_combinations = [
             [1, 2],
             [1, 3],
@@ -1817,7 +1817,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("select two odd coprime numbers from 15 to 21, sort results", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="15" to="21" step="2" coprimeCombinations sortResults />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="15" to="21" step="2" coprime sortResults />`;
         const valid_combinations = [
             [15, 17],
             [15, 19],
@@ -1837,7 +1837,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("select two odd coprime numbers from 15 to 21, sort results, with negative step", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="21" to="15" step="-2" coprimeCombinations sortResults />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="21" to="15" step="-2" coprime sortResults />`;
         const valid_combinations = [
             [15, 17],
             [15, 19],
@@ -1857,7 +1857,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("select two coprime numbers from 21 to 27, excluding 23 and 25, sort results", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="21" to="27" exclude="23 25" coprimeCombinations sortResults />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="21" to="27" exclude="23 25" coprime sortResults />`;
         const valid_combinations = [
             [21, 22],
             [21, 26],
@@ -1876,7 +1876,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("select four coprime numbers from 22 to 28, excluding 23 and 25, sort results", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="4" from="22" to="27" exclude="23 25" coprimeCombinations sortResults />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="4" from="22" to="27" exclude="23 25" coprime sortResults />`;
         const valid_combinations = [
             [22, 24, 26, 27],
             [22, 24, 27, 28],
@@ -1895,7 +1895,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("select three coprime numbers from 4 to 6, with replacement, sort results", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="3" from="4" to="6" coprimeCombinations  withReplacement sortResults />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="3" from="4" to="6" coprime  withReplacement sortResults />`;
         const valid_combinations = [
             [4, 5, 6],
             [4, 4, 5],
@@ -1915,8 +1915,8 @@ describe("SelectFromSequence tag tests", async () => {
         });
     });
 
-    it("excludeCombinations overrides coprimeCombinations", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="2" to="4" coprimeCombinations excludeCombinations="(2 3) (3 4)" />`;
+    it("excludeCombinations overrides coprime", async () => {
+        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="2" to="4" coprime excludeCombinations="(2 3) (3 4)" />`;
         const valid_combinations = [
             [2, 4],
             [3, 2],
@@ -1941,16 +1941,16 @@ describe("SelectFromSequence tag tests", async () => {
         expect(errorWarnings.warnings.length).eq(1);
 
         expect(errorWarnings.warnings[0].message).contain(
-            "coprimeCombinations ignored since excludeCombinations specified",
+            "coprime ignored since excludeCombinations specified",
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(1);
         expect(errorWarnings.warnings[0].position.start.column).eq(1);
         expect(errorWarnings.warnings[0].position.end.line).eq(1);
-        expect(errorWarnings.warnings[0].position.end.column).eq(118);
+        expect(errorWarnings.warnings[0].position.end.column).eq(106);
     });
 
-    it("coprimeCombinations ignored when not selecting numbers", async () => {
-        const doenetML = `<selectFromSequence name="s" type="letters" numToSelect="2" from="a" to="b" coprimeCombinations />`;
+    it("coprime ignored when not selecting numbers", async () => {
+        const doenetML = `<selectFromSequence name="s" type="letters" numToSelect="2" from="a" to="b" coprime />`;
         const valid_combinations = [
             ["a", "b"],
             ["b", "a"],
@@ -1973,12 +1973,12 @@ describe("SelectFromSequence tag tests", async () => {
         expect(errorWarnings.warnings.length).eq(1);
 
         expect(errorWarnings.warnings[0].message).contain(
-            "coprimeCombinations ignored since not selecting numbers",
+            "coprime ignored since not selecting numbers",
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(1);
         expect(errorWarnings.warnings[0].position.start.column).eq(1);
         expect(errorWarnings.warnings[0].position.end.line).eq(1);
-        expect(errorWarnings.warnings[0].position.end.column).eq(99);
+        expect(errorWarnings.warnings[0].position.end.column).eq(87);
     });
 
     it("excludeCombinations gives error when not selecting integers", async () => {
@@ -1986,11 +1986,11 @@ describe("SelectFromSequence tag tests", async () => {
             "Cannot select coprime combinations as not selecting positive integers";
 
         const doenetMLs = [
-            `<selectFromSequence name="s" numToSelect="2" from="2.5" to="4" coprimeCombinations />`,
-            `<selectFromSequence name="s" numToSelect="2" from="2" step="4.4" coprimeCombinations />`,
-            `<selectFromSequence name="s" numToSelect="2" from="-2" step="3" coprimeCombinations />`,
-            `<selectFromSequence name="s" numToSelect="2" to="4" step="3" length="3" coprimeCombinations />`,
-            `<selectFromSequence name="s" numToSelect="2" from="4" step="-3" coprimeCombinations />`,
+            `<selectFromSequence name="s" numToSelect="2" from="2.5" to="4" coprime />`,
+            `<selectFromSequence name="s" numToSelect="2" from="2" step="4.4" coprime />`,
+            `<selectFromSequence name="s" numToSelect="2" from="-2" step="3" coprime />`,
+            `<selectFromSequence name="s" numToSelect="2" to="4" step="3" length="3" coprime />`,
+            `<selectFromSequence name="s" numToSelect="2" from="4" step="-3" coprime />`,
         ];
 
         for (const doenetML of doenetMLs) {
@@ -2008,8 +2008,8 @@ describe("SelectFromSequence tag tests", async () => {
         const errorMessage = `Cannot select coprime numbers. All possible values share a common factor. (Specified values of "from" or "to" must be coprime with "step".)`;
 
         const doenetMLs = [
-            `<selectFromSequence name="s" numToSelect="2" from="2" step="4" coprimeCombinations />`,
-            `<selectFromSequence name="s" numToSelect="2" to="8" step="2" coprimeCombinations />`,
+            `<selectFromSequence name="s" numToSelect="2" from="2" step="4" coprime />`,
+            `<selectFromSequence name="s" numToSelect="2" to="8" step="2" coprime />`,
         ];
 
         for (const doenetML of doenetMLs) {
@@ -2024,7 +2024,7 @@ describe("SelectFromSequence tag tests", async () => {
     });
 
     it("can select two coprime numbers when only option is 1", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="1" to="1" coprimeCombinations withReplacement />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="1" to="1" coprime withReplacement />`;
         const valid_combinations = [[1, 1]];
         const componentName = "s";
 
@@ -2041,8 +2041,8 @@ describe("SelectFromSequence tag tests", async () => {
         const errorMessage =
             "Cannot select coprime combinations from a single number that is not 1.";
         const doenetMLs = [
-            `<selectFromSequence name="s" numToSelect="2" from="2" to="2" coprimeCombinations withReplacement />`,
-            `<selectFromSequence name="s" numToSelect="2" from="2" to="4" exclude="3 4" coprimeCombinations withReplacement />`,
+            `<selectFromSequence name="s" numToSelect="2" from="2" to="2" coprime withReplacement />`,
+            `<selectFromSequence name="s" numToSelect="2" from="2" to="4" exclude="3 4" coprime withReplacement />`,
         ];
 
         for (const doenetML of doenetMLs) {
@@ -2060,8 +2060,8 @@ describe("SelectFromSequence tag tests", async () => {
         const errorMessage =
             "Could not select coprime numbers. All possible values share a common factor.";
         const doenetMLs = [
-            `<selectFromSequence name="s" numToSelect="2" from="2" to="4" exclude="3" coprimeCombinations />`,
-            `<selectFromSequence name="s" numToSelect="3" from="2" to="6" exclude="3 5" coprimeCombinations />`,
+            `<selectFromSequence name="s" numToSelect="2" from="2" to="4" exclude="3" coprime />`,
+            `<selectFromSequence name="s" numToSelect="3" from="2" to="6" exclude="3 5" coprime />`,
         ];
 
         for (const doenetML of doenetMLs) {

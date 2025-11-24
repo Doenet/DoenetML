@@ -105302,7 +105302,7 @@
                         "string"
                     ]
                 },
-                "coprimeCombinations": {
+                "coprime": {
                     "optional": true,
                     "type": [
                         "true",
@@ -105354,7 +105354,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "coprimeCombinations",
+                    "name": "coprime",
                     "type": "boolean",
                     "isArray": false
                 },

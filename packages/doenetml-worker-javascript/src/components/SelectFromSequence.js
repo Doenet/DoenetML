@@ -45,9 +45,9 @@ export default class SelectFromSequence extends Sequence {
         attributes.excludeCombinations = {
             createComponentOfType: "_componentListOfListsWithSelectableType",
         };
-        attributes.coprimeCombinations = {
+        attributes.coprime = {
             createComponentOfType: "boolean",
-            createStateVariable: "coprimeCombinations",
+            createStateVariable: "coprime",
             defaultValue: false,
             public: true,
         };
@@ -72,20 +72,19 @@ export default class SelectFromSequence extends Sequence {
                     dependencyType: "stateVariable",
                     variableName: "numToSelect",
                 },
-                coprimeCombinations: {
+                coprime: {
                     dependencyType: "stateVariable",
-                    variableName: "coprimeCombinations",
+                    variableName: "coprime",
                 },
             }),
             definition: function ({ dependencyValues }) {
                 const warnings = [];
                 if (
-                    dependencyValues.coprimeCombinations &&
+                    dependencyValues.coprime &&
                     dependencyValues.type !== "number"
                 ) {
                     warnings.push({
-                        message:
-                            "coprimeCombinations ignored since not selecting numbers",
+                        message: "coprime ignored since not selecting numbers",
                         level: 1,
                     });
                 }
@@ -113,10 +112,10 @@ export default class SelectFromSequence extends Sequence {
                             }
                         }
 
-                        if (dependencyValues.coprimeCombinations) {
+                        if (dependencyValues.coprime) {
                             warnings.push({
                                 message:
-                                    "coprimeCombinations ignored since excludeCombinations specified",
+                                    "coprime ignored since excludeCombinations specified",
                                 level: 1,
                             });
                         }
@@ -194,9 +193,9 @@ export default class SelectFromSequence extends Sequence {
                     dependencyType: "stateVariable",
                     variableName: "excludedCombinations",
                 },
-                coprimeCombinations: {
+                coprime: {
                     dependencyType: "stateVariable",
-                    variableName: "coprimeCombinations",
+                    variableName: "coprime",
                 },
                 type: {
                     dependencyType: "stateVariable",
@@ -382,9 +381,9 @@ export default class SelectFromSequence extends Sequence {
         }
 
         let coprimeCombinationsComponent =
-            serializedComponent.attributes.coprimeCombinations?.component;
+            serializedComponent.attributes.coprime?.component;
         if (coprimeCombinationsComponent) {
-            // only implemented if know that coprimeCombinations is false,
+            // unique variants is only implemented if know that coprime is false,
             // i.e., if have an boolean with a single string child that is "false"
             if (
                 !(
@@ -398,7 +397,7 @@ export default class SelectFromSequence extends Sequence {
                 )
             ) {
                 console.log(
-                    `cannot determine unique variants of selectFromSequence as cannot determine coprimeCombinations is always false.`,
+                    `cannot determine unique variants of selectFromSequence as cannot determine coprime is always false.`,
                 );
                 return { success: false };
             }
@@ -966,7 +965,7 @@ function makeSelection({ dependencyValues }) {
 
     let numCombinationsExcluded = dependencyValues.excludedCombinations.length;
 
-    let coprimeCombinations = dependencyValues.coprimeCombinations;
+    let coprime = dependencyValues.coprime;
 
     if (dependencyValues.type === "number") {
         let errorMessage = null;
@@ -978,14 +977,14 @@ function makeSelection({ dependencyValues }) {
             numToSelect: dependencyValues.numToSelect,
         });
 
-        if (coprimeCombinations) {
+        if (coprime) {
             const lastNumber =
                 dependencyValues.from +
                 (dependencyValues.length - 1) * dependencyValues.step;
             if (numCombinationsExcluded > 0) {
                 // No need to send warning since already sent
                 // in definition of excludeCombinations
-                coprimeCombinations = false;
+                coprime = false;
             } else if (
                 !Number.isInteger(dependencyValues.from) ||
                 !Number.isInteger(dependencyValues.step) ||
@@ -999,7 +998,7 @@ function makeSelection({ dependencyValues }) {
             ) {
                 errorMessage = `Cannot select coprime numbers. All possible values share a common factor. (Specified values of "from" or "to" must be coprime with "step".)`;
             } else if (dependencyValues.numToSelect === 1) {
-                coprimeCombinations = false;
+                coprime = false;
             } else if (
                 dependencyValues.length - dependencyValues.exclude.length <=
                 1
@@ -1044,12 +1043,12 @@ function makeSelection({ dependencyValues }) {
     } else {
         // No need to send warning since already sent
         // in definition of excludeCombinations
-        coprimeCombinations = false;
+        coprime = false;
     }
 
     let selectedValues, selectedIndices;
 
-    if (numCombinationsExcluded === 0 && !coprimeCombinations) {
+    if (numCombinationsExcluded === 0 && !coprime) {
         let selectedObj = selectValuesAndIndices({
             stateValues: dependencyValues,
             numUniqueRequired: numUniqueRequired,
@@ -1216,7 +1215,7 @@ function makeSelection({ dependencyValues }) {
                 continue;
             }
 
-            if (coprimeCombinations && me.math.gcd(...selectedValues) !== 1) {
+            if (coprime && me.math.gcd(...selectedValues) !== 1) {
                 continue;
             }
 
@@ -1226,7 +1225,7 @@ function makeSelection({ dependencyValues }) {
 
         if (!foundValidCombination) {
             let errorMessage;
-            if (coprimeCombinations) {
+            if (coprime) {
                 errorMessage =
                     "Could not select coprime numbers. All possible values share a common factor.";
             } else {

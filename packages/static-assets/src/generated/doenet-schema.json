@@ -65282,7 +65282,7 @@
                     "name": "excludeCombinations"
                 },
                 {
-                    "name": "coprimeCombinations",
+                    "name": "coprime",
                     "values": [
                         "true",
                         "false"
@@ -65331,7 +65331,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "coprimeCombinations",
+                    "name": "coprime",
                     "type": "boolean",
                     "isArray": false
                 },
