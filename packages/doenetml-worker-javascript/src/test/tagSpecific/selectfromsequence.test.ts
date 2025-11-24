@@ -1946,7 +1946,7 @@ describe("SelectFromSequence tag tests", async () => {
         expect(errorWarnings.warnings[0].position.start.line).eq(1);
         expect(errorWarnings.warnings[0].position.start.column).eq(1);
         expect(errorWarnings.warnings[0].position.end.line).eq(1);
-        expect(errorWarnings.warnings[0].position.end.column).eq(118);
+        expect(errorWarnings.warnings[0].position.end.column).eq(106);
     });
 
     it("coprime ignored when not selecting numbers", async () => {
@@ -1978,7 +1978,7 @@ describe("SelectFromSequence tag tests", async () => {
         expect(errorWarnings.warnings[0].position.start.line).eq(1);
         expect(errorWarnings.warnings[0].position.start.column).eq(1);
         expect(errorWarnings.warnings[0].position.end.line).eq(1);
-        expect(errorWarnings.warnings[0].position.end.column).eq(99);
+        expect(errorWarnings.warnings[0].position.end.column).eq(87);
     });
 
     it("excludeCombinations gives error when not selecting integers", async () => {
