@@ -36,6 +36,15 @@ export default class EigenDecomposition extends BaseComponent {
         );
 
         stateVariableDefinitions.decomposition = {
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "numEigenvectors",
+                    public: true,
+                    shadowingInstructions: {
+                        createComponentOfType: "integer",
+                    },
+                },
+            ],
             returnDependencies: () => ({
                 mathChild: {
                     dependencyType: "child",
@@ -45,20 +54,26 @@ export default class EigenDecomposition extends BaseComponent {
             }),
             definition({ dependencyValues }) {
                 if (dependencyValues.mathChild.length === 0) {
-                    return { setValue: { decomposition: null } };
+                    return {
+                        setValue: { decomposition: null, numEigenvectors: 0 },
+                    };
                 }
 
                 let mathTree =
                     dependencyValues.mathChild[0].stateValues.value.tree;
 
                 if (!Array.isArray(mathTree) || mathTree[0] !== "matrix") {
-                    return { setValue: { decomposition: null } };
+                    return {
+                        setValue: { decomposition: null, numEigenvectors: 0 },
+                    };
                 }
 
                 let numRows = mathTree[1][1];
                 let numColumns = mathTree[1][2];
                 if (!(Number.isInteger(numRows) && numColumns === numRows)) {
-                    return { setValue: { decomposition: null } };
+                    return {
+                        setValue: { decomposition: null, numEigenvectors: 0 },
+                    };
                 }
 
                 let matrixArray = [];
@@ -70,7 +85,12 @@ export default class EigenDecomposition extends BaseComponent {
                     for (let colInd = 0; colInd < numColumns; colInd++) {
                         let val = rowOperands[colInd + 1];
                         if (val === undefined || val === null) {
-                            return { setValue: { decomposition: null } };
+                            return {
+                                setValue: {
+                                    decomposition: null,
+                                    numEigenvectors: 0,
+                                },
+                            };
                         }
                         if (
                             typeof val === "number" ||
@@ -103,17 +123,26 @@ export default class EigenDecomposition extends BaseComponent {
                 try {
                     result = me.math.eigs(matrixArray);
                 } catch (e) {
+                    console.error(
+                        "Could nt calculate eigenvalues of matrix",
+                        e,
+                    );
                     let warning = {
                         message: "Could not calculate eigenvalues of matrix",
                         level: 1,
                     };
                     return {
-                        setValue: { decomposition: null },
+                        setValue: { decomposition: null, numEigenvectors: 0 },
                         sendWarnings: [warning],
                     };
                 }
 
-                return { setValue: { decomposition: result } };
+                return {
+                    setValue: {
+                        decomposition: result,
+                        numEigenvectors: result.eigenvectors.length,
+                    },
+                };
             },
         };
 
@@ -282,13 +311,17 @@ export default class EigenDecomposition extends BaseComponent {
                 },
             }),
             returnArraySize({ dependencyValues }) {
-                let n;
+                let m, n;
                 if (dependencyValues.decomposition) {
-                    n = dependencyValues.decomposition.values.length;
+                    m = dependencyValues.decomposition.eigenvectors.length;
+                    n =
+                        dependencyValues.decomposition.eigenvectors[0].vector
+                            .length;
                 } else {
+                    m = 0;
                     n = 0;
                 }
-                return [n, n];
+                return [m, n];
             },
             returnArrayDependenciesByKey() {
                 return {
@@ -306,7 +339,7 @@ export default class EigenDecomposition extends BaseComponent {
                 for (let i = 0; i < arraySize[0]; i++) {
                     let vector = [];
                     let vectorMag = 0;
-                    for (let j = 0; j < arraySize[0]; j++) {
+                    for (let j = 0; j < arraySize[1]; j++) {
                         let val =
                             globalDependencyValues.decomposition.eigenvectors[i]
                                 .vector[j];
@@ -316,7 +349,7 @@ export default class EigenDecomposition extends BaseComponent {
                     vectorMag = Math.sqrt(vectorMag);
                     vector = vector.map((x) => me.math.divide(x, vectorMag));
 
-                    for (let j = 0; j < arraySize[0]; j++) {
+                    for (let j = 0; j < arraySize[1]; j++) {
                         eigenvectors[`${i},${j}`] = vector[j];
                     }
                 }

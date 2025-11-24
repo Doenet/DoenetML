@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+//@ts-expect-error no type declaration
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
@@ -662,7 +663,7 @@ describe("EigenDecomposition Tag Tests", async () => {
             );
         const actualEvecs = stateVariables[
             decompositionIdx
-        ].stateValues.eigenvectors.map((v) => v.map(reviveComplex));
+        ].stateValues.eigenvectors.map((v: any) => v.map(reviveComplex));
         const n = evecs.length;
         expect(actualEvals.length).eqls(n);
         expect(actualEvecs.length).eqls(n);
@@ -829,5 +830,96 @@ describe("EigenDecomposition Tag Tests", async () => {
             resolvePathToNodeIdx,
             decompositionName: "Ad_unstable",
         });
+    });
+
+    it("incomplete set of eigenvectors", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p>A = <math name="A" format="latex">
+      \\begin{pmatrix}
+      0.9 & 0.1\\\\
+      0 & 0.9
+      \\end{pmatrix}
+    </math></p>
+    
+    <eigenDecomposition name="Ad">
+      $A
+    </eigenDecomposition>
+
+    <p name="pAevs">Eigenvalues of A: <asList name="Aevs"><numberList extend="$Ad.eigenvalues" name="Aevsa" /></asList></p>
+    <p>1st eigenvalue of A: <number extend="$Ad.eigenvalue1" name="Aev1" /></p>
+    <p>2nd eigenvalue of A: <number extend="$Ad.eigenvalue2" name="Aev2" /></p>
+
+    <p name="pAevecs">Eigenvectors of A: <asList name="Aevecs"><vectorList extend="$Ad.eigenvectors" name="Aevecsa" /></asList></p>
+    <p>number of eigenvectors of A: <integer extend="$Ad.numEigenvectors" name="AnumVecs" /></p>
+    <p>1st eigenvector of A: <vector extend="$Ad.eigenvector1" name="Aevec1" /></p>
+    <p>1st component of 1st eigenvector of A: <number extend="$Ad.eigenvector1.x" name="Aevec1x" /></p>
+    <p>2nd component of 1st eigenvector of A: <number extend="$Ad.eigenvector1.y" name="Aevec1y" /></p>
+
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pAevs")].stateValues
+                .text,
+        ).eqls("Eigenvalues of A: 0.9, 0.9");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Aev1")].stateValues
+                .value,
+        ).eqls(0.9);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Aev2")].stateValues
+                .value,
+        ).eqls(0.9);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
+                .eigenvalues,
+        ).eqls([0.9, 0.9]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Aev1")].stateValues
+                .value,
+        ).eq(0.9);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Aevsa[1]")].stateValues
+                .value,
+        ).eq(0.9);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Aev2")].stateValues
+                .value,
+        ).eq(0.9);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Aevsa[2]")].stateValues
+                .value,
+        ).eq(0.9);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("AnumVecs")].stateValues
+                .value,
+        ).eq(1);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Ad")].stateValues
+                .eigenvectors,
+        ).eqls([[1, 0]]);
+
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("Aevec1")
+            ].stateValues.displacement.map((v: any) => v.tree),
+        ).eqls([1, 0]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("Aevecsa[1]")
+            ].stateValues.displacement.map((v: any) => v.tree),
+        ).eqls([1, 0]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Aevec1x")].stateValues
+                .value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Aevec1y")].stateValues
+                .value,
+        ).eq(0);
     });
 });
