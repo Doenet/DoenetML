@@ -24895,6 +24895,9 @@
                     "name": "inProgressColor"
                 },
                 {
+                    "name": "notStartedColor"
+                },
+                {
                     "name": "includeParentNumber",
                     "values": [
                         "true",
@@ -25423,6 +25426,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -25955,6 +25961,9 @@
                     "name": "inProgressColor"
                 },
                 {
+                    "name": "notStartedColor"
+                },
+                {
                     "name": "includeParentNumber",
                     "values": [
                         "true",
@@ -26485,6 +26494,9 @@
                     "name": "inProgressColor"
                 },
                 {
+                    "name": "notStartedColor"
+                },
+                {
                     "name": "includeParentNumber",
                     "values": [
                         "true",
@@ -27013,6 +27025,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -27571,6 +27586,9 @@
                     "name": "inProgressColor"
                 },
                 {
+                    "name": "notStartedColor"
+                },
+                {
                     "name": "includeParentNumber",
                     "values": [
                         "true",
@@ -28099,6 +28117,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -28631,6 +28652,9 @@
                     "name": "inProgressColor"
                 },
                 {
+                    "name": "notStartedColor"
+                },
+                {
                     "name": "includeParentNumber",
                     "values": [
                         "true",
@@ -29159,6 +29183,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -29691,6 +29718,9 @@
                     "name": "inProgressColor"
                 },
                 {
+                    "name": "notStartedColor"
+                },
+                {
                     "name": "includeParentNumber",
                     "values": [
                         "true",
@@ -30219,6 +30249,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -30751,6 +30784,9 @@
                     "name": "inProgressColor"
                 },
                 {
+                    "name": "notStartedColor"
+                },
+                {
                     "name": "includeParentNumber",
                     "values": [
                         "true",
@@ -31279,6 +31315,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -31811,6 +31850,9 @@
                     "name": "inProgressColor"
                 },
                 {
+                    "name": "notStartedColor"
+                },
+                {
                     "name": "includeParentNumber",
                     "values": [
                         "true",
@@ -32341,6 +32383,9 @@
                     "name": "inProgressColor"
                 },
                 {
+                    "name": "notStartedColor"
+                },
+                {
                     "name": "includeParentNumber",
                     "values": [
                         "true",
@@ -32869,6 +32914,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -33402,6 +33450,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "postponeRendering",
@@ -33949,6 +34000,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 }
             ],
             "properties": [
@@ -34470,6 +34524,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 }
             ],
             "properties": [
@@ -80832,6 +80889,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "hideFutureSections",

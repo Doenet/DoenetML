@@ -881,7 +881,7 @@ describe("Cascade tag tests", async () => {
     it("change cascade colors", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<cascade name="w" inProgressColor="yellow" completedColor="blue">
+<cascade name="w" notStartedColor="orange" inProgressColor="yellow" completedColor="blue">
   <title>My cascade</title>
 
   <section boxed name="section1">
@@ -910,6 +910,16 @@ describe("Cascade tag tests", async () => {
 
   `,
         });
+
+        function colorFromCredit(credit: number) {
+            if (credit === 1) {
+                return "blue";
+            } else if (credit > 0) {
+                return "yellow";
+            } else {
+                return "orange";
+            }
+        }
 
         async function check_values(numCompleted: number) {
             const stateVariables = await core.returnAllStateVariables(
@@ -941,10 +951,10 @@ describe("Cascade tag tests", async () => {
                 stateVariables[await resolvePathToNodeIdx("section1")]
                     .stateValues.titleColor,
             ).eq(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.creditAchieved < 1
-                    ? "yellow"
-                    : "blue",
+                colorFromCredit(
+                    stateVariables[await resolvePathToNodeIdx("section1")]
+                        .stateValues.creditAchieved,
+                ),
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("section1.p1")]
@@ -966,10 +976,10 @@ describe("Cascade tag tests", async () => {
                 stateVariables[await resolvePathToNodeIdx("section2")]
                     .stateValues.titleColor,
             ).eq(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.creditAchieved < 1
-                    ? "yellow"
-                    : "blue",
+                colorFromCredit(
+                    stateVariables[await resolvePathToNodeIdx("section2")]
+                        .stateValues.creditAchieved,
+                ),
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("section2.p")]
@@ -987,10 +997,10 @@ describe("Cascade tag tests", async () => {
                 stateVariables[await resolvePathToNodeIdx("section3")]
                     .stateValues.titleColor,
             ).eq(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.creditAchieved < 1
-                    ? "yellow"
-                    : "blue",
+                colorFromCredit(
+                    stateVariables[await resolvePathToNodeIdx("section3")]
+                        .stateValues.creditAchieved,
+                ),
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("section3.p")]
