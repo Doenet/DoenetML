@@ -132,6 +132,10 @@ export class SectioningComponent extends BlockComponent {
                 componentTypes: ["setup"],
             },
             {
+                group: "messagesWhenChildrenHidden",
+                componentTypes: ["messageWhenChildrenHidden"],
+            },
+            {
                 group: "anything",
                 componentTypes: ["_base"],
             },
@@ -361,6 +365,7 @@ export class SectioningComponent extends BlockComponent {
                         "variantControls",
                         "titles",
                         "setups",
+                        "messagesWhenChildrenHidden",
                     ],
                 },
                 titleChildName: {
@@ -421,6 +426,7 @@ export class SectioningComponent extends BlockComponent {
                         "variantControls",
                         "titles",
                         "setups",
+                        "messagesWhenChildrenHidden",
                     ],
                 },
                 titleChildName: {
@@ -436,9 +442,17 @@ export class SectioningComponent extends BlockComponent {
                 const childrenToHide = [];
 
                 for (let child of dependencyValues.allChildren) {
-                    if (
+                    if (child.componentType === "messageWhenChildrenHidden") {
+                        // For <messageWhenChildrenHidden>, the logic is inverted.
+                        // It is hidden when `hideChildren` is `false`!
+                        if (!dependencyValues.hideChildren) {
+                            childrenToHide.push(child.componentIdx);
+                        }
+                    } else if (
                         dependencyValues.hideChildren &&
-                        child.componentIdx !== dependencyValues.titleChildName
+                        child.componentIdx !==
+                            dependencyValues.titleChildName &&
+                        child.componentType !== "messageWhenChildrenHidden"
                     ) {
                         childrenToHide.push(child.componentIdx);
                     }

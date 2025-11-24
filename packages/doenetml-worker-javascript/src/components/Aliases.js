@@ -7,6 +7,7 @@ import Label from "./Label";
 import MathList from "./MathList";
 import { Div } from "./Divisions";
 import Setup from "./Setup";
+import P from "./P";
 
 export class Title extends TextOrInline {
     static componentType = "title";
@@ -73,4 +74,10 @@ export class Br extends InlineComponent {
 
 export class Hr extends BlockComponent {
     static componentType = "hr";
+}
+
+export class messageWhenChildrenHidden extends P {
+    static componentType = "messageWhenChildrenHidden";
+    static rendererType = "p";
+    static inSchemaOnlyInheritAs = [];
 }
