@@ -3477,6 +3477,331 @@
             "acceptsStringChildren": false
         },
         {
+            "name": "continuationMessage",
+            "children": [
+                "title",
+                "rightHandSide",
+                "description",
+                "xLabel",
+                "yLabel",
+                "topic",
+                "br",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "odeSystem",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "h",
+                "idx",
+                "span",
+                "displayDoenetML",
+                "matrixInput",
+                "text",
+                "boolean",
+                "math",
+                "collect",
+                "ref",
+                "point",
+                "coords",
+                "line",
+                "bezierControls",
+                "vector",
+                "angle",
+                "answer",
+                "when",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "cell",
+                "repeat",
+                "repeatForSequence",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "selectFromSequence",
+                "select",
+                "group",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "intComma",
+                "pluralize",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "footnote",
+                "endpoint",
+                "sort",
+                "shuffle",
+                "solveEquations",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "hasSameFactoring",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "latex",
+                "ol",
+                "ul"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                }
+            ],
+            "top": false,
+            "acceptsStringChildren": true
+        },
+        {
             "name": "m",
             "children": [
                 "title",
@@ -24528,6 +24853,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -24893,6 +25219,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -25058,6 +25387,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -25423,6 +25753,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -25588,6 +25921,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -25953,6 +26287,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -26118,6 +26455,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -26483,6 +26821,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -26648,6 +26989,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -27013,6 +27355,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -27204,6 +27549,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -27569,6 +27915,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -27734,6 +28083,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -28099,6 +28449,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -28264,6 +28617,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -28629,6 +28983,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -28794,6 +29151,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -29159,6 +29517,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -29324,6 +29685,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -29689,6 +30051,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -29854,6 +30219,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -30219,6 +30585,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -30384,6 +30753,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -30749,6 +31119,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -30914,6 +31287,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -31279,6 +31653,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -31444,6 +31821,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -31809,6 +32187,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -31974,6 +32355,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -32339,6 +32721,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "includeParentNumber",
@@ -32504,6 +32889,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -32871,6 +33257,9 @@
                     "name": "inProgressColor"
                 },
                 {
+                    "name": "notStartedColor"
+                },
+                {
                     "name": "includeParentNumber",
                     "values": [
                         "true",
@@ -33034,6 +33423,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -33402,6 +33792,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "postponeRendering",
@@ -33581,6 +33974,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -33949,6 +34343,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 }
             ],
             "properties": [
@@ -34102,6 +34499,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -34470,6 +34868,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 }
             ],
             "properties": [
@@ -79187,6 +79588,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "numEigenvectors",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
                     "name": "eigenvalues",
                     "type": "number",
                     "isArray": true,
@@ -80464,6 +80870,7 @@
                 "variantControl",
                 "title",
                 "setup",
+                "continuationMessage",
                 "rightHandSide",
                 "description",
                 "xLabel",
@@ -80832,6 +81239,9 @@
                 },
                 {
                     "name": "inProgressColor"
+                },
+                {
+                    "name": "notStartedColor"
                 },
                 {
                     "name": "hideFutureSections",

@@ -320,7 +320,6 @@ export type AttributeDefinition<T> = {
 
 export interface DoenetMLComponentClass<T> {
     componentType: string;
-    componentIdx: number;
     createAttributesObject: () => Record<string, AttributeDefinition<T>>;
     [k: string]: any;
 }

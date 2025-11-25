@@ -108,6 +108,12 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: "var(--mainGray)",
         };
 
+        attributes.notStartedColor = {
+            createComponentOfType: "text",
+            createStateVariable: "notStartedColor",
+            defaultValue: "var(--mainGray)",
+        };
+
         return attributes;
     }
 
@@ -124,6 +130,10 @@ export class SectioningComponent extends BlockComponent {
             {
                 group: "setups",
                 componentTypes: ["setup"],
+            },
+            {
+                group: "continuationMessages",
+                componentTypes: ["continuationMessage"],
             },
             {
                 group: "anything",
@@ -355,6 +365,7 @@ export class SectioningComponent extends BlockComponent {
                         "variantControls",
                         "titles",
                         "setups",
+                        "continuationMessages",
                     ],
                 },
                 titleChildName: {
@@ -415,6 +426,7 @@ export class SectioningComponent extends BlockComponent {
                         "variantControls",
                         "titles",
                         "setups",
+                        "continuationMessages",
                     ],
                 },
                 titleChildName: {
@@ -430,9 +442,17 @@ export class SectioningComponent extends BlockComponent {
                 const childrenToHide = [];
 
                 for (let child of dependencyValues.allChildren) {
-                    if (
+                    if (child.componentType === "continuationMessage") {
+                        // For <continuationMessage>, the logic is inverted.
+                        // It is hidden when `hideChildren` is `false`!
+                        if (!dependencyValues.hideChildren) {
+                            childrenToHide.push(child.componentIdx);
+                        }
+                    } else if (
                         dependencyValues.hideChildren &&
-                        child.componentIdx !== dependencyValues.titleChildName
+                        child.componentIdx !==
+                            dependencyValues.titleChildName &&
+                        child.componentType !== "continuationMessage"
                     ) {
                         childrenToHide.push(child.componentIdx);
                     }
@@ -610,6 +630,10 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "inProgressColor",
                 },
+                notStartedColor: {
+                    dependencyType: "stateVariable",
+                    variableName: "notStartedColor",
+                },
                 parentCompletedColor: {
                     dependencyType: "parentStateVariable",
                     variableName: "completedColor",
@@ -618,13 +642,17 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "parentStateVariable",
                     variableName: "inProgressColor",
                 },
+                parentNotStartedColor: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "notStartedColor",
+                },
                 creditAchieved: {
                     dependencyType: "stateVariable",
                     variableName: "creditAchieved",
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
-                let titleColor = dependencyValues.inProgressColor;
+                let titleColor = dependencyValues.notStartedColor;
                 if (dependencyValues.creditAchieved === 1) {
                     if (!usedDefault.completedColor) {
                         titleColor = dependencyValues.completedColor;
@@ -636,7 +664,7 @@ export class SectioningComponent extends BlockComponent {
                     } else {
                         titleColor = dependencyValues.completedColor;
                     }
-                } else {
+                } else if (dependencyValues.creditAchieved > 0) {
                     if (!usedDefault.inProgressColor) {
                         titleColor = dependencyValues.inProgressColor;
                     } else if (
@@ -646,6 +674,17 @@ export class SectioningComponent extends BlockComponent {
                         titleColor = dependencyValues.parentInProgressColor;
                     } else {
                         titleColor = dependencyValues.inProgressColor;
+                    }
+                } else {
+                    if (!usedDefault.notStartedColor) {
+                        titleColor = dependencyValues.notStartedColor;
+                    } else if (
+                        typeof dependencyValues.parentNotStartedColor ===
+                        "string"
+                    ) {
+                        titleColor = dependencyValues.parentNotStartedColor;
+                    } else {
+                        titleColor = dependencyValues.notStartedColor;
                     }
                 }
 

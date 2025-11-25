@@ -1288,4 +1288,83 @@ describe("Sectioning tag tests", async () => {
             stateVariables[await resolvePathToNodeIdx("pSol")].stateValues.text,
         ).eq("Here's how you do it.");
     });
+
+    it("Title color based on progress", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+
+    <exercise name="exer" boxed notStartedColor="beige" inProgressColor="cyan" completedColor="blue">
+      <title name="title">An exercise</title>
+
+      <p>1+1=<answer name="ans1">2</answer></p>
+      <p>1+2=<answer name="ans2">3</answer></p>
+    </exercise>
+
+    `,
+        });
+
+        async function check_values(credit: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("exer")].stateValues
+                    .creditAchieved,
+            ).eq(credit);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("exer")].stateValues
+                    .title,
+            ).eq("An exercise");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("exer")].stateValues
+                    .titleColor,
+            ).eq(credit === 0 ? "beige" : credit === 1 ? "blue" : "cyan");
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const mathInput1Idx =
+            stateVariables[answer1Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+        const mathInput2Idx =
+            stateVariables[answer2Idx].stateValues.inputChildren[0]
+                .componentIdx;
+
+        await check_values(0);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: mathInput1Idx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answer1Idx, core });
+        await check_values(0);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: mathInput1Idx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answer1Idx, core });
+        await check_values(0.5);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: mathInput2Idx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answer2Idx, core });
+        await check_values(1);
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: mathInput1Idx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answer1Idx, core });
+        await check_values(0.5);
+    });
 });
