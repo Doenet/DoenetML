@@ -127,7 +127,7 @@ describe("Cascade tag tests", async () => {
             ).eq(numCompleted < 2);
         }
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
         const mathInput11Idx =
             stateVariables[answer11Idx].stateValues.inputChildren[0]
@@ -321,7 +321,7 @@ describe("Cascade tag tests", async () => {
             ).eq(numCompleted < 2);
         }
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
         const mathInput11Idx =
             stateVariables[answer11Idx].stateValues.inputChildren[0]
@@ -537,7 +537,7 @@ describe("Cascade tag tests", async () => {
             ).eq(numCompleted1 < 1 || numCompleted3 < 1);
         }
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
         const mathInput11Idx =
             stateVariables[answer11Idx].stateValues.inputChildren[0]
@@ -765,7 +765,7 @@ describe("Cascade tag tests", async () => {
             ).eq(false);
         }
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
         const mathInput11Idx =
             stateVariables[answer11Idx].stateValues.inputChildren[0]
@@ -1008,7 +1008,7 @@ describe("Cascade tag tests", async () => {
             ).eq(numCompleted < 2);
         }
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
         const mathInput11Idx =
             stateVariables[answer11Idx].stateValues.inputChildren[0]
@@ -1248,7 +1248,7 @@ describe("Cascade tag tests", async () => {
             ).eq(numCompleted >= 2);
         }
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
         const mathInput11Idx =
             stateVariables[answer11Idx].stateValues.inputChildren[0]
@@ -1411,7 +1411,7 @@ describe("Cascade tag tests", async () => {
             ).eq(numCompleted >= 2);
         }
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const answer11Idx = await resolvePathToNodeIdx("p1a.ans");
         const mathInput11Idx =
             stateVariables[answer11Idx].stateValues.inputChildren[0]
@@ -1590,7 +1590,7 @@ describe("Cascade tag tests", async () => {
             ).eq(true);
         }
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const answer11Idx = await resolvePathToNodeIdx("p1a.ans");
         const mathInput11Idx =
             stateVariables[answer11Idx].stateValues.inputChildren[0]
