@@ -1,4 +1,3 @@
-import { renameStateVariable } from "../utils/stateVariables";
 import { SectioningComponent } from "./abstract/SectioningComponent";
 
 export default class Cascade extends SectioningComponent {
@@ -125,6 +124,10 @@ export default class Cascade extends SectioningComponent {
                     dependencyType: "child",
                     childGroups: ["anything"],
                 },
+                childrenWithContinuationMessages: {
+                    dependencyType: "child",
+                    childGroups: ["anything", "continuationMessages"],
+                },
                 revealAll: {
                     dependencyType: "stateVariable",
                     variableName: "revealAll",
@@ -135,11 +138,19 @@ export default class Cascade extends SectioningComponent {
                 },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
-                // If `revealAll` is set, then nothing hidden
+                const allContinuationComponentIndices =
+                    dependencyValues.childrenWithContinuationMessages
+                        .filter(
+                            (child) =>
+                                child.componentType === "continuationMessage",
+                        )
+                        .map((child) => child.componentIdx);
+
+                // If `revealAll` is set, then just hide continuation messages
                 if (dependencyValues.revealAll) {
                     return {
                         setValue: {
-                            childrenToHide: [],
+                            childrenToHide: allContinuationComponentIndices,
                             childrenToHideChildren: [],
                         },
                     };
@@ -168,6 +179,50 @@ export default class Cascade extends SectioningComponent {
                     } else {
                         childrenToHide.push(child.componentIdx);
                     }
+                }
+
+                if (
+                    dependencyValues.numCompleted <=
+                    dependencyValues.children.length - 2
+                ) {
+                    // We have at least one child that is hidden due to previous child not completed.
+                    // Look for the next `<continuationMessage>` after the last shown child,
+                    // and display that child if found.
+
+                    const lastShownChild =
+                        dependencyValues.children[dependencyValues.numCompleted]
+                            .componentIdx;
+                    const lastShownChildIdx =
+                        dependencyValues.childrenWithContinuationMessages.findIndex(
+                            (child) => child.componentIdx === lastShownChild,
+                        );
+
+                    const nextContinuation =
+                        dependencyValues.childrenWithContinuationMessages
+                            .slice(lastShownChildIdx + 1)
+                            .find(
+                                (child) =>
+                                    child.componentType ===
+                                    "continuationMessage",
+                            );
+
+                    if (nextContinuation) {
+                        // We found a `<continuationMessage>` child after the last shown child,
+                        // so don't hide that one.
+                        childrenToHide.push(
+                            ...allContinuationComponentIndices.filter(
+                                (cIdx) =>
+                                    cIdx !== nextContinuation.componentIdx,
+                            ),
+                        );
+                    } else {
+                        // No `<continuationMessage>` child was found after last shown child,
+                        // so hide all continuation messages.
+                        childrenToHide.push(...allContinuationComponentIndices);
+                    }
+                } else {
+                    // if last child is showing, then hide all continuation messages
+                    childrenToHide.push(...allContinuationComponentIndices);
                 }
 
                 return {

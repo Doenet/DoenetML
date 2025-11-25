@@ -6712,9 +6712,9 @@
                 }
             ]
         },
-        "messageWhenChildrenHidden": {
+        "continuationMessage": {
             "type": "element",
-            "name": "messageWhenChildrenHidden",
+            "name": "continuationMessage",
             "attributes": {
                 "name": {
                     "optional": true,
@@ -38370,7 +38370,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -39400,7 +39400,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -40430,7 +40430,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -41460,7 +41460,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -42511,7 +42511,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -43546,7 +43546,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -44576,7 +44576,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -45606,7 +45606,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -46636,7 +46636,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -47666,7 +47666,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -48696,7 +48696,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -49726,7 +49726,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -50756,7 +50756,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -51786,7 +51786,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -52816,7 +52816,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -53846,7 +53846,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -54896,7 +54896,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -55925,7 +55925,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -56949,7 +56949,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"
@@ -131827,7 +131827,7 @@
                     "ref": "setup"
                 },
                 {
-                    "ref": "messageWhenChildrenHidden"
+                    "ref": "continuationMessage"
                 },
                 {
                     "ref": "rightHandSide"

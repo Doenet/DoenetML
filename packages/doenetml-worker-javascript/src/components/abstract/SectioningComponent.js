@@ -132,8 +132,8 @@ export class SectioningComponent extends BlockComponent {
                 componentTypes: ["setup"],
             },
             {
-                group: "messagesWhenChildrenHidden",
-                componentTypes: ["messageWhenChildrenHidden"],
+                group: "continuationMessages",
+                componentTypes: ["continuationMessage"],
             },
             {
                 group: "anything",
@@ -365,7 +365,7 @@ export class SectioningComponent extends BlockComponent {
                         "variantControls",
                         "titles",
                         "setups",
-                        "messagesWhenChildrenHidden",
+                        "continuationMessages",
                     ],
                 },
                 titleChildName: {
@@ -426,7 +426,7 @@ export class SectioningComponent extends BlockComponent {
                         "variantControls",
                         "titles",
                         "setups",
-                        "messagesWhenChildrenHidden",
+                        "continuationMessages",
                     ],
                 },
                 titleChildName: {
@@ -442,8 +442,8 @@ export class SectioningComponent extends BlockComponent {
                 const childrenToHide = [];
 
                 for (let child of dependencyValues.allChildren) {
-                    if (child.componentType === "messageWhenChildrenHidden") {
-                        // For <messageWhenChildrenHidden>, the logic is inverted.
+                    if (child.componentType === "continuationMessage") {
+                        // For <continuationMessage>, the logic is inverted.
                         // It is hidden when `hideChildren` is `false`!
                         if (!dependencyValues.hideChildren) {
                             childrenToHide.push(child.componentIdx);
@@ -452,7 +452,7 @@ export class SectioningComponent extends BlockComponent {
                         dependencyValues.hideChildren &&
                         child.componentIdx !==
                             dependencyValues.titleChildName &&
-                        child.componentType !== "messageWhenChildrenHidden"
+                        child.componentType !== "continuationMessage"
                     ) {
                         childrenToHide.push(child.componentIdx);
                     }
