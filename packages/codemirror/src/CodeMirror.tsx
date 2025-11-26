@@ -77,7 +77,7 @@ export function CodeMirror({
     }, [documentId, readOnly]);
 
     return (
-        <div className="mathjax_ignore">
+        <div className="mathjax_ignore" style={{ height: "100%" }}>
             <ReactCodeMirror
                 style={{ height: "100%" }}
                 value={value}
