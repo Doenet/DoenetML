@@ -1120,7 +1120,7 @@ describe("Cascade tag tests", async () => {
 
     <p name="p1">What is 1+1? <answer name="ans">2</answer></p>
     <p name="p2">What is 1-1? <answer name="ans">0</answer></p>
-    <continuationMessage name="cm">Never shown</continuationMessage>
+    <cascadeMessage name="cm">Never shown</cascadeMessage>
   </section>
 
 
@@ -1128,13 +1128,13 @@ describe("Cascade tag tests", async () => {
     <title>Second part</title>
 
     <p name="p">What is 3+4? <answer name="ans">7</answer></p>
-    <continuationMessage name="cm"><em>Complete first part to proceed.</em></continuationMessage>
+    <cascadeMessage name="cm"><em>Complete first part to proceed.</em></cascadeMessage>
   </section>
 
   <section boxed name="section3">
     <title>Third part</title>
 
-    <continuationMessage name="cm"><em>Complete second part to proceed.</em></continuationMessage>
+    <cascadeMessage name="cm"><em>Complete second part to proceed.</em></cascadeMessage>
 
     <p name="p">What is 3-4? <answer name="ans">-1</answer></p>
   </section>
@@ -1365,7 +1365,7 @@ describe("Cascade tag tests", async () => {
 
   <p name="p3">What is 3-4? <answer name="ans">-1</answer></p>
 
-  <continuationMessage name="cm"><em>Continued...</em></continuationMessage>
+  <cascadeMessage name="cm"><em>Continued...</em></cascadeMessage>
 
 </cascade>
 
@@ -1518,21 +1518,21 @@ describe("Cascade tag tests", async () => {
 <cascade name="w">
   <title>My cascade</title>
 
-  <continuationMessage name="cm1"><em>Never seen</em></continuationMessage>
+  <cascadeMessage name="cm1"><em>Never seen</em></cascadeMessage>
 
   <div name="div1">
     <p name="p1a">What is 1+1? <answer name="ans">2</answer></p>
     <p name="p1b">What is 1-1? <answer name="ans">0</answer></p>
   </div>
 
-  <continuationMessage name="cm2"><em>Keep going...</em></continuationMessage>
+  <cascadeMessage name="cm2"><em>Keep going...</em></cascadeMessage>
 
   <p name="p2">What is 3+4? <answer name="ans">7</answer></p>
-  <continuationMessage name="cm3"><em>Almost done...</em></continuationMessage>
+  <cascadeMessage name="cm3"><em>Almost done...</em></cascadeMessage>
 
   <p name="p3">What is 3-4? <answer name="ans">-1</answer></p>
 
-  <continuationMessage name="cm4"><em>Never seen either</em></continuationMessage>
+  <cascadeMessage name="cm4"><em>Never seen either</em></cascadeMessage>
 
 </cascade>
 

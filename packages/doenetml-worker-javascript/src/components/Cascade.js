@@ -124,9 +124,9 @@ export default class Cascade extends SectioningComponent {
                     dependencyType: "child",
                     childGroups: ["anything"],
                 },
-                childrenWithContinuationMessages: {
+                childrenWithCascadeMessages: {
                     dependencyType: "child",
-                    childGroups: ["anything", "continuationMessages"],
+                    childGroups: ["anything", "cascadeMessages"],
                 },
                 revealAll: {
                     dependencyType: "stateVariable",
@@ -139,10 +139,9 @@ export default class Cascade extends SectioningComponent {
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const allContinuationComponentIndices =
-                    dependencyValues.childrenWithContinuationMessages
+                    dependencyValues.childrenWithCascadeMessages
                         .filter(
-                            (child) =>
-                                child.componentType === "continuationMessage",
+                            (child) => child.componentType === "cascadeMessage",
                         )
                         .map((child) => child.componentIdx);
 
@@ -186,28 +185,27 @@ export default class Cascade extends SectioningComponent {
                     dependencyValues.children.length - 2
                 ) {
                     // We have at least one child that is hidden due to previous child not completed.
-                    // Look for the next `<continuationMessage>` after the last shown child,
+                    // Look for the next `<cascadeMessage>` after the last shown child,
                     // and display that child if found.
 
                     const lastShownChild =
                         dependencyValues.children[dependencyValues.numCompleted]
                             .componentIdx;
                     const lastShownChildIdx =
-                        dependencyValues.childrenWithContinuationMessages.findIndex(
+                        dependencyValues.childrenWithCascadeMessages.findIndex(
                             (child) => child.componentIdx === lastShownChild,
                         );
 
                     const nextContinuation =
-                        dependencyValues.childrenWithContinuationMessages
+                        dependencyValues.childrenWithCascadeMessages
                             .slice(lastShownChildIdx + 1)
                             .find(
                                 (child) =>
-                                    child.componentType ===
-                                    "continuationMessage",
+                                    child.componentType === "cascadeMessage",
                             );
 
                     if (nextContinuation) {
-                        // We found a `<continuationMessage>` child after the last shown child,
+                        // We found a `<cascadeMessage>` child after the last shown child,
                         // so don't hide that one.
                         childrenToHide.push(
                             ...allContinuationComponentIndices.filter(
@@ -216,7 +214,7 @@ export default class Cascade extends SectioningComponent {
                             ),
                         );
                     } else {
-                        // No `<continuationMessage>` child was found after last shown child,
+                        // No `<cascadeMessage>` child was found after last shown child,
                         // so hide all continuation messages.
                         childrenToHide.push(...allContinuationComponentIndices);
                     }

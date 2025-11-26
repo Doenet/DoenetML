@@ -76,8 +76,8 @@ export class Hr extends BlockComponent {
     static componentType = "hr";
 }
 
-export class continuationMessage extends P {
-    static componentType = "continuationMessage";
+export class cascadeMessage extends P {
+    static componentType = "cascadeMessage";
     static rendererType = "p";
     static inSchemaOnlyInheritAs = [];
 }
