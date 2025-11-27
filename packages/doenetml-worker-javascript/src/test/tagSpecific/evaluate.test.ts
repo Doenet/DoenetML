@@ -5763,4 +5763,25 @@ describe("Evaluate tag tests", async () => {
         expect(fxp1p1(me.fromAst(5)).tree).eqls(4);
         expect(fxp1p1(me.fromAst(6)).tree).eqls(1);
     });
+
+    it("No warning when evaluate a function depending on a reference", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f">x^2</function>
+    <function name="g">$f</function>
+    <p name="p">$$g(2)</p>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("4");
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(0);
+    });
 });

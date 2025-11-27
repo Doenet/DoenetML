@@ -146,6 +146,7 @@ export class PublicDoenetMLCore {
         } = await normalizedDastToSerializedComponents(
             normalizedRoot,
             componentInfoObjects,
+            addNodesToResolver,
         );
 
         this.coreBaseArgs = {

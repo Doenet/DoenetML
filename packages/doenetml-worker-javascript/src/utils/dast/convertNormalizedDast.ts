@@ -1,6 +1,8 @@
 import {
     FlatElement,
+    FlatFragment,
     FlatPathPart,
+    IndexResolution,
     NormalizedRoot,
     RefResolution,
     Source,
@@ -39,6 +41,10 @@ import { ErrorRecord, WarningRecord } from "@doenet/utils";
 export async function normalizedDastToSerializedComponents(
     normalized_root: NormalizedRoot,
     componentInfoObjects: ComponentInfoObjects,
+    addNodesToResolver: (
+        flat_fragment: FlatFragment,
+        index_resolution: IndexResolution,
+    ) => void,
 ): Promise<{
     document: SerializedComponent;
     nComponents: number;
@@ -247,6 +253,7 @@ export async function normalizedDastToSerializedComponents(
         nComponents,
         componentInfoObjects,
         allNodes: normalized_root.nodes,
+        addNodesToResolver,
     });
     nComponents = convertToCopyResult.nComponents;
 
