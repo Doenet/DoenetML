@@ -909,7 +909,7 @@ describe("Math expressions equality tests", async () => {
             },
             {
                 expr1: "e^(10x)",
-                expr2: "e^(10x)+0.00000001",
+                expr2: "e^(10x)+0.0000001",
                 equal: false,
                 symbolicEqual: false,
                 symbolicSimplifyEqual: false,
@@ -925,7 +925,7 @@ describe("Math expressions equality tests", async () => {
             },
             {
                 expr1: "(e^(10x),1)",
-                expr2: "(e^(10x)+0.00000001,1)",
+                expr2: "(e^(10x)+0.0000001,1)",
                 equal: false,
                 symbolicEqual: false,
                 symbolicSimplifyEqual: false,
@@ -941,7 +941,7 @@ describe("Math expressions equality tests", async () => {
             },
             {
                 expr1: "e^(10x)=0",
-                expr2: "e^(10x)+0.00000001=0",
+                expr2: "e^(10x)+0.0000001=0",
                 equal: false,
                 symbolicEqual: false,
                 symbolicSimplifyEqual: false,
@@ -984,6 +984,14 @@ describe("Math expressions equality tests", async () => {
                 expr2: "<math>a = (not b)</math>",
                 equal: true,
                 symbolicEqual: true,
+                symbolicSimplifyEqual: true,
+                symbolicSimplifyExpandEqual: true,
+            },
+            {
+                expr1: "<math>pi((y+2)(y-1))^2</math>",
+                expr2: "<math>pi(y+2)^2(y-1)^2</math>",
+                equal: true,
+                symbolicEqual: false,
                 symbolicSimplifyEqual: true,
                 symbolicSimplifyExpandEqual: true,
             },
