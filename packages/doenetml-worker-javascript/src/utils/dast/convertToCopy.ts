@@ -1,4 +1,8 @@
-import { NormalizedNode } from "@doenet/doenetml-worker";
+import {
+    FlatFragment,
+    IndexResolution,
+    NormalizedNode,
+} from "@doenet/doenetml-worker";
 import { ComponentInfoObjects } from "../componentInfoObjects";
 import {
     UnflattenedAttribute,
@@ -14,11 +18,16 @@ export function convertRefsToCopies({
     nComponents,
     componentInfoObjects,
     allNodes,
+    addNodesToResolver,
 }: {
     serializedComponents: (UnflattenedComponent | string)[];
     nComponents: number;
     componentInfoObjects: ComponentInfoObjects;
     allNodes: NormalizedNode[];
+    addNodesToResolver?: (
+        flat_fragment: FlatFragment,
+        index_resolution: IndexResolution,
+    ) => void;
 }) {
     const newComponents: (UnflattenedComponent | string)[] = [];
 
@@ -37,6 +46,7 @@ export function convertRefsToCopies({
             nComponents,
             componentInfoObjects,
             allNodes,
+            addNodesToResolver,
         });
         newComponent.children = res.components;
         nComponents = res.nComponents;
@@ -49,6 +59,7 @@ export function convertRefsToCopies({
                 nComponents,
                 componentInfoObjects,
                 allNodes,
+                addNodesToResolver,
             });
             attribute.children = res.components;
             nComponents = res.nComponents;
@@ -78,6 +89,7 @@ export function convertRefsToCopies({
                 nComponents,
                 componentInfoObjects,
                 allNodes,
+                addNodesToResolver,
             });
 
             nComponents = evalResult.nComponents;
@@ -120,6 +132,29 @@ export function convertRefsToCopies({
                     wrappingComponent.doenetAttributes = {};
                 }
 
+                if (addNodesToResolver) {
+                    const flatFragment: FlatFragment = {
+                        type: "flatFragment",
+                        children: [newComponent.componentIdx],
+                        nodes: [
+                            {
+                                type: "element",
+                                name: newComponent.componentType,
+                                parent: wrappingComponent.componentIdx,
+                                children: [],
+                                attributes: [],
+                                idx: newComponent.componentIdx,
+                                sourceDoc: wrappingComponent.sourceDoc,
+                            },
+                        ],
+                        parentIdx: wrappingComponent.componentIdx,
+                        parentSourceSequence: null,
+                        idxMap: { [newComponent.componentIdx]: 0 },
+                    };
+
+                    addNodesToResolver(flatFragment, "None");
+                }
+
                 if ("CopyAttribute" in extending) {
                     newComponent.attributes.link = {
                         name: "link",
@@ -150,7 +185,31 @@ export function convertRefsToCopies({
                     name: "createComponentIdx",
                     children: [newComponent.componentIdx.toString()],
                 };
+                const originalIdx = newComponent.componentIdx;
                 newComponent.componentIdx = nComponents++;
+
+                if (addNodesToResolver) {
+                    const flatFragment: FlatFragment = {
+                        type: "flatFragment",
+                        children: [newComponent.componentIdx],
+                        nodes: [
+                            {
+                                type: "element",
+                                name: newComponent.componentType,
+                                parent: originalIdx,
+                                children: [],
+                                attributes: [],
+                                idx: newComponent.componentIdx,
+                                sourceDoc: newComponent.sourceDoc,
+                            },
+                        ],
+                        parentIdx: originalIdx,
+                        parentSourceSequence: null,
+                        idxMap: { [newComponent.componentIdx]: 0 },
+                    };
+
+                    addNodesToResolver(flatFragment, "None");
+                }
 
                 outerAttributes.createComponentName = {
                     name: "createComponentName",
@@ -181,6 +240,7 @@ export function convertRefsToCopies({
                         nComponents,
                         componentInfoObjects,
                         allNodes,
+                        addNodesToResolver,
                     });
                     nComponents = res.nComponents;
 
@@ -292,33 +352,62 @@ function convertEvaluate({
     nComponents,
     componentInfoObjects,
     allNodes,
+    addNodesToResolver,
 }: {
     evaluateComponent: UnflattenedComponent;
     refResolution: UnflattenedRefResolution;
     nComponents: number;
     componentInfoObjects: ComponentInfoObjects;
     allNodes: NormalizedNode[];
+    addNodesToResolver?: (
+        flat_fragment: FlatFragment,
+        index_resolution: IndexResolution,
+    ) => void;
 }) {
     // The function to evaluate is an attribute
 
+    const functionComponent: UnflattenedComponent = {
+        type: "unflattened",
+        componentType: "function",
+        componentIdx: nComponents++,
+        children: [],
+        attributes: {},
+        doenetAttributes: {},
+        state: {},
+        extending: evaluateComponent.extending,
+    };
+
     let res = convertRefsToCopies({
-        serializedComponents: [
-            {
-                type: "unflattened",
-                componentType: "function",
-                componentIdx: nComponents++,
-                children: [],
-                attributes: {},
-                doenetAttributes: {},
-                state: {},
-                extending: evaluateComponent.extending,
-            },
-        ],
+        serializedComponents: [functionComponent],
         nComponents,
         componentInfoObjects,
         allNodes,
+        addNodesToResolver,
     });
     nComponents = res.nComponents;
+
+    if (addNodesToResolver) {
+        const flatFragment: FlatFragment = {
+            type: "flatFragment",
+            children: [functionComponent.componentIdx],
+            nodes: [
+                {
+                    type: "element",
+                    name: functionComponent.componentType,
+                    parent: evaluateComponent.componentIdx,
+                    children: [],
+                    attributes: [],
+                    idx: functionComponent.componentIdx,
+                    sourceDoc: evaluateComponent.sourceDoc,
+                },
+            ],
+            parentIdx: evaluateComponent.componentIdx,
+            parentSourceSequence: null,
+            idxMap: { [functionComponent.componentIdx]: 0 },
+        };
+
+        addNodesToResolver(flatFragment, "None");
+    }
 
     evaluateComponent.attributes.function = {
         name: "function",
