@@ -646,7 +646,6 @@ export function DocViewer({
 
     function initializeRenderers(args: Record<string, any>) {
         if (args.rendererState) {
-            delete args.rendererState.__componentNeedingUpdateValue;
             if (
                 forceDisable ||
                 forceShowCorrectness ||
@@ -903,17 +902,6 @@ export function DocViewer({
                     serializedComponentsReviver,
                 );
 
-                if (rendererState?.__componentNeedingUpdateValue) {
-                    callAction({
-                        action: {
-                            actionName: "updateValue",
-                            componentIdx:
-                                rendererState.__componentNeedingUpdateValue,
-                        },
-                        args: { doNotIgnore: true },
-                    });
-                }
-
                 // Record the fact that we loaded the state before starting core
                 loadedInitialState.current = true;
 
@@ -1015,16 +1003,6 @@ export function DocViewer({
         let rendererState =
             data.rendererState &&
             JSON.parse(data.rendererState, serializedComponentsReviver);
-
-        if (rendererState?.__componentNeedingUpdateValue) {
-            callAction({
-                action: {
-                    actionName: "updateValue",
-                    componentIdx: rendererState.__componentNeedingUpdateValue,
-                },
-                args: { doNotIgnore: true },
-            });
-        }
 
         // Record the fact that we loaded the state before starting core
         loadedInitialState.current = true;
