@@ -251,9 +251,7 @@ export default class Core {
         this.saveStateToDBTimerId = null;
 
         // rendererState the current state of each renderer, keyed by componentIdx
-        this.rendererState = {
-            __componentNeedingUpdateValue: null,
-        };
+        this.rendererState = {};
 
         // rendererVariablesByComponentType is a description
         // of the which variables are sent to the renderers,
@@ -394,6 +392,16 @@ export default class Core {
             this.coreInfo,
             serializedComponentsReplacer,
         );
+
+        if (this.cumulativeStateVariableChanges.__componentNeedingUpdateValue) {
+            await this.performAction({
+                actionName: "updateValue",
+                componentIdx:
+                    this.cumulativeStateVariableChanges
+                        .__componentNeedingUpdateValue,
+                args: { doNotIgnore: true },
+            });
+        }
 
         if (!this.receivedStateVariableChanges) {
             // TODO: find a way to delay this until after send the result on
@@ -11375,12 +11383,13 @@ export default class Core {
             } else if (
                 instruction.updateType === "setComponentNeedingUpdateValue"
             ) {
-                this.rendererState.__componentNeedingUpdateValue =
+                this.cumulativeStateVariableChanges.__componentNeedingUpdateValue =
                     instruction.componentIdx;
             } else if (
                 instruction.updateType === "unsetComponentNeedingUpdateValue"
             ) {
-                this.rendererState.__componentNeedingUpdateValue = null;
+                delete this.cumulativeStateVariableChanges
+                    .__componentNeedingUpdateValue;
             }
         }
 
