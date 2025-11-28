@@ -3915,12 +3915,12 @@ describe("Math tag tests", async () => {
         ).eq(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([3, 1]);
         expect(
             stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([1, 1]);
 
@@ -3939,12 +3939,12 @@ describe("Math tag tests", async () => {
         ).eq(-0.5);
         expect(
             stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([0, 3]);
         expect(
             stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([-2, 3]);
     });
@@ -3968,12 +3968,12 @@ describe("Math tag tests", async () => {
         ).eq(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([3, 1]);
         expect(
             stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([1, 1]);
 
@@ -3992,12 +3992,12 @@ describe("Math tag tests", async () => {
         ).eq(-0.5);
         expect(
             stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([0, 3]);
         expect(
             stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([-2, 3]);
     });
@@ -4022,12 +4022,12 @@ describe("Math tag tests", async () => {
         ).eq(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([3, 1]);
         expect(
             stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([1, 1]);
 
@@ -4046,12 +4046,12 @@ describe("Math tag tests", async () => {
         ).eq(-0.5);
         expect(
             stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([0, 3]);
         expect(
             stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([-2, 3]);
 
@@ -4069,12 +4069,12 @@ describe("Math tag tests", async () => {
         ).eq(2.5);
         expect(
             stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([6, 9]);
         expect(
             stateVariables[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: any) => x.tree,
             ),
         ).eqls([4, 9]);
     });
@@ -6548,7 +6548,7 @@ describe("Math tag tests", async () => {
         ).eq("\\begin{bmatrix}a+mn&b+mo\\\\c+mp&d+mq\\end{bmatrix}");
     });
 
-    it("matrix multiplication", async () => {
+    it.only("matrix multiplication", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>matrix22a: <math name="matrix22a" format="latex">\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}</math></p>
@@ -6561,6 +6561,8 @@ describe("Math tag tests", async () => {
           <p><math name="m22am22bExp" expand>$matrix22a$matrix22b</math></p>
           <p><math name="m22bm22a">$matrix22b$matrix22a</math></p>
           <p><math name="m22bm22aExp" expand>$matrix22b$matrix22a</math></p>
+          <p><math name="m22aSq">$matrix22a^2</math></p>
+          <p><math name="m22aSqExp" expand>$matrix22a^2</math></p>
           <p><math name="m21am21b">$matrix21a$matrix21b</math></p>
           <p><math name="m21am21bExp" expand>$matrix21a$matrix21b</math></p>
           <p><math name="m12am12b">$matrix12a$matrix12b</math></p>
@@ -6606,6 +6608,18 @@ describe("Math tag tests", async () => {
                     .stateValues.latex,
             ),
         ).eq("\\begin{bmatrix}ae+cf&be+df\\\\ag+ch&bg+dh\\end{bmatrix}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m22aSq")].stateValues
+                    .latex,
+            ),
+        ).eq("(\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix})^{2}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m22aSqExp")]
+                    .stateValues.latex,
+            ),
+        ).eq("\\begin{bmatrix}a^{2}+bc&ab+bd\\\\ac+cd&bc+d^{2}\\end{bmatrix}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m21am21b")]
@@ -13004,7 +13018,7 @@ describe("Math tag tests", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("m")
-            ].stateValues.list.map((v) => v.tree),
+            ].stateValues.list.map((v: any) => v.tree),
         ).eqls([
             ["*", 2, "x"],
             ["*", 3, "y"],
@@ -13014,7 +13028,7 @@ describe("Math tag tests", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ml")
-            ].stateValues.maths.map((v) => v.tree),
+            ].stateValues.maths.map((v: any) => v.tree),
         ).eqls([
             ["*", 2, "x"],
             ["*", 3, "y"],

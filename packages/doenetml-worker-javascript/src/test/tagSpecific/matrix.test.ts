@@ -117,7 +117,9 @@ describe("Matrix tag tests", async () => {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(`A${i}`)
-                    ].stateValues.matrix.map((row) => row.map((v) => v.tree)),
+                    ].stateValues.matrix.map((row: any) =>
+                        row.map((v: any) => v.tree),
+                    ),
                 ).eqls(matrixValue);
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`mi${i}`)]
@@ -346,8 +348,7 @@ describe("Matrix tag tests", async () => {
         let matrixML = `
     <p>A: <matrix name="A" /></p>`;
 
-        let initialValues = [];
-        await test_matrix({ matrixML, initialValues });
+        await test_matrix({ matrixML, initialValues: [] });
     });
 
     it("specify numRows, get 1 column, 2x1 matrix of 0s", async () => {
