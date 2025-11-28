@@ -6548,7 +6548,7 @@ describe("Math tag tests", async () => {
         ).eq("\\begin{bmatrix}a+mn&b+mo\\\\c+mp&d+mq\\end{bmatrix}");
     });
 
-    it.only("matrix multiplication", async () => {
+    it("matrix multiplication", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
           <p>matrix22a: <math name="matrix22a" format="latex">\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}</math></p>
