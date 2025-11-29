@@ -5,24 +5,8 @@ import useDoenetRenderer, {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPuzzlePiece as puzzle } from "@fortawesome/free-solid-svg-icons";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
-import styled from "styled-components";
 import { addCommasForCompositeRanges } from "./utils/composites";
-const SpanStyling = styled.span`
-    // display: block;
-    // margin: SVs.open ? 12px 4px 0px 4px : 12px 4px 12px 4px;
-    // padding: 6px;
-    // border: 2px solid black;
-    // border-top-left-radius: 5px;
-    // border-top-right-radius: 5px;
-    // border-bottom-left-radius: SVs.open ? 0px : 5px;
-    // border-bottom-right-radius: SVs.open ? 0px : 5px;
-    // background-color: var(--mainGray);
-    // cursor: pointer;
-    &: focus {
-        outline: 2px solid var(--canvasText);
-        outline-offset: 2px;
-    }
-`;
+import "./solution.css";
 
 export default React.memo(function Solution(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
@@ -105,8 +89,13 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
     }
 
     return (
-        <aside id={id} style={{ margin: "12px 0" }} ref={ref}>
-            <SpanStyling
+        <aside
+            id={id}
+            style={{ margin: "12px 0" }}
+            ref={ref}
+            className="solution"
+        >
+            <span
                 style={{
                     display: "block",
                     margin: SVs.open ? "12px 4px 0px 4px" : "12px 4px 12px 4px",
@@ -126,7 +115,7 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
             >
                 {icon} {SVs.sectionName} {SVs.message} (click to {openCloseText}
                 )
-            </SpanStyling>
+            </span>
             <span style={infoBlockStyle}>{childrenToRender}</span>
         </aside>
     );

@@ -7,13 +7,7 @@ import React, { useRef, useEffect } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
-import styled from "styled-components";
-const VideoStyling = styled.div`
-    &: focus {
-        outline: 2px solid var(--canvasText);
-        outline-offset: 2px;
-    }
-`;
+import "./video.css";
 
 export default React.memo(function Video(props) {
     let { id, SVs, actions, callAction } = useDoenetRenderer(props);
@@ -495,14 +489,15 @@ export default React.memo(function Video(props) {
     }
 
     return (
-        <VideoStyling
+        <div
             tabIndex="0"
             style={outerStyle}
             id={id + "_outer"}
             ref={ref}
+            className="video"
         >
             <a name={id} />
             {videoTag}
-        </VideoStyling>
+        </div>
     );
 });

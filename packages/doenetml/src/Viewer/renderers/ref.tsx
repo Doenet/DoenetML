@@ -3,37 +3,7 @@ import { DocContext } from "../DocViewer";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import styled from "styled-components";
-
-const RefButton = styled.button`
-    position: relative;
-    height: 24px;
-    display: inline-block;
-    color: white;
-    color: ${(props) =>
-        props.disabled ? "var(--canvasText)" : "var(--canvas)"};
-    background-color: ${(props) =>
-        props.disabled ? "var(--mainGray)" : "var(--mainBlue)"};
-
-    padding: 2px;
-    border: none;
-    border-radius: var(--mainBorderRadius);
-    cursor: pointer;
-    cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
-    padding: 1px 6px 1px 6px;
-
-    &:hover {
-        background-color: ${(props) =>
-            props.disabled ? "var(--mainGray)" : "var(--lightBlue)"};
-        color: ${(props) =>
-            props.disabled ? "var(--canvasText)" : "var(--canvas)"};
-    }
-
-    &:focus {
-        outline: 2px solid var(--mainBlue);
-        outline-offset: 2px;
-    }
-`;
+import "./ref.css";
 
 export default React.memo(function Ref(props: UseDoenetRendererProps) {
     const { id, SVs, children, requestScrollTo } = useDoenetRenderer(props);
@@ -82,32 +52,37 @@ export default React.memo(function Ref(props: UseDoenetRendererProps) {
     }
 
     if (SVs.createButton) {
+        const refClass =
+            "ref-button" + (SVs.disabled ? " ref-button-disabled" : "");
+
         if (targetForATag === "_blank") {
             return (
                 <span id={id}>
-                    <RefButton
+                    <button
                         id={id + "_button"}
                         onClick={() =>
                             window.open(url, targetForATag || undefined)
                         }
                         disabled={SVs.disabled}
+                        className={refClass}
                     >
                         {SVs.linkText}
-                    </RefButton>
+                    </button>
                 </span>
             );
         } else {
             return (
                 <span id={id}>
-                    <RefButton
+                    <button
                         id={id + "_button"}
                         onClick={() => {
                             window.location.href = url;
                         }}
                         disabled={SVs.disabled}
+                        className={refClass}
                     >
                         {SVs.linkText}
-                    </RefButton>
+                    </button>
                 </span>
             );
         }

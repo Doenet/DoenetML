@@ -3,7 +3,6 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
-import styled from "styled-components";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
 // @ts-ignore
@@ -17,32 +16,7 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
-
-const TextArea = styled.textarea`
-    font-size: 14px;
-    border: ${(props) =>
-        props.disabled ? "2px solid var(--mainGray)" : "var(--mainBorder)"};
-    cursor: ${(props) => (props.disabled ? "not-allowed" : "auto")};
-
-    &:focus {
-        outline: var(--mainBorder);
-        outline-offset: 2px;
-    }
-`;
-
-const Input = styled.input`
-    width: ${(props) => props.width};
-    height: 20px; // Same height as the checkWorkButton, accounting for the borders
-    font-size: 14px;
-    border: ${(props) =>
-        props.disabled ? "2px solid var(--mainGray)" : "var(--mainBorder)"};
-    cursor: ${(props) => (props.disabled ? "not-allowed" : "auto")};
-
-    &:focus {
-        outline: var(--mainBorder);
-        outline-offset: 2px;
-    }
-`;
+import "./textInput.css";
 
 export default function TextInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, ignoreUpdate, callAction } =
@@ -589,11 +563,13 @@ export default function TextInput(props: UseDoenetRendererProps) {
             </MathJax>
         );
     }
+    const inputClass =
+        "text-input" + (SVs.disabled ? " text-input-disabled" : "");
     if (SVs.expanded) {
         input = (
             <label style={{ display: "inline-flex", maxWidth: "100%" }}>
                 {label}
-                <TextArea
+                <textarea
                     key={inputKey}
                     id={inputKey}
                     value={rendererValue}
@@ -603,6 +579,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     onKeyDown={handleKeyDown}
                     onBlur={handleBlur}
                     onFocus={handleFocus}
+                    className={inputClass}
                     style={{
                         margin: "0px 4px 4px 4px",
                         color: "var(--canvasText)",
@@ -617,7 +594,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         input = (
             <label style={{ display: "inline-flex", maxWidth: "100%" }}>
                 {label}
-                <Input
+                <input
                     key={inputKey}
                     id={inputKey}
                     value={rendererValue}
@@ -628,6 +605,8 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     onBlur={handleBlur}
                     onFocus={handleFocus}
                     width={width}
+                    height="20px"
+                    className={inputClass}
                     style={{
                         margin: "0px 4px 4px 4px",
                         color: "var(--canvasText)",

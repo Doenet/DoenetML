@@ -1,16 +1,9 @@
 // @ts-nocheck
 import React, { createRef, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import styled from "styled-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 // border: ${(props) => (props.alert ? '2px solid #C1292E' : '2px solid black')};
-
-const Box = styled.svg`
-    border: "2px solid red";
-    margin: 2px;
-    outline: none;
-`;
 
 export default React.memo(function orbitalDiagram(props) {
     let { id, SVs, actions, callAction } = useDoenetRenderer(props);
@@ -204,12 +197,13 @@ const OrbitalBox = React.memo(function OrbitalBox({
     let strokeWidth = "2px";
 
     return (
-        <Box
+        <svg
             key={`orbitalbox${boxNum}`}
             id={`orbitalbox${name}${rowNumber}-${boxNum}`}
             tabIndex="-1"
             width={boxWidth}
             height="40"
+            style={{ margin: "2px" }}
         >
             <rect
                 x="0"
@@ -227,6 +221,6 @@ const OrbitalBox = React.memo(function OrbitalBox({
                 }}
             />
             {arrowsJSX}
-        </Box>
+        </svg>
     );
 });

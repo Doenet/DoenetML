@@ -7,25 +7,7 @@ import {
     faLevelDownAlt,
     faTimes,
 } from "@fortawesome/free-solid-svg-icons";
-import styled from "styled-components";
-
-const Button = styled.button`
-    position: relative;
-    height: 24px;
-    display: inline-block;
-    color: white;
-    background-color: var(--mainBlue);
-    padding: "1px 6px 1px 6px";
-    /* border: var(--mainBorder); */
-    border: none;
-    border-radius: var(--mainBorderRadius);
-    margin: 0px 4px 4px 0px;
-
-    &:hover {
-        background-color: var(--lightBlue);
-        color: black;
-    }
-`;
+import "./checkWork.css";
 
 /**
  * Calculate if the current response of an answer blank has already been validated,
@@ -108,7 +90,8 @@ export function createCheckWorkComponent(
         const additionalLabel = showText ? undefined : checkWorkText;
 
         checkWorkComponent = (
-            <Button
+            <button
+                className="check-work"
                 id={id + "_submit"}
                 tabIndex={checkWorkTabIndex}
                 disabled={disabled}
@@ -123,7 +106,7 @@ export function createCheckWorkComponent(
                     title={additionalLabel}
                 />
                 {checkWorkLabel}
-            </Button>
+            </button>
         );
     } else if (SVs.showCorrectness) {
         if (validationState === "correct") {
