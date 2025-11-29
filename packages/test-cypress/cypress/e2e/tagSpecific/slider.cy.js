@@ -323,4 +323,47 @@ describe("Slider Tag Tests", function () {
         cy.get("#sv").should("have.text", "2");
         cy.get("#s").should("have.value", "2");
     });
+
+    it("show controls", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <slider name="s" showControls />
+  <p>Value: <number name="sv">$s</number></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#sv").should("have.text", "0");
+        cy.get("#s").should("have.value", "0");
+        cy.get("#s-prevbutton").should("be.disabled");
+        cy.get("#s-nextbutton").should("not.be.disabled");
+
+        cy.get("#s-nextbutton").click();
+        cy.get("#sv").should("have.text", "1");
+        cy.get("#s").should("have.value", "1");
+        cy.get("#s-prevbutton").should("not.be.disabled");
+        cy.get("#s-nextbutton").should("not.be.disabled");
+
+        cy.get("#s-prevbutton").click();
+        cy.get("#sv").should("have.text", "0");
+        cy.get("#s").should("have.value", "0");
+        cy.get("#s-prevbutton").should("be.disabled");
+        cy.get("#s-nextbutton").should("not.be.disabled");
+
+        cy.get("#s-datalist option:nth-child(11)").click();
+        cy.get("#sv").should("have.text", "10");
+        cy.get("#s").should("have.value", "10");
+        cy.get("#s-prevbutton").should("not.be.disabled");
+        cy.get("#s-nextbutton").should("be.disabled");
+        cy.get("#s-prevbutton").click();
+
+        cy.get("#sv").should("have.text", "9");
+        cy.get("#s").should("have.value", "9");
+        cy.get("#s-prevbutton").should("not.be.disabled");
+        cy.get("#s-nextbutton").should("not.be.disabled");
+    });
 });

@@ -6,6 +6,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 import { sizeToCSS } from "./utils/css";
+import { ActionButton, ActionButtonGroup } from "@doenet/ui-components";
 
 let round_to_decimals = (x: number, n: number) => {
     try {
@@ -335,6 +336,40 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
         );
     }
 
+    let controls: React.ReactNode = "";
+    if (SVs.showControls) {
+        controls = (
+            <ActionButtonGroup
+                style={{ marginBottom: "12px", marginTop: "5px" }}
+            >
+                <ActionButton
+                    value="Prev"
+                    onClick={() => {
+                        if (inputRef.current) {
+                            inputRef.current.stepDown();
+                            changeValue(inputRef.current.value, false);
+                        }
+                    }}
+                    id={`${id}-prevbutton`}
+                    disabled={SVs.disabled || index === 0}
+                ></ActionButton>
+                <ActionButton
+                    value="Next"
+                    onClick={() => {
+                        if (inputRef.current) {
+                            inputRef.current.stepUp();
+                            changeValue(inputRef.current.value, false);
+                        }
+                    }}
+                    id={`${id}-nextbutton`}
+                    disabled={SVs.disabled || index === SVs.numItems - 1}
+                ></ActionButton>
+            </ActionButtonGroup>
+        );
+    } else {
+        null;
+    }
+
     return (
         <div>
             {myLabel}
@@ -358,6 +393,7 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                 disabled={SVs.disabled}
             />
             {dataList}
+            {controls}
         </div>
     );
 });
