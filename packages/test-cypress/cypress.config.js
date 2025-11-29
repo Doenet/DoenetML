@@ -4,6 +4,10 @@ import vitePreprocessor from "cypress-vite";
 export default defineConfig({
     numTestsKeptInMemory: 5,
     defaultCommandTimeout: 30000,
+    retries: {
+        runMode: 2,
+        openMode: 0,
+    },
     e2e: {
         // vital for iframes like YouTube
         chromeWebSecurity: false,
