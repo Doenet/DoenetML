@@ -134,7 +134,7 @@ jobs:
                   project: ./packages/test-cypress
                   wait-on: "http://localhost:4173"
               env:
-                  SKIP_YOUTUBE_TESTS: true
+                  CYPRESS_SKIP_YOUTUBE_TESTS: true
 
     lint:
         name: Lint Rust Code
