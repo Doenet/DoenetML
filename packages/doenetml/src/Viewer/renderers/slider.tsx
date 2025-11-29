@@ -123,7 +123,7 @@ function generateNumericLabels(
                 Math.abs(SVs.lastItem),
             );
             let magnitudeOfMaxAbs = Math.round(Math.log(maxAbs) / Math.log(10));
-            let roundDecimals = 2 - magnitudeOfMaxAbs;
+            let roundDecimals = Math.max(0, 2 - magnitudeOfMaxAbs);
 
             return [...Array(numberOfTicks).keys()]
                 .map((i) => Math.round(dIndex * i))
