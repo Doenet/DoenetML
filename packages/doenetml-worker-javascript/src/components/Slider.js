@@ -14,10 +14,9 @@ import {
 export default class Slider extends BaseComponent {
     constructor(args) {
         super(args);
-        this.changeValue = this.changeValue.bind(this);
 
         Object.assign(this.actions, {
-            changeValue: this.changeValue,
+            changeValue: this.changeValue.bind(this),
         });
     }
     static componentType = "slider";
@@ -64,6 +63,13 @@ export default class Slider extends BaseComponent {
             createComponentOfType: "boolean",
             createStateVariable: "showTicks",
             defaultValue: true,
+            public: true,
+            forRenderer: true,
+        };
+        attributes.rotateTickLabels = {
+            createComponentOfType: "boolean",
+            createStateVariable: "rotateTickLabels",
+            defaultValue: false,
             public: true,
             forRenderer: true,
         };
@@ -667,6 +673,10 @@ export default class Slider extends BaseComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        if (value === undefined) {
+            return;
+        }
+
         if (!(await this.stateValues.disabled)) {
             if (transient) {
                 return await this.coreFunctions.performUpdate({
