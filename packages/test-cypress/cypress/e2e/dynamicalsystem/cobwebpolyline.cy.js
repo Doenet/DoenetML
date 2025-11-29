@@ -1,4 +1,5 @@
 import { cesc } from "@doenet/utils";
+import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("CobwebPolyline Tag Tests", function () {
     beforeEach(() => {
@@ -217,7 +218,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
             "contain.text",
-            "x0=1\n",
+            toMathJaxString("x0=1\n", { noInvisibleTimes: true }),
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
@@ -261,7 +262,9 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
             "contain.text",
-            `x0=1x1=${Math.round(x1 * 10000) / 10000}\n`,
+            toMathJaxString(`x0=1x1=${Math.round(x1 * 10000) / 10000}\n`, {
+                noInvisibleTimes: true,
+            }),
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.deleteLine_button")).click();
@@ -276,7 +279,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
             "contain.text",
-            "x0=1\n",
+            toMathJaxString("x0=1\n", { noInvisibleTimes: true }),
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
@@ -293,7 +296,9 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
             "contain.text",
-            `x0=1x1=${Math.round(x1 * 10000) / 10000}\n`,
+            toMathJaxString(`x0=1x1=${Math.round(x1 * 10000) / 10000}\n`, {
+                noInvisibleTimes: true,
+            }),
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
@@ -324,7 +329,9 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
             "contain.text",
-            `x0=1x1=${Math.round(x1 * 10000) / 10000}\n`,
+            toMathJaxString(`x0=1x1=${Math.round(x1 * 10000) / 10000}\n`, {
+                noInvisibleTimes: true,
+            }),
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
@@ -349,7 +356,10 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
             "contain.text",
-            `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}\n`,
+            toMathJaxString(
+                `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}\n`,
+                { noInvisibleTimes: true },
+            ),
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
@@ -375,7 +385,10 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
             "contain.text",
-            `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}\n`,
+            toMathJaxString(
+                `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}\n`,
+                { noInvisibleTimes: true },
+            ),
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
@@ -402,7 +415,10 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
             "contain.text",
-            `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}x3=${Math.round(x3 * 10000) / 10000}\n`,
+            toMathJaxString(
+                `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}x3=${Math.round(x3 * 10000) / 10000}\n`,
+                { noInvisibleTimes: true },
+            ),
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
@@ -433,7 +449,10 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
             "contain.text",
-            `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}x3=${Math.round(x3 * 10000) / 10000}\n`,
+            toMathJaxString(
+                `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}x3=${Math.round(x3 * 10000) / 10000}\n`,
+                { noInvisibleTimes: true },
+            ),
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
@@ -465,7 +484,10 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
             "contain.text",
-            `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}x3=${Math.round(x3 * 10000) / 10000}x4=${Math.round(x4 * 10000) / 10000}\n`,
+            toMathJaxString(
+                `x0=1x1=${Math.round(x1 * 10000) / 10000}x2=${Math.round(x2 * 10000) / 10000}x3=${Math.round(x3 * 10000) / 10000}x4=${Math.round(x4 * 10000) / 10000}\n`,
+                { noInvisibleTimes: true },
+            ),
         );
     });
 

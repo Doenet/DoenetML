@@ -318,9 +318,7 @@ describe("Code Editor Tag Tests", function () {
         );
 
         cy.get(cesc(`#editor::p1`)).should("have.text", "Hello!");
-        cy.get(cesc(`#editor::p2`) + " math")
-            .eq(0)
-            .should("have.text", "2");
+        cy.get(cesc(`#editor::p2`)).should("have.text", "2");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();

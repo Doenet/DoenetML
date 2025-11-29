@@ -1,4 +1,5 @@
 import { cesc } from "@doenet/utils";
+import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("Math Tag Tests", function () {
     beforeEach(() => {
@@ -35,10 +36,10 @@ describe("Math Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#m1")).should("have.text", "w");
-        cy.get(cesc("#m2")).should("have.text", "x+y");
-        cy.get(cesc("#m4")).should("have.text", "z");
-        cy.get(cesc("#m5")).should("have.text", "a+z");
+        cy.get(cesc("#m1")).should("have.text", toMathJaxString("w"));
+        cy.get(cesc("#m2")).should("have.text", toMathJaxString("x+y"));
+        cy.get(cesc("#m4")).should("have.text", toMathJaxString("z"));
+        cy.get(cesc("#m5")).should("have.text", toMathJaxString("a+z"));
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -71,10 +72,10 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#m4")).should("contain.text", "3");
 
-        cy.get(cesc("#m1")).should("have.text", "1");
-        cy.get(cesc("#m2")).should("have.text", "x+2");
-        cy.get(cesc("#m4")).should("have.text", "3");
-        cy.get(cesc("#m5")).should("have.text", "a+3");
+        cy.get(cesc("#m1")).should("have.text", toMathJaxString("1"));
+        cy.get(cesc("#m2")).should("have.text", toMathJaxString("x+2"));
+        cy.get(cesc("#m4")).should("have.text", toMathJaxString("3"));
+        cy.get(cesc("#m5")).should("have.text", toMathJaxString("a+3"));
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -118,10 +119,10 @@ describe("Math Tag Tests", function () {
             }),
         );
 
-        cy.get(cesc("#m1")).should("have.text", "1");
-        cy.get(cesc("#m2")).should("have.text", "x+2");
-        cy.get(cesc("#m4")).should("have.text", "3");
-        cy.get(cesc("#m5")).should("have.text", "a+3");
+        cy.get(cesc("#m1")).should("have.text", toMathJaxString("1"));
+        cy.get(cesc("#m2")).should("have.text", toMathJaxString("x+2"));
+        cy.get(cesc("#m4")).should("have.text", toMathJaxString("3"));
+        cy.get(cesc("#m5")).should("have.text", toMathJaxString("a+3"));
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -154,10 +155,10 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#m5")).should("contain.text", "17");
 
-        cy.get(cesc("#m1")).should("have.text", "4+5");
-        cy.get(cesc("#m2")).should("have.text", "x+6+7");
-        cy.get(cesc("#m4")).should("have.text", "17");
-        cy.get(cesc("#m5")).should("have.text", "a+17");
+        cy.get(cesc("#m1")).should("have.text", toMathJaxString("4+5"));
+        cy.get(cesc("#m2")).should("have.text", toMathJaxString("x+6+7"));
+        cy.get(cesc("#m4")).should("have.text", toMathJaxString("17"));
+        cy.get(cesc("#m5")).should("have.text", toMathJaxString("a+17"));
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -191,7 +192,7 @@ describe("Math Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#m1")).should("have.text", "4+5");
+        cy.get(cesc("#m1")).should("have.text", toMathJaxString("4+5"));
 
         // wait until core is loaded
         cy.waitUntil(() =>
@@ -201,10 +202,10 @@ describe("Math Tag Tests", function () {
             }),
         );
 
-        cy.get(cesc("#m1")).should("have.text", "4+5");
-        cy.get(cesc("#m2")).should("have.text", "x+6+7");
-        cy.get(cesc("#m4")).should("have.text", "17");
-        cy.get(cesc("#m5")).should("have.text", "a+17");
+        cy.get(cesc("#m1")).should("have.text", toMathJaxString("4+5"));
+        cy.get(cesc("#m2")).should("have.text", toMathJaxString("x+6+7"));
+        cy.get(cesc("#m4")).should("have.text", toMathJaxString("17"));
+        cy.get(cesc("#m5")).should("have.text", toMathJaxString("a+17"));
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -478,10 +479,10 @@ describe("Math Tag Tests", function () {
             let m1dAnchor = "#" + m1dName;
             let m2dAnchor = "#" + m2dName;
 
-            cy.get(m1cAnchor).eq(0).should("have.text", "x2");
-            cy.get(m1dAnchor).eq(0).should("have.text", "x2");
-            cy.get(m2cAnchor).eq(0).should("have.text", "x3");
-            cy.get(m2dAnchor).eq(0).should("have.text", "x3");
+            cy.get(m1cAnchor).eq(0).should("have.text", toMathJaxString("x2"));
+            cy.get(m1dAnchor).eq(0).should("have.text", toMathJaxString("x2"));
+            cy.get(m2cAnchor).eq(0).should("have.text", toMathJaxString("x3"));
+            cy.get(m2dAnchor).eq(0).should("have.text", toMathJaxString("x3"));
 
             cy.get(m1cAnchor).should("have.css", "color", "rgb(0, 128, 0)");
             cy.get(m1dAnchor).should("have.css", "color", "rgb(0, 0, 0)");

@@ -90,6 +90,52 @@ jobs:
             - name: Test
               run: npm test
 
+    test-cypress:
+        name: Cypress Tests
+        runs-on: ubuntu-latest
+        needs: build
+        strategy:
+            matrix:
+                node-version: [24.x]
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: build-artifacts
+
+            - name: Debug Build Artifacts
+              run: |
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
+
+            # with the wireit cache saved, this build step should be fast.
+            - name: Build (cached)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Build cypress
+              run: npm run build --workspace packages/test-cypress
+
+            - name: Cypress run
+              uses: cypress-io/github-action@v6
+              with:
+                  browser: chrome
+                  start: npm run preview --workspace packages/test-cypress
+                  project: ./packages/test-cypress
+                  wait-on: "http://localhost:4173"
+              env:
+                  CYPRESS_SKIP_YOUTUBE_TESTS: true
+
     lint:
         name: Lint Rust Code
         runs-on: ubuntu-latest

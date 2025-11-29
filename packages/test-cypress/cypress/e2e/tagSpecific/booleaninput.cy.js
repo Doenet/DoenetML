@@ -1,4 +1,5 @@
 import { cesc } from "@doenet/utils";
+import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("BooleanInput Tag Tests", function () {
     beforeEach(() => {
@@ -187,8 +188,14 @@ describe("BooleanInput Tag Tests", function () {
         cy.get(cesc("#atb_input")).should("not.be.checked");
         cy.get(cesc("#bi_input")).should("not.be.checked");
         cy.get(cesc("#v")).should("have.text", "false");
-        cy.get(cesc("#atb")).should("contain.text", "It is ∫abf(x)dx");
-        cy.get(cesc("#bi")).should("contain.text", "Hello ab");
+        cy.get(cesc("#atb")).should(
+            "contain.text",
+            `It is ${toMathJaxString(`∫baf⁡(x) dx`, { noInvisibleTimes: true })}`,
+        );
+        cy.get(cesc("#bi")).should(
+            "contain.text",
+            `Hello ${toMathJaxString(`ab`, { noInvisibleTimes: true })}`,
+        );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
@@ -211,15 +218,21 @@ describe("BooleanInput Tag Tests", function () {
         });
 
         cy.log("set as toggle button");
-        cy.get(cesc("#atb")).click();
+        cy.get(cesc("#atb") + " .doenetml-checkmark").click();
 
         cy.log("Test values displayed in browser");
         cy.get(cesc("#v")).should("have.text", "true");
         cy.get(cesc("#atb_input")).should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
         //cy.get(cesc('#bi_input')).should('be.checked');
-        cy.get(cesc("#atb")).should("contain.text", "It is ∫abf(x)dx");
-        cy.get(cesc("#bi")).should("contain.text", "Hello ab");
+        cy.get(cesc("#atb")).should(
+            "contain.text",
+            `It is ${toMathJaxString(`∫baf⁡(x) dx`, { noInvisibleTimes: true })}`,
+        );
+        cy.get(cesc("#bi")).should(
+            "contain.text",
+            `Hello ${toMathJaxString(`ab`, { noInvisibleTimes: true })}`,
+        );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
@@ -244,8 +257,14 @@ describe("BooleanInput Tag Tests", function () {
         cy.log("hide labels");
         cy.get(cesc("#toggleLabels")).click();
 
-        cy.get(cesc("#atb")).should("not.contain.text", "It is ∫abf(x)dx");
-        cy.get(cesc("#bi")).should("not.contain.text", "Hello ab");
+        cy.get(cesc("#atb")).should(
+            "not.contain.text",
+            `It is ${toMathJaxString(`∫baf⁡(x) dx`, { noInvisibleTimes: true })}`,
+        );
+        cy.get(cesc("#bi")).should(
+            "not.contain.text",
+            `Hello ${toMathJaxString(`ab`, { noInvisibleTimes: true })}`,
+        );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
@@ -270,8 +289,14 @@ describe("BooleanInput Tag Tests", function () {
         cy.log("show labels again");
         cy.get(cesc("#toggleLabels")).click();
 
-        cy.get(cesc("#atb")).should("contain.text", "It is ∫abf(x)dx");
-        cy.get(cesc("#bi")).should("contain.text", "Hello ab");
+        cy.get(cesc("#atb")).should(
+            "contain.text",
+            `It is ${toMathJaxString(`∫baf⁡(x) dx`, { noInvisibleTimes: true })}`,
+        );
+        cy.get(cesc("#bi")).should(
+            "contain.text",
+            `Hello ${toMathJaxString(`ab`, { noInvisibleTimes: true })}`,
+        );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
