@@ -60,11 +60,19 @@ describe("Video Tag Tests", function () {
             .then((type) => expect(type).eq("video/mp4"));
     });
 
-    it("actions on youtube video", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
+    it(
+        "actions on youtube video",
+        {
+            retries: {
+                runMode: 2,
+                openMode: 0,
+            },
+        },
+        () => {
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
   <p>An introduction to Doenet.</p>
   <video youtube="tJ4ypc5L6uU" name="v" />
 
@@ -91,81 +99,88 @@ describe("Video Tag Tests", function () {
   <callAction target="$v" actionName="pauseVideo" name="pauseAction"><label>Pause action</label></callAction>
   </p>
   `,
-                },
-                "*",
+                    },
+                    "*",
+                );
+            });
+
+            // Wait for the YouTube iframe to exist and be visible
+            cy.get('iframe[src*="youtube.com"]').should("be.visible");
+
+            cy.get(cesc("#v"))
+                .invoke("css", "width")
+                .then((width) => parseInt(width))
+                .should("be.gte", widthsBySize["full"] - 4)
+                .and("be.lte", widthsBySize["full"] + 1);
+
+            cy.get(cesc("#v"))
+                .invoke("attr", "src")
+                .then((src) => expect(src.includes("tJ4ypc5L6uU")).eq(true));
+
+            cy.get(cesc("#state")).contains("initializing");
+
+            cy.log(
+                "clicking play action too early does not do anything (no error)",
             );
-        });
+            cy.get(cesc("#playAction")).click();
+            cy.get(cesc("#state")).contains("stopped");
+            cy.get(cesc("#time")).contains("0");
+            cy.get(cesc("#duration")).should("have.text", "300");
+            cy.get(cesc("#secondsWatched")).should("have.text", "0");
+            cy.get(cesc("#fractionWatched")).should("have.text", "0");
 
-        cy.get(cesc("#v"))
-            .invoke("css", "width")
-            .then((width) => parseInt(width))
-            .should("be.gte", widthsBySize["full"] - 4)
-            .and("be.lte", widthsBySize["full"] + 1);
+            cy.wait(2000);
+            cy.get(cesc("#state")).contains("stopped");
+            cy.get(cesc("#time")).contains("0");
+            cy.get(cesc("#secondsWatched")).should("have.text", "0");
+            cy.get(cesc("#fractionWatched")).should("have.text", "0");
 
-        cy.get(cesc("#v"))
-            .invoke("attr", "src")
-            .then((src) => expect(src.includes("tJ4ypc5L6uU")).eq(true));
+            cy.log("play via action");
+            cy.get(cesc("#playAction")).click();
 
-        cy.get(cesc("#state")).contains("initializing");
+            cy.get(cesc("#state")).contains("playing");
+            cy.get(cesc("#time")).contains("1");
+            cy.get(cesc("#time")).contains("2");
+            cy.get(cesc("#time")).contains("3");
 
-        cy.log(
-            "clicking play action too early does not do anything (no error)",
-        );
-        cy.get(cesc("#playAction")).click();
-        cy.get(cesc("#state")).contains("stopped");
-        cy.get(cesc("#time")).contains("0");
-        cy.get(cesc("#duration")).should("have.text", "300");
-        cy.get(cesc("#secondsWatched")).should("have.text", "0");
-        cy.get(cesc("#fractionWatched")).should("have.text", "0");
+            cy.log("pause via action");
+            cy.get(cesc("#pauseAction")).click();
 
-        cy.wait(2000);
-        cy.get(cesc("#state")).contains("stopped");
-        cy.get(cesc("#time")).contains("0");
-        cy.get(cesc("#secondsWatched")).should("have.text", "0");
-        cy.get(cesc("#fractionWatched")).should("have.text", "0");
+            cy.get(cesc("#state")).contains("stopped");
+            cy.get(cesc("#time")).contains("3");
+            cy.get(cesc("#secondsWatched")).should("have.text", "3");
+            cy.get(cesc("#fractionWatched")).should("have.text", "0.01");
 
-        cy.log("play via action");
-        cy.get(cesc("#playAction")).click();
+            cy.log("cue to first minute");
+            cy.get(cesc("#mi") + " textarea").type(
+                "{end}{backspace}60{enter}",
+                {
+                    force: true,
+                },
+            );
 
-        cy.get(cesc("#state")).contains("playing");
-        cy.get(cesc("#time")).contains("1");
-        cy.get(cesc("#time")).contains("2");
-        cy.get(cesc("#time")).contains("3");
+            cy.get(cesc("#state")).contains("stopped");
+            cy.get(cesc("#time")).contains("60");
+            cy.get(cesc("#secondsWatched")).should("have.text", "3");
+            cy.get(cesc("#fractionWatched")).should("have.text", "0.01");
 
-        cy.log("pause via action");
-        cy.get(cesc("#pauseAction")).click();
+            cy.log("play via update");
+            cy.get(cesc("#playUpdate")).click();
 
-        cy.get(cesc("#state")).contains("stopped");
-        cy.get(cesc("#time")).contains("3");
-        cy.get(cesc("#secondsWatched")).should("have.text", "3");
-        cy.get(cesc("#fractionWatched")).should("have.text", "0.01");
+            cy.get(cesc("#state")).contains("playing");
+            cy.get(cesc("#time")).contains("61");
+            cy.get(cesc("#time")).contains("62");
 
-        cy.log("cue to first minute");
-        cy.get(cesc("#mi") + " textarea").type("{end}{backspace}60{enter}", {
-            force: true,
-        });
+            cy.log("pause via update");
+            cy.get(cesc("#pauseUpdate")).click();
 
-        cy.get(cesc("#state")).contains("stopped");
-        cy.get(cesc("#time")).contains("60");
-        cy.get(cesc("#secondsWatched")).should("have.text", "3");
-        cy.get(cesc("#fractionWatched")).should("have.text", "0.01");
+            cy.get(cesc("#state")).contains("stopped");
+            cy.get(cesc("#time")).contains("62");
+            cy.get(cesc("#secondsWatched")).contains(/5|6/);
 
-        cy.log("play via update");
-        cy.get(cesc("#playUpdate")).click();
-
-        cy.get(cesc("#state")).contains("playing");
-        cy.get(cesc("#time")).contains("61");
-        cy.get(cesc("#time")).contains("62");
-
-        cy.log("pause via update");
-        cy.get(cesc("#pauseUpdate")).click();
-
-        cy.get(cesc("#state")).contains("stopped");
-        cy.get(cesc("#time")).contains("62");
-        cy.get(cesc("#secondsWatched")).contains(/5|6/);
-
-        cy.get(cesc("#fractionWatched")).should("have.text", "0.02");
-    });
+            cy.get(cesc("#fractionWatched")).should("have.text", "0.02");
+        },
+    );
 
     it(
         "video segmentsWatched watched merged, youtube video",
@@ -199,6 +214,9 @@ describe("Video Tag Tests", function () {
                     "*",
                 );
             });
+
+            // Wait for the YouTube iframe to exist and be visible
+            cy.get('iframe[src*="youtube.com"]').should("be.visible");
 
             cy.get(cesc("#v"))
                 .invoke("css", "width")

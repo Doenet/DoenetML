@@ -129,8 +129,10 @@ jobs:
             - name: Cypress run
               uses: cypress-io/github-action@v6
               with:
+                  browser: chrome
                   start: npm run preview --workspace packages/test-cypress
                   project: ./packages/test-cypress
+                  wait-on: "http://localhost:4173"
 
     lint:
         name: Lint Rust Code
