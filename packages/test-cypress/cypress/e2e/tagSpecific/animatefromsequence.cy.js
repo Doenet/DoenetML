@@ -2995,7 +2995,10 @@ describe("AnimateFromSequence Tag Tests", function () {
                     doenetML: `
   <number name="t">1</number>
   <animateFromSequence name="timeAnimation" target="$t" from="1" to="100" 
-  animationOn="true" animationMode="increase once" animationInterval='100'/>
+  animationMode="increase once" animationInterval='100'/>
+
+  <updateValue name="start" target="$timeAnimation.animationOn"
+   newValue="true" type="boolean" ><label>Start</label></updateValue>
 
   <updateValue triggerWhen="$t > 2" target="$timeAnimation.animationOn"
    newValue="false" type="boolean" />
@@ -3008,6 +3011,9 @@ describe("AnimateFromSequence Tag Tests", function () {
                 "*",
             );
         });
+
+        cy.get("#isOn").should("have.text", "false");
+        cy.get("#start").click();
 
         cy.get("#isOn").should("have.text", "true");
         cy.get("#t").should("have.text", "1");

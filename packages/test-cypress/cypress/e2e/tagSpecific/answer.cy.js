@@ -1,4 +1,5 @@
 import { cesc } from "@doenet/utils";
+import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("Answer Tag Tests", function () {
     beforeEach(() => {
@@ -2906,7 +2907,7 @@ d
         );
 
         cy.get(cesc("#x") + " textarea").blur();
-        cy.get(cesc("#pSubX")).should("contain.text", "y");
+        cy.get(cesc("#pSubX")).should("contain.text", toMathJaxString("y"));
         cy.get(cesc("#pCreditX")).should(
             "have.text",
             "Credit for this answer: 0",
@@ -2919,7 +2920,7 @@ d
         cy.get(cesc("#x") + " textarea").type("{end}{backspace}x{enter}", {
             force: true,
         });
-        cy.get(cesc("#pSubX")).should("contain.text", "x");
+        cy.get(cesc("#pSubX")).should("contain.text", toMathJaxString("x"));
         cy.get(cesc("#pCreditX")).should(
             "have.text",
             "Credit for this answer: 1",

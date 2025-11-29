@@ -397,6 +397,10 @@ describe("Graph Tag Tests", function () {
                 "*",
             );
         });
-        cy.get(cesc("#g")).should("have.attr", "aria-label", "A blank graph");
+        cy.get("#g-description").should(
+            "have.attr",
+            "aria-label",
+            "A blank graph",
+        );
     });
 });

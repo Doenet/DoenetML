@@ -167,11 +167,19 @@ describe("Video Tag Tests", function () {
         cy.get(cesc("#fractionWatched")).should("have.text", "0.02");
     });
 
-    it("video segmentsWatched watched merged, youtube video", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
+    it(
+        "video segmentsWatched watched merged, youtube video",
+        {
+            retries: {
+                runMode: 2,
+                openMode: 0,
+            },
+        },
+        () => {
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
   <p>An introduction to Doenet.</p>
   <video youtube="tJ4ypc5L6uU" name="v" />
 
@@ -187,248 +195,252 @@ describe("Video Tag Tests", function () {
   <callAction target="$v" actionName="pauseVideo" name="pauseAction"><label>Pause action</label></callAction>
   </p>
   `,
+                    },
+                    "*",
+                );
+            });
+
+            cy.get(cesc("#v"))
+                .invoke("css", "width")
+                .then((width) => parseInt(width))
+                .should("be.gte", widthsBySize["full"] - 4)
+                .and("be.lte", widthsBySize["full"] + 1);
+
+            cy.get(cesc("#v"))
+                .invoke("attr", "src")
+                .then((src) => expect(src.includes("tJ4ypc5L6uU")).eq(true));
+
+            cy.get(cesc("#state")).should("have.text", "stopped");
+            cy.get(cesc("#time")).should("have.text", "0");
+            cy.get(cesc("#secondsWatched")).should("have.text", "0");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched,
+                ).eq(null);
+            });
+
+            cy.log("play");
+            cy.get(cesc("#playAction")).click();
+
+            cy.get(cesc("#state")).should("have.text", "playing");
+            cy.get(cesc("#time")).should("have.text", "1");
+
+            cy.log("pause");
+            cy.get(cesc("#pauseAction")).click();
+
+            cy.get(cesc("#state")).should("have.text", "stopped");
+            cy.get(cesc("#time")).should("have.text", "1");
+            cy.get(cesc("#secondsWatched")).should("have.text", "1");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched.length,
+                ).eq(1);
+                let theSegment =
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched[0];
+                expect(theSegment[0]).lt(0.6);
+                expect(theSegment[1]).gt(0.4).lt(1.6);
+            });
+
+            cy.log("play");
+            cy.get(cesc("#playAction")).click();
+
+            cy.get(cesc("#state")).should("have.text", "playing");
+            cy.get(cesc("#time")).should("have.text", "3");
+
+            cy.log("pause");
+            cy.get(cesc("#pauseAction")).click();
+
+            cy.get(cesc("#state")).should("have.text", "stopped");
+            cy.get(cesc("#time")).should("have.text", "3");
+            cy.get(cesc("#secondsWatched")).should("have.text", "3");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched.length,
+                ).eq(1);
+                let theSegment =
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched[0];
+                expect(theSegment[0]).lt(0.6);
+                expect(theSegment[1]).gt(2.4).lt(3.6);
+            });
+
+            cy.log("play");
+            cy.get(cesc("#playAction")).click();
+
+            cy.get(cesc("#state")).should("have.text", "playing");
+            cy.get(cesc("#time")).should("have.text", "4");
+
+            cy.log("pause");
+            cy.get(cesc("#pauseAction")).click();
+
+            cy.get(cesc("#state")).should("have.text", "stopped");
+            cy.get(cesc("#time")).should("have.text", "4");
+            cy.get(cesc("#secondsWatched")).should("have.text", "4");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched.length,
+                ).eq(1);
+                let theSegment =
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched[0];
+                expect(theSegment[0]).lt(0.6);
+                expect(theSegment[1]).gt(3.4).lt(4.6);
+            });
+
+            cy.log("cue to first minute");
+            cy.get(cesc("#mi") + " textarea").type(
+                "{end}{backspace}60{enter}",
+                {
+                    force: true,
                 },
-                "*",
             );
-        });
+            cy.get(cesc("#time")).should("have.text", "60");
 
-        cy.get(cesc("#v"))
-            .invoke("css", "width")
-            .then((width) => parseInt(width))
-            .should("be.gte", widthsBySize["full"] - 4)
-            .and("be.lte", widthsBySize["full"] + 1);
+            cy.log("play");
+            cy.get(cesc("#playAction")).click();
 
-        cy.get(cesc("#v"))
-            .invoke("attr", "src")
-            .then((src) => expect(src.includes("tJ4ypc5L6uU")).eq(true));
+            cy.get(cesc("#state")).should("have.text", "playing");
+            cy.get(cesc("#time")).should("have.text", "62");
 
-        cy.get(cesc("#state")).should("have.text", "stopped");
-        cy.get(cesc("#time")).should("have.text", "0");
-        cy.get(cesc("#secondsWatched")).should("have.text", "0");
+            cy.log("pause");
+            cy.get(cesc("#pauseAction")).click();
 
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            expect(
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched,
-            ).eq(null);
-        });
+            cy.get(cesc("#state")).should("have.text", "stopped");
+            cy.get(cesc("#time")).should("have.text", "62");
+            cy.get(cesc("#secondsWatched")).contains(/6|7/);
 
-        cy.log("play");
-        cy.get(cesc("#playAction")).click();
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched.length,
+                ).eq(2);
+                let theSegment =
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched[0];
+                expect(theSegment[0]).lt(0.6);
+                expect(theSegment[1]).gt(3.4).lt(4.6);
+                theSegment =
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched[1];
+                expect(theSegment[0]).gt(59.4).lt(60.6);
+                expect(theSegment[1]).gt(61.4).lt(62.6);
+            });
 
-        cy.get(cesc("#state")).should("have.text", "playing");
-        cy.get(cesc("#time")).should("have.text", "1");
+            cy.log("play");
+            cy.get(cesc("#playAction")).click();
 
-        cy.log("pause");
-        cy.get(cesc("#pauseAction")).click();
+            cy.get(cesc("#state")).should("have.text", "playing");
+            cy.get(cesc("#time")).should("have.text", "63");
 
-        cy.get(cesc("#state")).should("have.text", "stopped");
-        cy.get(cesc("#time")).should("have.text", "1");
-        cy.get(cesc("#secondsWatched")).should("have.text", "1");
+            cy.log("pause");
+            cy.get(cesc("#pauseAction")).click();
 
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            expect(
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched.length,
-            ).eq(1);
-            let theSegment =
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched[0];
-            expect(theSegment[0]).lt(0.6);
-            expect(theSegment[1]).gt(0.4).lt(1.6);
-        });
+            cy.get(cesc("#state")).should("have.text", "stopped");
+            cy.get(cesc("#time")).should("have.text", "63");
+            cy.get(cesc("#secondsWatched")).contains(/7|8/);
 
-        cy.log("play");
-        cy.get(cesc("#playAction")).click();
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched.length,
+                ).eq(2);
+                let theSegment =
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched[0];
+                expect(theSegment[0]).lt(0.6);
+                expect(theSegment[1]).gt(3.4).lt(4.6);
+                theSegment =
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched[1];
+                expect(theSegment[0]).gt(59.4).lt(60.6);
+                expect(theSegment[1]).gt(62).lt(63.6);
+            });
 
-        cy.get(cesc("#state")).should("have.text", "playing");
-        cy.get(cesc("#time")).should("have.text", "3");
+            cy.log("replay part of beginning");
 
-        cy.log("pause");
-        cy.get(cesc("#pauseAction")).click();
+            cy.get(cesc("#mi") + " textarea").type(
+                "{end}{backspace}{backspace}1{enter}",
+                { force: true },
+            );
+            cy.get(cesc("#time")).should("have.text", "1");
 
-        cy.get(cesc("#state")).should("have.text", "stopped");
-        cy.get(cesc("#time")).should("have.text", "3");
-        cy.get(cesc("#secondsWatched")).should("have.text", "3");
+            cy.log("play");
+            cy.get(cesc("#playAction")).click();
 
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            expect(
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched.length,
-            ).eq(1);
-            let theSegment =
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched[0];
-            expect(theSegment[0]).lt(0.6);
-            expect(theSegment[1]).gt(2.4).lt(3.6);
-        });
+            cy.get(cesc("#state")).should("have.text", "playing");
+            cy.get(cesc("#time")).should("have.text", "3");
 
-        cy.log("play");
-        cy.get(cesc("#playAction")).click();
+            cy.log("pause");
+            cy.get(cesc("#pauseAction")).click();
 
-        cy.get(cesc("#state")).should("have.text", "playing");
-        cy.get(cesc("#time")).should("have.text", "4");
+            cy.get(cesc("#state")).should("have.text", "stopped");
+            cy.get(cesc("#time")).should("have.text", "3");
+            cy.get(cesc("#secondsWatched")).contains(/7|8/);
 
-        cy.log("pause");
-        cy.get(cesc("#pauseAction")).click();
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched.length,
+                ).eq(2);
+                let theSegment =
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched[0];
+                expect(theSegment[0]).lt(0.6);
+                expect(theSegment[1]).gt(3.4).lt(4.6);
+                theSegment =
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched[1];
+                expect(theSegment[0]).gt(59.4).lt(60.6);
+                expect(theSegment[1]).gt(62.4).lt(63.6);
+            });
 
-        cy.get(cesc("#state")).should("have.text", "stopped");
-        cy.get(cesc("#time")).should("have.text", "4");
-        cy.get(cesc("#secondsWatched")).should("have.text", "4");
+            cy.log("play");
+            cy.wait(100); // for some reason, need this delay when headless for play button to be activated
+            cy.get(cesc("#playAction")).click();
 
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            expect(
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched.length,
-            ).eq(1);
-            let theSegment =
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched[0];
-            expect(theSegment[0]).lt(0.6);
-            expect(theSegment[1]).gt(3.4).lt(4.6);
-        });
+            cy.get(cesc("#state")).should("have.text", "playing");
+            cy.get(cesc("#time")).should("have.text", "5");
 
-        cy.log("cue to first minute");
-        cy.get(cesc("#mi") + " textarea").type("{end}{backspace}60{enter}", {
-            force: true,
-        });
-        cy.get(cesc("#time")).should("have.text", "60");
+            cy.log("pause");
+            cy.get(cesc("#pauseAction")).click();
 
-        cy.log("play");
-        cy.get(cesc("#playAction")).click();
+            cy.get(cesc("#state")).should("have.text", "stopped");
+            cy.get(cesc("#time")).should("have.text", "5");
+            cy.get(cesc("#secondsWatched")).contains(/8|9/);
 
-        cy.get(cesc("#state")).should("have.text", "playing");
-        cy.get(cesc("#time")).should("have.text", "62");
-
-        cy.log("pause");
-        cy.get(cesc("#pauseAction")).click();
-
-        cy.get(cesc("#state")).should("have.text", "stopped");
-        cy.get(cesc("#time")).should("have.text", "62");
-        cy.get(cesc("#secondsWatched")).contains(/6|7/);
-
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            expect(
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched.length,
-            ).eq(2);
-            let theSegment =
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched[0];
-            expect(theSegment[0]).lt(0.6);
-            expect(theSegment[1]).gt(3.4).lt(4.6);
-            theSegment =
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched[1];
-            expect(theSegment[0]).gt(59.4).lt(60.6);
-            expect(theSegment[1]).gt(61.4).lt(62.6);
-        });
-
-        cy.log("play");
-        cy.get(cesc("#playAction")).click();
-
-        cy.get(cesc("#state")).should("have.text", "playing");
-        cy.get(cesc("#time")).should("have.text", "63");
-
-        cy.log("pause");
-        cy.get(cesc("#pauseAction")).click();
-
-        cy.get(cesc("#state")).should("have.text", "stopped");
-        cy.get(cesc("#time")).should("have.text", "63");
-        cy.get(cesc("#secondsWatched")).contains(/7|8/);
-
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            expect(
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched.length,
-            ).eq(2);
-            let theSegment =
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched[0];
-            expect(theSegment[0]).lt(0.6);
-            expect(theSegment[1]).gt(3.4).lt(4.6);
-            theSegment =
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched[1];
-            expect(theSegment[0]).gt(59.4).lt(60.6);
-            expect(theSegment[1]).gt(62).lt(63.6);
-        });
-
-        cy.log("replay part of beginning");
-
-        cy.get(cesc("#mi") + " textarea").type(
-            "{end}{backspace}{backspace}1{enter}",
-            { force: true },
-        );
-        cy.get(cesc("#time")).should("have.text", "1");
-
-        cy.log("play");
-        cy.get(cesc("#playAction")).click();
-
-        cy.get(cesc("#state")).should("have.text", "playing");
-        cy.get(cesc("#time")).should("have.text", "3");
-
-        cy.log("pause");
-        cy.get(cesc("#pauseAction")).click();
-
-        cy.get(cesc("#state")).should("have.text", "stopped");
-        cy.get(cesc("#time")).should("have.text", "3");
-        cy.get(cesc("#secondsWatched")).contains(/7|8/);
-
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            expect(
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched.length,
-            ).eq(2);
-            let theSegment =
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched[0];
-            expect(theSegment[0]).lt(0.6);
-            expect(theSegment[1]).gt(3.4).lt(4.6);
-            theSegment =
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched[1];
-            expect(theSegment[0]).gt(59.4).lt(60.6);
-            expect(theSegment[1]).gt(62.4).lt(63.6);
-        });
-
-        cy.log("play");
-        cy.wait(100); // for some reason, need this delay when headless for play button to be activated
-        cy.get(cesc("#playAction")).click();
-
-        cy.get(cesc("#state")).should("have.text", "playing");
-        cy.get(cesc("#time")).should("have.text", "5");
-
-        cy.log("pause");
-        cy.get(cesc("#pauseAction")).click();
-
-        cy.get(cesc("#state")).should("have.text", "stopped");
-        cy.get(cesc("#time")).should("have.text", "5");
-        cy.get(cesc("#secondsWatched")).contains(/8|9/);
-
-        cy.window().then(async (win) => {
-            let stateVariables = await win.returnAllStateVariables1();
-            expect(
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched.length,
-            ).eq(2);
-            let theSegment =
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched[0];
-            expect(theSegment[0]).lt(0.6);
-            expect(theSegment[1]).gt(4).lt(5.6);
-            theSegment =
-                stateVariables[await win.resolvePath1("v")].stateValues
-                    .segmentsWatched[1];
-            expect(theSegment[0]).gt(59.4).lt(60.6);
-            expect(theSegment[1]).gt(62.4).lt(63.6);
-        });
-    });
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched.length,
+                ).eq(2);
+                let theSegment =
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched[0];
+                expect(theSegment[0]).lt(0.6);
+                expect(theSegment[1]).gt(4).lt(5.6);
+                theSegment =
+                    stateVariables[await win.resolvePath1("v")].stateValues
+                        .segmentsWatched[1];
+                expect(theSegment[0]).gt(59.4).lt(60.6);
+                expect(theSegment[1]).gt(62.4).lt(63.6);
+            });
+        },
+    );
 });

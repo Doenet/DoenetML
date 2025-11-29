@@ -223,7 +223,11 @@ export default React.memo(function Graph(props) {
     if (!board) {
         return (
             <div style={outerStyle} ref={ref}>
-                <div aria-label={SVs.description} role="img">
+                <div
+                    id={`${id}-description`}
+                    aria-label={SVs.description}
+                    role="img"
+                >
                     <a name={id} />
                     <div id={id} className="jxgbox" style={divStyle} />
                 </div>
@@ -442,7 +446,11 @@ export default React.memo(function Graph(props) {
 
     return (
         <div style={outerStyle} ref={ref}>
-            <div aria-label={SVs.description} role="img">
+            <div
+                id={`${id}-description`}
+                aria-label={SVs.description}
+                role="img"
+            >
                 <a name={id} />
                 <div id={id} className="jxgbox" style={divStyle} />
                 <BoardContext.Provider value={board}>

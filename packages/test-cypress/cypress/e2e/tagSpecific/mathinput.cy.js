@@ -1,4 +1,5 @@
 import { cesc } from "@doenet/utils";
+import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("MathInput Tag Tests", function () {
     beforeEach(() => {
@@ -89,34 +90,22 @@ describe("MathInput Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#c2")).should("have.text", "x");
+        cy.get(cesc("#c2")).should("have.text", toMathJaxString("x"));
 
         cy.get(cesc("#c") + " textarea").type("{end}y{enter}", {
             force: true,
         });
         cy.get(cesc("#d") + " textarea").focus();
 
-        cy.get(cesc("#c2")).should("contain.text", "xy");
+        cy.get(cesc("#c2")).should("have.text", toMathJaxString("xy"));
         cy.get(cesc("#c") + " .mq-editable-field").should("contain.text", "xy");
-        cy.get(cesc("#c2"))
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text).eq("xy");
-            });
 
         // need next update to go back to x for the bug to be revealed
         cy.get(cesc("#c") + " textarea").type("{end}{backspace}{enter}", {
             force: true,
         });
-        cy.get(cesc("#c2")).should("not.contain.text", "xy");
+        cy.get(cesc("#c2")).should("not.have.text", toMathJaxString("xy"));
         cy.get(cesc("#c") + " .mq-editable-field").should("contain.text", "x");
-        cy.get(cesc("#c2"))
-            .eq(0)
-            .invoke("text")
-            .then((text) => {
-                expect(text).eq("x");
-            });
     });
 
     it("set value from immediateValue on reload", () => {

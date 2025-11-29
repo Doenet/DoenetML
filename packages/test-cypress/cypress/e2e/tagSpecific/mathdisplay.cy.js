@@ -1,4 +1,5 @@
 import { cesc } from "@doenet/utils";
+import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("Math Display Tag Tests", function () {
     beforeEach(() => {
@@ -31,9 +32,9 @@ describe("Math Display Tag Tests", function () {
         });
 
         cy.log("Test value displayed in browser");
-        cy.get(cesc("#e1")).should("have.text", "(1)sin⁡(x)");
-        cy.get(cesc("#e2")).should("have.text", "(2)cos⁡(x)");
-        cy.get(cesc("#e3")).should("have.text", "(3)tan⁡(x)");
+        cy.get(cesc("#e1")).should("have.text", "sin⁡(𝑥)(1)");
+        cy.get(cesc("#e2")).should("have.text", "cos⁡(𝑥)(2)");
+        cy.get(cesc("#e3")).should("have.text", "tan⁡(𝑥)(3)");
         cy.get(cesc("#p1")).should(
             "have.text",
             "We have equation (1), equation (2), and equation (3).",
@@ -121,7 +122,10 @@ describe("Math Display Tag Tests", function () {
         function checkEquationNumbering(m, n) {
             let counter = 1;
 
-            cy.get(cesc("#x")).should("have.text", `(${counter})x`);
+            cy.get(cesc("#x")).should(
+                "have.text",
+                toMathJaxString(`x(${counter})`),
+            );
             cy.get(cesc("#px")).should(
                 "have.text",
                 `x: ${counter}, equation (${counter})`,
@@ -139,7 +143,7 @@ describe("Math Display Tag Tests", function () {
                     counter++;
                     cy.get(cesc(`#rm:${i}.eq`)).should(
                         "have.text",
-                        `(${counter})${i}m`,
+                        toMathJaxString(`${i}m(${counter})`),
                     );
                     if (i <= 6) {
                         cy.get(cesc(`#pm${i}`)).should(
@@ -179,7 +183,10 @@ describe("Math Display Tag Tests", function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#y")).should("have.text", `(${counter})y`);
+                cy.get(cesc("#y")).should(
+                    "have.text",
+                    toMathJaxString(`y(${counter})`),
+                );
                 cy.get(cesc("#py")).should(
                     "have.text",
                     `y: ${counter}, equation (${counter})`,
@@ -198,7 +205,7 @@ describe("Math Display Tag Tests", function () {
                     counter++;
                     cy.get(cesc(`#rn:${i}.eq`)).should(
                         "have.text",
-                        `(${counter})${i}n`,
+                        toMathJaxString(`${i}n(${counter})`),
                     );
                     if (i <= 6) {
                         cy.get(cesc(`#pn${i}`)).should(
@@ -239,7 +246,10 @@ describe("Math Display Tag Tests", function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#z")).should("have.text", `(${counter})z`);
+                cy.get(cesc("#z")).should(
+                    "have.text",
+                    toMathJaxString(`z(${counter})`),
+                );
                 cy.get(cesc("#pz")).should(
                     "have.text",
                     `z: ${counter}, equation (${counter})`,
@@ -346,7 +356,10 @@ describe("Math Display Tag Tests", function () {
         function checkEquationNumbering(m, n) {
             let counter = 1;
 
-            cy.get(cesc("#x")).should("have.text", `(${counter})x`);
+            cy.get(cesc("#x")).should(
+                "have.text",
+                toMathJaxString(`x(${counter})`),
+            );
             cy.get(cesc("#px")).should(
                 "have.text",
                 `x: ${counter}, equation (${counter})`,
@@ -362,10 +375,14 @@ describe("Math Display Tag Tests", function () {
             cy.window().then(async (win) => {
                 cy.get(cesc("#ms")).should(
                     "have.text",
-                    [...Array(m).keys()]
-                        .map((v) => v + 1)
-                        .map((i) => `(${counter + i})${i}m=${i + 10}`)
-                        .join(""),
+                    [
+                        ...[...Array(m).keys()]
+                            .map((v) => v + 1)
+                            .map((i) => toMathJaxString(`${i}m=${i + 10}`)),
+                        ...[...Array(m).keys()]
+                            .map((v) => v + 1)
+                            .map((i) => `(${counter + i})`),
+                    ].join(""),
                 );
             });
             for (let i = 1; i <= m; i++) {
@@ -409,7 +426,10 @@ describe("Math Display Tag Tests", function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#y")).should("have.text", `(${counter})y`);
+                cy.get(cesc("#y")).should(
+                    "have.text",
+                    toMathJaxString(`y(${counter})`),
+                );
                 cy.get(cesc("#py")).should(
                     "have.text",
                     `y: ${counter}, equation (${counter})`,
@@ -426,10 +446,14 @@ describe("Math Display Tag Tests", function () {
             cy.window().then(async (win) => {
                 cy.get(cesc("#ns")).should(
                     "have.text",
-                    [...Array(n).keys()]
-                        .map((v) => v + 1)
-                        .map((i) => `(${counter + i})${i}n=${i + 10}`)
-                        .join(""),
+                    [
+                        ...[...Array(n).keys()]
+                            .map((v) => v + 1)
+                            .map((i) => toMathJaxString(`${i}n=${i + 10}`)),
+                        ...[...Array(n).keys()]
+                            .map((v) => v + 1)
+                            .map((i) => `(${counter + i})`),
+                    ].join(""),
                 );
             });
 
@@ -475,7 +499,10 @@ describe("Math Display Tag Tests", function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#z")).should("have.text", `(${counter})z`);
+                cy.get(cesc("#z")).should(
+                    "have.text",
+                    toMathJaxString(`z(${counter})`),
+                );
                 cy.get(cesc("#pz")).should(
                     "have.text",
                     `z: ${counter}, equation (${counter})`,
@@ -582,7 +609,10 @@ describe("Math Display Tag Tests", function () {
         function checkEquationNumbering(m, n) {
             let counter = 1;
 
-            cy.get(cesc("#x")).should("have.text", `(${counter})x`);
+            cy.get(cesc("#x")).should(
+                "have.text",
+                toMathJaxString(`x(${counter})`),
+            );
             cy.get(cesc("#px")).should(
                 "have.text",
                 `x: ${counter}, equation (${counter})`,
@@ -599,12 +629,14 @@ describe("Math Display Tag Tests", function () {
             let labeledMs = 0;
             let unlabeledMs = 0;
             let mPieces = [];
+            let mCounterPieces = [];
             for (let i = 1; i <= m; i++) {
                 cy.window().then(async (win) => {
                     if (i % 2 === 1) {
                         labeledMs++;
                         counter++;
-                        mPieces.push(`(${counter})${i}m=${i + 10}`);
+                        mPieces.push(toMathJaxString(`${i}m=${i + 10}`));
+                        mCounterPieces.push(`(${counter})`);
 
                         if (i <= 6) {
                             cy.get(cesc(`#pm${i}`)).should(
@@ -631,7 +663,7 @@ describe("Math Display Tag Tests", function () {
                         }
                     } else {
                         unlabeledMs++;
-                        mPieces.push(`${i}m=${i + 10}`);
+                        mPieces.push(toMathJaxString(`${i}m=${i + 10}`));
 
                         if (i <= 6) {
                             cy.get(cesc(`#pm${i}`)).should(
@@ -650,7 +682,10 @@ describe("Math Display Tag Tests", function () {
                 });
             }
             cy.window().then(async (win) => {
-                cy.get(cesc("#ms")).should("have.text", mPieces.join(""));
+                cy.get(cesc("#ms")).should(
+                    "have.text",
+                    [...mPieces, ...mCounterPieces].join(""),
+                );
             });
 
             for (let i = m + 1; i <= 6; i++) {
@@ -671,7 +706,10 @@ describe("Math Display Tag Tests", function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#y")).should("have.text", `(${counter})y`);
+                cy.get(cesc("#y")).should(
+                    "have.text",
+                    toMathJaxString(`y(${counter})`),
+                );
                 cy.get(cesc("#py")).should(
                     "have.text",
                     `y: ${counter}, equation (${counter})`,
@@ -689,12 +727,14 @@ describe("Math Display Tag Tests", function () {
             let labeledNs = 0;
             let unlabeledNs = 0;
             let nPieces = [];
+            let nCounterPieces = [];
             for (let i = 1; i <= n; i++) {
                 cy.window().then(async (win) => {
                     if (i % 2 === 0) {
                         labeledNs++;
                         counter++;
-                        nPieces.push(`(${counter})${i}n=${i + 10}`);
+                        nPieces.push(toMathJaxString(`${i}n=${i + 10}`));
+                        nCounterPieces.push(`(${counter})`);
                         if (i <= 6) {
                             cy.get(cesc(`#pn${i}`)).should(
                                 "have.text",
@@ -720,7 +760,7 @@ describe("Math Display Tag Tests", function () {
                         }
                     } else {
                         unlabeledNs++;
-                        nPieces.push(`${i}n=${i + 10}`);
+                        nPieces.push(toMathJaxString(`${i}n=${i + 10}`));
                         if (i <= 6) {
                             cy.get(cesc(`#pn${i}`)).should(
                                 "have.text",
@@ -739,7 +779,10 @@ describe("Math Display Tag Tests", function () {
             }
 
             cy.window().then(async (win) => {
-                cy.get(cesc("#ns")).should("have.text", nPieces.join(""));
+                cy.get(cesc("#ns")).should(
+                    "have.text",
+                    [...nPieces, ...nCounterPieces].join(""),
+                );
             });
 
             for (let i = n + 1; i <= 6; i++) {
@@ -760,7 +803,10 @@ describe("Math Display Tag Tests", function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get(cesc("#z")).should("have.text", `(${counter})z`);
+                cy.get(cesc("#z")).should(
+                    "have.text",
+                    toMathJaxString(`z(${counter})`),
+                );
                 cy.get(cesc("#pz")).should(
                     "have.text",
                     `z: ${counter}, equation (${counter})`,
@@ -831,9 +877,9 @@ describe("Math Display Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#cancel")).should("have.text", "x");
-        cy.get(cesc("#bcancel")).should("have.text", "y");
-        cy.get(cesc("#bbox")).should("have.text", "R");
-        cy.get(cesc("#circle")).should("have.text", "1");
+        cy.get(cesc("#cancel")).should("have.text", toMathJaxString("x"));
+        cy.get(cesc("#bcancel")).should("have.text", toMathJaxString("y"));
+        cy.get(cesc("#bbox")).should("have.text", toMathJaxString("R"));
+        cy.get(cesc("#circle")).should("have.text", toMathJaxString("1"));
     });
 });

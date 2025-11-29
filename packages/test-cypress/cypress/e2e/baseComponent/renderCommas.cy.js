@@ -1,4 +1,5 @@
 import { cesc } from "@doenet/utils";
+import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("Render commas tests", function () {
     beforeEach(() => {
@@ -305,7 +306,7 @@ $fi.iterates
 
         cy.get(".doenet-viewer").should(
             "contain.text",
-            "a, b, c\n\n2a, 2b, 2c",
+            toMathJaxString("a, b, c\n\n2a, 2b, 2c"),
         );
     });
 
@@ -328,7 +329,10 @@ $fi.iterates
             );
         });
 
-        cy.get(cesc("#s")).should("contain.text", "a, b, c\n\n    2a, 2b, 2c");
+        cy.get(cesc("#s")).should(
+            "contain.text",
+            toMathJaxString("a, b, c\n\n    2a, 2b, 2c"),
+        );
     });
 
     it("render commas around repeat inside paragraph", () => {
@@ -350,7 +354,10 @@ $fi.iterates
             );
         });
 
-        cy.get(cesc("#p")).should("contain.text", "a, b, c\n\n    2a, 2b, 2c");
+        cy.get(cesc("#p")).should(
+            "contain.text",
+            toMathJaxString("a, b, c\n\n    2a, 2b, 2c"),
+        );
     });
 
     it("asList when copy array prop, test renderers", () => {

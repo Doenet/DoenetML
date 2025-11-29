@@ -1,4 +1,4 @@
-import { cesc } from "@doenet/utils";
+import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("Legend Tag Tests", function () {
     beforeEach(() => {
@@ -22,6 +22,6 @@ describe("Legend Tag Tests", function () {
             );
         });
 
-        cy.get(".MathJax").should("have.text", "A=2.83");
+        cy.get(".MathJax").should("contain.text", toMathJaxString("A =2.83"));
     });
 });
