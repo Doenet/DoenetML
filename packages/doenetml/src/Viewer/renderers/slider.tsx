@@ -330,13 +330,16 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
             </div>
             <input
                 ref={inputRef}
+                id={id}
                 type="range"
                 style={{ width, margin: 0, maxWidth: "100%" }}
                 value={index}
                 list={id + "-datalist"}
                 min={0}
                 max={SVs.numItems - 1}
-                onChange={(e) => changeValue(e.target.value, transient)}
+                onInput={(e) =>
+                    changeValue((e.target as HTMLInputElement).value, transient)
+                }
                 onMouseDown={() => setTransient(true)}
                 onMouseUp={(e) => {
                     setTransient(false);
