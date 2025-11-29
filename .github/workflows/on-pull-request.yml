@@ -124,10 +124,10 @@ jobs:
                   WIREIT_CACHE: "local"
 
             - name: Build cypress
-            - run: npm run build --workspace packages/test-cypress
+              run: npm run build --workspace packages/test-cypress
 
             - name: Start server for cypress
-            - run: npm run preview --workspace packages/test-cypress
+              run: npm run preview --workspace packages/test-cypress
 
             - name: Cypress run
               uses: cypress-io/github-action@v6
