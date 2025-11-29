@@ -204,6 +204,10 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
         };
     }, []);
 
+    useEffect(() => {
+        setIndex(SVs.index);
+    }, [SVs.index]);
+
     const changeValue = React.useCallback((v: string, isTransient: boolean) => {
         const index = Number(v);
         if (!(SVs.type === "text")) {
@@ -285,6 +289,12 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                         value={value}
                         label={label}
                         style={dataOptionStyle}
+                        onClick={(e) => {
+                            changeValue(
+                                (e.target as HTMLInputElement).value,
+                                false,
+                            );
+                        }}
                     ></option>
                 ))}
             </datalist>
@@ -317,17 +327,17 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
     } else {
         myLabel = null;
     }
+    if (myLabel != null) {
+        myLabel = (
+            <div id={`${id}-label`}>
+                <label htmlFor={id}>{myLabel}</label>
+            </div>
+        );
+    }
 
     return (
         <div>
-            <div
-                id={`${id}-label`}
-                // style={{
-                //     height: SVs.label || SVs.showValue ? "20px" : "0px",
-                // }}
-            >
-                {myLabel}
-            </div>
+            {myLabel}
             <input
                 ref={inputRef}
                 id={id}
