@@ -126,12 +126,10 @@ jobs:
             - name: Build cypress
               run: npm run build --workspace packages/test-cypress
 
-            - name: Start server for cypress
-              run: npm run preview --workspace packages/test-cypress
-
             - name: Cypress run
               uses: cypress-io/github-action@v6
               with:
+                  start: npm run preview --workspace packages/test-cypress
                   project: ./packages/test-cypress
 
     lint:
