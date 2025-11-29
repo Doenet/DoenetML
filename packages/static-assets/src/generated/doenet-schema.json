@@ -60368,6 +60368,13 @@
                     ]
                 },
                 {
+                    "name": "rotateTickLabels",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "showValue",
                     "values": [
                         "true",
@@ -60453,6 +60460,11 @@
                 },
                 {
                     "name": "showTicks",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "rotateTickLabels",
                     "type": "boolean",
                     "isArray": false
                 },

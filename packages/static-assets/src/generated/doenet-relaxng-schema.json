@@ -96884,6 +96884,13 @@
                         "false"
                     ]
                 },
+                "rotateTickLabels": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "showValue": {
                     "optional": true,
                     "type": [
@@ -97207,6 +97214,11 @@
                 },
                 {
                     "name": "showTicks",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "rotateTickLabels",
                     "type": "boolean",
                     "isArray": false
                 },
