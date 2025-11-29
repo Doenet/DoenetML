@@ -142,7 +142,7 @@ export function DocViewer({
 
     const rendererClasses = useRef<Record<string, any>>({});
     const coreInfo = useRef<Record<string, any> | null>(null);
-    const loadedInitialState = useRef(false);
+    const loadedInitialRendererState = useRef(false);
     const coreCreated = useRef(false);
     const coreCreationInProgress = useRef(false);
     const coreId = useRef<string>("");
@@ -240,7 +240,7 @@ export function DocViewer({
                         setDocumentRenderer(null);
                         coreCreated.current = false;
                         coreCreationInProgress.current = false;
-                        loadedInitialState.current = false;
+                        loadedInitialRendererState.current = false;
 
                         processLoadedDocState(e.data.state);
 
@@ -759,7 +759,7 @@ export function DocViewer({
 
         if (
             init &&
-            loadedInitialState.current &&
+            loadedInitialRendererState.current &&
             !errorInitializingRenderers.current &&
             !errorInsideRenderers.current &&
             !hidden
@@ -902,8 +902,8 @@ export function DocViewer({
                     serializedComponentsReviver,
                 );
 
-                // Record the fact that we loaded the state before starting core
-                loadedInitialState.current = true;
+                // Record whether or not we loaded the renderer state before starting core
+                loadedInitialRendererState.current = Boolean(rendererState);
 
                 initializeRenderers({
                     rendererState,
@@ -1004,8 +1004,8 @@ export function DocViewer({
             data.rendererState &&
             JSON.parse(data.rendererState, serializedComponentsReviver);
 
-        // Record the fact that we loaded the state before starting core
-        loadedInitialState.current = true;
+        // Record whether or not we loaded the renderer state before starting core
+        loadedInitialRendererState.current = Boolean(rendererState);
 
         initializeRenderers({
             rendererState,
@@ -1341,7 +1341,7 @@ export function DocViewer({
         setDocumentRenderer(null);
         coreCreated.current = false;
         coreCreationInProgress.current = false;
-        loadedInitialState.current = false;
+        loadedInitialRendererState.current = false;
 
         setStage("wait");
 
