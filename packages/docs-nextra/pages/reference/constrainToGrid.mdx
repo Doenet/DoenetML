@@ -9,8 +9,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 component that is used to constrain a ` <point>{:dn}` to a grid. The grid can be the default $1 \times 1$ grid,
  or a custom grid defined by the `dx` and `dy` attributes, or by the `xOffset` and `yOffset` attributes.
 
-` <constrainToGrid/>{:dn}` forces points to snap to gridline locations. The ` <constrainToGrid/>{:dn}` 
-component is nested within a ` <constraints>{:dn}` block.
+` <constrainToGrid/>{:dn}` forces points to snap to gridline locations.
 
 ## Attributes and Properties 
  <AttrDisplay name='constrainToGrid'/> 
@@ -26,9 +25,7 @@ component is nested within a ` <constraints>{:dn}` block.
 <p>Move the point.</p>
 <graph size="small">
   <point name="p">
-    <constraints>
-      <constrainToGrid/>
-    </constraints>
+    <constrainToGrid/>
     <label>$p.coords</label>
   </point>
 </graph>
@@ -49,9 +46,7 @@ The ` <point>{:dn}` is constrained to the default $1 \times 1$ grid.
 <p>Move the circle.</p>
 <graph size="small">
   <point name="p" hide>
-    <constraints>
-      <constrainToGrid/>
-    </constraints>
+    <constrainToGrid/>
   </point>
   <circle name="circ" center="$p" radius="3" filled/>
 </graph>
@@ -74,9 +69,7 @@ To constrain geometric objects other than points, first define a named ` <point>
 <graph size="small" grid="1 1" 
   xmin="-3" xmax="3" ymin="-3" ymax="3">
   <point name="p">
-    <constraints>
-      <constrainToGrid dx="0.5" dy="0.5"/>
-    </constraints>
+    <constrainToGrid dx="0.5" dy="0.5"/>
     <label>$p.coords</label>
   </point>
 </graph>
@@ -98,9 +91,7 @@ The ` <point>{:dn}` is constrained to a custom $0.5 \times 0.5$ grid.
 <graph size="small" grid="0.5 2" xmin="-3" xmax="3" 
   ymin="-1" ymax="5">
   <point name="p">
-    <constraints>
-      <constrainToGrid dx="0.5" dy="2"/>
-    </constraints>
+    <constrainToGrid dx="0.5" dy="2"/>
     <label>$p.coords</label>
   </point>
 </graph>
@@ -122,9 +113,7 @@ The ` <point>{:dn}` is constrained to a custom grid using the `dx` and `dy` comp
 <graph size="small" grid="1 1" xmin="-3" xmax="3" 
   ymin="-3" ymax="3">
   <point name="p">
-    <constraints>
-      <constrainToGrid xOffset="0.5" yOffset="0.5"/>
-    </constraints>
+    <constrainToGrid xOffset="0.5" yOffset="0.5"/>
     <label>$p.coords</label>
   </point>
 </graph>

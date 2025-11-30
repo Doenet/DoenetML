@@ -7,7 +7,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ` <constrainToGraph>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types)
-component used within a ` <constraints>{:dn}` block to keep constrained ` <point>{:dn}` 
+component to keep constrained ` <point>{:dn}` 
 components within the confines of the graphing window.
 
 ## Attributes and Properties 
@@ -23,9 +23,7 @@ components within the confines of the graphing window.
 <p>Try dragging the point off the graph</p>
 <graph size="small">
   <point name="p">
-    <constraints>
-      <constrainToGraph/>
-    </constraints>
+    <constrainToGraph/>
     <label>$p.coords</label>
   </point>
 </graph>
@@ -46,9 +44,7 @@ The ` <point>{:dn}` is constrained to the current viewing window of the ` <graph
 <p>Try dragging the point off the graph</p>
 <graph size="small">
   <point name="p">
-    <constraints>
-      <constrainToGraph buffer="0.2"/>
-    </constraints>
+    <constrainToGraph buffer="0.2"/>
     <label>$p.coords</label>
   </point>
 </graph>

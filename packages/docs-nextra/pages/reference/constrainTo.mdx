@@ -7,7 +7,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ` <constrainTo>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) component
- used within a ` <constraints>{:dn}` block to constrain a ` <point>{:dn}` to 
+ to constrain a ` <point>{:dn}` to 
  another named graphical component (such as a ` <line>{:dn}` or a ` <function>{:dn}`).
 
 ## Attributes and Properties 
@@ -24,9 +24,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 <graph size="small">
   <circle name="raceTrack" radius="5"/>
   <point name="car" labelIsName styleNumber="2">
-    <constraints>
-      <constrainTo>$raceTrack</constrainTo>
-    </constraints>
+    <constrainTo>$raceTrack</constrainTo>
   </point>
 </graph>
 <p>The car is located at <m>$car</m>.</p>
@@ -35,7 +33,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 The ` <point>{:dn}` named `car` is constrained to the ` <circle>{:dn}` named 
-`raceTrack` using the ` <constrainTo>{:dn}` component within the ` <constraints>{:dn}` block.
+`raceTrack` using the ` <constrainTo>{:dn}` component.
 
 
 
@@ -52,9 +50,7 @@ The ` <point>{:dn}` named `car` is constrained to the ` <circle>{:dn}` named
 <graph size="small">
   <line name="line1">y = x</line>
   <point name="p" hide>
-    <constraints>
-      <constrainTo>$line1</constrainTo>
-    </constraints>
+    <constrainTo>$line1</constrainTo>
   </point>
   <circle 
     name="circ" 
@@ -95,9 +91,7 @@ The original ` <point>{:dn}` can be hidden using the `hide` attribute.
   <line name="line1" through="$p" 
     slope="$m" styleNumber="2"/>
   <point name="p" styleNumber="2">
-    <constraints>
-      <constrainTo>$f</constrainTo>
-    </constraints>
+    <constrainTo>$f</constrainTo>
   </point>
 </graph>
 

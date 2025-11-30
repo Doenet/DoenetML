@@ -154,21 +154,17 @@ Points with standard styleNumbers one through six are illustrated. If unspecifie
 <p><m>B = $B</m> (Attracted to grid)</p>
 <graph size="small" grid="1 1" xmin="-5" xmax="5" ymin="-5" ymax="5">
   <point name="A" labelIsName>(-2,2)
-    <constraints>
-      <constrainToGrid/>
-    </constraints>
+    <constrainToGrid/>
   </point>
   <point name="B" labelIsName>(2,2)
-    <constraints>
-      <attractToGrid/>
-    </constraints>
+    <attractToGrid/>
   </point>
 </graph>
 ```
 
 
 
-Points can take ` <constraints>{:dn}` as children. Several different types of constraints are possible; in this example, the ` <constrainToGrid/>{:dn}` and ` <attractToGrid/>{:dn}` constraints are illustrated.
+Points can take constraints as children. Several different types of constraints are possible; in this example, the ` <constrainToGrid/>{:dn}` and ` <attractToGrid/>{:dn}` constraints are illustrated.
 
 
 
@@ -183,16 +179,14 @@ Points can take ` <constraints>{:dn}` as children. Several different types of co
   <line name="line1">y = x</line>
   <point name="p" styleNumber="2">
     (-2,-2)
-    <constraints>
-      <constrainTo>$line1</constrainTo>
-    </constraints>
+    <constrainTo>$line1</constrainTo>
   </point>
 </graph>
 ```
 
 
 
-Points can take ` <constraints>{:dn}` as children. Several different types of constraints are possible. In this case, the ` <constrainTo>{:dn}` constraint references a named ` <line>{:dn}`.
+Points can take constraints as children. Several different types of constraints are possible. In this case, the ` <constrainTo>{:dn}` constraint references a named ` <line>{:dn}`.
 
 
 
@@ -512,9 +506,7 @@ The `latex` property renders the latex code associated with rendering the coordi
 
 <graph size="small" grid="2 2">
   <point name="p">(1.5,1.5)
-    <constraints>
-      <attractToGrid dx="2" dy="2"/>
-    </constraints>
+    <attractToGrid dx="2" dy="2"/>
   </point>
 </graph>
 ```

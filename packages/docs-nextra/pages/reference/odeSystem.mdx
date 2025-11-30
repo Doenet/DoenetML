@@ -204,9 +204,7 @@ Refer to the previous example for the setup of the ` <odeSystem>{:dn}` component
   <yLabel><m>\omega</m></yLabel>
   <point name="IC" layer="1" coords="(1,1)" labelPosition="top" styleNumber="3" showCoordsWhenDragging="false">
     <label><m>(\theta(0),\omega(0))</m></label>
-    <constraints>
-      <constrainToGraph buffer="0" />
-    </constraints>
+    <constrainToGraph buffer="0" />
   </point>
   <curve parmax="10">
     <wrapFunctionPeriodic lowervalue="-pi" uppervalue="pi">
@@ -274,11 +272,9 @@ Refer to the example titled "A simple pendulum ODE system" for the setup of the 
   </point>
   <point x="$t" y="$theta" styleNumber="2" layer="2" labelPosition="upperLeft">
     <label><m>\theta($t)</m></label>
-    <constraints>
-      <constrainTo>
-        <regionHalfPlane />
-      </constrainTo>
-    </constraints>
+    <constrainTo>
+      <regionHalfPlane />
+    </constrainTo>
   </point>
 </graph>
 ```

@@ -6,8 +6,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 # ` <attractToGrid/>{:dn}`
 
 ` <attractToGrid>{:dn}` is a [Graphical](../document_structure/essentialConcepts#component-types) component that 
-is used to within a ` <point>{:dn}` to attract it to a specified grid. This component must be
-nested within a [` <constraints>{:dn}`](constraints.mdx) block. 
+is used to within a ` <point>{:dn}` to attract it to a specified grid.
 
 ## Attributes and Properties 
  <AttrDisplay name='attractToGrid'/> 
@@ -20,9 +19,7 @@ nested within a [` <constraints>{:dn}`](constraints.mdx) block.
 ```doenet-example
 <graph xmin="-4" xmax="4" ymin="-4" ymax="4" grid>
   <point>
-    <constraints>
-      <attractToGrid/>
-    </constraints>
+    <attractToGrid/>
   </point>
 </graph>
 ```
@@ -37,9 +34,7 @@ the `<attractToGrid>{:dn}` constraint is 1.
 ```doenet-example
 <graph grid="2 4">
   <point>
-    <constraints>
-      <attractToGrid dx="2" dy="4"/>
-    </constraints>
+    <attractToGrid dx="2" dy="4"/>
   </point>
 </graph>
 ```
@@ -54,14 +49,12 @@ Note that it is not required to display the grid in the graph; this is done for 
 ```doenet-editor-horiz
 <graph grid="5 5">
   <point styleNumber="2" layer="2">
-    <constraints>
-      <attractToGrid dx="5" xOffset="1" dy="5" yOffset="1" includeGridlines="true"/>
-      </constraints>
-    </point>
-    <point styleNumber="6" fixed>(6, 6)</point>
-    <point styleNumber="6" fixed>(-4, 6)</point>
-    <point styleNumber="6" fixed>(-4, -4)</point>
-    <point styleNumber="6" fixed>(6, -4)</point>
+    <attractToGrid dx="5" xOffset="1" dy="5" yOffset="1" includeGridlines="true"/>
+  </point>
+  <point styleNumber="6" fixed>(6, 6)</point>
+  <point styleNumber="6" fixed>(-4, 6)</point>
+  <point styleNumber="6" fixed>(-4, -4)</point>
+  <point styleNumber="6" fixed>(6, -4)</point>
 </graph>
 ```
 
@@ -77,9 +70,7 @@ The grey points are included as an illustration of where the offset attraction g
 ```doenet-editor-horiz
 <graph grid="2 4">
   <point>
-    <constraints>
-      <attractToGrid dx="2" xthreshold="0.1" dy="4" ythreshold="1" />
-      </constraints>
+    <attractToGrid dx="2" xthreshold="0.1" dy="4" ythreshold="1" />
   </point>
 </graph>
 ```
@@ -94,9 +85,7 @@ close to the $x$ gridlines and $y$ gridlines.
 ```doenet-editor-horiz
 <graph grid="1 4" size="small">
   <point>
-    <constraints>
-      <attractToGrid name="gridAttract" xthreshold="0.1" dy="4" yOffset="1" />
-      </constraints>
+    <attractToGrid name="gridAttract" xthreshold="0.1" dy="4" yOffset="1" />
   </point>
 </graph>
 <p><c>dx, dy</c> = $gridAttract.dx, $gridAttract.dy</p>
