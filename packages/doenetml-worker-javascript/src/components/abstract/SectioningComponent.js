@@ -132,6 +132,14 @@ export class SectioningComponent extends BlockComponent {
                 componentTypes: ["setup"],
             },
             {
+                group: "styleDefinitions",
+                componentTypes: ["styleDefinition"],
+            },
+            {
+                group: "feedbackDefinitions",
+                componentTypes: ["feedbackDefinition"],
+            },
+            {
                 group: "cascadeMessages",
                 componentTypes: ["cascadeMessage"],
             },

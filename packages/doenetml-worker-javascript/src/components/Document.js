@@ -104,6 +104,14 @@ export default class Document extends BaseComponent {
                 componentTypes: ["setup"],
             },
             {
+                group: "styleDefinitions",
+                componentTypes: ["styleDefinition"],
+            },
+            {
+                group: "feedbackDefinitions",
+                componentTypes: ["feedbackDefinition"],
+            },
+            {
                 group: "anything",
                 componentTypes: ["_base"],
             },

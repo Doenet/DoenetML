@@ -70,46 +70,5 @@ export class StyleDefinitions extends BaseComponent {
     static componentType = "styleDefinitions";
     static rendererType = undefined;
 
-    static inSchemaOnlyInheritAs = [];
-
-    static returnChildGroups() {
-        return [
-            {
-                group: "styleDefinition",
-                componentTypes: ["styleDefinition"],
-            },
-        ];
-    }
-
-    static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.value = {
-            returnDependencies: () => ({
-                styleDefinitionChildren: {
-                    dependencyType: "child",
-                    childGroups: ["styleDefinition"],
-                    variableNames: ["styleNumber", "styleDefinition"],
-                },
-            }),
-            definition({ dependencyValues }) {
-                let value = {};
-
-                for (let child of dependencyValues.styleDefinitionChildren) {
-                    let styleNumber = child.stateValues.styleNumber;
-
-                    let styleDef = value[styleNumber];
-                    if (!styleDef) {
-                        styleDef = value[styleNumber] = {};
-                    }
-
-                    Object.assign(styleDef, child.stateValues.styleDefinition);
-                }
-
-                return { setValue: { value } };
-            },
-        };
-
-        return stateVariableDefinitions;
-    }
+    static excludeFromSchema = [];
 }

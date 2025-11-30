@@ -33,9 +33,11 @@ export function returnFeedbackDefinitionStateVariables() {
                     dependencyType: "ancestor",
                     variableNames: ["feedbackDefinitions"],
                 },
-                setupChildren: {
+                feedbackDefinitionSetupChildren: {
                     dependencyType: "child",
-                    childGroups: ["setups"],
+                    childGroups: ["feedbackDefinitions", "setups"],
+                    variableNames: ["feedbackDefinition"],
+                    variablesOptional: true,
                     proceedIfAllChildrenNotMatched: true,
                 },
             };
@@ -47,7 +49,7 @@ export function returnFeedbackDefinitionStateVariables() {
                     dependencyType: "child",
                     parentIdx: setupChild.componentIdx,
                     childGroups: ["feedbackDefinitions"],
-                    variableNames: ["value"],
+                    variableNames: ["feedbackDefinition"],
                 };
             }
 
@@ -72,16 +74,23 @@ export function returnFeedbackDefinitionStateVariables() {
             Object.assign(feedbackDefinitions, startingFeedbackDefinitions);
 
             let feedbackDefinitionChildren = [];
-            for (let child of dependencyValues.setupChildren) {
-                feedbackDefinitionChildren.push(
-                    ...dependencyValues[
-                        `feedbackDefinitionsOf${child.componentIdx}`
-                    ],
-                );
+            for (let child of dependencyValues.feedbackDefinitionSetupChildren) {
+                if (child.componentType === "setup") {
+                    feedbackDefinitionChildren.push(
+                        ...dependencyValues[
+                            `feedbackDefinitionsOf${child.componentIdx}`
+                        ],
+                    );
+                } else {
+                    feedbackDefinitionChildren.push(child);
+                }
             }
 
             for (let child of feedbackDefinitionChildren) {
-                Object.assign(feedbackDefinitions, child.stateValues.value);
+                Object.assign(
+                    feedbackDefinitions,
+                    child.stateValues.feedbackDefinition,
+                );
             }
 
             return { setValue: { feedbackDefinitions } };

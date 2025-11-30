@@ -24853,6 +24853,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -25387,6 +25389,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -25921,6 +25925,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -26455,6 +26461,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -26989,6 +26997,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -27549,6 +27559,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -28083,6 +28095,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -28617,6 +28631,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -29151,6 +29167,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -29685,6 +29703,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -30219,6 +30239,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -30753,6 +30775,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -31287,6 +31311,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -31821,6 +31847,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -32355,6 +32383,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -32889,6 +32919,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -33423,6 +33455,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -33974,6 +34008,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -34499,6 +34535,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",
@@ -36535,7 +36573,6 @@
                 "endpoint",
                 "subsetOfReals",
                 "matrix",
-                "constraints",
                 "constrainToGrid",
                 "constrainToGraph",
                 "attractToGrid",
@@ -39556,115 +39593,6 @@
             "acceptsStringChildren": false
         },
         {
-            "name": "feedbackDefinitions",
-            "children": [
-                "feedbackDefinition"
-            ],
-            "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "hide",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "disabled",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixed",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixLocation",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "styleNumber"
-                },
-                {
-                    "name": "isResponse",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "extend"
-                },
-                {
-                    "name": "copy"
-                }
-            ],
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                }
-            ],
-            "top": false,
-            "acceptsStringChildren": false
-        },
-        {
             "name": "styleDefinition",
             "children": [],
             "attributes": [
@@ -39815,115 +39743,6 @@
                 {
                     "name": "modifyIndirectly",
                     "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                }
-            ],
-            "top": false,
-            "acceptsStringChildren": false
-        },
-        {
-            "name": "styleDefinitions",
-            "children": [
-                "styleDefinition"
-            ],
-            "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "hide",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "disabled",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixed",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixLocation",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "styleNumber"
-                },
-                {
-                    "name": "isResponse",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "extend"
-                },
-                {
-                    "name": "copy"
-                }
-            ],
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -43821,6 +43640,8 @@
                 "title",
                 "description",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "rightHandSide",
                 "xLabel",
                 "yLabel",
@@ -47154,7 +46975,6 @@
                 "endpoint",
                 "subsetOfReals",
                 "matrix",
-                "constraints",
                 "constrainToGrid",
                 "constrainToGraph",
                 "attractToGrid",
@@ -63612,122 +63432,6 @@
             "acceptsStringChildren": false
         },
         {
-            "name": "constraints",
-            "children": [
-                "constrainToGrid",
-                "constrainToGraph",
-                "attractToGrid",
-                "constrainTo",
-                "attractTo",
-                "constraintUnion",
-                "attractToConstraint",
-                "constrainToInterior"
-            ],
-            "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "hide",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "disabled",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixed",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixLocation",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "styleNumber"
-                },
-                {
-                    "name": "isResponse",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "extend"
-                },
-                {
-                    "name": "copy"
-                }
-            ],
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                }
-            ],
-            "top": false,
-            "acceptsStringChildren": false
-        },
-        {
             "name": "constrainToGrid",
             "children": [],
             "attributes": [
@@ -72602,8 +72306,8 @@
         {
             "name": "setup",
             "children": [
-                "styleDefinitions",
-                "feedbackDefinitions",
+                "styleDefinition",
+                "feedbackDefinition",
                 "title",
                 "rightHandSide",
                 "description",
@@ -73519,7 +73223,6 @@
                 "endpoint",
                 "subsetOfReals",
                 "matrix",
-                "constraints",
                 "constrainToGrid",
                 "constrainToGraph",
                 "attractToGrid",
@@ -80911,6 +80614,8 @@
                 "variantControl",
                 "title",
                 "setup",
+                "styleDefinition",
+                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "description",

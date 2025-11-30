@@ -38370,6 +38370,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "cascadeMessage"
                 },
                 {
@@ -39398,6 +39404,12 @@
                 },
                 {
                     "ref": "setup"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
                 },
                 {
                     "ref": "cascadeMessage"
@@ -40430,6 +40442,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "cascadeMessage"
                 },
                 {
@@ -41458,6 +41476,12 @@
                 },
                 {
                     "ref": "setup"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
                 },
                 {
                     "ref": "cascadeMessage"
@@ -42511,6 +42535,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "cascadeMessage"
                 },
                 {
@@ -43546,6 +43576,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "cascadeMessage"
                 },
                 {
@@ -44574,6 +44610,12 @@
                 },
                 {
                     "ref": "setup"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
                 },
                 {
                     "ref": "cascadeMessage"
@@ -45606,6 +45648,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "cascadeMessage"
                 },
                 {
@@ -46634,6 +46682,12 @@
                 },
                 {
                     "ref": "setup"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
                 },
                 {
                     "ref": "cascadeMessage"
@@ -47666,6 +47720,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "cascadeMessage"
                 },
                 {
@@ -48694,6 +48754,12 @@
                 },
                 {
                     "ref": "setup"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
                 },
                 {
                     "ref": "cascadeMessage"
@@ -49726,6 +49792,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "cascadeMessage"
                 },
                 {
@@ -50754,6 +50826,12 @@
                 },
                 {
                     "ref": "setup"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
                 },
                 {
                     "ref": "cascadeMessage"
@@ -51786,6 +51864,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "cascadeMessage"
                 },
                 {
@@ -52816,6 +52900,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "cascadeMessage"
                 },
                 {
@@ -53844,6 +53934,12 @@
                 },
                 {
                     "ref": "setup"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
                 },
                 {
                     "ref": "cascadeMessage"
@@ -54896,6 +54992,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "cascadeMessage"
                 },
                 {
@@ -55925,6 +56027,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "cascadeMessage"
                 },
                 {
@@ -56947,6 +57055,12 @@
                 },
                 {
                     "ref": "setup"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
                 },
                 {
                     "ref": "cascadeMessage"
@@ -60204,9 +60318,6 @@
                 },
                 {
                     "ref": "matrix"
-                },
-                {
-                    "ref": "constraints"
                 },
                 {
                     "ref": "constrainToGrid"
@@ -64005,129 +64116,6 @@
                 }
             ]
         },
-        "feedbackDefinitions": {
-            "type": "element",
-            "name": "feedbackDefinitions",
-            "attributes": {
-                "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "hide": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "disabled": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixed": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixLocation": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "styleNumber": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "isResponse": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "extend": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copy": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                }
-            },
-            "children": [
-                {
-                    "ref": "feedbackDefinition"
-                }
-            ],
-            "textChildrenAllowed": false,
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                }
-            ]
-        },
         "styleDefinition": {
             "type": "element",
             "name": "styleDefinition",
@@ -64383,129 +64371,6 @@
                 {
                     "name": "modifyIndirectly",
                     "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                }
-            ]
-        },
-        "styleDefinitions": {
-            "type": "element",
-            "name": "styleDefinitions",
-            "attributes": {
-                "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "hide": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "disabled": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixed": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixLocation": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "styleNumber": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "isResponse": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "extend": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copy": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                }
-            },
-            "children": [
-                {
-                    "ref": "styleDefinition"
-                }
-            ],
-            "textChildrenAllowed": false,
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -72322,6 +72187,12 @@
                     "ref": "setup"
                 },
                 {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
                     "ref": "rightHandSide"
                 },
                 {
@@ -78422,9 +78293,6 @@
                 },
                 {
                     "ref": "matrix"
-                },
-                {
-                    "ref": "constraints"
                 },
                 {
                     "ref": "constrainToGrid"
@@ -102980,150 +102848,6 @@
                 }
             ]
         },
-        "constraints": {
-            "type": "element",
-            "name": "constraints",
-            "attributes": {
-                "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "hide": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "disabled": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixed": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixLocation": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "styleNumber": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "isResponse": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "extend": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copy": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                }
-            },
-            "children": [
-                {
-                    "ref": "constrainToGrid"
-                },
-                {
-                    "ref": "constrainToGraph"
-                },
-                {
-                    "ref": "attractToGrid"
-                },
-                {
-                    "ref": "constrainTo"
-                },
-                {
-                    "ref": "attractTo"
-                },
-                {
-                    "ref": "constraintUnion"
-                },
-                {
-                    "ref": "attractToConstraint"
-                },
-                {
-                    "ref": "constrainToInterior"
-                }
-            ],
-            "textChildrenAllowed": false,
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                }
-            ]
-        },
         "constrainToGrid": {
             "type": "element",
             "name": "constrainToGrid",
@@ -117836,10 +117560,10 @@
             },
             "children": [
                 {
-                    "ref": "styleDefinitions"
+                    "ref": "styleDefinition"
                 },
                 {
-                    "ref": "feedbackDefinitions"
+                    "ref": "feedbackDefinition"
                 },
                 {
                     "ref": "title"
@@ -120106,9 +119830,6 @@
                 },
                 {
                     "ref": "matrix"
-                },
-                {
-                    "ref": "constraints"
                 },
                 {
                     "ref": "constrainToGrid"
@@ -131914,6 +131635,12 @@
                 },
                 {
                     "ref": "setup"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "feedbackDefinition"
                 },
                 {
                     "ref": "cascadeMessage"
