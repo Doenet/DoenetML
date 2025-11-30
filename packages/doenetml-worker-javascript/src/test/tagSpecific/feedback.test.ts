@@ -1285,10 +1285,8 @@ describe("Feedback tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup>
-    <feedbackDefinitions>
       <feedbackDefinition code="wrongTrig" text="Close, but wrong trigonometric function" />
       <feedbackDefinition code="lostPI" text="You lost pi" />
-    </feedbackDefinitions>
   </setup>
 
   <p><answer name="ans">
@@ -1320,17 +1318,13 @@ describe("Feedback tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup>
-    <feedbackDefinitions>
       <feedbackDefinition code="wrongTrig" text="typo here" />
       <feedbackDefinition code="lostPI" text="You lost pi" />
-    </feedbackDefinitions>
   </setup>
 
   <section>
     <setup>
-      <feedbackDefinitions>
         <feedbackDefinition code="wrongTrig" text="Close, but wrong trigonometric function" />
-      </feedbackDefinitions>
     </setup>
 
     <p><answer name="ans">
@@ -1362,10 +1356,8 @@ describe("Feedback tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup>
-    <feedbackDefinitions>
       <feedbackDefinition code="wrongTrig" text="Close, but wrong trigonometric function" />
       <feedbackDefinition code="lostPI" text="You lost pi" />
-    </feedbackDefinitions>
   </setup>
 
 
@@ -1579,17 +1571,13 @@ describe("Feedback tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup>
-    <feedbackDefinitions>
       <feedbackDefinition code="catSays" text="Meow" />
       <feedbackDefinition code="dogSays" text="Woof" />
-    </feedbackDefinitions>
   </setup>
 
   <section>
     <setup>
-      <feedbackDefinitions>
         <feedbackDefinition code="dogAlsoSays" text="Grrr" />
-      </feedbackDefinitions>
     </setup>
 
 

@@ -7230,10 +7230,8 @@ describe("Function tag tests", async () => {
     it("style description changes with theme", async () => {
         const doenetML = `
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="1" lineColor="brown" lineColorDarkMode="yellow" />
         <styleDefinition styleNumber="2" lineColor="#540907" lineColorWord="dark red" lineColorDarkMode="#f0c6c5" lineColorWordDarkMode="light red" />
-      </styleDefinitions>
     </setup>
     <graph>
       <function name="A" styleNumber="1" labelIsName>x^2</function>

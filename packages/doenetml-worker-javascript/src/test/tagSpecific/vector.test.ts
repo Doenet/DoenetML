@@ -5798,10 +5798,8 @@ describe("Vector Tag Tests", function () {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="2" textColor="green" />
         <styleDefinition styleNumber="3" textColor="red" backgroundColor="blue" />
-      </styleDefinitions>
     </setup>
 
     <p>Style number: <mathInput prefill="1" name="sn" /></p>
@@ -6350,10 +6348,8 @@ describe("Vector Tag Tests", function () {
     it("style description changes with theme", async () => {
         const doenetML = `
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="1" lineColor="brown" lineColorDarkMode="yellow" />
         <styleDefinition styleNumber="2" lineColor="#540907" lineColorWord="dark red" lineColorDarkMode="#f0c6c5" lineColorWordDarkMode="light red" />
-      </styleDefinitions>
     </setup>
     <graph>
       <vector name="A" styleNumber="1" labelIsName tail="(0,0)" head="(1,2)" />

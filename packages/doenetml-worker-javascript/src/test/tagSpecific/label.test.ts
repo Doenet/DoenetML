@@ -748,10 +748,8 @@ describe("Label tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <setup>
-              <styleDefinitions>
                 <styleDefinition styleNumber="2" textColor="green" />
                 <styleDefinition styleNumber="3" textColor="red" backgroundColor="blue" />
-              </styleDefinitions>
             </setup>
         
             <p>Style number: <mathInput prefill="1" name="sn" /></p>
@@ -907,10 +905,8 @@ describe("Label tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <setup>
-              <styleDefinitions>
                 <styleDefinition styleNumber="2" textColor="green" />
                 <styleDefinition styleNumber="3" textColor="red" />
-              </styleDefinitions>
             </setup>
         
             <graph name="g1">

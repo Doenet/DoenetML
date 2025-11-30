@@ -4836,13 +4836,11 @@ describe("Polygon tag tests", async () => {
             doenetML: `
     <text>a</text>
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="1" lineColor="blue" fillColor="blue" lineWidth="2" lineStyle="solid" />
         <styleDefinition styleNumber="2" lineColor="red" fillColor="green" lineWidth="2" lineStyle="solid" />
 
         <styleDefinition styleNumber="3" lineColor="blue" fillColor="blue" lineWidth="5" lineStyle="solid" />
         <styleDefinition styleNumber="4" lineColor="red" fillColor="green" lineWidth="1" lineStyle="dotted" />
-        </styleDefinitions>
     </setup>
 
     <graph>
@@ -7482,10 +7480,8 @@ describe("Polygon tag tests", async () => {
     it("style description changes with theme", async () => {
         const doenetML = `
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="1" lineColor="brown" lineColorDarkMode="yellow" fillColor="brown" fillColorDarkMode="yellow" />
         <styleDefinition styleNumber="2" lineColor="#540907" lineColorWord="dark red" lineColorDarkMode="#f0c6c5" lineColorWordDarkMode="light red" fillColor="#540907" fillColorWord="dark red" fillColorDarkMode="#f0c6c5" fillColorWordDarkMode="light red" />
-      </styleDefinitions>
     </setup>
     <graph>
       <polygon name="A" styleNumber="1" labelIsName vertices="(0,0) (0,2) (2,0)" filled />
