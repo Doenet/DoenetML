@@ -36536,6 +36536,14 @@
                 "subsetOfReals",
                 "matrix",
                 "constraints",
+                "constrainToGrid",
+                "constrainToGraph",
+                "attractToGrid",
+                "constrainTo",
+                "attractTo",
+                "constraintUnion",
+                "attractToConstraint",
+                "constrainToInterior",
                 "topic",
                 "extractMathOperator",
                 "h",
@@ -36833,6 +36841,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "scales",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "constraintUsed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "textColor",
                     "type": "text",
                     "isArray": false
@@ -36888,11 +36906,6 @@
                 {
                     "name": "latex",
                     "type": "latex",
-                    "isArray": false
-                },
-                {
-                    "name": "constraintUsed",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -47142,6 +47155,14 @@
                 "subsetOfReals",
                 "matrix",
                 "constraints",
+                "constrainToGrid",
+                "constrainToGraph",
+                "attractToGrid",
+                "constrainTo",
+                "attractTo",
+                "constraintUnion",
+                "attractToConstraint",
+                "constrainToInterior",
                 "topic",
                 "extractMathOperator",
                 "h",
@@ -47415,6 +47436,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "scales",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "constraintUsed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "textColor",
                     "type": "text",
                     "isArray": false
@@ -47470,11 +47501,6 @@
                 {
                     "name": "latex",
                     "type": "latex",
-                    "isArray": false
-                },
-                {
-                    "name": "constraintUsed",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -63696,16 +63722,6 @@
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
-                },
-                {
-                    "name": "scales",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "constraintUsed",
-                    "type": "boolean",
-                    "isArray": false
                 }
             ],
             "top": false,
@@ -73504,6 +73520,14 @@
                 "subsetOfReals",
                 "matrix",
                 "constraints",
+                "constrainToGrid",
+                "constrainToGraph",
+                "attractToGrid",
+                "constrainTo",
+                "attractTo",
+                "constraintUnion",
+                "attractToConstraint",
+                "constrainToInterior",
                 "topic",
                 "extractMathOperator",
                 "h",
@@ -73801,6 +73825,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "scales",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "constraintUsed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "textColor",
                     "type": "text",
                     "isArray": false
@@ -73856,11 +73890,6 @@
                 {
                     "name": "latex",
                     "type": "latex",
-                    "isArray": false
-                },
-                {
-                    "name": "constraintUsed",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {

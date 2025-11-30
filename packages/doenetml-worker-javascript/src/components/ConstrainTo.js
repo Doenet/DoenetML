@@ -72,8 +72,9 @@ export default class ConstrainTo extends ConstraintComponent {
                 },
                 constraintsAncestor: {
                     dependencyType: "ancestor",
-                    componentType: "constraints",
+                    componentType: "_graphical",
                     variableNames: ["scales"],
+                    variablesOptional: true,
                 },
             }),
             definition({ dependencyValues, componentIdx }) {

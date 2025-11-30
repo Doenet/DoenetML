@@ -60209,6 +60209,30 @@
                     "ref": "constraints"
                 },
                 {
+                    "ref": "constrainToGrid"
+                },
+                {
+                    "ref": "constrainToGraph"
+                },
+                {
+                    "ref": "attractToGrid"
+                },
+                {
+                    "ref": "constrainTo"
+                },
+                {
+                    "ref": "attractTo"
+                },
+                {
+                    "ref": "constraintUnion"
+                },
+                {
+                    "ref": "attractToConstraint"
+                },
+                {
+                    "ref": "constrainToInterior"
+                },
+                {
                     "ref": "topic"
                 },
                 {
@@ -60429,6 +60453,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "scales",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "constraintUsed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "textColor",
                     "type": "text",
                     "isArray": false
@@ -60484,11 +60518,6 @@
                 {
                     "name": "latex",
                     "type": "latex",
-                    "isArray": false
-                },
-                {
-                    "name": "constraintUsed",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -78398,6 +78427,30 @@
                     "ref": "constraints"
                 },
                 {
+                    "ref": "constrainToGrid"
+                },
+                {
+                    "ref": "constrainToGraph"
+                },
+                {
+                    "ref": "attractToGrid"
+                },
+                {
+                    "ref": "constrainTo"
+                },
+                {
+                    "ref": "attractTo"
+                },
+                {
+                    "ref": "constraintUnion"
+                },
+                {
+                    "ref": "attractToConstraint"
+                },
+                {
+                    "ref": "constrainToInterior"
+                },
+                {
                     "ref": "topic"
                 },
                 {
@@ -78608,6 +78661,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "scales",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "constraintUsed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "textColor",
                     "type": "text",
                     "isArray": false
@@ -78663,11 +78726,6 @@
                 {
                     "name": "latex",
                     "type": "latex",
-                    "isArray": false
-                },
-                {
-                    "name": "constraintUsed",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -103063,16 +103121,6 @@
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
-                },
-                {
-                    "name": "scales",
-                    "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "constraintUsed",
-                    "type": "boolean",
-                    "isArray": false
                 }
             ]
         },
@@ -120063,6 +120111,30 @@
                     "ref": "constraints"
                 },
                 {
+                    "ref": "constrainToGrid"
+                },
+                {
+                    "ref": "constrainToGraph"
+                },
+                {
+                    "ref": "attractToGrid"
+                },
+                {
+                    "ref": "constrainTo"
+                },
+                {
+                    "ref": "attractTo"
+                },
+                {
+                    "ref": "constraintUnion"
+                },
+                {
+                    "ref": "attractToConstraint"
+                },
+                {
+                    "ref": "constrainToInterior"
+                },
+                {
                     "ref": "topic"
                 },
                 {
@@ -120283,6 +120355,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "scales",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "constraintUsed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "textColor",
                     "type": "text",
                     "isArray": false
@@ -120338,11 +120420,6 @@
                 {
                     "name": "latex",
                     "type": "latex",
-                    "isArray": false
-                },
-                {
-                    "name": "constraintUsed",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {

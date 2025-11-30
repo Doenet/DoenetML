@@ -48,7 +48,7 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
                 },
                 constraintsAncestor: {
                     dependencyType: "ancestor",
-                    componentType: "constraints",
+                    componentType: "_graphical",
                     variableNames: ["graphXmin"],
                 },
                 relativeToGraphScales: {
@@ -183,8 +183,9 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
                     },
                     constraintsAncestor: {
                         dependencyType: "ancestor",
-                        componentType: "constraints",
+                        componentType: "_graphical",
                         variableNames: ["scales"],
+                        variablesOptional: true,
                     },
                 };
 
