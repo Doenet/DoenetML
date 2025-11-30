@@ -1190,9 +1190,7 @@ describe("Function tag tests", async () => {
     <function maxima="(5,6)" through="(0,5) (8,4)" name="f" />
 
     <point x="1" y="2" name="P">
-      <constraints>
         <constrainTo>$f</constrainTo>
-      </constraints>
     </point>
     </graph>
     `,
@@ -1249,11 +1247,9 @@ describe("Function tag tests", async () => {
             doenetML: `
     <function name="f">x^2</function>
     <point x="sqrt(2)" y="1" name="P">
-      <constraints>
         <constrainTo>
           $f
         </constrainTo>
-      </constraints>
     </point>
     </graph>
     `,
@@ -1290,9 +1286,7 @@ describe("Function tag tests", async () => {
     <function maxima="(5,6)" through="(0,5) (8,4)" domain="[-4,7]" name="f" />
 
     <point x="1" y="2" name="P">
-      <constraints>
         <constrainTo>$f</constrainTo>
-      </constraints>
     </point>
     </graph>
     `,
@@ -1366,9 +1360,7 @@ describe("Function tag tests", async () => {
     <function maxima="(5,6)" through="(0,5) (8,4)" domain="(-4,7)" name="f" />
 
     <point x="1" y="2" name="P">
-      <constraints>
         <constrainTo>$f</constrainTo>
-      </constraints>
     </point>
     </graph>
     `,
@@ -1520,11 +1512,9 @@ describe("Function tag tests", async () => {
             doenetML: `
     <function name="f">sqrt(x)sqrt(5-x)</function>
     <point x="1" y="2" name="P">
-      <constraints>
         <constrainTo>
           $f
         </constrainTo>
-      </constraints>
     </point>
     `,
         });
@@ -1541,11 +1531,9 @@ describe("Function tag tests", async () => {
     <graph>
     <function name="f">sqrt(x)sqrt(5-x)</function>
     <point x="1" y="2" name="P">
-      <constraints>
         <constrainTo>
           $f
         </constrainTo>
-      </constraints>
     </point>
     </graph>
     `,
@@ -1875,9 +1863,7 @@ describe("Function tag tests", async () => {
       log(2u)
     </function>
     <point x="-3" y="5" name="P">
-      <constraints>
         <constrainTo>$f</constrainTo>
-      </constraints>
     </point>
 
     `,
@@ -1932,9 +1918,7 @@ describe("Function tag tests", async () => {
       log(2u)
     </function>
     <point x="-3" y="5" name="P">
-      <constraints>
         <constrainTo>$f</constrainTo>
-      </constraints>
     </point>
 
     </graph>
@@ -2012,9 +1996,7 @@ describe("Function tag tests", async () => {
       log(2u)
     </function>
     <point x="-3" y="5" name="P">
-      <constraints>
         <constrainTo>$f</constrainTo>
-      </constraints>
     </point>
 
     </graph>

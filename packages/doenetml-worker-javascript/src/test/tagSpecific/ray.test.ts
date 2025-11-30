@@ -848,9 +848,7 @@ describe("Ray Tag Tests", function () {
   <ray name="ray1" endpoint="$point1" through="$point2" />
 
   <point name="point3" x="-5" y="2">
-    <constraints>
       <constrainTo>$ray1</constrainTo>
-    </constraints>
   </point>
   </graph>
   `,
@@ -959,9 +957,7 @@ describe("Ray Tag Tests", function () {
   <ray name="ray1" endpoint="$point1" through="$point2" />
 
   <point name="point3" x="-5" y="2">
-    <constraints>
       <attractTo>$ray1</attractTo>
-    </constraints>
   </point>
   </graph>
   `,
@@ -1091,9 +1087,7 @@ describe("Ray Tag Tests", function () {
     <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
         <ray name="l" through="(-1,-0.05)" endpoint="(1,0.05)"/>
         <point name="P" x="100" y="0" >
-        <constraints>
             <constrainTo relativeToGraphScales>$l</constrainTo>
-        </constraints>
         </point>
     </graph>
   `,
@@ -3421,9 +3415,7 @@ describe("Ray Tag Tests", function () {
             doenetML: `
   <graph>
   <point name="P">(4,1)
-    <constraints>
       <constrainToGrid dx="5" dy="3" />
-    </constraints>
   </point>
   <point name="Q">(-4,2)</point>
   <ray name="ray1" endpoint="$P" through="$Q" />
@@ -3581,9 +3573,7 @@ describe("Ray Tag Tests", function () {
   <graph>
   <point name="P">(4,1)</point>
   <point name="Q">(-4,2)
-    <constraints>
       <constrainToGrid dx="5" dy="3" />
-    </constraints>
   </point>
   <ray name="ray1" endpoint="$P" through="$Q" />
   </graph>

@@ -3409,9 +3409,7 @@ describe("Circle tag tests", async () => {
     <graph name="graph1">
       <circle name="circle1" radius="$pX" center="$point2" />
       <point name="point3" x="-4" y="-6">
-        <constraints>
-          <constrainTo>$circle1</constrainTo>
-        </constraints>
+        <constrainTo>$circle1</constrainTo>
       </point>
     </graph>
     <graph>
@@ -3569,9 +3567,7 @@ describe("Circle tag tests", async () => {
     <graph name="graph1">
       <circle name="circle1" radius="$pX" center="$point2" filled />
       <point name="point3" x="-4" y="-6">
-        <constraints>
-          <constrainToInterior>$circle1</constrainToInterior>
-        </constraints>
+        <constrainToInterior>$circle1</constrainToInterior>
       </point>
       </graph>
     <graph>
@@ -3822,9 +3818,7 @@ describe("Circle tag tests", async () => {
             doenetML: `
     <graph>
         <point name="point1">(3,4)
-        <constraints>
-            <constrainToGrid dx="3" dy="2" />
-        </constraints>
+          <constrainToGrid dx="3" dy="2" />
         </point>
         <point name="point2">(5,6)</point>
         <circle name="circle1" center="$point1" through="$point2" />
@@ -4034,9 +4028,7 @@ describe("Circle tag tests", async () => {
         <point name="point1">(3,4)
         </point>
         <point name="point2">(5,7)
-        <constraints>
-            <constrainToGrid dx="3" dy="2" />
-        </constraints>
+          <constrainToGrid dx="3" dy="2" />
         </point>
         <circle name="circle1" center="$point1" through="$point2" />
     </graph>
@@ -4234,9 +4226,7 @@ describe("Circle tag tests", async () => {
             doenetML: `
     <graph>
         <point name="point1">(2,-3)
-        <constraints>
             <constrainToGrid dx="3" dy="2" />
-        </constraints>
         </point>
         <point name="point2">(3,4)</point>
         <circle name="circle1" through="$point1 $point2"/>
@@ -4513,9 +4503,7 @@ describe("Circle tag tests", async () => {
     <graph>
         <point name="point1">(2,-3)</point>
         <point name="point2">(3,4)
-            <constraints>
                 <constrainToGrid dx="3" dy="2" />
-            </constraints>
         </point>
         <point name="point3">(-3,4)</point>
         <circle name= "circle1" through="$point1 $point2 $point3" />
@@ -4664,14 +4652,10 @@ describe("Circle tag tests", async () => {
     <graph>
         <point name="point1">(2,-3)</point>
         <point name="point2">(3,4)
-            <constraints>
                 <constrainToGrid dx="3" dy="2" />
-            </constraints>
         </point>
         <point name="point3">(-3,4)
-            <constraints>
                 <constrainToGrid dx="3" dy="2" />
-            </constraints>
         </point>
         <circle name="circle1" through="$point1 $point2 $point3" />
     </graph>

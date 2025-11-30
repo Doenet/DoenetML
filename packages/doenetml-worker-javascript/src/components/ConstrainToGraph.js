@@ -31,19 +31,20 @@ export default class ConstrainToGraph extends ConstraintComponent {
 
         // use the convention of x1, x2, and x3 for variable names
         // so that components can call constraints generically for n-dimensions
-        // use x,y,z for properties so that authors can use the more familar tag names
+        // use x,y,z for properties so that authors can use the more familiar tag names
 
         stateVariableDefinitions.applyComponentConstraint = {
             returnDependencies: () => ({
                 constraintAncestor: {
                     dependencyType: "ancestor",
-                    componentType: "constraints",
+                    componentType: "_graphical",
                     variableNames: [
                         "graphXmin",
                         "graphXmax",
                         "graphYmin",
                         "graphYmax",
                     ],
+                    variablesOptional: true,
                 },
                 buffer: {
                     dependencyType: "stateVariable",

@@ -1322,9 +1322,7 @@ describe("Graph tag tests", async () => {
       <vector tail="(3,4)">(4,-5)</vector>
       <graph name="g1inner" xmin="-2" xmax="5" ymin="-3" ymax="4">
         <point>(6,9)
-          <constraints>
             <constrainToGraph />
-          </constraints>
         </point>
       </graph>
     </graph>

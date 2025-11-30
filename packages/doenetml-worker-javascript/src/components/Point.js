@@ -13,7 +13,10 @@ import {
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
 import { roundForDisplay } from "../utils/math";
-import { returnStickyGroupDefinitions } from "../utils/constraints";
+import {
+    returnConstraintDefinitions,
+    returnStickyGroupDefinitions,
+} from "../utils/constraints";
 
 export default class Point extends GraphicalComponent {
     constructor(args) {
@@ -115,14 +118,32 @@ export default class Point extends GraphicalComponent {
             let componentIsSpecifiedType =
                 componentInfoObjects.componentIsSpecifiedType;
 
+            let foundConstraintsChildren = false;
+
+            // First, move any children of constraints directly into the point
+            // TODO: add a deprecation warning in this case?
+            // We can remove this when upgrade to next major version
+            const childrenMovedConstraints = [];
+            for (const child of matchedChildren) {
+                childrenMovedConstraints.push(child);
+                if (componentIsSpecifiedType(child, "constraints")) {
+                    if (child.children?.length > 0) {
+                        foundConstraintsChildren = true;
+                        childrenMovedConstraints.push(...child.children);
+                        child.children = [];
+                    }
+                }
+            }
+
             // Find potential component children, i.e., consecutive children that aren't constraints or labels
             let componentChildren = [],
                 nonComponentChildrenBegin = [],
                 nonComponentChildrenEnd = [];
 
-            for (let child of matchedChildren) {
+            for (let child of childrenMovedConstraints) {
                 if (
                     componentIsSpecifiedType(child, "constraints") ||
+                    componentIsSpecifiedType(child, "_constraint") ||
                     componentIsSpecifiedType(child, "label")
                 ) {
                     if (componentChildren.length > 0) {
@@ -138,7 +159,15 @@ export default class Point extends GraphicalComponent {
             }
 
             if (componentChildren.length === 0) {
-                return { success: false };
+                if (foundConstraintsChildren) {
+                    return {
+                        success: true,
+                        newChildren: childrenMovedConstraints,
+                        nComponents,
+                    };
+                } else {
+                    return { success: false };
+                }
             }
 
             if (componentChildren.length === 1) {
@@ -150,7 +179,15 @@ export default class Point extends GraphicalComponent {
                 ) {
                     // if have an isolated point or vector, don't use sugar
                     // and that child will picked up by the point or vector child group
-                    return { success: false };
+                    if (foundConstraintsChildren) {
+                        return {
+                            success: true,
+                            newChildren: childrenMovedConstraints,
+                            nComponents,
+                        };
+                    } else {
+                        return { success: false };
+                    }
                 }
             }
 
@@ -266,7 +303,7 @@ export default class Point extends GraphicalComponent {
                 },
                 {
                     group: "constraints",
-                    componentTypes: ["constraints"],
+                    componentTypes: ["_constraint"],
                 },
             ],
         );
@@ -280,6 +317,11 @@ export default class Point extends GraphicalComponent {
         Object.assign(
             stateVariableDefinitions,
             returnRoundingStateVariableDefinitions(),
+        );
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnConstraintDefinitions("unconstrainedXs", "unconstrainedX"),
         );
 
         Object.assign(stateVariableDefinitions, returnStickyGroupDefinitions());
@@ -576,20 +618,6 @@ export default class Point extends GraphicalComponent {
                     };
                 }
             },
-        };
-
-        stateVariableDefinitions.arrayVariableForConstraints = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: { arrayVariableForConstraints: "unconstrainedXs" },
-            }),
-        };
-
-        stateVariableDefinitions.arrayEntryPrefixForConstraints = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: { arrayEntryPrefixForConstraints: "unconstrainedX" },
-            }),
         };
 
         stateVariableDefinitions.numDimensionsForConstraints = {
@@ -895,37 +923,25 @@ export default class Point extends GraphicalComponent {
                         dependencyType: "stateVariable",
                         variableName: `unconstrainedX${varEnding}`,
                     };
-                    keyDeps.constraintsChild = {
-                        dependencyType: "child",
-                        childGroups: ["constraints"],
-                        variableNames: [`constraintResult${varEnding}`],
+                    keyDeps.constraintResult = {
+                        dependencyType: "stateVariable",
+                        variableName: `constraintResult${varEnding}`,
                     };
                     dependenciesByKey[arrayKey] = keyDeps;
                 }
                 return { dependenciesByKey };
             },
             arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                // console.log('array definition of xs')
-                // console.log(deepClone(dependencyValuesByKey))
+                // console.log("array definition of xs");
+                // console.log(deepClone(dependencyValuesByKey));
                 // console.log(deepClone(arrayKeys));
 
                 let xs = {};
 
                 for (let arrayKey of arrayKeys) {
-                    if (
-                        dependencyValuesByKey[arrayKey].constraintsChild
-                            .length > 0
-                    ) {
-                        let varEnding = Number(arrayKey) + 1;
-                        xs[arrayKey] = convertValueToMathExpression(
-                            dependencyValuesByKey[arrayKey].constraintsChild[0]
-                                .stateValues["constraintResult" + varEnding],
-                        );
-                    } else {
-                        xs[arrayKey] = convertValueToMathExpression(
-                            dependencyValuesByKey[arrayKey].unconstrainedX,
-                        );
-                    }
+                    xs[arrayKey] = convertValueToMathExpression(
+                        dependencyValuesByKey[arrayKey].constraintResult,
+                    );
                 }
 
                 if (arrayKeys.length > 0) {
@@ -986,24 +1002,13 @@ export default class Point extends GraphicalComponent {
                     if (!dependencyValuesByKey[arrayKey]) {
                         continue;
                     }
-                    if (
-                        dependencyValuesByKey[arrayKey].constraintsChild
-                            .length > 0
-                    ) {
-                        instructions.push({
-                            setDependency:
-                                dependencyNamesByKey[arrayKey].constraintsChild,
-                            desiredValue: desiredXs[arrayKey],
-                            childIndex: 0,
-                            variableIndex: 0,
-                        });
-                    } else {
-                        instructions.push({
-                            setDependency:
-                                dependencyNamesByKey[arrayKey].unconstrainedX,
-                            desiredValue: desiredXs[arrayKey],
-                        });
-                    }
+                    instructions.push({
+                        setDependency:
+                            dependencyNamesByKey[arrayKey].constraintResult,
+                        desiredValue: desiredXs[arrayKey],
+                        childIndex: 0,
+                        variableIndex: 0,
+                    });
                 }
 
                 return {
@@ -1164,33 +1169,6 @@ export default class Point extends GraphicalComponent {
         stateVariableDefinitions.value = {
             isAlias: true,
             targetVariableName: "coords",
-        };
-
-        stateVariableDefinitions.constraintUsed = {
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({
-                constraintsChild: {
-                    dependencyType: "child",
-                    childGroups: ["constraints"],
-                    variableNames: ["constraintUsed"],
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                if (dependencyValues.constraintsChild.length === 0) {
-                    return { setValue: { constraintUsed: false } };
-                } else {
-                    return {
-                        setValue: {
-                            constraintUsed:
-                                dependencyValues.constraintsChild[0].stateValues
-                                    .constraintUsed,
-                        },
-                    };
-                }
-            },
         };
 
         stateVariableDefinitions.numericalXs = {

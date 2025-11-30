@@ -47,8 +47,9 @@ export default class AttractTo extends ConstraintComponent {
                 },
                 constraintsAncestor: {
                     dependencyType: "ancestor",
-                    componentType: "constraints",
+                    componentType: "_graphical",
                     variableNames: ["graphXmin"],
+                    variablesOptional: true,
                 },
                 relativeToGraphScales: {
                     dependencyType: "stateVariable",
@@ -160,8 +161,9 @@ export default class AttractTo extends ConstraintComponent {
                     },
                     constraintsAncestor: {
                         dependencyType: "ancestor",
-                        componentType: "constraints",
+                        componentType: "_graphical",
                         variableNames: ["scales"],
+                        variablesOptional: true,
                     },
                 };
 

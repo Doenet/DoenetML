@@ -1369,9 +1369,7 @@ describe("Rectangle tag tests", async () => {
             doenetML: `
   <graph>
     <point name="P">(1,3)
-      <constraints>
          <constrainToGrid dx="3" dy="2" />
-      </constraints>
     </point>
     <rectangle vertices="$P" name="p" />
   </graph>
@@ -1420,9 +1418,7 @@ describe("Rectangle tag tests", async () => {
             doenetML: `
   <graph>
     <point name="P">(1,3)
-      <constraints>
          <constrainToGrid dx="3" dy="2" />
-      </constraints>
     </point>
     <point name="Q">(6,5)</point>
     <rectangle vertices="$P $Q" name="p" />
@@ -1472,9 +1468,7 @@ describe("Rectangle tag tests", async () => {
             doenetML: `
   <graph>
     <point name="P">(1,3)
-      <constraints>
          <constrainToGrid dx="3" dy="2" />
-      </constraints>
     </point>
     <point name="Q">(6,5)</point>
     <rectangle vertices="$P" center="$Q" name="p" />
@@ -1525,9 +1519,7 @@ describe("Rectangle tag tests", async () => {
   <graph>
     <point name="P">(1,3)</point>
     <point name="Q">(6,5)
-      <constraints>
         <constrainToGrid dx="3" dy="2" />
-      </constraints>
     </point>
     <rectangle vertices="$P" center="$Q" name="p" />
   </graph>

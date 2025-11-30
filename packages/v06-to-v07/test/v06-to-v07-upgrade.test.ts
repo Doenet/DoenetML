@@ -442,4 +442,18 @@ describe("v06 to v07 update", () => {
         correctSource = `<select name="s" numToSelect="2" >a b c d</select> $s[1] $s[2] $s`;
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
+
+    it("constraints element is removed and replaced with children", async () => {
+        source = `
+        <point>
+            (3,4)
+            <constraints><constrainToGrid /><constrainToGraph /></constraints>
+        </point>`;
+        correctSource = `
+        <point>
+            (3,4)
+            <constrainToGrid /><constrainToGraph />
+        </point>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
 });

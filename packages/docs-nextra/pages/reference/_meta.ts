@@ -43,7 +43,6 @@ export default {
     constrainTo: { title: "constrainTo" },
     constrainToGraph: { title: "constrainToGraph" },
     constrainToGrid: { title: "constrainToGrid" },
-    constraints: { title: "constraints" },
     constraintUnion: { title: "constraintUnion" },
     controlVectors: { title: "controlVectors" },
     coords: { title: "coords" },

@@ -36,9 +36,7 @@ const externalDoenetMLs = {
 <p>Move the point to <m name="m">($goalx, $goaly)</m>.</p>
 <graph name="graph" size="$size" aspectRatio="$aspectRatio">
 <point x="$initialxCopy" y="$initialyCopy" name="P">
-<constraints>
   <attractTo><point x="$goalx" y="$goaly" ></point></attractTo>
-</constraints>
 </point>
 </graph>
 
@@ -642,9 +640,7 @@ describe("Module tag tests", async () => {
           <p>Move the point to <m name="m">($goalx, $goaly)</m>.</p>
           <graph width="$width" aspectRatio="$aspectRatio">
             <point x="$initialx" y="$initialy" name="P">
-              <constraints>
                 <attractTo><point x="$goalx" y="$goaly" ></point></attractTo>
-              </constraints>
             </point>
           </graph>
       

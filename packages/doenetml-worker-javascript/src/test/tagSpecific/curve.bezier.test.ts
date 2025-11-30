@@ -891,24 +891,16 @@ describe("Curve Tag Bezier Tests", async () => {
             doenetML: `
     <graph name="g">
     <point name="P1" x="1" y="2">
-      <constraints>
         <constrainToGrid />
-      </constraints>
     </point>
     <point name="P2" x="3" y="4">
-      <constraints>
         <constrainToGrid />
-      </constraints>
     </point>
     <point name="P3" x="-5" y="6">
-      <constraints>
         <constrainToGrid />
-      </constraints>
     </point>
     <point name="P4" x="2" y="1">
-      <constraints>
         <constrainToGrid />
-      </constraints>
     </point>
       
     <curve name="c" through="$P1 $P2 $P3 $P4">

@@ -2374,10 +2374,8 @@ d
 
   <graph>
     <point name="A" x="0" y="0">
-      <constraints>
         <attractTo><point>(3,4)</point></attractTo>
         <attractTo><point>(-5,6)</point></attractTo>
-      </constraints>
     </point>
   </graph>
 

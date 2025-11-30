@@ -74,9 +74,7 @@ describe("RegionBetweenCurves tag tests", async () => {
     <regionBetweenCurves name="r" boundaryValues="$a $b">$f1 $f2</regionBetweenCurves>
     <point name="P">
         (0,5)
-        <constraints>
             <constrainTo>$r</constrainTo>
-        </constraints>
     </point>
   </graph>
   `,

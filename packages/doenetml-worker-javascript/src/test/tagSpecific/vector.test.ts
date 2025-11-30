@@ -1469,9 +1469,7 @@ describe("Vector Tag Tests", function () {
   <vector name="vector1" tail="$point1" head="$point2" />
 
   <point name="point3" x="-5" y="2">
-    <constraints>
       <constrainTo>$vector1</constrainTo>
-    </constraints>
   </point>
   </graph>
   <vector extend="$vector1" name="v1a" />
@@ -1582,9 +1580,7 @@ describe("Vector Tag Tests", function () {
   <vector name="vector1" tail="$point1" head="$point2" />
 
   <point name="point3" x="-5" y="2">
-    <constraints>
       <attractTo>$vector1</attractTo>
-    </constraints>
   </point>
   </graph>
   <vector extend="$vector1" name="v1a" />
@@ -1717,9 +1713,7 @@ describe("Vector Tag Tests", function () {
     <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
         <vector name="l" head="(-1,-0.05)" tail="(1,0.05)"/>
         <point name="P" x="100" y="0" >
-        <constraints>
             <constrainTo relativeToGraphScales>$l</constrainTo>
-        </constraints>
         </point>
     </graph>
   `,
@@ -5905,9 +5899,7 @@ describe("Vector Tag Tests", function () {
             doenetML: `
   <graph>
   <point name="P">(4,1)
-    <constraints>
       <constrainToGrid dx="5" dy="3" />
-    </constraints>
   </point>
   <point name="Q">(-4,2)</point>
   <vector name="vector1" tail="$P" head="$Q" />
@@ -6066,9 +6058,7 @@ describe("Vector Tag Tests", function () {
   <graph>
   <point name="P">(4,1)</point>
   <point name="Q">(-4,2)
-    <constraints>
       <constrainToGrid dx="5" dy="3" />
-    </constraints>
   </point>
   <vector name="vector1" tail="$P" head="$Q" />
   </graph>

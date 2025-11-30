@@ -391,9 +391,7 @@ describe("Parameterized curve tag tests", async () => {
     </curve>
     
     <point name="P" x='7' y='1'>
-      <constraints>
         <constrainTo>$c</constrainTo>
-      </constraints>
     </point>
     
     </graph>
@@ -414,9 +412,7 @@ describe("Parameterized curve tag tests", async () => {
     </curve>
     
     <point name="P" x='7' y='1'>
-      <constraints>
         <constrainTo>$c</constrainTo>
-      </constraints>
     </point>
     
     </graph>
@@ -433,9 +429,7 @@ describe("Parameterized curve tag tests", async () => {
     <function name="f" variables="s">(s^3,sin(2s))</function>
     
     <point name="P" x='7' y='1'>
-      <constraints>
         <constrainTo>$f</constrainTo>
-      </constraints>
     </point>
     
     </graph>
@@ -499,9 +493,7 @@ describe("Parameterized curve tag tests", async () => {
         <function extend="$g" />
       </curve>
       <point x="1" y="0.001" name="P">
-        <constraints>
           <constrainTo relativeToGraphScales>$c</constrainTo>
-        </constraints>
       </point>
     </graph>
     `,

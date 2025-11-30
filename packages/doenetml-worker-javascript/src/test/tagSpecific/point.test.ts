@@ -1209,9 +1209,7 @@ describe("Point tag tests", async () => {
             doenetML: `
 <graph>
     <point name="P" x="1" y="2">
-        <constraints>
-            <constrainToGrid/>
-        </constraints>
+        <constrainToGrid/>
     </point>
 </graph>
   `,
@@ -1226,29 +1224,7 @@ describe("Point tag tests", async () => {
 <graph>
     <point name="P">
         (1,2)
-        <constraints>
-            <constrainToGrid/>
-        </constraints>
-    </point>
-</graph>
-  `,
-        });
-
-        await test_constrained_to_grid(core, resolvePathToNodeIdx);
-    });
-
-    it("point constrained to grid, default parameters, copied from outside", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-
-
-<constraints name="toGrid">
-    <constrainToGrid/>
-</constraints>
-
-<graph>
-    <point name="P" x="1" y="2">
-        <constraints extend="$toGrid" />
+        <constrainToGrid/>
     </point>
 </graph>
   `,
@@ -1262,9 +1238,7 @@ describe("Point tag tests", async () => {
             doenetML: `
 <graph>
     <point name="P" x="1" y="2">
-        <constraints>
-            <constrainToGrid dx="1.04" dy="1.04"/>
-        </constraints>
+        <constrainToGrid dx="1.04" dy="1.04"/>
     </point>
 </graph>
   `,
@@ -1277,9 +1251,7 @@ describe("Point tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <point name="P" x="1" y="2" z="3">
-    <constraints>
-      <constrainToGrid/>
-    </constraints>
+    <constrainToGrid/>
   </point>
   `,
         });
@@ -1347,10 +1319,8 @@ describe("Point tag tests", async () => {
   <graph>
 
   <point name="P" xs="1 3.1">
-    <constraints>
-      <constrainToGrid dx="2" dy="2"/>
-      <constrainToGrid dx="2" dy="2" xoffset="1" yoffset="1" />
-    </constraints>
+    <constrainToGrid dx="2" dy="2"/>
+    <constrainToGrid dx="2" dy="2" xoffset="1" yoffset="1" />
   </point>
 
   </graph>
@@ -1402,10 +1372,8 @@ describe("Point tag tests", async () => {
   <graph>
   <line name="PhaseLine" equation="y=0" fixed styleNumber="3"/>
     <point name="P" x="-1.5" y="7.9">
-      <constraints>
-        <constrainToGrid/>
-        <constrainTo>$PhaseLine</constrainTo>
-      </constraints>
+      <constrainToGrid/>
+      <constrainTo>$PhaseLine</constrainTo>
     </point>
   </graph>
 
@@ -1535,14 +1503,10 @@ describe("Point tag tests", async () => {
             doenetML: `
   <graph>
     <point x="1" y="2" name="A">
-      <constraints>
-        <constrainToGraph/>
-      </constraints>
+      <constrainToGraph/>
     </point>
     <point x="3" y="4" name="C">
-      <constraints>
-        <constrainToGraph buffer="0.025" />
-      </constraints>
+      <constrainToGraph buffer="0.025" />
     </point>
   </graph>
 
@@ -1562,9 +1526,7 @@ describe("Point tag tests", async () => {
             doenetML: `
   <graph>
     <point x="1" y="2" name="A">
-      <constraints>
-        <constrainToGraph buffer="0.025" />
-      </constraints>
+      <constrainToGraph buffer="0.025" />
     </point>
   </graph>
 
@@ -1584,9 +1546,7 @@ describe("Point tag tests", async () => {
   <graph>
     <point name="original">(1,2)</point>
     <point name="constrained" x="$(original.x)+1" y="$(original.y)+1" >
-      <constraints>
-        <constrainToGrid/>
-      </constraints>
+      <constrainToGrid/>
     </point>
     <point name="follower">
         ($constrained.x+1,
@@ -1680,9 +1640,7 @@ describe("Point tag tests", async () => {
   <graph>
     <point name="original">(1.2,3.6)</point>
     <point name="constrained" x="$(original.x)+1" y="$(original.y)+1">
-      <constraints>
-        <constrainToGrid dx="$dx" dy="$dy" xoffset="$xoffset" yoffset="$yoffset" />
-      </constraints>
+      <constrainToGrid dx="$dx" dy="$dy" xoffset="$xoffset" yoffset="$yoffset" />
     </point>
     <point name="follower">
         ($constrained.x+1,
@@ -1905,28 +1863,7 @@ describe("Point tag tests", async () => {
             doenetML: `
 <graph>
     <point name="P" xs="-7.1 8.9">
-        <constraints>
-            <attractToGrid/>
-        </constraints>
-    </point>
-</graph>
-  `,
-        });
-
-        await test_attract_to_grid(core, resolvePathToNodeIdx);
-    });
-
-    it("point attracted to grid, default parameters, copied from outside", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-
-<constraints name="toGrid">
-    <attractToGrid/>
-</constraints>
-
-<graph>
-    <point name="P" xs="-7.1 8.9">
-        <constraints extend="$toGrid" />
+        <attractToGrid/>
     </point>
 </graph>
   `,
@@ -1941,9 +1878,7 @@ describe("Point tag tests", async () => {
 
 <graph>
     <point name="P" xs="-7.1 8.9 2.1">
-        <constraints>
-            <attractToGrid/>
-        </constraints>
+        <attractToGrid/>
     </point>
 </graph>
   `,
@@ -2016,9 +1951,7 @@ describe("Point tag tests", async () => {
             doenetML: `
 <graph>
     <point name="P" xs="3.1 -3.4">
-        <constraints>
-            <attractToGrid includeGridLines/>
-        </constraints>
+        <attractToGrid includeGridLines/>
     </point>
 </graph>
   `,
@@ -2089,9 +2022,7 @@ describe("Point tag tests", async () => {
 
 <graph>
     <point name="P" xs="-7.1 8.9">
-        <constraints>
-            <attractToGrid dx="$dx" dy="$dy" xoffset="$xoffset" yoffset="$yoffset" xThreshold="$xThreshold" yThreshold="$yThreshold" />
-        </constraints>
+        <attractToGrid dx="$dx" dy="$dy" xoffset="$xoffset" yoffset="$yoffset" xThreshold="$xThreshold" yThreshold="$yThreshold" />
     </point>
 </graph>
 
@@ -2200,9 +2131,7 @@ describe("Point tag tests", async () => {
 
 <graph grid="3 3" xMin="-8.5" xMax="8.5" yMin="-8.5" yMax="8.5">
     <point name="P" xs="-3.5 6.6">
-        <constraints>
-            <attractToGrid dx="3" dy="3" xThreshold="1" yThreshold="1" includeGridLines="$includeGridLines" />
-        </constraints>
+        <attractToGrid dx="3" dy="3" xThreshold="1" yThreshold="1" includeGridLines="$includeGridLines" />
     </point>
 </graph>
   `,
@@ -2304,9 +2233,7 @@ describe("Point tag tests", async () => {
     <point name="P2">(2,0)</point>
     <line name="l" through="$P1 $P2"/>
     <point name="A" xs="-1 -5">
-        <constraints>
-            <constrainTo>$l</constrainTo>
-        </constraints>
+        <constrainTo>$l</constrainTo>
     </point>
 </graph>
   `,
@@ -2392,9 +2319,7 @@ describe("Point tag tests", async () => {
     <point name="P2">(2,0)</point>
     <line name="l" through="$P1 $P2"/>
     <point name="A" xs="-1 -5">
-        <constraints>
-            <attractTo>$l</attractTo>
-        </constraints>
+        <attractTo>$l</attractTo>
     </point>
 </graph>
   `,
@@ -2485,9 +2410,7 @@ describe("Point tag tests", async () => {
     </repeat>
 
     <point name="P1" xs="3 2">
-        <constraints>
-            <constrainTo>$l1 $l2 $repeat</constrainTo>
-        </constraints>
+        <constrainTo>$l1 $l2 $repeat</constrainTo>
     </point>
 </graph>
 
@@ -2579,9 +2502,7 @@ describe("Point tag tests", async () => {
     </repeat>
 
     <point name="P1" xs="3 2">
-        <constraints>
-            <attractTo threshold="1">$l1 $l2 $repeat</attractTo>
-        </constraints>
+        <attractTo threshold="1">$l1 $l2 $repeat</attractTo>
     </point>
 </graph>
   `,
@@ -2714,14 +2635,12 @@ describe("Point tag tests", async () => {
     <line name="l3">x=2y+8</line>
     <line name="l4">x=-2y-8</line>
     <point name="A" xs="7 3">
-        <constraints>
-            <constraintUnion>
-                <constrainTo>$l1</constrainTo>
-                <constrainTo>$l2$l3</constrainTo>
-                <constrainTo>$l4</constrainTo>
-                <constrainToGrid dx="2" dy="2"/>
-            </constraintUnion>
-        </constraints>
+        <constraintUnion>
+            <constrainTo>$l1</constrainTo>
+            <constrainTo>$l2$l3</constrainTo>
+            <constrainTo>$l4</constrainTo>
+            <constrainToGrid dx="2" dy="2"/>
+        </constraintUnion>
     </point>
 </graph>
   `,
@@ -2830,16 +2749,14 @@ describe("Point tag tests", async () => {
     <line name="l3">x=2y+8</line>
     <line name="l4">x=-2y-8</line>
     <point name="A" xs="7 3">
-        <constraints>
-            <attractToConstraint>
-                <constraintUnion>
-                    <constrainTo>$l1</constrainTo>
-                    <constrainTo>$l2$l3</constrainTo>
-                    <constrainTo>$l4</constrainTo>
-                    <constrainToGrid dx="2" dy="2"/>
-                </constraintUnion>
-            </attractToConstraint>
-        </constraints>
+        <attractToConstraint>
+            <constraintUnion>
+                <constrainTo>$l1</constrainTo>
+                <constrainTo>$l2$l3</constrainTo>
+                <constrainTo>$l4</constrainTo>
+                <constrainToGrid dx="2" dy="2"/>
+            </constraintUnion>
+        </attractToConstraint>
     </point>
 </graph>
   `,
@@ -3011,17 +2928,15 @@ describe("Point tag tests", async () => {
     <line name="l3">x=2y+8</line>
     <line name="l4">x=-2y-8</line>
     <point name="A" xs="7 3">
-        <constraints>
-            <attractTo>$l1 $l2 $l3 $l4</attractTo>
-            <attractTo>
-                <intersection>$l1$l2</intersection>
-                <intersection>$l1$l3</intersection>
-                <intersection>$l1$l4</intersection>
-                <intersection>$l2$l3</intersection>
-                <intersection>$l2$l4</intersection>
-                <intersection>$l3$l4</intersection>
-            </attractTo>
-        </constraints>
+        <attractTo>$l1 $l2 $l3 $l4</attractTo>
+        <attractTo>
+            <intersection>$l1$l2</intersection>
+            <intersection>$l1$l3</intersection>
+            <intersection>$l1$l4</intersection>
+            <intersection>$l2$l3</intersection>
+            <intersection>$l2$l4</intersection>
+            <intersection>$l3$l4</intersection>
+        </attractTo>
     </point>
 </graph>
   `,
@@ -3298,17 +3213,15 @@ describe("Point tag tests", async () => {
     <line name="l3">x=2y+8</line>
     <line name="l4">x=-2y-8</line>
     <point name="A" xs="7 3">
-        <constraints>
-            <constrainTo>$l1 $l2 $l3 $l4</constrainTo>
-            <attractTo>
-                <intersection>$l1$l2</intersection>
-                <intersection>$l1$l3</intersection>
-                <intersection>$l1$l4</intersection>
-                <intersection>$l2$l3</intersection>
-                <intersection>$l2$l4</intersection>
-                <intersection>$l3$l4</intersection>
-            </attractTo>
-        </constraints>
+        <constrainTo>$l1 $l2 $l3 $l4</constrainTo>
+        <attractTo>
+            <intersection>$l1$l2</intersection>
+            <intersection>$l1$l3</intersection>
+            <intersection>$l1$l4</intersection>
+            <intersection>$l2$l3</intersection>
+            <intersection>$l2$l4</intersection>
+            <intersection>$l3$l4</intersection>
+        </attractTo>
     </point>
 </graph>
   `,
@@ -3522,17 +3435,15 @@ describe("Point tag tests", async () => {
     <line name="l3">x=2y+8</line>
     <line name="l4">x=-2y-8</line>
     <point name="A" xs="7 3">
-        <constraints>
-            <constrainTo>$l1 $l2 $l3 $l4</constrainTo>
-            <attractTo>
-                <intersection>$l1$l2</intersection>
-                <intersection>$l1$l3</intersection>
-                <intersection>$l1$l4</intersection>
-                <intersection>$l2$l3</intersection>
-                <intersection>$l2$l4</intersection>
-                <intersection>$l3$l4</intersection>
-            </attractTo>
-        </constraints>
+        <constrainTo>$l1 $l2 $l3 $l4</constrainTo>
+        <attractTo>
+            <intersection>$l1$l2</intersection>
+            <intersection>$l1$l3</intersection>
+            <intersection>$l1$l4</intersection>
+            <intersection>$l2$l3</intersection>
+            <intersection>$l2$l4</intersection>
+            <intersection>$l3$l4</intersection>
+        </attractTo>
     </point>
 </graph>
   `,
@@ -4480,9 +4391,7 @@ describe("Point tag tests", async () => {
     <math hide name="fixed0" fixed>0</math>
     <graph>
       <point name="P1" x="-4" y="1">
-        <constraints>
-          <attractTo><point>(1,-7)</point></attractTo>
-        </constraints>
+        <attractTo><point>(1,-7)</point></attractTo>
       </point>
       <point name="P3" x="$(P1.x)" y="$fixed0" />
       <point name="P4" y="$(P1.y)" x="$fixed0" />
@@ -5337,7 +5246,7 @@ describe("Point tag tests", async () => {
     <graph name="g">
       <point name="A" labelIsName x="1" y="2" />
       <point name="B" labelIsName x="3" y="4">
-        <constraints><constrainToGrid /></constraints>
+        <constrainToGrid />
       </point>
       <point name="C" labelIsName x="2$n+1" y="1" />
     </graph>
@@ -5366,7 +5275,7 @@ describe("Point tag tests", async () => {
     <graph name="g">
       <point name="A" labelIsName xs="1 2" />
       <point name="B" labelIsName xs="3 4">
-        <constraints><constrainToGrid /></constraints>
+        <constrainToGrid />
       </point>
       <point name="C" labelIsName xs="2$n+1 1" />
     </graph>
@@ -5395,7 +5304,7 @@ describe("Point tag tests", async () => {
     <graph name="g">
       <point name="A" labelIsName coords="(1,2)" />
       <point name="B" labelIsName coords="(3,4)">
-        <constraints><constrainToGrid /></constraints>
+        <constrainToGrid />
       </point>
       <point name="C" labelIsName coords="(2$n+1,1)" />
     </graph>
@@ -5531,41 +5440,27 @@ describe("Point tag tests", async () => {
             doenetML: `
     <graph>
       <point name="P1" xs="1">
-        <constraints>
-          <constrainTo><function>x^2</function></constrainTo>
-        </constraints>
+        <constrainTo><function>x^2</function></constrainTo>
       </point>
       <point name="P2" xs="2">
-        <constraints>
-          <constrainTo>
-            <curve><function>x^2</function><function>x^3</function></curve>
-          </constrainTo>
-        </constraints>
+        <constrainTo>
+          <curve><function>x^2</function><function>x^3</function></curve>
+        </constrainTo>
       </point>
       <point name="P3" xs="3">
-        <constraints>
-          <constrainTo><circle/></constrainTo>
-        </constraints>
+        <constrainTo><circle/></constrainTo>
       </point>
       <point name="P4" xs="4">
-        <constraints>
-          <constrainTo><line>y=2x</line></constrainTo>
-        </constraints>
+        <constrainTo><line>y=2x</line></constrainTo>
       </point>
       <point name="P5" xs="5">
-        <constraints>
-          <constrainTo><polygon vertices="(1,2) (3,4) (5,-6)" /></constrainTo>
-        </constraints>
+        <constrainTo><polygon vertices="(1,2) (3,4) (5,-6)" /></constrainTo>
       </point>
       <point name="P6" xs="6">
-        <constraints>
-          <constrainTo><polyline vertices="(1,2) (3,4) (5,-6)" /></constrainTo>
-        </constraints>
+        <constrainTo><polyline vertices="(1,2) (3,4) (5,-6)" /></constrainTo>
       </point>
       <point name="P7" xs="7">
-        <constraints>
-          <constrainTo><parabola/></constrainTo>
-        </constraints>
+        <constrainTo><parabola/></constrainTo>
       </point>
     </graph>
 
@@ -5801,17 +5696,13 @@ describe("Point tag tests", async () => {
 <graph name="g">
   <legend name="lg"><label>point</label></legend>
   <point>
-    <constraints>
-      <attractTo>$lg</attractTo>
-    </constraints>
+    <attractTo>$lg</attractTo>
   </point>
 </graph>
 
 <graph extend="$g">
   <point>(3,4)
-    <constraints>
-      <constrainTo>$lg</constrainTo>
-    </constraints>
+    <constrainTo>$lg</constrainTo>
   </point>
 </graph>
     `,
@@ -5826,28 +5717,28 @@ describe("Point tag tests", async () => {
             "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
         );
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.start.line).eq(6);
-        expect(errorWarnings.warnings[0].position.start.column).eq(7);
-        expect(errorWarnings.warnings[0].position.end.line).eq(6);
-        expect(errorWarnings.warnings[0].position.end.column).eq(33);
+        expect(errorWarnings.warnings[0].position.start.line).eq(5);
+        expect(errorWarnings.warnings[0].position.start.column).eq(5);
+        expect(errorWarnings.warnings[0].position.end.line).eq(5);
+        expect(errorWarnings.warnings[0].position.end.column).eq(31);
 
         expect(errorWarnings.warnings[1].message).contain(
             "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
         );
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].position.start.line).eq(6);
-        expect(errorWarnings.warnings[1].position.start.column).eq(7);
-        expect(errorWarnings.warnings[1].position.end.line).eq(6);
-        expect(errorWarnings.warnings[1].position.end.column).eq(33);
+        expect(errorWarnings.warnings[1].position.start.line).eq(5);
+        expect(errorWarnings.warnings[1].position.start.column).eq(5);
+        expect(errorWarnings.warnings[1].position.end.line).eq(5);
+        expect(errorWarnings.warnings[1].position.end.column).eq(31);
 
         expect(errorWarnings.warnings[2].message).contain(
             "Cannot constrain to a <legend> as it doesn't have a nearestPoint state variable",
         );
         expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].position.start.line).eq(14);
-        expect(errorWarnings.warnings[2].position.start.column).eq(7);
-        expect(errorWarnings.warnings[2].position.end.line).eq(14);
-        expect(errorWarnings.warnings[2].position.end.column).eq(37);
+        expect(errorWarnings.warnings[2].position.start.line).eq(11);
+        expect(errorWarnings.warnings[2].position.start.column).eq(5);
+        expect(errorWarnings.warnings[2].position.end.line).eq(11);
+        expect(errorWarnings.warnings[2].position.end.column).eq(35);
     });
 
     it("copy point with no arguments, specify individual coordinates", async () => {

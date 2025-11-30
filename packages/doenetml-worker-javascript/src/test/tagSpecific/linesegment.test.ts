@@ -1718,9 +1718,7 @@ describe("LineSegment tag tests", async () => {
   <lineSegment name="l" endpoints="$P1 $P2" />
 
   <point name="P3" x="-5" y="2">
-    <constraints>
       <constrainTo>$l</constrainTo>
-    </constraints>
   </point>
   </graph>
   `,
@@ -1886,9 +1884,7 @@ describe("LineSegment tag tests", async () => {
   <lineSegment name="l" endpoints="$P1 $P2" />
 
   <point name="P3" x="-5" y="2">
-    <constraints>
       <attractTo>$l</attractTo>
-    </constraints>
   </point>
   </graph>
   `,
@@ -2062,9 +2058,7 @@ describe("LineSegment tag tests", async () => {
   <graph xMin="-110" xMax="110" yMin="-0.11" yMax="0.11">
     <lineSegment endpoints="(-1,-0.05) (1,0.05)" name="l" />
     <point x="100" y="0" name="P">
-      <constraints>
         <constrainTo relativeToGraphScales>$l</constrainTo>
-      </constraints>
     </point>
   </graph>
   `,
@@ -2297,7 +2291,7 @@ describe("LineSegment tag tests", async () => {
             doenetML: `
   <graph>
   <point name="P" labelIsName>(3,5)
-    <constraints><constrainToGrid dx="2" dy="3" /></constraints>
+    <constrainToGrid dx="2" dy="3" />
     </point>
   <point name="Q" labelIsName>(-4,-1)</point>
   <lineSegment name="l" endpoints="$P $Q" />

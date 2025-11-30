@@ -6756,9 +6756,7 @@ describe("MathInput tag tests", async () => {
             doenetML: `
     <graph>
       <point x="1" y="2" name="A">
-        <constraints>
           <constrainToGrid />
-        </constraints>
       </point>
     </graph>
     
