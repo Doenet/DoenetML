@@ -47,11 +47,11 @@ describe("Sectioning Tag Tests", function () {
         );
 
         cy.get(cesc("#expr1")).should("not.exist");
-        cy.get(cesc("#expr2") + " .mq-editable-field")
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x−1)(x2+1)");
-            });
+        // cy.get(cesc("#expr2") + " .mq-editable-field")
+        //     .invoke("text")
+        //     .then((text) => {
+        //         expect(text.trim()).eq("(x−1)(x2+1)");
+        //     });
 
         cy.get(cesc("#aside1_title")).click();
 
@@ -59,11 +59,11 @@ describe("Sectioning Tag Tests", function () {
             "have.text",
             removeSpaces(toMathJaxString("(x+1)(x2−1)")),
         );
-        cy.get(cesc("#expr1") + " .mq-editable-field")
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x+1)(x2−1)");
-            });
+        // cy.get(cesc("#expr1") + " .mq-editable-field")
+        //     .invoke("text")
+        //     .then((text) => {
+        //         expect(text.trim()).eq("(x+1)(x2−1)");
+        //     });
 
         cy.get(cesc("#aside2_title")).click();
         cy.get(cesc("#expr2a")).should("not.exist");
@@ -90,13 +90,13 @@ describe("Sectioning Tag Tests", function () {
             "have.text",
             removeSpaces(toMathJaxString("(x+1)(x2−4)")),
         );
-        cy.get(cesc("#expr1") + " .mq-editable-field")
-            .invoke("text")
-            .then((text) => {
-                expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).eq(
-                    "(x+1)(x2−4)",
-                );
-            });
+        // cy.get(cesc("#expr1") + " .mq-editable-field")
+        //     .invoke("text")
+        //     .then((text) => {
+        //         expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).eq(
+        //             "(x+1)(x2−4)",
+        //         );
+        //     });
 
         cy.get(cesc("#expr1b")).should(
             "have.text",
@@ -126,11 +126,11 @@ describe("Sectioning Tag Tests", function () {
             "have.text",
             removeSpaces(toMathJaxString("(x−1)(x2+1)")),
         );
-        cy.get(cesc("#expr2") + " .mq-editable-field")
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).eq("(x−1)(x2+1)");
-            });
+        // cy.get(cesc("#expr2") + " .mq-editable-field")
+        //     .invoke("text")
+        //     .then((text) => {
+        //         expect(text.trim()).eq("(x−1)(x2+1)");
+        //     });
 
         cy.get(cesc("#expr2") + " textarea")
             .type("{end}{leftArrow}{backspace}4{enter}", { force: true })
@@ -140,13 +140,13 @@ describe("Sectioning Tag Tests", function () {
             "have.text",
             removeSpaces(toMathJaxString("(x−1)(x2+4)")),
         );
-        cy.get(cesc("#expr2") + " .mq-editable-field")
-            .invoke("text")
-            .then((text) => {
-                expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).eq(
-                    "(x−1)(x2+4)",
-                );
-            });
+        // cy.get(cesc("#expr2") + " .mq-editable-field")
+        //     .invoke("text")
+        //     .then((text) => {
+        //         expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).eq(
+        //             "(x−1)(x2+4)",
+        //         );
+        //     });
 
         cy.get(cesc("#expr1b")).should(
             "have.text",

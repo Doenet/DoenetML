@@ -60,9 +60,6 @@
         "react-copy-to-clipboard": {
             "react": "$react"
         },
-        "react-mathquill": {
-            "react": "$react"
-        },
         "@theguild/remark-mermaid": {
             "react": "$react"
         }
@@ -146,7 +143,6 @@
         "react-copy-to-clipboard": "^5.1.0",
         "react-dom": "^19.2.0",
         "react-icons": "^5.5.0",
-        "react-mathquill": "^1.0.3",
         "react-measure": "^2.5.2",
         "react-reconciler": "^0.33.0",
         "react-redux": "^9.2.0",

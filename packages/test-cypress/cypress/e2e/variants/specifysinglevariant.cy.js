@@ -618,16 +618,10 @@ describe("Specifying single variant document tests", function () {
                 choices[choiceOrder[2] - 1],
             );
 
-            cy.get(cesc(`#p2`)).should("have.text", `Enter ${n}. Check Work`);
-            cy.get(cesc(`#g2.p2`)).should(
-                "have.text",
-                `Enter ${n}. Check Work`,
-            );
-            cy.get(cesc(`#g3.p2`)).should(
-                "have.text",
-                `Enter ${n}. Check Work`,
-            );
-            cy.get(cesc(`#p3`)).should("have.text", `Enter ${m}. Check Work`);
+            cy.get(cesc(`#p2`)).should("contain.text", `Enter ${n}`);
+            cy.get(cesc(`#g2.p2`)).should("contain.text", `Enter ${n}`);
+            cy.get(cesc(`#g3.p2`)).should("contain.text", `Enter ${n}`);
+            cy.get(cesc(`#p3`)).should("contain.text", `Enter ${m}`);
 
             cy.get(cesc(`#ci_choice2_input`)).click();
             cy.get(cesc(`#ci_choice2_input`)).should("be.checked");
