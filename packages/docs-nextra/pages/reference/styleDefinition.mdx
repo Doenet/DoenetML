@@ -7,7 +7,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ` <styleDefinition>{:dn}` is a [General Operator](../document_structure/essentialConcepts/#componentTypes) 
-component that allows the user to define custom styles for an individual document. Default styleNumbers, used in Graphical Components, are numbered $1$ to $6$. Additional styleNumbers are defined with a ` <styleDefinition>{:dn}` component nested within a ` <styleDefinitions>{:dn}` block.
+component that allows the user to define custom styles for an individual document. Default styleNumbers, used in Graphical Components, are numbered $1$ to $6$. Additional styleNumbers are defined with a ` <styleDefinition>{:dn}` component.
 
 
 These new styles are assigned unique numbers that can be used locally in that document.
@@ -23,7 +23,6 @@ These new styles are assigned unique numbers that can be used locally in that do
 
 ```doenet-editor-horiz
 <setup>
-<styleDefinitions>
   <styleDefinition styleNumber="10" 
     fillColor="#D4042D" 
     fillOpacity="0.1" 
@@ -38,7 +37,6 @@ These new styles are assigned unique numbers that can be used locally in that do
     lineWidth="4"
     lineWidthWord="thick"
     />
-</styleDefinitions>  
 </setup>
 
 <p>The $redCircle.styleDescriptionWithNoun passes through the $thickRedLine.styleDescriptionWithNoun at $redCircle.</p>
@@ -58,5 +56,4 @@ style is an adaptation of the default "red" `styleNumber` of $2$, generating a t
 attributes ending in `Word` define the way doenet will render the style descriptions in text references when the `styleDescription` or 
 `styleDescriptionWithNoun` properties are used.
 
-Note: A `<styleDefinitions>{:dn}` block must be placed within a `<setup>{:dn}` component.
 
