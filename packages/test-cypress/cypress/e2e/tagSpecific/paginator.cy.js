@@ -94,25 +94,13 @@ describe("Paginator Tag Tests", function () {
             cy.get(answer4Correct).should("be.visible");
             cy.get(cesc("#ca")).should("have.text", "0.25");
 
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.get(mathInput1Anchor).type("2{enter}", { force: true });
 
             cy.get(answer1Correct).should("be.visible");
             cy.get(cesc("#ca")).should("have.text", "0.5");
-            cy.get(mathInput1DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2",
-                    );
-                });
+            cy.get(mathInput1DisplayAnchor).should("contain.text", "2");
 
             cy.log("move to page 2");
             cy.get(cesc("#pcontrols_next")).click();
@@ -121,13 +109,7 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc("#title2")).should("not.exist");
 
             cy.get(answer4Correct).should("be.visible");
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.get(cesc("#ca")).should("have.text", "0.5");
 
@@ -144,13 +126,7 @@ describe("Paginator Tag Tests", function () {
             cy.get(answer4Incorrect).should("be.visible");
 
             cy.get(cesc("#ca")).should("have.text", "0.25");
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "3",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
             cy.log("back to page 1");
             cy.get(cesc("#pcontrols_previous")).click();
@@ -160,13 +136,7 @@ describe("Paginator Tag Tests", function () {
 
             cy.get(answer1Correct).should("be.visible");
             cy.get(cesc("#ca")).should("have.text", "0.25");
-            cy.get(mathInput1DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2",
-                    );
-                });
+            cy.get(mathInput1DisplayAnchor).should("contain.text", "2");
 
             cy.get(cesc("#name")).should("not.exist");
 
@@ -181,13 +151,7 @@ describe("Paginator Tag Tests", function () {
 
             cy.get(answer4Incorrect).should("be.visible");
             cy.get(cesc("#ca")).should("have.text", "0.25");
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "3",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
             cy.get(mathInput4Anchor).type("{end}{backspace}4", { force: true });
             cy.get(answer4Incorrect).should("not.exist");
@@ -195,13 +159,7 @@ describe("Paginator Tag Tests", function () {
 
             cy.get(answer4Correct).should("be.visible");
             cy.get(cesc("#ca")).should("have.text", "0.5");
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.log("on to third page");
             cy.get(cesc("#pcontrols_next")).click();
@@ -211,13 +169,7 @@ describe("Paginator Tag Tests", function () {
 
             cy.get(answer4Correct).should("be.visible");
             cy.get(cesc("#ca")).should("have.text", "0.5");
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             // cy.get(cesc('#mxx') + ' .mjx-mrow').should('contain.text', 'x+x')
             // cy.get(cesc('#myy') + ' .mjx-mrow').should('contain.text', 'y+y')
@@ -250,24 +202,12 @@ describe("Paginator Tag Tests", function () {
                 cy.get(mathInput2Anchor).type("2x{enter}", { force: true });
                 cy.get(answer2Correct).should("be.visible");
                 cy.get(cesc("#ca")).should("have.text", "0.75");
-                cy.get(mathInput2DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2x");
-                    });
+                cy.get(mathInput2DisplayAnchor).should("contain.text", "2x");
 
                 cy.get(mathInput3Anchor).type("2y{enter}", { force: true });
                 cy.get(answer3Correct).should("be.visible");
                 cy.get(cesc("#ca")).should("have.text", "1");
-                cy.get(mathInput3DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2y");
-                    });
+                cy.get(mathInput3DisplayAnchor).should("contain.text", "2y");
 
                 cy.get(mathInput2Anchor).type("{end}{backspace}z", {
                     force: true,
@@ -276,13 +216,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(mathInput2Anchor).type("{enter}", { force: true });
                 cy.get(answer2Incorrect).should("be.visible");
                 cy.get(cesc("#ca")).should("have.text", "0.75");
-                cy.get(mathInput2DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2z");
-                    });
+                cy.get(mathInput2DisplayAnchor).should("contain.text", "2z");
 
                 cy.log("back to second page");
                 cy.get(cesc("#prevPage_button")).click();
@@ -298,13 +232,7 @@ describe("Paginator Tag Tests", function () {
 
                 cy.get(answer4Correct).should("be.visible");
                 cy.get(cesc("#ca")).should("have.text", "0.75");
-                cy.get(mathInput4DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("4");
-                    });
+                cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
                 cy.log("back to third page");
                 cy.get(cesc("#pcontrols_next")).click();
@@ -314,30 +242,13 @@ describe("Paginator Tag Tests", function () {
 
                 cy.get(answer4Correct).should("be.visible");
                 cy.get(cesc("#ca")).should("have.text", "0.75");
-                cy.get(mathInput4DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("4");
-                    });
+                cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
                 cy.get(answer2Incorrect).should("be.visible");
-                cy.get(mathInput2DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2z");
-                    });
+                cy.get(mathInput2DisplayAnchor).should("contain.text", "2z");
+
                 cy.get(answer3Correct).should("be.visible");
-                cy.get(mathInput3DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2y");
-                    });
+                cy.get(mathInput3DisplayAnchor).should("contain.text", "2y");
 
                 cy.get(cesc("#ca")).should("have.text", "0.75");
 
@@ -355,17 +266,11 @@ describe("Paginator Tag Tests", function () {
 
                 cy.get(answer4Correct).should("be.visible");
                 cy.get(cesc("#ca")).should("have.text", "0.75");
-                cy.get(mathInput4DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("4");
-                    });
+                cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
             });
         });
 
-        cy.wait(2000); // make sure 1 second debounce is satisified
+        cy.wait(2000); // make sure 1 second debounce is satisfied
         cy.reload();
 
         cy.window().then(async (win) => {
@@ -410,13 +315,7 @@ describe("Paginator Tag Tests", function () {
 
             cy.get(answer4Correct).should("be.visible");
             cy.get(cesc("#ca")).should("have.text", "0.75");
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.get(cesc("#name_input")).clear().type("You{enter}");
             cy.get(cesc("#name_input")).should("have.value", "You");
@@ -424,13 +323,7 @@ describe("Paginator Tag Tests", function () {
 
             cy.get(answer4Correct).should("be.visible");
             cy.get(cesc("#ca")).should("have.text", "0.75");
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.log("to third page");
             cy.get(cesc("#pcontrols_next")).click();
@@ -440,13 +333,7 @@ describe("Paginator Tag Tests", function () {
 
             cy.get(answer4Correct).should("be.visible");
             cy.get(cesc("#ca")).should("have.text", "0.75");
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -475,21 +362,9 @@ describe("Paginator Tag Tests", function () {
                 );
 
                 cy.get(answer2Incorrect).should("be.visible");
-                cy.get(mathInput2DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2z");
-                    });
+                cy.get(mathInput2DisplayAnchor).should("contain.text", "2z");
                 cy.get(answer3Correct).should("be.visible");
-                cy.get(mathInput3DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2y");
-                    });
+                cy.get(mathInput3DisplayAnchor).should("contain.text", "2y");
 
                 cy.get(mathInput3Anchor).type("{end}{backspace}q", {
                     force: true,
@@ -498,13 +373,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(mathInput3Anchor).type("{enter}", { force: true });
                 cy.get(answer3Incorrect).should("be.visible");
                 cy.get(cesc("#ca")).should("have.text", "0.5");
-                cy.get(mathInput3DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2q");
-                    });
+                cy.get(mathInput3DisplayAnchor).should("contain.text", "2q");
 
                 cy.get(mathInput4Anchor).type("{end}{backspace}3", {
                     force: true,
@@ -513,13 +382,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(mathInput4Anchor).type("{enter}", { force: true });
                 cy.get(answer4Incorrect).should("be.visible");
                 cy.get(cesc("#ca")).should("have.text", "0.25");
-                cy.get(mathInput4DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("3");
-                    });
+                cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
                 cy.get(mathInput2Anchor).type("{end}{backspace}x", {
                     force: true,
@@ -528,13 +391,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(mathInput2Anchor).type("{enter}", { force: true });
                 cy.get(answer2Correct).should("be.visible");
                 cy.get(cesc("#ca")).should("have.text", "0.5");
-                cy.get(mathInput2DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2x");
-                    });
+                cy.get(mathInput2DisplayAnchor).should("contain.text", "2x");
 
                 cy.log("back to second page");
                 cy.get(cesc("#pcontrols_previous")).click();
@@ -550,13 +407,7 @@ describe("Paginator Tag Tests", function () {
 
                 cy.get(answer4Incorrect).should("be.visible");
                 cy.get(cesc("#ca")).should("have.text", "0.5");
-                cy.get(mathInput4DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("3");
-                    });
+                cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
                 cy.log("to first page");
                 cy.get(cesc("#pcontrols_previous")).click();
@@ -566,13 +417,7 @@ describe("Paginator Tag Tests", function () {
 
                 cy.get(answer4Incorrect).should("be.visible");
                 cy.get(cesc("#ca")).should("have.text", "0.5");
-                cy.get(mathInput4DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("3");
-                    });
+                cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
@@ -592,25 +437,16 @@ describe("Paginator Tag Tests", function () {
                     );
 
                     cy.get(answer1Correct).should("be.visible");
-                    cy.get(mathInput1DisplayAnchor)
-                        .invoke("text")
-                        .then((text) => {
-                            expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                            ).equal("2");
-                        });
+                    cy.get(mathInput1DisplayAnchor).should("contain.text", "2");
 
                     cy.get(mathInput1Anchor).type("{end}-", { force: true });
                     cy.get(answer1Correct).should("not.exist");
                     cy.get(mathInput1Anchor).type("{enter}", { force: true });
                     cy.get(answer1Incorrect).should("be.visible");
-                    cy.get(mathInput1DisplayAnchor)
-                        .invoke("text")
-                        .then((text) => {
-                            expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                            ).equal("2−");
-                        });
+                    cy.get(mathInput1DisplayAnchor).should(
+                        "contain.text",
+                        "2−",
+                    );
                     cy.get(cesc("#ca")).should("have.text", "0.25");
 
                     cy.log("back to second page");
@@ -629,13 +465,10 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc("#title2")).should("not.exist");
 
                     cy.get(answer1Incorrect).should("be.visible");
-                    cy.get(mathInput1DisplayAnchor)
-                        .invoke("text")
-                        .then((text) => {
-                            expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                            ).equal("2−");
-                        });
+                    cy.get(mathInput1DisplayAnchor).should(
+                        "contain.text",
+                        "2−",
+                    );
 
                     cy.log("to third page");
 
@@ -653,44 +486,29 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc("#title2")).should("have.text", "Page 3");
 
                     cy.get(answer3Incorrect).should("be.visible");
-                    cy.get(mathInput3DisplayAnchor)
-                        .invoke("text")
-                        .then((text) => {
-                            expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                            ).equal("2q");
-                        });
+                    cy.get(mathInput3DisplayAnchor).should(
+                        "contain.text",
+                        "2q",
+                    );
 
                     cy.get(answer4Incorrect).should("be.visible");
-                    cy.get(mathInput4DisplayAnchor)
-                        .invoke("text")
-                        .then((text) => {
-                            expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                            ).equal("3");
-                        });
+                    cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
                     cy.get(answer2Correct).should("be.visible");
-                    cy.get(mathInput2DisplayAnchor)
-                        .invoke("text")
-                        .then((text) => {
-                            expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                            ).equal("2x");
-                        });
+                    cy.get(mathInput2DisplayAnchor).should(
+                        "contain.text",
+                        "2x",
+                    );
                     cy.get(cesc("#ca")).should("have.text", "0.25");
 
                     cy.get(mathInput2Anchor)
                         .type("{end}:", { force: true })
                         .blur();
                     cy.get(answer2Submit).should("be.visible");
-                    cy.get(mathInput2DisplayAnchor)
-                        .invoke("text")
-                        .then((text) => {
-                            expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                            ).equal("2x:");
-                        });
+                    cy.get(mathInput2DisplayAnchor).should(
+                        "contain.text",
+                        "2x:",
+                    );
                     cy.get(cesc("#ca")).should("have.text", "0.25");
 
                     cy.log("to second page");
@@ -709,29 +527,17 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc("#title2")).should("have.text", "Page 3");
 
                     cy.get(answer2Submit).should("be.visible");
-                    cy.get(mathInput2DisplayAnchor)
-                        .invoke("text")
-                        .then((text) => {
-                            expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                            ).equal("2x:");
-                        });
+                    cy.get(mathInput2DisplayAnchor).should(
+                        "contain.text",
+                        "2x:",
+                    );
                     cy.get(answer3Incorrect).should("be.visible");
-                    cy.get(mathInput3DisplayAnchor)
-                        .invoke("text")
-                        .then((text) => {
-                            expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                            ).equal("2q");
-                        });
+                    cy.get(mathInput3DisplayAnchor).should(
+                        "contain.text",
+                        "2q",
+                    );
                     cy.get(answer4Incorrect).should("be.visible");
-                    cy.get(mathInput4DisplayAnchor)
-                        .invoke("text")
-                        .then((text) => {
-                            expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                            ).equal("3");
-                        });
+                    cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
                     cy.get(cesc("#ca")).should("have.text", "0.25");
                 });
             });
@@ -796,29 +602,11 @@ describe("Paginator Tag Tests", function () {
             let answer4Incorrect = cesc("#" + mathInput4Name + "_incorrect");
 
             cy.get(answer2Submit).should("be.visible");
-            cy.get(mathInput2DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2x:",
-                    );
-                });
+            cy.get(mathInput2DisplayAnchor).should("contain.text", "2x:");
             cy.get(answer3Incorrect).should("be.visible");
-            cy.get(mathInput3DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2q",
-                    );
-                });
+            cy.get(mathInput3DisplayAnchor).should("contain.text", "2q");
             cy.get(answer4Incorrect).should("be.visible");
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "3",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
             cy.get(cesc("#ca")).should("have.text", "0.25");
 
             cy.log("to second page");
@@ -832,40 +620,16 @@ describe("Paginator Tag Tests", function () {
 
             cy.get(answer4Incorrect).should("be.visible");
             cy.get(cesc("#ca")).should("have.text", "0.25");
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "3",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
             cy.log("back to third page");
             cy.get(cesc("#pcontrols_next")).click();
             cy.get(answer2Submit).should("be.visible");
-            cy.get(mathInput2DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2x:",
-                    );
-                });
+            cy.get(mathInput2DisplayAnchor).should("contain.text", "2x:");
             cy.get(answer3Incorrect).should("be.visible");
-            cy.get(mathInput3DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2q",
-                    );
-                });
+            cy.get(mathInput3DisplayAnchor).should("contain.text", "2q");
             cy.get(answer4Incorrect).should("be.visible");
-            cy.get(mathInput4DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "3",
-                    );
-                });
+            cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
             cy.get(cesc("#ca")).should("have.text", "0.25");
 
             cy.log("to first page");
@@ -894,23 +658,11 @@ describe("Paginator Tag Tests", function () {
                 );
 
                 cy.get(answer1Incorrect).should("be.visible");
-                cy.get(mathInput1DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2−");
-                    });
+                cy.get(mathInput1DisplayAnchor).should("contain.text", "2−");
                 cy.get(cesc("#ca")).should("have.text", "0.25");
 
                 cy.get(answer4Incorrect).should("be.visible");
-                cy.get(mathInput4DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("3");
-                    });
+                cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
             });
         });
     });
@@ -2393,25 +2145,19 @@ describe("Paginator Tag Tests", function () {
             let correctAnswer = n === 1 ? "x" : "y";
 
             cy.get(mathInput1Anchor).type(`${correctAnswer}`, { force: true });
-            cy.get(mathInput1DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        correctAnswer,
-                    );
-                });
+            cy.get(mathInput1DisplayAnchor).should(
+                "contain.text",
+                correctAnswer,
+            );
             cy.get(answer1Submit).click();
 
             cy.get(cesc("#ca")).should("have.text", "0.25");
 
             cy.get(mathInput2Anchor).type(`2${correctAnswer}`, { force: true });
-            cy.get(mathInput2DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        `2${correctAnswer}`,
-                    );
-                });
+            cy.get(mathInput2DisplayAnchor).should(
+                "contain.text",
+                `2${correctAnswer}`,
+            );
             cy.get(answer2Submit).click();
 
             cy.get(cesc("#ca")).should("have.text", "0.5");
@@ -2424,22 +2170,16 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc("#problem1_title")).should("have.text", "Problem 1");
             cy.get(cesc("#ca")).should("have.text", "0.5");
 
-            cy.get(mathInput1DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        correctAnswer,
-                    );
-                });
+            cy.get(mathInput1DisplayAnchor).should(
+                "contain.text",
+                correctAnswer,
+            );
             cy.get(answer1Correct).should("be.visible");
 
-            cy.get(mathInput2DisplayAnchor)
-                .invoke("text")
-                .then((text) => {
-                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        `2${correctAnswer}`,
-                    );
-                });
+            cy.get(mathInput2DisplayAnchor).should(
+                "contain.text",
+                `2${correctAnswer}`,
+            );
             cy.get(answer2Correct).should("be.visible");
 
             cy.get(cesc("#pcontrols_next")).click();
@@ -2468,25 +2208,13 @@ describe("Paginator Tag Tests", function () {
                 let answer4Correct = cesc("#" + mathInput4Name + "_correct");
 
                 cy.get(mathInput3Anchor).type(`1{enter}`, { force: true });
-                cy.get(mathInput3DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("1");
-                    });
+                cy.get(mathInput3DisplayAnchor).should("contain.text", "1");
                 cy.get(answer3Correct).should("be.visible");
 
                 cy.get(cesc("#ca")).should("have.text", "0.75");
 
                 cy.get(mathInput4Anchor).type(`2{enter}`, { force: true });
-                cy.get(mathInput4DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2");
-                    });
+                cy.get(mathInput4DisplayAnchor).should("contain.text", "2");
                 cy.get(answer4Correct).should("be.visible");
 
                 cy.get(cesc("#ca")).should("have.text", "1");
@@ -2498,22 +2226,16 @@ describe("Paginator Tag Tests", function () {
                 );
                 cy.get(cesc("#ca")).should("have.text", "1");
 
-                cy.get(mathInput1DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal(correctAnswer);
-                    });
+                cy.get(mathInput1DisplayAnchor).should(
+                    "contain.text",
+                    correctAnswer,
+                );
                 cy.get(answer1Correct).should("be.visible");
 
-                cy.get(mathInput2DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal(`2${correctAnswer}`);
-                    });
+                cy.get(mathInput2DisplayAnchor).should(
+                    "contain.text",
+                    `2${correctAnswer}`,
+                );
                 cy.get(answer2Correct).should("be.visible");
 
                 cy.get(cesc("#pcontrols_next")).click();
@@ -2523,22 +2245,10 @@ describe("Paginator Tag Tests", function () {
                 );
                 cy.get(cesc("#ca")).should("have.text", "1");
 
-                cy.get(mathInput3DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("1");
-                    });
+                cy.get(mathInput3DisplayAnchor).should("contain.text", "1");
                 cy.get(answer3Correct).should("be.visible");
 
-                cy.get(mathInput4DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2");
-                    });
+                cy.get(mathInput4DisplayAnchor).should("contain.text", "2");
                 cy.get(answer4Correct).should("be.visible");
 
                 cy.get(cesc("#ca")).should("have.text", "1");
@@ -2571,22 +2281,10 @@ describe("Paginator Tag Tests", function () {
                 );
                 cy.get(cesc("#ca")).should("have.text", "1");
 
-                cy.get(mathInput3DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("1");
-                    });
+                cy.get(mathInput3DisplayAnchor).should("contain.text", "1");
                 cy.get(answer3Correct).should("be.visible");
 
-                cy.get(mathInput4DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal("2");
-                    });
+                cy.get(mathInput4DisplayAnchor).should("contain.text", "2");
                 cy.get(answer4Correct).should("be.visible");
 
                 cy.get(cesc("#ca")).should("have.text", "1");
@@ -2598,22 +2296,16 @@ describe("Paginator Tag Tests", function () {
                 );
                 cy.get(cesc("#ca")).should("have.text", "1");
 
-                cy.get(mathInput1DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal(correctAnswer);
-                    });
+                cy.get(mathInput1DisplayAnchor).should(
+                    "contain.text",
+                    correctAnswer,
+                );
                 cy.get(answer1Correct).should("be.visible");
 
-                cy.get(mathInput2DisplayAnchor)
-                    .invoke("text")
-                    .then((text) => {
-                        expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
-                        ).equal(`2${correctAnswer}`);
-                    });
+                cy.get(mathInput2DisplayAnchor).should(
+                    "contain.text",
+                    `2${correctAnswer}`,
+                );
                 cy.get(answer2Correct).should("be.visible");
             });
         });

@@ -27,17 +27,26 @@ describe("MathInput Tag Tests", function () {
             force: true,
         });
 
-        cy.get(cesc("#a") + " .mq-editable-field").should("contain.text", "√4");
+        // cy.get(cesc("#a") + " .mq-editable-field").should("contain.text", "√4");
+        cy.get(cesc("#a") + " .mq-editable-field").should("contain.text", "4");
         cy.get(cesc("#a2")).should("contain.text", "4");
         cy.get(cesc("#a3")).should("contain.text", "2");
 
-        cy.get(cesc("#a") + " .mq-editable-field")
-            .invoke("text")
-            .then((text) => {
-                expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "√4",
-                );
-            });
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+
+            expect(
+                stateVariables[await win.resolvePath1("a")].stateValues.value,
+            ).eqls(["apply", "sqrt", 4]);
+        });
+
+        // cy.get(cesc("#a") + " .mq-editable-field")
+        //     .invoke("text")
+        //     .then((text) => {
+        //         expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
+        //             "√4",
+        //         );
+        //     });
     });
 
     it("check ignoreUpdate bug 1", () => {

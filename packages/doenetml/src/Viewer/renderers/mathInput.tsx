@@ -2,8 +2,10 @@ import React, { useRef, useState, FocusEventHandler, useContext } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { addStyles, EditableMathField, MathField } from "react-mathquill";
-addStyles(); // Styling for react-mathquill input field
+import { MathField } from "./mathquill/types";
+import { EditableMathField } from "./mathquill/EditableMathField";
+import "./mathquill/mathquill.css";
+
 import { MathJax } from "better-react-mathjax";
 
 import "./mathInput.css";
@@ -297,12 +299,12 @@ export default function MathInput(props: UseDoenetRendererProps) {
                                     return textareaRef.current;
                                 },
                             }} //more commands go here
-                            onChange={(mField) => {
+                            onChange={(mField: any) => {
                                 onChangeHandler(mField.latex());
                             }}
                             onBlur={handleBlur}
                             onFocus={handleFocus}
-                            mathquillDidMount={(mf) => {
+                            mathquillDidMount={(mf: any) => {
                                 //console.log(">>> MathQuillMounted")
                                 setMathField(mf);
                             }}
