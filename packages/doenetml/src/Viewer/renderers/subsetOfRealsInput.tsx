@@ -1,35 +1,12 @@
 // @ts-nocheck
 import React, { useRef, useState } from "react";
-import styled from "styled-components";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
 import { ToggleButton } from "@doenet/ui-components";
 import { ToggleButtonGroup } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
-
-const TextNoSelect = styled.text`
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
-`;
-
-// Used before ActionButton and ToggleButton were implemented:
-// const ModeButton = styled.button`
-//   &:focus {
-//     outline: 0;
-//   }
-//   width: 120px;
-//   -webkit-user-select: none;
-//   -moz-user-select: none;
-//   -ms-user-select: none;
-//   user-select: none;
-//   -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
-//   margin-left: 1px;
-//   margin-top: 1px;
-// `;
+import "./subsetOfRealsInput.css";
 
 export default React.memo(function subsetOfReals(props) {
     let { id, SVs, actions, callAction } = useDoenetRenderer(props, false);
@@ -116,9 +93,15 @@ export default React.memo(function subsetOfReals(props) {
         let number = numbers.shift();
 
         labels.push(
-            <TextNoSelect key={"label" + x} x={x} y="66" textAnchor="middle">
+            <text
+                key={"label" + x}
+                x={x}
+                y="66"
+                textAnchor="middle"
+                class="text-no-select"
+            >
                 {number}
-            </TextNoSelect>,
+            </text>,
         );
     }
 

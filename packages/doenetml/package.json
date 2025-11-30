@@ -61,8 +61,7 @@
     },
     "peerDependencies": {
         "react": "^19.1.1",
-        "react-dom": "^19.1.1",
-        "styled-components": "^5.3.11"
+        "react-dom": "^19.1.1"
     },
     "dependencies": {},
     "prettier": {

@@ -1,0 +1,15 @@
+.doenet-viewer .text-input {
+    font-size: 14px;
+    border: var(--mainBorder);
+    cursor: auto;
+
+    &:focus {
+        outline: var(--mainBorder);
+        outline-offset: 2px;
+    }
+}
+
+.doenet-viewer .text-input-disabled {
+    border: 2px solid var(--mainGray);
+    cursor: not-allowed;
+}

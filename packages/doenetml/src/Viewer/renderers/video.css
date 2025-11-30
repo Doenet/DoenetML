@@ -1,0 +1,6 @@
+.doenet-viewer .video {
+    &:focus {
+        outline: 2px solid var(--canvasText);
+        outline-offset: 2px;
+    }
+}

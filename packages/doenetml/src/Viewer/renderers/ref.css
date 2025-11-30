@@ -1,0 +1,31 @@
+.doenet-viewer button.ref-button {
+    position: relative;
+    height: 24px;
+    display: inline-block;
+    color: var(--canvas);
+    background-color: var(--mainBlue);
+
+    padding: 2px;
+    border: none;
+    border-radius: var(--mainBorderRadius);
+    cursor: pointer;
+    padding: 1px 6px 1px 6px;
+
+    &:hover {
+        background-color: var(--lightBlue);
+    }
+
+    &:focus {
+        outline: 2px solid var(--mainBlue);
+        outline-offset: 2px;
+    }
+}
+
+.doenet-viewer button.ref-button-disabled {
+    color: var(--canvasText);
+    background-color: var(--mainGray);
+    cursor: not-allowed;
+    &:hover {
+        background-color: var(--mainGray);
+    }
+}

@@ -5,46 +5,12 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
 
-import styled from "styled-components";
+import "./matrixInput.css";
 import "./mathInput.css";
 import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
-
-const Matrix = styled.div`
-    position: relative;
-    margin: 6px;
-    display: inline-block;
-    vertical-align: middle;
-    width: auto;
-
-    :before {
-        content: "";
-        position: absolute;
-        left: -6px;
-        top: -6px;
-        border: var(--mainBorder);
-        border-right: 0px;
-        width: 6px;
-        height: 100%;
-        padding-top: 6px;
-        padding-bottom: 3px;
-    }
-
-    :after {
-        content: "";
-        position: absolute;
-        right: -6px;
-        top: -6px;
-        border: var(--mainBorder);
-        border-left: 0px;
-        width: 6px;
-        height: 100%;
-        padding-top: 6px;
-        padding-bottom: 3px;
-    }
-`;
 
 export default React.memo(function MatrixInput(props) {
     let { id, SVs, actions, children, callAction } = useDoenetRenderer(props);
@@ -184,11 +150,11 @@ export default React.memo(function MatrixInput(props) {
         <React.Fragment>
             <a name={id} />
             <div style={{ display: "inline-flex", margin: "0px 4px 4px 4px" }}>
-                <Matrix className="matrixInputSurroundingBox" id={id}>
+                <div className="matrix-input" id={id}>
                     <table>
                         <tbody>{matrixInputs}</tbody>
                     </table>
-                </Matrix>
+                </div>
                 <div style={{ marginRight: "4px" }}></div>
                 {rowNumControls}
                 {colNumControls}

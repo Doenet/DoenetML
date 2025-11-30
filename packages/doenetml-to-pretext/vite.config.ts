@@ -4,7 +4,7 @@ import dts from "vite-plugin-dts";
 import { version } from "./package.json";
 
 // These are the dependencies that will not be bundled into the library.
-const EXTERNAL_DEPS = ["react", "react-dom", "styled-components"];
+const EXTERNAL_DEPS = ["react", "react-dom"];
 
 // https://vitejs.dev/config/
 export default defineConfig({

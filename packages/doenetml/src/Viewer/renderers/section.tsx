@@ -7,7 +7,6 @@ import {
     faTimes,
     faCloud,
 } from "@fortawesome/free-solid-svg-icons";
-import styled from "styled-components";
 import { faCaretRight as twirlIsClosed } from "@fortawesome/free-solid-svg-icons";
 import { faCaretDown as twirlIsOpen } from "@fortawesome/free-solid-svg-icons";
 
@@ -18,25 +17,6 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
-
-// Moved most of checkWorkStyle styling into Button
-const Button = styled.button`
-    position: relative;
-    height: 24px;
-    display: inline-block;
-    color: white;
-    background-color: var(--mainBlue);
-    padding: 2px;
-    /* border: var(--mainBorder); */
-    border: none;
-    border-radius: var(--mainBorderRadius);
-    margin: 0px 4px 4px 0px;
-
-    &:hover {
-        background-color: var(--lightBlue);
-        color: black;
-    }
-`;
 
 export default React.memo(function Section(props) {
     let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);

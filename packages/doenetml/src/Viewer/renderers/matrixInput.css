@@ -1,0 +1,33 @@
+.doenet-viewer .matrix-input {
+    position: relative;
+    margin: 6px;
+    display: inline-block;
+    vertical-align: middle;
+    width: auto;
+
+    &:before {
+        content: "";
+        position: absolute;
+        left: -6px;
+        top: -6px;
+        border: var(--mainBorder);
+        border-right: 0px;
+        width: 6px;
+        height: 100%;
+        padding-top: 6px;
+        padding-bottom: 3px;
+    }
+
+    &:after {
+        content: "";
+        position: absolute;
+        right: -6px;
+        top: -6px;
+        border: var(--mainBorder);
+        border-left: 0px;
+        width: 6px;
+        height: 100%;
+        padding-top: 6px;
+        padding-bottom: 3px;
+    }
+}

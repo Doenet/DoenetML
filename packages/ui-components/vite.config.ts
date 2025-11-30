@@ -21,7 +21,6 @@ export default defineConfig({
                 "classnames",
                 "react",
                 "react-dom",
-                "styled-components",
                 "@fortawesome/free-solid-svg-icons",
                 "@fortawesome/react-fontawesome",
                 "better-react-mathjax",

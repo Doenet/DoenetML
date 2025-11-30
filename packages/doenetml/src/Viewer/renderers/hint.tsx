@@ -8,15 +8,8 @@ import { faLightbulb as lightOff } from "@fortawesome/free-solid-svg-icons";
 import { faLightbulb as lightOn } from "@fortawesome/free-regular-svg-icons";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
-import styled from "styled-components";
 import { addCommasForCompositeRanges } from "./utils/composites";
-
-const SpanStyling = styled.span`
-    &: focus {
-        outline: 2px solid var(--canvasText);
-        outline-offset: 2px;
-    }
-`;
+import "./hint.css";
 
 export default React.memo(function Hint(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
@@ -118,18 +111,12 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
 
     return (
         <aside id={id} key={id} ref={ref}>
-            <SpanStyling
+            <span
+                className="hint-title"
                 style={{
-                    display: "block",
                     margin: SVs.open ? "12px 4px 0px 4px" : "12px 4px 12px 4px",
-                    padding: "6px",
-                    border: "2px solid var(--canvasText)",
-                    borderTopLeftRadius: "5px",
-                    borderTopRightRadius: "5px",
                     borderBottomLeftRadius: SVs.open ? "0px" : "5px",
                     borderBottomRightRadius: SVs.open ? "0px" : "5px",
-                    backgroundColor: "var(--mainGray)",
-                    cursor: "pointer",
                 }}
                 tabIndex={0}
                 data-test="hint-heading"
@@ -138,7 +125,7 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
             >
                 {" "}
                 {icon} {title} (click to {openCloseText})
-            </SpanStyling>
+            </span>
             <span style={infoBlockStyle}>{info}</span>
         </aside>
     );
