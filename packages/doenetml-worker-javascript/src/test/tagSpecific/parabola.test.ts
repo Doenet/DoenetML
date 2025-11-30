@@ -831,9 +831,7 @@ describe("Parabola Tag Tests", async () => {
     <graph>
     <parabola through="(1,2)" name="p" />
     <point x="0" y="0" name="A">
-      <constraints>
         <constrainTo>$p</constrainTo>
-      </constraints>
     </point>
     </graph>
     <graph name="g2">
@@ -909,9 +907,7 @@ describe("Parabola Tag Tests", async () => {
     <graph>
     <parabola through="(1,-2) (2,-3) (0,-3)" name="p" />
     <point x="0" y="0" name="A">
-      <constraints>
         <constrainTo>$p</constrainTo>
-      </constraints>
     </point>
     </graph>
     <graph name="g2">
@@ -987,9 +983,7 @@ describe("Parabola Tag Tests", async () => {
     <graph>
     <parabola through="(1,2) (3,3) (5, 4)" name="p" />
     <point x="0" y="0" name="A">
-      <constraints>
         <constrainTo>$p</constrainTo>
-      </constraints>
     </point>
     </graph>
     <graph name="g2">
@@ -1057,9 +1051,7 @@ describe("Parabola Tag Tests", async () => {
     <graph ymin="-1000" ymax="1000">
     <parabola through="(1,-200) (2,-300) (0,-300)" name="p" />
     <point x="0" y="0" name="A">
-      <constraints>
         <constrainTo relativeToGraphScales>$p</constrainTo>
-      </constraints>
     </point>
     </graph>
     <graph name="g2" ymin="-1000" ymax="1000">

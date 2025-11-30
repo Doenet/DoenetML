@@ -3387,9 +3387,7 @@ describe("Polygon tag tests", async () => {
   <graph>
     <polygon vertices=" (3,5) (-4,-1) (5,2)" />
     <point x="7" y="8">
-      <constraints>
         <attractTo>$_polygon1</attractTo>
-      </constraints>
     </point>
   </graph>
   `,
@@ -3677,9 +3675,7 @@ describe("Polygon tag tests", async () => {
   <graph>
     <polygon vertices=" (3,5) (-4,-1) (5,2)" />
     <point x="7" y="8">
-      <constraints>
         <constrainTo>$_polygon1</constrainTo>
-      </constraints>
     </point>
   </graph>
   `,
@@ -3972,9 +3968,7 @@ describe("Polygon tag tests", async () => {
   <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
     <polygon vertices="(-50,-0.02) (-40,0.07) (70,0.06) (10,-0.01)" name="p" />
     <point x="0" y="0.01" name="A">
-      <constraints>
         <constrainTo relativeToGraphScales>$p</constrainTo>
-      </constraints>
     </point>
   </graph>
   `,
@@ -4074,9 +4068,7 @@ describe("Polygon tag tests", async () => {
   <graph>
     <polygon vertices=" (3,5) (-4,-1) (5,2)" filled />
     <point x="7" y="8">
-      <constraints>
         <constrainToInterior>$_polygon1</constrainToInterior>
-      </constraints>
     </point>
   </graph>
   `,
@@ -4402,9 +4394,7 @@ describe("Polygon tag tests", async () => {
   <graph>
     <polygon vertices="(2,0) (8,0) (8,8) (0,8) (0,4) (6,4) (6,2) (4,2) (4,6) (2,6)" filled name="pg" />
     <point x="7" y="6" name="P">
-      <constraints>
         <constrainToInterior>$pg</constrainToInterior>
-      </constraints>
     </point>
   </graph>
   `,
@@ -5353,9 +5343,7 @@ describe("Polygon tag tests", async () => {
     <point>(3,5)</point>
     <point>(-4,-1)</point>
     <point>(5,2)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />
@@ -5446,15 +5434,11 @@ describe("Polygon tag tests", async () => {
             doenetML: `
   <graph name="g1">
     <point>(3,5)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(-4,-1)</point>
     <point>(5,2)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />
@@ -5545,19 +5529,13 @@ describe("Polygon tag tests", async () => {
             doenetML: `
   <graph name="g1">
     <point>(3,5)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(-4,-1)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(5,2)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(-3,4)</point>
     <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />

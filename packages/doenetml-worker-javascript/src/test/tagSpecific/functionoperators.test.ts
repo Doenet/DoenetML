@@ -192,14 +192,10 @@ describe("Function Operator tag tests", async () => {
       $f
       $g
       <point name="P1" x="3" y="4">
-        <constraints>
           <constrainTo>$f</constrainTo>
-        </constraints>
       </point>
       <point name="P2" x="3" y="4">
-        <constraints>
           <constrainTo>$fp</constrainTo>
-        </constraints>
       </point>
     </graph>
 

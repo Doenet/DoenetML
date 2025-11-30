@@ -117,9 +117,7 @@ describe("CobwebPolyline Tag Tests", function () {
     <number name="zeroFixed" fixed>0</number>
     <number name="initialInitialX" copy="$initialInitialValue" />
     <point x="$initialInitialX" y="$zeroFixed" name="initialPoint" hide>
-      <constraints>
         <constrainToGrid dx="$initialValueDx" xoffset="$initialValueOffset" />
-      </constraints>
     </point>
 
     <boolean name="initialCorrect">$initialPoint = ($x0,0)</boolean>
@@ -613,47 +611,31 @@ describe("CobwebPolyline Tag Tests", function () {
 
 
     <point name="pv11" x="0" y="0">
-      <constraints>
         <attractTo threshold="$attractThreshold"><line equation="x=$x0" /></attractTo>
-      </constraints>
     </point>
     <point name="pv12" x="0" y="1" >
-      <constraints>
         <attractTo threshold="$attractThreshold"><line equation="x=$x0" /></attractTo>
-      </constraints>
     </point>
 
     <point name="ph11" x="0" y="0">
-      <constraints>
         <attractTo threshold="$attractThreshold"><line equation="y=$x1" /></attractTo>
-      </constraints>
     </point>
     <point name="ph12" x="1" y="0" >
-      <constraints>
         <attractTo threshold="$attractThreshold"><line equation="y=$x1" /></attractTo>
-      </constraints>
     </point>
 
     <point name="pv21" x="0" y="0">
-      <constraints>
         <attractTo threshold="$attractThreshold"><line equation="x=$x1" /></attractTo>
-      </constraints>
     </point>
     <point name="pv22" x="0" y="1" >
-      <constraints>
         <attractTo threshold="$attractThreshold"><line equation="x=$x1" /></attractTo>
-      </constraints>
     </point>
 
     <point name="ph21" x="0" y="0">
-      <constraints>
         <attractTo threshold="$attractThreshold"><line equation="y=$x2" /></attractTo>
-      </constraints>
     </point>
     <point name="ph22" x="1" y="0" >
-      <constraints>
         <attractTo threshold="$attractThreshold"><line equation="y=$x2" /></attractTo>
-      </constraints>
     </point>
 
     <math extend="$P1.coords" name="P1coords" />
@@ -686,9 +668,7 @@ describe("CobwebPolyline Tag Tests", function () {
   
     <point name="P1" hide="$nPoints < 1" x="$initXCopy1" y="$initYCopy1" fixed='$step > 1' styleNumber='$P1StyleNum'>
       <label>($(variable)_0,0)</label>
-      <constraints>
         <attractTo threshold="$attractThreshold"><point x="$x0" y="0" ></point></attractTo>
-      </constraints>
     </point>
 
     <line name="v1" through="$pv11 $pv12" hide="$nVlines < 1" fixed="$step > 2" styleNumber="$v1StyleNum" />
@@ -697,16 +677,12 @@ describe("CobwebPolyline Tag Tests", function () {
 
     <point name="P2" hide="$nPoints < 2" x="$initXCopy2" y="$initYCopy2" fixed='$step > 3' styleNumber='$P2StyleNum'>
       <label>(0,$(variable)_1)</label>
-      <constraints>
         <attractTo threshold="$attractThreshold"><point x="0" y="$x1" ></point></attractTo>
-      </constraints>
     </point>
 
     <point name="P3" hide="$nPoints < 3" x="$initXCopy3" y="$initYCopy3" fixed='$step > 4' styleNumber='$P3StyleNum'>
       <label>($(variable)_1,0)</label>
-      <constraints>
         <attractTo threshold="$attractThreshold"><point x="$x1" y="0" ></point></attractTo>
-      </constraints>
     </point>
 
     <line name="v2" through="$pv21 $pv22" hide="$nVlines < 2" fixed="$step > 5" styleNumber="$v2StyleNum" />
@@ -715,9 +691,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
     <point name="P4" hide="$nPoints < 4" x="$initXCopy4" y="$initYCopy4" fixed='$step > 6' styleNumber='$P4StyleNum'>
       <label>(0,$(variable)_2)</label>
-      <constraints>
         <attractTo threshold="$attractThreshold"><point x="0" y="$x2" ></point></attractTo>
-      </constraints>
     </point>
 
     <polyline styleNumber="1" vertices="($x0,0) ($x0, $x1) ($x1, $x1) ($x1, $x2)" hide="mod($pflash, 2) = 0 or not $previewShortcut" fixed />

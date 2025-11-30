@@ -120,9 +120,7 @@ describe("point location validation tests", async () => {
         <p>Move point to $goal.coords</p>
         <graph>
             <point name="A" x="4.9" y="-1.1">
-                <constraints>
                 <attractTo>$goal</attractTo>
-                </constraints>
             </point>
         </graph>
         <p><answer name="ans"><award><when>
@@ -271,16 +269,12 @@ describe("point location validation tests", async () => {
     <p>Move points to $goal1.coords $goal2.coords</p>
     <graph>
       <point name="A" x="4.9" y="-1.1">
-        <constraints>
-          <attractTo>$goal1</attractTo>
-          <attractTo>$goal2</attractTo>
-        </constraints>
+        <attractTo>$goal1</attractTo>
+        <attractTo>$goal2</attractTo>
       </point>
       <point name="B" x="-2.3" y="-3.4">
-        <constraints>
-          <attractTo>$goal1</attractTo>
-          <attractTo>$goal2</attractTo>
-        </constraints>
+        <attractTo>$goal1</attractTo>
+        <attractTo>$goal2</attractTo>
       </point>
     </graph>
     <p><answer name="ans">
@@ -302,16 +296,12 @@ describe("point location validation tests", async () => {
     <p>Move points to $goal1.coords $goal2.coords</p>
     <graph>
       <point name="A" x="4.9" y="-1.1">
-        <constraints>
-          <attractTo>$goal1</attractTo>
-          <attractTo>$goal2</attractTo>
-        </constraints>
+        <attractTo>$goal1</attractTo>
+        <attractTo>$goal2</attractTo>
       </point>
       <point name="B" x="-2.3" y="-3.4">
-        <constraints>
-          <attractTo>$goal1</attractTo>
-          <attractTo>$goal2</attractTo>
-        </constraints>
+        <attractTo>$goal1</attractTo>
+        <attractTo>$goal2</attractTo>
       </point>
     </graph>
     <p><answer name="ans">
@@ -333,16 +323,12 @@ describe("point location validation tests", async () => {
     <p>Move points to $goal1.coords $goal2.coords</p>
     <graph>
       <point name="A" x="4.9" y="-1.1">
-        <constraints>
-          <attractTo>$goal1</attractTo>
-          <attractTo>$goal2</attractTo>
-        </constraints>
+        <attractTo>$goal1</attractTo>
+        <attractTo>$goal2</attractTo>
       </point>
       <point name="B" x="-2.3" y="-3.4">
-        <constraints>
-          <attractTo>$goal1</attractTo>
-          <attractTo>$goal2</attractTo>
-        </constraints>
+        <attractTo>$goal1</attractTo>
+        <attractTo>$goal2</attractTo>
       </point>
     </graph>
     <p><answer name="ans">
@@ -364,16 +350,12 @@ describe("point location validation tests", async () => {
     <p>Move points to $goal1.coords $goal2.coords</p>
     <graph>
       <point name="A" x="4.9" y="-1.1">
-        <constraints>
-          <attractTo>$goal1</attractTo>
-          <attractTo>$goal2</attractTo>
-        </constraints>
+        <attractTo>$goal1</attractTo>
+        <attractTo>$goal2</attractTo>
       </point>
       <point name="B" x="-2.3" y="-3.4">
-        <constraints>
-          <attractTo>$goal1</attractTo>
-          <attractTo>$goal2</attractTo>
-        </constraints>
+        <attractTo>$goal1</attractTo>
+        <attractTo>$goal2</attractTo>
       </point>
     </graph>
     <p><answer name="ans">
@@ -395,16 +377,12 @@ describe("point location validation tests", async () => {
     <p>Move points to $goal1.coords $goal2.coords</p>
     <graph>
       <point name="A" x="4.9" y="-1.1">
-        <constraints>
-          <attractTo>$goal1</attractTo>
-          <attractTo>$goal2</attractTo>
-        </constraints>
+        <attractTo>$goal1</attractTo>
+        <attractTo>$goal2</attractTo>
       </point>
       <point name="B" x="-2.3" y="-3.4">
-        <constraints>
-          <attractTo>$goal1</attractTo>
-          <attractTo>$goal2</attractTo>
-        </constraints>
+        <attractTo>$goal1</attractTo>
+        <attractTo>$goal2</attractTo>
       </point>
     </graph>
     <p><answer name="ans">
@@ -430,10 +408,8 @@ describe("point location validation tests", async () => {
       <setup><sequence fixed='false' from="1" to="$n" name="seq" /></setup>
       <repeat name="r" for="$seq" valueName="i">
         <point x='$i' y='1' name="P">
-          <constraints>
-            <attractTo>$goal1</attractTo>
-            <attractTo>$goal2</attractTo>
-          </constraints>
+          <attractTo>$goal1</attractTo>
+          <attractTo>$goal2</attractTo>
         </point>
       </repeat>
       
@@ -521,18 +497,14 @@ describe("point location validation tests", async () => {
       <setup><sequence name="seq1" fixed='false' from="1" to="$n" /></setup>
       <repeat name="r" for="$seq1" valueName="i">
         <point x='$i' y='1' name="P">
-          <constraints>
-            <attractTo>$goal1</attractTo>
-            <attractTo>$goal2</attractTo>
-          </constraints>
+          <attractTo>$goal1</attractTo>
+          <attractTo>$goal2</attractTo>
         </point>
         <setup><sequence name="seq2" fixed='false' from="1" to="$m" /></setup>
         <repeat name="r2" for="$seq2" valueName="j">
           <point x='$j' y='2' name="Q">
-            <constraints>
-              <attractTo>$goal1</attractTo>
-              <attractTo>$goal2</attractTo>
-            </constraints>
+            <attractTo>$goal1</attractTo>
+            <attractTo>$goal2</attractTo>
           </point>
         </repeat>
       </repeat>

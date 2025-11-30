@@ -5386,9 +5386,7 @@ describe("Line tag tests", async () => {
   <graph xMin="-110" xMax="110" yMin="-0.11" yMax="0.11">
     <line through="(0,0) (1,0.05)" name="l" />
     <point x="100" y="0" name="P">
-      <constraints>
         <constrainTo relativeToGraphScales>$l</constrainTo>
-      </constraints>
     </point>
   </graph>
   `,
@@ -5797,7 +5795,7 @@ describe("Line tag tests", async () => {
             doenetML: `
   <graph>
   <point name="P" labelIsName>(3,5)
-    <constraints><constrainToGrid dx="2" dy="3" /></constraints>
+    <constrainToGrid dx="2" dy="3" />
     </point>
   <point name="Q" labelIsName>(-4,-1)</point>
   <line name="l" through="$P $Q" />

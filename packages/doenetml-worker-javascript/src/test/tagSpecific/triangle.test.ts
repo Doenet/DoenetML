@@ -392,9 +392,7 @@ describe("Triangle tag tests", async () => {
   <graph>
     <triangle name="triangle" vertices="(0,0) (6,0) (0,6)" />
     <point name="P" x="10" y="10">
-      <constraints>
       <constrainTo>$triangle</constrainTo>
-      </constraints>
     </point>
   </graph>
   `,

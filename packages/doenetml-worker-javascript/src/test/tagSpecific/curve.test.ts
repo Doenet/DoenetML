@@ -203,9 +203,7 @@ describe("Curve tag tests", async () => {
     <curve name="c" splineForm="$form" splineTension="$tension" through="$P1 $P2 $P3 $P4" />
     
     <point name="P5" x="5" y="10">
-      <constraints>
         <constrainTo>$c</constrainTo>
-      </constraints>
     </point>
     
     </graph>
@@ -475,15 +473,11 @@ describe("Curve tag tests", async () => {
     </curve>
     
     <point name="P5" x="8" y="-8">
-      <constraints>
         <constrainTo>$c</constrainTo>
-      </constraints>
     </point>
     
     <point name="P6" x="-8" y="-8">
-      <constraints>
         <constrainTo>$c</constrainTo>
-      </constraints>
     </point>
     
     </graph>
@@ -643,14 +637,10 @@ describe("Curve tag tests", async () => {
     </curve>
     
     <point name="P1" x="8" y="-6">
-      <constraints>
         <constrainTo>$c</constrainTo>
-      </constraints>
     </point>
     <point name="P2" x="-8" y="6">
-      <constraints>
         <constrainTo>$c</constrainTo>
-      </constraints>
     </point>
 
     </graph>

@@ -3387,9 +3387,7 @@ describe("Polyline tag tests", async () => {
   <graph>
     <polyline vertices=" (3,5) (-4,-1) (5,2)" />
     <point x="7" y="8">
-      <constraints>
         <attractTo>$_polyline1</attractTo>
-      </constraints>
     </point>
   </graph>
   `,
@@ -3678,9 +3676,7 @@ describe("Polyline tag tests", async () => {
   <graph>
     <polyline vertices=" (3,5) (-4,-1) (5,2)" />
     <point x="7" y="8">
-      <constraints>
         <constrainTo>$_polyline1</constrainTo>
-      </constraints>
     </point>
   </graph>
   `,
@@ -3974,9 +3970,7 @@ describe("Polyline tag tests", async () => {
   <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
     <polyline vertices="(-50,-0.02) (-40,0.07) (70,0.06) (10,-0.01)" name="p" />
     <point x="0" y="0.01" name="A">
-      <constraints>
         <constrainTo relativeToGraphScales>$p</constrainTo>
-      </constraints>
     </point>
   </graph>
   `,
@@ -4778,9 +4772,7 @@ describe("Polyline tag tests", async () => {
     <point>(3,5)</point>
     <point>(-4,-1)</point>
     <point>(5,2)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(-3,4)</point>
     <polyline vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />
@@ -4871,15 +4863,11 @@ describe("Polyline tag tests", async () => {
             doenetML: `
   <graph name="g1">
     <point>(3,5)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(-4,-1)</point>
     <point>(5,2)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(-3,4)</point>
     <polyline vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />
@@ -4970,19 +4958,13 @@ describe("Polyline tag tests", async () => {
             doenetML: `
   <graph name="g1">
     <point>(3,5)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(-4,-1)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(5,2)
-      <constraints>
         <constrainToGrid dx="3" dy="4" />
-      </constraints>
     </point>
     <point>(-3,4)</point>
     <polyline vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />
