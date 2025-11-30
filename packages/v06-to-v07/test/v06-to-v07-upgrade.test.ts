@@ -456,4 +456,28 @@ describe("v06 to v07 update", () => {
         </point>`;
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
+
+    it("styleDefinitions element is removed and replaced with children", async () => {
+        source = `
+        <setup>
+            <styleDefinitions><styleDefinition /></styleDefinitions>
+        </setup>`;
+        correctSource = `
+        <setup>
+            <styleDefinition />
+        </setup>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("feedbackDefinitions element is removed and replaced with children", async () => {
+        source = `
+        <setup>
+            <feedbackDefinitions><feedbackDefinition /></feedbackDefinitions>
+        </setup>`;
+        correctSource = `
+        <setup>
+            <feedbackDefinition />
+        </setup>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
 });

@@ -18,6 +18,7 @@ import { upgradeMapElement } from "./upgrade-map-element";
 import { upgradeModuleElement } from "./upgrade-module-element";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { removeConstraintsElement } from "./remove-constraints-element";
+import { removeDefinitionsElement } from "./remove-definitions-element";
 
 export type Options = {
     doNotUpgradeCopyTags?: boolean;
@@ -47,7 +48,8 @@ export async function updateSyntaxFromV06toV07_root(
         .use(upgradeCollectElement)
         .use(upgradeMapElement)
         .use(upgradeModuleElement)
-        .use(removeConstraintsElement);
+        .use(removeConstraintsElement)
+        .use(removeDefinitionsElement);
     if (!options.doNotUpgradeAttributeSyntax) {
         processor = processor.use(upgradeAttributeSyntax);
     }
