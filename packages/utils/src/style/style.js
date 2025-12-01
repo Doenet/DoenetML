@@ -329,7 +329,7 @@ export function returnStyleDefinitionStateVariables() {
 
             for (const child of styleDefinitionChildren) {
                 const styleNumber = child.stateValues.styleNumber;
-                const styleDef = styleDefinitions[styleNumber];
+                let styleDef = styleDefinitions[styleNumber];
 
                 if (!styleDef) {
                     styleDef = styleDefinitions[styleNumber] = Object.assign(
