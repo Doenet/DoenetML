@@ -230,7 +230,6 @@ export default React.memo(function Graph(props) {
                     aria-label={SVs.description}
                     role="img"
                 >
-                    <span id={id} />
                     <div id={id} className="jxgbox" style={divStyle} />
                 </div>
             </div>
@@ -453,7 +452,6 @@ export default React.memo(function Graph(props) {
                 aria-label={SVs.description}
                 role="img"
             >
-                <span id={id} />
                 <div id={id} className="jxgbox" style={divStyle} />
                 <BoardContext.Provider value={board}>
                     {children}
