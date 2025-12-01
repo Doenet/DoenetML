@@ -24,20 +24,25 @@ export default React.memo(function Figure(props: UseDoenetRendererProps) {
     let captionChild = null; // The caption description
 
     if (SVs.captionChildName) {
-        let captionChildInd: number;
+        let captionChildInd: number | null = null;
         for (let [ind, child] of children.entries()) {
             //child might be null or a string
             if (
-                child?.props?.componentInstructions.componentIdx ===
-                SVs.captionChildName
+                child &&
+                typeof child === "object" &&
+                "props" in child &&
+                (child.props as any)?.componentInstructions.componentIdx ===
+                    SVs.captionChildName
             ) {
                 captionChildInd = ind;
                 break;
             }
         }
 
-        captionChild = children[captionChildInd];
-        childrenToRender.splice(captionChildInd, 1); // remove caption
+        if (captionChildInd !== null) {
+            captionChild = children[captionChildInd];
+            childrenToRender.splice(captionChildInd, 1); // remove caption
+        }
     }
 
     if (!SVs.suppressFigureNameInCaption) {
@@ -57,7 +62,9 @@ export default React.memo(function Figure(props: UseDoenetRendererProps) {
         }
     }
 
-    const [captionTextAlign, setCaptionTextAlign] = useState("center");
+    const [captionTextAlign, setCaptionTextAlign] = useState<"left" | "center">(
+        "center",
+    );
 
     // Helper function for countCaptionLines
     function getLineHeight(el: HTMLElement) {

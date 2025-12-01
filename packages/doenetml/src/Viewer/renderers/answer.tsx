@@ -18,6 +18,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         activityId,
         actions,
         children,
+        flags,
         callAction,
     } = useDoenetRenderer(props);
 
@@ -61,6 +62,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
                 docId={docId}
                 activityId={activityId}
                 numResponses={answerResponseCounts?.[id]}
+                flags={flags}
             />
         );
     }

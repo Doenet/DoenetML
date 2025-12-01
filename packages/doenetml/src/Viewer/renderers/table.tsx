@@ -23,22 +23,29 @@ export default React.memo(function Table(props: UseDoenetRendererProps) {
     // getting it using the internal guts of componentInstructions
     // is just asking for trouble
 
-    let title;
+    let title: React.ReactNode | null = null;
     if (SVs.titleChildName) {
-        let titleChildInd;
+        let titleChildInd: number | null = null;
         for (let [ind, child] of children.entries()) {
             //child might be null or a string
             if (
-                child?.props?.componentInstructions.componentIdx ===
-                SVs.titleChildName
+                child &&
+                typeof child === "object" &&
+                "props" in child &&
+                (child.props as any)?.componentInstructions.componentIdx ===
+                    SVs.titleChildName
             ) {
                 titleChildInd = ind;
                 break;
             }
         }
-        title = children[titleChildInd];
-        childrenToRender.splice(titleChildInd, 1); // remove title
-    } else {
+
+        if (titleChildInd !== null) {
+            title = children[titleChildInd];
+            childrenToRender.splice(titleChildInd, 1); // remove title
+        }
+    }
+    if (!title) {
         title = SVs.title;
     }
 

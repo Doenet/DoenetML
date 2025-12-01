@@ -16,7 +16,10 @@ export default React.memo(function AsList(props: UseDoenetRendererProps) {
 
     let withCommas = children
         .slice(1)
-        .reduce((a, b) => [...a, ", ", b], [children[0]]);
+        .reduce(
+            (a: React.ReactNode[], b: React.ReactNode) => [...a, ", ", b],
+            [children[0]],
+        );
 
     return <React.Fragment key={id}>{withCommas}</React.Fragment>;
 });
