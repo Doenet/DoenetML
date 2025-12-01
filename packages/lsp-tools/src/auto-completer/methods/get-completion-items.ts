@@ -153,7 +153,7 @@ export function getCompletionItems(
         const elmName = this.normalizeElementName(element.name);
         const allowedAttributes =
             this.schemaElementsByName[elmName]?.attributes || [];
-        const attribute = this._getAttributeLeftOfOffset(element, offset);
+        const attribute = this._getAttributeContainsOffset(element, offset);
         const allowedAttrValues = allowedAttributes.find(
             (a) => a.name === attribute?.name,
         )?.values;

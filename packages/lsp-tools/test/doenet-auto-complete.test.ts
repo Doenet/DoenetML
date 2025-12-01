@@ -23,7 +23,10 @@ const schema = {
         {
             name: "b",
             children: ["www"],
-            attributes: [{ name: "foo", values: ["true", "false"] }],
+            attributes: [
+                { name: "foo", values: ["true", "false"] },
+                { name: "bar", values: ["more", "less"] },
+            ],
             top: false,
             acceptsStringChildren: false,
         },
@@ -43,7 +46,7 @@ describe("AutoCompleter", () => {
         let autoCompleter: AutoCompleter;
 
         source = `<a > <
-            <b  foo="true">
+            <b  foo="true" bar="less">
             </b>
             <c>hi</c>
         </a>`;
@@ -67,6 +70,10 @@ describe("AutoCompleter", () => {
                   "kind": 13,
                   "label": "foo",
                 },
+                {
+                  "kind": 13,
+                  "label": "bar",
+                },
               ]
             `);
         }
@@ -82,6 +89,22 @@ describe("AutoCompleter", () => {
                 {
                   "kind": 12,
                   "label": ""false"",
+                },
+              ]
+            `);
+        }
+        {
+            let offset = source.indexOf("<b") + 19;
+            let elm = autoCompleter.getCompletionItems(offset);
+            expect(elm).toMatchInlineSnapshot(`
+              [
+                {
+                  "kind": 12,
+                  "label": ""more"",
+                },
+                {
+                  "kind": 12,
+                  "label": ""less"",
                 },
               ]
             `);
