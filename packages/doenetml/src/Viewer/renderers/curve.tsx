@@ -257,6 +257,8 @@ export default React.memo(function Curve(props) {
             board.on("up", upBoard);
 
             newCurveJXG.on("down", (e) => {
+                (document.activeElement as HTMLElement | null)?.blur();
+
                 pointerAtDown.current = [e.x, e.y];
                 pointerIsDown.current = true;
                 pointerMovedSinceDown.current = false;
@@ -345,6 +347,8 @@ export default React.memo(function Curve(props) {
             }
         } else {
             newCurveJXG.on("down", function (e) {
+                (document.activeElement as HTMLElement | null)?.blur();
+
                 pointerAtDown.current = [e.x, e.y];
                 pointerIsDown.current = true;
                 pointerMovedSinceDown.current = false;
@@ -480,6 +484,8 @@ export default React.memo(function Curve(props) {
     }
 
     function downThroughPoint(i, e) {
+        (document.activeElement as HTMLElement | null)?.blur();
+
         // console.log(`down through point: ${i}`)
 
         // also called when navigate to point using keyboard

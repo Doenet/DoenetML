@@ -138,6 +138,8 @@ export default React.memo(function Label(props) {
         newLabelJXG.isDraggable = !fixLocation.current;
 
         newLabelJXG.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
             dragged.current = false;

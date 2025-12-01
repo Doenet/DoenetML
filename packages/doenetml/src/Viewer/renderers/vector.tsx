@@ -253,6 +253,8 @@ export default React.memo(function Vector(props) {
         });
 
         newPoint1JXG.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             headBeingDragged.current = false;
             tailBeingDragged.current = false;
             pointerAtDown.current = [e.x, e.y];
@@ -277,6 +279,8 @@ export default React.memo(function Vector(props) {
         });
 
         newPoint2JXG.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             headBeingDragged.current = false;
             tailBeingDragged.current = false;
             pointerAtDown.current = [e.x, e.y];
@@ -303,6 +307,8 @@ export default React.memo(function Vector(props) {
         // if drag vector, need to keep track of original point positions
         // so that they won't get stuck in an attractor
         newVectorJXG.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             headBeingDragged.current = false;
             tailBeingDragged.current = false;
             pointerAtDown.current = [e.x, e.y];

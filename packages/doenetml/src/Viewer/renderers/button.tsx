@@ -120,6 +120,8 @@ export default React.memo(function ButtonComponent(
         newButtonJXG.isDraggable = !fixLocation.current;
 
         newButtonJXG.on("down", function (e: JXGEvent) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [
                 ...(newAnchorPointJXG.coords.scrCoords as [

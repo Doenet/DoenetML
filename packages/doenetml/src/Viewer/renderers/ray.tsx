@@ -213,6 +213,8 @@ export default React.memo(function Ray(props) {
         });
 
         newRayJXG.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             dragged.current = false;
             pointerAtDown.current = [e.x, e.y];
             pointsAtDown.current = [

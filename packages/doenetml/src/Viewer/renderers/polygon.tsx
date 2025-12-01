@@ -320,6 +320,8 @@ export default React.memo(function Polygon(props) {
     }
 
     function downHandler(i, e) {
+        (document.activeElement as HTMLElement | null)?.blur();
+
         draggedPoint.current = null;
         pointerAtDown.current = [e.x, e.y];
 

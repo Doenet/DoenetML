@@ -197,6 +197,8 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         let newPointJXG = board.create("point", coords, jsxPointAttributes);
 
         newShadowPointJXG.on("down", function (e: { x: number; y: number }) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [
                 ...(newShadowPointJXG.coords.scrCoords as [

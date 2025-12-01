@@ -262,6 +262,8 @@ export default React.memo(function Line(props) {
         });
 
         newLineJXG.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             dragged.current = false;
             pointerAtDown.current = [e.x, e.y];
             pointsAtDown.current = [
