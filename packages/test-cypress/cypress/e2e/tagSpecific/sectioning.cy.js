@@ -491,11 +491,11 @@ describe("Sectioning Tag Tests", function () {
 
         cy.get(cesc("#subsection1")).should(
             "have.text",
-            " Point 1\n    \n    Make the first point\n   ",
+            "Point 1\n    \n    Make the first point\n  ",
         );
         cy.get(cesc("#subsection2")).should(
             "have.text",
-            " Point 2\n    \n    Make the second point\n   ",
+            "Point 2\n    \n    Make the second point\n  ",
         );
 
         cy.get(cesc("#conclusion")).should(
