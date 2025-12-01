@@ -756,7 +756,7 @@ export default React.memo(function LineSegment(props) {
         }
         return (
             <>
-                <a name={id} />
+                <span id={id} />
             </>
         );
     }
@@ -768,7 +768,7 @@ export default React.memo(function LineSegment(props) {
     // don't think we want to return anything if not in board
     return (
         <>
-            <a name={id} />
+            <span id={id} />
         </>
     );
 });

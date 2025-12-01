@@ -690,7 +690,7 @@ export default React.memo(function Polygon(props) {
     // don't think we want to return anything if not in board
     return (
         <>
-            <a name={id} />
+            <span id={id} />
         </>
     );
 });

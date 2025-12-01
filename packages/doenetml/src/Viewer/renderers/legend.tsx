@@ -278,7 +278,7 @@ export default React.memo(function Legend(props) {
 
         return (
             <>
-                <a name={id} />
+                <span id={id} />
             </>
         );
     }
@@ -290,7 +290,7 @@ export default React.memo(function Legend(props) {
     // don't return anything if not in board
     return (
         <>
-            <a name={id} />
+            <span id={id} />
         </>
     );
 });

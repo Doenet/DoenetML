@@ -556,11 +556,11 @@ export default React.memo(function MathComponent(
 
     let latexWithDelims = beginDelim + SVs.latex + endDelim;
 
-    let anchors = [<a key={id} />];
+    let anchors = [];
     if (SVs.mrowChildRendererIds) {
         anchors.push(
             ...SVs.mrowChildRendererIds.map((rowId: string) => {
-                return <a key={rowId} id={rowId} />;
+                return <span key={rowId} id={rowId} />;
             }),
         );
     }

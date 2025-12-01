@@ -416,7 +416,7 @@ export default React.memo(function Ray(props) {
 
     return (
         <>
-            <a name={id} />
+            <span id={id} />
         </>
     );
 });

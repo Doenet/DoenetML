@@ -148,7 +148,6 @@ export default React.memo(function MatrixInput(props) {
 
     return (
         <React.Fragment>
-            <a name={id} />
             <div style={{ display: "inline-flex", margin: "0px 4px 4px 4px" }}>
                 <div className="matrix-input" id={id}>
                     <table>

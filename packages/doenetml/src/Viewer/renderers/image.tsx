@@ -530,7 +530,7 @@ export default React.memo(function Image(props) {
             board.updateRenderer();
         }
 
-        return <a name={id} />;
+        return <span id={id} />;
     }
 
     // not in board
@@ -568,7 +568,6 @@ export default React.memo(function Image(props) {
 
     return (
         <div style={outerStyle} ref={ref}>
-            <a name={id} />
             {urlOrSource ? (
                 <img
                     id={id}

@@ -467,7 +467,7 @@ export default React.memo(function Label(props) {
             board.updateRenderer();
         }
 
-        return <a name={id} />;
+        return <span id={id} />;
     }
 
     // not in board
@@ -489,7 +489,6 @@ export default React.memo(function Label(props) {
     }
     return (
         <span id={id} style={style}>
-            <a name={id} />
             {label}
         </span>
     );

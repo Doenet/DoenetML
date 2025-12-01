@@ -65,7 +65,6 @@ export default React.memo(function Figure(props) {
     if (SVs.geogebra) {
         return (
             <div className="geogebra" id={id} ref={ref}>
-                <a name={id} />
                 <iframe
                     scrolling="no"
                     title=""

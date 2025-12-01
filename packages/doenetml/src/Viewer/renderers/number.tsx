@@ -452,7 +452,7 @@ export default React.memo(function NumberComponent(props) {
             board.updateRenderer();
         }
 
-        return <a name={id} />;
+        return <span id={id} />;
     }
 
     // not in board
@@ -469,7 +469,6 @@ export default React.memo(function NumberComponent(props) {
     let style = textRendererStyle(darkMode, SVs.selectedStyle);
     return (
         <>
-            <a name={id} />
             <span id={id} style={style}>
                 <MathJax hideUntilTypeset={"first"} inline dynamic>
                     {number}

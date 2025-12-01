@@ -211,7 +211,6 @@ export default React.memo(function Section(props) {
 
     let content = (
         <>
-            <a name={id} />
             {heading}
             {children}
             {checkWorkComponent}
@@ -263,7 +262,6 @@ export default React.memo(function Section(props) {
                         })
                     }
                 >
-                    <a name={id} />
                     {heading}
                 </div>
                 {innerContent}
@@ -287,7 +285,6 @@ export default React.memo(function Section(props) {
                         borderTopRightRadius: "var(--mainBorderRadius)",
                     }}
                 >
-                    <a name={id} />
                     {heading}
                 </div>
                 <div style={{ display: "block", padding: "6px" }}>
@@ -302,29 +299,25 @@ export default React.memo(function Section(props) {
         case "aside":
             return (
                 <aside id={id} style={{ margin: "12px 0" }} ref={ref}>
-                    {" "}
-                    {content}{" "}
+                    {content}
                 </aside>
             );
         case "article":
             return (
                 <article id={id} style={{ margin: "12px 0" }} ref={ref}>
-                    {" "}
-                    {content}{" "}
+                    {content}
                 </article>
             );
         case "div":
             return (
                 <div id={id} style={{ margin: "12px 0" }} ref={ref}>
-                    {" "}
-                    {content}{" "}
+                    {content}
                 </div>
             );
         default:
             return (
                 <section id={id} style={{ margin: "12px 0" }} ref={ref}>
-                    {" "}
-                    {content}{" "}
+                    {content}
                 </section>
             );
     }

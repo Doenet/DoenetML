@@ -502,7 +502,7 @@ export default React.memo(function Line(props) {
 
         return (
             <>
-                <a name={id} />
+                <span id={id} />
             </>
         );
     }
@@ -515,7 +515,6 @@ export default React.memo(function Line(props) {
     let style = textRendererStyle(darkMode, SVs.selectedStyle);
     return (
         <>
-            <a name={id} />
             <span id={id} style={style}>
                 <MathJax hideUntilTypeset={"first"} inline dynamic>
                     {mathJaxify}
