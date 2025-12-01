@@ -62,6 +62,10 @@ export default React.memo(function Text(props) {
     }, [board]);
 
     function createTextJXG() {
+        if (board === null) {
+            return null;
+        }
+
         let textColor =
             darkMode === "dark"
                 ? SVs.selectedStyle.textColorDarkMode
@@ -339,7 +343,7 @@ export default React.memo(function Text(props) {
         textJXG.current.off("up");
         textJXG.current.off("keyfocusout");
         textJXG.current.off("keydown");
-        board.removeObject(textJXG.current);
+        board?.removeObject(textJXG.current);
         textJXG.current = null;
     }
 

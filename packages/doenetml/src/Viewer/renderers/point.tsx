@@ -92,6 +92,10 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
     }, [board]);
 
     function createPointJXG() {
+        if (board === null) {
+            return null;
+        }
+
         let markerColor =
             darkMode === "dark"
                 ? SVs.selectedStyle.markerColorDarkMode

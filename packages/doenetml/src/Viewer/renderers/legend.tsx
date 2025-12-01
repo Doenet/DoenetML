@@ -251,10 +251,10 @@ export default React.memo(function Legend(props) {
 
     function deleteLegend() {
         for (let swatch of swatches.current) {
-            board.removeObject(swatch);
+            board?.removeObject(swatch);
         }
         for (let txt of labels.current) {
-            board.removeObject(txt);
+            board?.removeObject(txt);
         }
         swatches.current = [];
         labels.current = [];

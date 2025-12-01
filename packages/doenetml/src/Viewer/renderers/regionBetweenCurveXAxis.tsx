@@ -79,10 +79,10 @@ export default React.memo(function RegionBetweenCurveXAxis(props) {
 
     function deleteRegion() {
         if (integralJXG.current) {
-            board.removeObject(integralJXG.current);
+            board?.removeObject(integralJXG.current);
             integralJXG.current = null;
 
-            board.removeObject(curveJXG.current);
+            board?.removeObject(curveJXG.current);
             curveJXG.current = null;
         }
     }

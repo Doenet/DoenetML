@@ -58,6 +58,10 @@ export default React.memo(function ButtonComponent(
     }, []);
 
     function createButtonJXG() {
+        if (board === null) {
+            return null;
+        }
+
         let jsxButtonAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
@@ -309,7 +313,7 @@ export default React.memo(function ButtonComponent(
         buttonJXG.current.off("up");
         buttonJXG.current.off("keyfocusout");
         buttonJXG.current.off("keydown");
-        board.removeObject(buttonJXG.current);
+        board?.removeObject(buttonJXG.current);
         buttonJXG.current = null;
     }
 

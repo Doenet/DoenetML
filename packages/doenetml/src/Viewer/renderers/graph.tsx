@@ -8,9 +8,9 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import JXG from "jsxgraph";
 // import JXG from './jsxgraph';
 import { cesc } from "@doenet/utils";
-import { JXGObject } from "./jsxgraph-distrib/types";
+import { JXGBoard, JXGObject } from "./jsxgraph-distrib/types";
 
-export const BoardContext = createContext<JXGObject | null>();
+export const BoardContext = createContext<JXGBoard | null>();
 
 export default React.memo(function Graph(props) {
     let { id, SVs, children, ignoreUpdate, actions, callAction } =
@@ -18,7 +18,7 @@ export default React.memo(function Graph(props) {
 
     Graph.baseStateVariable = "boundingbox";
 
-    const [board, setBoard] = useState(null);
+    const [board, setBoard] = useState<JXGBoard | null>(null);
 
     const previousDimensions = useRef(null);
     const previousBoundingbox = useRef(null);
@@ -119,6 +119,8 @@ export default React.memo(function Graph(props) {
         });
 
         setBoard(newBoard);
+
+        console.log(newBoard);
 
         previousDimensions.current = {
             width: parseFloat(sizeToCSS(SVs.width)),
@@ -248,7 +250,7 @@ export default React.memo(function Graph(props) {
                 JXG.Options.grid.gridX = SVs.grid[0];
                 JXG.Options.grid.gridY = SVs.grid[1];
                 if (board.grids.length > 0) {
-                    board.removeObject(board.grids[0]);
+                    board?.removeObject(board.grids[0]);
                     board.grids = [];
                 }
             }
@@ -260,7 +262,7 @@ export default React.memo(function Graph(props) {
             }
         } else {
             if (board.grids.length > 0) {
-                board.removeObject(board.grids[0]);
+                board?.removeObject(board.grids[0]);
                 board.grids = [];
             }
         }
@@ -304,12 +306,12 @@ export default React.memo(function Graph(props) {
             : Boolean(yaxis.current);
 
         if (displayYAxisChanged && !displayXAxisChanged && SVs.displayXAxis) {
-            board.removeObject(xaxis.current);
+            board?.removeObject(xaxis.current);
             xaxis.current = null;
         }
 
         if (displayXAxisChanged && !displayYAxisChanged && SVs.displayYAxis) {
-            board.removeObject(yaxis.current);
+            board?.removeObject(yaxis.current);
             yaxis.current = null;
         }
 
@@ -345,7 +347,7 @@ export default React.memo(function Graph(props) {
                 createXAxis(board);
             }
         } else if (xaxis.current) {
-            board.removeObject(xaxis.current);
+            board?.removeObject(xaxis.current);
             xaxis.current = null;
         }
 
@@ -384,7 +386,7 @@ export default React.memo(function Graph(props) {
                 createYAxis(board);
             }
         } else if (yaxis.current) {
-            board.removeObject(yaxis.current);
+            board?.removeObject(yaxis.current);
             yaxis.current = null;
         }
 

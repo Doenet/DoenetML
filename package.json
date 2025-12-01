@@ -92,6 +92,7 @@
         "@types/node": "^24.0.7",
         "@types/react": "^19.2.7",
         "@types/react-dom": "^19.2.3",
+        "@types/react-measure": "^2.0.12",
         "@types/react-reconciler": "^0.32.3",
         "@types/seedrandom": "^3.0.8",
         "@types/xast": "^2.0.4",

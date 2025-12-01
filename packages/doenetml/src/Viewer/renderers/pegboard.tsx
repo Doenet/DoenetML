@@ -50,6 +50,10 @@ export default React.memo(function Pegboard(props) {
     }, []);
 
     function createPegboardJXG() {
+        if (board === null) {
+            return null;
+        }
+
         let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
 
         let xind1 = (xMin - xoffset.current) / dx.current;
@@ -123,7 +127,7 @@ export default React.memo(function Pegboard(props) {
         if (pegboardJXG.current !== null) {
             for (let row of pegboardJXG.current) {
                 for (let point of row) {
-                    board.removeObject(point);
+                    board?.removeObject(point);
                 }
             }
         }
@@ -167,7 +171,7 @@ export default React.memo(function Pegboard(props) {
             if (prevNcols > numColumns) {
                 for (let j = numColumns; j < prevNcols; j++) {
                     let point = row.pop();
-                    board.removeObject(point);
+                    board?.removeObject(point);
                 }
             } else if (prevNcols < numColumns) {
                 for (let j = prevNcols; j < numColumns; j++) {
@@ -188,7 +192,7 @@ export default React.memo(function Pegboard(props) {
                 let row = pegboardJXG.current.pop();
                 for (let j = 0; j < prevNcols; j++) {
                     let point = row.pop();
-                    board.removeObject(point);
+                    board?.removeObject(point);
                 }
             }
         } else if (prevNrows < numRows) {

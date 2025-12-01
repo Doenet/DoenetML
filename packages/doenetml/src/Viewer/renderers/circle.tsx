@@ -82,6 +82,9 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     }, [board]);
 
     function createCircleJXG() {
+        if (board === null) {
+            return null;
+        }
         if (
             !(
                 Number.isFinite(SVs.numericalCenter[0]) &&
@@ -445,6 +448,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         });
 
         indicatorJXG.current.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             if (
                 !centerAtDown.current ||
                 !offGraphIndicatorOrientation.current ||
@@ -565,7 +570,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         indicatorJXG.current.off("hit");
         indicatorJXG.current.off("keyfocusout");
         indicatorJXG.current.off("keydown");
-        board.removeObject(indicatorJXG.current);
+        board?.removeObject(indicatorJXG.current);
         indicatorJXG.current = null;
 
         circleJXG.current.off("drag");
@@ -574,7 +579,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         circleJXG.current.off("hit");
         circleJXG.current.off("keyfocusout");
         circleJXG.current.off("keydown");
-        board.removeObject(circleJXG.current);
+        board?.removeObject(circleJXG.current);
         circleJXG.current = null;
     }
 
@@ -840,7 +845,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 board.itemsRenderedLowQuality[id] = circleJXG.current;
             }
 
-            let validCoords = SVs.numericalCenter.every((x) =>
+            let validCoords = SVs.numericalCenter.every((x: any) =>
                 Number.isFinite(x),
             );
 

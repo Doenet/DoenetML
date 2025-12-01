@@ -78,6 +78,10 @@ export default React.memo(function Image(props) {
     }, [board]);
 
     function createImageJXG() {
+        if (board === null) {
+            return null;
+        }
+
         //things to be passed to JSXGraph as attributes
         let jsxImageAttributes = {
             visible: !SVs.hidden,
@@ -391,7 +395,7 @@ export default React.memo(function Image(props) {
         imageJXG.current.off("up");
         imageJXG.current.off("keyfocusout");
         imageJXG.current.off("keydown");
-        board.removeObject(imageJXG.current);
+        board?.removeObject(imageJXG.current);
         imageJXG.current = null;
     }
 

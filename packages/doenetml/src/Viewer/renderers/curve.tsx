@@ -84,6 +84,10 @@ export default React.memo(function Curve(props) {
     }, [board]);
 
     function createCurveJXG() {
+        if (board === null) {
+            return null;
+        }
+
         if (
             SVs.curveType === "bezier" &&
             SVs.numericalThroughPoints.length < 2
@@ -391,7 +395,7 @@ export default React.memo(function Curve(props) {
         curveJXG.current.off("down");
         curveJXG.current.off("up");
         curveJXG.current.off("keydown");
-        board.removeObject(curveJXG.current);
+        board?.removeObject(curveJXG.current);
         curveJXG.current = null;
         deleteControls();
     }
@@ -455,7 +459,7 @@ export default React.memo(function Curve(props) {
                 x.forEach((y) => {
                     if (y) {
                         y.off("down");
-                        board.removeObject(y);
+                        board?.removeObject(y);
                     }
                 }),
             );
@@ -466,7 +470,7 @@ export default React.memo(function Curve(props) {
                         y.off("drag");
                         y.off("down");
                         y.off("up");
-                        board.removeObject(y);
+                        board?.removeObject(y);
                     }
                 }),
             );
@@ -477,7 +481,7 @@ export default React.memo(function Curve(props) {
                 x.off("hit");
                 x.off("up");
                 x.off("keyfocusout");
-                board.removeObject(x);
+                board?.removeObject(x);
             });
             throughPointsJXG.current = [];
         }
@@ -999,8 +1003,8 @@ export default React.memo(function Curve(props) {
                 ) {
                     segmentsJXG.current[i][0].off("down");
                     segmentsJXG.current[i][1].off("down");
-                    board.removeObject(segmentsJXG.current[i][0]);
-                    board.removeObject(segmentsJXG.current[i][1]);
+                    board?.removeObject(segmentsJXG.current[i][0]);
+                    board?.removeObject(segmentsJXG.current[i][1]);
                     segmentsJXG.current.pop();
 
                     controlPointsJXG.current[i][0].off("drag");
@@ -1009,8 +1013,8 @@ export default React.memo(function Curve(props) {
                     controlPointsJXG.current[i][1].off("drag");
                     controlPointsJXG.current[i][1].off("down");
                     controlPointsJXG.current[i][1].off("up");
-                    board.removeObject(controlPointsJXG.current[i][0]);
-                    board.removeObject(controlPointsJXG.current[i][1]);
+                    board?.removeObject(controlPointsJXG.current[i][0]);
+                    board?.removeObject(controlPointsJXG.current[i][1]);
                     controlPointsJXG.current.pop();
 
                     let tp = throughPointsJXG.current.pop();
@@ -1019,7 +1023,7 @@ export default React.memo(function Curve(props) {
                     tp.off("up");
                     tp.off("hit");
                     tp.off("keyfocusout");
-                    board.removeObject(tp);
+                    board?.removeObject(tp);
                 }
 
                 let iNewLast = SVs.numericalThroughPoints.length - 1;

@@ -63,6 +63,10 @@ export default React.memo(function Label(props) {
     }, [board]);
 
     function createLabelJXG() {
+        if (board === null) {
+            return null;
+        }
+
         let textColor =
             darkMode === "dark"
                 ? SVs.selectedStyle.textColorDarkMode
@@ -355,7 +359,7 @@ export default React.memo(function Label(props) {
         labelJXG.current.off("up");
         labelJXG.current.off("keyfocusout");
         labelJXG.current.off("keydown");
-        board.removeObject(labelJXG.current);
+        board?.removeObject(labelJXG.current);
         labelJXG.current = null;
     }
 
