@@ -84,6 +84,14 @@ export default class CodeEditor extends BlockComponent {
             validValues: ["bottom", "left", "right"],
         };
 
+        attributes.readOnly = {
+            createComponentOfType: "boolean",
+            createStateVariable: "readOnly",
+            defaultValue: false,
+            forRenderer: true,
+            public: true,
+        };
+
         // TODO: deprecate these attributes
         // Note: these attributes don't accomplish anything
         // until we can find a way to communicate with the

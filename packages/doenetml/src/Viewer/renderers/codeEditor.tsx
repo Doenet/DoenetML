@@ -88,6 +88,7 @@ export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
                 showViewer={SVs.showResults}
                 viewerLocation={SVs.resultsLocation}
                 showFormatter={SVs.showFormatter}
+                readOnly={SVs.readOnly}
                 immediateDoenetmlChangeCallback={
                     immediateDoenetmlChangeCallback
                 }
