@@ -1,5 +1,5 @@
 import React from "react";
-import { EditorSelection, Extension } from "@codemirror/state";
+import { EditorSelection, EditorState, Extension } from "@codemirror/state";
 import ReactCodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { syntaxHighlightingExtension } from "./extensions/syntax-highlighting";
 import { tabExtension } from "./extensions/tab";
@@ -72,6 +72,8 @@ export function CodeMirror({
         if (!readOnly) {
             extensions.push(tabExtension);
             extensions.push(lspPlugin(documentId));
+        } else {
+            extensions.push(EditorState.readOnly.of(true));
         }
         return extensions;
     }, [documentId, readOnly]);
@@ -81,8 +83,6 @@ export function CodeMirror({
             <ReactCodeMirror
                 style={{ height: "100%" }}
                 value={value}
-                readOnly={readOnly}
-                editable={!readOnly}
                 basicSetup={{
                     indentOnInput: true,
                     highlightActiveLine: !readOnly,
