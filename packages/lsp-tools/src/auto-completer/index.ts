@@ -118,23 +118,23 @@ export class AutoCompleter {
     }
 
     /**
-     * Gets the attribute that ends to the left of `offset`, if one exists.
+     * Gets the attribute where offset is between its start and end position, if one exists.
      */
-    _getAttributeLeftOfOffset(
+    _getAttributeContainsOffset(
         node: DastElementV6,
         offset: number,
     ): DastAttributeV6 | null {
-        let candidate = Object.values(node.attributes)[0];
-        if (!candidate) {
-            return null;
-        }
-        let candidateOffset = candidate.position?.end?.offset!;
-        for (const attr of Object.values(node.attributes)) {
-            let attrOffset = attr.position?.end?.offset!;
-            if (attrOffset > candidateOffset && attrOffset <= offset) {
-                candidate = attr;
-            }
-        }
+        const candidate = Object.values(node.attributes).find((attr) => {
+            const start = attr.position?.start.offset;
+            const end = attr.position?.end.offset;
+            return (
+                start !== undefined &&
+                end !== undefined &&
+                offset >= start &&
+                offset <= end
+            );
+        });
+
         return candidate || null;
     }
 
