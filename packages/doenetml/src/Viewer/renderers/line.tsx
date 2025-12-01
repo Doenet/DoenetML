@@ -60,6 +60,10 @@ export default React.memo(function Line(props) {
     }, [board]);
 
     function createLineJXG() {
+        if (board === null) {
+            return null;
+        }
+
         if (
             SVs.numericalPoints?.length !== 2 ||
             SVs.numericalPoints.some((x) => x.length !== 2)
@@ -347,7 +351,7 @@ export default React.memo(function Line(props) {
         lineJXG.current.off("up");
         lineJXG.current.off("keyfocusout");
         lineJXG.current.off("keydown");
-        board.removeObject(lineJXG.current);
+        board?.removeObject(lineJXG.current);
         lineJXG.current = {};
     }
 

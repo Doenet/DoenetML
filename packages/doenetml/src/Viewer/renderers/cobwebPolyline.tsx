@@ -41,6 +41,10 @@ export default React.memo(function CobwebPolyline(
     }, []);
 
     function createCobwebPolylineJXG() {
+        if (board === null) {
+            return null;
+        }
+
         // if (SVs.numericalVertices.length !== SVs.numVertices ||
         //   SVs.numericalVertices.some(x => x.length !== 2)
         // ) {
@@ -187,13 +191,13 @@ export default React.memo(function CobwebPolyline(
     }
 
     function deleteCobwebPolylineJXG() {
-        board.removeObject(polylineJXG.current);
+        board?.removeObject(polylineJXG.current);
         polylineJXG.current = null;
 
-        board.removeObject(curveJXG.current);
+        board?.removeObject(curveJXG.current);
         curveJXG.current = null;
 
-        board.removeObject(diagonalJXG.current);
+        board?.removeObject(diagonalJXG.current);
         diagonalJXG.current = null;
 
         for (let i = 0; i < SVs.numPoints; i++) {
@@ -203,7 +207,7 @@ export default React.memo(function CobwebPolyline(
                 pointsJXG.current[i].off("keyfocusout");
                 pointsJXG.current[i].off("keydown");
                 pointsJXG.current[i].off("down");
-                board.removeObject(pointsJXG.current[i]);
+                board?.removeObject(pointsJXG.current[i]);
                 delete pointsJXG.current[i];
             }
         }
@@ -347,7 +351,7 @@ export default React.memo(function CobwebPolyline(
                     pt.off("keydown");
                     pt.off("down");
                     console.log("about to remove", pt);
-                    board.removeObject(pt);
+                    board?.removeObject(pt);
                     board.update();
                 }
                 polylineJXG.current.dataX.length = SVs.numPoints;

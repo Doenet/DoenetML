@@ -62,6 +62,10 @@ export default React.memo(function Polyline(props) {
     }, [board]);
 
     function createPolylineJXG() {
+        if (board === null) {
+            return null;
+        }
+
         if (
             SVs.numericalVertices.length !== SVs.numVertices ||
             SVs.numericalVertices.some((x) => x.length !== 2)
@@ -208,7 +212,7 @@ export default React.memo(function Polyline(props) {
         polylineJXG.current.off("up");
         polylineJXG.current.off("keyfocusout");
         polylineJXG.current.off("keydown");
-        board.removeObject(polylineJXG.current);
+        board?.removeObject(polylineJXG.current);
         polylineJXG.current = null;
 
         for (let i = 0; i < SVs.numVertices; i++) {
@@ -220,7 +224,7 @@ export default React.memo(function Polyline(props) {
                 point.off("up");
                 point.off("keyfocusout");
                 point.off("keydown");
-                board.removeObject(point);
+                board?.removeObject(point);
             }
         }
         pointsJXG.current = null;
@@ -543,7 +547,7 @@ export default React.memo(function Polyline(props) {
                     pt.off("up");
                     pt.off("keyfocusout");
                     pt.off("keydown");
-                    board.removeObject(pt);
+                    board?.removeObject(pt);
                 }
                 polylineJXG.current.dataX.length = SVs.numVertices;
             }

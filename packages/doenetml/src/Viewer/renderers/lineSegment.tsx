@@ -61,6 +61,10 @@ export default React.memo(function LineSegment(props) {
     }, [board]);
 
     function createLineSegmentJXG() {
+        if (board === null) {
+            return null;
+        }
+
         if (
             SVs.numericalEndpoints.length !== 2 ||
             SVs.numericalEndpoints.some(
@@ -541,7 +545,7 @@ export default React.memo(function LineSegment(props) {
         lineSegmentJXG.current.off("up");
         lineSegmentJXG.current.off("keydown");
         lineSegmentJXG.current.off("keyfocusout");
-        board.removeObject(lineSegmentJXG.current);
+        board?.removeObject(lineSegmentJXG.current);
         lineSegmentJXG.current = null;
 
         point1JXG.current.off("drag");
@@ -550,7 +554,7 @@ export default React.memo(function LineSegment(props) {
         point1JXG.current.off("up");
         point1JXG.current.off("keydown");
         point1JXG.current.off("keyfocusout");
-        board.removeObject(point1JXG.current);
+        board?.removeObject(point1JXG.current);
         point1JXG.current = null;
 
         point2JXG.current.off("drag");
@@ -559,7 +563,7 @@ export default React.memo(function LineSegment(props) {
         point2JXG.current.off("up");
         point2JXG.current.off("keydown");
         point2JXG.current.off("keyfocusout");
-        board.removeObject(point2JXG.current);
+        board?.removeObject(point2JXG.current);
         point2JXG.current = null;
     }
 

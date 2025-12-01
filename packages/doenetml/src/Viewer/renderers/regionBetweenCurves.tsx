@@ -142,12 +142,12 @@ export default React.memo(function RegionBetweenCurves(props) {
 
     function deleteRegion() {
         if (regionJXG.current) {
-            board.removeObject(regionJXG.current);
+            board?.removeObject(regionJXG.current);
             regionJXG.current = null;
 
-            board.removeObject(curve1JXG.current);
+            board?.removeObject(curve1JXG.current);
             curve1JXG.current = null;
-            board.removeObject(curve2JXG.current);
+            board?.removeObject(curve2JXG.current);
             curve2JXG.current = null;
         }
     }

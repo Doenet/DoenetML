@@ -21,6 +21,7 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         children,
         actions,
         callAction,
+        flags,
     } = useDoenetRenderer(props);
 
     const ref = useRef(null);
@@ -48,6 +49,7 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
                 docId={docId}
                 activityId={activityId}
                 numResponses={answerResponseCounts?.[id]}
+                flags={flags}
             />
         );
     }

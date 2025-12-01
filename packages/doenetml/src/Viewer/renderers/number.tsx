@@ -64,6 +64,10 @@ export default React.memo(function NumberComponent(props) {
     }, [board]);
 
     function createNumberJXG() {
+        if (board === null) {
+            return null;
+        }
+
         let textColor =
             darkMode === "dark"
                 ? SVs.selectedStyle.textColorDarkMode
@@ -340,7 +344,7 @@ export default React.memo(function NumberComponent(props) {
         numberJXG.current.off("up");
         numberJXG.current.off("keyfocusout");
         numberJXG.current.off("keydown");
-        board.removeObject(numberJXG.current);
+        board?.removeObject(numberJXG.current);
         numberJXG.current = null;
     }
 

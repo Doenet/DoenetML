@@ -69,6 +69,10 @@ export default React.memo(function MathComponent(
     }, [board]);
 
     function createMathJXG() {
+        if (board === null) {
+            return null;
+        }
+
         let textColor =
             darkMode === "dark"
                 ? SVs.selectedStyle.textColorDarkMode
@@ -393,7 +397,7 @@ export default React.memo(function MathComponent(
         mathJXG.current.off("up");
         mathJXG.current.off("keyfocusout");
         mathJXG.current.off("keydown");
-        board.removeObject(mathJXG.current);
+        board?.removeObject(mathJXG.current);
         mathJXG.current = null;
     }
 

@@ -1,37 +1,40 @@
-// @ts-nocheck
 import React, { useContext, useEffect, useState, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { MathJax } from "better-react-mathjax";
 import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
+import { JXGObject } from "./jsxgraph-distrib/types";
 
-export default React.memo(function Vector(props) {
+export default React.memo(function Vector(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
         useDoenetRenderer(props);
 
+    // @ts-ignore
     Vector.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
 
-    let vectorJXG = useRef({});
-    let point1JXG = useRef({});
-    let point2JXG = useRef({});
+    let vectorJXG = useRef<JXGObject | null>(null);
+    let point1JXG = useRef<JXGObject | null>(null);
+    let point2JXG = useRef<JXGObject | null>(null);
 
-    let pointerAtDown = useRef(null);
-    let pointsAtDown = useRef(null);
+    let pointerAtDown = useRef<[number, number] | null>(null);
+    let pointsAtDown = useRef<[number[], number[]] | null>(null);
     let pointerIsDown = useRef(false);
     let pointerMovedSinceDown = useRef(false);
     let headBeingDragged = useRef(false);
     let tailBeingDragged = useRef(false);
-    let downOnPoint = useRef(null);
-    let headcoords = useRef(null);
-    let tailcoords = useRef(null);
+    let downOnPoint = useRef<number | null>(null);
+    let headcoords = useRef<number[] | null>(null);
+    let tailcoords = useRef<number[] | null>(null);
 
-    let previousWithLabel = useRef(null);
+    let previousWithLabel = useRef<boolean | null>(null);
 
-    let lastPositionsFromCore = useRef(null);
+    let lastPositionsFromCore = useRef<number[]>(SVs.numericalEndpoints);
     let fixed = useRef(false);
     let fixLocation = useRef(false);
     let headDraggable = useRef(true);
@@ -49,7 +52,7 @@ export default React.memo(function Vector(props) {
         //On unmount
         return () => {
             // if vector is defined
-            if (Object.keys(vectorJXG.current).length !== 0) {
+            if (vectorJXG.current !== null) {
                 deleteVectorJXG();
             }
 
@@ -66,13 +69,17 @@ export default React.memo(function Vector(props) {
     }, [board]);
 
     function createVectorJXG() {
+        if (board === null) {
+            return null;
+        }
+
         if (
             SVs.numericalEndpoints.length !== 2 ||
-            SVs.numericalEndpoints.some((x) => x.length !== 2)
+            SVs.numericalEndpoints.some((x: any) => x.length !== 2)
         ) {
-            vectorJXG.current = {};
-            point1JXG.current = {};
-            point2JXG.current = {};
+            vectorJXG.current = null;
+            point1JXG.current = null;
+            point2JXG.current = null;
             return;
         }
 
@@ -85,7 +92,7 @@ export default React.memo(function Vector(props) {
                 : SVs.selectedStyle.lineColor;
 
         //things to be passed to JSXGraph as attributes
-        var jsxVectorAttributes = {
+        var jsxVectorAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
             visible: !SVs.hidden,
             withLabel: SVs.labelForGraph !== "",
@@ -126,7 +133,7 @@ export default React.memo(function Vector(props) {
         let tailPointAttributes = Object.assign({}, jsxPointAttributes);
         let tailVisible = tailDraggable.current && !SVs.hidden;
         tailPointAttributes.visible = tailVisible;
-        let newPoint1JXG = board.create(
+        let newPoint1JXG: JXGObject = board.create(
             "point",
             endpoints[0],
             tailPointAttributes,
@@ -135,7 +142,7 @@ export default React.memo(function Vector(props) {
         let headPointAttributes = Object.assign({}, jsxPointAttributes);
         let headVisible = headDraggable.current && !SVs.hidden;
         headPointAttributes.visible = headVisible;
-        let newPoint2JXG = board.create(
+        let newPoint2JXG: JXGObject = board.create(
             "point",
             endpoints[1],
             headPointAttributes,
@@ -154,18 +161,24 @@ export default React.memo(function Vector(props) {
             jsxVectorAttributes.label.strokeColor = "var(--canvasText)";
         }
 
-        let newVectorJXG = board.create(
+        let newVectorJXG: JXGObject = board.create(
             "arrow",
             [newPoint1JXG, newPoint2JXG],
             jsxVectorAttributes,
         );
         newVectorJXG.isDraggable = !fixLocation.current;
 
-        newPoint1JXG.on("drag", (e) => onDragHandler(e, 0));
-        newPoint2JXG.on("drag", (e) => onDragHandler(e, 1));
-        newVectorJXG.on("drag", (e) => onDragHandler(e, -1));
+        newPoint1JXG.on("drag", (e: { x: number; y: number; type: string }) =>
+            onDragHandler(e, 0),
+        );
+        newPoint2JXG.on("drag", (e: { x: number; y: number; type: string }) =>
+            onDragHandler(e, 1),
+        );
+        newVectorJXG.on("drag", (e: { x: number; y: number; type: string }) =>
+            onDragHandler(e, -1),
+        );
 
-        newPoint1JXG.on("up", (e) => {
+        newPoint1JXG.on("up", (e: unknown) => {
             if (!headBeingDragged.current && tailBeingDragged.current) {
                 callAction({
                     action: actions.moveVector,
@@ -180,7 +193,7 @@ export default React.memo(function Vector(props) {
             downOnPoint.current = null;
             pointerIsDown.current = false;
         });
-        newPoint2JXG.on("up", (e) => {
+        newPoint2JXG.on("up", (e: unknown) => {
             if (headBeingDragged.current && !tailBeingDragged.current) {
                 callAction({
                     action: actions.moveVector,
@@ -195,7 +208,7 @@ export default React.memo(function Vector(props) {
             downOnPoint.current = null;
             pointerIsDown.current = false;
         });
-        newVectorJXG.on("up", (e) => {
+        newVectorJXG.on("up", (e: unknown) => {
             if (headBeingDragged.current && tailBeingDragged.current) {
                 callAction({
                     action: actions.moveVector,
@@ -218,7 +231,7 @@ export default React.memo(function Vector(props) {
             pointerIsDown.current = false;
         });
 
-        newPoint1JXG.on("keyfocusout", (e) => {
+        newPoint1JXG.on("keyfocusout", (e: unknown) => {
             if (!headBeingDragged.current && tailBeingDragged.current) {
                 callAction({
                     action: actions.moveVector,
@@ -228,7 +241,7 @@ export default React.memo(function Vector(props) {
             headBeingDragged.current = false;
             tailBeingDragged.current = false;
         });
-        newPoint2JXG.on("keyfocusout", (e) => {
+        newPoint2JXG.on("keyfocusout", (e: unknown) => {
             if (headBeingDragged.current && !tailBeingDragged.current) {
                 callAction({
                     action: actions.moveVector,
@@ -238,7 +251,7 @@ export default React.memo(function Vector(props) {
             headBeingDragged.current = false;
             tailBeingDragged.current = false;
         });
-        newVectorJXG.on("keyfocusout", (e) => {
+        newVectorJXG.on("keyfocusout", (e: unknown) => {
             if (headBeingDragged.current && tailBeingDragged.current) {
                 callAction({
                     action: actions.moveVector,
@@ -326,7 +339,7 @@ export default React.memo(function Vector(props) {
             }
         });
 
-        newVectorJXG.on("hit", function (e) {
+        newVectorJXG.on("hit", function (e: unknown) {
             headBeingDragged.current = false;
             tailBeingDragged.current = false;
             callAction({
@@ -392,28 +405,38 @@ export default React.memo(function Vector(props) {
         point2JXG.current = newPoint2JXG;
     }
 
-    function boardMoveHandler(e) {
+    function boardMoveHandler(e: { x: number; y: number }) {
         if (pointerIsDown.current) {
             //Protect against very small unintended move
             if (
-                Math.abs(e.x - pointerAtDown.current[0]) >
+                pointerAtDown.current &&
+                (Math.abs(e.x - pointerAtDown.current[0]) >
                     POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
+                    Math.abs(e.y - pointerAtDown.current[1]) >
+                        POINTER_DRAG_THRESHOLD)
             ) {
                 pointerMovedSinceDown.current = true;
             }
         }
     }
 
-    function onDragHandler(e, i) {
+    function onDragHandler(
+        e: { x: number; y: number; type: string },
+        i: number,
+    ) {
+        if (vectorJXG.current === null || board === null) {
+            return;
+        }
         let viaPointer = e.type === "pointermove";
 
         //Protect against very small unintended drags
         if (
             !viaPointer ||
-            Math.abs(e.x - pointerAtDown.current[0]) > POINTER_DRAG_THRESHOLD ||
-            Math.abs(e.y - pointerAtDown.current[1]) > POINTER_DRAG_THRESHOLD
+            (pointerAtDown.current !== null &&
+                (Math.abs(e.x - pointerAtDown.current[0]) >
+                    POINTER_DRAG_THRESHOLD ||
+                    Math.abs(e.y - pointerAtDown.current[1]) >
+                        POINTER_DRAG_THRESHOLD))
         ) {
             if (i === 0) {
                 tailBeingDragged.current = true;
@@ -424,7 +447,10 @@ export default React.memo(function Vector(props) {
                 tailBeingDragged.current = true;
             }
 
-            let instructions = { transient: true, skippable: true };
+            let instructions: Record<string, any> = {
+                transient: true,
+                skippable: true,
+            };
 
             if (headBeingDragged.current) {
                 if (i === -1) {
@@ -458,11 +484,11 @@ export default React.memo(function Vector(props) {
                 args: instructions,
             });
 
-            vectorJXG.current.point1.coords.setCoordinates(
+            vectorJXG.current?.point1.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 lastPositionsFromCore.current[0],
             );
-            vectorJXG.current.point2.coords.setCoordinates(
+            vectorJXG.current?.point2.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 lastPositionsFromCore.current[1],
             );
@@ -475,38 +501,55 @@ export default React.memo(function Vector(props) {
     }
 
     function deleteVectorJXG() {
-        vectorJXG.current.off("drag");
-        vectorJXG.current.off("down");
-        vectorJXG.current.off("hit");
-        vectorJXG.current.off("up");
-        vectorJXG.current.off("keyfocusout");
-        vectorJXG.current.off("keydown");
-        board.removeObject(vectorJXG.current);
-        vectorJXG.current = {};
+        if (vectorJXG.current) {
+            vectorJXG.current.off("drag");
+            vectorJXG.current.off("down");
+            vectorJXG.current.off("hit");
+            vectorJXG.current.off("up");
+            vectorJXG.current.off("keyfocusout");
+            vectorJXG.current.off("keydown");
+            board?.removeObject(vectorJXG.current);
+            vectorJXG.current = null;
+        }
 
-        point1JXG.current.off("drag");
-        point1JXG.current.off("down");
-        point1JXG.current.off("hit");
-        point1JXG.current.off("up");
-        point1JXG.current.off("keyfocusout");
-        point1JXG.current.off("keydown");
-        board.removeObject(point1JXG.current);
-        point1JXG.current = {};
+        if (point1JXG.current) {
+            point1JXG.current.off("drag");
+            point1JXG.current.off("down");
+            point1JXG.current.off("hit");
+            point1JXG.current.off("up");
+            point1JXG.current.off("keyfocusout");
+            point1JXG.current.off("keydown");
+            board?.removeObject(point1JXG.current);
+            point1JXG.current = null;
+        }
 
-        point2JXG.current.off("drag");
-        point2JXG.current.off("down");
-        point2JXG.current.off("hit");
-        point2JXG.current.off("up");
-        point2JXG.current.off("keyfocusout");
-        point2JXG.current.off("keydown");
-        board.removeObject(point2JXG.current);
-        point2JXG.current = {};
+        if (point2JXG.current) {
+            point2JXG.current.off("drag");
+            point2JXG.current.off("down");
+            point2JXG.current.off("hit");
+            point2JXG.current.off("up");
+            point2JXG.current.off("keyfocusout");
+            point2JXG.current.off("keydown");
+            board?.removeObject(point2JXG.current);
+            point2JXG.current = null;
+        }
     }
 
-    function calculatePointPosition(e, i) {
+    function calculatePointPosition(
+        e: { x: number; y: number; type: string },
+        i: number,
+    ): number[] | null {
         let viaPointer = e.type === "pointermove";
 
-        if (viaPointer) {
+        if (board === null || vectorJXG.current === null) {
+            return null;
+        }
+
+        if (
+            viaPointer &&
+            pointsAtDown.current !== null &&
+            pointerAtDown.current !== null
+        ) {
             var o = board.origin.scrCoords;
 
             let calculatedX =
@@ -540,11 +583,15 @@ export default React.memo(function Vector(props) {
     }
 
     if (board) {
-        if (Object.keys(vectorJXG.current).length === 0) {
+        if (
+            vectorJXG.current === null ||
+            point1JXG.current === null ||
+            point2JXG.current === null
+        ) {
             createVectorJXG();
         } else if (
             SVs.numericalEndpoints.length !== 2 ||
-            SVs.numericalEndpoints.some((x) => x.length !== 2)
+            SVs.numericalEndpoints.some((x: any) => x.length !== 2)
         ) {
             deleteVectorJXG();
         } else {
@@ -597,10 +644,16 @@ export default React.memo(function Vector(props) {
                 componentIdx in sourceOfUpdate.sourceInformation
             ) {
                 let sourceInfo = sourceOfUpdate.sourceInformation[componentIdx];
-                if (sourceInfo.vertex === 0) {
-                    board.updateInfobox(point1JXG.current);
-                } else if (sourceInfo.vertex === 1) {
-                    board.updateInfobox(point2JXG.current);
+                if (
+                    typeof sourceInfo === "object" &&
+                    sourceInfo &&
+                    "vertex" in sourceInfo
+                ) {
+                    if (sourceInfo.vertex === 0) {
+                        board.updateInfobox(point1JXG.current);
+                    } else if (sourceInfo.vertex === 1) {
+                        board.updateInfobox(point2JXG.current);
+                    }
                 }
             }
 
@@ -677,7 +730,7 @@ export default React.memo(function Vector(props) {
 
         return (
             <>
-                <a name={id} />
+                <span id={id} />
             </>
         );
     }
@@ -691,7 +744,6 @@ export default React.memo(function Vector(props) {
     let style = textRendererStyle(darkMode, SVs.selectedStyle);
     return (
         <>
-            <a name={id} />
             <span id={id} style={style}>
                 <MathJax hideUntilTypeset={"first"} inline dynamic>
                     {mathJaxify}
@@ -701,7 +753,7 @@ export default React.memo(function Vector(props) {
     );
 });
 
-function styleToDash(style) {
+function styleToDash(style: string) {
     if (style === "solid") {
         return 0;
     } else if (style === "dashed") {

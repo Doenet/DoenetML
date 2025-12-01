@@ -167,6 +167,10 @@ export default function TextInput(props: UseDoenetRendererProps) {
     }
 
     function createInputJXG() {
+        if (board === null) {
+            return null;
+        }
+
         let jsxInputAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
@@ -447,7 +451,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         inputJXG.current.off("up");
         inputJXG.current.off("keyfocusout");
         inputJXG.current.off("keydown");
-        board.removeObject(inputJXG.current);
+        board?.removeObject(inputJXG.current);
         inputJXG.current = null;
     }
 

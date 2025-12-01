@@ -57,6 +57,9 @@ export default React.memo(function Ray(props) {
     }, [board]);
 
     function createRayJXG() {
+        if (board === null) {
+            return null;
+        }
         if (
             SVs.numericalEndpoint.length !== 2 ||
             SVs.numericalThroughpoint.length !== 2
@@ -285,7 +288,7 @@ export default React.memo(function Ray(props) {
         rayJXG.current.off("up");
         rayJXG.current.off("keyfocusout");
         rayJXG.current.off("keydown");
-        board.removeObject(rayJXG.current);
+        board?.removeObject(rayJXG.current);
         rayJXG.current = {};
     }
 

@@ -62,6 +62,10 @@ export default React.memo(function Polygon(props) {
     }, [board]);
 
     function createPolygonJXG() {
+        if (board === null) {
+            return null;
+        }
+
         if (!(SVs.numVertices >= 2)) {
             return null;
         }
@@ -227,11 +231,11 @@ export default React.memo(function Polygon(props) {
         polygonJXG.current.off("up");
         polygonJXG.current.off("down");
         polygonJXG.current.off("hit");
-        board.removeObject(polygonJXG.current);
+        board?.removeObject(polygonJXG.current);
         polygonJXG.current = null;
 
         for (const pt of pointsJXG.current) {
-            board.removeObject(pt);
+            board?.removeObject(pt);
         }
         pointsJXG.current = [];
     }
@@ -524,7 +528,7 @@ export default React.memo(function Polygon(props) {
                         polygonJXG.current.vertices[i],
                     );
                     const pointToDelete = pointsJXG.current.pop();
-                    board.removeObject(pointToDelete);
+                    board?.removeObject(pointToDelete);
                 }
                 initializePoints(polygonJXG.current);
             }

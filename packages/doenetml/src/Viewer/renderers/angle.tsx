@@ -29,18 +29,22 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
     function deleteGraphicalObject() {
         // if angle is defined
         if (point1JXG.current !== null) {
-            board.removeObject(angleJXG.current);
+            board?.removeObject(angleJXG.current);
             angleJXG.current = null;
-            board.removeObject(point1JXG.current);
+            board?.removeObject(point1JXG.current);
             point1JXG.current = null;
-            board.removeObject(point2JXG.current);
+            board?.removeObject(point2JXG.current);
             point2JXG.current = null;
-            board.removeObject(point3JXG.current);
+            board?.removeObject(point3JXG.current);
             point3JXG.current = null;
         }
     }
 
     function createAngleJXG(): JXGObject | null {
+        if (board === null) {
+            return null;
+        }
+
         if (
             SVs.numericalPoints.length !== 3 ||
             SVs.numericalPoints.some((x: any[]) => x.length !== 2) ||
