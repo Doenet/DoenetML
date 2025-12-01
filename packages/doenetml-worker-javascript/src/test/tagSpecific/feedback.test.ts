@@ -1286,8 +1286,8 @@ describe("Feedback tag tests", async () => {
             doenetML: `
   <setup>
       <feedbackDefinition code="wrongTrig" text="Close, but wrong trigonometric function" />
-      <feedbackDefinition code="lostPI" text="You lost pi" />
   </setup>
+  <feedbackDefinition code="lostPI" text="You lost pi" />
 
   <p><answer name="ans">
     <mathInput name="mi" />
@@ -1576,9 +1576,7 @@ describe("Feedback tag tests", async () => {
   </setup>
 
   <section>
-    <setup>
-        <feedbackDefinition code="dogAlsoSays" text="Grrr" />
-    </setup>
+      <feedbackDefinition code="dogAlsoSays" text="Grrr" />
 
 
     <p>
