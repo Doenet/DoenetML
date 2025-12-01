@@ -154,6 +154,8 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
         newInputJXG.isDraggable = !fixLocation.current;
 
         newInputJXG.on("down", function (e: JXGEvent) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [
                 ...(newAnchorPointJXG.coords.scrCoords as [

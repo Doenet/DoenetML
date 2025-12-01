@@ -324,6 +324,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         });
 
         circleJXG.current.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             dragged.current = false;
             pointerAtDown.current = [e.x, e.y];
             centerAtDown.current = [

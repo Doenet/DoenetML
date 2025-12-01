@@ -190,6 +190,8 @@ export default React.memo(function Image(props) {
         lastRotate.current = SVs.rotate;
 
         newImageJXG.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
             dragged.current = false;

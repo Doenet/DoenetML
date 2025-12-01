@@ -246,6 +246,8 @@ export default function TextInput(props: UseDoenetRendererProps) {
         newInputJXG.rendNodeLabel.style.marginRight = "2px";
 
         newInputJXG.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
             dragged.current = false;

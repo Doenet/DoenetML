@@ -282,6 +282,8 @@ export default React.memo(function LineSegment(props) {
         });
 
         point1JXG.current.on("down", (e) => {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             draggedPoint.current = null;
             pointerAtDown.current = [e.x, e.y];
             downOnPoint.current = 1;
@@ -302,6 +304,8 @@ export default React.memo(function LineSegment(props) {
             });
         });
         point2JXG.current.on("down", (e) => {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             draggedPoint.current = null;
             pointerAtDown.current = [e.x, e.y];
             downOnPoint.current = 2;
@@ -322,6 +326,8 @@ export default React.memo(function LineSegment(props) {
             });
         });
         lineSegmentJXG.current.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             draggedPoint.current = null;
             pointerAtDown.current = [e.x, e.y];
             pointsAtDown.current = [

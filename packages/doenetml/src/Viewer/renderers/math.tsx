@@ -163,6 +163,8 @@ export default React.memo(function MathComponent(
         newMathJXG.isDraggable = !fixLocation.current;
 
         newMathJXG.on("down", function (e) {
+            (document.activeElement as HTMLElement | null)?.blur();
+
             pointerAtDown.current = [e.x, e.y];
             pointAtDown.current = [
                 ...(newAnchorPointJXG.coords.scrCoords as [
