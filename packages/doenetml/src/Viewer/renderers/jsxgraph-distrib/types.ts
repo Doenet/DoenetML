@@ -118,6 +118,24 @@ export type JXGObject = {
     rendNodeLabel: HTMLElement;
 };
 
+export type JXGBoard = JXGObject & {
+    create: Function;
+    removeObject: Function;
+    displayInfobox: (display: boolean) => void;
+    updateInfobox: Function;
+    updateRenderer: () => void;
+    unitX: number;
+    unitY: number;
+    origin: {
+        usrCoords: number[];
+        scrCoords: number[];
+    }
+    BOARD_QUALITY_LOW: number;
+    BOARD_QUALITY_HIGH: number;
+    updateQuality: number;
+    itemsRenderedLowQuality: Record<string, JXGObject>; // added to object in local code
+}
+
 export type JXGEvent = {
     x: number;
     y: number;
