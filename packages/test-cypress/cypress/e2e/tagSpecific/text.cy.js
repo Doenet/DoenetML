@@ -12,10 +12,8 @@ describe("Text Tag Tests", function () {
                 {
                     doenetML: `
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="2" textColor="green" />
         <styleDefinition styleNumber="3" textColor="red" backgroundColor="blue" />
-      </styleDefinitions>
     </setup>
 
     <p>Style number: <mathInput prefill="1" name="sn" /></p>
@@ -179,10 +177,8 @@ describe("Text Tag Tests", function () {
                 {
                     doenetML: `
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="2" textColor="green" />
         <styleDefinition styleNumber="3" textColor="red" />
-      </styleDefinitions>
     </setup>
 
     <text name="a">a</text>

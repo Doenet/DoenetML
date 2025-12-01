@@ -71,7 +71,7 @@ export default class Sequence extends CompositeComponent {
                 },
             }),
             // when this state variable is marked stale
-            // it indicates we should update replacement
+            // it indicates we should update replacements.
             // For this to work, must get value in replacement functions
             // so that the variable is marked fresh
             markStale: () => ({ updateReplacements: true }),

@@ -6031,10 +6031,8 @@ describe("Point tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="2" textColor="green" />
         <styleDefinition styleNumber="3" textColor="red" backgroundColor="blue" />
-      </styleDefinitions>
     </setup>
 
     <p>Style number: <mathInput prefill="1" name="sn" /></p>
@@ -6787,10 +6785,8 @@ describe("Point tag tests", async () => {
     it("style description changes with theme", async () => {
         const doenetML = `
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="1" markerColor="brown" markerColorDarkMode="yellow" />
         <styleDefinition styleNumber="2" markerColor="#540907" markerColorWord="dark red" markerColorDarkMode="#f0c6c5" markerColorWordDarkMode="light red" />
-      </styleDefinitions>
     </setup>
     <graph>
       <point name="A" styleNumber="1" labelIsName>(1,2)</point>

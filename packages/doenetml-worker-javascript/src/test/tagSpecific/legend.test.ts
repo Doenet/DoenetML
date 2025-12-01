@@ -343,12 +343,10 @@ describe("Legend tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="1" lineColor="green" lineWidth="1" lineOpacity="0.9" lineStyle="dotted" markerSize="5" markerStyle="triangle" markerColor="green" fillColor="red" fillOpacity="0.3" />
         <styleDefinition styleNumber="2" lineColor="blue" lineWidth="2" lineOpacity="0.8" lineStyle="dashed" markerSize="4" markerStyle="square" markerColor="blue" fillColor="orange" fillOpacity="0.4" />
         <styleDefinition styleNumber="3" lineColor="cyan" lineWidth="3" lineOpacity="0.7" lineStyle="solid" markerSize="3" markerStyle="circle" markerColor="cyan" fillColor="magenta" fillOpacity="0.5" />
         <styleDefinition styleNumber="4" lineColor="black" lineWidth="4" lineOpacity="0.6" lineStyle="dotted" />
-      </styleDefinitions>
     </setup>
 
     <p>display closed swatches: <booleanInput name="closedSwatches" /></p>

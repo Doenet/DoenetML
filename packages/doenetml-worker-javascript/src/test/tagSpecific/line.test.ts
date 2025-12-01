@@ -5635,10 +5635,8 @@ describe("Line tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="2" textColor="green" />
         <styleDefinition styleNumber="3" textColor="red" backgroundColor="blue" />
-      </styleDefinitions>
     </setup>
 
     <p>Style number: <mathInput prefill="1" name="sn" /></p>
@@ -6130,10 +6128,8 @@ describe("Line tag tests", async () => {
     it("style description changes with theme", async () => {
         const doenetML = `
     <setup>
-      <styleDefinitions>
         <styleDefinition styleNumber="1" lineColor="brown" lineColorDarkMode="yellow" />
         <styleDefinition styleNumber="2" lineColor="#540907" lineColorWord="dark red" lineColorDarkMode="#f0c6c5" lineColorWordDarkMode="light red" />
-      </styleDefinitions>
     </setup>
     <graph>
       <line name="A" styleNumber="1" labelIsName through="(0,0) (1,2)" />

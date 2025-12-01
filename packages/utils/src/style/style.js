@@ -261,9 +261,11 @@ export function returnStyleDefinitionStateVariables() {
                     dependencyType: "ancestor",
                     variableNames: ["styleDefinitions"],
                 },
-                setupChildren: {
+                styleDefinitionSetupChildren: {
                     dependencyType: "child",
-                    childGroups: ["setups"],
+                    childGroups: ["styleDefinitions", "setups"],
+                    variableNames: ["styleNumber", "styleDefinition"],
+                    variablesOptional: true,
                     proceedIfAllChildrenNotMatched: true,
                 },
             };
@@ -273,14 +275,14 @@ export function returnStyleDefinitionStateVariables() {
                     dependencyType: "child",
                     parentIdx: setupChild.componentIdx,
                     childGroups: ["styleDefinitions"],
-                    variableNames: ["value"],
+                    variableNames: ["styleNumber", "styleDefinition"],
                 };
             }
 
             return dependencies;
         },
         definition({ dependencyValues }) {
-            let styleDefinitions = {};
+            const styleDefinitions = {};
 
             let startingStateVariableDefinitions;
 
@@ -295,117 +297,115 @@ export function returnStyleDefinitionStateVariables() {
                     returnDefaultStyleDefinitions();
             }
 
-            for (let styleNumber in startingStateVariableDefinitions) {
+            for (const styleNumber in startingStateVariableDefinitions) {
                 styleDefinitions[styleNumber] = Object.assign(
                     {},
                     startingStateVariableDefinitions[styleNumber],
                 );
             }
 
-            let styleDefinitionChildren = [];
-            for (let child of dependencyValues.setupChildren) {
-                styleDefinitionChildren.push(
-                    ...dependencyValues[
-                        `styleDefinitionsOf${child.componentIdx}`
-                    ],
-                );
+            const styleDefinitionChildren = [];
+            for (let child of dependencyValues.styleDefinitionSetupChildren) {
+                if (child.componentType === "setup") {
+                    styleDefinitionChildren.push(
+                        ...dependencyValues[
+                            `styleDefinitionsOf${child.componentIdx}`
+                        ],
+                    );
+                } else {
+                    styleDefinitionChildren.push(child);
+                }
             }
 
-            let coloredItems = ["marker", "line", "fill", "text", "background"];
-            let widthItems = ["line"];
-            let lineStyleItems = ["line"];
+            const coloredItems = [
+                "marker",
+                "line",
+                "fill",
+                "text",
+                "background",
+            ];
+            const widthItems = ["line"];
+            const lineStyleItems = ["line"];
 
-            for (let child of styleDefinitionChildren) {
-                let newStyleDefs = child.stateValues.value;
+            for (const child of styleDefinitionChildren) {
+                const styleNumber = child.stateValues.styleNumber;
+                const styleDef = styleDefinitions[styleNumber];
 
-                for (let styleNumber in newStyleDefs) {
-                    let styleDef = styleDefinitions[styleNumber];
-                    if (!styleDef) {
-                        styleDef = styleDefinitions[styleNumber] =
-                            Object.assign({}, defaultStyle);
-                    }
-
-                    let theNewDef = Object.assign(
+                if (!styleDef) {
+                    styleDef = styleDefinitions[styleNumber] = Object.assign(
                         {},
-                        newStyleDefs[styleNumber],
+                        defaultStyle,
                     );
-
-                    for (let item of coloredItems) {
-                        let colorKey = `${item}Color`;
-                        let colorWordKey = `${colorKey}Word`;
-                        let darkKey = `${colorKey}DarkMode`;
-                        let darkWordKey = `${colorWordKey}DarkMode`;
-
-                        if (
-                            colorKey in theNewDef &&
-                            !(colorWordKey in theNewDef)
-                        ) {
-                            theNewDef[colorWordKey] = theNewDef[colorKey];
-                        }
-                        if (
-                            darkKey in theNewDef &&
-                            !(darkWordKey in theNewDef)
-                        ) {
-                            theNewDef[darkWordKey] = theNewDef[darkKey];
-                        }
-                        if (colorKey in theNewDef && !(darkKey in theNewDef)) {
-                            theNewDef[darkKey] = theNewDef[colorKey];
-                            theNewDef[darkWordKey] = theNewDef[colorWordKey];
-                        }
-                    }
-
-                    for (let item of widthItems) {
-                        let widthKey = `${item}Width`;
-                        let widthWordKey = `${widthKey}Word`;
-
-                        if (
-                            widthKey in theNewDef &&
-                            !(widthWordKey in theNewDef)
-                        ) {
-                            if (theNewDef[widthKey] >= 4) {
-                                theNewDef[widthWordKey] = "thick";
-                            } else if (theNewDef[widthKey] <= 1) {
-                                theNewDef[widthWordKey] = "thin";
-                            } else {
-                                theNewDef[widthWordKey] = "";
-                            }
-                        }
-                    }
-
-                    for (let item of lineStyleItems) {
-                        let styleKey = `${item}Style`;
-                        let styleWordKey = `${styleKey}Word`;
-
-                        if (
-                            styleKey in theNewDef &&
-                            !(styleWordKey in theNewDef)
-                        ) {
-                            if (theNewDef[styleKey] === "dashed") {
-                                theNewDef[styleWordKey] = "dashed";
-                            } else if (theNewDef[styleKey] === "dotted") {
-                                theNewDef[styleWordKey] = "dotted";
-                            } else {
-                                theNewDef[styleWordKey] = "";
-                            }
-                        }
-                    }
-
-                    if (
-                        "markerStyle" in theNewDef &&
-                        !("markerStyleWord" in theNewDef)
-                    ) {
-                        theNewDef.markerStyleWord = theNewDef.markerStyle;
-                        if (theNewDef.markerStyleWord === "circle") {
-                            theNewDef.markerStyleWord = "point";
-                        } else if (
-                            theNewDef.markerStyleWord.slice(0, 8) === "triangle"
-                        ) {
-                            theNewDef.markerStyleWord = "triangle";
-                        }
-                    }
-
-                    Object.assign(styleDef, theNewDef);
                 }
+
+                const theNewDef = Object.assign(
+                    {},
+                    child.stateValues.styleDefinition,
+                );
+
+                for (const item of coloredItems) {
+                    const colorKey = `${item}Color`;
+                    const colorWordKey = `${colorKey}Word`;
+                    const darkKey = `${colorKey}DarkMode`;
+                    const darkWordKey = `${colorWordKey}DarkMode`;
+
+                    if (colorKey in theNewDef && !(colorWordKey in theNewDef)) {
+                        theNewDef[colorWordKey] = theNewDef[colorKey];
+                    }
+                    if (darkKey in theNewDef && !(darkWordKey in theNewDef)) {
+                        theNewDef[darkWordKey] = theNewDef[darkKey];
+                    }
+                    if (colorKey in theNewDef && !(darkKey in theNewDef)) {
+                        theNewDef[darkKey] = theNewDef[colorKey];
+                        theNewDef[darkWordKey] = theNewDef[colorWordKey];
+                    }
+                }
+
+                for (const item of widthItems) {
+                    const widthKey = `${item}Width`;
+                    const widthWordKey = `${widthKey}Word`;
+
+                    if (widthKey in theNewDef && !(widthWordKey in theNewDef)) {
+                        if (theNewDef[widthKey] >= 4) {
+                            theNewDef[widthWordKey] = "thick";
+                        } else if (theNewDef[widthKey] <= 1) {
+                            theNewDef[widthWordKey] = "thin";
+                        } else {
+                            theNewDef[widthWordKey] = "";
+                        }
+                    }
+                }
+
+                for (const item of lineStyleItems) {
+                    const styleKey = `${item}Style`;
+                    const styleWordKey = `${styleKey}Word`;
+
+                    if (styleKey in theNewDef && !(styleWordKey in theNewDef)) {
+                        if (theNewDef[styleKey] === "dashed") {
+                            theNewDef[styleWordKey] = "dashed";
+                        } else if (theNewDef[styleKey] === "dotted") {
+                            theNewDef[styleWordKey] = "dotted";
+                        } else {
+                            theNewDef[styleWordKey] = "";
+                        }
+                    }
+                }
+
+                if (
+                    "markerStyle" in theNewDef &&
+                    !("markerStyleWord" in theNewDef)
+                ) {
+                    theNewDef.markerStyleWord = theNewDef.markerStyle;
+                    if (theNewDef.markerStyleWord === "circle") {
+                        theNewDef.markerStyleWord = "point";
+                    } else if (
+                        theNewDef.markerStyleWord.slice(0, 8) === "triangle"
+                    ) {
+                        theNewDef.markerStyleWord = "triangle";
+                    }
+                }
+
+                Object.assign(styleDef, theNewDef);
             }
 
             return { setValue: { styleDefinitions } };

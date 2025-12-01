@@ -1737,10 +1737,8 @@ describe("TriggerSet tag tests", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
-        <styleDefinitions>
-            <styleDefinition styleNumber="1" fillColor="green" />
-            <styleDefinition styleNumber="2" fillColor="yellow" />
-        </styleDefinitions>
+        <styleDefinition styleNumber="1" fillColor="green" />
+        <styleDefinition styleNumber="2" fillColor="yellow" />
     </setup>
 
     <triggerSet name="ts1" />

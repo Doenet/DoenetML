@@ -167,7 +167,6 @@ export default {
     stack: { title: "stack" },
     standardDeviation: { title: "standardDeviation" },
     styleDefinition: { title: "styleDefinition" },
-    styleDefinitions: { title: "styleDefinitions" },
     subsetOfReals: { title: "subsetOfReals" },
     substitute: { title: "substitute" },
     sum: { title: "sum" },

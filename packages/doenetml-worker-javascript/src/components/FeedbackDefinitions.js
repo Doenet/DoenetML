@@ -64,44 +64,5 @@ export class FeedbackDefinitions extends BaseComponent {
     static componentType = "feedbackDefinitions";
     static rendererType = undefined;
 
-    static inSchemaOnlyInheritAs = [];
-
-    static returnChildGroups() {
-        return [
-            {
-                group: "feedbackDefinition",
-                componentTypes: ["feedbackDefinition"],
-            },
-        ];
-    }
-
-    static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.value = {
-            returnDependencies: () => ({
-                feedbackDefinitionChildren: {
-                    dependencyType: "child",
-                    childGroups: ["feedbackDefinition"],
-                    variableNames: ["feedbackDefinition"],
-                },
-            }),
-            definition({ dependencyValues }) {
-                let value = {};
-
-                for (let child of dependencyValues.feedbackDefinitionChildren) {
-                    if (child.stateValues.feedbackDefinition) {
-                        Object.assign(
-                            value,
-                            child.stateValues.feedbackDefinition,
-                        );
-                    }
-                }
-
-                return { setValue: { value } };
-            },
-        };
-
-        return stateVariableDefinitions;
-    }
+    static excludeFromSchema = [];
 }
