@@ -1510,17 +1510,17 @@ describe("Problem Tag Tests", function () {
 
         cy.get(cesc("#problem")).should(
             "contain.text",
-            "Problem 1List of tasks Do this  Do that Finished",
+            "Problem 1List of tasksDo thisDo thatFinished",
         );
 
         cy.get(cesc("#problem") + " ol > li:nth-child(1)").should(
             "have.text",
-            " Do this ",
+            "Do this",
         );
 
         cy.get(cesc("#problem") + " ol > li:nth-child(2)").should(
             "have.text",
-            " Do that ",
+            "Do that",
         );
     });
 
@@ -1544,17 +1544,17 @@ describe("Problem Tag Tests", function () {
 
         cy.get(cesc("#problem")).should(
             "contain.text",
-            "Problem 1List of parts Do this  Do that Finished",
+            "Problem 1List of partsDo thisDo thatFinished",
         );
 
         cy.get(cesc("#problem") + " ol > li:nth-child(1)").should(
             "have.text",
-            " Do this ",
+            "Do this",
         );
 
         cy.get(cesc("#problem") + " ol > li:nth-child(2)").should(
             "have.text",
-            " Do that ",
+            "Do that",
         );
     });
 
@@ -1578,17 +1578,17 @@ describe("Problem Tag Tests", function () {
 
         cy.get(cesc("#problem")).should(
             "contain.text",
-            "Problems 1List of problems Do this  Do that Finished",
+            "Problems 1List of problemsDo thisDo thatFinished",
         );
 
         cy.get(cesc("#problem") + " ol > li:nth-child(1)").should(
             "have.text",
-            " Do this ",
+            "Do this",
         );
 
         cy.get(cesc("#problem") + " ol > li:nth-child(2)").should(
             "have.text",
-            " Do that ",
+            "Do that",
         );
     });
 });

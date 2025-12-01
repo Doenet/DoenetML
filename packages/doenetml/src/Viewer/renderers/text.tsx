@@ -451,7 +451,7 @@ export default React.memo(function Text(props) {
             board.updateRenderer();
         }
 
-        return <a name={id} />;
+        return <span id={id} />;
     }
 
     // not in board
@@ -463,7 +463,6 @@ export default React.memo(function Text(props) {
     let style = textRendererStyle(darkMode, SVs.selectedStyle);
     return (
         <>
-            <a name={id} />
             <span id={id} style={style}>
                 {SVs.text}
             </span>

@@ -496,7 +496,6 @@ export default React.memo(function Video(props) {
             ref={ref}
             className="video"
         >
-            <a name={id} />
             {videoTag}
         </div>
     );

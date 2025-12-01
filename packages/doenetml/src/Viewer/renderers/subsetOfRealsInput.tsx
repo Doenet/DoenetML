@@ -313,8 +313,7 @@ export default React.memo(function subsetOfReals(props) {
     }
 
     return (
-        <div ref={ref}>
-            <a name={id} />
+        <div ref={ref} id={id}>
             <div ref={bounds} style={{ display: "flex", gap: "12px" }}>
                 {controlButtons}
             </div>

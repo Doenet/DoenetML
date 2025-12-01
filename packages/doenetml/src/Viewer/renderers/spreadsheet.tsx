@@ -23,7 +23,6 @@ export default React.memo(function SpreadsheetRenderer(props) {
 
     return (
         <div id={id} style={{ margin: "12px 0" }} ref={ref}>
-            <a name={id} />
             <HotTable
                 // style={{ borderRadius:"var(--mainBorderRadius)", border:"var(--mainBorder)" }}
                 licenseKey="non-commercial-and-evaluation"

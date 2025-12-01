@@ -871,7 +871,7 @@ export default React.memo(function Curve(props) {
                 board.updateRenderer();
                 return (
                     <>
-                        <a name={id} />
+                        <span id={id} />
                     </>
                 );
             }
@@ -883,7 +883,7 @@ export default React.memo(function Curve(props) {
                 board.updateRenderer();
                 return (
                     <>
-                        <a name={id} />
+                        <span id={id} />
                     </>
                 );
             }
@@ -900,7 +900,7 @@ export default React.memo(function Curve(props) {
                 board.updateRenderer();
                 return (
                     <>
-                        <a name={id} />
+                        <span id={id} />
                     </>
                 );
             }

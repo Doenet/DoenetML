@@ -190,7 +190,7 @@ export default React.memo(function Graph(props) {
         // but just render children so that will be inside parent graph
         return (
             <>
-                <a name={id} />
+                <span id={id} />
                 {children}
             </>
         );
@@ -230,7 +230,6 @@ export default React.memo(function Graph(props) {
                     aria-label={SVs.description}
                     role="img"
                 >
-                    <a name={id} />
                     <div id={id} className="jxgbox" style={divStyle} />
                 </div>
             </div>
@@ -453,7 +452,6 @@ export default React.memo(function Graph(props) {
                 aria-label={SVs.description}
                 role="img"
             >
-                <a name={id} />
                 <div id={id} className="jxgbox" style={divStyle} />
                 <BoardContext.Provider value={board}>
                     {children}
