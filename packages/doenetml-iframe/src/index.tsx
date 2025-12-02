@@ -1,6 +1,5 @@
 import React from "react";
 
-import { watchForResize } from "./resize-watcher";
 import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
@@ -30,6 +29,7 @@ type IframeMessage = {
     origin: string;
     data: Record<string, unknown>;
     subject?: string;
+    height?: number;
 };
 
 export type DoenetViewerIframeProps = DoenetViewerProps & {
@@ -109,7 +109,7 @@ export function DoenetViewer({
 }: DoenetViewerIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
     const ref = React.useRef<HTMLIFrameElement>(null);
-    const [height, setHeight] = React.useState("0px");
+    const [height, setHeight] = React.useState("500px");
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
         React.useState(false);
@@ -157,6 +157,17 @@ export function DoenetViewer({
                 ref.current?.contentWindow?.postMessage(event.data);
                 return;
             }
+
+            if (event.source !== ref.current?.contentWindow) {
+                return;
+            }
+
+            if (event.data.subject === "lti.frameResize") {
+                if (event.data.height !== undefined) {
+                    setHeight(event.data.height + "px");
+                }
+            }
+
             if (event.data?.origin !== id) {
                 return;
             }
@@ -222,11 +233,9 @@ export function DoenetViewer({
         if (ref.current) {
             window.addEventListener("message", listener);
         }
-        const clearResize = watchForResize(ref, () => height, setHeight);
 
         return () => {
             window.removeEventListener("message", listener);
-            clearResize();
         };
     }, []);
 
