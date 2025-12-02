@@ -52,7 +52,7 @@ export function createHtmlForDoenetViewer(
             // It assumes that viewerId, doenetViewerProps, doenetViewerPropsSpecified, and ComlinkViewer are defined in the global scope.
             ${viewerIframeJsSource}
         </script>
-        <div id="root" data-doenet-message-parent="true">
+        <div id="root" data-doenet-message-parent="true" data-doenet-send-resize-events="true">
             <div class="doenet-loading" style="text-align:center">
                 <p><img src="https://www.doenet.org/Doenet_Logo_Frontpage.png"/></p>
                 <p>Waiting on the page to load...</p>
