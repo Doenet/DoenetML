@@ -85,7 +85,7 @@ export function createCheckWorkComponent(
         checkWorkComponent = (
             <button
                 className="check-work"
-                id={id + "_submit"}
+                id={id + "_button"}
                 tabIndex={checkWorkTabIndex}
                 disabled={disabled}
                 style={checkWorkStyle}
@@ -113,7 +113,7 @@ export function createCheckWorkComponent(
             checkWorkComponent = (
                 <button
                     className="check-work"
-                    id={id + "_correct"}
+                    id={id + "_button"}
                     tabIndex={checkWorkTabIndex}
                     style={statusStyle}
                     aria-label={additionalLabel}
@@ -136,7 +136,7 @@ export function createCheckWorkComponent(
             checkWorkComponent = (
                 <button
                     className="check-work"
-                    id={id + "_incorrect"}
+                    id={id + "_button"}
                     tabIndex={checkWorkTabIndex}
                     style={statusStyle}
                     aria-label={additionalLabel}
@@ -163,7 +163,7 @@ export function createCheckWorkComponent(
             checkWorkComponent = (
                 <button
                     className="check-work"
-                    id={id + "_partial"}
+                    id={id + "_button"}
                     tabIndex={checkWorkTabIndex}
                     style={statusStyle}
                     aria-label={additionalLabel}
@@ -185,7 +185,7 @@ export function createCheckWorkComponent(
         checkWorkComponent = (
             <button
                 className="check-work"
-                id={id + "_saved"}
+                id={id + "_button"}
                 tabIndex={checkWorkTabIndex}
                 style={statusStyle}
                 aria-label={additionalLabel}
