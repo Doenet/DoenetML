@@ -61,14 +61,7 @@ export function createCheckWorkComponent(
         cursor: "pointer",
     };
 
-    const statusStyle: React.CSSProperties = {
-        padding: "1px 4px 1px 4px",
-        marginRight: "4px",
-        borderRadius: "5px",
-        height: "22px",
-        display: "inline-block",
-        verticalAlign: "middle",
-    };
+    const statusStyle: React.CSSProperties = {};
 
     let checkWorkTabIndex = 0;
     if (disabled) {
@@ -118,10 +111,13 @@ export function createCheckWorkComponent(
             const additionalLabel = showText ? undefined : "Correct";
 
             checkWorkComponent = (
-                <span
+                <button
+                    className="check-work"
                     id={id + "_correct"}
+                    tabIndex={checkWorkTabIndex}
                     style={statusStyle}
                     aria-label={additionalLabel}
+                    role="status"
                 >
                     <FontAwesomeIcon
                         icon={faCheck as IconProp}
@@ -129,7 +125,7 @@ export function createCheckWorkComponent(
                         title={additionalLabel}
                     />
                     {correctLabel}
-                </span>
+                </button>
             );
         } else if (validationState === "incorrect") {
             statusStyle.backgroundColor = getComputedStyle(
@@ -138,10 +134,13 @@ export function createCheckWorkComponent(
             const incorrectLabel = showText ? <>&nbsp; Incorrect</> : "";
             const additionalLabel = showText ? undefined : "Incorrect";
             checkWorkComponent = (
-                <span
+                <button
+                    className="check-work"
                     id={id + "_incorrect"}
+                    tabIndex={checkWorkTabIndex}
                     style={statusStyle}
                     aria-label={additionalLabel}
+                    role="status"
                 >
                     <FontAwesomeIcon
                         icon={faTimes as IconProp}
@@ -149,7 +148,7 @@ export function createCheckWorkComponent(
                         title={additionalLabel}
                     />
                     {incorrectLabel}
-                </span>
+                </button>
             );
         } else {
             // partial correct
@@ -162,13 +161,16 @@ export function createCheckWorkComponent(
             const additionalLabel = showText ? undefined : partialText;
 
             checkWorkComponent = (
-                <span
+                <button
+                    className="check-work"
                     id={id + "_partial"}
+                    tabIndex={checkWorkTabIndex}
                     style={statusStyle}
                     aria-label={additionalLabel}
+                    role="status"
                 >
                     {partialLabel}
-                </span>
+                </button>
             );
         }
     } else {
@@ -181,10 +183,13 @@ export function createCheckWorkComponent(
             statusStyle.padding = "1px 8px 1px 4px"; // To center the faCloud icon
         }
         checkWorkComponent = (
-            <span
+            <button
+                className="check-work"
                 id={id + "_saved"}
+                tabIndex={checkWorkTabIndex}
                 style={statusStyle}
                 aria-label={additionalLabel}
+                role="status"
             >
                 <FontAwesomeIcon
                     icon={faCloud as IconProp}
@@ -192,7 +197,7 @@ export function createCheckWorkComponent(
                     title={additionalLabel}
                 />
                 {responseSavedText}
-            </span>
+            </button>
         );
     }
 
