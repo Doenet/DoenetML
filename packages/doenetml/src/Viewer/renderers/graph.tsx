@@ -120,8 +120,6 @@ export default React.memo(function Graph(props) {
 
         setBoard(newBoard);
 
-        console.log(newBoard);
-
         previousDimensions.current = {
             width: parseFloat(sizeToCSS(SVs.width)),
             aspectRatio: SVs.aspectRatio,

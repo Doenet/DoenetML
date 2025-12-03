@@ -102,11 +102,9 @@ export function EditorViewer({
     const codeChangedRef = useRef(false); //To keep value up to date in the code mirror function
     codeChangedRef.current = codeChanged;
 
-    const [editorDoenetML, setEditorDoenetML] = useState(initialDoenetML);
     const [viewerDoenetML, setViewerDoenetML] = useState(initialDoenetML);
     const lastReportedDoenetML = useRef(initialDoenetML);
-    const editorDoenetMLRef = useRef(editorDoenetML);
-    editorDoenetMLRef.current = editorDoenetML;
+    const editorDoenetMLRef = useRef(initialDoenetML);
 
     const [formatAsDoenetML, setFormatAsDoenetML] = useState(true);
 
@@ -197,7 +195,7 @@ export function EditorViewer({
     }, [showViewer]);
 
     useEffect(() => {
-        setEditorDoenetML(initialDoenetML);
+        editorDoenetMLRef.current = initialDoenetML;
     }, [initialDoenetML]);
 
     // call documentStructure callback followed by doenetmlChangeCallback
@@ -214,7 +212,7 @@ export function EditorViewer({
     const onEditorChange = useCallback(
         (value: string) => {
             if (editorDoenetMLRef.current !== value) {
-                setEditorDoenetML(value);
+                editorDoenetMLRef.current = value;
 
                 if (!codeChangedRef.current) {
                     setCodeChanged(true);
@@ -242,6 +240,20 @@ export function EditorViewer({
         },
         [immediateDoenetmlChangeCallback, doenetmlChangeCallback],
     );
+
+    const onBlur = useCallback(() => {
+        window.clearTimeout(updateValueTimer.current ?? undefined);
+        if (lastReportedDoenetML.current !== editorDoenetMLRef.current) {
+            lastReportedDoenetML.current = editorDoenetMLRef.current;
+            doenetmlChangeCallback?.(editorDoenetMLRef.current);
+        }
+        updateValueTimer.current = null;
+    }, [
+        doenetmlChangeCallback,
+        updateValueTimer,
+        lastReportedDoenetML,
+        editorDoenetMLRef,
+    ]);
 
     useEffect(() => {
         const handleEditorKeyDown = (event: KeyboardEvent) => {
@@ -304,16 +316,7 @@ export function EditorViewer({
         <CodeMirror
             value={initialDoenetML}
             readOnly={readOnly}
-            onBlur={() => {
-                window.clearTimeout(updateValueTimer.current ?? undefined);
-                if (
-                    lastReportedDoenetML.current !== editorDoenetMLRef.current
-                ) {
-                    lastReportedDoenetML.current = editorDoenetMLRef.current;
-                    doenetmlChangeCallback?.(editorDoenetMLRef.current);
-                }
-                updateValueTimer.current = null;
-            }}
+            onBlur={onBlur}
             onChange={onEditorChange}
             languageServerRef={lspRef}
         />

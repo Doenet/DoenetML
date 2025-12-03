@@ -12,7 +12,7 @@ import { colorTheme, readOnlyColorTheme } from "./extensions/theme";
 /**
  * A CodeMirror instance set up with a language server to provide completions/etc. for DoenetML.
  */
-export function CodeMirror({
+const CodeMirror = React.memo(function CodeMirror({
     value,
     onChange,
     onCursorChange,
@@ -107,4 +107,6 @@ export function CodeMirror({
             />
         </div>
     );
-}
+});
+
+export { CodeMirror };
