@@ -139,6 +139,8 @@ describe("MathInput Tag Tests", function () {
             );
         });
 
+        cy.get(cesc("#pv")).should("contain.text", "value: \uff3f");
+
         cy.get(cesc("#n") + " textarea").type("1", { force: true });
 
         cy.get(cesc("#piv")).should("have.text", "immediate value: 1");

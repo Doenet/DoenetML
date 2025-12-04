@@ -158,7 +158,7 @@ export function createCheckWorkComponent(
             style={buttonStyle}
             onClick={submitAnswer}
             aria-label={additionalLabel}
-            role="status"
+            role={validationState === "unvalidated" ? "button" : "status"}
             aria-live="polite"
         >
             {buttonContent}

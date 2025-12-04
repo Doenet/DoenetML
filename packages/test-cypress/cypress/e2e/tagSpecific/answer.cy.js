@@ -40,6 +40,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Type correct answer in");
             cy.get(mathInputAnchor).type(`x+y`, { force: true });
@@ -49,6 +50,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Press enter");
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
@@ -57,6 +59,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Correct",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Add space");
             cy.get(mathInputAnchor).type(`{end} `, { force: true });
@@ -65,6 +68,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Press enter");
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
@@ -73,6 +77,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Correct",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Delete space");
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
@@ -81,6 +86,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Press enter");
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
@@ -89,6 +95,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Correct",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Add letter");
             cy.get(mathInputAnchor).type(`{end}z`, { force: true });
@@ -98,6 +105,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Delete letter (no longer goes back to saying correct)");
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
@@ -107,6 +115,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Delete more");
             cy.get(mathInputAnchor).type(`{end}{backspace}{backspace}`, {
@@ -119,6 +128,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Back to correct (no longer goes back to saying correct)");
             cy.get(mathInputAnchor).type(`{end}+y`, { force: true });
@@ -128,6 +138,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Press enter");
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
@@ -136,6 +147,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Correct",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Delete again");
             cy.get(mathInputAnchor).type(`{end}{backspace}{backspace}`, {
@@ -148,6 +160,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Press enter on submit button");
             cy.get(mathInputButtonAnchor).type(`{enter}`, { force: true });
@@ -156,6 +169,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Incorrect",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Add letter");
             cy.get(mathInputAnchor).type(`{end}a`, { force: true });
@@ -165,6 +179,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Delete letter (no longer goes back to saying incorrect)");
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
@@ -183,6 +198,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log(
                 "Restore incorrect submitted answer (no longer goes back to saying incorrect)",
@@ -194,6 +210,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Click submit button");
             cy.get(mathInputButtonAnchor).click();
@@ -202,6 +219,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Incorrect",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Enter partially correct answer");
             cy.get(mathInputAnchor).type(`{end}+z`, { force: true });
@@ -211,12 +229,14 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Click submit button");
             cy.get(mathInputButtonAnchor).click();
             cy.get(mathInputButtonAnchor)
                 .should("have.text", "32 %")
                 .should("have.attr", "aria-label", "32% Correct");
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Add letter");
             cy.get(mathInputAnchor).type(`{end}z`, { force: true });
@@ -226,6 +246,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log(
                 "Delete letter (no longer goes back to saying partially correct)",
@@ -238,6 +259,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Delete more");
             cy.get(mathInputAnchor).type(`{end}{backspace}{backspace}`, {
@@ -250,6 +272,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log(
                 "Back to partial (no longer goes back to saying partially correct)",
@@ -261,12 +284,14 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Click submit button");
             cy.get(mathInputButtonAnchor).click();
             cy.get(mathInputButtonAnchor)
                 .should("have.text", "32 %")
                 .should("have.attr", "aria-label", "32% Correct");
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Enter invalid answer");
             cy.get(mathInputAnchor).type(`{end}/`, { force: true });
@@ -275,6 +300,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Click submit button");
             cy.get(mathInputButtonAnchor).click();
@@ -283,6 +309,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Incorrect",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Another invalid answer shows submit button again");
             cy.get(mathInputAnchor).type(`{end}^`, { force: true });
@@ -291,6 +318,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Check Work",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Click submit button");
             cy.get(mathInputButtonAnchor).click();
@@ -299,6 +327,7 @@ describe("Answer Tag Tests", function () {
                 "aria-label",
                 "Incorrect",
             );
+            cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
         });
     });
 
