@@ -67,7 +67,7 @@ export function createCheckWorkComponent(
         const checkWorkText = SVs.showCorrectness
             ? SVs.submitLabel
             : SVs.submitLabelNoCorrectness;
-        additionalLabel = showText ? undefined : checkWorkText;
+        additionalLabel = checkWorkText;
         buttonContent = showText ? <>&nbsp; {checkWorkText}</> : null;
         buttonContent = (
             <>
@@ -94,7 +94,7 @@ export function createCheckWorkComponent(
                 document.documentElement,
             ).getPropertyValue("--mainGreen");
 
-            additionalLabel = showText ? undefined : "Correct";
+            additionalLabel = "Correct";
             buttonContent = showText ? <>&nbsp; Correct</> : null;
             buttonContent = (
                 <>
@@ -110,7 +110,7 @@ export function createCheckWorkComponent(
             buttonStyle.backgroundColor = getComputedStyle(
                 document.documentElement,
             ).getPropertyValue("--mainRed");
-            additionalLabel = showText ? undefined : "Incorrect";
+            additionalLabel = "Incorrect";
             buttonContent = showText ? <>&nbsp; Incorrect</> : null;
             buttonContent = (
                 <>
@@ -130,12 +130,12 @@ export function createCheckWorkComponent(
                 ? `${percent}% Credit`
                 : `${percent}% Correct`;
             buttonContent = showText ? partialText : `${percent} %`;
-            additionalLabel = showText ? undefined : partialText;
+            additionalLabel = partialText;
         }
     } else {
         // showCorrectness is false
         buttonStyle.backgroundColor = "rgb(74, 3, 217)";
-        additionalLabel = showText ? undefined : "Response Saved";
+        additionalLabel = "Response Saved";
         buttonContent = showText ? <>&nbsp; Response Saved</> : null;
         buttonContent = (
             <>
