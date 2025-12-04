@@ -34,8 +34,9 @@ type ComponentClass = {
     additionalSchemaChildren?: string[];
 };
 
-interface ComponentInfoObjects
-    extends ReturnType<typeof createComponentInfoObjects> {
+interface ComponentInfoObjects extends ReturnType<
+    typeof createComponentInfoObjects
+> {
     allComponentClasses: Record<string, ComponentClass>;
 }
 

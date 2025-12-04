@@ -287,9 +287,9 @@ export default class Function extends InlineComponent {
                     setValue: {
                         isInterpolatedFunction: Boolean(
                             dependencyValues.through ||
-                                dependencyValues.minima ||
-                                dependencyValues.maxima ||
-                                dependencyValues.extrema,
+                            dependencyValues.minima ||
+                            dependencyValues.maxima ||
+                            dependencyValues.extrema,
                         ),
                     },
                 };

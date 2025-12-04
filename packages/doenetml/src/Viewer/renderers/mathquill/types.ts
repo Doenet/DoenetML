@@ -23,8 +23,10 @@
  * SOFTWARE.
  */
 
-export interface EditableMathFieldProps
-    extends Omit<React.HTMLAttributes<HTMLSpanElement>, "onChange"> {
+export interface EditableMathFieldProps extends Omit<
+    React.HTMLAttributes<HTMLSpanElement>,
+    "onChange"
+> {
     onChange?: (mathField: MathField) => void;
     latex?: string;
     config?: MathFieldConfig;

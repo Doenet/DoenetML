@@ -55,9 +55,7 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
     // Load the WASM bundle in a way that works both in the browser and in node
     // TODO: is there a way to avoid this from fully bundling a copy of core?
     const wasmBuffer = (
-        await import(
-            "@doenet/doenetml-worker/lib_doenetml_worker_bg.wasm?arraybuffer&base64"
-        )
+        await import("@doenet/doenetml-worker/lib_doenetml_worker_bg.wasm?arraybuffer&base64")
     ).default;
     await init(wasmBuffer);
 
