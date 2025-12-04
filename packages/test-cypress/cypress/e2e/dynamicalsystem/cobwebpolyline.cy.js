@@ -345,6 +345,13 @@ describe("CobwebPolyline Tag Tests", function () {
             "40% Correct",
         );
 
+        cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
+            "contain.text",
+            toMathJaxString(`x0=1x1=${Math.round(x1 * 10000) / 10000}x2=0\n`, {
+                noInvisibleTimes: true,
+            }),
+        );
+
         let x2 = f(x1);
         cy.window().then(async (win) => {
             win.callAction1({
