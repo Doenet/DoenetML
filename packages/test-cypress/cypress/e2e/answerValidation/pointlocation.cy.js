@@ -54,25 +54,11 @@ describe("Point location validation tests", function () {
             });
         });
 
-        cy.get(cesc("#answer1_submit"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("check work");
-            });
-        cy.get(cesc("#answer1_correct")).should("not.exist");
-        cy.get(cesc("#answer1_incorrect")).should("not.exist");
-        cy.get(cesc("#answer1_partial")).should("not.exist");
+        cy.get(cesc("#answer1_button")).should("contain.text", "Check Work");
 
         cy.log("Submit answer");
-        cy.get(cesc("#answer1_submit")).click();
-        cy.get(cesc("#answer1_submit")).should("not.exist");
-        cy.get(cesc("#answer1_correct"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("correct");
-            });
-        cy.get(cesc("#answer1_incorrect")).should("not.exist");
-        cy.get(cesc("#answer1_partial")).should("not.exist");
+        cy.get(cesc("#answer1_button")).click();
+        cy.get(cesc("#answer1_button")).should("contain.text", "Correct");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -109,14 +95,7 @@ describe("Point location validation tests", function () {
             }),
         );
 
-        cy.get(cesc("#answer1_submit")).should("not.exist");
-        cy.get(cesc("#answer1_correct"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("correct");
-            });
-        cy.get(cesc("#answer1_incorrect")).should("not.exist");
-        cy.get(cesc("#answer1_partial")).should("not.exist");
+        cy.get(cesc("#answer1_button")).should("contain.text", "Correct");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -143,24 +122,10 @@ describe("Point location validation tests", function () {
             ).eq(1);
         });
 
-        cy.get(cesc("#answer1_submit"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("check work");
-            });
-        cy.get(cesc("#answer1_correct")).should("not.exist");
-        cy.get(cesc("#answer1_incorrect")).should("not.exist");
-        cy.get(cesc("#answer1_partial")).should("not.exist");
+        cy.get(cesc("#answer1_button")).should("contain.text", "Check Work");
 
-        cy.get(cesc("#answer1_submit")).click();
-        cy.get(cesc("#answer1_submit")).should("not.exist");
-        cy.get(cesc("#answer1_correct")).should("not.exist");
-        cy.get(cesc("#answer1_incorrect"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("incorrect");
-            });
-        cy.get(cesc("#answer1_partial")).should("not.exist");
+        cy.get(cesc("#answer1_button")).click();
+        cy.get(cesc("#answer1_button")).should("contain.text", "Incorrect");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -197,14 +162,7 @@ describe("Point location validation tests", function () {
             }),
         );
 
-        cy.get(cesc("#answer1_submit")).should("not.exist");
-        cy.get(cesc("#answer1_correct")).should("not.exist");
-        cy.get(cesc("#answer1_incorrect"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("incorrect");
-            });
-        cy.get(cesc("#answer1_partial")).should("not.exist");
+        cy.get(cesc("#answer1_button")).should("contain.text", "Incorrect");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -236,24 +194,10 @@ describe("Point location validation tests", function () {
             ).eq(0);
         });
 
-        cy.get(cesc("#answer1_submit"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("check work");
-            });
-        cy.get(cesc("#answer1_correct")).should("not.exist");
-        cy.get(cesc("#answer1_incorrect")).should("not.exist");
-        cy.get(cesc("#answer1_partial")).should("not.exist");
+        cy.get(cesc("#answer1_button")).should("contain.text", "Check Work");
 
-        cy.get(cesc("#answer1_submit")).click();
-        cy.get(cesc("#answer1_submit")).should("not.exist");
-        cy.get(cesc("#answer1_correct")).should("not.exist");
-        cy.get(cesc("#answer1_incorrect"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("incorrect");
-            });
-        cy.get(cesc("#answer1_partial")).should("not.exist");
+        cy.get(cesc("#answer1_button")).click();
+        cy.get(cesc("#answer1_button")).should("contain.text", "Incorrect");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -290,14 +234,7 @@ describe("Point location validation tests", function () {
             }),
         );
 
-        cy.get(cesc("#answer1_submit")).should("not.exist");
-        cy.get(cesc("#answer1_correct")).should("not.exist");
-        cy.get(cesc("#answer1_incorrect"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("incorrect");
-            });
-        cy.get(cesc("#answer1_partial")).should("not.exist");
+        cy.get(cesc("#answer1_button")).should("contain.text", "Incorrect");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();

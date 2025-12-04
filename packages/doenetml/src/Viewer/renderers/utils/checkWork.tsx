@@ -55,146 +55,115 @@ export function createCheckWorkComponent(
         return null;
     }
 
-    const disabled = SVs.disabled;
+    const buttonStyle: React.CSSProperties = {};
 
-    const checkWorkStyle: React.CSSProperties = {
-        cursor: "pointer",
-    };
+    const tabIndex = SVs.disabled ? -1 : 0;
 
-    const statusStyle: React.CSSProperties = {
-        padding: "1px 4px 1px 4px",
-        marginRight: "4px",
-        borderRadius: "5px",
-        height: "22px",
-        display: "inline-block",
-        verticalAlign: "middle",
-    };
-
-    let checkWorkTabIndex = 0;
-    if (disabled) {
-        checkWorkStyle.backgroundColor = getComputedStyle(
-            document.documentElement,
-        ).getPropertyValue("--mainGray");
-        checkWorkStyle.color = "black";
-        checkWorkStyle.cursor = "not-allowed";
-        checkWorkTabIndex = -1;
-    }
-
-    let checkWorkComponent;
+    let buttonContent: React.ReactElement | string | null = null;
+    let additionalLabel: string | undefined = undefined;
 
     if (validationState === "unvalidated") {
+        buttonStyle.cursor = "pointer";
         const checkWorkText = SVs.showCorrectness
             ? SVs.submitLabel
             : SVs.submitLabelNoCorrectness;
-        const checkWorkLabel = showText ? <>&nbsp; {checkWorkText}</> : "";
-        const additionalLabel = showText ? undefined : checkWorkText;
-
-        checkWorkComponent = (
-            <button
-                className="check-work"
-                id={id + "_submit"}
-                tabIndex={checkWorkTabIndex}
-                disabled={disabled}
-                style={checkWorkStyle}
-                onClick={submitAnswer}
-                aria-label={additionalLabel}
-            >
+        additionalLabel = showText ? undefined : checkWorkText;
+        buttonContent = showText ? <>&nbsp; {checkWorkText}</> : null;
+        buttonContent = (
+            <>
                 <FontAwesomeIcon
                     icon={faLevelDownAlt as IconProp}
                     transform={{ rotate: 90 }}
                     aria-hidden={true}
                     title={additionalLabel}
                 />
-                {checkWorkLabel}
-            </button>
+                {buttonContent}
+            </>
         );
+
+        if (SVs.disabled) {
+            buttonStyle.backgroundColor = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainGray");
+            buttonStyle.color = "black";
+            buttonStyle.cursor = "not-allowed";
+        }
     } else if (SVs.showCorrectness) {
         if (validationState === "correct") {
-            statusStyle.backgroundColor = getComputedStyle(
+            buttonStyle.backgroundColor = getComputedStyle(
                 document.documentElement,
             ).getPropertyValue("--mainGreen");
 
-            const correctLabel = showText ? <>&nbsp; Correct</> : "";
-            const additionalLabel = showText ? undefined : "Correct";
-
-            checkWorkComponent = (
-                <span
-                    id={id + "_correct"}
-                    style={statusStyle}
-                    aria-label={additionalLabel}
-                >
+            additionalLabel = showText ? undefined : "Correct";
+            buttonContent = showText ? <>&nbsp; Correct</> : null;
+            buttonContent = (
+                <>
                     <FontAwesomeIcon
                         icon={faCheck as IconProp}
                         aria-hidden={true}
                         title={additionalLabel}
                     />
-                    {correctLabel}
-                </span>
+                    {buttonContent}
+                </>
             );
         } else if (validationState === "incorrect") {
-            statusStyle.backgroundColor = getComputedStyle(
+            buttonStyle.backgroundColor = getComputedStyle(
                 document.documentElement,
             ).getPropertyValue("--mainRed");
-            const incorrectLabel = showText ? <>&nbsp; Incorrect</> : "";
-            const additionalLabel = showText ? undefined : "Incorrect";
-            checkWorkComponent = (
-                <span
-                    id={id + "_incorrect"}
-                    style={statusStyle}
-                    aria-label={additionalLabel}
-                >
+            additionalLabel = showText ? undefined : "Incorrect";
+            buttonContent = showText ? <>&nbsp; Incorrect</> : null;
+            buttonContent = (
+                <>
                     <FontAwesomeIcon
                         icon={faTimes as IconProp}
                         aria-hidden={true}
                         title={additionalLabel}
                     />
-                    {incorrectLabel}
-                </span>
+                    {buttonContent}
+                </>
             );
         } else {
             // partial correct
-            statusStyle.backgroundColor = "#efab34";
+            buttonStyle.backgroundColor = "#efab34";
             const percent = Math.round(SVs.creditAchieved * 100);
             const partialText = SVs.creditIsReducedByAttempt
                 ? `${percent}% Credit`
                 : `${percent}% Correct`;
-            const partialLabel = showText ? partialText : `${percent} %`;
-            const additionalLabel = showText ? undefined : partialText;
-
-            checkWorkComponent = (
-                <span
-                    id={id + "_partial"}
-                    style={statusStyle}
-                    aria-label={additionalLabel}
-                >
-                    {partialLabel}
-                </span>
-            );
+            buttonContent = showText ? partialText : `${percent} %`;
+            additionalLabel = showText ? undefined : partialText;
         }
     } else {
         // showCorrectness is false
-        statusStyle.backgroundColor = "rgb(74, 3, 217)";
-        const responseSavedText = showText ? <>&nbsp; Response Saved</> : "";
-        const additionalLabel = showText ? undefined : "Response Saved";
-
-        if (!showText) {
-            statusStyle.padding = "1px 8px 1px 4px"; // To center the faCloud icon
-        }
-        checkWorkComponent = (
-            <span
-                id={id + "_saved"}
-                style={statusStyle}
-                aria-label={additionalLabel}
-            >
+        buttonStyle.backgroundColor = "rgb(74, 3, 217)";
+        additionalLabel = showText ? undefined : "Response Saved";
+        buttonContent = showText ? <>&nbsp; Response Saved</> : null;
+        buttonContent = (
+            <>
                 <FontAwesomeIcon
                     icon={faCloud as IconProp}
                     aria-hidden={true}
                     title={additionalLabel}
                 />
-                {responseSavedText}
-            </span>
+                {buttonContent}
+            </>
         );
     }
+
+    let button = (
+        <button
+            className="check-work"
+            id={id + "_button"}
+            tabIndex={tabIndex}
+            disabled={SVs.disabled}
+            style={buttonStyle}
+            onClick={submitAnswer}
+            aria-label={additionalLabel}
+            role="status"
+            aria-live="polite"
+        >
+            {buttonContent}
+        </button>
+    );
 
     let messages = [];
 
@@ -222,13 +191,13 @@ export function createCheckWorkComponent(
 
     if (messages.length > 0) {
         const message = messages.join("; ");
-        checkWorkComponent = (
+        button = (
             <>
-                {checkWorkComponent}
+                {button}
                 <span>({message})</span>
             </>
         );
     }
 
-    return checkWorkComponent;
+    return button;
 }
