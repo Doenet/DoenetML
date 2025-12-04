@@ -350,7 +350,6 @@ export default React.memo(function CobwebPolyline(
                     pt.off("keyfocusout");
                     pt.off("keydown");
                     pt.off("down");
-                    console.log("about to remove", pt);
                     board?.removeObject(pt);
                     board.update();
                 }

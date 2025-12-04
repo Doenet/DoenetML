@@ -172,14 +172,16 @@ describe("CobwebPolyline Tag Tests", function () {
 
         let f = (x) => 2 * x - x ** 2 / 3;
 
-        cy.get(cesc("#gradedApplet.cc.initialCorrect_submit")).click();
-        cy.get(cesc("#gradedApplet.cc.initialCorrect_incorrect")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).click();
+        cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
+            "contain.text",
+            "Incorrect",
         );
 
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_incorrect")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Incorrect",
         );
 
         cy.get(cesc("#gradedApplet.startFeedback")).should("be.visible");
@@ -198,15 +200,14 @@ describe("CobwebPolyline Tag Tests", function () {
             });
         });
 
-        cy.get(cesc("#gradedApplet.cc.initialCorrect_submit")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Incorrect",
         );
-        cy.get(cesc("#gradedApplet.correctCobwebbing_incorrect")).should(
-            "be.visible",
-        );
-        cy.get(cesc("#gradedApplet.cc.initialCorrect_submit")).click();
-        cy.get(cesc("#gradedApplet.cc.initialCorrect_correct")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).click();
+        cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
+            "contain.text",
+            "Correct",
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue"))
@@ -220,20 +221,25 @@ describe("CobwebPolyline Tag Tests", function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
         );
-        cy.get(cesc("#gradedApplet.cc.initialCorrect_correct")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
+            "contain.text",
+            "Correct",
         );
+
         cy.get(cesc("#gradedApplet.startFeedback")).should("be.visible");
 
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.cc.initialCorrect_correct")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
+            "contain.text",
+            "Correct",
         );
-        cy.get(cesc("#gradedApplet.correctCobwebbing_incorrect")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Incorrect",
         );
         cy.get(cesc("#gradedApplet.incorrectFeedback")).should("be.visible");
 
@@ -247,15 +253,15 @@ describe("CobwebPolyline Tag Tests", function () {
                 },
             });
         });
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.cc.initialCorrect_correct")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
+            "contain.text",
+            "Correct",
         );
-        cy.get(cesc("#gradedApplet.correctCobwebbing_partial"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("20% correct");
-            });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "20% Correct",
+        );
         cy.get(cesc("#gradedApplet.insufficientFeedback")).should("be.visible");
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
@@ -266,12 +272,14 @@ describe("CobwebPolyline Tag Tests", function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.deleteLine_button")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.cc.initialCorrect_correct")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
+            "contain.text",
+            "Correct",
         );
-        cy.get(cesc("#gradedApplet.correctCobwebbing_incorrect")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Incorrect",
         );
         cy.get(cesc("#gradedApplet.startFeedback")).should("be.visible");
 
@@ -281,15 +289,15 @@ describe("CobwebPolyline Tag Tests", function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.cc.initialCorrect_correct")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
+            "contain.text",
+            "Correct",
         );
-        cy.get(cesc("#gradedApplet.correctCobwebbing_partial"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("20% correct");
-            });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "20% Correct",
+        );
         cy.get(cesc("#gradedApplet.insufficientFeedback")).should("be.visible");
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
@@ -300,12 +308,11 @@ describe("CobwebPolyline Tag Tests", function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_partial"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("20% correct");
-            });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "20% Correct",
+        );
         cy.get(cesc("#gradedApplet.incorrectFeedback")).should("be.visible");
 
         cy.window().then(async (win) => {
@@ -317,12 +324,11 @@ describe("CobwebPolyline Tag Tests", function () {
                 },
             });
         });
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_partial"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("40% correct");
-            });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "40% Correct",
+        );
         cy.get(cesc("#gradedApplet.insufficientFeedback")).should("be.visible");
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
@@ -333,9 +339,10 @@ describe("CobwebPolyline Tag Tests", function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_partial")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "40% Correct",
         );
 
         let x2 = f(x1);
@@ -348,8 +355,9 @@ describe("CobwebPolyline Tag Tests", function () {
                 },
             });
         });
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
@@ -362,9 +370,10 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
 
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_partial")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "60% Correct",
         );
 
         cy.window().then(async (win) => {
@@ -377,8 +386,9 @@ describe("CobwebPolyline Tag Tests", function () {
             });
         });
 
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
@@ -390,9 +400,10 @@ describe("CobwebPolyline Tag Tests", function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_partial")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "80% Correct",
         );
 
         let x3 = f(x2);
@@ -406,9 +417,10 @@ describe("CobwebPolyline Tag Tests", function () {
             });
         });
 
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_correct")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Correct",
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
@@ -420,16 +432,11 @@ describe("CobwebPolyline Tag Tests", function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_partial")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "83% Correct",
         );
-        cy.get(cesc("#gradedApplet.correctCobwebbing_partial"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("83% correct");
-            });
-        cy.get(cesc("#gradedApplet.incorrectFeedback")).should("be.visible");
 
         cy.window().then(async (win) => {
             win.callAction1({
@@ -440,9 +447,10 @@ describe("CobwebPolyline Tag Tests", function () {
                 },
             });
         });
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_correct")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Correct",
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(
@@ -454,16 +462,11 @@ describe("CobwebPolyline Tag Tests", function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_partial")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "86% Correct",
         );
-        cy.get(cesc("#gradedApplet.correctCobwebbing_partial"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("86% correct");
-            });
-        cy.get(cesc("#gradedApplet.incorrectFeedback")).should("be.visible");
 
         let x4 = f(x3);
         cy.window().then(async (win) => {
@@ -475,9 +478,10 @@ describe("CobwebPolyline Tag Tests", function () {
                 },
             });
         });
-        cy.get(cesc("#gradedApplet.correctCobwebbing_submit")).click();
-        cy.get(cesc("#gradedApplet.correctCobwebbing_correct")).should(
-            "be.visible",
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Correct",
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.calculatedValue")).should(

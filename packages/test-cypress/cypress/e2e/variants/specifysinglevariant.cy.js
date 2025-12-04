@@ -107,7 +107,11 @@ describe("Specifying single variant document tests", function () {
                 }
 
                 cy.get(cesc("#textInput1_input")).type(`${secondValue}{enter}`);
-                cy.get(cesc("#textInput1_correct")).should("be.visible");
+                cy.get(cesc("#textInput1_button")).should(
+                    "have.attr",
+                    "aria-label",
+                    "Correct",
+                );
 
                 cy.wait(2000); // wait for 2 second debounce
                 cy.reload();
@@ -136,7 +140,11 @@ describe("Specifying single variant document tests", function () {
                     }),
                 );
 
-                cy.get(cesc("#textInput1_correct")).should("be.visible");
+                cy.get(cesc("#textInput1_button")).should(
+                    "have.attr",
+                    "aria-label",
+                    "Correct",
+                );
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     let p = stateVariables[await win.resolvePath1("p[1][1]")];
@@ -151,11 +159,19 @@ describe("Specifying single variant document tests", function () {
                     expect(secondValue2).eq(secondValue);
 
                     cy.get(cesc("#textInput1_input")).type(`{end}X`);
-                    cy.get(cesc("#textInput1_submit")).click();
-                    cy.get(cesc("#textInput1_incorrect")).should("be.visible");
+                    cy.get(cesc("#textInput1_button")).click();
+                    cy.get(cesc("#textInput1_button")).should(
+                        "have.attr",
+                        "aria-label",
+                        "Incorrect",
+                    );
                     cy.get(cesc("#textInput1_input")).type(`{end}{backspace}`);
-                    cy.get(cesc("#textInput1_submit")).click();
-                    cy.get(cesc("#textInput1_correct")).should("be.visible");
+                    cy.get(cesc("#textInput1_button")).click();
+                    cy.get(cesc("#textInput1_button")).should(
+                        "have.attr",
+                        "aria-label",
+                        "Correct",
+                    );
                 });
             });
         }
@@ -413,8 +429,16 @@ describe("Specifying single variant document tests", function () {
                 cy.get(cesc("#mathInput2") + " textarea").type(`${n}{enter}`, {
                     force: true,
                 });
-                cy.get(cesc("#mathInput1_correct")).should("be.visible");
-                cy.get(cesc("#mathInput2_correct")).should("be.visible");
+                cy.get(cesc("#mathInput1_button")).should(
+                    "have.attr",
+                    "aria-label",
+                    "Correct",
+                );
+                cy.get(cesc("#mathInput2_button")).should(
+                    "have.attr",
+                    "aria-label",
+                    "Correct",
+                );
 
                 cy.wait(2000); // wait for 2 second debounce
                 cy.reload();
@@ -461,8 +485,16 @@ describe("Specifying single variant document tests", function () {
                     ).eq(n);
                 });
 
-                cy.get(cesc("#mathInput1_correct")).should("be.visible");
-                cy.get(cesc("#mathInput2_correct")).should("be.visible");
+                cy.get(cesc("#mathInput1_button")).should(
+                    "have.attr",
+                    "aria-label",
+                    "Correct",
+                );
+                cy.get(cesc("#mathInput2_button")).should(
+                    "have.attr",
+                    "aria-label",
+                    "Correct",
+                );
 
                 cy.get(cesc("#mathInput1") + " textarea").type(`{end}X`, {
                     force: true,
@@ -470,10 +502,18 @@ describe("Specifying single variant document tests", function () {
                 cy.get(cesc("#mathInput2") + " textarea").type(`{end}X`, {
                     force: true,
                 });
-                cy.get(cesc("#mathInput1_submit")).click();
-                cy.get(cesc("#mathInput2_submit")).click();
-                cy.get(cesc("#mathInput1_incorrect")).should("be.visible");
-                cy.get(cesc("#mathInput2_incorrect")).should("be.visible");
+                cy.get(cesc("#mathInput1_button")).click();
+                cy.get(cesc("#mathInput2_button")).click();
+                cy.get(cesc("#mathInput1_button")).should(
+                    "have.attr",
+                    "aria-label",
+                    "Incorrect",
+                );
+                cy.get(cesc("#mathInput2_button")).should(
+                    "have.attr",
+                    "aria-label",
+                    "Incorrect",
+                );
 
                 cy.get(cesc("#mathInput1") + " textarea").type(
                     `{end}{backspace}`,
@@ -487,10 +527,18 @@ describe("Specifying single variant document tests", function () {
                         force: true,
                     },
                 );
-                cy.get(cesc("#mathInput1_submit")).click();
-                cy.get(cesc("#mathInput2_submit")).click();
-                cy.get(cesc("#mathInput1_correct")).should("be.visible");
-                cy.get(cesc("#mathInput2_correct")).should("be.visible");
+                cy.get(cesc("#mathInput1_button")).click();
+                cy.get(cesc("#mathInput2_button")).click();
+                cy.get(cesc("#mathInput1_button")).should(
+                    "have.attr",
+                    "aria-label",
+                    "Correct",
+                );
+                cy.get(cesc("#mathInput2_button")).should(
+                    "have.attr",
+                    "aria-label",
+                    "Correct",
+                );
             });
         }
     });
@@ -562,24 +610,16 @@ describe("Specifying single variant document tests", function () {
                     .inputChildren[0].componentIdx;
 
             let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
-            let answer1Correct = cesc("#" + mathInput1Name + "_correct");
-            let answer1Incorrect = cesc("#" + mathInput1Name + "_incorrect");
-            let answer1Submit = cesc("#" + mathInput1Name + "_submit");
+            let answer1Button = cesc("#" + mathInput1Name + "_button");
 
             let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
-            let answer2Correct = cesc("#" + mathInput2Name + "_correct");
-            let answer2Incorrect = cesc("#" + mathInput2Name + "_incorrect");
-            let answer2Submit = cesc("#" + mathInput2Name + "_submit");
+            let answer2Button = cesc("#" + mathInput2Name + "_button");
 
             let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
-            let answer3Correct = cesc("#" + mathInput3Name + "_correct");
-            let answer3Incorrect = cesc("#" + mathInput3Name + "_incorrect");
-            let answer3Submit = cesc("#" + mathInput3Name + "_submit");
+            let answer3Button = cesc("#" + mathInput3Name + "_button");
 
             let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
-            let answer4Correct = cesc("#" + mathInput4Name + "_correct");
-            let answer4Incorrect = cesc("#" + mathInput4Name + "_incorrect");
-            let answer4Submit = cesc("#" + mathInput4Name + "_submit");
+            let answer4Button = cesc("#" + mathInput4Name + "_button");
 
             cy.get(`label[for=${cesc("ci_choice1_input")}]`).should(
                 "have.text",
@@ -657,16 +697,24 @@ describe("Specifying single variant document tests", function () {
             );
 
             cy.get(mathInput2Anchor).type(`${n}{enter}`, { force: true });
-            cy.get(answer1Correct).should("be.visible");
-            cy.get(answer2Correct).should("be.visible");
-            cy.get(answer3Submit).should("be.visible");
-            cy.get(answer4Submit).should("be.visible");
+            cy.get(answer1Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer2Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer3Button).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
+            cy.get(answer4Button).should(
+                "have.attr",
+                "aria-label",
+                "Check Work",
+            );
 
             cy.get(mathInput3Anchor).type(`${n}{enter}`, { force: true });
-            cy.get(answer3Correct).should("be.visible");
+            cy.get(answer3Button).should("have.attr", "aria-label", "Correct");
 
             cy.get(mathInput4Anchor).type(`${m}{enter}`, { force: true });
-            cy.get(answer4Correct).should("be.visible");
+            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -825,10 +873,10 @@ describe("Specifying single variant document tests", function () {
                 `Selected value: ${choices[choiceOrder[0] - 1]}`,
             );
 
-            cy.get(answer1Correct).should("be.visible");
-            cy.get(answer2Correct).should("be.visible");
-            cy.get(answer3Correct).should("be.visible");
-            cy.get(answer4Correct).should("be.visible");
+            cy.get(answer1Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer2Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer3Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
 
             cy.get(mathInput1Anchor).type(
                 `{end}{backspace}{backspace}${n + 1}`,
@@ -836,16 +884,24 @@ describe("Specifying single variant document tests", function () {
                     force: true,
                 },
             );
-            cy.get(answer2Submit).click();
-            cy.get(answer1Incorrect).should("be.visible");
-            cy.get(answer2Incorrect).should("be.visible");
+            cy.get(answer2Button).click();
+            cy.get(answer1Button).should(
+                "have.attr",
+                "aria-label",
+                "Incorrect",
+            );
+            cy.get(answer2Button).should(
+                "have.attr",
+                "aria-label",
+                "Incorrect",
+            );
 
             cy.get(mathInput2Anchor).type(`{end}{backspace}{backspace}${n}`, {
                 force: true,
             });
-            cy.get(answer1Submit).click();
-            cy.get(answer1Correct).should("be.visible");
-            cy.get(answer2Correct).should("be.visible");
+            cy.get(answer1Button).click();
+            cy.get(answer1Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer2Button).should("have.attr", "aria-label", "Correct");
 
             cy.get(mathInput3Anchor).type(
                 `{end}{backspace}{backspace}${n + 1}`,
@@ -853,13 +909,17 @@ describe("Specifying single variant document tests", function () {
                     force: true,
                 },
             );
-            cy.get(answer3Submit).click();
-            cy.get(answer3Incorrect).should("be.visible");
+            cy.get(answer3Button).click();
+            cy.get(answer3Button).should(
+                "have.attr",
+                "aria-label",
+                "Incorrect",
+            );
             cy.get(mathInput3Anchor).type(`{end}{backspace}{backspace}${n}`, {
                 force: true,
             });
-            cy.get(answer3Submit).click();
-            cy.get(answer3Correct).should("be.visible");
+            cy.get(answer3Button).click();
+            cy.get(answer3Button).should("have.attr", "aria-label", "Correct");
 
             cy.get(mathInput4Anchor).type(
                 `{end}{backspace}{backspace}${m + 1}`,
@@ -867,13 +927,17 @@ describe("Specifying single variant document tests", function () {
                     force: true,
                 },
             );
-            cy.get(answer4Submit).click();
-            cy.get(answer4Incorrect).should("be.visible");
+            cy.get(answer4Button).click();
+            cy.get(answer4Button).should(
+                "have.attr",
+                "aria-label",
+                "Incorrect",
+            );
             cy.get(mathInput4Anchor).type(`{end}{backspace}{backspace}${m}`, {
                 force: true,
             });
-            cy.get(answer4Submit).click();
-            cy.get(answer4Correct).should("be.visible");
+            cy.get(answer4Button).click();
+            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
         });
     });
 });

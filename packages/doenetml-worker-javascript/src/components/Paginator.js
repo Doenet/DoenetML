@@ -314,7 +314,6 @@ export class PaginatorControls extends BlockComponent {
                 }
             },
             definition({ dependencyValues }) {
-                console.log("current page", dependencyValues);
                 if ("paginatorPage" in dependencyValues) {
                     return {
                         setValue: {
@@ -344,7 +343,6 @@ export class PaginatorControls extends BlockComponent {
                 }
             },
             definition({ dependencyValues }) {
-                console.log("num pages", dependencyValues);
                 if ("paginatorNPages" in dependencyValues) {
                     return {
                         setValue: {
