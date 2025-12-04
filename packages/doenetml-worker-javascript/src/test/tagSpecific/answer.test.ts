@@ -5135,7 +5135,7 @@ Enter any letter:
                 Boolean(
                     //@ts-ignore
                     Object.getOwnPropertyDescriptor(stateVarObj, "value").get ||
-                        stateVarObj.immutable,
+                    stateVarObj.immutable,
                 ),
             ).eq(have_getter);
         }

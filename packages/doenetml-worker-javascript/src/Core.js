@@ -3515,14 +3515,12 @@ export default class Core {
                 let replacementsCanBeInList = replacements.map((repl) =>
                     Boolean(
                         typeof repl !== "object" ||
-                            (this.componentInfoObjects.isInheritedComponentType(
-                                {
-                                    inheritedComponentType: repl.componentType,
-                                    baseComponentType: "_inline",
-                                },
-                            ) &&
-                                repl.constructor.canBeInList !== false) ||
-                            repl.constructor.canBeInList,
+                        (this.componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: repl.componentType,
+                            baseComponentType: "_inline",
+                        }) &&
+                            repl.constructor.canBeInList !== false) ||
+                        repl.constructor.canBeInList,
                     ),
                 );
 

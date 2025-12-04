@@ -498,15 +498,15 @@ export default class BaseComponent {
                     setValue: {
                         hidden: Boolean(
                             dependencyValues.parentHidden ||
-                                dependencyValues.sourceCompositeHidden ||
-                                dependencyValues.adapterSourceHidden ||
-                                dependencyValues.hide ||
-                                (Array.isArray(
-                                    dependencyValues.parentChildrenToHide,
-                                ) &&
-                                    dependencyValues.parentChildrenToHide.includes(
-                                        componentIdx,
-                                    )),
+                            dependencyValues.sourceCompositeHidden ||
+                            dependencyValues.adapterSourceHidden ||
+                            dependencyValues.hide ||
+                            (Array.isArray(
+                                dependencyValues.parentChildrenToHide,
+                            ) &&
+                                dependencyValues.parentChildrenToHide.includes(
+                                    componentIdx,
+                                )),
                         ),
                     },
                 };
