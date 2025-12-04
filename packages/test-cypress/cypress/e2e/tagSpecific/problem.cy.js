@@ -1018,26 +1018,10 @@ describe("Problem Tag Tests", function () {
                     .inputChildren[0].componentIdx;
             let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
 
-            cy.get(cesc("#prob1_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Check Work");
-                });
-            cy.get(cesc("#prob2_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Hit it!");
-                });
-            cy.get(cesc("#prob3_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Check Work");
-                });
-            cy.get(cesc("#prob4_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Hit it!");
-                });
+            cy.get(cesc("#prob1_button")).should("contain.text", "Check Work");
+            cy.get(cesc("#prob2_button")).should("contain.text", "Hit it!");
+            cy.get(cesc("#prob3_button")).should("contain.text", "Check Work");
+            cy.get(cesc("#prob4_button")).should("contain.text", "Hit it!");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
             cy.get(mathInput2Anchor).type("x{enter}", { force: true });
@@ -1070,26 +1054,16 @@ describe("Problem Tag Tests", function () {
             cy.get(cesc("#prob3_button")).should("contain.text", "Guess");
             cy.get(cesc("#prob4_button")).should("contain.text", "Guess");
 
-            cy.get(cesc("#prob1_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Submit Response");
-                });
-            cy.get(cesc("#prob2_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Submit Response");
-                });
-            cy.get(cesc("#prob3_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Guess");
-                });
-            cy.get(cesc("#prob4_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Guess");
-                });
+            cy.get(cesc("#prob1_button")).should(
+                "contain.text",
+                "Submit Response",
+            );
+            cy.get(cesc("#prob2_button")).should(
+                "contain.text",
+                "Submit Response",
+            );
+            cy.get(cesc("#prob3_button")).should("contain.text", "Guess");
+            cy.get(cesc("#prob4_button")).should("contain.text", "Guess");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
             cy.get(mathInput2Anchor).type("x{enter}", { force: true });
@@ -1146,11 +1120,7 @@ describe("Problem Tag Tests", function () {
                     .inputChildren[0].componentIdx;
             let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
 
-            cy.get(cesc("#doc_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Hit it!");
-                });
+            cy.get(cesc("#doc_button")).should("contain.text", "Hit it!");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
 
@@ -1165,11 +1135,7 @@ describe("Problem Tag Tests", function () {
 
             cy.get(cesc("#doc_button")).should("contain.text", "Guess");
 
-            cy.get(cesc("#doc_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Guess");
-                });
+            cy.get(cesc("#doc_button")).should("contain.text", "Guess");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
 

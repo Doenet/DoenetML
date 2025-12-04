@@ -749,11 +749,6 @@ describe("Answer Tag Tests", function () {
             "contain.text",
             "y",
         );
-        cy.get(cesc("#answer1_button"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim().toLowerCase()).equal("check work");
-            });
         cy.get(cesc("#answer1_button")).should("contain.text", "Check Work");
 
         cy.log("Submit answer");
@@ -2484,26 +2479,10 @@ d
                     .inputChildren[0].componentIdx;
             let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
 
-            cy.get(cesc("#ans1_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Check Work");
-                });
-            cy.get(cesc("#ans2_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Hit it!");
-                });
-            cy.get(cesc("#ans3_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Check Work");
-                });
-            cy.get(cesc("#ans4_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Hit it!");
-                });
+            cy.get(cesc("#ans1_button")).should("contain.text", "Check Work");
+            cy.get(cesc("#ans2_button")).should("contain.text", "Hit it!");
+            cy.get(cesc("#ans3_button")).should("contain.text", "Check Work");
+            cy.get(cesc("#ans4_button")).should("contain.text", "Hit it!");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
             cy.get(mathInput2Anchor).type("x{enter}", { force: true });
@@ -2536,26 +2515,16 @@ d
             cy.get(cesc("#ans3_button")).should("contain.text", "Guess");
             cy.get(cesc("#ans4_button")).should("contain.text", "Guess");
 
-            cy.get(cesc("#ans1_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Submit Response");
-                });
-            cy.get(cesc("#ans2_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Submit Response");
-                });
-            cy.get(cesc("#ans3_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Guess");
-                });
-            cy.get(cesc("#ans4_button"))
-                .invoke("text")
-                .then((text) => {
-                    expect(text.trim()).equal("Guess");
-                });
+            cy.get(cesc("#ans1_button")).should(
+                "contain.text",
+                "Submit Response",
+            );
+            cy.get(cesc("#ans2_button")).should(
+                "contain.text",
+                "Submit Response",
+            );
+            cy.get(cesc("#ans3_button")).should("contain.text", "Guess");
+            cy.get(cesc("#ans4_button")).should("contain.text", "Guess");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
             cy.get(mathInput2Anchor).type("x{enter}", { force: true });
@@ -2624,26 +2593,16 @@ d
 
         cy.get(cesc("#a")).should("have.text", "a"); // to wait until loaded
 
-        cy.get(cesc("#choiceInput1_button"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("Check Work");
-            });
-        cy.get(cesc("#choiceInput2_button"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("Hit it!");
-            });
-        cy.get(cesc("#choiceInput3_button"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("Check Work");
-            });
-        cy.get(cesc("#choiceInput4_button"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("Hit it!");
-            });
+        cy.get(cesc("#choiceInput1_button")).should(
+            "contain.text",
+            "Check Work",
+        );
+        cy.get(cesc("#choiceInput2_button")).should("contain.text", "Hit it!");
+        cy.get(cesc("#choiceInput3_button")).should(
+            "contain.text",
+            "Check Work",
+        );
+        cy.get(cesc("#choiceInput4_button")).should("contain.text", "Hit it!");
 
         cy.get(cesc("#choiceInput1")).contains(`yes`).click({ force: true });
         cy.get(cesc("#choiceInput2")).contains(`yes`).click({ force: true });
@@ -2676,26 +2635,16 @@ d
         cy.get(cesc("#choiceInput3_button")).should("contain.text", "Guess");
         cy.get(cesc("#choiceInput4_button")).should("contain.text", "Guess");
 
-        cy.get(cesc("#choiceInput1_button"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("Submit Response");
-            });
-        cy.get(cesc("#choiceInput2_button"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("Submit Response");
-            });
-        cy.get(cesc("#choiceInput3_button"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("Guess");
-            });
-        cy.get(cesc("#choiceInput4_button"))
-            .invoke("text")
-            .then((text) => {
-                expect(text.trim()).equal("Guess");
-            });
+        cy.get(cesc("#choiceInput1_button")).should(
+            "contain.text",
+            "Submit Response",
+        );
+        cy.get(cesc("#choiceInput2_button")).should(
+            "contain.text",
+            "Submit Response",
+        );
+        cy.get(cesc("#choiceInput3_button")).should("contain.text", "Guess");
+        cy.get(cesc("#choiceInput4_button")).should("contain.text", "Guess");
 
         cy.get(cesc("#choiceInput1")).contains(`yes`).click({ force: true });
         cy.get(cesc("#choiceInput2")).contains(`yes`).click({ force: true });
