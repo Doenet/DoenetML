@@ -10,6 +10,7 @@ export default class ElectronConfiguration extends MathComponent {
 
         stateVariableDefinitions.latex = {
             public: true,
+            forRenderer: true,
             shadowingInstructions: {
                 createComponentOfType: "latex",
             },
