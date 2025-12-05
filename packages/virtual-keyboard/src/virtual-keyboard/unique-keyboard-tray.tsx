@@ -2,6 +2,8 @@ import React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { OnClick } from "./keyboard";
 import { KeyboardTray } from "./keyboard-tray";
+import { MathJaxContext } from "better-react-mathjax";
+import { mathjaxConfig } from "@doenet/utils";
 
 type VirtualKeyboardState = {
     count: number;
@@ -37,11 +39,15 @@ export function UniqueKeyboardTray({ onClick }: { onClick: OnClick }) {
             const root = createRoot(keyboardDomNode);
             virtualKeyboardState.keyboardReactRoot = root;
             root.render(
-                <KeyboardTray
-                    onClick={(e) => {
-                        virtualKeyboardState.callbacks.forEach((cb) => cb(e));
-                    }}
-                />,
+                <MathJaxContext config={mathjaxConfig} version={4}>
+                    <KeyboardTray
+                        onClick={(e) => {
+                            virtualKeyboardState.callbacks.forEach((cb) =>
+                                cb(e),
+                            );
+                        }}
+                    />
+                </MathJaxContext>,
             );
         }
         // Add ourselves to the keyboard count and the list of callbacks.
