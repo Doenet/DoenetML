@@ -108,6 +108,8 @@ function Key({
 }) {
     let content: React.ReactNode = keyInfo.displayName;
     if (keyInfo.isMath) {
+        // Note: set `pointerEvents` to "none" so that clicks press the key
+        // rather than select the MathJax.
         content = (
             <div style={{ pointerEvents: "none" }}>
                 <MathJax>{"\\(" + content + "\\)"}</MathJax>
