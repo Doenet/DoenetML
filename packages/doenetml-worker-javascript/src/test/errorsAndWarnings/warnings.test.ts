@@ -596,8 +596,6 @@ describe("Warning Tests", async () => {
 
         let errorWarnings = core.core!.errorWarnings;
 
-        console.log(errorWarnings);
-
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(3);
 
@@ -624,5 +622,35 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[2].position.start.column).eq(5);
         expect(errorWarnings.warnings[2].position.end.line).eq(5);
         expect(errorWarnings.warnings[2].position.end.column).eq(28);
+    });
+
+    it("Evaluate function with invalid domain", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+<function name="f" domain="[0,2}"> x^2 </function>
+<p>$$f(-1)</p>
+    `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(2);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            "Insufficient dimensions for domain for function.",
+        );
+        expect(errorWarnings.warnings[0].position.start.line).eq(3);
+        expect(errorWarnings.warnings[0].position.start.column).eq(4);
+        expect(errorWarnings.warnings[0].position.end.line).eq(3);
+        expect(errorWarnings.warnings[0].position.end.column).eq(11);
+
+        expect(errorWarnings.warnings[1].message).contain(
+            "Invalid format for attribute domain of <function>",
+        );
+        expect(errorWarnings.warnings[1].position.start.line).eq(2);
+        expect(errorWarnings.warnings[1].position.start.column).eq(20);
+        expect(errorWarnings.warnings[1].position.end.line).eq(2);
+        expect(errorWarnings.warnings[1].position.end.column).eq(34);
     });
 });
