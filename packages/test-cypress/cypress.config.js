@@ -1,6 +1,8 @@
 import { defineConfig } from "cypress";
 import vitePreprocessor from "cypress-vite";
 
+import addAccessibilityTasks from "wick-a11y/accessibility-tasks";
+
 export default defineConfig({
     numTestsKeptInMemory: 5,
     defaultCommandTimeout: 30000,
@@ -34,6 +36,8 @@ export default defineConfig({
                 return launchOptions;
             });
             on("file:preprocessor", vitePreprocessor());
+
+            addAccessibilityTasks(on);
         },
 
         baseUrl: "http://localhost:4173",
