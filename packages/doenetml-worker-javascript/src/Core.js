@@ -7853,11 +7853,23 @@ export default class Core {
         }
 
         if (result.sendWarnings) {
+            let position = component.position;
+            let sourceDoc = component.sourceDoc;
+            let comp = component;
+            while (position === undefined) {
+                if (!(comp.parentIdx > 0)) {
+                    break;
+                }
+                comp = this._components[comp.parentIdx];
+                position = comp.position;
+                sourceDoc = comp.sourceDoc;
+            }
+
             for (let warning of result.sendWarnings) {
                 this.addErrorWarning({
                     type: "warning",
-                    position: component.position,
-                    sourceDoc: component.sourceDoc,
+                    position,
+                    sourceDoc,
                     ...warning,
                 });
             }

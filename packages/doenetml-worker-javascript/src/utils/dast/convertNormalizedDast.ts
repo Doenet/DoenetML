@@ -726,6 +726,12 @@ export function expandAttribute({
             unflattenedComponent.sourceDoc = attribute.sourceDoc;
         }
 
+        if (!unflattenedComponent.doenetAttributes) {
+            unflattenedComponent.doenetAttributes = {};
+        }
+        unflattenedComponent.doenetAttributes.isAttributeChildFor =
+            attribute.name;
+
         if (
             attrDef.attributesForCreatedComponent ||
             attrDef.copyComponentAttributesForCreatedComponent
