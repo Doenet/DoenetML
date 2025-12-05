@@ -3,10 +3,10 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
-// @ts-ignore
-import me from "math-expressions";
 import { MathJax } from "better-react-mathjax";
 import { JXGObject } from "./jsxgraph-distrib/types";
+import { textRendererStyle } from "@doenet/utils";
+import { DocContext } from "../DocViewer";
 
 export default React.memo(function Angle(props: UseDoenetRendererProps) {
     let { id, SVs } = useDoenetRenderer(props);
@@ -18,6 +18,8 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
     let point3JXG = useRef(null);
     let angleJXG = useRef<JXGObject | null>(null);
     let previousWithLabel = useRef<boolean | null>(null);
+
+    const { darkMode } = useContext(DocContext) || {};
 
     useEffect(() => {
         //On unmount
@@ -217,12 +219,14 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
     }
 
     let mathJaxify = "\\(" + SVs.latexForRenderer + "\\)";
-
+    let style = textRendererStyle(darkMode, SVs.selectedStyle);
     return (
         <a id={id}>
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {mathJaxify}
-            </MathJax>
+            <span style={style}>
+                <MathJax hideUntilTypeset={"first"} inline dynamic>
+                    {mathJaxify}
+                </MathJax>
+            </span>
         </a>
     );
 });
