@@ -3515,12 +3515,14 @@ export default class Core {
                 let replacementsCanBeInList = replacements.map((repl) =>
                     Boolean(
                         typeof repl !== "object" ||
-                        (this.componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: repl.componentType,
-                            baseComponentType: "_inline",
-                        }) &&
-                            repl.constructor.canBeInList !== false) ||
-                        repl.constructor.canBeInList,
+                            (this.componentInfoObjects.isInheritedComponentType(
+                                {
+                                    inheritedComponentType: repl.componentType,
+                                    baseComponentType: "_inline",
+                                },
+                            ) &&
+                                repl.constructor.canBeInList !== false) ||
+                            repl.constructor.canBeInList,
                     ),
                 );
 
@@ -7853,11 +7855,23 @@ export default class Core {
         }
 
         if (result.sendWarnings) {
+            let position = component.position;
+            let sourceDoc = component.sourceDoc;
+            let comp = component;
+            while (position === undefined) {
+                if (!(comp.parentIdx > 0)) {
+                    break;
+                }
+                comp = this._components[comp.parentIdx];
+                position = comp.position;
+                sourceDoc = comp.sourceDoc;
+            }
+
             for (let warning of result.sendWarnings) {
                 this.addErrorWarning({
                     type: "warning",
-                    position: component.position,
-                    sourceDoc: component.sourceDoc,
+                    position,
+                    sourceDoc,
                     ...warning,
                 });
             }
