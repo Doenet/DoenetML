@@ -219,11 +219,10 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
     let mathJaxify = "\\(" + SVs.latexForRenderer + "\\)";
 
     return (
-        <>
-            <a id={id} />
+        <a id={id}>
             <MathJax hideUntilTypeset={"first"} inline dynamic>
                 {mathJaxify}
             </MathJax>
-        </>
+        </a>
     );
 });

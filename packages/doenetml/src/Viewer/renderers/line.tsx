@@ -514,14 +514,13 @@ export default React.memo(function Line(props) {
     let mathJaxify = "\\(" + SVs.latex + "\\)";
     let style = textRendererStyle(darkMode, SVs.selectedStyle);
     return (
-        <>
-            <a id={id} />
+        <a id={id}>
             <span style={style}>
                 <MathJax hideUntilTypeset={"first"} inline dynamic>
                     {mathJaxify}
                 </MathJax>
             </span>
-        </>
+        </a>
     );
 });
 

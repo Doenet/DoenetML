@@ -468,13 +468,12 @@ export default React.memo(function NumberComponent(props) {
 
     let style = textRendererStyle(darkMode, SVs.selectedStyle);
     return (
-        <>
-            <a id={id} />
+        <a id={id}>
             <span style={style}>
                 <MathJax hideUntilTypeset={"first"} inline dynamic>
                     {number}
                 </MathJax>
             </span>
-        </>
+        </a>
     );
 });

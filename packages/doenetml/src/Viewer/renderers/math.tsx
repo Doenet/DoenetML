@@ -556,7 +556,7 @@ export default React.memo(function MathComponent(
 
     let latexWithDelims = beginDelim + SVs.latex + endDelim;
 
-    let anchors = [<a key={id} id={id} />];
+    let anchors = [];
     if (SVs.mrowChildRendererIds) {
         anchors.push(
             ...SVs.mrowChildRendererIds.map((rowId: string) => {
@@ -568,13 +568,13 @@ export default React.memo(function MathComponent(
     let style = textRendererStyle(darkMode, SVs.selectedStyle);
 
     return (
-        <>
+        <a id={id}>
             {anchors}
             <span style={style}>
                 <MathJax hideUntilTypeset={"first"} inline dynamic>
                     {latexWithDelims}
                 </MathJax>
             </span>
-        </>
+        </a>
     );
 });

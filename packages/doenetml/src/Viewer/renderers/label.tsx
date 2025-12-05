@@ -488,9 +488,8 @@ export default React.memo(function Label(props) {
         );
     }
     return (
-        <>
-            <a id={id} />
+        <a id={id}>
             <span style={style}>{label}</span>
-        </>
+        </a>
     );
 });
