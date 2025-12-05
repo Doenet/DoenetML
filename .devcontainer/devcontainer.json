@@ -9,6 +9,9 @@
             "version": "latest"
         }
     },
+    "containerEnv": {
+        "NODE_OPTIONS": "--max-old-space-size=6144"
+    },
     "postCreateCommand": "npm install && npm run build",
     "customizations": {
         "vscode": {
