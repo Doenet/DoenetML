@@ -31,7 +31,7 @@ export function UniqueKeyboardTray({ onClick }: { onClick: OnClick }) {
     React.useEffect(() => {
         // If the count is zero, we need to create the tray.
         if (virtualKeyboardState.count === 0) {
-            const keyboardDomNode = document.createElement("div");
+            const keyboardDomNode = document.createElement("footer");
             keyboardDomNode.id = "virtual-keyboard-dummy";
             document.body.appendChild(keyboardDomNode);
             virtualKeyboardState.keyboardDomNode = keyboardDomNode;
