@@ -123,4 +123,24 @@ describe("Render commas tests", function () {
             onlyWarnImpacts: ["moderate", "minor"],
         });
     });
+
+    it("Images", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+                    <image name="image1" source="http://mathinsight.org/media/image/image/giant_anteater.jpg" description="A giant anteater" />
+                    <image name="image2" source="http://mathinsight.org/media/image/image/giant_anteater.jpg" decorative />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image1").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
 });
