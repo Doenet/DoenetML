@@ -403,4 +403,92 @@ describe("Graph Tag Tests", function () {
             "A blank graph",
         );
     });
+
+    it("graph shrinks to fit", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <graph name="graph1" size="full" />
+        <sideBySide>
+            <graph name="graph2a" size="full" />
+            <graph name="graph2b" size="full" />
+        </sideBySide>
+        <sideBySide>
+            <graph name="graph3a" size="full" />
+            <graph name="graph3b" size="full" />
+            <graph name="graph3c" size="full" />
+            <graph name="graph3d" size="full" />
+        </sideBySide>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        const fullWidth = 850;
+
+        cy.get(cesc("#graph1"))
+            .invoke("css", "width")
+            .then((width) => parseInt(width))
+            .should("be.equal", fullWidth);
+
+        cy.get(cesc("#graph1"))
+            .invoke("css", "height")
+            .then((height) => parseInt(height))
+            .should("be.equal", fullWidth);
+
+        cy.get(cesc("#graph2a"))
+            .invoke("css", "width")
+            .then((width) => parseInt(width))
+            .should("be.equal", fullWidth / 2);
+        cy.get(cesc("#graph2b"))
+            .invoke("css", "width")
+            .then((width) => parseInt(width))
+            .should("be.equal", fullWidth / 2);
+
+        cy.get(cesc("#graph2a"))
+            .invoke("css", "height")
+            .then((height) => parseInt(height))
+            .should("be.equal", fullWidth / 2);
+        cy.get(cesc("#graph2b"))
+            .invoke("css", "height")
+            .then((height) => parseInt(height))
+            .should("be.equal", fullWidth / 2);
+
+        cy.get(cesc("#graph3a"))
+            .invoke("css", "width")
+            .then((width) => parseInt(width))
+            .should("be.equal", Math.floor(fullWidth / 4));
+        cy.get(cesc("#graph3b"))
+            .invoke("css", "width")
+            .then((width) => parseInt(width))
+            .should("be.equal", Math.floor(fullWidth / 4));
+        cy.get(cesc("#graph3c"))
+            .invoke("css", "width")
+            .then((width) => parseInt(width))
+            .should("be.equal", Math.floor(fullWidth / 4));
+        cy.get(cesc("#graph3d"))
+            .invoke("css", "width")
+            .then((width) => parseInt(width))
+            .should("be.equal", Math.floor(fullWidth / 4));
+
+        cy.get(cesc("#graph3a"))
+            .invoke("css", "height")
+            .then((height) => parseInt(height))
+            .should("be.equal", Math.floor(fullWidth / 4));
+        cy.get(cesc("#graph3b"))
+            .invoke("css", "height")
+            .then((height) => parseInt(height))
+            .should("be.equal", Math.floor(fullWidth / 4));
+        cy.get(cesc("#graph3c"))
+            .invoke("css", "height")
+            .then((height) => parseInt(height))
+            .should("be.equal", Math.floor(fullWidth / 4));
+        cy.get(cesc("#graph3d"))
+            .invoke("css", "height")
+            .then((height) => parseInt(height))
+            .should("be.equal", Math.floor(fullWidth / 4));
+    });
 });

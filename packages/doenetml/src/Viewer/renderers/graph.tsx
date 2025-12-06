@@ -237,6 +237,7 @@ export default React.memo(function Graph(props) {
                     aria-label={ariaLabel}
                     role={role}
                     aria-hidden={ariaHidden}
+                    style={{ width: "100%" }}
                 >
                     <div id={id} className="jxgbox" style={divStyle} />
                 </div>
@@ -460,6 +461,7 @@ export default React.memo(function Graph(props) {
                 aria-label={ariaLabel}
                 role={role}
                 aria-hidden={ariaHidden}
+                style={{ width: "100%" }}
             >
                 <div id={id} className="jxgbox" style={divStyle} />
                 <BoardContext.Provider value={board}>
