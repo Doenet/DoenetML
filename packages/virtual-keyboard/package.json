@@ -46,7 +46,7 @@
             ]
         },
             "dependencies": [
-                "../utils:build",
+                "../utils:build"
             ]
     },
     "dependencies": {},
