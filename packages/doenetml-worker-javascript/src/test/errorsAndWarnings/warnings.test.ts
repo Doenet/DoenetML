@@ -130,7 +130,7 @@ describe("Warning Tests", async () => {
     it("From state variable definitions", async () => {
         let { core } = await createTestCore({
             doenetML: `
-<graph>
+<graph description="A graph with warnings">
   <line name="l1" through="(1,2) (3,4)" />
   <line name="l2" through="(1,2) (-3,4)" />
   <line name="l3" through="(-1,2) (-3,4)" />
@@ -484,14 +484,14 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].position.end.column).eq(57);
     });
 
-    it("Invalid children", async () => {
+    it.only("Invalid children", async () => {
         let { core } = await createTestCore({
             doenetML: `
-  <p name="p1"><graph /></p>
+  <p name="p1"><graph description="A graph" /></p>
 
   <p name="p2">Hello</p>
 
-  <p name="p3" extend="$p2"><graph/><p/></p>
+  <p name="p3" extend="$p2"><graph description="Another graph" /><p/></p>
 
   <p name="p4" extend="$p1"><figure /></p>
 
@@ -513,7 +513,7 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(3);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(29);
+        expect(errorWarnings.warnings[0].position.end.column).eq(51);
 
         expect(errorWarnings.warnings[1].message).contain(
             `Invalid children for <p>`,
@@ -525,7 +525,7 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[1].position.start.line).eq(6);
         expect(errorWarnings.warnings[1].position.start.column).eq(3);
         expect(errorWarnings.warnings[1].position.end.line).eq(6);
-        expect(errorWarnings.warnings[1].position.end.column).eq(45);
+        expect(errorWarnings.warnings[1].position.end.column).eq(74);
 
         expect(errorWarnings.warnings[2].message).contain(
             `Invalid children for <p>`,

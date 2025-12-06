@@ -231,7 +231,7 @@ describe("Intersection tag tests", async () => {
     it("intersections between three lines gives warning", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <graph>
+  <graph description="A graph with warnings">
   
   <line name="l1" />
   <line name="l2" through="(1,2) (3,4)" />

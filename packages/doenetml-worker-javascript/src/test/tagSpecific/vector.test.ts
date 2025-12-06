@@ -6279,7 +6279,7 @@ describe("Vector Tag Tests", function () {
     it("warnings", async () => {
         let { core } = await createTestCore({
             doenetML: `
-<graph>
+<graph description="A graph with warnings">
     <vector head="(1,2)" tail="(3,4)" displacement="(5,6)" name="vector1" />
     <vector head="(1,2)" tail="(3,4,5)" name="vector2" />
     <vector head="(1,2)" displacement="(3,4,5)" name="vector3" />

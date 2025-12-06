@@ -230,7 +230,7 @@ describe("Angle tag tests", async () => {
     it("angle warning when determined by three lines", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <graph>
+  <graph description="A graph with warnings">
     <line name="l1" />
     <line name="l2" through="(1,2) (3,4)" />
     <line name="l3" through="(-1,2) (-3,4)" />

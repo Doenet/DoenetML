@@ -6480,10 +6480,10 @@ describe("Extend and references tests", async () => {
     it("handle extending or copying with invalid component type", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-        <graph>
+        <graph description="A graph">
             <point name="p" >(3,4)</point>
         </graph>
-        <graph name="g2">
+        <graph name="g2" description="A graph with warnings">
             <invalidName extend="$p" name="p2" /><anotherInvalidName copy="$p" name="p3" />
         </graph>
     `,
