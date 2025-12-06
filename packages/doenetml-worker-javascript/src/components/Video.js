@@ -59,6 +59,13 @@ export default class Video extends BlockComponent {
             forRenderer: true,
             public: true,
         };
+        attributes.description = {
+            createComponentOfType: "text",
+            createStateVariable: "description",
+            defaultValue: "",
+            public: true,
+            forRenderer: true,
+        };
 
         attributes.youtube = {
             createComponentOfType: "text",

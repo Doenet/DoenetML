@@ -143,4 +143,24 @@ describe("Render commas tests", function () {
             onlyWarnImpacts: ["moderate", "minor"],
         });
     });
+
+    it("Videos", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <video name="video1" youtube="tJ4ypc5L6uU" description="Intro to Doenet" />
+    <video name="video2" source="https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-MP4-Video-File-for-Testing.mp4" description="Earth" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#video1").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
 });
