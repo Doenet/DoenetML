@@ -484,7 +484,7 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].position.end.column).eq(57);
     });
 
-    it.only("Invalid children", async () => {
+    it("Invalid children", async () => {
         let { core } = await createTestCore({
             doenetML: `
   <p name="p1"><graph description="A graph" /></p>
