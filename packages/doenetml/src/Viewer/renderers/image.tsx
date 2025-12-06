@@ -566,6 +566,11 @@ export default React.memo(function Image(props) {
         imageStyle.border = "var(--mainBorder)";
     }
 
+    // If image is decorative, it is designated by having set alt="".
+    // If a description is merely missing (which will generate a warning)
+    // then the alt attribute is omitted.
+    const description = SVs.decorative ? "" : SVs.description || undefined;
+
     return (
         <div style={outerStyle} ref={ref}>
             {urlOrSource ? (
@@ -573,7 +578,7 @@ export default React.memo(function Image(props) {
                     id={id}
                     src={urlOrSource}
                     style={imageStyle}
-                    alt={SVs.description}
+                    alt={description}
                 />
             ) : (
                 <div id={id} style={imageStyle}>

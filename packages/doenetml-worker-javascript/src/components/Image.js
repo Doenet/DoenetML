@@ -72,6 +72,13 @@ export default class Image extends BlockComponent {
             public: true,
             forRenderer: true,
         };
+        attributes.decorative = {
+            createComponentOfType: "boolean",
+            createStateVariable: "decorative",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
+        };
         attributes.source = {
             createComponentOfType: "text",
             createStateVariable: "source",
@@ -132,6 +139,40 @@ export default class Image extends BlockComponent {
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
+
+        stateVariableDefinitions.descriptionWarning = {
+            forRenderer: true, // so that is always evaluated if image is rendered and warning produced
+            returnDependencies: () => ({
+                description: {
+                    dependencyType: "stateVariable",
+                    variableName: "description",
+                },
+                decorative: {
+                    dependencyType: "stateVariable",
+                    variableName: "decorative",
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (
+                    dependencyValues.description === "" &&
+                    dependencyValues.decorative === false
+                ) {
+                    const message =
+                        "Image must either have a description or be specified as decorative";
+                    return {
+                        sendWarnings: [
+                            {
+                                message,
+                                level: 1,
+                            },
+                        ],
+                        setValue: { descriptionWarning: message },
+                    };
+                } else {
+                    return { setValue: { descriptionWarning: null } };
+                }
+            },
+        };
 
         stateVariableDefinitions.size = {
             public: true,

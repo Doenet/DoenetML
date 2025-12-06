@@ -110022,6 +110022,13 @@
                         "string"
                     ]
                 },
+                "decorative": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "source": {
                     "optional": true,
                     "type": [
@@ -110121,6 +110128,11 @@
                 {
                     "name": "description",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "decorative",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -125169,6 +125181,13 @@
                         "right"
                     ]
                 },
+                "readOnly": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "renderedName": {
                     "optional": true,
                     "type": [
@@ -125926,6 +125945,11 @@
                 {
                     "name": "resultsLocation",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "readOnly",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
