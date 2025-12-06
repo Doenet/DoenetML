@@ -68272,6 +68272,13 @@
                     "name": "description"
                 },
                 {
+                    "name": "decorative",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "source"
                 },
                 {
@@ -68350,6 +68357,11 @@
                 {
                     "name": "description",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "decorative",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -76888,6 +76900,13 @@
                     ]
                 },
                 {
+                    "name": "readOnly",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderedName"
                 },
                 {
@@ -76948,6 +76967,11 @@
                 {
                     "name": "resultsLocation",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "readOnly",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {

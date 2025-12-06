@@ -242,7 +242,7 @@ describe("Image tag tests", async () => {
         ).eq(-Math.PI);
     });
 
-    it("math in graph, handle bad anchor coordinates", async () => {
+    it("image in graph, handle bad anchor coordinates", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
             <graph >
@@ -297,5 +297,27 @@ describe("Image tag tests", async () => {
                     .stateValues.latex,
             ),
         ).eq("q");
+    });
+
+    it("warning if no description specified and descriptive is not set", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+<image name="image1" />
+            `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            `Image must either have a description or be specified as decorative`,
+        );
+        expect(errorWarnings.warnings[0].level).eq(1);
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.start.column).eq(1);
+        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.column).eq(24);
     });
 });
