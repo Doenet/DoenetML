@@ -43,6 +43,9 @@
                 "dist/**/*.css",
                 "dist/**/*.d.ts",
                 "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../utils:build"
             ]
         }
     },

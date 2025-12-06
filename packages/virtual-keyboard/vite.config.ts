@@ -1,11 +1,10 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
-import compileTime from "vite-plugin-compile-time";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts({ rollupTypes: true }), compileTime()],
+    plugins: [dts({ rollupTypes: true })],
     build: {
         minify: false,
         sourcemap: true,

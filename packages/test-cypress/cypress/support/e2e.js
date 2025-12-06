@@ -16,7 +16,19 @@
 // Import commands.js using ES2015 syntax:
 import "./commands";
 import "cypress-plugin-tab";
+import "cypress-axe";
+import "wick-a11y";
 
+Cypress.Commands.overwrite("injectAxe", () => {
+    // 1. Read the axe-core source file directly from node_modules
+    cy.readFile("../../node_modules/axe-core/axe.min.js").then((source) => {
+        // 2. Access the application's window
+        cy.window({ log: false }).then((window) => {
+            // 3. Execute the script specifically in the app's window context
+            window.eval(source);
+        });
+    });
+});
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 

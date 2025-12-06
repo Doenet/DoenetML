@@ -41,6 +41,7 @@ src/test/testCode.doenet
 
 **/cypress/videos
 **/cypress/screenshots
+**/cypress/accessibility
 **/cypress/downloads
 runner-results
 parallel-weights.json

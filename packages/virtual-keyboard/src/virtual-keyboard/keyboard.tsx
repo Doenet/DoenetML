@@ -12,7 +12,7 @@ import {
     TRIG_KEYS,
     VAR_KEYS,
 } from "./keys";
-import type { PrerenderedMath } from "./compile-time/render-math";
+import { MathJax } from "better-react-mathjax";
 
 export type Style =
     | "numeric"
@@ -24,13 +24,6 @@ export type Style =
     | "greek_upper";
 
 export type OnClick = (commands: KeyCommand[]) => void;
-
-// Much of the math we need has been pre-rendered for us (at compile time)
-// to MathML. We use this so that we don't need to load conflicting versions of mathjax.
-// WARNING: this line cannot be broken. It must be on the same line for the `compileTime` plugin to work.
-// @ts-ignore
-// prettier-ignore
-const PRERENDERED: PrerenderedMath = import.meta.compileTime("./compile-time/render-math.ts").prerendered;
 
 const BackspaceIcon = (
     <svg
@@ -114,13 +107,13 @@ function Key({
     onClick: OnClick;
 }) {
     let content: React.ReactNode = keyInfo.displayName;
-    if (PRERENDERED[keyInfo.displayName]) {
+    if (keyInfo.isMath) {
+        // Note: set `pointerEvents` to "none" so that clicks press the key
+        // rather than select the MathJax.
         content = (
-            <span
-                dangerouslySetInnerHTML={{
-                    __html: PRERENDERED[keyInfo.displayName],
-                }}
-            ></span>
+            <div style={{ pointerEvents: "none" }}>
+                <MathJax>{"\\(" + content + "\\)"}</MathJax>
+            </div>
         );
     }
     if (keyInfo.name === "backspace") {

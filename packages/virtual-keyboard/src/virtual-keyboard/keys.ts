@@ -270,12 +270,12 @@ export const VAR_KEYS = {
 
 export const SYMBOL_KEYS = {
     openBrace: {
-        displayName: "{",
+        displayName: "\\{",
         name: "openBrace",
         commands: [{ type: "cmd", command: "{" }],
     },
     closeBrace: {
-        displayName: "}",
+        displayName: "\\}",
         name: "closeBrace",
         commands: [{ type: "cmd", command: "}" }],
     },
@@ -411,7 +411,7 @@ export const OTHER_SYMBOLS = {
         commands: [{ type: "write", command: "\\forall" }],
     },
     percent: {
-        displayName: "%",
+        displayName: "\\%",
         name: "percent",
         commands: [{ type: "write", command: "%" }],
     },
