@@ -457,6 +457,8 @@ export default React.memo(function Video(props) {
 
     let videoTag;
 
+    const description = SVs.description || undefined;
+
     if (SVs.youtube) {
         videoTag = (
             <iframe
@@ -468,11 +470,18 @@ export default React.memo(function Video(props) {
                     "?enablejsapi=1&rel=0"
                 }
                 allow="autoplay; fullscreen"
+                title={description}
             />
         );
     } else if (SVs.source) {
         videoTag = (
-            <video className="video" id={id} controls style={videoStyle}>
+            <video
+                className="video"
+                id={id}
+                controls
+                style={videoStyle}
+                title={description}
+            >
                 <source
                     src={SVs.source}
                     type={`video/${SVs.source
