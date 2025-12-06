@@ -299,7 +299,7 @@ describe("Image tag tests", async () => {
         ).eq("q");
     });
 
-    it("warning if no description specified and descriptive is not set", async () => {
+    it("warning if no description specified and decorative is not set", async () => {
         let { core } = await createTestCore({
             doenetML: `
 <image name="image1" />
