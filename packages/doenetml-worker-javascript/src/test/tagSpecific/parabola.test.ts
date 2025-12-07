@@ -756,7 +756,7 @@ describe("Parabola Tag Tests", async () => {
     it("warning with parabola through four points", async () => {
         let { core } = await createTestCore({
             doenetML: `
-    <graph>
+    <graph description="A graph with warnings">
     <parabola through="(1,2) (3,4) (5,6) (7,8)" />
     </graph>
 
@@ -803,7 +803,7 @@ describe("Parabola Tag Tests", async () => {
     it("warning with parabola with vertex and two points", async () => {
         let { core } = await createTestCore({
             doenetML: `
-    <graph>
+    <graph description="A graph with warnings">
     <parabola vertex="(1,2)" through="(3,4) (5,6)" />
     </graph>
 

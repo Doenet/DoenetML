@@ -57818,6 +57818,13 @@
                 },
                 {
                     "name": "description"
+                },
+                {
+                    "name": "decorative",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -57924,6 +57931,11 @@
                 {
                     "name": "description",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "decorative",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -68531,6 +68543,9 @@
                     ]
                 },
                 {
+                    "name": "description"
+                },
+                {
                     "name": "youtube"
                 },
                 {
@@ -68570,6 +68585,11 @@
                 },
                 {
                     "name": "horizontalAlign",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
                     "type": "text",
                     "isArray": false
                 },

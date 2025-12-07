@@ -163,4 +163,24 @@ describe("Render commas tests", function () {
             onlyWarnImpacts: ["moderate", "minor"],
         });
     });
+
+    it("Graph", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph name="graph1" decorative />
+    <graph name="graph2" description="A graph" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#graph1").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
 });

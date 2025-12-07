@@ -93124,6 +93124,13 @@
                     "type": [
                         "string"
                     ]
+                },
+                "decorative": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
@@ -93608,6 +93615,11 @@
                 {
                     "name": "description",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "decorative",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -110317,6 +110329,12 @@
                         "right"
                     ]
                 },
+                "description": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "youtube": {
                     "optional": true,
                     "type": [
@@ -110365,6 +110383,11 @@
                 },
                 {
                     "name": "horizontalAlign",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
                     "type": "text",
                     "isArray": false
                 },

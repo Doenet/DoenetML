@@ -220,13 +220,24 @@ export default React.memo(function Graph(props) {
     divStyle.backgroundColor = "var(--canvas)";
     divStyle.color = "var(--canvasText)";
 
+    let ariaLabel: string | undefined = SVs.description;
+    let role: string | undefined = "img";
+    let ariaHidden = false;
+    if (SVs.decorative) {
+        ariaLabel = undefined;
+        role = undefined;
+        ariaHidden = true;
+    }
+
     if (!board) {
         return (
             <div style={outerStyle} ref={ref}>
                 <div
                     id={`${id}-description`}
-                    aria-label={SVs.description}
-                    role="img"
+                    aria-label={ariaLabel}
+                    role={role}
+                    aria-hidden={ariaHidden}
+                    style={{ width: "100%" }}
                 >
                     <div id={id} className="jxgbox" style={divStyle} />
                 </div>
@@ -447,8 +458,10 @@ export default React.memo(function Graph(props) {
         <div style={outerStyle} ref={ref}>
             <div
                 id={`${id}-description`}
-                aria-label={SVs.description}
-                role="img"
+                aria-label={ariaLabel}
+                role={role}
+                aria-hidden={ariaHidden}
+                style={{ width: "100%" }}
             >
                 <div id={id} className="jxgbox" style={divStyle} />
                 <BoardContext.Provider value={board}>

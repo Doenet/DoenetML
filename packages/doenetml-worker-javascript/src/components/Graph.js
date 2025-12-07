@@ -195,6 +195,13 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
         };
+        attributes.decorative = {
+            createComponentOfType: "boolean",
+            createStateVariable: "decorative",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
+        };
 
         return attributes;
     }
@@ -247,6 +254,40 @@ export default class Graph extends BlockComponent {
             stateVariableDefinitions,
             returnRoundingStateVariableDefinitions(),
         );
+
+        stateVariableDefinitions.descriptionWarning = {
+            forRenderer: true, // so that is always evaluated if graph is rendered and warning produced
+            returnDependencies: () => ({
+                description: {
+                    dependencyType: "stateVariable",
+                    variableName: "description",
+                },
+                decorative: {
+                    dependencyType: "stateVariable",
+                    variableName: "decorative",
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (
+                    dependencyValues.description === "" &&
+                    dependencyValues.decorative === false
+                ) {
+                    const message =
+                        "Graph must either have a description or be specified as decorative";
+                    return {
+                        sendWarnings: [
+                            {
+                                message,
+                                level: 1,
+                            },
+                        ],
+                        setValue: { descriptionWarning: message },
+                    };
+                } else {
+                    return { setValue: { descriptionWarning: null } };
+                }
+            },
+        };
 
         stateVariableDefinitions.fixAxes = {
             forRenderer: true,
