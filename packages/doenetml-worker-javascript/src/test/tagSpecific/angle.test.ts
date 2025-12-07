@@ -1516,4 +1516,34 @@ describe("Angle tag tests", async () => {
                 .emphasizeRightAngle,
         ).eq(true);
     });
+
+    it("handle angle with bad through point", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <angle name="bad" through="(0,1) (0,0), (1,5)" />
+
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bad")].stateValues
+                .radians.tree,
+        ).eq("\uff3f");
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            "Invalid point in through of <angle>",
+        );
+        expect(errorWarnings.warnings[0].level).eq(1);
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.start.column).eq(3);
+        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.column).eq(52);
+    });
 });
