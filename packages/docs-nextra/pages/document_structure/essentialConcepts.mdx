@@ -28,7 +28,7 @@ DoenetML is a **markup language** much like HTML. When creating content in Doene
 <p>p2.x = $p2.x</p>
 
 <p>Now, observe the points on a graph, and drag them to see their properties change.</p>
-<graph>$p1 $p2</graph>
+<graph description="A graph of two points">$p1 $p2</graph>
 ```
 
 The available attributes and properties vary by component. See the [Component Examples](./doenetML_components/componentIndex.mdx) section for a full listing for each.
@@ -84,7 +84,7 @@ When you need to access the value of the named component or one of its stored pr
 <line name="line1" through="(1,2) (-7,5)"/>
 
 <p>Referencing the line component on a graph:</p>
-<graph>$line1</graph>
+<graph description="A graph of a line">$line1</graph>
 
 <p>Accessing data from the line component:</p>
 <p>line1.yIntercept = $line1.yIntercept</p>

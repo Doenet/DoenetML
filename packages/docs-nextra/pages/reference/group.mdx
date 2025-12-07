@@ -33,7 +33,7 @@ component that collects individual DoenetML components into a single named eleme
   styleNumber="5"
 />
 
-<graph>
+<graph description="A graph of a polygon">
   $points
   $polygon1
 </graph>
@@ -59,7 +59,9 @@ single reference to the name of the ` <group>{:dn}`, `$points`.
   <label>Hide group 1</label>
 </booleanInput>
 
-<graph name="graph1" size="small">
+<graph name="graph1" size="small"
+  description="A graph of different components"
+>
   <group name="group1" hide="$hideGroup1">
     <line styleNumber="2">y = 2x + 3</line>
     <point styleNumber="2">(6,6)</point>

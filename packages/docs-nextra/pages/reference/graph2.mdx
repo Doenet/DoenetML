@@ -17,13 +17,17 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ```doenet-example
 <p>Without <attr>identicalAxisScales</attr></p> 
-<graph name="g" xmin="-5" xmax="5" grid="1 1" size="small">
+<graph name="g" xmin="-5" xmax="5" grid="1 1" size="small"
+  description="A graph with different scales for the x and y axes"
+>
   <point/>
   <line>y=x</line>
 </graph>
 
 <p>With <attr>identicalAxisScales</attr></p> 
-<graph extend="$g" identicalAxisScales/>
+<graph extend="$g" identicalAxisScales
+  description="A graph that is tall so its axes are the same scale"
+/>
 ```
 
 
@@ -41,7 +45,8 @@ When the `identicalAxisScales` attribute is used, the overall proportions of the
 <graph name="g" 
   displayXAxis="false" 
   displayYAxis="false" 
-  size="small">
+  size="small"
+  description="A graph without x or y-axis displayed">
     <point/>
     <line>y = x</line>
 </graph>
@@ -64,7 +69,8 @@ to `true` or `false`.
   name="g" 
   displayXAxisTickLabels="false" 
   displayYAxisTickLabels="false" 
-  size="small">
+  size="small"
+  description="A graph without axis tick labels">
     <point/>
     <line>y = x</line>
 </graph>
@@ -86,7 +92,8 @@ rendering of the axes tick labels to `true` or `false`.
 <graph name="g" 
   xLabelPosition="left" 
   yLabelPosition="bottom" 
-  showNavigation="false">
+  showNavigation="false"
+  description="A graph with the x-label at the left and the y-label at the bottom">
     <xLabel><m>x</m></xLabel>
     <yLabel><m>y</m></yLabel>
     <point/> 
@@ -113,7 +120,9 @@ a `bottom` position for the $y$-axis label. The default position is `top`.
 <graph 
   name="g" 
   yLabelAlignment="right"  
-  showNavigation="false">
+  showNavigation="false"
+  description="A graph with the y-label aligned to the right of the axis"
+  >
     <yLabel><m>y</m></yLabel>
     <xLabel><m>x</m></xLabel>
     <point/>
@@ -135,11 +144,13 @@ the label appears to the left of the vertical axis.
 
 
 ```doenet-editor-horiz
-<graph  xTickScaleFactor="pi">
+<graph xTickScaleFactor="pi"
+  description="A graph where the x-tick scale factor is pi">
   <function>sin(x)</function>
 </graph>
 
-<graph yTickScaleFactor="pi">
+<graph yTickScaleFactor="pi"
+  description="A graph where the y-tick scale factor is pi">
   <function>1/x</function>
 </graph>
 ```
@@ -157,19 +168,21 @@ multiplier to the $x$-axis and the $y$-axis, respectively.
 
 
 ```doenet-example
-<graph name="g" showNavigation="false" size="small">
+<graph name="g" showNavigation="false" size="small"
+  description="A graph where the navigation controls are not shown">
   <point/>
   <line>y = x</line>
 </graph>
 
-<graph extend="$g" showNavigation="true"/>
+<graph extend="$g" showNavigation="true"
+  description="A graph where the navigation controls are shown (the default)"/>
 ```
 
 
 
-The `showNavigation` attribute controls whether the default zooming and 
-panning controls at the bottom of the ` <graph>{:dn}` are visible.
-
+The `showNavigation` attribute controls whether the default zooming controls at the bottom of the ` <graph>{:dn}` are visible.
+Even when the controls are not shown, the graph can still be panned by dragging it or zoomed by holding down Shift while scrolling.
+By default, `showNavigation` is set to `true`.
 
 
 ---
@@ -178,18 +191,20 @@ panning controls at the bottom of the ` <graph>{:dn}` are visible.
 
 
 ```doenet-example
-<graph name="g" fixAxes="true" size="small">
+<graph name="g" fixAxes="true" size="small"
+  description="A graph with the axes fixed">
   <point/>
   <line>y = x</line>
 </graph>
 
-<graph extend="$g" fixAxes="false" link="false"/>
+<graph extend="$g" fixAxes="false" link="false"
+  description="A graph without the axes fixed (the default)"/>
 ```
 
 
 
 If the `fixAxes` attribute is set to `true`, the user cannot zoom in and 
-out of the ` <graph>{:dn}`. The navigation buttons at the base of the graph 
+out of the ` <graph>{:dn}` or pan the graph from side to side. The navigation buttons at the base of the graph 
 will also not appear. By default, `fixAxes` is set to `false`.
 
 
@@ -202,22 +217,26 @@ will also not appear. By default, `fixAxes` is set to `false`.
 ```doenet-editor-horiz
 <p>Graph 1: If you zoom in and out below,
   the grid adapts.</p>
-<graph name="g" grid  size="small">
+<graph name="g" grid size="small"
+  description="A graph with a grid that adapts when the graph zoom is changed">
   <point/>
   <line>y = x</line>
 </graph>
 
 <p>Graph 2: If you zoom in and out below, 
   the grid remains constant.</p>
-<graph extend="$g" grid="1 1"/>
+<graph extend="$g" grid="1 1"
+  description="A graph with a grid that is fixed at interval of 1" />
 
 <p>Graph 3: If you zoom in and out below, 
   the grid remains constant.</p>
-<graph extend="$g" grid="5 1"/>
+<graph extend="$g" grid="5 1"
+  description="A graph with a gride that is fixed at an interval 5 in the x-direction and 1 in the y-direction." />
 
 <p>Graph 4: If you zoom in and out below, 
   the grid adapts.</p>
-<graph extend="$g" grid="dense"/>
+<graph extend="$g" grid="dense"
+  description="A graph with a dense grid that adapts when the graph zoom is changed" />
 ```
 
 The `grid` attribute specifies the spacing of the gridlines. Valid values are `none`, `medium`, `dense`, 
@@ -240,7 +259,8 @@ Unless the `grid="a b"` specification is used, all grid spacings adapt to the sc
   displayXAxis="false" 
   displayYAxis="false" 
   showNavigation="false" 
-  showBorder="false">
+  showBorder="false"
+  description="A graph without a border showing a pentagon, circle, and rectangle">
     <regularPolygon 
       numSides="5" 
       sideLength="4" 
@@ -272,7 +292,7 @@ The `showBorder` attribute can be set to `false` to suppress rendering of the de
 
 
 ```doenet-editor-horiz
-<graph name="g" size="small">
+<graph name="g" size="small" description="A graph of a pentagon">
   <regularPolygon numSides="5" sideLength="4" filled/>
 </graph>
 
@@ -297,7 +317,7 @@ The above listed ` <graph>{:dn}` attributes are also accessible as properties.
 
 
 ```doenet-editor-horiz
-<graph name="g" size="small">
+<graph name="g" size="small" description="A graph of a pentagon">
   <regularPolygon numSides="5" sideLength="4" filled/>
 </graph>
 
@@ -323,7 +343,7 @@ The above listed ` <graph>{:dn}` attributes are also accessible as properties.
 
 
 ```doenet-editor-horiz
-<graph name="g" size="small">
+<graph name="g" size="small" description="A graph of a pentagon">
   <regularPolygon numSides="5" sideLength="4" filled/>
 </graph>
 

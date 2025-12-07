@@ -21,7 +21,7 @@ component that renders a 2D cartesian graph.
 
 
 ```doenet-example
-<graph>
+<graph description="A graph of a point and diagonal line">
   <point/>
   <line>y = x</line>
 </graph>
@@ -39,7 +39,7 @@ Here a default ` <graph>{:dn}` is illustrated without any additional attributes.
 
 
 ```doenet-example
-<graph grid>
+<graph grid description="A graph with a grid">
   <point/>
   <line>y = x</line>
 </graph>
@@ -63,7 +63,9 @@ at the bottom of the graph.
   displayXAxis="false" 
   displayYAxis="false" 
   showNavigation="false" 
-  showBorder="false">
+  showBorder="false"
+  description="A graph without a border showing a pentagon, circle, and rectangle"
+  >
     <regularPolygon 
       numSides="5" 
       sideLength="4" 
@@ -95,7 +97,7 @@ A ` <graph>{:dn}` without border, axes, or navigation buttons appears invisible.
 
 
 ```doenet-editor-horiz
-<graph xmin="-3" ymin="-3">
+<graph xmin="-3" ymin="-3" description="A graph of distance increasing linearly with time" >
   <xLabel>time</xLabel>
   <yLabel>distance</yLabel>
   <lineSegment endpoints="(0,0) (12,6)"/>
@@ -115,7 +117,7 @@ children of the ` <graph>{:dn}`.
 
 
 ```doenet-editor-horiz
-<graph>
+<graph description="A graph of two points and a line">
   <point styleNumber="2"/>
   <point coords="(3,3)"/>
   <line styleNumber="3">y = 1/2 x - 2</line>
@@ -144,7 +146,7 @@ component. See ` <legend>{:dn}` for more examples.
   <math name="m1">2 $ti</math> = 
   <math simplify>$m1</math></p>
 
-<graph>
+<graph description="A graph demonstrating components it can contain">
   <number anchor="(5,-5)" name="t">0</number>
   
   <image source="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Squirrel_in_Chandigarh.jpg/2560px-Squirrel_in_Chandigarh.jpg" 
@@ -205,12 +207,14 @@ performed for math entered into a ` <textInput/>{:dn}`.
   xmax="1" 
   ymin="-2" 
   ymax="2" 
-  size="small">
+  size="small"
+  description="A graph with different scales for x and y">
     <point/>
     <line>y = x</line>
 </graph>
 
-<graph extend="$g" identicalAxisScales/>
+<graph extend="$g" identicalAxisScales
+description="A tall graph so that x and y have the same scale" />
 ```
 
 Use the `xmin`, `xmax`, `ymin` and `ymax` attributes to adjust the extents of 
@@ -227,7 +231,7 @@ is also specified, as illustrated in the second graph.
 ```doenet-example
 <p>Enter a width for the graph:
 <mathInput name="w" prefill="80"/> pixels.</p>
-<graph name="g" width="$w">
+<graph name="g" width="$w" description="A graph of size $g.size">
   <point/>
   <line>y = x</line>
 </graph> 
@@ -250,12 +254,12 @@ the `size` category that corresponds to that width and sizes the graph according
 
 
 ```doenet-example
-<graph name="g" size="small">
+<graph name="g" size="small" description="A small graph">
   <point/>
   <line>y = x</line>
 </graph>
 
-<graph extend="$g" size="tiny"/>
+<graph extend="$g" size="tiny" description="A tiny graph" />
 ```
 
 
@@ -271,12 +275,12 @@ The `size` attribute specifies one of 5 size categories for the
 
 
 ```doenet-example
-<graph name="g" aspectRatio="2/1">
+<graph name="g" aspectRatio="2/1" description="A wide graph">
   <point/>
   <line>y = x</line>
 </graph>
 
-<graph extend="$g" aspectRatio="1/2"/>
+<graph extend="$g" aspectRatio="1/2" description="A tall graph"/>
 ```
 
 
@@ -291,12 +295,12 @@ The `aspectRatio` attribute allows for customization of the graph's default prop
 
 
 ```doenet-example
-<graph name="g" displayMode="inline" size="tiny">
+<graph name="g" displayMode="inline" size="tiny" description="A tiny inline graph">
   <point/>
   <line>y = x</line>
 </graph>
 
-<graph extend="$g" displayMode="block" size="tiny"/>
+<graph extend="$g" displayMode="block" size="tiny" description="A tiny block graph"/>
 ```
 
 
@@ -314,16 +318,16 @@ modes are `inline`, and `block`.
 
 ```doenet-example
 <p>A left graph</p>  
-<graph name="g" displayMode="block" horizontalAlign="left" size="tiny">
+<graph name="g" displayMode="block" horizontalAlign="left" size="tiny" description="A tiny left-aligned graph">
   <point/>
   <line>y = x</line>
 </graph>
 
 <p>A centered graph (default)</p>
-<graph extend="$g" horizontalAlign="center"/>
+<graph extend="$g" horizontalAlign="center" description="A tiny centered graph" />
 
 <p>A right graph </p>
-<graph extend="$g" horizontalAlign="right"/>
+<graph extend="$g" horizontalAlign="right" description="A tiny right-aligned graph" />
 ```
 
 

@@ -44,7 +44,7 @@ This component hides the source code and just renders the doenetML.
 ### Example: Absolute value of numerical properties
 This is what the DoenetExample component does...
 ```doenet-example
-<graph>
+<graph description="A graph of a line through a point">
     <point name="dp1">(4,4)</point>
     <line name="l1" through="$dp1 (0,0)"/>
 </graph>
@@ -57,7 +57,7 @@ Children of the `<abs>` component can include references to `<mathInput>` values
 <a id="function-ex"></a>
 ### Example: Absolute value of a function
 ```doenet-editor-horiz
-<graph size="small" name="g2">
+<graph size="small" name="g2" description="A graph of a function and its absolute value">
     <function name="f">(1/4)x^2 - 4</function>
     <function styleNumber="2">
         <abs>$f</abs>

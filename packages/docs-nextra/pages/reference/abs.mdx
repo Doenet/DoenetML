@@ -44,7 +44,7 @@ The `<abs>{:dn}` component is used to render the absolute value of a named `<mat
 
 Children of the `<abs>{:dn}` component can include references to `<mathInput>{:dn}` values or other `math` quantities, such as single-valued numerical properties of graphical objects. Invalid children are strings and tuples.
 ```doenet-editor-horiz
-<graph>
+<graph description="A graph of a line through a point">
     <point name="dp1">(4,4)</point>
     <line name="l1" through="$dp1 (0,0)"/>
 </graph>
@@ -59,7 +59,9 @@ Children of the `<abs>{:dn}` component can include references to `<mathInput>{:d
 
 The `<abs>{:dn}` component is used to render the absolute value of a named `<function>{:dn}` within a `<graph>{:dn}`.
 ```doenet-editor-horiz
-<graph size="small" name="g2">
+<graph size="small" name="g2"
+    description"A graph of the function and its absolute value"
+>
     <function name="f">(1/4)x^2 - 4</function>
     <function styleNumber="2">
         <abs>$f</abs>
