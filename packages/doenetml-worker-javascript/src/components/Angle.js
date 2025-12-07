@@ -13,6 +13,8 @@ export default class Angle extends GraphicalComponent {
 
     static canBeInList = true;
 
+    static representsClosedPath = true;
+
     // Include children that can be added due to sugar
     static additionalSchemaChildren = ["number", "math", "string"];
 
@@ -87,6 +89,12 @@ export default class Angle extends GraphicalComponent {
             stateVariableDefinitions,
             returnRoundingStateVariableDefinitions(),
         );
+
+        // set filled to true so a legend shows a filled swath when displayClosedSwatches is set
+        stateVariableDefinitions.filled = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { filled: true } }),
+        };
 
         stateVariableDefinitions.betweenLinesName = {
             returnDependencies: () => ({
@@ -403,9 +411,24 @@ export default class Angle extends GraphicalComponent {
 
                 let points = {};
 
+                let foundBadThroughPoint = false;
                 for (let [ind, prescribedPoint] of prescribedPoints.entries()) {
-                    points[ind + ",0"] = prescribedPoint[0];
-                    points[ind + ",1"] = prescribedPoint[1];
+                    for (let i = 0; i < 2; i++) {
+                        if (prescribedPoint[i]) {
+                            points[`${ind},${i}`] = prescribedPoint[i];
+                        } else {
+                            points[`${ind},${i}`] = me.fromAst("\uff3f");
+                            foundBadThroughPoint = true;
+                        }
+                    }
+                }
+
+                const warnings = [];
+                if (foundBadThroughPoint) {
+                    warnings.push({
+                        message: "Invalid point in through of <angle>",
+                        level: 1,
+                    });
                 }
 
                 if (numPointsSpecified === 0) {
@@ -426,7 +449,10 @@ export default class Angle extends GraphicalComponent {
                         if (!Number.isFinite(radians)) {
                             points["2,0"] = me.fromAst("\uff3f");
                             points["2,1"] = me.fromAst("\uff3f");
-                            return { setValue: { points } };
+                            return {
+                                setValue: { points },
+                                sendWarnings: warnings,
+                            };
                         }
                     } else if (globalDependencyValues.degreesAttr) {
                         let degrees =
@@ -436,7 +462,10 @@ export default class Angle extends GraphicalComponent {
                         } else {
                             points["2,0"] = me.fromAst("\uff3f");
                             points["2,1"] = me.fromAst("\uff3f");
-                            return { setValue: { points } };
+                            return {
+                                setValue: { points },
+                                sendWarnings: warnings,
+                            };
                         }
                     } else {
                         radians = Math.PI / 2;
@@ -454,7 +483,7 @@ export default class Angle extends GraphicalComponent {
                     points["2,1"] = me.fromAst(b2 + Math.sin(desiredAngle));
                 }
 
-                return { setValue: { points } };
+                return { setValue: { points }, sendWarnings: warnings };
             },
         };
 
