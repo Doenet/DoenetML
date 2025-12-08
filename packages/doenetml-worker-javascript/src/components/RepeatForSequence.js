@@ -652,12 +652,9 @@ export default class RepeatForSequence extends CompositeComponent {
             numVariantsByDescendant.push(result.numVariants);
         }
 
-        if (
-            numVariantsByDescendant.length === 1 &&
-            numVariantsByDescendant[0] === 1
-        ) {
-            // just have a template with one variant
-            // so will have a single variant even if don't know how many times the template is repeated
+        if (numVariantsByDescendant.every((x) => x === 1)) {
+            // we have no extra variants created by our descendants,
+            // so will have a single variant even if don't know how many times we are repeated
             serializedComponent.variants.numVariants = 1;
 
             return {
