@@ -159,6 +159,8 @@ export default class ModuleAttributes extends CompositeComponent {
                 componentInfoObjects,
                 nComponents,
             });
+            errors.push(...expandResult.errors);
+            warnings.push(...expandResult.warnings);
             nComponents = expandResult.nComponents;
 
             child.children = expandResult.components;

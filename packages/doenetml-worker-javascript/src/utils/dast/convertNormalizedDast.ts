@@ -231,6 +231,7 @@ export async function normalizedDastToSerializedComponents(
     ) {
         throw Error("Root of dast should be a single document");
     }
+    const errors: ErrorRecord[] = [];
     const warnings: WarningRecord[] = [];
 
     const unflattenedDocument = unflattenDastNodes(
@@ -273,7 +274,8 @@ export async function normalizedDastToSerializedComponents(
 
     let expandedRoot = expandResult.components;
     nComponents = expandResult.nComponents;
-    const errors = expandResult.errors;
+    errors.push(...expandResult.errors);
+    warnings.push(...expandResult.warnings);
 
     expandedRoot = removeBlankStringChildren(
         expandedRoot,
@@ -338,9 +340,11 @@ export function expandUnflattenedToSerializedComponents({
 }): {
     components: (SerializedComponent | string)[];
     errors: ErrorRecord[];
+    warnings: WarningRecord[];
     nComponents: number;
 } {
-    let errors: ErrorRecord[] = [];
+    const errors: ErrorRecord[] = [];
+    const warnings: WarningRecord[] = [];
 
     let newComponents: (SerializedComponent | string)[] = [];
 
@@ -370,6 +374,7 @@ export function expandUnflattenedToSerializedComponents({
             let attributes: Record<string, SerializedAttribute> =
                 expandResult.attributes;
             errors.push(...expandResult.errors);
+            warnings.push(...expandResult.warnings);
             nComponents = expandResult.nComponents;
 
             const defaultPrimitiveResult = addDefaultPrimitiveAttributes({
@@ -381,6 +386,7 @@ export function expandUnflattenedToSerializedComponents({
             });
             attributes = defaultPrimitiveResult.attributes;
             errors.push(...defaultPrimitiveResult.errors);
+            warnings.push(...defaultPrimitiveResult.warnings);
             nComponents = defaultPrimitiveResult.nComponents;
 
             let extending: Source<SerializedRefResolution> | undefined =
@@ -401,6 +407,7 @@ export function expandUnflattenedToSerializedComponents({
                 extending = addSource(refResolution, component.extending);
 
                 errors.push(...refResolutionResult.errors);
+                warnings.push(...refResolutionResult.warnings);
                 nComponents = refResolutionResult.nComponents;
             }
 
@@ -438,6 +445,7 @@ export function expandUnflattenedToSerializedComponents({
         });
         newComponent.children = res.components;
         errors.push(...res.errors);
+        warnings.push(...res.warnings);
         nComponents = res.nComponents;
 
         newComponents.push(newComponent);
@@ -449,7 +457,7 @@ export function expandUnflattenedToSerializedComponents({
         newComponents = decodeXMLEntities(newComponents);
     }
 
-    return { errors, components: newComponents, nComponents };
+    return { errors, warnings, components: newComponents, nComponents };
 }
 
 function expandUnflattenedRefResolution({
@@ -465,10 +473,12 @@ function expandUnflattenedRefResolution({
 }): {
     refResolution: SerializedRefResolution;
     errors: ErrorRecord[];
+    warnings: WarningRecord[];
     nComponents: number;
 } {
     let unresolvedPath: SerializedRefResolutionPathPart[] | null = null;
-    let errors: ErrorRecord[] = [];
+    const errors: ErrorRecord[] = [];
+    const warnings: WarningRecord[] = [];
 
     if (unflattenedRefResolution.unresolvedPath) {
         const res = expandUnflattenedPath({
@@ -481,6 +491,7 @@ function expandUnflattenedRefResolution({
         unresolvedPath = res.expandedPath;
         nComponents = res.nComponents;
         errors.push(...res.errors);
+        warnings.push(...res.warnings);
     }
 
     const res = expandUnflattenedPath({
@@ -493,6 +504,7 @@ function expandUnflattenedRefResolution({
     const originalPath = res.expandedPath;
     nComponents = res.nComponents;
     errors.push(...res.errors);
+    warnings.push(...res.warnings);
 
     const refResolution: SerializedRefResolution = {
         nodeIdx: unflattenedRefResolution.nodeIdx,
@@ -504,6 +516,7 @@ function expandUnflattenedRefResolution({
     return {
         refResolution,
         errors,
+        warnings,
         nComponents,
     };
 }
@@ -519,7 +532,8 @@ function expandUnflattenedPath({
     nComponents: number;
     ignoreErrors: boolean;
 }) {
-    let errors: ErrorRecord[] = [];
+    const errors: ErrorRecord[] = [];
+    const warnings: WarningRecord[] = [];
 
     const expandedPath = unflattenedPath.map((path_part) => {
         let index = path_part.index.map((flat_index) => {
@@ -531,6 +545,7 @@ function expandUnflattenedPath({
             });
             let valueComponents = res.components;
             errors.push(...res.errors);
+            warnings.push(...res.warnings);
             nComponents = res.nComponents;
 
             if (valueComponents.length !== 1) {
@@ -552,7 +567,7 @@ function expandUnflattenedPath({
         };
     });
 
-    return { expandedPath, nComponents, errors };
+    return { expandedPath, nComponents, errors, warnings };
 }
 
 /**
@@ -579,11 +594,13 @@ export function expandAllUnflattenedAttributes({
 }): {
     attributes: Record<string, SerializedAttribute>;
     errors: ErrorRecord[];
+    warnings: WarningRecord[];
     nComponents: number;
 } {
     let classAttributes = componentClass.createAttributesObject();
 
     const errors: ErrorRecord[] = [];
+    const warnings: WarningRecord[] = [];
 
     let attributeLowerCaseMapping: Record<string, string> = {};
 
@@ -610,6 +627,7 @@ export function expandAllUnflattenedAttributes({
             });
             attributes[attrName] = res.attribute;
             errors.push(...res.errors);
+            warnings.push(...res.warnings);
             nComponents = res.nComponents;
         } else if (componentClass.acceptAnyAttribute || attr.includes(":")) {
             let res = expandAttribute({
@@ -620,6 +638,7 @@ export function expandAllUnflattenedAttributes({
             });
             attributes[attr] = res.attribute;
             errors.push(...res.errors);
+            warnings.push(...res.warnings);
             nComponents = res.nComponents;
         } else {
             throw Error(
@@ -627,7 +646,7 @@ export function expandAllUnflattenedAttributes({
             );
         }
     }
-    return { attributes, errors, nComponents };
+    return { attributes, errors, warnings, nComponents };
 }
 
 /**
@@ -649,9 +668,11 @@ function addDefaultPrimitiveAttributes({
 }): {
     attributes: Record<string, SerializedAttribute>;
     errors: ErrorRecord[];
+    warnings: WarningRecord[];
     nComponents: number;
 } {
     const errors: ErrorRecord[] = [];
+    const warnings: WarningRecord[] = [];
 
     let classAttributes = componentClass.createAttributesObject();
 
@@ -677,10 +698,11 @@ function addDefaultPrimitiveAttributes({
             });
             newAttributes[attrName] = res.attribute;
             errors.push(...res.errors);
+            warnings.push(...res.warnings);
             nComponents = res.nComponents;
         }
     }
-    return { attributes: newAttributes, errors, nComponents };
+    return { attributes: newAttributes, errors, warnings, nComponents };
 }
 
 /**
@@ -704,9 +726,11 @@ export function expandAttribute({
 }): {
     attribute: SerializedAttribute;
     errors: ErrorRecord[];
+    warnings: WarningRecord[];
     nComponents: number;
 } {
-    let errors: ErrorRecord[] = [];
+    const errors: ErrorRecord[] = [];
+    const warnings: WarningRecord[] = [];
 
     if (attrDef?.createComponentOfType) {
         const initialResult = createInitialComponentFromAttribute({
@@ -771,6 +795,7 @@ export function expandAttribute({
             nComponents,
         });
         errors.push(...res.errors);
+        warnings.push(...res.warnings);
         nComponents = res.nComponents;
 
         let attr: SerializedAttribute = {
@@ -786,7 +811,7 @@ export function expandAttribute({
             // set the component to ignore the fixed of its parent
             attr.component.doenetAttributes.ignoreParentFixed = true;
         }
-        return { attribute: attr, errors, nComponents };
+        return { attribute: attr, errors, warnings, nComponents };
     } else if (attrDef?.createPrimitiveOfType) {
         let primitiveValue: PrimitiveAttributeValue =
             createPrimitiveFromAttribute({ attrDef, attribute });
@@ -802,6 +827,7 @@ export function expandAttribute({
                 sourceDoc: attribute.sourceDoc,
             },
             errors,
+            warnings,
             nComponents,
         };
     } else if (attrDef?.createReferences) {
@@ -811,21 +837,41 @@ export function expandAttribute({
             nComponents,
         });
         errors.push(...res.errors);
+        warnings.push(...res.warnings);
         nComponents = res.nComponents;
+
+        const references: SerializedComponent[] = [];
+        const stringChildren: string[] = [];
+
+        for (const child of res.components) {
+            if (typeof child === "object") {
+                references.push(child);
+            } else if (typeof child === "string") {
+                if (child.trim() !== "") {
+                    stringChildren.push(child);
+                    if (!attrDef.allowStrings) {
+                        warnings.push({
+                            type: "warning",
+                            message: `Invalid value "${child.trim()}" for attribute ${attribute.name}. Attribute must be composed of references that begin with a $.`,
+                            position: attribute.position,
+                            sourceDoc: attribute.sourceDoc,
+                        });
+                    }
+                }
+            }
+        }
+
         return {
             attribute: {
                 type: "references",
                 name: attribute.name,
-                references: res.components.filter(
-                    (child) => typeof child === "object",
-                ),
-                stringChildren: res.components
-                    .filter((child) => typeof child === "string")
-                    .filter((child) => child.trim() !== ""),
+                references,
+                stringChildren,
                 position: attribute.position,
                 sourceDoc: attribute.sourceDoc,
             },
             errors,
+            warnings,
             nComponents,
         };
     } else {
@@ -838,6 +884,7 @@ export function expandAttribute({
                 sourceDoc: attribute.sourceDoc,
             },
             errors,
+            warnings,
             nComponents,
         };
     }
@@ -1119,6 +1166,7 @@ export function convertUnresolvedAttributesForComponentType({
 
                 newAttributes[attrName] = res.attribute;
                 errors.push(...res.errors);
+                warnings.push(...res.warnings);
                 nComponents = res.nComponents;
 
                 if (newAttributes[attrName].type === "component") {

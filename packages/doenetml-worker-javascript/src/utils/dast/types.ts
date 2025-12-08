@@ -239,6 +239,8 @@ export type AttributeDefinition<T> = {
     createPrimitiveOfType?: string;
     /** Create an attribute that is a list of references */
     createReferences?: boolean;
+    /** Currently used only in combination with `createReferences`. Indicates strings are also acceptable for the attribute. */
+    allowStrings?: boolean;
     /**
      * If specified, then create a state variable named `createStateVariable` in the component
      * whose value is determined by this attribute

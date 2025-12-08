@@ -228,6 +228,7 @@ export function applySugar({
                                     });
                                 newComponent.children = expandResult.components;
                                 errors.push(...expandResult.errors);
+                                warnings.push(...expandResult.warnings);
                                 nComponents = expandResult.nComponents;
                             } else {
                                 console.log(
@@ -274,6 +275,7 @@ export function applySugar({
                                     expandResult.attributes,
                                 );
                                 errors.push(...expandResult.errors);
+                                warnings.push(...expandResult.warnings);
                                 nComponents = expandResult.nComponents;
                             } else {
                                 console.log(
