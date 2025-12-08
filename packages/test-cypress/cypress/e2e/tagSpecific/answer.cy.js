@@ -27,13 +27,15 @@ describe("Answer Tag Tests", function () {
 
         cy.window().then(async (win) => {
             const stateVariables = await win.returnAllStateVariables1();
-            const mathInputName =
+            const mathInputIdx =
                 stateVariables[await win.resolvePath1("answer1")].stateValues
                     .inputChildren[0].componentIdx;
-            const mathInputAnchor = cesc("#" + mathInputName) + " textarea";
-            const mathInputButtonAnchor = cesc("#" + mathInputName + "_button");
+            const mathInputAnchor = cesc("#_id_" + mathInputIdx) + " textarea";
+            const mathInputButtonAnchor = cesc(
+                "#_id_" + mathInputIdx + "_button",
+            );
             const mathInputEditableAnchor =
-                cesc("#" + mathInputName) + " .mq-editable-field";
+                cesc("#_id_" + mathInputIdx) + " .mq-editable-field";
 
             cy.get(mathInputButtonAnchor).should(
                 "have.attr",
@@ -351,11 +353,13 @@ describe("Answer Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            let textInputName =
+            let textInputIdx =
                 stateVariables[await win.resolvePath1("answer1")].stateValues
                     .inputChildren[0].componentIdx;
-            let textInputAnchor = cesc("#" + textInputName + "_input");
-            let textInputButtonAnchor = cesc("#" + textInputName + "_button");
+            let textInputAnchor = cesc("#_id_" + textInputIdx + "_input");
+            let textInputButtonAnchor = cesc(
+                "#_id_" + textInputIdx + "_button",
+            );
 
             cy.get(textInputAnchor).should("have.value", "");
             cy.get(textInputButtonAnchor).should(
@@ -1168,11 +1172,11 @@ describe("Answer Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            let choiceInputName =
+            let choiceInputIdx =
                 stateVariables[await win.resolvePath1("answer1")].stateValues
                     .inputChildren[0].componentIdx;
-            let choiceInputAnchor = "#" + choiceInputName;
-            let choiceInputButtonAnchor = "#" + choiceInputName + "_button";
+            let choiceInputAnchor = "#_id_" + choiceInputIdx;
+            let choiceInputButtonAnchor = "#_id_" + choiceInputIdx + "_button";
 
             cy.get(choiceInputAnchor).should("have.value", "");
             cy.get(choiceInputButtonAnchor).should(
@@ -1421,35 +1425,47 @@ d
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let inputNames = [];
+            let inputIndices = [];
             for (let n of [...Array(20).keys()]) {
-                inputNames.push(
+                inputIndices.push(
                     stateVariables[await win.resolvePath1(`answer${n + 1}`)]
                         .stateValues.inputChildren[0].componentIdx,
                 );
             }
 
             cy.log("Submit correct answers");
-            cy.get(cesc("#" + inputNames[0]) + " textarea").type("x{enter}", {
-                force: true,
-            });
-            cy.get(cesc("#" + inputNames[1]) + " textarea").type("x{enter}", {
-                force: true,
-            });
-            cy.get(cesc("#" + inputNames[2]) + " textarea").type("x{enter}", {
-                force: true,
-            });
-            cy.get(cesc("#" + inputNames[3]) + " textarea").type("x{enter}", {
-                force: true,
-            });
+            cy.get(cesc("#_id_" + inputIndices[0]) + " textarea").type(
+                "x{enter}",
+                {
+                    force: true,
+                },
+            );
+            cy.get(cesc("#_id_" + inputIndices[1]) + " textarea").type(
+                "x{enter}",
+                {
+                    force: true,
+                },
+            );
+            cy.get(cesc("#_id_" + inputIndices[2]) + " textarea").type(
+                "x{enter}",
+                {
+                    force: true,
+                },
+            );
+            cy.get(cesc("#_id_" + inputIndices[3]) + " textarea").type(
+                "x{enter}",
+                {
+                    force: true,
+                },
+            );
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).click();
-            cy.get(cesc("#" + inputNames[0]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
             );
-            cy.get(cesc("#" + inputNames[1]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
@@ -1457,18 +1473,26 @@ d
             cy.get(cesc("#answer3_button")).should("contain.text", "Correct");
             cy.get(cesc("#answer4_button")).should("contain.text", "Correct");
 
-            cy.get(cesc("#" + inputNames[4]) + "_input").type("hello{enter}");
-            cy.get(cesc("#" + inputNames[5]) + "_input").type("hello{enter}");
-            cy.get(cesc("#" + inputNames[6]) + "_input").type("hello{enter}");
-            cy.get(cesc("#" + inputNames[7]) + "_input").type("hello{enter}");
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_input").type(
+                "hello{enter}",
+            );
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_input").type(
+                "hello{enter}",
+            );
+            cy.get(cesc("#_id_" + inputIndices[6]) + "_input").type(
+                "hello{enter}",
+            );
+            cy.get(cesc("#_id_" + inputIndices[7]) + "_input").type(
+                "hello{enter}",
+            );
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).click();
-            cy.get(cesc("#" + inputNames[4]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
             );
-            cy.get(cesc("#" + inputNames[5]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
@@ -1524,20 +1548,20 @@ d
             cy.get(cesc("#answer15_button")).should("contain.text", "Correct");
             cy.get(cesc("#answer16_button")).should("contain.text", "Correct");
 
-            cy.get(cesc("#" + inputNames[16])).click();
-            cy.get(cesc("#" + inputNames[17])).click();
-            cy.get(cesc("#" + inputNames[18])).click();
-            cy.get(cesc("#" + inputNames[19])).click();
-            cy.get(cesc("#" + inputNames[16]) + "_button").click();
-            cy.get(cesc("#" + inputNames[17]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[16])).click();
+            cy.get(cesc("#_id_" + inputIndices[17])).click();
+            cy.get(cesc("#_id_" + inputIndices[18])).click();
+            cy.get(cesc("#_id_" + inputIndices[19])).click();
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").click();
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).click();
-            cy.get(cesc("#" + inputNames[16]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
             );
-            cy.get(cesc("#" + inputNames[17]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
@@ -1546,32 +1570,32 @@ d
             cy.get(cesc("#answer20_button")).should("contain.text", "Correct");
 
             cy.log("Submit incorrect answers");
-            cy.get(cesc("#" + inputNames[0]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[0]) + " textarea").type(
                 "{end}{backspace}y",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[1]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[1]) + " textarea").type(
                 "{end}{backspace}y",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[2]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[2]) + " textarea").type(
                 "{end}{backspace}y",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[3]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[3]) + " textarea").type(
                 "{end}{backspace}y",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[0]) + "_button").click();
-            cy.get(cesc("#" + inputNames[1]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[0]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[1]) + "_button").click();
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).click();
-            cy.get(cesc("#" + inputNames[0]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
             );
-            cy.get(cesc("#" + inputNames[1]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
@@ -1579,28 +1603,28 @@ d
             cy.get(cesc("#answer3_button")).should("contain.text", "Incorrect");
             cy.get(cesc("#answer4_button")).should("contain.text", "Incorrect");
 
-            cy.get(cesc("#" + inputNames[4]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_input")
                 .clear()
                 .type("bye");
-            cy.get(cesc("#" + inputNames[5]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_input")
                 .clear()
                 .type("bye");
-            cy.get(cesc("#" + inputNames[6]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[6]) + "_input")
                 .clear()
                 .type("bye");
-            cy.get(cesc("#" + inputNames[7]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[7]) + "_input")
                 .clear()
                 .type("bye");
-            cy.get(cesc("#" + inputNames[4]) + "_button").click();
-            cy.get(cesc("#" + inputNames[5]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_button").click();
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).click();
-            cy.get(cesc("#" + inputNames[4]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
             );
-            cy.get(cesc("#" + inputNames[5]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
@@ -1668,20 +1692,20 @@ d
                 "Incorrect",
             );
 
-            cy.get(cesc("#" + inputNames[16])).click();
-            cy.get(cesc("#" + inputNames[17])).click();
-            cy.get(cesc("#" + inputNames[18])).click();
-            cy.get(cesc("#" + inputNames[19])).click();
-            cy.get(cesc("#" + inputNames[16]) + "_button").click();
-            cy.get(cesc("#" + inputNames[17]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[16])).click();
+            cy.get(cesc("#_id_" + inputIndices[17])).click();
+            cy.get(cesc("#_id_" + inputIndices[18])).click();
+            cy.get(cesc("#_id_" + inputIndices[19])).click();
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").click();
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).click();
-            cy.get(cesc("#" + inputNames[16]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
             );
-            cy.get(cesc("#" + inputNames[17]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
@@ -1698,30 +1722,32 @@ d
             cy.log("Type to submit correct answers again");
 
             // Every other input should be disabled
-            cy.get(cesc("#" + inputNames[0]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[0]) + " textarea").type(
                 "{end}{backspace}x",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[1]) + " textarea").should(
+            cy.get(cesc("#_id_" + inputIndices[1]) + " textarea").should(
                 "be.disabled",
             );
-            cy.get(cesc("#" + inputNames[2]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[2]) + " textarea").type(
                 "{end}{backspace}x",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[3]) + " textarea").should(
+            cy.get(cesc("#_id_" + inputIndices[3]) + " textarea").should(
                 "be.disabled",
             );
-            cy.get(cesc("#" + inputNames[0]) + "_button").click();
-            cy.get(cesc("#" + inputNames[1]) + "_button").should("be.disabled");
+            cy.get(cesc("#_id_" + inputIndices[0]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
+                "be.disabled",
+            );
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).should("be.disabled");
-            cy.get(cesc("#" + inputNames[0]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
             );
-            cy.get(cesc("#" + inputNames[1]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
@@ -1729,24 +1755,30 @@ d
             cy.get(cesc("#answer3_button")).should("contain.text", "Correct");
             cy.get(cesc("#answer4_button")).should("contain.text", "Incorrect");
 
-            cy.get(cesc("#" + inputNames[4]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_input")
                 .clear()
                 .type("hello");
-            cy.get(cesc("#" + inputNames[5]) + "_input").should("be.disabled");
-            cy.get(cesc("#" + inputNames[6]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_input").should(
+                "be.disabled",
+            );
+            cy.get(cesc("#_id_" + inputIndices[6]) + "_input")
                 .clear()
                 .type("hello");
-            cy.get(cesc("#" + inputNames[7]) + "_input").should("be.disabled");
-            cy.get(cesc("#" + inputNames[4]) + "_button").click();
-            cy.get(cesc("#" + inputNames[5]) + "_button").should("be.disabled");
+            cy.get(cesc("#_id_" + inputIndices[7]) + "_input").should(
+                "be.disabled",
+            );
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
+                "be.disabled",
+            );
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).should("be.disabled");
-            cy.get(cesc("#" + inputNames[4]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
             );
-            cy.get(cesc("#" + inputNames[5]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
@@ -1808,22 +1840,26 @@ d
                 "Incorrect",
             );
 
-            cy.get(cesc("#" + inputNames[16])).click();
-            cy.get(cesc("#" + inputNames[17]) + "_input").should("be.disabled");
-            cy.get(cesc("#" + inputNames[18])).click();
-            cy.get(cesc("#" + inputNames[19]) + "_input").should("be.disabled");
-            cy.get(cesc("#" + inputNames[16]) + "_button").click();
-            cy.get(cesc("#" + inputNames[17]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[16])).click();
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_input").should(
+                "be.disabled",
+            );
+            cy.get(cesc("#_id_" + inputIndices[18])).click();
+            cy.get(cesc("#_id_" + inputIndices[19]) + "_input").should(
+                "be.disabled",
+            );
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
                 "be.disabled",
             );
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).should("be.disabled");
-            cy.get(cesc("#" + inputNames[16]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
             );
-            cy.get(cesc("#" + inputNames[17]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
@@ -1917,35 +1953,47 @@ d
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let inputNames = [];
+            let inputIndices = [];
             for (let n of [...Array(20).keys()]) {
-                inputNames.push(
+                inputIndices.push(
                     stateVariables[await win.resolvePath1(`answer${n + 1}`)]
                         .stateValues.inputChildren[0].componentIdx,
                 );
             }
 
             cy.log("Submit incorrect answers");
-            cy.get(cesc("#" + inputNames[0]) + " textarea").type("y{enter}", {
-                force: true,
-            });
-            cy.get(cesc("#" + inputNames[1]) + " textarea").type("y{enter}", {
-                force: true,
-            });
-            cy.get(cesc("#" + inputNames[2]) + " textarea").type("y{enter}", {
-                force: true,
-            });
-            cy.get(cesc("#" + inputNames[3]) + " textarea").type("y{enter}", {
-                force: true,
-            });
+            cy.get(cesc("#_id_" + inputIndices[0]) + " textarea").type(
+                "y{enter}",
+                {
+                    force: true,
+                },
+            );
+            cy.get(cesc("#_id_" + inputIndices[1]) + " textarea").type(
+                "y{enter}",
+                {
+                    force: true,
+                },
+            );
+            cy.get(cesc("#_id_" + inputIndices[2]) + " textarea").type(
+                "y{enter}",
+                {
+                    force: true,
+                },
+            );
+            cy.get(cesc("#_id_" + inputIndices[3]) + " textarea").type(
+                "y{enter}",
+                {
+                    force: true,
+                },
+            );
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).click();
-            cy.get(cesc("#" + inputNames[0]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
             );
-            cy.get(cesc("#" + inputNames[1]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
@@ -1953,18 +2001,26 @@ d
             cy.get(cesc("#answer3_button")).should("contain.text", "Incorrect");
             cy.get(cesc("#answer4_button")).should("contain.text", "Incorrect");
 
-            cy.get(cesc("#" + inputNames[4]) + "_input").type("bye{enter}");
-            cy.get(cesc("#" + inputNames[5]) + "_input").type("bye{enter}");
-            cy.get(cesc("#" + inputNames[6]) + "_input").type("bye{enter}");
-            cy.get(cesc("#" + inputNames[7]) + "_input").type("bye{enter}");
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_input").type(
+                "bye{enter}",
+            );
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_input").type(
+                "bye{enter}",
+            );
+            cy.get(cesc("#_id_" + inputIndices[6]) + "_input").type(
+                "bye{enter}",
+            );
+            cy.get(cesc("#_id_" + inputIndices[7]) + "_input").type(
+                "bye{enter}",
+            );
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).click();
-            cy.get(cesc("#" + inputNames[4]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
             );
-            cy.get(cesc("#" + inputNames[5]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
@@ -2024,16 +2080,16 @@ d
                 "Incorrect",
             );
 
-            cy.get(cesc("#" + inputNames[16]) + "_button").click();
-            cy.get(cesc("#" + inputNames[17]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").click();
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).click();
-            cy.get(cesc("#" + inputNames[16]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
             );
-            cy.get(cesc("#" + inputNames[17]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
@@ -2048,32 +2104,32 @@ d
             );
 
             cy.log("Submit correct answers");
-            cy.get(cesc("#" + inputNames[0]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[0]) + " textarea").type(
                 "{end}{backspace}x",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[1]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[1]) + " textarea").type(
                 "{end}{backspace}x",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[2]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[2]) + " textarea").type(
                 "{end}{backspace}x",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[3]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[3]) + " textarea").type(
                 "{end}{backspace}x",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[0]) + "_button").click();
-            cy.get(cesc("#" + inputNames[1]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[0]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[1]) + "_button").click();
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).click();
-            cy.get(cesc("#" + inputNames[0]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
             );
-            cy.get(cesc("#" + inputNames[1]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
@@ -2081,28 +2137,28 @@ d
             cy.get(cesc("#answer3_button")).should("contain.text", "Correct");
             cy.get(cesc("#answer4_button")).should("contain.text", "Correct");
 
-            cy.get(cesc("#" + inputNames[4]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_input")
                 .clear()
                 .type("hello");
-            cy.get(cesc("#" + inputNames[5]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_input")
                 .clear()
                 .type("hello");
-            cy.get(cesc("#" + inputNames[6]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[6]) + "_input")
                 .clear()
                 .type("hello");
-            cy.get(cesc("#" + inputNames[7]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[7]) + "_input")
                 .clear()
                 .type("hello");
-            cy.get(cesc("#" + inputNames[4]) + "_button").click();
-            cy.get(cesc("#" + inputNames[5]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_button").click();
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).click();
-            cy.get(cesc("#" + inputNames[4]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
             );
-            cy.get(cesc("#" + inputNames[5]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
@@ -2158,20 +2214,20 @@ d
             cy.get(cesc("#answer15_button")).should("contain.text", "Correct");
             cy.get(cesc("#answer16_button")).should("contain.text", "Correct");
 
-            cy.get(cesc("#" + inputNames[16])).click();
-            cy.get(cesc("#" + inputNames[17])).click();
-            cy.get(cesc("#" + inputNames[18])).click();
-            cy.get(cesc("#" + inputNames[19])).click();
-            cy.get(cesc("#" + inputNames[16]) + "_button").click();
-            cy.get(cesc("#" + inputNames[17]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[16])).click();
+            cy.get(cesc("#_id_" + inputIndices[17])).click();
+            cy.get(cesc("#_id_" + inputIndices[18])).click();
+            cy.get(cesc("#_id_" + inputIndices[19])).click();
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").click();
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).click();
-            cy.get(cesc("#" + inputNames[16]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
             );
-            cy.get(cesc("#" + inputNames[17]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
@@ -2182,30 +2238,32 @@ d
             cy.log("Type to submit incorrect answers again");
 
             // Every other input should be disabled
-            cy.get(cesc("#" + inputNames[0]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[0]) + " textarea").type(
                 "{end}{backspace}y",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[1]) + " textarea").should(
+            cy.get(cesc("#_id_" + inputIndices[1]) + " textarea").should(
                 "be.disabled",
             );
-            cy.get(cesc("#" + inputNames[2]) + " textarea").type(
+            cy.get(cesc("#_id_" + inputIndices[2]) + " textarea").type(
                 "{end}{backspace}y",
                 { force: true },
             );
-            cy.get(cesc("#" + inputNames[3]) + " textarea").should(
+            cy.get(cesc("#_id_" + inputIndices[3]) + " textarea").should(
                 "be.disabled",
             );
-            cy.get(cesc("#" + inputNames[0]) + "_button").click();
-            cy.get(cesc("#" + inputNames[1]) + "_button").should("be.disabled");
+            cy.get(cesc("#_id_" + inputIndices[0]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
+                "be.disabled",
+            );
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).should("be.disabled");
-            cy.get(cesc("#" + inputNames[0]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
             );
-            cy.get(cesc("#" + inputNames[1]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
@@ -2213,24 +2271,30 @@ d
             cy.get(cesc("#answer3_button")).should("contain.text", "Incorrect");
             cy.get(cesc("#answer4_button")).should("contain.text", "Correct");
 
-            cy.get(cesc("#" + inputNames[4]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_input")
                 .clear()
                 .type("bye");
-            cy.get(cesc("#" + inputNames[5]) + "_input").should("be.disabled");
-            cy.get(cesc("#" + inputNames[6]) + "_input")
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_input").should(
+                "be.disabled",
+            );
+            cy.get(cesc("#_id_" + inputIndices[6]) + "_input")
                 .clear()
                 .type("bye");
-            cy.get(cesc("#" + inputNames[7]) + "_input").should("be.disabled");
-            cy.get(cesc("#" + inputNames[4]) + "_button").click();
-            cy.get(cesc("#" + inputNames[5]) + "_button").should("be.disabled");
+            cy.get(cesc("#_id_" + inputIndices[7]) + "_input").should(
+                "be.disabled",
+            );
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
+                "be.disabled",
+            );
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).should("be.disabled");
-            cy.get(cesc("#" + inputNames[4]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
             );
-            cy.get(cesc("#" + inputNames[5]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
@@ -2284,22 +2348,26 @@ d
             );
             cy.get(cesc("#answer16_button")).should("contain.text", "Correct");
 
-            cy.get(cesc("#" + inputNames[16])).click();
-            cy.get(cesc("#" + inputNames[17]) + "_input").should("be.disabled");
-            cy.get(cesc("#" + inputNames[18])).click();
-            cy.get(cesc("#" + inputNames[19]) + "_input").should("be.disabled");
-            cy.get(cesc("#" + inputNames[16]) + "_button").click();
-            cy.get(cesc("#" + inputNames[17]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[16])).click();
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_input").should(
+                "be.disabled",
+            );
+            cy.get(cesc("#_id_" + inputIndices[18])).click();
+            cy.get(cesc("#_id_" + inputIndices[19]) + "_input").should(
+                "be.disabled",
+            );
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").click();
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
                 "be.disabled",
             );
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).should("be.disabled");
-            cy.get(cesc("#" + inputNames[16]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Incorrect",
             );
-            cy.get(cesc("#" + inputNames[17]) + "_button").should(
+            cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
                 "have.attr",
                 "aria-label",
                 "Correct",
@@ -2488,25 +2556,25 @@ d
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let mathInput1Name =
+            let mathInput1Idx =
                 stateVariables[await win.resolvePath1("ans1")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
+            let mathInput1Anchor = cesc("#_id_" + mathInput1Idx) + " textarea";
 
-            let mathInput2Name =
+            let mathInput2Idx =
                 stateVariables[await win.resolvePath1("ans2")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
+            let mathInput2Anchor = cesc("#_id_" + mathInput2Idx) + " textarea";
 
-            let mathInput3Name =
+            let mathInput3Idx =
                 stateVariables[await win.resolvePath1("ans3")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
+            let mathInput3Anchor = cesc("#_id_" + mathInput3Idx) + " textarea";
 
-            let mathInput4Name =
+            let mathInput4Idx =
                 stateVariables[await win.resolvePath1("ans4")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
+            let mathInput4Anchor = cesc("#_id_" + mathInput4Idx) + " textarea";
 
             cy.get(cesc("#ans1_button")).should("contain.text", "Check Work");
             cy.get(cesc("#ans2_button")).should("contain.text", "Hit it!");
@@ -2743,16 +2811,18 @@ d
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            let mathInputName =
+            let mathInputIdx =
                 stateVariables[await win.resolvePath1("x")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInputButtonAnchor = cesc("#" + mathInputName + "_button");
+            let mathInputButtonAnchor = cesc(
+                "#_id_" + mathInputIdx + "_button",
+            );
 
-            let choiceInputName =
+            let choiceInputIdx =
                 stateVariables[await win.resolvePath1("correct")].stateValues
                     .inputChildren[0].componentIdx;
             let choiceInputButtonAnchor = cesc(
-                "#" + choiceInputName + "_button",
+                "#_id_" + choiceInputIdx + "_button",
             );
 
             cy.get(mathInputButtonAnchor).should(
@@ -2779,16 +2849,18 @@ d
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            let mathInputName =
+            let mathInputIdx =
                 stateVariables[await win.resolvePath1("x")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInputButtonAnchor = cesc("#" + mathInputName + "_button");
+            let mathInputButtonAnchor = cesc(
+                "#_id_" + mathInputIdx + "_button",
+            );
 
-            let choiceInputName =
+            let choiceInputIdx =
                 stateVariables[await win.resolvePath1("correct")].stateValues
                     .inputChildren[0].componentIdx;
             let choiceInputButtonAnchor = cesc(
-                "#" + choiceInputName + "_button",
+                "#_id_" + choiceInputIdx + "_button",
             );
 
             cy.get(mathInputButtonAnchor).should("not.exist");

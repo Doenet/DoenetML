@@ -50,11 +50,13 @@ describe("Problem Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let twoxInputName =
+            let twoxInputIdx =
                 stateVariables[await win.resolvePath1("twox")].stateValues
                     .inputChildren[0].componentIdx;
-            let twoxInputAnchor = cesc("#" + twoxInputName) + " textarea";
-            let twoxInputButtonAnchor = cesc("#" + twoxInputName + "_button");
+            let twoxInputAnchor = cesc("#_id_" + twoxInputIdx) + " textarea";
+            let twoxInputButtonAnchor = cesc(
+                "#_id_" + twoxInputIdx + "_button",
+            );
 
             cy.get(twoxInputButtonAnchor).should(
                 "have.attr",
@@ -69,11 +71,13 @@ describe("Problem Tag Tests", function () {
                 "Correct",
             );
 
-            let helloInputName =
+            let helloInputIdx =
                 stateVariables[await win.resolvePath1("hello")].stateValues
                     .inputChildren[0].componentIdx;
-            let helloInputAnchor = cesc("#" + helloInputName + "_input");
-            let helloInputButtonAnchor = cesc("#" + helloInputName + "_button");
+            let helloInputAnchor = cesc("#_id_" + helloInputIdx + "_input");
+            let helloInputButtonAnchor = cesc(
+                "#_id_" + helloInputIdx + "_button",
+            );
 
             cy.get(helloInputButtonAnchor).should(
                 "have.attr",
@@ -234,11 +238,13 @@ describe("Problem Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let twoxInputName =
+            let twoxInputIdx =
                 stateVariables[await win.resolvePath1("twox")].stateValues
                     .inputChildren[0].componentIdx;
-            let twoxInputAnchor = cesc("#" + twoxInputName) + " textarea";
-            let twoxInputButtonAnchor = cesc("#" + twoxInputName + "_button");
+            let twoxInputAnchor = cesc("#_id_" + twoxInputIdx) + " textarea";
+            let twoxInputButtonAnchor = cesc(
+                "#_id_" + twoxInputIdx + "_button",
+            );
 
             cy.get(twoxInputButtonAnchor).should(
                 "have.attr",
@@ -253,11 +259,13 @@ describe("Problem Tag Tests", function () {
                 "Correct",
             );
 
-            let helloInputName =
+            let helloInputIdx =
                 stateVariables[await win.resolvePath1("hello")].stateValues
                     .inputChildren[0].componentIdx;
-            let helloInputAnchor = cesc("#" + helloInputName + "_input");
-            let helloInputButtonAnchor = cesc("#" + helloInputName + "_button");
+            let helloInputAnchor = cesc("#_id_" + helloInputIdx + "_input");
+            let helloInputButtonAnchor = cesc(
+                "#_id_" + helloInputIdx + "_button",
+            );
 
             cy.get(helloInputButtonAnchor).should(
                 "have.attr",
@@ -421,11 +429,13 @@ describe("Problem Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let twoxInputName =
+            let twoxInputIdx =
                 stateVariables[await win.resolvePath1("twox")].stateValues
                     .inputChildren[0].componentIdx;
-            let twoxInputAnchor = cesc("#" + twoxInputName) + " textarea";
-            let twoxInputButtonAnchor = cesc("#" + twoxInputName + "_button");
+            let twoxInputAnchor = cesc("#_id_" + twoxInputIdx) + " textarea";
+            let twoxInputButtonAnchor = cesc(
+                "#_id_" + twoxInputIdx + "_button",
+            );
 
             cy.get(twoxInputButtonAnchor).should(
                 "have.attr",
@@ -440,11 +450,13 @@ describe("Problem Tag Tests", function () {
                 "Correct",
             );
 
-            let helloInputName =
+            let helloInputIdx =
                 stateVariables[await win.resolvePath1("hello")].stateValues
                     .inputChildren[0].componentIdx;
-            let helloInputAnchor = cesc("#" + helloInputName + "_input");
-            let helloInputButtonAnchor = cesc("#" + helloInputName + "_button");
+            let helloInputAnchor = cesc("#_id_" + helloInputIdx + "_input");
+            let helloInputButtonAnchor = cesc(
+                "#_id_" + helloInputIdx + "_button",
+            );
 
             cy.get(helloInputButtonAnchor).should(
                 "have.attr",
@@ -611,11 +623,13 @@ describe("Problem Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let twoxInputName =
+            let twoxInputIdx =
                 stateVariables[await win.resolvePath1("twox")].stateValues
                     .inputChildren[0].componentIdx;
-            let twoxInputAnchor = cesc("#" + twoxInputName) + " textarea";
-            let twoxInputButtonAnchor = cesc("#" + twoxInputName + "_button");
+            let twoxInputAnchor = cesc("#_id_" + twoxInputIdx) + " textarea";
+            let twoxInputButtonAnchor = cesc(
+                "#_id_" + twoxInputIdx + "_button",
+            );
 
             cy.get(twoxInputButtonAnchor).should(
                 "have.attr",
@@ -630,11 +644,13 @@ describe("Problem Tag Tests", function () {
                 "Correct",
             );
 
-            let helloInputName =
+            let helloInputIdx =
                 stateVariables[await win.resolvePath1("hello")].stateValues
                     .inputChildren[0].componentIdx;
-            let helloInputAnchor = cesc("#" + helloInputName + "_input");
-            let helloInputButtonAnchor = cesc("#" + helloInputName + "_button");
+            let helloInputAnchor = cesc("#_id_" + helloInputIdx + "_input");
+            let helloInputButtonAnchor = cesc(
+                "#_id_" + helloInputIdx + "_button",
+            );
 
             cy.get(helloInputButtonAnchor).should(
                 "have.attr",
@@ -813,11 +829,13 @@ describe("Problem Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let twoxInputName =
+            let twoxInputIdx =
                 stateVariables[await win.resolvePath1("twox")].stateValues
                     .inputChildren[0].componentIdx;
-            let twoxInputAnchor = cesc("#" + twoxInputName) + " textarea";
-            let twoxInputButtonAnchor = cesc("#" + twoxInputName + "_button");
+            let twoxInputAnchor = cesc("#_id_" + twoxInputIdx) + " textarea";
+            let twoxInputButtonAnchor = cesc(
+                "#_id_" + twoxInputIdx + "_button",
+            );
 
             cy.get(twoxInputButtonAnchor).should(
                 "have.attr",
@@ -832,11 +850,13 @@ describe("Problem Tag Tests", function () {
                 "Correct",
             );
 
-            let helloInputName =
+            let helloInputIdx =
                 stateVariables[await win.resolvePath1("hello")].stateValues
                     .inputChildren[0].componentIdx;
-            let helloInputAnchor = cesc("#" + helloInputName + "_input");
-            let helloInputButtonAnchor = cesc("#" + helloInputName + "_button");
+            let helloInputAnchor = cesc("#_id_" + helloInputIdx + "_input");
+            let helloInputButtonAnchor = cesc(
+                "#_id_" + helloInputIdx + "_button",
+            );
 
             cy.get(helloInputButtonAnchor).should(
                 "have.attr",
@@ -998,25 +1018,25 @@ describe("Problem Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let mathInput1Name =
+            let mathInput1Idx =
                 stateVariables[await win.resolvePath1("ans1")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
+            let mathInput1Anchor = cesc("#_id_" + mathInput1Idx) + " textarea";
 
-            let mathInput2Name =
+            let mathInput2Idx =
                 stateVariables[await win.resolvePath1("ans2")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
+            let mathInput2Anchor = cesc("#_id_" + mathInput2Idx) + " textarea";
 
-            let mathInput3Name =
+            let mathInput3Idx =
                 stateVariables[await win.resolvePath1("ans3")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
+            let mathInput3Anchor = cesc("#_id_" + mathInput3Idx) + " textarea";
 
-            let mathInput4Name =
+            let mathInput4Idx =
                 stateVariables[await win.resolvePath1("ans4")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
+            let mathInput4Anchor = cesc("#_id_" + mathInput4Idx) + " textarea";
 
             cy.get(cesc("#prob1_button")).should("contain.text", "Check Work");
             cy.get(cesc("#prob2_button")).should("contain.text", "Hit it!");
@@ -1115,10 +1135,10 @@ describe("Problem Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let mathInput1Name =
+            let mathInput1Idx =
                 stateVariables[await win.resolvePath1("ans1")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
+            let mathInput1Anchor = cesc("#_id_" + mathInput1Idx) + " textarea";
 
             cy.get(cesc("#doc_button")).should("contain.text", "Hit it!");
 
