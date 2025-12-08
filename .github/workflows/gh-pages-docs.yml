@@ -42,10 +42,8 @@ jobs:
             - name: Build Docs
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6144"
-                  cd packages/doenetml
                   npm run build
-                  cd ../docs-nextra
-                  npm run build
+                  npm run build:docs
             - name: Setup Pages
               uses: actions/configure-pages@v5
             - name: Upload artifact

@@ -12,12 +12,32 @@
     ],
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
+        "build": "wireit",
         "test": "echo \"No tests \"",
         "preview": "vite preview",
         "test-cypress": "cypress open",
         "test-cypress-all": "cypress run -b 'chrome' --config video=false --headless",
         "test-cypress-parallel": "cypress-parallel -s test-cypress-all -t 4 -d cypress/e2e -n ../../node_modules/cypress-multi-reporters"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json",
+                "vite.config.ts"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../doenetml-prototype:build",
+                "../doenetml:build",
+                "../ui-components:build"
+            ]
+        }
     },
     "peerDependencies": {
         "react": "^19.1.1",
