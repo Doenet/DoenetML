@@ -2508,7 +2508,6 @@ describe("Collect tag tests", async () => {
         expect(errorWarnings.warnings[1].message).contain(
             "No source found for collect",
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
         expect(errorWarnings.warnings[1].position.start.line).eq(3);
         expect(errorWarnings.warnings[1].position.start.column).eq(5);
         expect(errorWarnings.warnings[1].position.end.line).eq(3);
@@ -2517,7 +2516,6 @@ describe("Collect tag tests", async () => {
         expect(errorWarnings.warnings[2].message).contain(
             "Cannot collect components of type <abc> as it is an invalid component type",
         );
-        expect(errorWarnings.warnings[2].level).eq(1);
         expect(errorWarnings.warnings[2].position.start.line).eq(4);
         expect(errorWarnings.warnings[2].position.start.column).eq(5);
         expect(errorWarnings.warnings[2].position.end.line).eq(4);

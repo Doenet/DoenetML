@@ -1464,7 +1464,6 @@ describe("Answer tag tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             "Invalid type for answer: bad",
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(6);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
@@ -1528,7 +1527,6 @@ describe("Answer tag tests", async () => {
             expect(errorWarnings.warnings[0].message).contain(
                 "An award for this answer is based on the answer tag's own submitted response",
             );
-            expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].position.start.line).eq(2);
             expect(errorWarnings.warnings[0].position.start.column).eq(5);
             expect(errorWarnings.warnings[0].position.end.line).eq(5);

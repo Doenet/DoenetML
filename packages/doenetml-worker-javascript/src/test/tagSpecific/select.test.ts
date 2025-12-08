@@ -1461,7 +1461,6 @@ describe("Select tag tests", async () => {
         // expect(errorWarnings.warnings[0].message).contain(
         //     "Invalid type for select: nothing",
         // );
-        // expect(errorWarnings.warnings[0].level).eq(1);
         // expect(errorWarnings.warnings[0].position.start.line).eq(2);
         // expect(errorWarnings.warnings[0].position.start.column).eq(5);
         // expect(errorWarnings.warnings[0].position.end.line).eq(4);

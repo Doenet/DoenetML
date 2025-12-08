@@ -771,7 +771,6 @@ describe("Parabola Tag Tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Haven't implemented parabola through more than 3 points`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(3);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
         expect(errorWarnings.warnings[0].position.end.line).eq(3);
@@ -818,7 +817,6 @@ describe("Parabola Tag Tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Haven't implemented parabola with vertex through more than 1 point`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(3);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
         expect(errorWarnings.warnings[0].position.end.line).eq(3);

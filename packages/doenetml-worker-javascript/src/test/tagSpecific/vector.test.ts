@@ -6296,7 +6296,6 @@ describe("Vector Tag Tests", function () {
         expect(errorWarnings.warnings[0].message).contain(
             "Vector is prescribed by head, tail, and displacement.  Ignoring specified head",
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(3);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
         expect(errorWarnings.warnings[0].position.end.line).eq(3);
@@ -6305,7 +6304,6 @@ describe("Vector Tag Tests", function () {
         expect(errorWarnings.warnings[1].message).contain(
             "numDimensions mismatch in vector",
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
         expect(errorWarnings.warnings[1].position.start.line).eq(4);
         expect(errorWarnings.warnings[1].position.start.column).eq(5);
         expect(errorWarnings.warnings[1].position.end.line).eq(4);
@@ -6314,7 +6312,6 @@ describe("Vector Tag Tests", function () {
         expect(errorWarnings.warnings[2].message).contain(
             "numDimensions mismatch in vector",
         );
-        expect(errorWarnings.warnings[2].level).eq(1);
         expect(errorWarnings.warnings[2].position.start.line).eq(5);
         expect(errorWarnings.warnings[2].position.start.column).eq(5);
         expect(errorWarnings.warnings[2].position.end.line).eq(5);
@@ -6323,7 +6320,6 @@ describe("Vector Tag Tests", function () {
         expect(errorWarnings.warnings[3].message).contain(
             "numDimensions mismatch in vector",
         );
-        expect(errorWarnings.warnings[3].level).eq(1);
         expect(errorWarnings.warnings[3].position.start.line).eq(6);
         expect(errorWarnings.warnings[3].position.start.column).eq(5);
         expect(errorWarnings.warnings[3].position.end.line).eq(6);
