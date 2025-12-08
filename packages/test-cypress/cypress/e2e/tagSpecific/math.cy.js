@@ -267,34 +267,30 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#tc_variable_style")).should("have.text", "black");
         cy.get(cesc("#bc_variable_style")).should("have.text", "none");
 
-        cy.get(cesc("#no_style") + " > span").should(
-            "have.css",
-            "color",
-            "rgb(0, 0, 0)",
-        );
-        cy.get(cesc("#no_style") + " > span").should(
+        cy.get(cesc("#no_style")).should("have.css", "color", "rgb(0, 0, 0)");
+        cy.get(cesc("#no_style")).should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#fixed_style") + " > span").should(
+        cy.get(cesc("#fixed_style")).should(
             "have.css",
             "color",
             "rgb(0, 128, 0)",
         );
-        cy.get(cesc("#fixed_style") + " > span").should(
+        cy.get(cesc("#fixed_style")).should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#variable_style") + " > span").should(
+        cy.get(cesc("#variable_style")).should(
             "have.css",
             "color",
             "rgb(0, 0, 0)",
         );
-        cy.get(cesc("#variable_style") + " > span").should(
+        cy.get(cesc("#variable_style")).should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
@@ -318,34 +314,30 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#tc_fixed_style")).should("have.text", "green");
         cy.get(cesc("#bc_fixed_style")).should("have.text", "none");
 
-        cy.get(cesc("#no_style") + " > span").should(
-            "have.css",
-            "color",
-            "rgb(0, 0, 0)",
-        );
-        cy.get(cesc("#no_style") + " > span").should(
+        cy.get(cesc("#no_style")).should("have.css", "color", "rgb(0, 0, 0)");
+        cy.get(cesc("#no_style")).should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#fixed_style") + " > span").should(
+        cy.get(cesc("#fixed_style")).should(
             "have.css",
             "color",
             "rgb(0, 128, 0)",
         );
-        cy.get(cesc("#fixed_style") + " > span").should(
+        cy.get(cesc("#fixed_style")).should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#variable_style") + " > span").should(
+        cy.get(cesc("#variable_style")).should(
             "have.css",
             "color",
             "rgb(0, 128, 0)",
         );
-        cy.get(cesc("#variable_style") + " > span").should(
+        cy.get(cesc("#variable_style")).should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
@@ -370,34 +362,30 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#tc_fixed_style")).should("have.text", "green");
         cy.get(cesc("#bc_fixed_style")).should("have.text", "none");
 
-        cy.get(cesc("#no_style") + " > span").should(
-            "have.css",
-            "color",
-            "rgb(0, 0, 0)",
-        );
-        cy.get(cesc("#no_style") + " > span").should(
+        cy.get(cesc("#no_style")).should("have.css", "color", "rgb(0, 0, 0)");
+        cy.get(cesc("#no_style")).should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#fixed_style") + " > span").should(
+        cy.get(cesc("#fixed_style")).should(
             "have.css",
             "color",
             "rgb(0, 128, 0)",
         );
-        cy.get(cesc("#fixed_style") + " > span").should(
+        cy.get(cesc("#fixed_style")).should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#variable_style") + " > span").should(
+        cy.get(cesc("#variable_style")).should(
             "have.css",
             "color",
             "rgb(255, 0, 0)",
         );
-        cy.get(cesc("#variable_style") + " > span").should(
+        cy.get(cesc("#variable_style")).should(
             "have.css",
             "background-color",
             "rgb(0, 0, 255)",
@@ -492,26 +480,10 @@ describe("Math Tag Tests", function () {
             cy.get(m2cAnchor).eq(0).should("have.text", toMathJaxString("x3"));
             cy.get(m2dAnchor).eq(0).should("have.text", toMathJaxString("x3"));
 
-            cy.get(m1cAnchor + " > span").should(
-                "have.css",
-                "color",
-                "rgb(0, 128, 0)",
-            );
-            cy.get(m1dAnchor + " > span").should(
-                "have.css",
-                "color",
-                "rgb(0, 0, 0)",
-            );
-            cy.get(m2cAnchor + " > span").should(
-                "have.css",
-                "color",
-                "rgb(255, 0, 0)",
-            );
-            cy.get(m2dAnchor + " > span").should(
-                "have.css",
-                "color",
-                "rgb(0, 0, 0)",
-            );
+            cy.get(m1cAnchor).should("have.css", "color", "rgb(0, 128, 0)");
+            cy.get(m1dAnchor).should("have.css", "color", "rgb(0, 0, 0)");
+            cy.get(m2cAnchor).should("have.css", "color", "rgb(255, 0, 0)");
+            cy.get(m2dAnchor).should("have.css", "color", "rgb(0, 0, 0)");
 
             cy.get(cesc("#m1coords")).eq(0).should("have.text", "(0,0)");
             cy.get(cesc("#m2coords")).eq(0).should("have.text", "(3,4)");

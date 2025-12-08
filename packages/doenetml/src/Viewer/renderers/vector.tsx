@@ -743,13 +743,11 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
 
     let style = textRendererStyle(darkMode, SVs.selectedStyle);
     return (
-        <a id={id}>
-            <span style={style}>
-                <MathJax hideUntilTypeset={"first"} inline dynamic>
-                    {mathJaxify}
-                </MathJax>
-            </span>
-        </a>
+        <span style={style} id={id}>
+            <MathJax hideUntilTypeset={"first"} inline dynamic>
+                {mathJaxify}
+            </MathJax>
+        </span>
     );
 });
 
