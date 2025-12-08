@@ -34,10 +34,7 @@ export default React.memo(function Feedback(props: UseDoenetRendererProps) {
     return (
         <div ref={ref} className="feedback">
             <span tabIndex={0}>{icon} Feedback</span>
-            <aside
-                id={id}
-                // tabIndex="0"
-            >
+            <aside id={id}>
                 {SVs.feedbackText}
                 {children}
             </aside>
