@@ -12,6 +12,31 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 ---
 
+### Attribute Example: description, decorative
+
+
+```doenet-editor-horiz
+<p>A graph without a description or decorative does not have enough information for assistive technology to interpret that graph and triggers a warning.</p>
+<graph name="deficientGraph">
+</graph>
+
+<p>In general, each graph should have a description attribute set to a textual description of the graph contents.</p>
+<graph description="A graph of the unit circle">
+  <circle fixed />
+</graph>
+
+<p>If for some reason, a graph is just present for decoration or contains no content that a user of a screen reader needs to be aware of, 
+the attribute decorative should be added to the graph.</p>
+<graph decorative />
+```
+
+Typically the `description` attribute should be specified for each ` <graph>{:dn}`.
+In special cases, the `decorative` attribute could be specified instead to indicate it can be ignored by screen readers.
+
+
+
+---
+
 ### Attribute Example: identicalAxisScales
 
 
