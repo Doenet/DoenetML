@@ -565,6 +565,34 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings.length).eq(0);
     });
 
+    it("Warning if omit $ in a reference attribute", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+    <p>
+        Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
+        <answer name="sum3">
+            <award referencesAreResponses="n1 n2"> <when>$n1+$n2=3</when> </award>
+        </answer>
+    </p>
+        `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            `Invalid value "n1 n2" for attribute referencesAreResponses`,
+        );
+
+        expect(errorWarnings.warnings[0].message).contain(`begin with a $`);
+        expect(errorWarnings.warnings[0].position.start.line).eq(5);
+        expect(errorWarnings.warnings[0].position.start.column).eq(20);
+        expect(errorWarnings.warnings[0].position.end.line).eq(5);
+        expect(errorWarnings.warnings[0].position.end.column).eq(50);
+    });
+
     it("Invalid collect source errors", async () => {
         let { core } = await createTestCore({
             doenetML: `
