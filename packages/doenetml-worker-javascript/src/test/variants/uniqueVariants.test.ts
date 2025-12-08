@@ -1443,6 +1443,115 @@ describe("Unique variant tests", async () => {
         expect(sampledValues[3]).eq(sampledValues[0]);
     });
 
+    it("can get unique with repeatForSequence without variants", async () => {
+        let doenetML = `
+    <selectFromSequence name="x" length="3" />
+    <setup><sequence name="seq" type="letters" length="$n" /></setup>
+    <repeatForSequence name="r" valueName="v" type="letters" length="$n">
+        <p name="p">letter: $v</p>
+    </repeatForSequence>
+    <p>N: <mathInput name="n" prefill="1" /></p>
+    `;
+
+        // get all values before they repeat in next variants
+        const sampledValues: number[] = [];
+        for (let ind = 1; ind <= 4; ind++) {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex: ind,
+            });
+
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            sampledValues.push(
+                stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues
+                    .value,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("r[1].p")].stateValues
+                    .text,
+            ).eq("letter: a");
+            expect(stateVariables[await resolvePathToNodeIdx("r[2].p")]).be
+                .undefined;
+
+            await updateMathInputValue({
+                latex: "3",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("r[1].p")].stateValues
+                    .text,
+            ).eq("letter: a");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("r[2].p")].stateValues
+                    .text,
+            ).eq("letter: b");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("r[3].p")].stateValues
+                    .text,
+            ).eq("letter: c");
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("x[1]")].stateValues
+                    .value,
+            ).eq(sampledValues[ind - 1]);
+            expect(
+                stateVariables[
+                    stateVariables[await resolvePathToNodeIdx("r[1].p")]
+                        .activeChildren[1].componentIdx
+                ].stateValues.value,
+            ).eq("a");
+            expect(
+                stateVariables[
+                    stateVariables[await resolvePathToNodeIdx("r[2].p")]
+                        .activeChildren[1].componentIdx
+                ].stateValues.value,
+            ).eq("b");
+            expect(
+                stateVariables[
+                    stateVariables[await resolvePathToNodeIdx("r[3].p")]
+                        .activeChildren[1].componentIdx
+                ].stateValues.value,
+            ).eq("c");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("_document1")]
+                    .sharedParameters.allPossibleVariants,
+            ).eqls(["a", "b", "c"]);
+
+            await updateMathInputValue({
+                latex: "4",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("r[1].p")].stateValues
+                    .text,
+            ).eq("letter: a");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("r[2].p")].stateValues
+                    .text,
+            ).eq("letter: b");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("r[3].p")].stateValues
+                    .text,
+            ).eq("letter: c");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("r[4].p")].stateValues
+                    .text,
+            ).eq("letter: d");
+        }
+        // first three are in a random order
+        expect(sampledValues.slice(0, 3).sort()).eqls([1, 2, 3]);
+        // then that order is repeated
+        expect(sampledValues[3]).eq(sampledValues[0]);
+    });
+
     async function test_shuffled_choice_input(
         doenetML: string,
         insiderAnswer = false,
