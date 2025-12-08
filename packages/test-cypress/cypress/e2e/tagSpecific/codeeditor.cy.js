@@ -126,7 +126,7 @@ describe("Code Editor Tag Tests", function () {
             );
         });
 
-        cy.get(cesc(`#editor::0`)).should("exist");
+        cy.get(cesc(`#editor::_id_0`)).should("exist");
 
         cy.get(cesc("#p1")).should("have.text", "");
         cy.get(cesc("#p2")).should("have.text", "");
@@ -156,7 +156,7 @@ describe("Code Editor Tag Tests", function () {
 
         cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
         cy.get(cesc("#p2")).should("have.text", "");
-        cy.get(cesc(`#editor::0`)).should("exist");
+        cy.get(cesc(`#editor::_id_0`)).should("exist");
         cy.get(cesc(`#editor::p1`)).should("not.exist");
 
         cy.window().then(async (win) => {
@@ -180,7 +180,7 @@ describe("Code Editor Tag Tests", function () {
 
         cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
         cy.get(cesc("#p2")).should("have.text", '<p name="p1">Hello!</p>');
-        cy.get(cesc(`#editor::0`)).should("exist");
+        cy.get(cesc(`#editor::_id_0`)).should("exist");
         cy.get(cesc(`#editor::p1`)).should("not.exist");
 
         cy.window().then(async (win) => {
@@ -1706,7 +1706,7 @@ describe("Code Editor Tag Tests", function () {
             );
         });
 
-        cy.get(cesc(`#editor::0`)).should("contain.text", "hello there");
+        cy.get(cesc(`#editor::_id_0`)).should("contain.text", "hello there");
     });
 
     it("set value from immediateValue on reload", () => {

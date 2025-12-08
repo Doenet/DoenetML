@@ -71,7 +71,7 @@ $fi.iterates
             );
         });
 
-        cy.get(cesc("#0")).should(
+        cy.get(cesc("#_id_0")).should(
             "contain.text",
             "In document: yes, no, maybe",
         );
