@@ -560,7 +560,7 @@ export default React.memo(function MathComponent(
     if (SVs.mrowChildRendererIds) {
         anchors.push(
             ...SVs.mrowChildRendererIds.map((rowId: string) => {
-                return <a key={rowId} id={rowId} />;
+                return <span key={rowId} id={rowId} />;
             }),
         );
     }
@@ -568,13 +568,13 @@ export default React.memo(function MathComponent(
     let style = textRendererStyle(darkMode, SVs.selectedStyle);
 
     return (
-        <a id={id}>
+        <>
             {anchors}
-            <span style={style}>
+            <span style={style} id={id}>
                 <MathJax hideUntilTypeset={"first"} inline dynamic>
                     {latexWithDelims}
                 </MathJax>
             </span>
-        </a>
+        </>
     );
 });
