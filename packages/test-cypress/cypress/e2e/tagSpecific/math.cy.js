@@ -445,35 +445,35 @@ describe("Math Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let m1aName =
+            let m1aIdx =
                 stateVariables[await win.resolvePath1("g2")].activeChildren[0]
                     .componentIdx;
-            let m2aName =
+            let m2aIdx =
                 stateVariables[await win.resolvePath1("g2")].activeChildren[1]
                     .componentIdx;
-            let m1bName =
+            let m1bIdx =
                 stateVariables[await win.resolvePath1("g3")].activeChildren[0]
                     .componentIdx;
-            let m2bName =
+            let m2bIdx =
                 stateVariables[await win.resolvePath1("g3")].activeChildren[1]
                     .componentIdx;
-            let m1cName =
+            let m1cIdx =
                 stateVariables[await win.resolvePath1("p1")].activeChildren[0]
                     .componentIdx;
-            let m2cName =
+            let m2cIdx =
                 stateVariables[await win.resolvePath1("p1")].activeChildren[2]
                     .componentIdx;
-            let m1dName =
+            let m1dIdx =
                 stateVariables[await win.resolvePath1("p2")].activeChildren[0]
                     .componentIdx;
             let m2dName =
                 stateVariables[await win.resolvePath1("p2")].activeChildren[2]
                     .componentIdx;
 
-            let m1cAnchor = "#" + m1cName;
-            let m2cAnchor = "#" + m2cName;
-            let m1dAnchor = "#" + m1dName;
-            let m2dAnchor = "#" + m2dName;
+            let m1cAnchor = "#_id_" + m1cIdx;
+            let m2cAnchor = "#_id_" + m2cIdx;
+            let m1dAnchor = "#_id_" + m1dIdx;
+            let m2dAnchor = "#_id_" + m2dName;
 
             cy.get(m1cAnchor).eq(0).should("have.text", toMathJaxString("x2"));
             cy.get(m1dAnchor).eq(0).should("have.text", toMathJaxString("x2"));
@@ -519,12 +519,12 @@ describe("Math Tag Tests", function () {
             cy.window().then(async (win) => {
                 win.callAction1({
                     actionName: "moveMath",
-                    componentIdx: m1aName,
+                    componentIdx: m1aIdx,
                     args: { x: 7, y: 1 },
                 });
                 win.callAction1({
                     actionName: "moveMath",
-                    componentIdx: m2aName,
+                    componentIdx: m2aIdx,
                     args: { x: -8, y: 2 },
                 });
             });
@@ -542,12 +542,12 @@ describe("Math Tag Tests", function () {
             cy.window().then(async (win) => {
                 win.callAction1({
                     actionName: "moveMath",
-                    componentIdx: m1bName,
+                    componentIdx: m1bIdx,
                     args: { x: -6, y: 3 },
                 });
                 win.callAction1({
                     actionName: "moveMath",
-                    componentIdx: m2bName,
+                    componentIdx: m2bIdx,
                     args: { x: -5, y: -4 },
                 });
             });

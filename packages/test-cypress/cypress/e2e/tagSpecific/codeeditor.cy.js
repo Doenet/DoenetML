@@ -126,7 +126,7 @@ describe("Code Editor Tag Tests", function () {
             );
         });
 
-        cy.get(cesc(`#editor::0`)).should("exist");
+        cy.get(cesc(`#editor::_id_0`)).should("exist");
 
         cy.get(cesc("#p1")).should("have.text", "");
         cy.get(cesc("#p2")).should("have.text", "");
@@ -156,7 +156,7 @@ describe("Code Editor Tag Tests", function () {
 
         cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
         cy.get(cesc("#p2")).should("have.text", "");
-        cy.get(cesc(`#editor::0`)).should("exist");
+        cy.get(cesc(`#editor::_id_0`)).should("exist");
         cy.get(cesc(`#editor::p1`)).should("not.exist");
 
         cy.window().then(async (win) => {
@@ -180,7 +180,7 @@ describe("Code Editor Tag Tests", function () {
 
         cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
         cy.get(cesc("#p2")).should("have.text", '<p name="p1">Hello!</p>');
-        cy.get(cesc(`#editor::0`)).should("exist");
+        cy.get(cesc(`#editor::_id_0`)).should("exist");
         cy.get(cesc(`#editor::p1`)).should("not.exist");
 
         cy.window().then(async (win) => {
@@ -371,10 +371,10 @@ describe("Code Editor Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let viewerName =
+            let viewerIdx =
                 stateVariables[await win.resolvePath1("editor")]
                     .activeChildren[0].componentIdx;
-            let contentAnchor = "#" + cesc(viewerName) + "_content";
+            let contentAnchor = "#_id_" + cesc(viewerIdx) + "_content";
 
             cy.get(cesc("#p1")).should("have.text", "");
             cy.get(cesc("#p2")).should("have.text", "");
@@ -395,7 +395,7 @@ describe("Code Editor Tag Tests", function () {
                     stateVariables[await win.resolvePath1("editor")].stateValues
                         .value,
                 ).eq("");
-                expect(stateVariables[viewerName].activeChildren.length).eq(0);
+                expect(stateVariables[viewerIdx].activeChildren.length).eq(0);
                 expect(stateVariables[await win.resolvePath1("1")]).eq(
                     undefined,
                 );
@@ -434,7 +434,7 @@ describe("Code Editor Tag Tests", function () {
                     stateVariables[await win.resolvePath1("editor")].stateValues
                         .value,
                 ).eq("");
-                expect(stateVariables[viewerName].activeChildren.length).eq(0);
+                expect(stateVariables[viewerIdx].activeChildren.length).eq(0);
                 expect(stateVariables[await win.resolvePath1("1")]).eq(
                     undefined,
                 );
@@ -468,7 +468,7 @@ describe("Code Editor Tag Tests", function () {
                     stateVariables[await win.resolvePath1("editor")].stateValues
                         .value,
                 ).eq('<p name="p1">Hello!</p>');
-                expect(stateVariables[viewerName].activeChildren.length).eq(0);
+                expect(stateVariables[viewerIdx].activeChildren.length).eq(0);
                 expect(stateVariables[await win.resolvePath1("1")]).eq(
                     undefined,
                 );
@@ -502,9 +502,9 @@ describe("Code Editor Tag Tests", function () {
                     stateVariables[await win.resolvePath1("editor")].stateValues
                         .value,
                 ).eq('<p name="p1">Hello!</p>');
-                expect(stateVariables[viewerName].activeChildren.length).eq(1);
+                expect(stateVariables[viewerIdx].activeChildren.length).eq(1);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentIdx,
+                    stateVariables[viewerIdx].activeChildren[0].componentIdx,
                 ).eq("/result/p1");
                 expect(
                     stateVariables[await win.resolvePath1("1")].stateValues
@@ -548,9 +548,9 @@ describe("Code Editor Tag Tests", function () {
                     stateVariables[await win.resolvePath1("editor")].stateValues
                         .value,
                 ).eq('<p name="p1">Hello!</p>');
-                expect(stateVariables[viewerName].activeChildren.length).eq(1);
+                expect(stateVariables[viewerIdx].activeChildren.length).eq(1);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentIdx,
+                    stateVariables[viewerIdx].activeChildren[0].componentIdx,
                 ).eq("/result/p1");
                 expect(
                     stateVariables[await win.resolvePath1("1")].stateValues
@@ -594,9 +594,9 @@ describe("Code Editor Tag Tests", function () {
                 ).eq(
                     '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
                 );
-                expect(stateVariables[viewerName].activeChildren.length).eq(1);
+                expect(stateVariables[viewerIdx].activeChildren.length).eq(1);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentIdx,
+                    stateVariables[viewerIdx].activeChildren[0].componentIdx,
                 ).eq("/result/p1");
                 expect(
                     stateVariables[await win.resolvePath1("1")].stateValues
@@ -653,17 +653,17 @@ describe("Code Editor Tag Tests", function () {
                 ).eq(
                     '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
                 );
-                expect(stateVariables[viewerName].activeChildren.length).eq(3);
+                expect(stateVariables[viewerIdx].activeChildren.length).eq(3);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentIdx,
+                    stateVariables[viewerIdx].activeChildren[0].componentIdx,
                 ).eq("/result/p1");
                 expect(
                     stateVariables[await win.resolvePath1("1")].stateValues
                         .text,
                 ).eq("Hello!");
-                expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
+                expect(stateVariables[viewerIdx].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentIdx,
+                    stateVariables[viewerIdx].activeChildren[2].componentIdx,
                 ).eq("/result/_p2");
                 expect(
                     stateVariables[await win.resolvePath1("2")].stateValues
@@ -1706,7 +1706,7 @@ describe("Code Editor Tag Tests", function () {
             );
         });
 
-        cy.get(cesc(`#editor::0`)).should("contain.text", "hello there");
+        cy.get(cesc(`#editor::_id_0`)).should("contain.text", "hello there");
     });
 
     it("set value from immediateValue on reload", () => {

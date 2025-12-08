@@ -22,10 +22,10 @@ describe("Map Tag Tests", function () {
             );
         });
 
-        cy.get("#0").should("contain.text", "Hello 1");
-        cy.get("#0").should("contain.text", "Hello 2");
-        cy.get("#0").should("contain.text", "Hello 3");
-        cy.get("#0").should("not.contain.text", ",");
+        cy.get("#_id_0").should("contain.text", "Hello 1");
+        cy.get("#_id_0").should("contain.text", "Hello 2");
+        cy.get("#_id_0").should("contain.text", "Hello 3");
+        cy.get("#_id_0").should("not.contain.text", ",");
     });
 
     it("repeatForSequence will not display as list if has block components", () => {
@@ -43,9 +43,9 @@ describe("Map Tag Tests", function () {
             );
         });
 
-        cy.get("#0").should("contain.text", "Hello 1");
-        cy.get("#0").should("contain.text", "Hello 2");
-        cy.get("#0").should("contain.text", "Hello 3");
-        cy.get("#0").should("not.contain.text", ",");
+        cy.get("#_id_0").should("contain.text", "Hello 1");
+        cy.get("#_id_0").should("contain.text", "Hello 2");
+        cy.get("#_id_0").should("contain.text", "Hello 3");
+        cy.get("#_id_0").should("not.contain.text", ",");
     });
 });

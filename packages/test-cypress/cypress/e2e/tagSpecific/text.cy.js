@@ -224,35 +224,35 @@ describe("Text Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let t1aName =
+            let t1aIdx =
                 stateVariables[await win.resolvePath1("g2")].activeChildren[0]
                     .componentIdx;
-            let t2aName =
+            let t2aIdx =
                 stateVariables[await win.resolvePath1("g2")].activeChildren[1]
                     .componentIdx;
-            let t1bName =
+            let t1bIdx =
                 stateVariables[await win.resolvePath1("g3")].activeChildren[0]
                     .componentIdx;
-            let t2bName =
+            let t2bIdx =
                 stateVariables[await win.resolvePath1("g3")].activeChildren[1]
                     .componentIdx;
-            let t1cName =
+            let t1cIdx =
                 stateVariables[await win.resolvePath1("p1")].activeChildren[0]
                     .componentIdx;
-            let t2cName =
+            let t2cIdx =
                 stateVariables[await win.resolvePath1("p1")].activeChildren[2]
                     .componentIdx;
-            let t1dName =
+            let t1dIdx =
                 stateVariables[await win.resolvePath1("p2")].activeChildren[0]
                     .componentIdx;
-            let t2dName =
+            let t2dIdx =
                 stateVariables[await win.resolvePath1("p2")].activeChildren[2]
                     .componentIdx;
 
-            let t1cAnchor = "#" + t1cName;
-            let t2cAnchor = "#" + t2cName;
-            let t1dAnchor = "#" + t1dName;
-            let t2dAnchor = "#" + t2dName;
+            let t1cAnchor = "#_id_" + t1cIdx;
+            let t2cAnchor = "#_id_" + t2cIdx;
+            let t1dAnchor = "#_id_" + t1dIdx;
+            let t2dAnchor = "#_id_" + t2dIdx;
 
             cy.get(t1cAnchor).should("have.text", "One");
             cy.get(t1dAnchor).should("have.text", "One");
@@ -298,12 +298,12 @@ describe("Text Tag Tests", function () {
             cy.window().then(async (win) => {
                 win.callAction1({
                     actionName: "moveText",
-                    componentIdx: t1aName,
+                    componentIdx: t1aIdx,
                     args: { x: 7, y: 1 },
                 });
                 win.callAction1({
                     actionName: "moveText",
-                    componentIdx: t2aName,
+                    componentIdx: t2aIdx,
                     args: { x: -8, y: 2 },
                 });
             });
@@ -321,12 +321,12 @@ describe("Text Tag Tests", function () {
             cy.window().then(async (win) => {
                 win.callAction1({
                     actionName: "moveText",
-                    componentIdx: t1bName,
+                    componentIdx: t1bIdx,
                     args: { x: -6, y: 3 },
                 });
                 win.callAction1({
                     actionName: "moveText",
-                    componentIdx: t2bName,
+                    componentIdx: t2bIdx,
                     args: { x: -5, y: -4 },
                 });
             });

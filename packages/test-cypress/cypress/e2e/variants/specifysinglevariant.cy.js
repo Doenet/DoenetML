@@ -596,30 +596,30 @@ describe("Specifying single variant document tests", function () {
                 stateVariables[await win.resolvePath1("m[1]")].stateValues
                     .value;
 
-            let mathInput1Name =
+            let mathInput1Idx =
                 stateVariables[await win.resolvePath1(`g.ans`)].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput2Name =
+            let mathInput2Idx =
                 stateVariables[await win.resolvePath1(`g2.ans`)].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput3Name =
+            let mathInput3Idx =
                 stateVariables[await win.resolvePath1(`g3.ans`)].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput4Name =
+            let mathInput4Idx =
                 stateVariables[await win.resolvePath1(`p3.ans`)].stateValues
                     .inputChildren[0].componentIdx;
 
-            let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
-            let answer1Button = cesc("#" + mathInput1Name + "_button");
+            let mathInput1Anchor = cesc("#_id_" + mathInput1Idx) + " textarea";
+            let answer1Button = cesc("#_id_" + mathInput1Idx + "_button");
 
-            let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
-            let answer2Button = cesc("#" + mathInput2Name + "_button");
+            let mathInput2Anchor = cesc("#_id_" + mathInput2Idx) + " textarea";
+            let answer2Button = cesc("#_id_" + mathInput2Idx + "_button");
 
-            let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
-            let answer3Button = cesc("#" + mathInput3Name + "_button");
+            let mathInput3Anchor = cesc("#_id_" + mathInput3Idx) + " textarea";
+            let answer3Button = cesc("#_id_" + mathInput3Idx + "_button");
 
-            let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
-            let answer4Button = cesc("#" + mathInput4Name + "_button");
+            let mathInput4Anchor = cesc("#_id_" + mathInput4Idx) + " textarea";
+            let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
 
             cy.get(`label[for=${cesc("ci_choice1_input")}]`).should(
                 "have.text",

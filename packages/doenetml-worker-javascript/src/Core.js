@@ -1083,7 +1083,7 @@ export default class Core {
     getRendererId(component) {
         return (
             this.rootNames?.[component.componentOrAdaptedIdx] ??
-            component.componentOrAdaptedIdx.toString()
+            `_id_${component.componentOrAdaptedIdx.toString()}`
         );
     }
 

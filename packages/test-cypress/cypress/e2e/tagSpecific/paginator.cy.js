@@ -66,21 +66,21 @@ describe("Paginator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let mathInput1Name =
+            let mathInput1Idx =
                 stateVariables[await win.resolvePath1("answer1")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
+            let mathInput1Anchor = cesc("#_id_" + mathInput1Idx) + " textarea";
             let mathInput1DisplayAnchor =
-                cesc("#" + mathInput1Name) + " .mq-editable-field";
-            let answer1Button = cesc("#" + mathInput1Name + "_button");
+                cesc("#_id_" + mathInput1Idx) + " .mq-editable-field";
+            let answer1Button = cesc("#_id_" + mathInput1Idx + "_button");
 
-            let mathInput4Name =
+            let mathInput4Idx =
                 stateVariables[await win.resolvePath1("answer4")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
+            let mathInput4Anchor = cesc("#_id_" + mathInput4Idx) + " textarea";
             let mathInput4DisplayAnchor =
-                cesc("#" + mathInput4Name) + " .mq-editable-field";
-            let answer4Button = cesc("#" + mathInput4Name + "_button");
+                cesc("#_id_" + mathInput4Idx) + " .mq-editable-field";
+            let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
 
             cy.get(cesc("#ca")).should("have.text", "0");
             cy.get(cesc("#title1")).should("have.text", "Page 1");
@@ -190,21 +190,23 @@ describe("Paginator Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                let mathInput2Name =
+                let mathInput2Idx =
                     stateVariables[await win.resolvePath1("answer2")]
                         .stateValues.inputChildren[0].componentIdx;
-                let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
+                let mathInput2Anchor =
+                    cesc("#_id_" + mathInput2Idx) + " textarea";
                 let mathInput2DisplayAnchor =
-                    cesc("#" + mathInput2Name) + " .mq-editable-field";
-                let answer2Button = cesc("#" + mathInput2Name + "_button");
+                    cesc("#_id_" + mathInput2Idx) + " .mq-editable-field";
+                let answer2Button = cesc("#_id_" + mathInput2Idx + "_button");
 
-                let mathInput3Name =
+                let mathInput3Idx =
                     stateVariables[await win.resolvePath1("answer3")]
                         .stateValues.inputChildren[0].componentIdx;
-                let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
+                let mathInput3Anchor =
+                    cesc("#_id_" + mathInput3Idx) + " textarea";
                 let mathInput3DisplayAnchor =
-                    cesc("#" + mathInput3Name) + " .mq-editable-field";
-                let answer3Button = cesc("#" + mathInput3Name + "_button");
+                    cesc("#_id_" + mathInput3Idx) + " .mq-editable-field";
+                let answer3Button = cesc("#_id_" + mathInput3Idx + "_button");
 
                 cy.get(mathInput2Anchor).type("2x{enter}", { force: true });
                 cy.get(answer2Button).should(
@@ -344,13 +346,13 @@ describe("Paginator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let mathInput4Name =
+            let mathInput4Idx =
                 stateVariables[await win.resolvePath1("answer4")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
+            let mathInput4Anchor = cesc("#_id_" + mathInput4Idx) + " textarea";
             let mathInput4DisplayAnchor =
-                cesc("#" + mathInput4Name) + " .mq-editable-field";
-            let answer4Button = cesc("#" + mathInput4Name + "_button");
+                cesc("#_id_" + mathInput4Idx) + " .mq-editable-field";
+            let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
 
             cy.get(cesc("#name_input")).should("have.value", "Me");
             cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
@@ -380,21 +382,23 @@ describe("Paginator Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                let mathInput2Name =
+                let mathInput2Idx =
                     stateVariables[await win.resolvePath1("answer2")]
                         .stateValues.inputChildren[0].componentIdx;
-                let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
+                let mathInput2Anchor =
+                    cesc("#_id_" + mathInput2Idx) + " textarea";
                 let mathInput2DisplayAnchor =
-                    cesc("#" + mathInput2Name) + " .mq-editable-field";
-                let answer2Button = cesc("#" + mathInput2Name + "_button");
+                    cesc("#_id_" + mathInput2Idx) + " .mq-editable-field";
+                let answer2Button = cesc("#_id_" + mathInput2Idx + "_button");
 
-                let mathInput3Name =
+                let mathInput3Idx =
                     stateVariables[await win.resolvePath1("answer3")]
                         .stateValues.inputChildren[0].componentIdx;
-                let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
+                let mathInput3Anchor =
+                    cesc("#_id_" + mathInput3Idx) + " textarea";
                 let mathInput3DisplayAnchor =
-                    cesc("#" + mathInput3Name) + " .mq-editable-field";
-                let answer3Button = cesc("#" + mathInput3Name + "_button");
+                    cesc("#_id_" + mathInput3Idx) + " .mq-editable-field";
+                let answer3Button = cesc("#_id_" + mathInput3Idx + "_button");
 
                 cy.get(answer2Button).should(
                     "have.attr",
@@ -497,14 +501,16 @@ describe("Paginator Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
 
-                    let mathInput1Name =
+                    let mathInput1Idx =
                         stateVariables[await win.resolvePath1("answer1")]
                             .stateValues.inputChildren[0].componentIdx;
                     let mathInput1Anchor =
-                        cesc("#" + mathInput1Name) + " textarea";
+                        cesc("#_id_" + mathInput1Idx) + " textarea";
                     let mathInput1DisplayAnchor =
-                        cesc("#" + mathInput1Name) + " .mq-editable-field";
-                    let answer1Button = cesc("#" + mathInput1Name + "_button");
+                        cesc("#_id_" + mathInput1Idx) + " .mq-editable-field";
+                    let answer1Button = cesc(
+                        "#_id_" + mathInput1Idx + "_button",
+                    );
 
                     cy.get(answer1Button).should(
                         "have.attr",
@@ -687,29 +693,29 @@ describe("Paginator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let mathInput2Name =
+            let mathInput2Idx =
                 stateVariables[await win.resolvePath1("answer2")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
+            let mathInput2Anchor = cesc("#_id_" + mathInput2Idx) + " textarea";
             let mathInput2DisplayAnchor =
-                cesc("#" + mathInput2Name) + " .mq-editable-field";
-            let answer2Button = cesc("#" + mathInput2Name + "_button");
+                cesc("#_id_" + mathInput2Idx) + " .mq-editable-field";
+            let answer2Button = cesc("#_id_" + mathInput2Idx + "_button");
 
-            let mathInput3Name =
+            let mathInput3Idx =
                 stateVariables[await win.resolvePath1("answer3")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
+            let mathInput3Anchor = cesc("#_id_" + mathInput3Idx) + " textarea";
             let mathInput3DisplayAnchor =
-                cesc("#" + mathInput3Name) + " .mq-editable-field";
-            let answer3Button = cesc("#" + mathInput3Name + "_button");
+                cesc("#_id_" + mathInput3Idx) + " .mq-editable-field";
+            let answer3Button = cesc("#_id_" + mathInput3Idx + "_button");
 
-            let mathInput4Name =
+            let mathInput4Idx =
                 stateVariables[await win.resolvePath1("answer4")].stateValues
                     .inputChildren[0].componentIdx;
-            let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
+            let mathInput4Anchor = cesc("#_id_" + mathInput4Idx) + " textarea";
             let mathInput4DisplayAnchor =
-                cesc("#" + mathInput4Name) + " .mq-editable-field";
-            let answer4Button = cesc("#" + mathInput4Name + "_button");
+                cesc("#_id_" + mathInput4Idx) + " .mq-editable-field";
+            let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
 
             cy.get(answer2Button).should(
                 "have.attr",
@@ -784,13 +790,14 @@ describe("Paginator Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                let mathInput1Name =
+                let mathInput1Idx =
                     stateVariables[await win.resolvePath1("answer1")]
                         .stateValues.inputChildren[0].componentIdx;
-                let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
+                let mathInput1Anchor =
+                    cesc("#_id_" + mathInput1Idx) + " textarea";
                 let mathInput1DisplayAnchor =
-                    cesc("#" + mathInput1Name) + " .mq-editable-field";
-                let answer1Button = cesc("#" + mathInput1Name + "_button");
+                    cesc("#_id_" + mathInput1Idx) + " .mq-editable-field";
+                let answer1Button = cesc("#_id_" + mathInput1Idx + "_button");
 
                 cy.get(answer1Button).should(
                     "have.attr",
@@ -851,13 +858,13 @@ describe("Paginator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
-            let textInput1Name =
+            let textInput1Idx =
                 stateVariables[await win.resolvePath1("answer1")].stateValues
                     .inputChildren[0].componentIdx;
-            let textInput1Anchor = cesc("#" + textInput1Name) + "_input";
+            let textInput1Anchor = cesc("#_id_" + textInput1Idx) + "_input";
             let textInput1DisplayAnchor =
-                cesc("#" + textInput1Name) + " .mq-editable-field";
-            let answer1Button = cesc("#" + textInput1Name + "_button");
+                cesc("#_id_" + textInput1Idx) + " .mq-editable-field";
+            let answer1Button = cesc("#_id_" + textInput1Idx + "_button");
 
             cy.get(cesc("#problem1_title")).should("have.text", "Problem 1");
 
@@ -877,13 +884,13 @@ describe("Paginator Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                let textInput2Name =
+                let textInput2Idx =
                     stateVariables[await win.resolvePath1("answer2")]
                         .stateValues.inputChildren[0].componentIdx;
-                let textInput2Anchor = cesc("#" + textInput2Name) + "_input";
+                let textInput2Anchor = cesc("#_id_" + textInput2Idx) + "_input";
                 let textInput2DisplayAnchor =
-                    cesc("#" + textInput2Name) + " .mq-editable-field";
-                let answer2Button = cesc("#" + textInput2Name + "_button");
+                    cesc("#_id_" + textInput2Idx) + " .mq-editable-field";
+                let answer2Button = cesc("#_id_" + textInput2Idx + "_button");
 
                 cy.get(answer2Button).should(
                     "have.attr",
@@ -901,14 +908,16 @@ describe("Paginator Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
 
-                    let textInput3Name =
+                    let textInput3Idx =
                         stateVariables[await win.resolvePath1("answer3")]
                             .stateValues.inputChildren[0].componentIdx;
                     let textInput3Anchor =
-                        cesc("#" + textInput3Name) + "_input";
+                        cesc("#_id_" + textInput3Idx) + "_input";
                     let textInput3DisplayAnchor =
-                        cesc("#" + textInput3Name) + " .mq-editable-field";
-                    let answer3Button = cesc("#" + textInput3Name + "_button");
+                        cesc("#_id_" + textInput3Idx) + " .mq-editable-field";
+                    let answer3Button = cesc(
+                        "#_id_" + textInput3Idx + "_button",
+                    );
 
                     cy.get(answer3Button).should(
                         "have.attr",
@@ -1137,12 +1146,12 @@ describe("Paginator Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            let mathInput2Name =
+            let mathInput2Idx =
                 stateVariables[await win.resolvePath1("1")].stateValues
                     .inputChildren[0].componentIdx;
 
-            let mathInput2Anchor = cesc(`#${mathInput2Name}`) + " textarea";
-            let mathInput2Correct = cesc(`#${mathInput2Name}_correct`);
+            let mathInput2Anchor = cesc(`#${mathInput2Idx}`) + " textarea";
+            let mathInput2Correct = cesc(`#${mathInput2Idx}_correct`);
 
             cy.get(mathInput2Anchor).type("2x{enter}", { force: true });
             cy.get(mathInput2Correct).should("be.visible");
@@ -1380,12 +1389,12 @@ describe("Paginator Tag Tests", function () {
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
-            let mathInput2Name =
+            let mathInput2Idx =
                 stateVariables[await win.resolvePath1("1")].stateValues
                     .inputChildren[0].componentIdx;
 
-            let mathInput2Anchor = cesc(`#${mathInput2Name}`) + " textarea";
-            let mathInput2Correct = cesc(`#${mathInput2Name}_correct`);
+            let mathInput2Anchor = cesc(`#${mathInput2Idx}`) + " textarea";
+            let mathInput2Correct = cesc(`#${mathInput2Idx}_correct`);
 
             cy.get(mathInput2Anchor).type("2x{enter}", { force: true });
             cy.get(mathInput2Correct).should("be.visible");
@@ -1727,54 +1736,54 @@ describe("Paginator Tag Tests", function () {
                                         `${thisProbName}/o2/t`
                                     ].stateValues.value;
 
-                                let mathInput1Name =
+                                let mathInput1Idx =
                                     stateVariables[`${thisProbName}/ans1`]
                                         .stateValues.inputChildren[0]
                                         .componentIdx;
                                 let mathInput1Anchor =
-                                    cesc("#" + mathInput1Name) + " textarea";
+                                    cesc("#_id_" + mathInput1Idx) + " textarea";
                                 let answer1Correct = cesc(
-                                    "#" + mathInput1Name + "_correct",
+                                    "#_id_" + mathInput1Idx + "_correct",
                                 );
 
-                                let mathInput2Name =
+                                let mathInput2Idx =
                                     stateVariables[`${thisProbName}/ans2`]
                                         .stateValues.inputChildren[0]
                                         .componentIdx;
                                 let mathInput2Anchor =
-                                    cesc("#" + mathInput2Name) + " textarea";
+                                    cesc("#_id_" + mathInput2Idx) + " textarea";
                                 let answer2Correct = cesc(
-                                    "#" + mathInput2Name + "_correct",
+                                    "#_id_" + mathInput2Idx + "_correct",
                                 );
 
-                                let textInput3Name =
+                                let textInput3Idx =
                                     stateVariables[`${thisProbName}/ans3`]
                                         .stateValues.inputChildren[0]
                                         .componentIdx;
                                 let textInput3Anchor =
-                                    cesc("#" + textInput3Name) + "_input";
+                                    cesc("#_id_" + textInput3Idx) + "_input";
                                 let answer3Correct = cesc(
-                                    "#" + textInput3Name + "_correct",
+                                    "#_id_" + textInput3Idx + "_correct",
                                 );
 
-                                let mathInput4Name =
+                                let mathInput4Idx =
                                     stateVariables[`${thisProbName}/ans4`]
                                         .stateValues.inputChildren[0]
                                         .componentIdx;
                                 let mathInput4Anchor =
-                                    cesc("#" + mathInput4Name) + " textarea";
+                                    cesc("#_id_" + mathInput4Idx) + " textarea";
                                 let answer4Correct = cesc(
-                                    "#" + mathInput4Name + "_correct",
+                                    "#_id_" + mathInput4Idx + "_correct",
                                 );
 
-                                let textInput5Name =
+                                let textInput5Idx =
                                     stateVariables[`${thisProbName}/ans5`]
                                         .stateValues.inputChildren[0]
                                         .componentIdx;
                                 let textInput5Anchor =
-                                    cesc("#" + textInput5Name) + "_input";
+                                    cesc("#_id_" + textInput5Idx) + "_input";
                                 let answer5Correct = cesc(
-                                    "#" + textInput5Name + "_correct",
+                                    "#_id_" + textInput5Idx + "_correct",
                                 );
 
                                 cy.get(mathInput1Anchor).type(
@@ -1954,39 +1963,39 @@ describe("Paginator Tag Tests", function () {
                                 ].stateValues.value.toString(),
                             ).eq(thisProbInfo.o2t.toString());
 
-                            let mathInput1Name =
+                            let mathInput1Idx =
                                 stateVariables[`${thisProbName}/ans1`]
                                     .stateValues.inputChildren[0].componentIdx;
                             let answer1Correct = cesc(
-                                "#" + mathInput1Name + "_correct",
+                                "#_id_" + mathInput1Idx + "_correct",
                             );
 
-                            let mathInput2Name =
+                            let mathInput2Idx =
                                 stateVariables[`${thisProbName}/ans2`]
                                     .stateValues.inputChildren[0].componentIdx;
                             let answer2Correct = cesc(
-                                "#" + mathInput2Name + "_correct",
+                                "#_id_" + mathInput2Idx + "_correct",
                             );
 
-                            let textInput3Name =
+                            let textInput3Idx =
                                 stateVariables[`${thisProbName}/ans3`]
                                     .stateValues.inputChildren[0].componentIdx;
                             let answer3Correct = cesc(
-                                "#" + textInput3Name + "_correct",
+                                "#_id_" + textInput3Idx + "_correct",
                             );
 
-                            let mathInput4Name =
+                            let mathInput4Idx =
                                 stateVariables[`${thisProbName}/ans4`]
                                     .stateValues.inputChildren[0].componentIdx;
                             let answer4Correct = cesc(
-                                "#" + mathInput4Name + "_correct",
+                                "#_id_" + mathInput4Idx + "_correct",
                             );
 
-                            let textInput5Name =
+                            let textInput5Idx =
                                 stateVariables[`${thisProbName}/ans5`]
                                     .stateValues.inputChildren[0].componentIdx;
                             let answer5Correct = cesc(
-                                "#" + textInput5Name + "_correct",
+                                "#_id_" + textInput5Idx + "_correct",
                             );
 
                             cy.get(answer1Correct).should("be.visible");
@@ -2133,39 +2142,39 @@ describe("Paginator Tag Tests", function () {
                                 ].stateValues.value.toString(),
                             ).eq(thisProbInfo.o2t.toString());
 
-                            let mathInput1Name =
+                            let mathInput1Idx =
                                 stateVariables[`${thisProbName}/ans1`]
                                     .stateValues.inputChildren[0].componentIdx;
                             let answer1Correct = cesc(
-                                "#" + mathInput1Name + "_correct",
+                                "#_id_" + mathInput1Idx + "_correct",
                             );
 
-                            let mathInput2Name =
+                            let mathInput2Idx =
                                 stateVariables[`${thisProbName}/ans2`]
                                     .stateValues.inputChildren[0].componentIdx;
                             let answer2Correct = cesc(
-                                "#" + mathInput2Name + "_correct",
+                                "#_id_" + mathInput2Idx + "_correct",
                             );
 
-                            let textInput3Name =
+                            let textInput3Idx =
                                 stateVariables[`${thisProbName}/ans3`]
                                     .stateValues.inputChildren[0].componentIdx;
                             let answer3Correct = cesc(
-                                "#" + textInput3Name + "_correct",
+                                "#_id_" + textInput3Idx + "_correct",
                             );
 
-                            let mathInput4Name =
+                            let mathInput4Idx =
                                 stateVariables[`${thisProbName}/ans4`]
                                     .stateValues.inputChildren[0].componentIdx;
                             let answer4Correct = cesc(
-                                "#" + mathInput4Name + "_correct",
+                                "#_id_" + mathInput4Idx + "_correct",
                             );
 
-                            let textInput5Name =
+                            let textInput5Idx =
                                 stateVariables[`${thisProbName}/ans5`]
                                     .stateValues.inputChildren[0].componentIdx;
                             let answer5Correct = cesc(
-                                "#" + textInput5Name + "_correct",
+                                "#_id_" + textInput5Idx + "_correct",
                             );
 
                             cy.get(answer1Correct).should("be.visible");
@@ -2299,21 +2308,21 @@ describe("Paginator Tag Tests", function () {
                 stateVariables[await win.resolvePath1("problem1.n[1]")]
                     .stateValues.value;
 
-            let mathInput1Name =
+            let mathInput1Idx =
                 stateVariables[await win.resolvePath1(`problem1.cc.answer`)]
                     .stateValues.inputChildren[0].componentIdx;
-            let mathInput1Anchor = cesc("#" + mathInput1Name) + " textarea";
+            let mathInput1Anchor = cesc("#_id_" + mathInput1Idx) + " textarea";
             let mathInput1DisplayAnchor =
-                cesc("#" + mathInput1Name) + " .mq-editable-field";
-            let answer1Button = cesc("#" + mathInput1Name + "_button");
+                cesc("#_id_" + mathInput1Idx) + " .mq-editable-field";
+            let answer1Button = cesc("#_id_" + mathInput1Idx + "_button");
 
-            let mathInput2Name =
+            let mathInput2Idx =
                 stateVariables[await win.resolvePath1(`problem1.cc${n}.a`)]
                     .stateValues.inputChildren[0].componentIdx;
-            let mathInput2Anchor = cesc("#" + mathInput2Name) + " textarea";
+            let mathInput2Anchor = cesc("#_id_" + mathInput2Idx) + " textarea";
             let mathInput2DisplayAnchor =
-                cesc("#" + mathInput2Name) + " .mq-editable-field";
-            let answer2Button = cesc("#" + mathInput2Name + "_button");
+                cesc("#_id_" + mathInput2Idx) + " .mq-editable-field";
+            let answer2Button = cesc("#_id_" + mathInput2Idx + "_button");
 
             let correctAnswer = n === 1 ? "x" : "y";
 
@@ -2362,23 +2371,25 @@ describe("Paginator Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
-                let mathInput3Name =
+                let mathInput3Idx =
                     stateVariables[
                         await win.resolvePath1(`problem2.cc1.answer`)
                     ].stateValues.inputChildren[0].componentIdx;
-                let mathInput3Anchor = cesc("#" + mathInput3Name) + " textarea";
+                let mathInput3Anchor =
+                    cesc("#_id_" + mathInput3Idx) + " textarea";
                 let mathInput3DisplayAnchor =
-                    cesc("#" + mathInput3Name) + " .mq-editable-field";
-                let answer3Button = cesc("#" + mathInput3Name + "_button");
+                    cesc("#_id_" + mathInput3Idx) + " .mq-editable-field";
+                let answer3Button = cesc("#_id_" + mathInput3Idx + "_button");
 
-                let mathInput4Name =
+                let mathInput4Idx =
                     stateVariables[
                         await win.resolvePath1(`problem2.cc2.answer`)
                     ].stateValues.inputChildren[0].componentIdx;
-                let mathInput4Anchor = cesc("#" + mathInput4Name) + " textarea";
+                let mathInput4Anchor =
+                    cesc("#_id_" + mathInput4Idx) + " textarea";
                 let mathInput4DisplayAnchor =
-                    cesc("#" + mathInput4Name) + " .mq-editable-field";
-                let answer4Button = cesc("#" + mathInput4Name + "_button");
+                    cesc("#_id_" + mathInput4Idx) + " .mq-editable-field";
+                let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
 
                 cy.get(mathInput3Anchor).type(`1{enter}`, { force: true });
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "1");
