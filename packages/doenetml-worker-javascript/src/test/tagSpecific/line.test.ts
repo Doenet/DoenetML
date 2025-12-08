@@ -1553,7 +1553,6 @@ describe("Line tag tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             "Line must be through points of at least two dimensions",
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(3);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
         expect(errorWarnings.warnings[0].position.end.line).eq(3);
@@ -1562,7 +1561,6 @@ describe("Line tag tests", async () => {
         expect(errorWarnings.warnings[1].message).contain(
             "Line is through points that depend on variables: x, y",
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
         expect(errorWarnings.warnings[1].position.start.line).eq(4);
         expect(errorWarnings.warnings[1].position.start.column).eq(5);
         expect(errorWarnings.warnings[1].position.end.line).eq(4);
@@ -1571,7 +1569,6 @@ describe("Line tag tests", async () => {
         expect(errorWarnings.warnings[2].message).contain(
             "Line is through points that depend on variables: a, c",
         );
-        expect(errorWarnings.warnings[2].level).eq(1);
         expect(errorWarnings.warnings[2].position.start.line).eq(6);
         expect(errorWarnings.warnings[2].position.start.column).eq(5);
         expect(errorWarnings.warnings[2].position.end.line).eq(6);
@@ -1740,7 +1737,6 @@ describe("Line tag tests", async () => {
         expect(errorWarnings.warnings[2].message).contain(
             "Invalid format for equation of line in variables x and y",
         );
-        expect(errorWarnings.warnings[2].level).eq(1);
         expect(errorWarnings.warnings[2].position.start.line).eq(8);
         expect(errorWarnings.warnings[2].position.start.column).eq(5);
         expect(errorWarnings.warnings[2].position.end.line).eq(8);
@@ -1749,7 +1745,6 @@ describe("Line tag tests", async () => {
         expect(errorWarnings.warnings[3].message).contain(
             "Invalid format for equation of line in variables x and y",
         );
-        expect(errorWarnings.warnings[3].level).eq(1);
         expect(errorWarnings.warnings[3].position.start.line).eq(9);
         expect(errorWarnings.warnings[3].position.start.column).eq(5);
         expect(errorWarnings.warnings[3].position.end.line).eq(9);

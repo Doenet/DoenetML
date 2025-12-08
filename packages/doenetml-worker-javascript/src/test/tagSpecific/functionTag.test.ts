@@ -984,7 +984,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Function contains two points with locations too close together. Can't define function`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
@@ -1018,7 +1017,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Ignoring non-numerical maximum of function`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
@@ -1027,7 +1025,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[1].message).contain(
             `Ignoring non-numerical minimum of function`,
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
         expect(errorWarnings.warnings[1].position.start.line).eq(2);
         expect(errorWarnings.warnings[1].position.start.column).eq(5);
         expect(errorWarnings.warnings[1].position.end.line).eq(2);
@@ -1036,7 +1033,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[2].message).contain(
             `Ignoring non-numerical extremum of function`,
         );
-        expect(errorWarnings.warnings[2].level).eq(1);
         expect(errorWarnings.warnings[2].position.start.line).eq(2);
         expect(errorWarnings.warnings[2].position.start.column).eq(5);
         expect(errorWarnings.warnings[2].position.end.line).eq(2);
@@ -1045,7 +1041,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[3].message).contain(
             `Ignoring non-numerical slope of function`,
         );
-        expect(errorWarnings.warnings[3].level).eq(1);
         expect(errorWarnings.warnings[3].position.start.line).eq(2);
         expect(errorWarnings.warnings[3].position.start.column).eq(5);
         expect(errorWarnings.warnings[3].position.end.line).eq(2);
@@ -1054,7 +1049,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[4].message).contain(
             `Ignoring non-numerical point of function`,
         );
-        expect(errorWarnings.warnings[4].level).eq(1);
         expect(errorWarnings.warnings[4].position.start.line).eq(2);
         expect(errorWarnings.warnings[4].position.start.column).eq(5);
         expect(errorWarnings.warnings[4].position.end.line).eq(2);
@@ -1087,7 +1081,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Ignoring empty maximum of function`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(7);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
@@ -1840,7 +1833,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Invalid value of a variable: cos(x)`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(3);
         expect(errorWarnings.warnings[0].position.start.column).eq(15);
         expect(errorWarnings.warnings[0].position.end.line).eq(3);
@@ -1849,7 +1841,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[1].message).contain(
             `Invalid value of a variable: sin(x)`,
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
         expect(errorWarnings.warnings[1].position.start.line).eq(2);
         expect(errorWarnings.warnings[1].position.start.column).eq(15);
         expect(errorWarnings.warnings[1].position.end.line).eq(2);
@@ -5427,7 +5418,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(3);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
         expect(errorWarnings.warnings[0].position.end.line).eq(3);
@@ -5436,7 +5426,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[1].message).contain(
             `Invalid format for domain for function`,
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
         expect(errorWarnings.warnings[1].position.start.line).eq(4);
         expect(errorWarnings.warnings[1].position.start.column).eq(5);
         expect(errorWarnings.warnings[1].position.end.line).eq(4);
@@ -5445,7 +5434,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[2].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
-        expect(errorWarnings.warnings[2].level).eq(1);
         expect(errorWarnings.warnings[2].position.start.line).eq(5);
         expect(errorWarnings.warnings[2].position.start.column).eq(5);
         expect(errorWarnings.warnings[2].position.end.line).eq(5);
@@ -5454,7 +5442,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[3].message).contain(
             `Insufficient dimensions for domain for function. Domain has 1 interval but the function has 2 inputs.`,
         );
-        expect(errorWarnings.warnings[3].level).eq(1);
         expect(errorWarnings.warnings[3].position.start.line).eq(14);
         expect(errorWarnings.warnings[3].position.start.column).eq(5);
         expect(errorWarnings.warnings[3].position.end.line).eq(14);
@@ -5463,7 +5450,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[4].message).contain(
             `Invalid format for domain for function`,
         );
-        expect(errorWarnings.warnings[4].level).eq(1);
         expect(errorWarnings.warnings[4].position.start.line).eq(16);
         expect(errorWarnings.warnings[4].position.start.column).eq(5);
         expect(errorWarnings.warnings[4].position.end.line).eq(16);
@@ -5472,7 +5458,6 @@ describe("Function tag tests", async () => {
         expect(errorWarnings.warnings[5].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 2 inputs.`,
         );
-        expect(errorWarnings.warnings[5].level).eq(1);
         expect(errorWarnings.warnings[5].position.start.line).eq(17);
         expect(errorWarnings.warnings[5].position.start.column).eq(5);
         expect(errorWarnings.warnings[5].position.end.line).eq(17);
@@ -5482,7 +5467,6 @@ describe("Function tag tests", async () => {
         // expect(errorWarnings.warnings[6].message).contain(
         //     `Invalid format for attribute domain of <function>`,
         // );
-        expect(errorWarnings.warnings[6].level).eq(1);
         expect(errorWarnings.warnings[6].position.start.line).eq(3);
         expect(errorWarnings.warnings[6].position.start.column).eq(25);
         expect(errorWarnings.warnings[6].position.end.line).eq(3);

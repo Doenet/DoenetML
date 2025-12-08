@@ -2013,7 +2013,6 @@ describe("Sequence tag tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Invalid length of sequence.  Must be a non-negative integer`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
@@ -2022,7 +2021,6 @@ describe("Sequence tag tests", async () => {
         expect(errorWarnings.warnings[1].message).contain(
             `Invalid step of sequence.  Must be a number for sequence of type number`,
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
         expect(errorWarnings.warnings[1].position.start.line).eq(3);
         expect(errorWarnings.warnings[1].position.start.column).eq(5);
         expect(errorWarnings.warnings[1].position.end.line).eq(3);
@@ -2031,7 +2029,6 @@ describe("Sequence tag tests", async () => {
         expect(errorWarnings.warnings[2].message).contain(
             `Invalid step of sequence.  Must be a number for sequence of type letters`,
         );
-        expect(errorWarnings.warnings[2].level).eq(1);
         expect(errorWarnings.warnings[2].position.start.line).eq(4);
         expect(errorWarnings.warnings[2].position.start.column).eq(5);
         expect(errorWarnings.warnings[2].position.end.line).eq(4);
@@ -2040,7 +2037,6 @@ describe("Sequence tag tests", async () => {
         expect(errorWarnings.warnings[3].message).contain(
             `Invalid "from" of number sequence.  Must be a number`,
         );
-        expect(errorWarnings.warnings[3].level).eq(1);
         expect(errorWarnings.warnings[3].position.start.line).eq(5);
         expect(errorWarnings.warnings[3].position.start.column).eq(5);
         expect(errorWarnings.warnings[3].position.end.line).eq(5);
@@ -2049,7 +2045,6 @@ describe("Sequence tag tests", async () => {
         expect(errorWarnings.warnings[4].message).contain(
             `Invalid "from" of letters sequence.  Must be a letter combination`,
         );
-        expect(errorWarnings.warnings[4].level).eq(1);
         expect(errorWarnings.warnings[4].position.start.line).eq(6);
         expect(errorWarnings.warnings[4].position.start.column).eq(5);
         expect(errorWarnings.warnings[4].position.end.line).eq(6);
@@ -2058,7 +2053,6 @@ describe("Sequence tag tests", async () => {
         expect(errorWarnings.warnings[5].message).contain(
             `Invalid "from" of sequence`,
         );
-        expect(errorWarnings.warnings[5].level).eq(1);
         expect(errorWarnings.warnings[5].position.start.line).eq(7);
         expect(errorWarnings.warnings[5].position.start.column).eq(5);
         expect(errorWarnings.warnings[5].position.end.line).eq(7);
@@ -2067,7 +2061,6 @@ describe("Sequence tag tests", async () => {
         expect(errorWarnings.warnings[6].message).contain(
             `Invalid "to" of number sequence.  Must be a number.`,
         );
-        expect(errorWarnings.warnings[6].level).eq(1);
         expect(errorWarnings.warnings[6].position.start.line).eq(8);
         expect(errorWarnings.warnings[6].position.start.column).eq(5);
         expect(errorWarnings.warnings[6].position.end.line).eq(8);
@@ -2076,7 +2069,6 @@ describe("Sequence tag tests", async () => {
         expect(errorWarnings.warnings[7].message).contain(
             `Invalid "to" of letters sequence.  Must be a letter combination`,
         );
-        expect(errorWarnings.warnings[7].level).eq(1);
         expect(errorWarnings.warnings[7].position.start.line).eq(9);
         expect(errorWarnings.warnings[7].position.start.column).eq(5);
         expect(errorWarnings.warnings[7].position.end.line).eq(9);
@@ -2085,7 +2077,6 @@ describe("Sequence tag tests", async () => {
         expect(errorWarnings.warnings[8].message).contain(
             `Invalid "to" of sequence`,
         );
-        expect(errorWarnings.warnings[8].level).eq(1);
         expect(errorWarnings.warnings[8].position.start.line).eq(10);
         expect(errorWarnings.warnings[8].position.start.column).eq(5);
         expect(errorWarnings.warnings[8].position.end.line).eq(10);

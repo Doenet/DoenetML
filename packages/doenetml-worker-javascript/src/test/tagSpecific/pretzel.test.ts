@@ -143,12 +143,10 @@ describe("Pretzel tag tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             "Invalid pretzel as a problem is missing a <statement> or a <givenAnswer>",
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
         expect(errorWarnings.warnings[0].position.end.line).eq(15);
         expect(errorWarnings.warnings[0].position.end.column).eq(15);
-        expect(errorWarnings.warnings[0].level).eq(1);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(

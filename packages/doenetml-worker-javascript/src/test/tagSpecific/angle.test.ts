@@ -1540,7 +1540,6 @@ describe("Angle tag tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             "Invalid point in through of <angle>",
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(3);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);

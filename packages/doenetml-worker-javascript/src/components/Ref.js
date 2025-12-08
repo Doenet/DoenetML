@@ -16,6 +16,9 @@ export default class Ref extends InlineComponent {
 
         attributes.to = {
             createReferences: true,
+            // Since we allow more than just references in `to`,
+            // we specify `allowStrings` to suppress a warning for non-references.
+            allowStrings: true,
         };
 
         attributes.textType = {

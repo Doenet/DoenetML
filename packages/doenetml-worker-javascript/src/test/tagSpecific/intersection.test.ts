@@ -250,7 +250,6 @@ describe("Intersection tag tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Haven't implemented intersection for more than two items`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(7);
         expect(errorWarnings.warnings[0].position.start.column).eq(3);
         expect(errorWarnings.warnings[0].position.end.line).eq(7);

@@ -39,17 +39,14 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             "Attribute suppressAutoName is deprecated. It is ignored.",
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(1);
         expect(errorWarnings.warnings[0].position.end.line).eq(14);
         expect(errorWarnings.warnings[0].position.end.column).eq(10);
-        expect(errorWarnings.warnings[0].level).eq(1);
 
         expect(errorWarnings.warnings[1].message).contain(
             "Attribute xLabel of component type graph is deprecated. It is ignored.",
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
         expect(errorWarnings.warnings[1].position.start.line).eq(3);
         expect(errorWarnings.warnings[1].position.start.column).eq(3);
         expect(errorWarnings.warnings[1].position.end.line).eq(7);
@@ -58,7 +55,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[2].message).contain(
             "Attribute nSides is deprecated. Use numSides instead.",
         );
-        expect(errorWarnings.warnings[2].level).eq(1);
         expect(errorWarnings.warnings[2].position.start.line).eq(4);
         expect(errorWarnings.warnings[2].position.start.column).eq(5);
         expect(errorWarnings.warnings[2].position.end.line).eq(4);
@@ -67,7 +63,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[3].message).contain(
             "Attribute nSides is deprecated. Use numSides instead.",
         );
-        expect(errorWarnings.warnings[3].level).eq(1);
         expect(errorWarnings.warnings[3].position.start.line).eq(5);
         expect(errorWarnings.warnings[3].position.start.column).eq(5);
         expect(errorWarnings.warnings[3].position.end.line).eq(5);
@@ -76,7 +71,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[6].message).contain(
             "Attribute nSides is deprecated. Use numSides instead.",
         );
-        expect(errorWarnings.warnings[6].level).eq(1);
         expect(errorWarnings.warnings[6].position.start.line).eq(6);
         expect(errorWarnings.warnings[6].position.start.column).eq(5);
         expect(errorWarnings.warnings[6].position.end.line).eq(6);
@@ -85,7 +79,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[4].message).contain(
             "Attribute maximumNumberOfAttempts of component type answer is deprecated. Use maxNumAttempts instead.",
         );
-        expect(errorWarnings.warnings[4].level).eq(1);
         expect(errorWarnings.warnings[4].position.start.line).eq(8);
         expect(errorWarnings.warnings[4].position.start.column).eq(3);
         expect(errorWarnings.warnings[4].position.end.line).eq(13);
@@ -94,7 +87,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[5].message).contain(
             "Attribute randomizeOrder is deprecated. Use shuffleOrder instead.",
         );
-        expect(errorWarnings.warnings[5].level).eq(1);
         expect(errorWarnings.warnings[5].position.start.line).eq(9);
         expect(errorWarnings.warnings[5].position.start.column).eq(5);
         expect(errorWarnings.warnings[5].position.end.line).eq(12);
@@ -120,7 +112,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             "Property nSides is deprecated. Use numSides instead.",
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(5);
         expect(errorWarnings.warnings[0].position.start.column).eq(1);
         expect(errorWarnings.warnings[0].position.end.line).eq(5);
@@ -182,7 +173,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(3);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
@@ -201,7 +191,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(3);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
@@ -210,7 +199,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[1].message).contain(
             "Cannot change radius of circle with non-numerical through points",
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
         expect(errorWarnings.warnings[1].position.start.line).eq(2);
         expect(errorWarnings.warnings[1].position.start.column).eq(3);
         expect(errorWarnings.warnings[1].position.end.line).eq(2);
@@ -477,7 +465,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Invalid target for <updateValue>: cannot find a state variable named "bad" on a <number>`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(3);
         expect(errorWarnings.warnings[0].position.start.column).eq(3);
         expect(errorWarnings.warnings[0].position.end.line).eq(3);
@@ -509,7 +496,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Found invalid children: <graph>`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(3);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
@@ -521,7 +507,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[1].message).contain(
             `Found invalid children: <graph>, <p>`,
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
         expect(errorWarnings.warnings[1].position.start.line).eq(6);
         expect(errorWarnings.warnings[1].position.start.column).eq(3);
         expect(errorWarnings.warnings[1].position.end.line).eq(6);
@@ -533,7 +518,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[2].message).contain(
             `Found invalid children: <graph>, <figure>`,
         );
-        expect(errorWarnings.warnings[2].level).eq(1);
         expect(errorWarnings.warnings[2].position.start.line).eq(8);
         expect(errorWarnings.warnings[2].position.start.column).eq(3);
         expect(errorWarnings.warnings[2].position.end.line).eq(8);
@@ -558,7 +542,6 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Found invalid children: string`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(3);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
@@ -580,6 +563,34 @@ describe("Warning Tests", async () => {
 
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(0);
+    });
+
+    it("Warning if omit $ in a reference attribute", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+    <p>
+        Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
+        <answer name="sum3">
+            <award referencesAreResponses="n1 n2"> <when>$n1+$n2=3</when> </award>
+        </answer>
+    </p>
+        `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            `Invalid value "n1 n2" for attribute referencesAreResponses`,
+        );
+
+        expect(errorWarnings.warnings[0].message).contain(`begin with a $`);
+        expect(errorWarnings.warnings[0].position.start.line).eq(5);
+        expect(errorWarnings.warnings[0].position.start.column).eq(20);
+        expect(errorWarnings.warnings[0].position.end.line).eq(5);
+        expect(errorWarnings.warnings[0].position.end.column).eq(50);
     });
 
     it("Invalid collect source errors", async () => {
