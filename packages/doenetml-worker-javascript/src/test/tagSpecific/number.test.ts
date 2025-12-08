@@ -2276,6 +2276,40 @@ describe("Number tag tests", async () => {
         ).eqls(NaN);
     });
 
+    it("number to the power of 1/[odd integer] gives real number", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p><number name="n1">(-8)^(1/3)</number></p>
+  <p><number name="n2">(-27)^(-2/3)</number></p>
+  <p><number name="n3">(-32)^(3/5)</number></p>
+  <p><number name="n4">(8)^(1/3)</number></p>
+  <p><number name="n5">(27)^(-2/3)</number></p>
+  <p><number name="n6">(32)^(3/5)</number></p>
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n1")].stateValues.value,
+        ).eq(-2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2")].stateValues.value,
+        ).closeTo(1 / 9, 1e-14);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n3")].stateValues.value,
+        ).closeTo(-8, 1e-14);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n4")].stateValues.value,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n5")].stateValues.value,
+        ).closeTo(1 / 9, 1e-14);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n6")].stateValues.value,
+        ).closeTo(8, 1e-14);
+    });
+
     it("complex numbers", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
