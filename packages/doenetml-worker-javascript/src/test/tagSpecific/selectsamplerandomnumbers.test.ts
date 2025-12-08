@@ -48,7 +48,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
     }) {
         let samples: number[] = [];
 
-        const nGroups = 50;
+        const nGroups = 100;
 
         for (let group = 0; group < nGroups; group++) {
             for (let i = 0; i < numRepetitions; i++) {
@@ -92,7 +92,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
 
             if (group < nGroups) {
                 // After each group, check if the summary criteria are satisfied.
-                // If so, break as we've are close enough
+                // If so, break as we're close enough
 
                 let failedCriteria = false;
 
