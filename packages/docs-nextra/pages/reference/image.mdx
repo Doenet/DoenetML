@@ -194,6 +194,21 @@ The `horizontalAlign` attribute specifies the horizontal position on-screen for 
 
 The `description` attribute provides a description of the ` <image/>{:dn}` for situations where the image 
 cannot load, or for use with screen-reading technology. It is a required attribute for accessibility.
+If a `description` is not supplied and `decorative` is not supplied, a warning is produced.
+
+
+
+---
+
+### Attribute Example: decorative
+
+
+```doenet-editor-horiz
+<image width="100" decorative source="https://upload.wikimedia.org/wikipedia/commons/f/f5/Circle_file.487.png"/>
+```
+
+If `decorative` is specified, it indicates that the image doesn't add any information to the content of the page
+and can be ignored by assistive technologies like screen readers.
 
 
 
