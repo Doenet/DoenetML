@@ -32,7 +32,7 @@ jobs:
             - name: Build
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
-                  npm run build && npm run build:all
+                  npm run build:all-no-docs
               # set the environmental variable WIREIT_CACHE="local" so that the wireit cache is saved in the .wireit directory.
               env:
                   WIREIT_CACHE: "local"
@@ -189,10 +189,7 @@ jobs:
             - name: Build Docs
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
-                  cd packages/doenetml
-                  npm run build
-                  cd ../docs-nextra
-                  npm run build
+                  npm run build:docs
               env:
                   WIREIT_CACHE: "local"
 
