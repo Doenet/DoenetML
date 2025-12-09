@@ -1215,7 +1215,7 @@ describe("Answer Tag Tests", function () {
 
             cy.log("toggle inline");
             cy.get(cesc("#inline")).click();
-            cy.get(`${choiceInputAnchor} label:nth-of-type(3)`).should(
+            cy.get(`${choiceInputAnchor} li:nth-of-type(3)`).should(
                 "be.visible",
             );
             cy.get(choiceInputButtonAnchor).should("contain.text", "Correct");

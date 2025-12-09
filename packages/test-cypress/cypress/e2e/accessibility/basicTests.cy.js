@@ -183,4 +183,256 @@ describe("Render commas tests", function () {
             onlyWarnImpacts: ["moderate", "minor"],
         });
     });
+
+    it("Displayed math", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p name="p">We like <m>x^2</m>!</p>
+    <p><m>\\frac{3}{4}</m></p>
+    <me>\\int_a^b f(x) \\, dx</me>
+    <men>\\vec{a} \\times \\vec{b} = \\vec{c}</men>
+    <md>
+      <mrow>(x+3)(x-1) \\amp= x^2 -x + 3x -3</mrow>
+      <mrow> \\amp= x^2+3x-3</mrow>
+    </md>
+    <mdn>
+      <mrow>(x+3)(x-1) \\amp= x^2 -x + 3x -3</mrow>
+      <mrow> \\amp= x^2+3x-3</mrow>
+    </mdn>
+
+
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("answers with labels", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p name="p"><answer><label>1+1=</label>2</answer></p>
+    <p><answer forceFullCheckWorkButton><label>1+1=</label>2</answer></p>
+    <p><answer type="text"><label>hello:</label>hello</answer></p>
+    <p><answer type="text" forceFullCheckWorkButton><label>bye:</label>bye</answer></p>
+    <p><answer type="text" expanded forceFullCheckWorkButton><label>now:</label>now</answer></p>
+    <p>
+        <answer>
+            <label>Favorite animal:</label>
+            <choice credit="1">dog</choice>
+            <choice>cat</choice>
+            <choice>monkey</choice>
+        </answer>
+    </p>
+    <p>
+        <answer selectMultiple>
+            <label>Favorite animal:</label>
+            <choice credit="1">dog</choice>
+            <choice>cat</choice>
+            <choice>monkey</choice>
+        </answer>
+    </p>
+    <p>
+        <answer inline>
+            <label>Favorite fruit:</label>
+            <choice credit="1">apple</choice>
+            <choice>banana</choice>
+            <choice>grape</choice>
+        </answer>
+    </p>
+    <p>
+        <answer inline selectMultiple>
+            <label>Favorite fruit:</label>
+            <choice credit="1">apple</choice>
+            <choice>banana</choice>
+            <choice>grape</choice>
+        </answer>
+    </p>
+    <p><answer type="boolean"><label>yes</label>true</answer></p>
+
+
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("answers with descriptions", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p name="p">1+1 = <answer description="1+1">2</answer></p>
+    <p>1+1 = <answer forceFullCheckWorkButton description="1+1">2</answer></p>
+    <p>hello: <answer type="text" description="hello">hello</answer></p>
+    <p>bye: <answer type="text" forceFullCheckWorkButton description="bye">bye</answer></p>
+    <p>now: <answer type="text" expanded forceFullCheckWorkButton description="now">now</answer></p>
+    <p>Favorite animal:
+        <answer description="Favorite animal">
+            <choice credit="1">dog</choice>
+            <choice>cat</choice>
+            <choice>monkey</choice>
+        </answer>
+    </p>
+    <p>Favorite animal:
+        <answer selectMultiple description="Favorite animal">
+            <choice credit="1">dog</choice>
+            <choice>cat</choice>
+            <choice>monkey</choice>
+        </answer>
+    </p>
+    <p>Favorite fruit:
+        <answer inline description="Favorite fruit">
+            <choice credit="1">apple</choice>
+            <choice>banana</choice>
+            <choice>grape</choice>
+        </answer>
+    </p>
+    <p>Favorite fruit:
+        <answer inline selectMultiple description="Favorite fruit">
+            <choice credit="1">apple</choice>
+            <choice>banana</choice>
+            <choice>grape</choice>
+        </answer>
+    </p>
+    <p><answer type="boolean" description="yes">true</answer></p>
+
+
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("inputs with labels", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p name="p"><mathInput><label>1+1=</label></mathInput></p>
+    <p><textInput><label>hello:</label>hello</textInput></p>
+    <p><textInput expanded><label>now:</label></textInput></p>
+    <p>
+        <choiceInput>
+            <label>Favorite animal:</label>
+            <choice>dog</choice>
+            <choice>cat</choice>
+            <choice>monkey</choice>
+        </choiceInput>
+    </p>
+    <p>
+        <choiceInput selectMultiple>
+            <label>Favorite animal:</label>
+            <choice>dog</choice>
+            <choice>cat</choice>
+            <choice>monkey</choice>
+        </choiceInput>
+    </p>
+    <p>
+        <choiceInput inline>
+            <label>Favorite fruit:</label>
+            <choice>apple</choice>
+            <choice>banana</choice>
+            <choice>grape</choice>
+        </choiceInput>
+    </p>
+    <p>
+        <choiceInput inline selectMultiple>
+            <label>Favorite fruit:</label>
+            <choice>apple</choice>
+            <choice>banana</choice>
+            <choice>grape</choice>
+        </choiceInput>
+    </p>
+    <p><booleanInput><label>yes</label></booleanInput></p>
+    <p><matrixInput><label>A:</label></matrixInput></p>
+
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("inputs with descriptions", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p name="p"><mathInput description="1+1"></mathInput></p>
+    <p><textInput description="hello"></textInput></p>
+    <p><textInput expanded description="now"></textInput></p>
+    <p>
+        <choiceInput description="Favorite animal">
+            <choice>dog</choice>
+            <choice>cat</choice>
+            <choice>monkey</choice>
+        </choiceInput>
+    </p>
+    <p>
+        <choiceInput selectMultiple description="Favorite animal">
+            <choice>dog</choice>
+            <choice>cat</choice>
+            <choice>monkey</choice>
+        </choiceInput>
+    </p>
+    <p>
+        <choiceInput inline description="Favorite fruit">
+            <choice>apple</choice>
+            <choice>banana</choice>
+            <choice>grape</choice>
+        </choiceInput>
+    </p>
+    <p>
+        <choiceInput inline selectMultiple description="Favorite fruit">
+            <choice>apple</choice>
+            <choice>banana</choice>
+            <choice>grape</choice>
+        </choiceInput>
+    </p>
+    <p><booleanInput description="yes"></booleanInput></p>
+    <p><matrixInput description="A"></matrixInput></p>
+
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
 });

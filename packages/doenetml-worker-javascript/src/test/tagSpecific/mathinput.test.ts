@@ -12035,4 +12035,25 @@ describe("MathInput tag tests", async () => {
         math = me.fromAst(["list", 5, 4, 3]);
         await check_items(math, i);
     });
+
+    it("warning if no description or label", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+                <mathInput />
+                <mathInput description="hello" />
+                <mathInput><label>hello</label></mathInput>
+            `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            `must have a description or a label`,
+        );
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+    });
 });

@@ -3914,4 +3914,34 @@ describe("ChoiceInput tag tests", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq(`Selected values: y`);
     });
+
+    it("warning if no description or label", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+                <choiceInput>
+                    <choice>apple</choice>
+                    <choice>banana</choice>
+                </choiceInput>
+                <choiceInput description="hello">
+                    <choice>apple</choice>
+                    <choice>banana</choice>
+                </choiceInput>
+                <choiceInput><label>hello</label>
+                    <choice>apple</choice>
+                    <choice>banana</choice>
+                </choiceInput>
+            `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            `must have a description or a label`,
+        );
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.line).eq(5);
+    });
 });

@@ -1452,7 +1452,7 @@ describe("Answer tag tests", async () => {
     it("warning for sugar with invalid type", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer type="bad" name="answer1">x</answer></p>
+  <p><answer type="bad" name="answer1" description="bad type">x</answer></p>
   `,
         });
 
@@ -1467,7 +1467,7 @@ describe("Answer tag tests", async () => {
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(6);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(50);
+        expect(errorWarnings.warnings[0].position.end.column).eq(73);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputIdx =
@@ -1494,22 +1494,22 @@ describe("Answer tag tests", async () => {
         const doenetMLs = [
             `
     <answer name="ans">
-        <mathInput />
+        <mathInput description="Enter answer" />
         <award><when>$ans</when></award>
     </answer>`,
             `
     <answer name="ans">
-        <mathInput />
+        <mathInput description="Enter answer" />
         <award><when>$ans.submittedResponse=5</when></award>
     </answer>`,
             `
     <answer name="ans">
-        <mathInput />
+        <mathInput description="Enter answer" />
         <award><when>$ans.submittedResponse1=5</when></award>
     </answer>`,
             `
     <answer name="ans">
-        <mathInput />
+        <mathInput description="Enter answer" />
         <award><when>$ans.submittedResponses=5</when></award>
     </answer>`,
         ];
@@ -1595,7 +1595,7 @@ describe("Answer tag tests", async () => {
 
         let doenetML = `
     <answer name="ans">
-        <mathInput />
+        <mathInput description="Enter answer" />
         <award><when>$ans.submittedResponse2=5</when></award>
     </answer>`;
 
@@ -6880,5 +6880,70 @@ What is the derivative of <function name="f">x^2</function>?
                 (idx) => stateVariables[idx].stateValues.disabled,
             ),
         ).eqls([true, false, true]);
+    });
+
+    it("warning if no description or label when generates input", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+                <answer>x</answer>
+                <answer type="text">hello</answer>
+                <answer type="boolean">true</answer>
+                <answer>
+                    <choice credit="1">cat</choice>
+                    <choice>dog</choice>
+                    <choice>monkey</choice>
+                </answer>
+                <point name="P" /><answer><award><when>$P.x > 0</when></award></answer>
+            `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(4);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            `must have a description or a label`,
+        );
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+
+        expect(errorWarnings.warnings[1].message).contain(
+            `must have a description or a label`,
+        );
+        expect(errorWarnings.warnings[1].position.start.line).eq(3);
+        expect(errorWarnings.warnings[1].position.end.line).eq(3);
+
+        expect(errorWarnings.warnings[2].message).contain(
+            `must have a description or a label`,
+        );
+        expect(errorWarnings.warnings[2].position.start.line).eq(4);
+        expect(errorWarnings.warnings[2].position.end.line).eq(4);
+
+        expect(errorWarnings.warnings[3].message).contain(
+            `must have a description or a label`,
+        );
+        expect(errorWarnings.warnings[3].position.start.line).eq(5);
+        expect(errorWarnings.warnings[3].position.end.line).eq(9);
+    });
+
+    it("with no inputs, a label is optional", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+        <answer>
+            <label>Hello!</label>
+            <award><when>true</when></award>
+        </answer>
+        <answer>
+            <award><when>true</when></award>
+        </answer>
+
+            `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(0);
     });
 });

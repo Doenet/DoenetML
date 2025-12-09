@@ -161,7 +161,7 @@ describe("Warning Tests", async () => {
             doenetML: `
   <circle through="(a,b) (c,d)" name="c" />
 
-  <mathInput name="mi">$c.radius</mathInput>
+  <mathInput name="mi" description="change radius">$c.radius</mathInput>
     `,
         });
 
@@ -220,14 +220,14 @@ describe("Warning Tests", async () => {
   <math name="m8" format="latex" extend="$m2" />
 
 
-  <textInput name="ti1">$m1.format</textInput>
-  <textInput name="ti2">$m2.format</textInput>
-  <textInput name="ti3">$m3.format</textInput>
-  <textInput name="ti4">$m4.format</textInput>
-  <textInput name="ti5">$m5.format</textInput>
-  <textInput name="ti6">$m6.format</textInput>
-  <textInput name="ti7">$m7.format</textInput>
-  <textInput name="ti8">$m8.format</textInput>
+  <textInput description="change format" name="ti1">$m1.format</textInput>
+  <textInput description="change format" name="ti2">$m2.format</textInput>
+  <textInput description="change format" name="ti3">$m3.format</textInput>
+  <textInput description="change format" name="ti4">$m4.format</textInput>
+  <textInput description="change format" name="ti5">$m5.format</textInput>
+  <textInput description="change format" name="ti6">$m6.format</textInput>
+  <textInput description="change format" name="ti7">$m7.format</textInput>
+  <textInput description="change format" name="ti8">$m8.format</textInput>
     `,
         });
 
@@ -569,7 +569,7 @@ describe("Warning Tests", async () => {
         let { core } = await createTestCore({
             doenetML: `
     <p>
-        Numbers that add to 3: <mathInput name="n1" /> <mathInput name="n2" />
+        Numbers that add to 3: <mathInput name="n1" description="first number" /> <mathInput name="n2" description="second number" />
         <answer name="sum3">
             <award referencesAreResponses="n1 n2"> <when>$n1+$n2=3</when> </award>
         </answer>

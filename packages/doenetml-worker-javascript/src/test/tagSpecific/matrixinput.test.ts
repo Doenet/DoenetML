@@ -2393,4 +2393,25 @@ describe("MathInput tag tests", async () => {
             [mi1ivchanged, mi2ivchanged, mi3ivchanged, mi4ivchanged],
         );
     });
+
+    it("warning if no description or label", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+                <matrixInput />
+                <matrixInput description="hello" />
+                <matrixInput><label>hello</label></matrixInput>
+            `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            `must have a description or a label`,
+        );
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+    });
 });
