@@ -16,7 +16,7 @@
     }
 }
 
-/* Standard utility class to hide content visually but keep it accessible */
+/* A utility class to hide content visually but keep it accessible */
 .doenet-viewer .visually-hidden {
     position: absolute;
     width: 1px;

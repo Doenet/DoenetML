@@ -60,7 +60,11 @@ export function createCheckWorkComponent(
     const tabIndex = SVs.disabled ? -1 : 0;
 
     let buttonContent: React.ReactElement | string | null = null;
+
+    // A message that is meant to be read by a screen reader when it is added
     let liveLabel: string | undefined = undefined;
+    // A message that should not be read by a screen reader when it is added,
+    // though it will be read by the screen reader as part of the document as normal.
     let otherLabel: string | undefined = undefined;
 
     if (validationState === "unvalidated") {
@@ -68,6 +72,8 @@ export function createCheckWorkComponent(
         const checkWorkText = SVs.showCorrectness
             ? SVs.submitLabel
             : SVs.submitLabelNoCorrectness;
+        // When the button changes back to Check Work,
+        // it should not be read by the screen reader
         otherLabel = checkWorkText;
         buttonContent = showText ? <>&nbsp; {checkWorkText}</> : null;
         buttonContent = (
@@ -94,6 +100,7 @@ export function createCheckWorkComponent(
                 document.documentElement,
             ).getPropertyValue("--mainGreen");
 
+            // When the button changes to "Correct", it should be read by the screen reader
             liveLabel = "Correct";
             buttonContent = showText ? <>&nbsp; Correct</> : null;
             buttonContent = (
@@ -109,6 +116,8 @@ export function createCheckWorkComponent(
             buttonStyle.backgroundColor = getComputedStyle(
                 document.documentElement,
             ).getPropertyValue("--mainRed");
+
+            // When the button changes to "Incorrect", it should be read by the screen reader
             liveLabel = "Incorrect";
             buttonContent = showText ? <>&nbsp; Incorrect</> : null;
             buttonContent = (
@@ -132,11 +141,15 @@ export function createCheckWorkComponent(
                     showText ? partialText : `${percent} %`
                 </span>
             );
+
+            // When the button changes to "50% Correct", etc., it should be read by the screen reader
             liveLabel = partialText;
         }
     } else {
         // showCorrectness is false
         buttonStyle.backgroundColor = "rgb(74, 3, 217)";
+
+        // When the button changes to "Response Saved", it should be read by the screen reader
         liveLabel = "Response Saved";
         buttonContent = showText ? <>&nbsp; Response Saved</> : null;
         buttonContent = (
