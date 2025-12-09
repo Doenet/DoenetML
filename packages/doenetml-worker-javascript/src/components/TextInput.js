@@ -3,11 +3,7 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import {
-    returnLabelAttributes,
-    returnLabelStateVariableDefinitions,
-    returnWrapNonLabelsSugarFunction,
-} from "../utils/label";
+import { returnWrapNonLabelsSugarFunction } from "../utils/label";
 import { returnTextPieceStateVariableDefinitions } from "../utils/text";
 import Input from "./abstract/Input";
 
@@ -84,8 +80,6 @@ export default class Textinput extends Input {
 
         Object.assign(attributes, returnAnchorAttributes());
 
-        Object.assign(attributes, returnLabelAttributes());
-
         return attributes;
     }
 
@@ -120,9 +114,6 @@ export default class Textinput extends Input {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        let labelDefinitions = returnLabelStateVariableDefinitions();
-        Object.assign(stateVariableDefinitions, labelDefinitions);
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);

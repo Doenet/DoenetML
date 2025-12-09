@@ -8,6 +8,7 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { MathJax } from "better-react-mathjax";
 
 export default React.memo(function Answer(props: UseDoenetRendererProps) {
     let {
@@ -33,6 +34,15 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         callAction({
             action: actions.submitAnswer,
         });
+
+    let label = SVs.label;
+    if (SVs.labelHasLatex) {
+        label = (
+            <MathJax hideUntilTypeset={"first"} inline dynamic>
+                {label}
+            </MathJax>
+        );
+    }
 
     // BADBADBAD: need to redo how getting the input child
     // without using the internal guts of componentInstructions
@@ -68,13 +78,29 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
     }
 
     const validationState = calculateValidationState(SVs);
-    const checkWorkComponent = createCheckWorkComponent(
+    let checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
         submitAnswer,
         true,
     );
+
+    if (label) {
+        // if label was not moved via sugar to an input child,
+        // then add the label to the check work component
+        checkWorkComponent = (
+            <label
+                style={{
+                    display: "inline-flex",
+                    maxWidth: "100%",
+                }}
+            >
+                <span style={{ marginRight: "4px" }}>{label}</span>
+                {checkWorkComponent}
+            </label>
+        );
+    }
 
     return (
         <span id={id} style={{ marginBottom: "4px" }}>

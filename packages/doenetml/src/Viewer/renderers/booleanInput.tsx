@@ -492,6 +492,9 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
             </MathJax>
         );
     }
+
+    const description = SVs.description || undefined;
+
     if (SVs.asToggleButton) {
         input = (
             <ToggleButton
@@ -501,6 +504,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 onClick={onChangeHandler}
                 value={label}
                 disabled={disabled}
+                ariaLabel={description}
             />
         );
     } else {
@@ -519,6 +523,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                     checked={rendererValue}
                     onChange={onChangeHandler}
                     disabled={disabled}
+                    aria-label={description}
                 />
                 <span className={checkmarkClass}></span>
                 {label != "" ? (

@@ -1804,6 +1804,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -2214,6 +2215,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -2624,6 +2626,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -24968,6 +24971,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -25504,6 +25508,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -26040,6 +26045,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -26576,6 +26582,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -27112,6 +27119,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -27674,6 +27682,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -28210,6 +28219,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -28746,6 +28756,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -29282,6 +29293,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -29818,6 +29830,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -30354,6 +30367,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -30890,6 +30904,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -31426,6 +31441,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -31962,6 +31978,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -32498,6 +32515,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -33034,6 +33052,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -33570,6 +33589,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -34123,6 +34143,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -34650,6 +34671,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -35424,6 +35446,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -39823,6 +39846,7 @@
                 "paginator",
                 "paginatorControls",
                 "solution",
+                "givenAnswer",
                 "p",
                 "collect",
                 "graph",
@@ -40310,6 +40334,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -41152,6 +41177,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -41562,6 +41588,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -41972,6 +41999,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -42309,6 +42337,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -42666,6 +42695,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -43042,6 +43072,9 @@
         {
             "name": "matrixInput",
             "children": [
+                "xLabel",
+                "yLabel",
+                "label",
                 "matrix"
             ],
             "attributes": [
@@ -43091,6 +43124,16 @@
                 },
                 {
                     "name": "copy"
+                },
+                {
+                    "name": "description"
+                },
+                {
+                    "name": "labelIsName",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 },
                 {
                     "name": "numRows"
@@ -43197,6 +43240,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "showSizeControls",
                     "type": "boolean",
                     "isArray": false
@@ -43253,6 +43301,16 @@
                 },
                 {
                     "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
                     "type": "text",
                     "isArray": false
                 },
@@ -43506,6 +43564,310 @@
                 "paginator",
                 "paginatorControls",
                 "solution",
+                "givenAnswer",
+                "p",
+                "graph",
+                "spreadsheet",
+                "tabular",
+                "table",
+                "figure",
+                "image",
+                "video",
+                "hint",
+                "feedback",
+                "caption",
+                "subsetOfRealsInput",
+                "codeEditor",
+                "summaryStatistics",
+                "blockQuote",
+                "pretzel",
+                "cascade"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "open",
+                    "type": "boolean",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true
+        },
+        {
+            "name": "givenAnswer",
+            "children": [
+                "title",
+                "rightHandSide",
+                "description",
+                "xLabel",
+                "yLabel",
+                "topic",
+                "br",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "odeSystem",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "h",
+                "idx",
+                "span",
+                "displayDoenetML",
+                "matrixInput",
+                "text",
+                "boolean",
+                "math",
+                "collect",
+                "ref",
+                "point",
+                "coords",
+                "line",
+                "bezierControls",
+                "vector",
+                "angle",
+                "answer",
+                "when",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "cell",
+                "repeat",
+                "repeatForSequence",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "selectFromSequence",
+                "select",
+                "group",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "intComma",
+                "pluralize",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "footnote",
+                "endpoint",
+                "sort",
+                "shuffle",
+                "solveEquations",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "hasSameFactoring",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "latex",
+                "statement",
+                "introduction",
+                "conclusion",
+                "hr",
+                "section",
+                "subsection",
+                "subsubsection",
+                "paragraphs",
+                "aside",
+                "objectives",
+                "problem",
+                "exercise",
+                "question",
+                "activity",
+                "example",
+                "definition",
+                "note",
+                "theorem",
+                "part",
+                "task",
+                "proof",
+                "problems",
+                "exercises",
+                "ol",
+                "ul",
+                "orbitalDiagram",
+                "orbitalDiagramInput",
+                "sideBySide",
+                "sbsGroup",
+                "stack",
+                "div",
+                "pre",
+                "paginator",
+                "paginatorControls",
+                "solution",
+                "givenAnswer",
                 "p",
                 "graph",
                 "spreadsheet",
@@ -43753,6 +44115,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -46677,6 +47040,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -53539,6 +53903,9 @@
                 "booleanInput",
                 "choiceInput",
                 "considerAsResponses",
+                "xLabel",
+                "yLabel",
+                "label",
                 "rightHandSide",
                 "topic",
                 "m",
@@ -53612,8 +53979,6 @@
                 "mathList",
                 "tupleList",
                 "numberList",
-                "xLabel",
-                "yLabel",
                 "not",
                 "and",
                 "or",
@@ -53624,7 +53989,6 @@
                 "boolean",
                 "when",
                 "hasSameFactoring",
-                "label",
                 "matchesPattern",
                 "textList",
                 "booleanList"
@@ -53868,6 +54232,16 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "description"
+                },
+                {
+                    "name": "labelIsName",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -54057,6 +54431,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "description",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -54109,6 +54493,11 @@
                 {
                     "name": "disabled",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "label",
+                    "type": "label",
                     "isArray": false
                 },
                 {
@@ -55104,6 +55493,16 @@
                     "name": "copy"
                 },
                 {
+                    "name": "description"
+                },
+                {
+                    "name": "labelIsName",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "prefill"
                 },
                 {
@@ -55171,13 +55570,6 @@
                 },
                 {
                     "name": "minWidth"
-                },
-                {
-                    "name": "labelIsName",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
                 }
             ],
             "properties": [
@@ -55209,6 +55601,11 @@
                 {
                     "name": "collaborateGroups",
                     "type": "collaborateGroups",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -55257,11 +55654,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -55287,6 +55679,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "displayDigits",
                     "type": "integer",
                     "isArray": false
@@ -55304,11 +55706,6 @@
                 {
                     "name": "padZeros",
                     "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "label",
-                    "type": "label",
                     "isArray": false
                 },
                 {
@@ -55549,6 +55946,16 @@
                     "name": "copy"
                 },
                 {
+                    "name": "description"
+                },
+                {
+                    "name": "labelIsName",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "prefill"
                 },
                 {
@@ -55590,13 +55997,6 @@
                         "right",
                         "center"
                     ]
-                },
-                {
-                    "name": "labelIsName",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
                 }
             ],
             "properties": [
@@ -55631,6 +56031,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "prefill",
                     "type": "text",
                     "isArray": false
@@ -55653,11 +56058,6 @@
                 {
                     "name": "positionFromAnchor",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "labelIsName",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -55688,6 +56088,11 @@
                 {
                     "name": "label",
                     "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -55922,6 +56327,16 @@
                     "name": "copy"
                 },
                 {
+                    "name": "description"
+                },
+                {
+                    "name": "labelIsName",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "prefill",
                     "values": [
                         "true",
@@ -55944,13 +56359,6 @@
                 },
                 {
                     "name": "draggable",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "labelIsName",
                     "values": [
                         "true",
                         "false"
@@ -56006,6 +56414,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "prefill",
                     "type": "boolean",
                     "isArray": false
@@ -56017,11 +56430,6 @@
                 },
                 {
                     "name": "draggable",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "labelIsName",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -56058,6 +56466,11 @@
                 {
                     "name": "label",
                     "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -56141,6 +56554,16 @@
                     "name": "copy"
                 },
                 {
+                    "name": "description"
+                },
+                {
+                    "name": "labelIsName",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "selectMultiple",
                     "values": [
                         "true",
@@ -56189,13 +56612,6 @@
                 },
                 {
                     "name": "submitLabelNoCorrectness"
-                },
-                {
-                    "name": "labelIsName",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
                 }
             ],
             "properties": [
@@ -56230,6 +56646,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "selectMultiple",
                     "type": "boolean",
                     "isArray": false
@@ -56260,11 +56681,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -56292,6 +56708,11 @@
                 {
                     "name": "label",
                     "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -56530,6 +56951,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -59710,6 +60132,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -60827,6 +61250,7 @@
                 "paginator",
                 "paginatorControls",
                 "solution",
+                "givenAnswer",
                 "document",
                 "textList",
                 "p",
@@ -61921,6 +62345,7 @@
                 "paginator",
                 "paginatorControls",
                 "solution",
+                "givenAnswer",
                 "p",
                 "graph",
                 "spreadsheet",
@@ -62248,6 +62673,7 @@
                 "paginator",
                 "paginatorControls",
                 "solution",
+                "givenAnswer",
                 "p",
                 "graph",
                 "spreadsheet",
@@ -62708,6 +63134,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -63035,6 +63462,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -65724,6 +66152,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -67390,6 +67819,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -68788,6 +69218,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -69849,6 +70280,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -70184,6 +70616,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -70521,6 +70954,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -71809,6 +72243,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -72134,6 +72569,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -72453,6 +72889,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -73084,6 +73521,7 @@
                 "paginator",
                 "paginatorControls",
                 "solution",
+                "givenAnswer",
                 "p",
                 "graph",
                 "spreadsheet",
@@ -73772,6 +74210,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -74122,6 +74561,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -75510,6 +75950,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -76717,6 +77158,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -79897,6 +80339,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",
@@ -80773,6 +81216,7 @@
                 "paginatorControls",
                 "matrixInput",
                 "solution",
+                "givenAnswer",
                 "document",
                 "text",
                 "textList",

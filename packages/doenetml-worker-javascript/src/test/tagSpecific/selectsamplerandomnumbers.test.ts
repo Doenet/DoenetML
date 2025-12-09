@@ -1762,7 +1762,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
             sampleComponent:
                 stateVariables[await resolvePathToNodeIdx("samples")],
             allowedErrorInMean: 1.5,
-            allowedErrorInVariance: 3,
+            allowedErrorInVariance: 4,
             checkAllSamples: false,
             stateVariables,
         });

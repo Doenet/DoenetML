@@ -1790,4 +1790,25 @@ describe("TextInput tag tests", async () => {
         });
         await check_items(string);
     });
+
+    it("warning if no description or label", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+                <textInput />
+                <textInput description="hello" />
+                <textInput><label>hello</label></textInput>
+            `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            `must have a description or a label`,
+        );
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+    });
 });

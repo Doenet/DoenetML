@@ -16,6 +16,7 @@ export function Button(
         disabled?: boolean;
         onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
         className?: string;
+        ariaLabel?: string;
     }>,
 ) {
     // We use `value` or `children` to display the button content.
@@ -55,6 +56,7 @@ export function Button(
                       } as React.CSSProperties)
                     : undefined
             }
+            aria-label={props.ariaLabel}
         >
             {icon}
             {value}

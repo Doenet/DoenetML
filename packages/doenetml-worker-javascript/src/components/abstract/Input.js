@@ -1,3 +1,7 @@
+import {
+    returnLabelAttributes,
+    returnLabelStateVariableDefinitions,
+} from "../../utils/label";
 import InlineComponent from "./InlineComponent";
 
 export default class Input extends InlineComponent {
@@ -12,11 +16,23 @@ export default class Input extends InlineComponent {
             public: true,
             excludeFromSchema: true,
         };
+
+        attributes.description = {
+            createComponentOfType: "text",
+            createStateVariable: "descriptionPreliminary",
+            defaultValue: "",
+        };
+
+        Object.assign(attributes, returnLabelAttributes());
+
         return attributes;
     }
 
     static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+        const stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        const labelDefinitions = returnLabelStateVariableDefinitions();
+        Object.assign(stateVariableDefinitions, labelDefinitions);
 
         // how many values an input returns
         stateVariableDefinitions.numValues = {
@@ -42,6 +58,7 @@ export default class Input extends InlineComponent {
                         "numPreviousIncorrectSubmissions",
                         "creditFactorUsed",
                         "nextCreditFactor",
+                        "description",
                     ],
                 },
             }),
@@ -332,6 +349,51 @@ export default class Input extends InlineComponent {
                     nextCreditFactor = 1;
                 }
                 return { setValue: { nextCreditFactor } };
+            },
+        };
+
+        stateVariableDefinitions.description = {
+            forRenderer: true,
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+                descriptionPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "descriptionPreliminary",
+                },
+                label: {
+                    dependencyType: "stateVariable",
+                    variableName: "label",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                let description = dependencyValues.descriptionPreliminary;
+
+                if (
+                    usedDefault.descriptionPreliminary &&
+                    dependencyValues.answerAncestor
+                ) {
+                    description =
+                        dependencyValues.answerAncestor.stateValues.description;
+                }
+
+                const warnings = [];
+
+                if (!description && !dependencyValues.label) {
+                    warnings.push({
+                        message:
+                            "Input (or answer producing an input) must have a description or a label.",
+                        level: 1,
+                    });
+                }
+
+                return { setValue: { description }, sendWarnings: warnings };
             },
         };
 

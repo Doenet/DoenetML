@@ -5,6 +5,10 @@ import {
     returnStandardAnswerAttributes,
     returnStandardAnswerStateVariableDefinition,
 } from "../utils/answer";
+import {
+    returnLabelAttributes,
+    returnLabelStateVariableDefinitions,
+} from "../utils/label";
 
 export default class Answer extends InlineComponent {
     constructor(args) {
@@ -202,6 +206,16 @@ export default class Answer extends InlineComponent {
             public: true,
         };
 
+        attributes.description = {
+            createComponentOfType: "text",
+            createStateVariable: "description",
+            defaultValue: "",
+            public: true,
+            forRenderer: true,
+        };
+
+        Object.assign(attributes, returnLabelAttributes());
+
         return attributes;
     }
 
@@ -289,6 +303,13 @@ export default class Answer extends InlineComponent {
                 mayNeedInput = false;
             let foundResponse = false;
             let foundAward = false;
+
+            const labelChildren = matchedChildren.filter((child) =>
+                componentIsSpecifiedType(child, "label"),
+            );
+            matchedChildren = matchedChildren.filter(
+                (child) => !componentIsSpecifiedType(child, "label"),
+            );
 
             let childIsWrappable = [];
             for (let child of matchedChildren) {
@@ -454,7 +475,7 @@ export default class Answer extends InlineComponent {
                         type: "serialized",
                         componentType: "choiceInput",
                         componentIdx: nComponents++,
-                        children: matchedChildren,
+                        children: [...labelChildren, ...matchedChildren],
                         attributes: {},
                         doenetAttributes: {},
                         state: {},
@@ -526,27 +547,31 @@ export default class Answer extends InlineComponent {
             } else {
                 if (!childIsWrappable[0]) {
                     // started with non-wrappable, find first wrappable child
-                    let firstNonLabelInd = childIsWrappable.indexOf(true);
-                    if (firstNonLabelInd !== -1) {
+                    let firstWrappableInd = childIsWrappable.indexOf(true);
+                    if (firstWrappableInd !== -1) {
                         childrenToNotWrapBegin = matchedChildren.slice(
                             0,
-                            firstNonLabelInd,
+                            firstWrappableInd,
                         );
                         matchedChildren =
-                            matchedChildren.slice(firstNonLabelInd);
+                            matchedChildren.slice(firstWrappableInd);
                         childIsWrappable =
-                            childIsWrappable.slice(firstNonLabelInd);
+                            childIsWrappable.slice(firstWrappableInd);
                     }
                 }
 
                 // now we don't have non-wrappable at the beginning
                 // find first non-wrappable ind
-                let firstLabelInd = childIsWrappable.indexOf(false);
-                if (firstLabelInd === -1) {
+                let firstNonWrappableInd = childIsWrappable.indexOf(false);
+                if (firstNonWrappableInd === -1) {
                     childrenToWrap = matchedChildren;
                 } else {
-                    childrenToWrap = matchedChildren.slice(0, firstLabelInd);
-                    childrenToNotWrapEnd = matchedChildren.slice(firstLabelInd);
+                    childrenToWrap = matchedChildren.slice(
+                        0,
+                        firstNonWrappableInd,
+                    );
+                    childrenToNotWrapEnd =
+                        matchedChildren.slice(firstNonWrappableInd);
                 }
             }
 
@@ -624,13 +649,15 @@ export default class Answer extends InlineComponent {
                         type: "serialized",
                         componentType: inputType,
                         componentIdx: nComponents++,
-                        children: [],
+                        children: labelChildren,
                         attributes: {},
                         doenetAttributes: {},
                         state: {},
                     },
                     ...newChildren,
                 ];
+            } else {
+                newChildren = [...labelChildren, ...newChildren];
             }
 
             return {
@@ -662,6 +689,10 @@ export default class Answer extends InlineComponent {
                 group: "responses",
                 componentTypes: ["considerAsResponses"],
             },
+            {
+                group: "labels",
+                componentTypes: ["label"],
+            },
         ];
     }
 
@@ -679,6 +710,9 @@ export default class Answer extends InlineComponent {
             stateVariableDefinitions,
             returnStandardAnswerStateVariableDefinition(),
         );
+
+        const labelDefinitions = returnLabelStateVariableDefinitions();
+        Object.assign(stateVariableDefinitions, labelDefinitions);
 
         stateVariableDefinitions.haveAwardThatRequiresInput = {
             returnDependencies: () => ({

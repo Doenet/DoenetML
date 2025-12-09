@@ -14,6 +14,7 @@ export function ActionButton(
         alert?: boolean;
         className?: string;
         fillColor?: string;
+        ariaLabel?: string;
     }>,
 ) {
     return (

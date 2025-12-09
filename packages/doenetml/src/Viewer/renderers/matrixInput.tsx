@@ -90,9 +90,8 @@ export default React.memo(function MatrixInput(props) {
                             })
                         }
                         disabled={SVs.numRows < 2 || disabled}
-                    >
-                        r-
-                    </ActionButton>
+                        ariaLabel="Remove row"
+                    ></ActionButton>
                     <ActionButton
                         id={id + "_rowIncrement"}
                         value="r+"
@@ -103,9 +102,8 @@ export default React.memo(function MatrixInput(props) {
                             })
                         }
                         disabled={disabled}
-                    >
-                        r+
-                    </ActionButton>
+                        ariaLabel="Add row"
+                    ></ActionButton>
                 </ActionButtonGroup>
             </span>
         );
@@ -125,9 +123,8 @@ export default React.memo(function MatrixInput(props) {
                             })
                         }
                         disabled={SVs.numColumns < 2 || disabled}
-                    >
-                        c-
-                    </ActionButton>
+                        ariaLabel="Remove column"
+                    ></ActionButton>
                     <ActionButton
                         id={id + "_columnIncrement"}
                         value="c+"
@@ -138,22 +135,52 @@ export default React.memo(function MatrixInput(props) {
                             })
                         }
                         disabled={disabled}
-                    >
-                        c+
-                    </ActionButton>
+                        ariaLabel="Add column"
+                    ></ActionButton>
                 </ActionButtonGroup>
             </span>
         );
     }
 
+    let label = SVs.label;
+    if (SVs.labelHasLatex) {
+        label = (
+            <MathJax hideUntilTypeset={"first"} inline dynamic>
+                {label}
+            </MathJax>
+        );
+    }
+    if (label) {
+        label = (
+            <div
+                style={{
+                    marginRight: "5px",
+                    alignContent: "center",
+                }}
+            >
+                {label}
+            </div>
+        );
+    }
+
+    const description = SVs.description || undefined;
+
     return (
         <React.Fragment>
-            <div style={{ display: "inline-flex", margin: "0px 4px 4px 4px" }}>
-                <div className="matrix-input" id={id}>
-                    <table>
-                        <tbody>{matrixInputs}</tbody>
-                    </table>
-                </div>
+            <div
+                style={{
+                    display: "inline-flex",
+                    margin: "0px 4px 4px 4px",
+                }}
+            >
+                <label style={{ display: "inline-flex", maxWidth: "100%" }}>
+                    {label}
+                    <div className="matrix-input" id={id}>
+                        <table aria-label={description}>
+                            <tbody>{matrixInputs}</tbody>
+                        </table>
+                    </div>
+                </label>
                 <div style={{ marginRight: "4px" }}></div>
                 {rowNumControls}
                 {colNumControls}

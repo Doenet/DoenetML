@@ -104,13 +104,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         );
     }
 
-    if (SVs.inline) {
-        let checkWorkStyle: React.CSSProperties = {
-            cursor: "pointer",
-            padding: "1px 6px 1px 6px",
-            width: "24px",
-        };
+    const description = SVs.description || undefined;
 
+    if (SVs.inline) {
         let selectStyle: React.CSSProperties = {};
 
         if (disabled) {
@@ -167,6 +163,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                         disabled={disabled}
                         multiple={SVs.selectMultiple}
                         style={selectStyle}
+                        aria-label={description}
                     >
                         <option hidden={true} value="">
                             {SVs.placeHolder}
@@ -178,25 +175,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             </React.Fragment>
         );
     } else {
-        let checkWorkStyle: React.CSSProperties = {
-            height: "24px",
-            display: "inline-block",
-            padding: "1px 6px 1px 6px",
-            cursor: "pointer",
-            // fontWeight: "bold",
-        };
-        let checkWorkTabIndex = "0";
-
-        if (disabled) {
-            // Disable the checkWorkButton
-            checkWorkStyle.backgroundColor = getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGray");
-            checkWorkStyle.color = "black";
-            checkWorkStyle.cursor = "not-allowed";
-            checkWorkTabIndex = "-1";
-        }
-
         let checkWorkComponent = createCheckWorkComponent(
             SVs,
             id,
@@ -218,6 +196,8 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
         let svData = SVs;
 
+        children = children.filter((child) => child !== null);
+
         let choiceDoenetTags = (SVs.choiceOrder as number[])
             .map((v) => children[v - 1])
             .map(function (child, i) {
@@ -234,29 +214,31 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                         radioClassName += " radio-checkmark-disabled";
                     }
                     return (
-                        <label
-                            className={containerClassName}
-                            key={inputKey + "_choice" + (i + 1)}
-                        >
-                            <input
-                                type="radio"
-                                id={keyBeginning + (i + 1) + "_input"}
-                                name={inputKey}
-                                value={i + 1}
-                                checked={rendererSelectedIndices.includes(
-                                    i + 1,
-                                )}
-                                onChange={onChangeHandler}
-                                disabled={radioDisabled}
-                            />
-                            <span className={radioClassName} />
+                        <li>
                             <label
-                                htmlFor={keyBeginning + (i + 1) + "_input"}
-                                style={{ marginLeft: "2px" }}
+                                className={containerClassName}
+                                key={inputKey + "_choice" + (i + 1)}
                             >
-                                {child}
+                                <input
+                                    type="radio"
+                                    id={keyBeginning + (i + 1) + "_input"}
+                                    name={inputKey}
+                                    value={i + 1}
+                                    checked={rendererSelectedIndices.includes(
+                                        i + 1,
+                                    )}
+                                    onChange={onChangeHandler}
+                                    disabled={radioDisabled}
+                                />
+                                <span className={radioClassName} />
+                                <label
+                                    htmlFor={keyBeginning + (i + 1) + "_input"}
+                                    style={{ marginLeft: "2px" }}
+                                >
+                                    {child}
+                                </label>
                             </label>
-                        </label>
+                        </li>
                     );
                 } else if (inputType == "checkbox") {
                     // selectMultiple="true"
@@ -269,29 +251,33 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                         checkboxClassName += " checkbox-checkmark-disabled";
                     }
                     return (
-                        <label
-                            className={containerClassName}
-                            key={inputKey + "_choice" + (i + 1)}
-                        >
-                            <input
-                                type="checkbox"
-                                id={keyBeginning + (i + 1) + "_input"}
-                                name={inputKey}
-                                value={i + 1}
-                                checked={rendererSelectedIndices.includes(
-                                    i + 1,
-                                )}
-                                onChange={onChangeHandler}
-                                disabled={disabled || svData.choicesDisabled[i]}
-                            />
-                            <span className={checkboxClassName} />
+                        <li>
                             <label
-                                htmlFor={keyBeginning + (i + 1) + "_input"}
-                                style={{ marginLeft: "2px" }}
+                                className={containerClassName}
+                                key={inputKey + "_choice" + (i + 1)}
                             >
-                                {child}
+                                <input
+                                    type="checkbox"
+                                    id={keyBeginning + (i + 1) + "_input"}
+                                    name={inputKey}
+                                    value={i + 1}
+                                    checked={rendererSelectedIndices.includes(
+                                        i + 1,
+                                    )}
+                                    onChange={onChangeHandler}
+                                    disabled={
+                                        disabled || svData.choicesDisabled[i]
+                                    }
+                                />
+                                <span className={checkboxClassName} />
+                                <label
+                                    htmlFor={keyBeginning + (i + 1) + "_input"}
+                                    style={{ marginLeft: "2px" }}
+                                >
+                                    {child}
+                                </label>
                             </label>
-                        </label>
+                        </li>
                     );
                 }
             });
@@ -299,9 +285,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         return (
             <div id={inputKey + "-label"}>
                 {label}
-                <ol id={inputKey} style={listStyle}>
+                <ul id={inputKey} style={listStyle}>
                     {choiceDoenetTags}
-                </ol>
+                </ul>
                 {checkWorkComponent}
             </div>
         );

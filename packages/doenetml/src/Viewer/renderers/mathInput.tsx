@@ -261,6 +261,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
             </MathJax>
         );
     }
+
+    const description = SVs.description || undefined;
+
     return (
         <React.Fragment>
             <span id={id}>
@@ -276,6 +279,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                         <EditableMathField
                             style={mathInputStyle}
                             latex={rendererValue.current}
+                            ariaLabel={description}
                             config={{
                                 autoCommands:
                                     "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
