@@ -37,86 +37,50 @@ describe("Answer Tag Tests", function () {
             const mathInputEditableAnchor =
                 cesc("#_id_" + mathInputIdx) + " .mq-editable-field";
 
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Type correct answer in");
             cy.get(mathInputAnchor).type(`x+y`, { force: true });
             cy.get(mathInputEditableAnchor).should("contain.text", "x+y");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Press enter");
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Correct");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Add space");
             cy.get(mathInputAnchor).type(`{end} `, { force: true });
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Press enter");
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Correct");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Delete space");
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Press enter");
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Correct");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Add letter");
             cy.get(mathInputAnchor).type(`{end}z`, { force: true });
             cy.get(mathInputEditableAnchor).should("contain.text", "x+yz");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Delete letter (no longer goes back to saying correct)");
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
             cy.get(mathInputEditableAnchor).should("not.contain.text", "x+yz");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Delete more");
@@ -125,30 +89,18 @@ describe("Answer Tag Tests", function () {
             });
             cy.get(mathInputEditableAnchor).should("not.contain.text", "x+");
             cy.get(mathInputEditableAnchor).should("contain.text", "x");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Back to correct (no longer goes back to saying correct)");
             cy.get(mathInputAnchor).type(`{end}+y`, { force: true });
             cy.get(mathInputEditableAnchor).should("contain.text", "x+y");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Press enter");
             cy.get(mathInputAnchor).type(`{enter}`, { force: true });
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Correct");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Delete again");
@@ -157,49 +109,29 @@ describe("Answer Tag Tests", function () {
             });
             cy.get(mathInputEditableAnchor).should("not.contain.text", "x+");
             cy.get(mathInputEditableAnchor).should("contain.text", "x");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Press enter on submit button");
             cy.get(mathInputButtonAnchor).type(`{enter}`, { force: true });
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Incorrect");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Add letter");
             cy.get(mathInputAnchor).type(`{end}a`, { force: true });
             cy.get(mathInputEditableAnchor).should("contain.text", "xa");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Delete letter (no longer goes back to saying incorrect)");
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
             cy.get(mathInputEditableAnchor).should("not.contain.text", "xa");
             cy.get(mathInputEditableAnchor).should("contain.text", "x");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Delete all");
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log(
@@ -207,47 +139,31 @@ describe("Answer Tag Tests", function () {
             );
             cy.get(mathInputAnchor).type(`x`, { force: true });
             cy.get(mathInputEditableAnchor).should("contain.text", "x");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Click submit button");
             cy.get(mathInputButtonAnchor).click();
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Incorrect");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Enter partially correct answer");
             cy.get(mathInputAnchor).type(`{end}+z`, { force: true });
             cy.get(mathInputEditableAnchor).should("contain.text", "x+z");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Click submit button");
             cy.get(mathInputButtonAnchor).click();
             cy.get(mathInputButtonAnchor)
-                .should("have.text", "32 %")
-                .should("have.attr", "aria-label", "32% Correct");
+                .should("contain.text", "32 %")
+                .should("contain.text", "32% Correct");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Add letter");
             cy.get(mathInputAnchor).type(`{end}z`, { force: true });
             cy.get(mathInputEditableAnchor).should("contain.text", "x+zz");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log(
@@ -256,11 +172,7 @@ describe("Answer Tag Tests", function () {
             cy.get(mathInputAnchor).type(`{end}{backspace}`, { force: true });
             cy.get(mathInputEditableAnchor).should("not.contain.text", "x+zz");
             cy.get(mathInputEditableAnchor).should("contain.text", "x+z");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Delete more");
@@ -269,11 +181,7 @@ describe("Answer Tag Tests", function () {
             });
             cy.get(mathInputEditableAnchor).should("not.contain.text", "x+");
             cy.get(mathInputEditableAnchor).should("contain.text", "x");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log(
@@ -281,54 +189,34 @@ describe("Answer Tag Tests", function () {
             );
             cy.get(mathInputAnchor).type(`{end}+z`, { force: true });
             cy.get(mathInputEditableAnchor).should("contain.text", "x+z");
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Click submit button");
             cy.get(mathInputButtonAnchor).click();
             cy.get(mathInputButtonAnchor)
-                .should("have.text", "32 %")
-                .should("have.attr", "aria-label", "32% Correct");
+                .should("contain.text", "32 %")
+                .should("contain.text", "32% Correct");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Enter invalid answer");
             cy.get(mathInputAnchor).type(`{end}/`, { force: true });
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Click submit button");
             cy.get(mathInputButtonAnchor).click();
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Incorrect");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
 
             cy.log("Another invalid answer shows submit button again");
             cy.get(mathInputAnchor).type(`{end}^`, { force: true });
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "button");
 
             cy.log("Click submit button");
             cy.get(mathInputButtonAnchor).click();
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Incorrect");
             cy.get(mathInputButtonAnchor).should("have.attr", "role", "status");
         });
     });
@@ -362,219 +250,131 @@ describe("Answer Tag Tests", function () {
             );
 
             cy.get(textInputAnchor).should("have.value", "");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Type correct answer in");
             cy.get(textInputAnchor).type(`hello there`);
             cy.get(textInputAnchor).should("have.value", "hello there");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Press enter");
             cy.get(textInputAnchor).type(`{enter}`);
             cy.get(textInputAnchor).should("have.value", "hello there");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Correct");
 
             cy.log("Add letter");
             cy.get(textInputAnchor).type(`z`);
             cy.get(textInputAnchor).should("have.value", "hello therez");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Delete letter (no longer goes back to saying correct)");
             cy.get(textInputAnchor).type(`{backspace}`);
             cy.get(textInputAnchor).should("have.value", "hello there");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Delete more");
             cy.get(textInputAnchor).type(`{backspace}{backspace}`);
             cy.get(textInputAnchor).should("have.value", "hello the");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Back to correct");
             cy.get(textInputAnchor).type(`re`);
             cy.get(textInputAnchor).should("have.value", "hello there");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
             cy.log("Press enter");
             cy.get(textInputAnchor).type(`{enter}`);
             cy.get(textInputAnchor).should("have.value", "hello there");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Correct");
 
             cy.log("Add a space");
             cy.get(textInputAnchor).type(` `);
             cy.get(textInputAnchor).should("have.value", "hello there ");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Press enter");
             cy.get(textInputAnchor).type(`{enter}`);
             cy.get(textInputAnchor).should("have.value", "hello there ");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Correct");
 
             cy.log("Delete again");
             cy.get(textInputAnchor).type(`{backspace}{backspace}{backspace}`);
             cy.get(textInputAnchor).should("have.value", "hello the");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Press enter on submit button");
             cy.get(textInputButtonAnchor).type(`{enter}`, { force: true });
             cy.get(textInputAnchor).should("have.value", "hello the");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.log("Add letter");
             cy.get(textInputAnchor).type(`a`);
             cy.get(textInputAnchor).should("have.value", "hello thea");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Delete letter (no longer goes back to saying incorrect)");
             cy.get(textInputAnchor).type(`{backspace}`);
             cy.get(textInputAnchor).should("have.value", "hello the");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Delete all");
             cy.get(textInputAnchor).clear();
             cy.get(textInputAnchor).should("have.value", "");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log(
                 "Restore incorrect submitted answer (no longer goes back to saying incorrect)",
             );
             cy.get(textInputAnchor).type(`hello the`);
             cy.get(textInputAnchor).should("have.value", "hello the");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Press enter");
             cy.get(textInputAnchor).type(`{enter}`);
             cy.get(textInputAnchor).should("have.value", "hello the");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.log("Enter partially correct answer");
             cy.get(textInputAnchor).clear().type(`bye`);
             cy.get(textInputAnchor).should("have.value", "bye");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Click submit button");
             cy.get(textInputButtonAnchor).click();
             cy.get(textInputAnchor).should("have.value", "bye");
             cy.get(textInputButtonAnchor)
-                .should("have.text", "32 %")
-                .should("have.attr", "aria-label", "32% Correct");
+                .should("contain.text", "32 %")
+                .should("contain.text", "32% Correct");
 
             cy.log("Add letter");
             cy.get(textInputAnchor).type(`z`);
             cy.get(textInputAnchor).should("have.value", "byez");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log(
                 "Delete letter (no longer goes back to saying partially correct)",
             );
             cy.get(textInputAnchor).type(`{backspace}`);
             cy.get(textInputAnchor).should("have.value", "bye");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Delete more");
             cy.get(textInputAnchor).type(`{backspace}{backspace}`);
             cy.get(textInputAnchor).should("have.value", "b");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log(
                 "Back to partial (no longer goes back to saying partially correct)",
             );
             cy.get(textInputAnchor).type(`ye`);
             cy.get(textInputAnchor).should("have.value", "bye");
-            cy.get(textInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(textInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.log("Click submit button");
             cy.get(textInputButtonAnchor).click();
             cy.get(textInputAnchor).should("have.value", "bye");
             cy.get(textInputButtonAnchor)
-                .should("have.text", "32 %")
-                .should("have.attr", "aria-label", "32% Correct");
+                .should("contain.text", "32 %")
+                .should("contain.text", "32% Correct");
         });
     });
 
@@ -991,11 +791,7 @@ describe("Answer Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Check Work",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Check Work");
 
         cy.log("Type correct answer in");
         cy.get(cesc("#ans") + " textarea").type(`x`, { force: true });
@@ -1003,19 +799,11 @@ describe("Answer Tag Tests", function () {
             "contain.text",
             "x",
         );
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Check Work",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Check Work");
 
         cy.log("Press enter");
         cy.get(cesc("#ans") + " textarea").type(`{enter}`, { force: true });
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Correct",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Correct");
 
         cy.log("Change correct answer");
         cy.get(cesc("#var") + " textarea").type(`{end}{backspace}u{enter}`, {
@@ -1025,19 +813,11 @@ describe("Answer Tag Tests", function () {
             "contain.text",
             "u",
         );
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Check Work",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Check Work");
 
         cy.log("Press enter");
         cy.get(cesc("#ans") + " textarea").type(`{enter}`, { force: true });
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Incorrect",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Incorrect");
 
         cy.log("Change to new correct answer");
         cy.get(cesc("#ans") + " textarea").type(`{end}{backspace}u`, {
@@ -1047,19 +827,11 @@ describe("Answer Tag Tests", function () {
             "contain.text",
             "u",
         );
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Check Work",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Check Work");
 
         cy.log("Press enter");
         cy.get(cesc("#ans") + " textarea").type(`{enter}`, { force: true });
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Correct",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Correct");
 
         cy.log("Change partial credit answer");
         cy.get(cesc("#var2") + " textarea").type(`{end}{backspace}v{enter}`, {
@@ -1069,19 +841,11 @@ describe("Answer Tag Tests", function () {
             "contain.text",
             "y",
         );
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Check Work",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Check Work");
 
         cy.log("Press enter");
         cy.get(cesc("#ans") + " textarea").type(`{enter}`, { force: true });
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Correct",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Correct");
 
         cy.log("Change to new partial correct answer");
         cy.get(cesc("#ans") + " textarea").type(`{end}{backspace}v`, {
@@ -1091,17 +855,13 @@ describe("Answer Tag Tests", function () {
             "contain.text",
             "v",
         );
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Check Work",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Check Work");
 
         cy.log("Press enter");
         cy.get(cesc("#ans") + " textarea").type(`{enter}`, { force: true });
         cy.get(cesc("#ans_button"))
-            .should("have.text", "50 %")
-            .should("have.attr", "aria-label", "50% Correct");
+            .should("contain.text", "50 %")
+            .should("contain.text", "50% Correct");
 
         cy.log("Change correct answer");
         cy.get(cesc("#var") + " textarea").type(`{end}{backspace}w{enter}`, {
@@ -1111,17 +871,13 @@ describe("Answer Tag Tests", function () {
             "contain.text",
             "w",
         );
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Check Work",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Check Work");
 
         cy.log("Press enter");
         cy.get(cesc("#ans") + " textarea").type(`{enter}`, { force: true });
         cy.get(cesc("#ans_button"))
-            .should("have.text", "50 %")
-            .should("have.attr", "aria-label", "50% Correct");
+            .should("contain.text", "50 %")
+            .should("contain.text", "50% Correct");
 
         cy.log("Change to new correct answer");
         cy.get(cesc("#ans") + " textarea").type(`{end}{backspace}w`, {
@@ -1131,19 +887,11 @@ describe("Answer Tag Tests", function () {
             "contain.text",
             "w",
         );
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Check Work",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Check Work");
 
         cy.log("Press enter");
         cy.get(cesc("#ans") + " textarea").type(`{enter}`, { force: true });
-        cy.get(cesc("#ans_button")).should(
-            "have.attr",
-            "aria-label",
-            "Correct",
-        );
+        cy.get(cesc("#ans_button")).should("contain.text", "Correct");
     });
 
     // actually test the interface of block versus inline choice inputs
@@ -1191,8 +939,7 @@ describe("Answer Tag Tests", function () {
             );
             cy.get(choiceInputAnchor).should("have.value", "");
             cy.get(choiceInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Check Work",
             );
 
@@ -1200,18 +947,13 @@ describe("Answer Tag Tests", function () {
             cy.get(choiceInputAnchor).select(`dog`);
 
             cy.get(choiceInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Check Work",
             );
 
             cy.log("Click submit button");
             cy.get(choiceInputButtonAnchor).click();
-            cy.get(choiceInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(choiceInputButtonAnchor).should("contain.text", "Correct");
 
             cy.log("toggle inline");
             cy.get(cesc("#inline")).click();
@@ -1241,8 +983,8 @@ describe("Answer Tag Tests", function () {
             );
 
             cy.get(choiceInputButtonAnchor)
-                .should("have.text", "50 %")
-                .should("have.attr", "aria-label", "50% Correct");
+                .should("contain.text", "50 %")
+                .should("contain.text", "50% Correct");
         });
     });
 
@@ -1461,13 +1203,11 @@ d
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).click();
             cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer3_button")).should("contain.text", "Correct");
@@ -1488,13 +1228,11 @@ d
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).click();
             cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer7_button")).should("contain.text", "Correct");
@@ -1536,13 +1274,11 @@ d
             cy.get(cesc("#answer15_button")).click();
             cy.get(cesc("#answer16_button")).click();
             cy.get(cesc("#choiceInput5_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#choiceInput6_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer15_button")).should("contain.text", "Correct");
@@ -1557,13 +1293,11 @@ d
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).click();
             cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer19_button")).should("contain.text", "Correct");
@@ -1591,13 +1325,11 @@ d
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).click();
             cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer3_button")).should("contain.text", "Incorrect");
@@ -1620,13 +1352,11 @@ d
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).click();
             cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer7_button")).should("contain.text", "Incorrect");
@@ -1674,13 +1404,11 @@ d
             cy.get(cesc("#answer15_button")).click();
             cy.get(cesc("#answer16_button")).click();
             cy.get(cesc("#choiceInput5_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#choiceInput6_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer15_button")).should(
@@ -1701,13 +1429,11 @@ d
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).click();
             cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer19_button")).should(
@@ -1743,13 +1469,11 @@ d
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).should("be.disabled");
             cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer3_button")).should("contain.text", "Correct");
@@ -1774,13 +1498,11 @@ d
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).should("be.disabled");
             cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer7_button")).should("contain.text", "Correct");
@@ -1825,13 +1547,11 @@ d
             cy.get(cesc("#answer15_button")).click();
             cy.get(cesc("#answer16_button")).should("be.disabled");
             cy.get(cesc("#choiceInput5_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#choiceInput6_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer15_button")).should("contain.text", "Correct");
@@ -1855,13 +1575,11 @@ d
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).should("be.disabled");
             cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer19_button")).should("contain.text", "Correct");
@@ -1989,13 +1707,11 @@ d
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).click();
             cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer3_button")).should("contain.text", "Incorrect");
@@ -2016,13 +1732,11 @@ d
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).click();
             cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer7_button")).should("contain.text", "Incorrect");
@@ -2062,13 +1776,11 @@ d
             cy.get(cesc("#answer15_button")).click();
             cy.get(cesc("#answer16_button")).click();
             cy.get(cesc("#choiceInput5_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#choiceInput6_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer15_button")).should(
@@ -2085,13 +1797,11 @@ d
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).click();
             cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#answer19_button")).should(
@@ -2125,13 +1835,11 @@ d
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).click();
             cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer3_button")).should("contain.text", "Correct");
@@ -2154,13 +1862,11 @@ d
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).click();
             cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer7_button")).should("contain.text", "Correct");
@@ -2202,13 +1908,11 @@ d
             cy.get(cesc("#answer15_button")).click();
             cy.get(cesc("#answer16_button")).click();
             cy.get(cesc("#choiceInput5_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#choiceInput6_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer15_button")).should("contain.text", "Correct");
@@ -2223,13 +1927,11 @@ d
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).click();
             cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer19_button")).should("contain.text", "Correct");
@@ -2259,13 +1961,11 @@ d
             cy.get(cesc("#answer3_button")).click();
             cy.get(cesc("#answer4_button")).should("be.disabled");
             cy.get(cesc("#_id_" + inputIndices[0]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#_id_" + inputIndices[1]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer3_button")).should("contain.text", "Incorrect");
@@ -2290,13 +1990,11 @@ d
             cy.get(cesc("#answer7_button")).click();
             cy.get(cesc("#answer8_button")).should("be.disabled");
             cy.get(cesc("#_id_" + inputIndices[4]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#_id_" + inputIndices[5]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer7_button")).should("contain.text", "Incorrect");
@@ -2333,13 +2031,11 @@ d
             cy.get(cesc("#answer15_button")).click();
             cy.get(cesc("#answer16_button")).should("be.disabled");
             cy.get(cesc("#choiceInput5_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#choiceInput6_button")).should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer15_button")).should(
@@ -2363,13 +2059,11 @@ d
             cy.get(cesc("#answer19_button")).click();
             cy.get(cesc("#answer20_button")).should("be.disabled");
             cy.get(cesc("#_id_" + inputIndices[16]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Incorrect",
             );
             cy.get(cesc("#_id_" + inputIndices[17]) + "_button").should(
-                "have.attr",
-                "aria-label",
+                "contain.text",
                 "Correct",
             );
             cy.get(cesc("#answer19_button")).should(
@@ -2825,11 +2519,7 @@ d
                 "#_id_" + choiceInputIdx + "_button",
             );
 
-            cy.get(mathInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(mathInputButtonAnchor).should("contain.text", "Check Work");
             cy.get(choiceInputButtonAnchor).should(
                 "contain.text",
                 "Check Work",
@@ -3188,7 +2878,7 @@ d
         });
 
         cy.get(cesc("#n_button")).click();
-        cy.get(cesc("#n_button")).should("have.attr", "aria-label", "Correct");
+        cy.get(cesc("#n_button")).should("contain.text", "Correct");
     });
 
     it("reload text answer without blurring or hitting enter", () => {
@@ -3230,7 +2920,7 @@ d
         });
 
         cy.get(cesc("#ti_button")).click();
-        cy.get(cesc("#ti_button")).should("have.attr", "aria-label", "Correct");
+        cy.get(cesc("#ti_button")).should("contain.text", "Correct");
     });
 
     it("credit factor by attempt and disable wrong choices", () => {
@@ -3275,11 +2965,7 @@ d
         cy.get(cesc("#choiceInput2")).select(`A`);
         cy.get(cesc("#choiceInput1_button")).click();
         cy.get(cesc("#answer2_button")).click();
-        cy.get(cesc("#choiceInput1_button")).should(
-            "have.attr",
-            "aria-label",
-            "Correct",
-        );
+        cy.get(cesc("#choiceInput1_button")).should("contain.text", "Correct");
         cy.get(cesc("#answer2_button")).should("contain.text", "Correct");
 
         cy.get(cesc("#answer1")).should(
@@ -3297,8 +2983,7 @@ d
         cy.get(cesc("#choiceInput1_button")).click();
         cy.get(cesc("#answer2_button")).click();
         cy.get(cesc("#choiceInput1_button")).should(
-            "have.attr",
-            "aria-label",
+            "contain.text",
             "Incorrect",
         );
         cy.get(cesc("#answer2_button")).should("contain.text", "Incorrect");
@@ -3320,8 +3005,8 @@ d
         cy.get(cesc("#choiceInput1_button")).click();
         cy.get(cesc("#answer2_button")).click();
         cy.get(cesc("#choiceInput1_button"))
-            .should("have.text", "60 %")
-            .should("have.attr", "aria-label", "60% Credit");
+            .should("contain.text", "60 %")
+            .should("contain.text", "60% Credit");
         cy.get(cesc("#answer2_button")).should("contain.text", "60% Credit");
 
         cy.get(cesc("#answer1")).should(
@@ -3341,8 +3026,7 @@ d
         cy.get(cesc("#choiceInput1_button")).click();
         cy.get(cesc("#answer2_button")).click();
         cy.get(cesc("#choiceInput1_button")).should(
-            "have.attr",
-            "aria-label",
+            "contain.text",
             "Incorrect",
         );
         cy.get(cesc("#answer2_button")).should("contain.text", "Incorrect");
@@ -3366,8 +3050,8 @@ d
         cy.get(cesc("#choiceInput1_button")).click();
         cy.get(cesc("#answer2_button")).click();
         cy.get(cesc("#choiceInput1_button"))
-            .should("have.text", "40 %")
-            .should("have.attr", "aria-label", "40% Credit");
+            .should("contain.text", "40 %")
+            .should("contain.text", "40% Credit");
         cy.get(cesc("#answer2_button")).should("contain.text", "40% Credit");
 
         cy.get(cesc("#answer1")).should(
@@ -3389,8 +3073,7 @@ d
         cy.get(cesc("#choiceInput1_button")).click();
         cy.get(cesc("#answer2_button")).click();
         cy.get(cesc("#choiceInput1_button")).should(
-            "have.attr",
-            "aria-label",
+            "contain.text",
             "Incorrect",
         );
         cy.get(cesc("#answer2_button")).should("contain.text", "Incorrect");
@@ -3416,8 +3099,8 @@ d
         cy.get(cesc("#choiceInput1_button")).click();
         cy.get(cesc("#answer2_button")).click();
         cy.get(cesc("#choiceInput1_button"))
-            .should("have.text", "40 %")
-            .should("have.attr", "aria-label", "40% Credit");
+            .should("contain.text", "40 %")
+            .should("contain.text", "40% Credit");
         cy.get(cesc("#answer2_button")).should("contain.text", "40% Credit");
 
         cy.get(cesc("#answer1")).should(

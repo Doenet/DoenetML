@@ -108,8 +108,7 @@ describe("Specifying single variant document tests", function () {
 
                 cy.get(cesc("#textInput1_input")).type(`${secondValue}{enter}`);
                 cy.get(cesc("#textInput1_button")).should(
-                    "have.attr",
-                    "aria-label",
+                    "contain.text",
                     "Correct",
                 );
 
@@ -141,8 +140,7 @@ describe("Specifying single variant document tests", function () {
                 );
 
                 cy.get(cesc("#textInput1_button")).should(
-                    "have.attr",
-                    "aria-label",
+                    "contain.text",
                     "Correct",
                 );
                 cy.window().then(async (win) => {
@@ -161,15 +159,13 @@ describe("Specifying single variant document tests", function () {
                     cy.get(cesc("#textInput1_input")).type(`{end}X`);
                     cy.get(cesc("#textInput1_button")).click();
                     cy.get(cesc("#textInput1_button")).should(
-                        "have.attr",
-                        "aria-label",
+                        "contain.text",
                         "Incorrect",
                     );
                     cy.get(cesc("#textInput1_input")).type(`{end}{backspace}`);
                     cy.get(cesc("#textInput1_button")).click();
                     cy.get(cesc("#textInput1_button")).should(
-                        "have.attr",
-                        "aria-label",
+                        "contain.text",
                         "Correct",
                     );
                 });
@@ -430,13 +426,11 @@ describe("Specifying single variant document tests", function () {
                     force: true,
                 });
                 cy.get(cesc("#mathInput1_button")).should(
-                    "have.attr",
-                    "aria-label",
+                    "contain.text",
                     "Correct",
                 );
                 cy.get(cesc("#mathInput2_button")).should(
-                    "have.attr",
-                    "aria-label",
+                    "contain.text",
                     "Correct",
                 );
 
@@ -486,13 +480,11 @@ describe("Specifying single variant document tests", function () {
                 });
 
                 cy.get(cesc("#mathInput1_button")).should(
-                    "have.attr",
-                    "aria-label",
+                    "contain.text",
                     "Correct",
                 );
                 cy.get(cesc("#mathInput2_button")).should(
-                    "have.attr",
-                    "aria-label",
+                    "contain.text",
                     "Correct",
                 );
 
@@ -505,13 +497,11 @@ describe("Specifying single variant document tests", function () {
                 cy.get(cesc("#mathInput1_button")).click();
                 cy.get(cesc("#mathInput2_button")).click();
                 cy.get(cesc("#mathInput1_button")).should(
-                    "have.attr",
-                    "aria-label",
+                    "contain.text",
                     "Incorrect",
                 );
                 cy.get(cesc("#mathInput2_button")).should(
-                    "have.attr",
-                    "aria-label",
+                    "contain.text",
                     "Incorrect",
                 );
 
@@ -530,13 +520,11 @@ describe("Specifying single variant document tests", function () {
                 cy.get(cesc("#mathInput1_button")).click();
                 cy.get(cesc("#mathInput2_button")).click();
                 cy.get(cesc("#mathInput1_button")).should(
-                    "have.attr",
-                    "aria-label",
+                    "contain.text",
                     "Correct",
                 );
                 cy.get(cesc("#mathInput2_button")).should(
-                    "have.attr",
-                    "aria-label",
+                    "contain.text",
                     "Correct",
                 );
             });
@@ -697,24 +685,16 @@ describe("Specifying single variant document tests", function () {
             );
 
             cy.get(mathInput2Anchor).type(`${n}{enter}`, { force: true });
-            cy.get(answer1Button).should("have.attr", "aria-label", "Correct");
-            cy.get(answer2Button).should("have.attr", "aria-label", "Correct");
-            cy.get(answer3Button).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
-            cy.get(answer4Button).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(answer1Button).should("contain.text", "Correct");
+            cy.get(answer2Button).should("contain.text", "Correct");
+            cy.get(answer3Button).should("contain.text", "Check Work");
+            cy.get(answer4Button).should("contain.text", "Check Work");
 
             cy.get(mathInput3Anchor).type(`${n}{enter}`, { force: true });
-            cy.get(answer3Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer3Button).should("contain.text", "Correct");
 
             cy.get(mathInput4Anchor).type(`${m}{enter}`, { force: true });
-            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer4Button).should("contain.text", "Correct");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -873,10 +853,10 @@ describe("Specifying single variant document tests", function () {
                 `Selected value: ${choices[choiceOrder[0] - 1]}`,
             );
 
-            cy.get(answer1Button).should("have.attr", "aria-label", "Correct");
-            cy.get(answer2Button).should("have.attr", "aria-label", "Correct");
-            cy.get(answer3Button).should("have.attr", "aria-label", "Correct");
-            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer1Button).should("contain.text", "Correct");
+            cy.get(answer2Button).should("contain.text", "Correct");
+            cy.get(answer3Button).should("contain.text", "Correct");
+            cy.get(answer4Button).should("contain.text", "Correct");
 
             cy.get(mathInput1Anchor).type(
                 `{end}{backspace}{backspace}${n + 1}`,
@@ -885,23 +865,15 @@ describe("Specifying single variant document tests", function () {
                 },
             );
             cy.get(answer2Button).click();
-            cy.get(answer1Button).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
-            cy.get(answer2Button).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(answer1Button).should("contain.text", "Incorrect");
+            cy.get(answer2Button).should("contain.text", "Incorrect");
 
             cy.get(mathInput2Anchor).type(`{end}{backspace}{backspace}${n}`, {
                 force: true,
             });
             cy.get(answer1Button).click();
-            cy.get(answer1Button).should("have.attr", "aria-label", "Correct");
-            cy.get(answer2Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer1Button).should("contain.text", "Correct");
+            cy.get(answer2Button).should("contain.text", "Correct");
 
             cy.get(mathInput3Anchor).type(
                 `{end}{backspace}{backspace}${n + 1}`,
@@ -910,16 +882,12 @@ describe("Specifying single variant document tests", function () {
                 },
             );
             cy.get(answer3Button).click();
-            cy.get(answer3Button).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(answer3Button).should("contain.text", "Incorrect");
             cy.get(mathInput3Anchor).type(`{end}{backspace}{backspace}${n}`, {
                 force: true,
             });
             cy.get(answer3Button).click();
-            cy.get(answer3Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer3Button).should("contain.text", "Correct");
 
             cy.get(mathInput4Anchor).type(
                 `{end}{backspace}{backspace}${m + 1}`,
@@ -928,16 +896,12 @@ describe("Specifying single variant document tests", function () {
                 },
             );
             cy.get(answer4Button).click();
-            cy.get(answer4Button).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(answer4Button).should("contain.text", "Incorrect");
             cy.get(mathInput4Anchor).type(`{end}{backspace}{backspace}${m}`, {
                 force: true,
             });
             cy.get(answer4Button).click();
-            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer4Button).should("contain.text", "Correct");
         });
     });
 });

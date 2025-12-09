@@ -60,25 +60,31 @@ export function createCheckWorkComponent(
     const tabIndex = SVs.disabled ? -1 : 0;
 
     let buttonContent: React.ReactElement | string | null = null;
-    let additionalLabel: string | undefined = undefined;
+
+    // A message that is meant to be read by a screen reader when it is added
+    let liveLabel: string | undefined = undefined;
+    // A message that should not be read by a screen reader when it is added,
+    // though it will be read by the screen reader as part of the document as normal.
+    let otherLabel: string | undefined = undefined;
 
     if (validationState === "unvalidated") {
         buttonStyle.cursor = "pointer";
         const checkWorkText = SVs.showCorrectness
             ? SVs.submitLabel
             : SVs.submitLabelNoCorrectness;
-        additionalLabel = checkWorkText;
+        // When the button changes back to Check Work,
+        // it should not be read by the screen reader
+        otherLabel = checkWorkText;
         buttonContent = showText ? <>&nbsp; {checkWorkText}</> : null;
         buttonContent = (
-            <>
+            <span aria-hidden={true}>
                 <FontAwesomeIcon
                     icon={faLevelDownAlt as IconProp}
                     transform={{ rotate: 90 }}
-                    aria-hidden={true}
-                    title={additionalLabel}
+                    title={otherLabel}
                 />
                 {buttonContent}
-            </>
+            </span>
         );
 
         if (SVs.disabled) {
@@ -94,33 +100,34 @@ export function createCheckWorkComponent(
                 document.documentElement,
             ).getPropertyValue("--mainGreen");
 
-            additionalLabel = "Correct";
+            // When the button changes to "Correct", it should be read by the screen reader
+            liveLabel = "Correct";
             buttonContent = showText ? <>&nbsp; Correct</> : null;
             buttonContent = (
-                <>
+                <span aria-hidden={true}>
                     <FontAwesomeIcon
                         icon={faCheck as IconProp}
-                        aria-hidden={true}
-                        title={additionalLabel}
+                        title={liveLabel}
                     />
                     {buttonContent}
-                </>
+                </span>
             );
         } else if (validationState === "incorrect") {
             buttonStyle.backgroundColor = getComputedStyle(
                 document.documentElement,
             ).getPropertyValue("--mainRed");
-            additionalLabel = "Incorrect";
+
+            // When the button changes to "Incorrect", it should be read by the screen reader
+            liveLabel = "Incorrect";
             buttonContent = showText ? <>&nbsp; Incorrect</> : null;
             buttonContent = (
-                <>
+                <span aria-hidden={true}>
                     <FontAwesomeIcon
                         icon={faTimes as IconProp}
-                        aria-hidden={true}
-                        title={additionalLabel}
+                        title={liveLabel}
                     />
                     {buttonContent}
-                </>
+                </span>
             );
         } else {
             // partial correct
@@ -129,23 +136,27 @@ export function createCheckWorkComponent(
             const partialText = SVs.creditIsReducedByAttempt
                 ? `${percent}% Credit`
                 : `${percent}% Correct`;
-            buttonContent = showText ? partialText : `${percent} %`;
-            additionalLabel = partialText;
+            buttonContent = (
+                <span aria-hidden={true}>
+                    {showText ? partialText : `${percent} %`}
+                </span>
+            );
+
+            // When the button changes to "50% Correct", etc., it should be read by the screen reader
+            liveLabel = partialText;
         }
     } else {
         // showCorrectness is false
         buttonStyle.backgroundColor = "rgb(74, 3, 217)";
-        additionalLabel = "Response Saved";
+
+        // When the button changes to "Response Saved", it should be read by the screen reader
+        liveLabel = "Response Saved";
         buttonContent = showText ? <>&nbsp; Response Saved</> : null;
         buttonContent = (
-            <>
-                <FontAwesomeIcon
-                    icon={faCloud as IconProp}
-                    aria-hidden={true}
-                    title={additionalLabel}
-                />
+            <span aria-hidden={true}>
+                <FontAwesomeIcon icon={faCloud as IconProp} title={liveLabel} />
                 {buttonContent}
-            </>
+            </span>
         );
     }
 
@@ -157,11 +168,16 @@ export function createCheckWorkComponent(
             disabled={SVs.disabled}
             style={buttonStyle}
             onClick={submitAnswer}
-            aria-label={additionalLabel}
             role={validationState === "unvalidated" ? "button" : "status"}
-            aria-live="polite"
+            aria-live="off"
         >
             {buttonContent}
+            <span className="visually-hidden">
+                <span aria-live="polite" aria-atomic={true}>
+                    {liveLabel}
+                </span>
+                <span>{otherLabel}</span>
+            </span>
         </button>
     );
 

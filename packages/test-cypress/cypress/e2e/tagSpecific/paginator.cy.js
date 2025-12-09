@@ -89,14 +89,14 @@ describe("Paginator Tag Tests", function () {
 
             cy.get(mathInput4Anchor).type("4{enter}", { force: true });
 
-            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer4Button).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "0.25");
 
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.get(mathInput1Anchor).type("2{enter}", { force: true });
 
-            cy.get(answer1Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer1Button).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "0.5");
             cy.get(mathInput1DisplayAnchor).should("contain.text", "2");
 
@@ -106,7 +106,7 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc("#section2_title")).should("have.text", "Section 2");
             cy.get(cesc("#title2")).should("not.exist");
 
-            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer4Button).should("contain.text", "Correct");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.get(cesc("#ca")).should("have.text", "0.5");
@@ -119,17 +119,9 @@ describe("Paginator Tag Tests", function () {
             cy.get(mathInput1Anchor).should("not.exist");
 
             cy.get(mathInput4Anchor).type("{end}{backspace}3", { force: true });
-            cy.get(answer4Button).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(answer4Button).should("contain.text", "Check Work");
             cy.get(mathInput4Anchor).type("{enter}", { force: true });
-            cy.get(answer4Button).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(answer4Button).should("contain.text", "Incorrect");
             cy.get(cesc("#ca")).should("have.text", "0.25");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
@@ -139,7 +131,7 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc("#section2_title")).should("not.exist");
             cy.get(cesc("#title2")).should("not.exist");
 
-            cy.get(answer1Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer1Button).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "0.25");
             cy.get(mathInput1DisplayAnchor).should("contain.text", "2");
 
@@ -154,23 +146,15 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc("#name_input")).should("have.value", "Me");
             cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
 
-            cy.get(answer4Button).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(answer4Button).should("contain.text", "Incorrect");
             cy.get(cesc("#ca")).should("have.text", "0.25");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
             cy.get(mathInput4Anchor).type("{end}{backspace}4", { force: true });
-            cy.get(answer4Button).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(answer4Button).should("contain.text", "Check Work");
             cy.get(mathInput4Anchor).type("{enter}", { force: true });
 
-            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer4Button).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "0.5");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
@@ -180,7 +164,7 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc("#section2_title")).should("not.exist");
             cy.get(cesc("#title2")).should("have.text", "Page 3");
 
-            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer4Button).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "0.5");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
@@ -209,37 +193,21 @@ describe("Paginator Tag Tests", function () {
                 let answer3Button = cesc("#_id_" + mathInput3Idx + "_button");
 
                 cy.get(mathInput2Anchor).type("2x{enter}", { force: true });
-                cy.get(answer2Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer2Button).should("contain.text", "Correct");
                 cy.get(cesc("#ca")).should("have.text", "0.75");
                 cy.get(mathInput2DisplayAnchor).should("contain.text", "2x");
 
                 cy.get(mathInput3Anchor).type("2y{enter}", { force: true });
-                cy.get(answer3Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer3Button).should("contain.text", "Correct");
                 cy.get(cesc("#ca")).should("have.text", "1");
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "2y");
 
                 cy.get(mathInput2Anchor).type("{end}{backspace}z", {
                     force: true,
                 });
-                cy.get(answer2Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Check Work",
-                );
+                cy.get(answer2Button).should("contain.text", "Check Work");
                 cy.get(mathInput2Anchor).type("{enter}", { force: true });
-                cy.get(answer2Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Incorrect",
-                );
+                cy.get(answer2Button).should("contain.text", "Incorrect");
                 cy.get(cesc("#ca")).should("have.text", "0.75");
                 cy.get(mathInput2DisplayAnchor).should("contain.text", "2z");
 
@@ -255,11 +223,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc("#name_input")).should("have.value", "Me");
                 cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
 
-                cy.get(answer4Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer4Button).should("contain.text", "Correct");
                 cy.get(cesc("#ca")).should("have.text", "0.75");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
@@ -269,26 +233,14 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc("#section2_title")).should("not.exist");
                 cy.get(cesc("#title2")).should("have.text", "Page 3");
 
-                cy.get(answer4Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer4Button).should("contain.text", "Correct");
                 cy.get(cesc("#ca")).should("have.text", "0.75");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
-                cy.get(answer2Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Incorrect",
-                );
+                cy.get(answer2Button).should("contain.text", "Incorrect");
                 cy.get(mathInput2DisplayAnchor).should("contain.text", "2z");
 
-                cy.get(answer3Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer3Button).should("contain.text", "Correct");
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "2y");
 
                 cy.get(cesc("#ca")).should("have.text", "0.75");
@@ -305,11 +257,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc("#name_input")).should("have.value", "Me");
                 cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
 
-                cy.get(answer4Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer4Button).should("contain.text", "Correct");
                 cy.get(cesc("#ca")).should("have.text", "0.75");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
             });
@@ -357,7 +305,7 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc("#name_input")).should("have.value", "Me");
             cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
 
-            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer4Button).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "0.75");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
@@ -365,7 +313,7 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc("#name_input")).should("have.value", "You");
             cy.get(cesc("#p3")).should("have.text", "Hello, You!");
 
-            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer4Button).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "0.75");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
@@ -375,7 +323,7 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc("#section2_title")).should("not.exist");
             cy.get(cesc("#title2")).should("have.text", "Page 3");
 
-            cy.get(answer4Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer4Button).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "0.75");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
@@ -400,67 +348,35 @@ describe("Paginator Tag Tests", function () {
                     cesc("#_id_" + mathInput3Idx) + " .mq-editable-field";
                 let answer3Button = cesc("#_id_" + mathInput3Idx + "_button");
 
-                cy.get(answer2Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Incorrect",
-                );
+                cy.get(answer2Button).should("contain.text", "Incorrect");
                 cy.get(mathInput2DisplayAnchor).should("contain.text", "2z");
-                cy.get(answer3Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer3Button).should("contain.text", "Correct");
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "2y");
 
                 cy.get(mathInput3Anchor).type("{end}{backspace}q", {
                     force: true,
                 });
-                cy.get(answer3Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Check Work",
-                );
+                cy.get(answer3Button).should("contain.text", "Check Work");
                 cy.get(mathInput3Anchor).type("{enter}", { force: true });
-                cy.get(answer2Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Incorrect",
-                );
+                cy.get(answer2Button).should("contain.text", "Incorrect");
                 cy.get(cesc("#ca")).should("have.text", "0.5");
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "2q");
 
                 cy.get(mathInput4Anchor).type("{end}{backspace}3", {
                     force: true,
                 });
-                cy.get(answer4Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Check Work",
-                );
+                cy.get(answer4Button).should("contain.text", "Check Work");
                 cy.get(mathInput4Anchor).type("{enter}", { force: true });
-                cy.get(answer4Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Incorrect",
-                );
+                cy.get(answer4Button).should("contain.text", "Incorrect");
                 cy.get(cesc("#ca")).should("have.text", "0.25");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
                 cy.get(mathInput2Anchor).type("{end}{backspace}x", {
                     force: true,
                 });
-                cy.get(answer2Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Check Work",
-                );
+                cy.get(answer2Button).should("contain.text", "Check Work");
                 cy.get(mathInput2Anchor).type("{enter}", { force: true });
-                cy.get(answer2Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer2Button).should("contain.text", "Correct");
                 cy.get(cesc("#ca")).should("have.text", "0.5");
                 cy.get(mathInput2DisplayAnchor).should("contain.text", "2x");
 
@@ -476,11 +392,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc("#name_input")).should("have.value", "You");
                 cy.get(cesc("#p3")).should("have.text", "Hello, You!");
 
-                cy.get(answer4Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Incorrect",
-                );
+                cy.get(answer4Button).should("contain.text", "Incorrect");
                 cy.get(cesc("#ca")).should("have.text", "0.5");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
@@ -490,11 +402,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc("#section2_title")).should("not.exist");
                 cy.get(cesc("#title2")).should("not.exist");
 
-                cy.get(answer4Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Incorrect",
-                );
+                cy.get(answer4Button).should("contain.text", "Incorrect");
                 cy.get(cesc("#ca")).should("have.text", "0.5");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
@@ -512,25 +420,13 @@ describe("Paginator Tag Tests", function () {
                         "#_id_" + mathInput1Idx + "_button",
                     );
 
-                    cy.get(answer1Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Correct",
-                    );
+                    cy.get(answer1Button).should("contain.text", "Correct");
                     cy.get(mathInput1DisplayAnchor).should("contain.text", "2");
 
                     cy.get(mathInput1Anchor).type("{end}-", { force: true });
-                    cy.get(answer1Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Check Work",
-                    );
+                    cy.get(answer1Button).should("contain.text", "Check Work");
                     cy.get(mathInput1Anchor).type("{enter}", { force: true });
-                    cy.get(answer1Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Incorrect",
-                    );
+                    cy.get(answer1Button).should("contain.text", "Incorrect");
                     cy.get(mathInput1DisplayAnchor).should(
                         "contain.text",
                         "2−",
@@ -552,11 +448,7 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc("#section2_title")).should("not.exist");
                     cy.get(cesc("#title2")).should("not.exist");
 
-                    cy.get(answer1Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Incorrect",
-                    );
+                    cy.get(answer1Button).should("contain.text", "Incorrect");
                     cy.get(mathInput1DisplayAnchor).should(
                         "contain.text",
                         "2−",
@@ -577,28 +469,16 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc("#section2_title")).should("not.exist");
                     cy.get(cesc("#title2")).should("have.text", "Page 3");
 
-                    cy.get(answer3Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Incorrect",
-                    );
+                    cy.get(answer3Button).should("contain.text", "Incorrect");
                     cy.get(mathInput3DisplayAnchor).should(
                         "contain.text",
                         "2q",
                     );
 
-                    cy.get(answer4Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Incorrect",
-                    );
+                    cy.get(answer4Button).should("contain.text", "Incorrect");
                     cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
-                    cy.get(answer2Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Correct",
-                    );
+                    cy.get(answer2Button).should("contain.text", "Correct");
                     cy.get(mathInput2DisplayAnchor).should(
                         "contain.text",
                         "2x",
@@ -608,11 +488,7 @@ describe("Paginator Tag Tests", function () {
                     cy.get(mathInput2Anchor)
                         .type("{end}:", { force: true })
                         .blur();
-                    cy.get(answer2Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Check Work",
-                    );
+                    cy.get(answer2Button).should("contain.text", "Check Work");
                     cy.get(mathInput2DisplayAnchor).should(
                         "contain.text",
                         "2x:",
@@ -634,29 +510,17 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc("#section2_title")).should("not.exist");
                     cy.get(cesc("#title2")).should("have.text", "Page 3");
 
-                    cy.get(answer2Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Check Work",
-                    );
+                    cy.get(answer2Button).should("contain.text", "Check Work");
                     cy.get(mathInput2DisplayAnchor).should(
                         "contain.text",
                         "2x:",
                     );
-                    cy.get(answer3Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Incorrect",
-                    );
+                    cy.get(answer3Button).should("contain.text", "Incorrect");
                     cy.get(mathInput3DisplayAnchor).should(
                         "contain.text",
                         "2q",
                     );
-                    cy.get(answer4Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Incorrect",
-                    );
+                    cy.get(answer4Button).should("contain.text", "Incorrect");
                     cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
                     cy.get(cesc("#ca")).should("have.text", "0.25");
                 });
@@ -717,23 +581,11 @@ describe("Paginator Tag Tests", function () {
                 cesc("#_id_" + mathInput4Idx) + " .mq-editable-field";
             let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
 
-            cy.get(answer2Button).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(answer2Button).should("contain.text", "Check Work");
             cy.get(mathInput2DisplayAnchor).should("contain.text", "2x:");
-            cy.get(answer3Button).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(answer3Button).should("contain.text", "Incorrect");
             cy.get(mathInput3DisplayAnchor).should("contain.text", "2q");
-            cy.get(answer4Button).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(answer4Button).should("contain.text", "Incorrect");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
             cy.get(cesc("#ca")).should("have.text", "0.25");
 
@@ -746,33 +598,17 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc("#name_input")).should("have.value", "You");
             cy.get(cesc("#p3")).should("have.text", "Hello, You!");
 
-            cy.get(answer4Button).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(answer4Button).should("contain.text", "Incorrect");
             cy.get(cesc("#ca")).should("have.text", "0.25");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
             cy.log("back to third page");
             cy.get(cesc("#pcontrols_next")).click();
-            cy.get(answer2Button).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(answer2Button).should("contain.text", "Check Work");
             cy.get(mathInput2DisplayAnchor).should("contain.text", "2x:");
-            cy.get(answer3Button).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(answer3Button).should("contain.text", "Incorrect");
             cy.get(mathInput3DisplayAnchor).should("contain.text", "2q");
-            cy.get(answer4Button).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(answer4Button).should("contain.text", "Incorrect");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
             cy.get(cesc("#ca")).should("have.text", "0.25");
 
@@ -799,19 +635,11 @@ describe("Paginator Tag Tests", function () {
                     cesc("#_id_" + mathInput1Idx) + " .mq-editable-field";
                 let answer1Button = cesc("#_id_" + mathInput1Idx + "_button");
 
-                cy.get(answer1Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Incorrect",
-                );
+                cy.get(answer1Button).should("contain.text", "Incorrect");
                 cy.get(mathInput1DisplayAnchor).should("contain.text", "2−");
                 cy.get(cesc("#ca")).should("have.text", "0.25");
 
-                cy.get(answer4Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Incorrect",
-                );
+                cy.get(answer4Button).should("contain.text", "Incorrect");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
             });
         });
@@ -872,7 +700,7 @@ describe("Paginator Tag Tests", function () {
 
             cy.get(textInput1Anchor).type("a{enter}");
 
-            cy.get(answer1Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer1Button).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "0.167");
 
             cy.get(cesc("#pcontrols_next")).click();
@@ -892,11 +720,7 @@ describe("Paginator Tag Tests", function () {
                     cesc("#_id_" + textInput2Idx) + " .mq-editable-field";
                 let answer2Button = cesc("#_id_" + textInput2Idx + "_button");
 
-                cy.get(answer2Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Check Work",
-                );
+                cy.get(answer2Button).should("contain.text", "Check Work");
 
                 cy.get(cesc("#pcontrols_next")).click();
                 cy.get(cesc("#problem3_title")).should(
@@ -919,11 +743,7 @@ describe("Paginator Tag Tests", function () {
                         "#_id_" + textInput3Idx + "_button",
                     );
 
-                    cy.get(answer3Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Check Work",
-                    );
+                    cy.get(answer3Button).should("contain.text", "Check Work");
 
                     cy.get(cesc("#pcontrols_previous")).click();
                     cy.get(cesc("#problem2_title")).should(
@@ -934,11 +754,7 @@ describe("Paginator Tag Tests", function () {
 
                     cy.get(textInput2Anchor).type("b{enter}");
 
-                    cy.get(answer2Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Correct",
-                    );
+                    cy.get(answer2Button).should("contain.text", "Correct");
                     cy.get(cesc("#ca")).should("have.text", "0.5");
 
                     cy.get(cesc("#pcontrols_previous")).click();
@@ -948,24 +764,12 @@ describe("Paginator Tag Tests", function () {
                     );
                     cy.get(cesc("#ca")).should("have.text", "0.5");
 
-                    cy.get(answer1Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Correct",
-                    );
+                    cy.get(answer1Button).should("contain.text", "Correct");
 
                     cy.get(textInput1Anchor).clear();
-                    cy.get(answer1Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Check Work",
-                    );
+                    cy.get(answer1Button).should("contain.text", "Check Work");
                     cy.get(textInput1Anchor).type("{enter}");
-                    cy.get(answer1Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Incorrect",
-                    );
+                    cy.get(answer1Button).should("contain.text", "Incorrect");
                     cy.get(cesc("#ca")).should("have.text", "0.333");
 
                     cy.get(cesc("#pcontrols_next")).click();
@@ -975,11 +779,7 @@ describe("Paginator Tag Tests", function () {
                     );
                     cy.get(cesc("#ca")).should("have.text", "0.333");
 
-                    cy.get(answer2Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Correct",
-                    );
+                    cy.get(answer2Button).should("contain.text", "Correct");
 
                     cy.get(cesc("#pcontrols_next")).click();
                     cy.get(cesc("#problem3_title")).should(
@@ -989,11 +789,7 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc("#ca")).should("have.text", "0.333");
 
                     cy.get(textInput3Anchor).clear().type("c{enter}");
-                    cy.get(answer3Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Correct",
-                    );
+                    cy.get(answer3Button).should("contain.text", "Correct");
                     cy.get(cesc("#ca")).should("have.text", "0.833");
 
                     cy.get(cesc("#pcontrols_previous")).click();
@@ -1003,11 +799,7 @@ describe("Paginator Tag Tests", function () {
                     );
                     cy.get(cesc("#ca")).should("have.text", "0.833");
 
-                    cy.get(answer2Button).should(
-                        "have.attr",
-                        "aria-label",
-                        "Correct",
-                    );
+                    cy.get(answer2Button).should("contain.text", "Correct");
                 });
             });
         });
@@ -1527,11 +1319,7 @@ describe("Paginator Tag Tests", function () {
         cy.get(cesc("#ti1_input")).type("1{enter}");
         cy.get(cesc("#ti1_input")).should("have.value", "1");
 
-        cy.get(cesc("#ti1_button")).should(
-            "have.attr",
-            "aria-label",
-            "Correct",
-        );
+        cy.get(cesc("#ti1_button")).should("contain.text", "Correct");
         cy.get(cesc("#ca")).should("have.text", "0.5");
 
         cy.get(cesc("#pcontrols_next")).click();
@@ -1539,11 +1327,7 @@ describe("Paginator Tag Tests", function () {
 
         cy.get(cesc("#ti2_input")).type("2");
         cy.get(cesc("#ti2_input")).should("have.value", "2");
-        cy.get(cesc("#ti2_button")).should(
-            "have.attr",
-            "aria-label",
-            "Check Work",
-        );
+        cy.get(cesc("#ti2_button")).should("contain.text", "Check Work");
         cy.get(cesc("#ca")).should("have.text", "0.5");
 
         cy.get("#testRunner_toggleControls").click();
@@ -2356,13 +2140,13 @@ describe("Paginator Tag Tests", function () {
                 "contain.text",
                 correctAnswer,
             );
-            cy.get(answer1Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer1Button).should("contain.text", "Correct");
 
             cy.get(mathInput2DisplayAnchor).should(
                 "contain.text",
                 `2${correctAnswer}`,
             );
-            cy.get(answer2Button).should("have.attr", "aria-label", "Correct");
+            cy.get(answer2Button).should("contain.text", "Correct");
 
             cy.get(cesc("#pcontrols_next")).click();
             cy.get(cesc("#problem2_title")).should("have.text", "Problem 2");
@@ -2393,21 +2177,13 @@ describe("Paginator Tag Tests", function () {
 
                 cy.get(mathInput3Anchor).type(`1{enter}`, { force: true });
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "1");
-                cy.get(answer3Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer3Button).should("contain.text", "Correct");
 
                 cy.get(cesc("#ca")).should("have.text", "0.75");
 
                 cy.get(mathInput4Anchor).type(`2{enter}`, { force: true });
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "2");
-                cy.get(answer4Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer4Button).should("contain.text", "Correct");
 
                 cy.get(cesc("#ca")).should("have.text", "1");
 
@@ -2422,21 +2198,13 @@ describe("Paginator Tag Tests", function () {
                     "contain.text",
                     correctAnswer,
                 );
-                cy.get(answer1Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer1Button).should("contain.text", "Correct");
 
                 cy.get(mathInput2DisplayAnchor).should(
                     "contain.text",
                     `2${correctAnswer}`,
                 );
-                cy.get(answer2Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer2Button).should("contain.text", "Correct");
 
                 cy.get(cesc("#pcontrols_next")).click();
                 cy.get(cesc("#problem2_title")).should(
@@ -2446,18 +2214,10 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc("#ca")).should("have.text", "1");
 
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "1");
-                cy.get(answer3Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer3Button).should("contain.text", "Correct");
 
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "2");
-                cy.get(answer4Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer4Button).should("contain.text", "Correct");
 
                 cy.get(cesc("#ca")).should("have.text", "1");
 
@@ -2490,18 +2250,10 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc("#ca")).should("have.text", "1");
 
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "1");
-                cy.get(answer3Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer3Button).should("contain.text", "Correct");
 
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "2");
-                cy.get(answer4Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer4Button).should("contain.text", "Correct");
 
                 cy.get(cesc("#ca")).should("have.text", "1");
 
@@ -2516,21 +2268,13 @@ describe("Paginator Tag Tests", function () {
                     "contain.text",
                     correctAnswer,
                 );
-                cy.get(answer1Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer1Button).should("contain.text", "Correct");
 
                 cy.get(mathInput2DisplayAnchor).should(
                     "contain.text",
                     `2${correctAnswer}`,
                 );
-                cy.get(answer2Button).should(
-                    "have.attr",
-                    "aria-label",
-                    "Correct",
-                );
+                cy.get(answer2Button).should("contain.text", "Correct");
             });
         });
     });
