@@ -87,7 +87,10 @@ const EditableMathField = ({
         }
     }, [latex]);
 
-    return <span {...otherProps} ref={wrapperElement} />;
+    const ariaLabel = otherProps.ariaLabel;
+    delete otherProps.ariaLabel;
+
+    return <span {...otherProps} aria-label={ariaLabel} ref={wrapperElement} />;
 };
 
 EditableMathField.propTypes = {

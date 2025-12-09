@@ -6,11 +6,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
-import {
-    returnLabelAttributes,
-    returnLabelStateVariableDefinitions,
-    returnWrapNonLabelsSugarFunction,
-} from "../utils/label";
+import { returnWrapNonLabelsSugarFunction } from "../utils/label";
 import {
     latexToMathFactory,
     normalizeLatexString,
@@ -133,8 +129,6 @@ export default class MathInput extends Input {
             forRenderer: true,
         };
 
-        Object.assign(attributes, returnLabelAttributes());
-
         return attributes;
     }
 
@@ -177,9 +171,6 @@ export default class MathInput extends Input {
                 displaySmallAsZeroDefault: 0,
             }),
         );
-
-        let labelDefinitions = returnLabelStateVariableDefinitions();
-        Object.assign(stateVariableDefinitions, labelDefinitions);
 
         stateVariableDefinitions.valueChanged = {
             public: true,

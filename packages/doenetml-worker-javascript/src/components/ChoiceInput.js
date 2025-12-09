@@ -2,10 +2,6 @@ import Input from "./abstract/Input";
 import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
-import {
-    returnLabelAttributes,
-    returnLabelStateVariableDefinitions,
-} from "../utils/label";
 
 export default class Choiceinput extends Input {
     constructor(args) {
@@ -111,8 +107,6 @@ export default class Choiceinput extends Input {
             fallBackToParentStateVariable: "submitLabelNoCorrectness",
         };
 
-        Object.assign(attributes, returnLabelAttributes());
-
         return attributes;
     }
 
@@ -131,9 +125,6 @@ export default class Choiceinput extends Input {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        let labelDefinitions = returnLabelStateVariableDefinitions();
-        Object.assign(stateVariableDefinitions, labelDefinitions);
 
         stateVariableDefinitions.inline = {
             public: true,
@@ -1442,29 +1433,38 @@ export default class Choiceinput extends Input {
             },
         };
 
-        // stateVariableDefinitions.childrenToRender = {
-        //   returnDependencies: () => ({
-        //     choiceChildrenOrdered: {
-        //       dependencyType: "stateVariable",
-        //       variableName: "choiceChildrenOrdered"
-        //     },
-        //     inline: {
-        //       dependencyType: "stateVariable",
-        //       variableName: "inline"
-        //     }
-        //   }),
-        //   definition: function ({ dependencyValues }) {
-        //     if (dependencyValues.inline) {
-        //       return { setValue: { childrenToRender: [] } }
-        //     } else {
-        //       return {
-        //         setValue: {
-        //           childrenToRender: dependencyValues.choiceChildrenOrdered.map(x => x.componentIdx)
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
+        stateVariableDefinitions.childIndicesToRender = {
+            returnDependencies: () => ({
+                children: {
+                    dependencyType: "child",
+                    childGroups: ["labels", "choices"],
+                },
+                inline: {
+                    dependencyType: "stateVariable",
+                    variableName: "inline",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                if (dependencyValues.inline) {
+                    return { setValue: { childIndicesToRender: [] } };
+                } else {
+                    const childIndicesToRender = [];
+                    for (const [
+                        ind,
+                        child,
+                    ] of dependencyValues.children.entries()) {
+                        if (child.componentType === "choice") {
+                            childIndicesToRender.push(ind);
+                        }
+                    }
+                    return {
+                        setValue: {
+                            childIndicesToRender,
+                        },
+                    };
+                }
+            },
+        };
 
         return stateVariableDefinitions;
     }

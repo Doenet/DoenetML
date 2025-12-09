@@ -569,6 +569,9 @@ export default function TextInput(props: UseDoenetRendererProps) {
             </MathJax>
         );
     }
+
+    const description = SVs.description || undefined;
+
     const inputClass =
         "text-input" + (SVs.disabled ? " text-input-disabled" : "");
     if (SVs.expanded) {
@@ -586,12 +589,11 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     onBlur={handleBlur}
                     onFocus={handleFocus}
                     className={inputClass}
+                    aria-label={description}
                     style={{
                         margin: "0px 4px 4px 4px",
                         color: "var(--canvasText)",
                         background: "var(--canvas)",
-                        width,
-                        height,
                     }}
                 />
             </label>
@@ -610,13 +612,14 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     onKeyDown={handleKeyDown}
                     onBlur={handleBlur}
                     onFocus={handleFocus}
-                    width={width}
-                    height="20px"
                     className={inputClass}
+                    aria-label={description}
                     style={{
                         margin: "0px 4px 4px 4px",
                         color: "var(--canvasText)",
                         background: "var(--canvas)",
+                        width,
+                        height: "20px",
                     }}
                 />
             </label>

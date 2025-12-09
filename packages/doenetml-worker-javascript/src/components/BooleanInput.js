@@ -3,11 +3,7 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import {
-    returnLabelAttributes,
-    returnLabelStateVariableDefinitions,
-    returnWrapNonLabelsSugarFunction,
-} from "../utils/label";
+import { returnWrapNonLabelsSugarFunction } from "../utils/label";
 import Input from "./abstract/Input";
 
 export default class BooleanInput extends Input {
@@ -68,8 +64,6 @@ export default class BooleanInput extends Input {
             forRenderer: true,
         };
 
-        Object.assign(attributes, returnLabelAttributes());
-
         Object.assign(attributes, returnAnchorAttributes());
 
         return attributes;
@@ -105,9 +99,6 @@ export default class BooleanInput extends Input {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        let labelDefinitions = returnLabelStateVariableDefinitions();
-        Object.assign(stateVariableDefinitions, labelDefinitions);
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);

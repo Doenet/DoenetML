@@ -335,6 +335,21 @@ export default class PretzelArranger extends CompositeComponent {
                             doenetAttributes: {},
                         },
                     },
+                    description: {
+                        type: "component",
+                        name: "description",
+                        component: {
+                            type: "serialized",
+                            componentType: "text",
+                            componentIdx: nComponents++,
+                            state: {
+                                value: "Enter number in sequence for this answer",
+                            },
+                            children: [],
+                            attributes: {},
+                            doenetAttributes: {},
+                        },
+                    },
                 },
                 doenetAttributes: {},
                 state: {},

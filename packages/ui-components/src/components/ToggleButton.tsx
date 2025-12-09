@@ -19,6 +19,7 @@ export function ToggleButton(
         alert?: boolean;
         disabled?: boolean;
         inputType?: "checkbox" | "radio";
+        ariaLabel?: string;
     }>,
 ) {
     const inputType = props.inputType ?? "checkbox";
@@ -80,6 +81,7 @@ export function ToggleButton(
                     }
                 }}
                 className="doenet-toggle-button"
+                aria-label={props.ariaLabel}
             />
             {icon}
             {value}

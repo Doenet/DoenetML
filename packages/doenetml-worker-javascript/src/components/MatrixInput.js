@@ -180,6 +180,10 @@ export class MatrixInput extends Input {
     static returnChildGroups() {
         return [
             {
+                group: "labels",
+                componentTypes: ["label"],
+            },
+            {
                 group: "matrixComponentInputs",
                 componentTypes: ["_matrixComponentInput"],
                 excludeFromSchema: true,
