@@ -138,7 +138,7 @@ export function createCheckWorkComponent(
                 : `${percent}% Correct`;
             buttonContent = (
                 <span aria-hidden={true}>
-                    showText ? partialText : `${percent} %`
+                    {showText ? partialText : `${percent} %`}
                 </span>
             );
 
