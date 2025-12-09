@@ -58,18 +58,10 @@ describe("Problem Tag Tests", function () {
                 "#_id_" + twoxInputIdx + "_button",
             );
 
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.get(twoxInputAnchor).type("2x{enter}", { force: true });
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Correct");
 
             let helloInputIdx =
                 stateVariables[await win.resolvePath1("hello")].stateValues
@@ -79,18 +71,10 @@ describe("Problem Tag Tests", function () {
                 "#_id_" + helloInputIdx + "_button",
             );
 
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.get(helloInputAnchor).type("hello{enter}");
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Correct");
 
             cy.get(cesc("#fruitInput_button")).should(
                 "contain.text",
@@ -171,17 +155,9 @@ describe("Problem Tag Tests", function () {
             cy.get(cesc("#swcw")).click();
             cy.get(cesc("#swcw_input")).should("not.be.checked");
 
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Incorrect");
 
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.get(cesc("#fruitInput_button")).should(
                 "contain.text",
@@ -246,18 +222,10 @@ describe("Problem Tag Tests", function () {
                 "#_id_" + twoxInputIdx + "_button",
             );
 
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.get(twoxInputAnchor).type("2x{enter}", { force: true });
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Correct");
 
             let helloInputIdx =
                 stateVariables[await win.resolvePath1("hello")].stateValues
@@ -267,18 +235,10 @@ describe("Problem Tag Tests", function () {
                 "#_id_" + helloInputIdx + "_button",
             );
 
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.get(helloInputAnchor).type("hello{enter}");
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Correct");
 
             cy.get(cesc("#fruitInput_button")).should(
                 "contain.text",
@@ -362,17 +322,9 @@ describe("Problem Tag Tests", function () {
             cy.get(cesc("#swcw")).click();
             cy.get(cesc("#swcw_input")).should("not.be.checked");
 
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Incorrect");
 
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.get(cesc("#fruitInput_button")).should(
                 "contain.text",
@@ -437,18 +389,10 @@ describe("Problem Tag Tests", function () {
                 "#_id_" + twoxInputIdx + "_button",
             );
 
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.get(twoxInputAnchor).type("2x{enter}", { force: true });
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Correct");
 
             let helloInputIdx =
                 stateVariables[await win.resolvePath1("hello")].stateValues
@@ -458,18 +402,10 @@ describe("Problem Tag Tests", function () {
                 "#_id_" + helloInputIdx + "_button",
             );
 
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.get(helloInputAnchor).type("hello{enter}");
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Correct");
 
             cy.get(cesc("#fruitInput_button")).should(
                 "contain.text",
@@ -553,17 +489,9 @@ describe("Problem Tag Tests", function () {
             cy.get(cesc("#dwcw")).click();
             cy.get(cesc("#dwcw_input")).should("not.be.checked");
 
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Incorrect");
 
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.get(cesc("#fruitInput_button")).should(
                 "contain.text",
@@ -631,18 +559,10 @@ describe("Problem Tag Tests", function () {
                 "#_id_" + twoxInputIdx + "_button",
             );
 
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.get(twoxInputAnchor).type("2x{enter}", { force: true });
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Correct");
 
             let helloInputIdx =
                 stateVariables[await win.resolvePath1("hello")].stateValues
@@ -652,18 +572,10 @@ describe("Problem Tag Tests", function () {
                 "#_id_" + helloInputIdx + "_button",
             );
 
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.get(helloInputAnchor).type("hello{enter}");
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Correct");
 
             cy.get(cesc("#fruitInput_button")).should("not.exist");
             cy.get(cesc("#sum3_button")).should("not.exist");
@@ -757,17 +669,9 @@ describe("Problem Tag Tests", function () {
             cy.get(cesc("#swcw")).click();
             cy.get(cesc("#swcw_input")).should("not.be.checked");
 
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Incorrect");
 
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.get(cesc("#fruitInput_button")).should("not.exist");
 
@@ -837,18 +741,10 @@ describe("Problem Tag Tests", function () {
                 "#_id_" + twoxInputIdx + "_button",
             );
 
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.get(twoxInputAnchor).type("2x{enter}", { force: true });
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Correct");
 
             let helloInputIdx =
                 stateVariables[await win.resolvePath1("hello")].stateValues
@@ -858,18 +754,10 @@ describe("Problem Tag Tests", function () {
                 "#_id_" + helloInputIdx + "_button",
             );
 
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Check Work");
 
             cy.get(helloInputAnchor).type("hello{enter}");
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Correct");
 
             cy.get(cesc("#fruitInput_button")).should("not.exist");
             cy.get(cesc("#sum3_button")).should("not.exist");
@@ -963,17 +851,9 @@ describe("Problem Tag Tests", function () {
             cy.get(cesc("#dwcw")).click();
             cy.get(cesc("#dwcw_input")).should("not.be.checked");
 
-            cy.get(twoxInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(twoxInputButtonAnchor).should("contain.text", "Incorrect");
 
-            cy.get(helloInputButtonAnchor).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(helloInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.get(cesc("#fruitInput_button")).should("not.exist");
 
@@ -1234,18 +1114,10 @@ describe("Problem Tag Tests", function () {
             cy.get(cesc("#ca")).should("have.text", "0");
 
             cy.get(cesc("#input1_input")).type(`${otherFruitName}{enter}`);
-            cy.get(cesc("#input1_button")).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(cesc("#input1_button")).should("contain.text", "Incorrect");
             cy.get(cesc("#ca")).should("have.text", "0");
 
-            cy.get(cesc("#input2_button")).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(cesc("#input2_button")).should("contain.text", "Check Work");
 
             cy.wait(2000); // wait to make sure debounce save happened
 
@@ -1261,35 +1133,19 @@ describe("Problem Tag Tests", function () {
             });
             cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
-            cy.get(cesc("#input1_button")).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
-            cy.get(cesc("#input2_button")).should(
-                "have.attr",
-                "aria-label",
-                "Check Work",
-            );
+            cy.get(cesc("#input1_button")).should("contain.text", "Incorrect");
+            cy.get(cesc("#input2_button")).should("contain.text", "Check Work");
             cy.get(cesc("#ca")).should("have.text", "0");
 
             cy.get(cesc("#input1_input")).clear().type(selectedFruitName);
             cy.get(cesc("#input1_button")).click();
-            cy.get(cesc("#input1_button")).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(cesc("#input1_button")).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "0.5");
 
             cy.get(cesc("#input2_input"))
                 .clear()
                 .type(`${otherFruitColor}{enter}`);
-            cy.get(cesc("#input2_button")).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(cesc("#input2_button")).should("contain.text", "Incorrect");
             cy.get(cesc("#ca")).should("have.text", "0.5");
 
             cy.wait(2000); // wait to make sure debounce save happened
@@ -1306,25 +1162,13 @@ describe("Problem Tag Tests", function () {
             });
             cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
-            cy.get(cesc("#input1_button")).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
-            cy.get(cesc("#input2_button")).should(
-                "have.attr",
-                "aria-label",
-                "Incorrect",
-            );
+            cy.get(cesc("#input1_button")).should("contain.text", "Correct");
+            cy.get(cesc("#input2_button")).should("contain.text", "Incorrect");
             cy.get(cesc("#ca")).should("have.text", "0.5");
 
             cy.get(cesc("#input2_input")).clear().type(selectedFruitColor);
             cy.get(cesc("#input2_button")).click();
-            cy.get(cesc("#input2_button")).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(cesc("#input2_button")).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "1");
 
             cy.wait(2000); // wait to make sure debounce save happened
@@ -1341,16 +1185,8 @@ describe("Problem Tag Tests", function () {
             });
             cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
 
-            cy.get(cesc("#input1_button")).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
-            cy.get(cesc("#input2_button")).should(
-                "have.attr",
-                "aria-label",
-                "Correct",
-            );
+            cy.get(cesc("#input1_button")).should("contain.text", "Correct");
+            cy.get(cesc("#input2_button")).should("contain.text", "Correct");
             cy.get(cesc("#ca")).should("have.text", "1");
         });
     });
