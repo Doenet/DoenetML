@@ -113,6 +113,7 @@
         "paginatorControls",
         "matrixInput",
         "solution",
+        "givenAnswer",
         "document",
         "text",
         "textList",
@@ -3710,6 +3711,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -4602,6 +4606,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -5492,6 +5499,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -38715,6 +38725,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -39749,6 +39762,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -40787,6 +40803,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -41821,6 +41840,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -42880,6 +42902,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -43921,6 +43946,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -44955,6 +44983,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -45993,6 +46024,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -47027,6 +47061,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -48065,6 +48102,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -49099,6 +49139,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -50137,6 +50180,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -51171,6 +51217,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -52209,6 +52258,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -53245,6 +53297,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -54279,6 +54334,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -55337,6 +55395,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -56372,6 +56433,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -57400,6 +57464,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -58640,6 +58707,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -64614,6 +64684,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "p"
                 },
                 {
@@ -65409,6 +65482,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -67117,6 +67193,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -68009,6 +68088,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -68856,6 +68938,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -69661,6 +69746,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -70496,6 +70584,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -71134,6 +71225,19 @@
                         "string"
                     ]
                 },
+                "description": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "numRows": {
                     "optional": true,
                     "type": [
@@ -71239,6 +71343,15 @@
             },
             "children": [
                 {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "label"
+                },
+                {
                     "ref": "matrix"
                 }
             ],
@@ -71272,6 +71385,11 @@
                 {
                     "name": "collaborateGroups",
                     "type": "collaborateGroups",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -71331,6 +71449,16 @@
                 },
                 {
                     "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
                     "type": "text",
                     "isArray": false
                 },
@@ -71989,6 +72117,704 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
+                    "ref": "p"
+                },
+                {
+                    "ref": "graph"
+                },
+                {
+                    "ref": "spreadsheet"
+                },
+                {
+                    "ref": "tabular"
+                },
+                {
+                    "ref": "table"
+                },
+                {
+                    "ref": "figure"
+                },
+                {
+                    "ref": "image"
+                },
+                {
+                    "ref": "video"
+                },
+                {
+                    "ref": "hint"
+                },
+                {
+                    "ref": "feedback"
+                },
+                {
+                    "ref": "caption"
+                },
+                {
+                    "ref": "subsetOfRealsInput"
+                },
+                {
+                    "ref": "codeEditor"
+                },
+                {
+                    "ref": "summaryStatistics"
+                },
+                {
+                    "ref": "blockQuote"
+                },
+                {
+                    "ref": "pretzel"
+                },
+                {
+                    "ref": "cascade"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "open",
+                    "type": "boolean",
+                    "isArray": false
+                }
+            ]
+        },
+        "givenAnswer": {
+            "type": "element",
+            "name": "givenAnswer",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "topic"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "h"
+                },
+                {
+                    "ref": "idx"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "ref"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "introduction"
+                },
+                {
+                    "ref": "conclusion"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
+                    "ref": "section"
+                },
+                {
+                    "ref": "subsection"
+                },
+                {
+                    "ref": "subsubsection"
+                },
+                {
+                    "ref": "paragraphs"
+                },
+                {
+                    "ref": "aside"
+                },
+                {
+                    "ref": "objectives"
+                },
+                {
+                    "ref": "problem"
+                },
+                {
+                    "ref": "exercise"
+                },
+                {
+                    "ref": "question"
+                },
+                {
+                    "ref": "activity"
+                },
+                {
+                    "ref": "example"
+                },
+                {
+                    "ref": "definition"
+                },
+                {
+                    "ref": "note"
+                },
+                {
+                    "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
+                    "ref": "proof"
+                },
+                {
+                    "ref": "problems"
+                },
+                {
+                    "ref": "exercises"
+                },
+                {
+                    "ref": "ol"
+                },
+                {
+                    "ref": "ul"
+                },
+                {
+                    "ref": "orbitalDiagram"
+                },
+                {
+                    "ref": "orbitalDiagramInput"
+                },
+                {
+                    "ref": "sideBySide"
+                },
+                {
+                    "ref": "sbsGroup"
+                },
+                {
+                    "ref": "stack"
+                },
+                {
+                    "ref": "div"
+                },
+                {
+                    "ref": "pre"
+                },
+                {
+                    "ref": "paginator"
+                },
+                {
+                    "ref": "paginatorControls"
+                },
+                {
+                    "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "p"
                 },
                 {
@@ -72524,6 +73350,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -77573,6 +78402,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -87089,6 +87921,19 @@
                         "true",
                         "false"
                     ]
+                },
+                "description": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
@@ -87112,6 +87957,15 @@
                 },
                 {
                     "ref": "considerAsResponses"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "label"
                 },
                 {
                     "ref": "rightHandSide"
@@ -87333,12 +88187,6 @@
                     "ref": "numberList"
                 },
                 {
-                    "ref": "xLabel"
-                },
-                {
-                    "ref": "yLabel"
-                },
-                {
                     "ref": "not"
                 },
                 {
@@ -87367,9 +88215,6 @@
                 },
                 {
                     "ref": "hasSameFactoring"
-                },
-                {
-                    "ref": "label"
                 },
                 {
                     "ref": "matchesPattern"
@@ -87569,6 +88414,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "description",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -87621,6 +88476,11 @@
                 {
                     "name": "disabled",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "label",
+                    "type": "label",
                     "isArray": false
                 },
                 {
@@ -88955,6 +89815,19 @@
                         "string"
                     ]
                 },
+                "description": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "prefill": {
                     "optional": true,
                     "type": [
@@ -89049,13 +89922,6 @@
                     "optional": true,
                     "type": [
                         "string"
-                    ]
-                },
-                "labelIsName": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
                     ]
                 }
             },
@@ -89319,6 +90185,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "prefill",
                     "type": "math",
                     "isArray": false
@@ -89364,11 +90235,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -89394,6 +90260,16 @@
                     "isArray": false
                 },
                 {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "displayDigits",
                     "type": "integer",
                     "isArray": false
@@ -89411,11 +90287,6 @@
                 {
                     "name": "padZeros",
                     "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "label",
-                    "type": "label",
                     "isArray": false
                 },
                 {
@@ -89594,6 +90465,19 @@
                         "string"
                     ]
                 },
+                "description": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "prefill": {
                     "optional": true,
                     "type": [
@@ -89650,13 +90534,6 @@
                         "left",
                         "right",
                         "center"
-                    ]
-                },
-                "labelIsName": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
                     ]
                 }
             },
@@ -89905,6 +90782,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "prefill",
                     "type": "text",
                     "isArray": false
@@ -89927,11 +90809,6 @@
                 {
                     "name": "positionFromAnchor",
                     "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "labelIsName",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -89962,6 +90839,11 @@
                 {
                     "name": "label",
                     "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -90118,6 +91000,19 @@
                         "string"
                     ]
                 },
+                "description": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "prefill": {
                     "optional": true,
                     "type": [
@@ -90140,13 +91035,6 @@
                     ]
                 },
                 "draggable": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "labelIsName": {
                     "optional": true,
                     "type": [
                         "true",
@@ -90467,6 +91355,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "prefill",
                     "type": "boolean",
                     "isArray": false
@@ -90478,11 +91371,6 @@
                 },
                 {
                     "name": "draggable",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "labelIsName",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -90519,6 +91407,11 @@
                 {
                     "name": "label",
                     "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -90606,6 +91499,19 @@
                         "string"
                     ]
                 },
+                "description": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "selectMultiple": {
                     "optional": true,
                     "type": [
@@ -90670,13 +91576,6 @@
                     "type": [
                         "string"
                     ]
-                },
-                "labelIsName": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
                 }
             },
             "children": [
@@ -90726,6 +91625,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "selectMultiple",
                     "type": "boolean",
                     "isArray": false
@@ -90756,11 +91660,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -90788,6 +91687,11 @@
                 {
                     "name": "label",
                     "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "description",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -91336,6 +92240,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -96141,6 +97048,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -98100,6 +99010,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -99815,6 +100728,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "p"
                 },
                 {
@@ -100532,6 +101448,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "p"
@@ -101432,6 +102351,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -102268,6 +103190,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -106528,6 +107453,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -108944,6 +109872,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -110871,6 +111802,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -112804,6 +113738,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -113604,6 +114541,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -114418,6 +115358,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -116365,6 +117308,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -117145,6 +118091,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -117938,6 +118887,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -119445,6 +120397,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "p"
                 },
                 {
@@ -120642,6 +121597,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -121450,6 +122408,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -123711,6 +124672,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -125563,6 +126527,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
@@ -130315,6 +131282,9 @@
                     "ref": "solution"
                 },
                 {
+                    "ref": "givenAnswer"
+                },
+                {
                     "ref": "document"
                 },
                 {
@@ -132027,6 +132997,9 @@
                 },
                 {
                     "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
                 },
                 {
                     "ref": "document"
