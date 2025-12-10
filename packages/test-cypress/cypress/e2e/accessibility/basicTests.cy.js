@@ -473,4 +473,54 @@ describe("Render commas tests", function () {
             onlyWarnImpacts: ["moderate", "minor"],
         });
     });
+
+    it("completed sections", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <problem boxed name="prob">
+        <title>Auto completed as no answers</title>
+    </problem>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#prob").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it.only("refs", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <problem name="prob1">
+        <title>A problem</title>
+
+        <p>There is <ref to="$prob2">a second problem</ref>.</p>
+    </problem>
+
+    <problem name="prob2">
+        <title>Another problem</title>
+
+        <p>See <ref to="$prob1" createButton> first problem</ref>.</p>
+    </problem>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#prob1").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
 });
