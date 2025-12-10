@@ -6946,4 +6946,36 @@ What is the derivative of <function name="f">x^2</function>?
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(0);
     });
+
+    it("ignore initial blank string in answer sugar", async () => {
+        // Fix bug where the initial blank string child of the answer
+        // prevented the sugar from wrapping the text after the mathInput correctly.
+        const doenetML = `
+    <p><answer name="ans">
+    <mathInput name="mi"><label>x</label></mathInput>
+    x    
+    </answer></p>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
+                .creditAchieved,
+        ).eq(1);
+    });
 });
