@@ -495,7 +495,7 @@ describe("Render commas tests", function () {
         });
     });
 
-    it.only("refs", () => {
+    it("refs", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
