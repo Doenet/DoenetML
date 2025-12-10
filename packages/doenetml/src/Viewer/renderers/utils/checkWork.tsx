@@ -96,9 +96,7 @@ export function createCheckWorkComponent(
         }
     } else if (SVs.showCorrectness) {
         if (validationState === "correct") {
-            buttonStyle.backgroundColor = getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGreen");
+            buttonStyle.backgroundColor = "#2C6236";
 
             // When the button changes to "Correct", it should be read by the screen reader
             liveLabel = "Correct";
@@ -113,9 +111,7 @@ export function createCheckWorkComponent(
                 </span>
             );
         } else if (validationState === "incorrect") {
-            buttonStyle.backgroundColor = getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainRed");
+            buttonStyle.backgroundColor = "#A92328";
 
             // When the button changes to "Incorrect", it should be read by the screen reader
             liveLabel = "Incorrect";
@@ -131,7 +127,7 @@ export function createCheckWorkComponent(
             );
         } else {
             // partial correct
-            buttonStyle.backgroundColor = "#efab34";
+            buttonStyle.backgroundColor = "#7A4D00";
             const percent = Math.round(SVs.creditAchieved * 100);
             const partialText = SVs.creditIsReducedByAttempt
                 ? `${percent}% Credit`
@@ -168,8 +164,6 @@ export function createCheckWorkComponent(
             disabled={SVs.disabled}
             style={buttonStyle}
             onClick={submitAnswer}
-            role={validationState === "unvalidated" ? "button" : "status"}
-            aria-live="off"
         >
             {buttonContent}
             <span className="visually-hidden">

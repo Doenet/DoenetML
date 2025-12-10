@@ -435,4 +435,42 @@ describe("Render commas tests", function () {
             onlyWarnImpacts: ["moderate", "minor"],
         });
     });
+
+    it("check work buttons", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p name="p"><answer name="a1"><mathInput name="m1" ><label>x</label></mathInput>x</answer></p>
+    <p><answer name="a2"><mathInput name="m2" ><label>x</label></mathInput>x</answer></p>
+    <p><answer name="a3"><mathInput name="m3" ><label>x</label></mathInput>x</answer></p>
+    <p><answer name="a4" forceFullCheckWorkButton><mathInput name="m4" ><label>x</label></mathInput>x</answer></p>
+    <p><answer name="a5" forceFullCheckWorkButton><mathInput name="m5" ><label>x</label></mathInput>x</answer></p>
+    <p><answer name="a6" forceFullCheckWorkButton><mathInput name="m6" ><label>x</label></mathInput>x</answer></p>
+    <p><answer name="a7"><mathInput name="m7" ><label>x</label></mathInput><award credit="0.5">x</award></answer></p>
+    <p><answer name="a8" forceFullCheckWorkButton><mathInput name="m8" ><label>x</label></mathInput><award credit="0.5">x</award></answer></p>
+
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("be.visible");
+
+        cy.get("#m2 textarea").type("x{enter}", { force: true });
+        cy.get("#m3 textarea").type("{enter}", { force: true });
+
+        cy.get("#m5 textarea").type("x{enter}", { force: true });
+        cy.get("#a5_button").click();
+        cy.get("#m6 textarea").type("{enter}", { force: true });
+        cy.get("#a6_button").click();
+        cy.get("#m7 textarea").type("x{enter}", { force: true });
+        cy.get("#m8 textarea").type("x{enter}", { force: true });
+        cy.get("#a8_button").click();
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
 });
