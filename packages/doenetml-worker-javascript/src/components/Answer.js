@@ -311,6 +311,18 @@ export default class Answer extends InlineComponent {
                 (child) => !componentIsSpecifiedType(child, "label"),
             );
 
+            // remove beginning and ending blank strings from matchedChildren
+            const firstNonBlankInd = matchedChildren.findIndex(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            );
+            const lastNonBlankInd = matchedChildren.findLastIndex(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            );
+            matchedChildren = matchedChildren.slice(
+                firstNonBlankInd,
+                lastNonBlankInd + 1,
+            );
+
             let childIsWrappable = [];
             for (let child of matchedChildren) {
                 if (typeof child !== "object") {
