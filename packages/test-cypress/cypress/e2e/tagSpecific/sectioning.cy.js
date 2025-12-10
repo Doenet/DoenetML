@@ -790,7 +790,7 @@ describe("Sectioning Tag Tests", function () {
                 "We don't have a title, but we have a list.",
             );
 
-        cy.get(cesc("#prob1_title")).should("have.text", "");
+        cy.get(cesc("#prob1_title")).should("not.exist");
         cy.get(cesc("#prob1.ol")).should(
             "have.css",
             "list-style-type",
@@ -859,7 +859,7 @@ describe("Sectioning Tag Tests", function () {
                 "We don't have a title, but we have a list.",
             );
 
-        cy.get(cesc("#prob1_title")).should("have.text", "");
+        cy.get(cesc("#prob1_title")).should("not.exist");
         cy.get(cesc("#prob1.ol")).should(
             "have.css",
             "list-style-type",
