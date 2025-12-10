@@ -14,6 +14,7 @@ describe("Render commas tests", function () {
             win.postMessage(
                 {
                     doenetML: `
+<title>Let's test the keyboard</title>       
 <p name="p">Hello!</p>
   `,
                 },
@@ -441,14 +442,43 @@ describe("Render commas tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <p name="p"><answer name="a1"><mathInput name="m1" ><label>x</label></mathInput>x</answer></p>
-    <p><answer name="a2"><mathInput name="m2" ><label>x</label></mathInput>x</answer></p>
-    <p><answer name="a3"><mathInput name="m3" ><label>x</label></mathInput>x</answer></p>
-    <p><answer name="a4" forceFullCheckWorkButton><mathInput name="m4" ><label>x</label></mathInput>x</answer></p>
-    <p><answer name="a5" forceFullCheckWorkButton><mathInput name="m5" ><label>x</label></mathInput>x</answer></p>
-    <p><answer name="a6" forceFullCheckWorkButton><mathInput name="m6" ><label>x</label></mathInput>x</answer></p>
-    <p><answer name="a7"><mathInput name="m7" ><label>x</label></mathInput><award credit="0.5">x</award></answer></p>
-    <p><answer name="a8" forceFullCheckWorkButton><mathInput name="m8" ><label>x</label></mathInput><award credit="0.5">x</award></answer></p>
+    <p name="p"><answer name="a1">
+        <mathInput name="m1"><label>x</label></mathInput>x</answer></p>
+    <p><answer name="a2">
+        <mathInput name="m2"><label>x</label></mathInput>x
+    </answer></p>
+    <p><answer name="a3">
+        <mathInput name="m3"><label>x</label></mathInput>
+        x
+    </answer></p>
+    <p><answer name="a4" forceFullCheckWorkButton>
+        <mathInput name="m4"><label>x</label></mathInput>
+        x
+    </answer></p>
+    <p><answer name="a5" forceFullCheckWorkButton>
+        <mathInput name="m5"><label>x</label></mathInput>
+        x
+    </answer></p>
+    <p><answer name="a6" forceFullCheckWorkButton>
+        <mathInput name="m6"><label>x</label></mathInput>
+        x
+    </answer></p>
+    <p><answer name="a7">
+        <mathInput name="m7"><label>x</label></mathInput>
+        <award credit="0.5">x</award>
+    </answer></p>
+    <p><answer name="a8" forceFullCheckWorkButton>
+        <mathInput name="m8"><label>x</label></mathInput>
+        <award credit="0.5">x</award>
+    </answer></p>
+    <p><answer name="a9" showCorrectness="false">
+        <mathInput name="m9"><label>x</label></mathInput>
+        x
+    </answer></p>
+    <p><answer name="a10" forceFullCheckWorkButton showCorrectness="false">
+        <mathInput name="m10"><label>x</label></mathInput>
+        x
+    </answer></p>
 
   `,
                 },
@@ -468,6 +498,9 @@ describe("Render commas tests", function () {
         cy.get("#m7 textarea").type("x{enter}", { force: true });
         cy.get("#m8 textarea").type("x{enter}", { force: true });
         cy.get("#a8_button").click();
+
+        cy.get("#m9 textarea").type("{enter}", { force: true });
+        cy.get("#a10_button").click();
 
         cy.checkAccessibility([".doenet-viewer"], {
             onlyWarnImpacts: ["moderate", "minor"],
