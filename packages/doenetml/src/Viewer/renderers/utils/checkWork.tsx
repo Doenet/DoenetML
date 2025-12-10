@@ -55,7 +55,7 @@ export function createCheckWorkComponent(
         return null;
     }
 
-    const buttonStyle: React.CSSProperties = {};
+    const buttonClassNames = ["check-work"];
 
     const tabIndex = SVs.disabled ? -1 : 0;
 
@@ -68,7 +68,7 @@ export function createCheckWorkComponent(
     let otherLabel: string | undefined = undefined;
 
     if (validationState === "unvalidated") {
-        buttonStyle.cursor = "pointer";
+        buttonClassNames.push("check-work-unvalidated");
         const checkWorkText = SVs.showCorrectness
             ? SVs.submitLabel
             : SVs.submitLabelNoCorrectness;
@@ -86,17 +86,9 @@ export function createCheckWorkComponent(
                 {buttonContent}
             </span>
         );
-
-        if (SVs.disabled) {
-            buttonStyle.backgroundColor = getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGray");
-            buttonStyle.color = "black";
-            buttonStyle.cursor = "not-allowed";
-        }
     } else if (SVs.showCorrectness) {
         if (validationState === "correct") {
-            buttonStyle.backgroundColor = "#2C6236";
+            buttonClassNames.push("check-work-correct");
 
             // When the button changes to "Correct", it should be read by the screen reader
             liveLabel = "Correct";
@@ -111,7 +103,7 @@ export function createCheckWorkComponent(
                 </span>
             );
         } else if (validationState === "incorrect") {
-            buttonStyle.backgroundColor = "#A92328";
+            buttonClassNames.push("check-work-incorrect");
 
             // When the button changes to "Incorrect", it should be read by the screen reader
             liveLabel = "Incorrect";
@@ -126,8 +118,8 @@ export function createCheckWorkComponent(
                 </span>
             );
         } else {
-            // partial correct
-            buttonStyle.backgroundColor = "#7A4D00";
+            // partially correct
+            buttonClassNames.push("check-work-partially-correct");
             const percent = Math.round(SVs.creditAchieved * 100);
             const partialText = SVs.creditIsReducedByAttempt
                 ? `${percent}% Credit`
@@ -143,7 +135,7 @@ export function createCheckWorkComponent(
         }
     } else {
         // showCorrectness is false
-        buttonStyle.backgroundColor = "rgb(74, 3, 217)";
+        buttonClassNames.push("check-work-response-saved");
 
         // When the button changes to "Response Saved", it should be read by the screen reader
         liveLabel = "Response Saved";
@@ -158,11 +150,10 @@ export function createCheckWorkComponent(
 
     let button = (
         <button
-            className="check-work"
+            className={buttonClassNames.join(" ")}
             id={id + "_button"}
             tabIndex={tabIndex}
             disabled={SVs.disabled}
-            style={buttonStyle}
             onClick={submitAnswer}
         >
             {buttonContent}
