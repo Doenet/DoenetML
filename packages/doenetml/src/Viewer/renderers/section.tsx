@@ -95,50 +95,53 @@ export default React.memo(function Section(props) {
         };
     }
 
-    switch (SVs.level) {
-        case 0:
-            heading = (
-                <h1 id={headingId} style={headingStyle}>
-                    {title}
-                </h1>
-            );
-            break;
-        case 1:
-            heading = (
-                <h2 id={headingId} style={headingStyle}>
-                    {title}
-                </h2>
-            );
-            break;
-        case 2:
-            heading = (
-                <h3 id={headingId} style={headingStyle}>
-                    {title}
-                </h3>
-            );
-            break;
-        case 3:
-            heading = (
-                <h4 id={headingId} style={headingStyle}>
-                    {title}
-                </h4>
-            );
-            break;
-        case 4:
-            heading = (
-                <h5 id={headingId} style={headingStyle}>
-                    {title}
-                </h5>
-            );
-            break;
-        default:
-            heading = (
-                <h6 id={headingId} style={headingStyle}>
-                    {title}
-                </h6>
-            );
-            break;
+    if (title) {
+        switch (SVs.level) {
+            case 0:
+                heading = (
+                    <h1 id={headingId} style={headingStyle}>
+                        {title}
+                    </h1>
+                );
+                break;
+            case 1:
+                heading = (
+                    <h2 id={headingId} style={headingStyle}>
+                        {title}
+                    </h2>
+                );
+                break;
+            case 2:
+                heading = (
+                    <h3 id={headingId} style={headingStyle}>
+                        {title}
+                    </h3>
+                );
+                break;
+            case 3:
+                heading = (
+                    <h4 id={headingId} style={headingStyle}>
+                        {title}
+                    </h4>
+                );
+                break;
+            case 4:
+                heading = (
+                    <h5 id={headingId} style={headingStyle}>
+                        {title}
+                    </h5>
+                );
+                break;
+            default:
+                heading = (
+                    <h6 id={headingId} style={headingStyle}>
+                        {title}
+                    </h6>
+                );
+                break;
+        }
     }
+
     // if (SVs.level === 0) {
     //   heading = <span id={headingId} style={{fontSize:'2em'}}>{title}</span>;
     // } else if (SVs.level === 1) {

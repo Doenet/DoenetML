@@ -2,16 +2,76 @@
     position: relative;
     height: 24px;
     display: inline-block;
-    color: white;
-    background-color: var(--mainBlue);
     padding: 1px 6px 1px 6px;
     /* border: var(--mainBorder); */
     border: none;
     border-radius: var(--mainBorderRadius);
     margin: 0px 4px 4px 0px;
+}
+
+.doenet-viewer button.check-work-unvalidated {
+    background-color: var(--mainBlue);
+    color: white;
+    cursor: pointer;
 
     &:hover {
         background-color: var(--lightBlue);
+        color: black;
+    }
+}
+
+.doenet-viewer button.check-work-unvalidated:disabled {
+    background-color: var(--mainGray);
+    color: white;
+    cursor: not-allowed;
+    color: black;
+
+    &:hover {
+        background-color: var(--lightBlue);
+        color: black;
+    }
+}
+
+.doenet-viewer button.check-work-correct {
+    background-color: #3e844a; /* Dark Green */
+    color: white;
+    cursor: default;
+
+    &:hover {
+        background-color: var(--lightGreen);
+        color: black;
+    }
+}
+
+.doenet-viewer button.check-work-incorrect {
+    background-color: var(--mainRed);
+    color: white;
+    cursor: default;
+
+    &:hover {
+        background-color: var(--lightRed);
+        color: black;
+    }
+}
+
+.doenet-viewer button.check-work-partially-correct {
+    background-color: #a36600; /* Dark Yellow */
+    color: white;
+    cursor: default;
+
+    &:hover {
+        background-color: #efab34; /* Light Yellow */
+        color: black;
+    }
+}
+
+.doenet-viewer button.check-work-response-saved {
+    background-color: rgb(74, 3, 217); /* Dark Purple */
+    color: white;
+    cursor: default;
+
+    &:hover {
+        background-color: rgb(161, 129, 224); /* Light Purple */
         color: black;
     }
 }
