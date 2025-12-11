@@ -20,7 +20,7 @@ export default React.memo(function Tag(props: UseDoenetRendererProps) {
     }
 
     return (
-        <code id={id} style={{ color: "var(--mainGreen)" }}>
+        <code id={id} style={{ color: "#3e844a" }}>
             {open}
             {children}
             {close}
