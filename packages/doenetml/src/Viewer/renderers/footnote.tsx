@@ -15,12 +15,12 @@ export default React.memo(function Footnote(props: UseDoenetRendererProps) {
         padding: "10px",
         borderRadius: "5px",
         backgroundColor: "#e2e2e2",
-        display: `static`,
+        display: "block",
     };
     let footnoteMessage: React.ReactNode = "";
 
     if (isVisible) {
-        footnoteMessage = <div style={footnoteMessageStyle}>{SVs.text}</div>;
+        footnoteMessage = <span style={footnoteMessageStyle}>{SVs.text}</span>;
     }
 
     const buttonStyle = {
@@ -36,14 +36,14 @@ export default React.memo(function Footnote(props: UseDoenetRendererProps) {
     return (
         <span id={id}>
             <sup>
-                <button
+                <span
                     style={buttonStyle}
                     onClick={() => setIsVisible((was) => !was)}
                 >
                     <a href="#" title={SVs.text} style={footnoteStyle}>
                         [{SVs.footnoteTag}]
                     </a>
-                </button>
+                </span>
             </sup>
             {footnoteMessage}
         </span>
