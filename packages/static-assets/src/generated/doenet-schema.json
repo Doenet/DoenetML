@@ -39745,6 +39745,18 @@
                     "name": "textColorWordDarkMode"
                 },
                 {
+                    "name": "highContrastColor"
+                },
+                {
+                    "name": "highContrastColorWord"
+                },
+                {
+                    "name": "highContrastColorDarkMode"
+                },
+                {
+                    "name": "highContrastColorWordDarkMode"
+                },
+                {
                     "name": "backgroundColor"
                 },
                 {
@@ -80822,9 +80834,7 @@
         {
             "name": "pretzel",
             "children": [
-                "statement",
-                "textInput",
-                "span"
+                "problem"
             ],
             "attributes": [
                 {
