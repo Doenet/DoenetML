@@ -1367,4 +1367,81 @@ describe("Sectioning tag tests", async () => {
         await submitAnswer({ componentIdx: answer1Idx, core });
         await check_values(0.5);
     });
+
+    it("determine if starts with introduction or ends with conclusion", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+
+    <section name="sec1">
+      <title>Section 1</title>
+      <introduction name="intro1">
+        <p>Welcome to section 1</p>
+      </introduction>
+
+      <part><p>Some content</p></part>
+
+      <conclusion name="concl1">
+        <p>Thanks for reading section 1</p>
+      </conclusion>
+    </section>
+
+    <section name="sec2">
+        <title>Section 2</title>
+        <p>Some content</p>
+    </section>
+
+    <section name="sec3">
+      <conclusion name="concl3">
+        <p>Thanks for reading section 3</p>
+      </conclusion>
+      <title>Section 3</title>
+    </section>
+
+    <section name="sec4">
+        <title>Section 4</title>
+        <introduction name="intro4">
+            <p>Welcome to section 4</p>
+        </introduction>
+    </section>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1")].stateValues
+                .startsWithIntroduction,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1")].stateValues
+                .endsWithConclusion,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2")].stateValues
+                .startsWithIntroduction,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2")].stateValues
+                .endsWithConclusion,
+        ).eq(false);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec3")].stateValues
+                .startsWithIntroduction,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec3")].stateValues
+                .endsWithConclusion,
+        ).eq(true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec4")].stateValues
+                .startsWithIntroduction,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec4")].stateValues
+                .endsWithConclusion,
+        ).eq(false);
+    });
 });
