@@ -34,7 +34,7 @@
                 "src/**/*.js",
                 "src/**/*.tsx",
                 "src/**/*.jsx",
-                "dist/**/*.css",
+                "src/**/*.css",
                 "tsconfig.json"
             ],
             "output": [
