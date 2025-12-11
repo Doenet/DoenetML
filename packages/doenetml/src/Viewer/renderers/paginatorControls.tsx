@@ -14,7 +14,7 @@ export default React.memo(function PaginatorControls(
     }
 
     return (
-        <p id={id}>
+        <div id={id}>
             <div id={id} style={{ display: "inline-block", margin: "12px 0" }}>
                 <Button
                     id={id + "_previous"}
@@ -45,6 +45,6 @@ export default React.memo(function PaginatorControls(
                     value={SVs.nextLabel}
                 />
             </div>
-        </p>
+        </div>
     );
 });
