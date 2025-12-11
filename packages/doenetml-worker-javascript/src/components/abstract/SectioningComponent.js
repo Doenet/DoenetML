@@ -489,6 +489,7 @@ export class SectioningComponent extends BlockComponent {
                         "variantControls",
                         "titles",
                         "setups",
+                        "cascadeMessages",
                     ],
                 },
                 asList: {
