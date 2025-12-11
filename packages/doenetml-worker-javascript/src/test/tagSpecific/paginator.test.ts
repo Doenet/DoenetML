@@ -427,4 +427,27 @@ describe("Paginator tag tests", async () => {
                 .childIndicesToRender,
         ).eqls([1]);
     });
+
+    it("Paginator controls can handle bad paginator attribute", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <paginatorControls paginator="$section1" name="pcontrols" />
+  
+    <section name="section1">
+      <title name="title1">Page 1</title>
+      <p>What is 1+1? <answer name="answer1">$two</answer></p>
+    </section>
+    `,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
+                .currentPage,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pcontrols")].stateValues
+                .numPages,
+        ).eq(1);
+    });
 });
