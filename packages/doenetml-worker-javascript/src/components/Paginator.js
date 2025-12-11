@@ -309,12 +309,16 @@ export class PaginatorControls extends BlockComponent {
                             dependencyType: "stateVariable",
                             componentIdx: stateValues.paginatorComponentIdx,
                             variableName: "currentPage",
+                            variablesOptional: true,
                         },
                     };
                 }
             },
             definition({ dependencyValues }) {
-                if ("paginatorPage" in dependencyValues) {
+                if (
+                    "paginatorPage" in dependencyValues &&
+                    Number.isInteger(dependencyValues.paginatorPage)
+                ) {
                     return {
                         setValue: {
                             currentPage: dependencyValues.paginatorPage,
@@ -338,12 +342,16 @@ export class PaginatorControls extends BlockComponent {
                             dependencyType: "stateVariable",
                             componentIdx: stateValues.paginatorComponentIdx,
                             variableName: "numPages",
+                            variablesOptional: true,
                         },
                     };
                 }
             },
             definition({ dependencyValues }) {
-                if ("paginatorNPages" in dependencyValues) {
+                if (
+                    "paginatorNPages" in dependencyValues &&
+                    Number.isInteger(dependencyValues.paginatorNPages)
+                ) {
                     return {
                         setValue: {
                             numPages: dependencyValues.paginatorNPages,
