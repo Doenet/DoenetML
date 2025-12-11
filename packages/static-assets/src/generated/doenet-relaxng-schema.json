@@ -64405,6 +64405,30 @@
                         "string"
                     ]
                 },
+                "highContrastColor": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "highContrastColorWord": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "highContrastColorDarkMode": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "highContrastColorWordDarkMode": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "backgroundColor": {
                     "optional": true,
                     "type": [
@@ -132262,13 +132286,7 @@
             },
             "children": [
                 {
-                    "ref": "statement"
-                },
-                {
-                    "ref": "textInput"
-                },
-                {
-                    "ref": "span"
+                    "ref": "problem"
                 }
             ],
             "textChildrenAllowed": false,

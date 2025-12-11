@@ -32,6 +32,7 @@ type ComponentClass = {
     getAdapterComponentType: (...args: any[]) => string;
     numAdapters: number;
     additionalSchemaChildren?: string[];
+    additionalSchemaChildrenDoNotInherit?: boolean;
 };
 
 interface ComponentInfoObjects extends ReturnType<
@@ -215,14 +216,18 @@ export function getSchema() {
         // The static variable additionalSchemaChildren on a component class
         // can be used to add children to the schema that wouldn't show up otherwise.
         // Two uses are:
-        // 1. to include children that are accepted by sugar but are in a child group
+        // 1. to include children that are accepted by sugar but are not in a child group
         //    because the sugar moves them to no longer be children
         // 2. to add composite children to the schema even though they should be expanded,
         //    (as adding a composite child to a child group will prevent it from being expanded)
         if (cClass.additionalSchemaChildren) {
             for (let type2 of cClass.additionalSchemaChildren) {
                 if (type2 in inheritedOrAdaptedTypes) {
-                    children.push(...inheritedOrAdaptedTypes[type2]);
+                    if (cClass.additionalSchemaChildrenDoNotInherit) {
+                        children.push(type2);
+                    } else {
+                        children.push(...inheritedOrAdaptedTypes[type2]);
+                    }
                 }
                 if (
                     type2 === "string" ||

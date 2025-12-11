@@ -14,6 +14,9 @@ export default class Pretzel extends BlockScoredComponent {
     static renderChildren = true;
     static canDisplayChildErrors = true;
 
+    static additionalSchemaChildren = ["problem"];
+    static additionalSchemaChildrenDoNotInherit = true;
+
     static createAttributesObject() {
         const attributes = super.createAttributesObject();
 
@@ -34,14 +37,17 @@ export default class Pretzel extends BlockScoredComponent {
             {
                 group: "problems",
                 componentTypes: ["statement"],
+                excludeFromSchema: true,
             },
             {
                 group: "textInputs",
                 componentTypes: ["textInput"],
+                excludeFromSchema: true,
             },
             {
                 group: "givenAnswers",
                 componentTypes: ["span"],
+                excludeFromSchema: true,
             },
         ];
     }
