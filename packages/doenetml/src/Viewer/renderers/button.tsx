@@ -46,7 +46,7 @@ export default React.memo(function ButtonComponent(
 
     let label = SVs.label ? SVs.label : "Button";
 
-    let fillColor: string = SVs.selectedStyle.fillColor;
+    let fillColor: string = SVs.selectedStyle.highContrastColor;
 
     useEffect(() => {
         //On unmount
