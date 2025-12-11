@@ -37,7 +37,11 @@ export default React.memo(function orbitalDiagram(props) {
         );
     }
 
-    return <div ref={ref}>{rowsJSX}</div>;
+    return (
+        <div ref={ref} id={id}>
+            {rowsJSX}
+        </div>
+    );
 });
 
 const OrbitalRow = React.memo(function OrbitalRow({

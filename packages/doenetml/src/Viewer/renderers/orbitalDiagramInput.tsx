@@ -212,7 +212,7 @@ export default React.memo(function orbitalDiagramInput(props) {
         );
     }
     return (
-        <div ref={ref}>
+        <div ref={ref} id={id}>
             {controls}
             {rowsJSX}
         </div>
@@ -311,6 +311,7 @@ const OrbitalText = React.memo(function OrbitalText({
                 let newValue = e.target.value;
                 updateRowText(newValue);
             }}
+            aria-label={`Label for row ${rowNumber + 1}`}
         />
     );
 });
