@@ -489,6 +489,7 @@ export class SectioningComponent extends BlockComponent {
                         "variantControls",
                         "titles",
                         "setups",
+                        "cascadeMessages",
                     ],
                 },
                 asList: {
@@ -502,15 +503,23 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues }) {
                 const childIndices = dependencyValues.childIndicesToRender;
-                const firstRenderedChild =
-                    dependencyValues.allChildren[childIndices[0]];
+
+                const renderedNonTitleBlankStringChildren = childIndices
+                    .map((idx) => dependencyValues.allChildren[idx])
+                    .filter((child) => {
+                        if (typeof child === "string") {
+                            return child.trim() !== "";
+                        }
+                        return child.componentType !== "title";
+                    });
 
                 const startsWithIntroduction =
-                    firstRenderedChild?.componentType === "introduction";
+                    renderedNonTitleBlankStringChildren[0]?.componentType ===
+                    "introduction";
 
                 const lastRenderedChild =
-                    dependencyValues.allChildren[
-                        childIndices[childIndices.length - 1]
+                    renderedNonTitleBlankStringChildren[
+                        renderedNonTitleBlankStringChildren.length - 1
                     ];
 
                 const endsWithConclusion =
