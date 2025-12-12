@@ -73,7 +73,7 @@
         "@codemirror/lang-xml": "^6.1.0",
         "@codemirror/language": "^6.11.3",
         "@codemirror/state": "^6.5.2",
-        "@codemirror/view": "^6.39.4",
+        "@codemirror/view": "^6.38.8",
         "@emotion/react": "^11.14.0",
         "@fortawesome/fontawesome-svg-core": "^6.7.2",
         "@fortawesome/free-regular-svg-icons": "^6.7.2",
