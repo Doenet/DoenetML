@@ -1,6 +1,6 @@
 import { cesc, deepCompare } from "@doenet/utils";
 
-describe("PageViewer Attribute Tests", function () {
+describe("DocViewer Attribute Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");
@@ -68,5 +68,106 @@ describe("PageViewer Attribute Tests", function () {
 
             expect(stateVariables).eqls({});
         });
+    });
+
+    it("get different variants when do not specify variant index", () => {
+        const variantsObtained = [];
+        const numbersObtained = [];
+
+        for (let i = 0; i < 5; i++) {
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+        <selectFromSequence from="1" to="1000" name="n" />
+      `,
+                    },
+                    "*",
+                );
+            });
+
+            cy.get("#n")
+                .invoke("text")
+                .then((text) => {
+                    const n = Number(text);
+                    expect(n).to.be.gte(1);
+                    expect(n).to.be.lte(1000);
+                    expect(numbersObtained).to.not.include(n);
+                    numbersObtained.push(n);
+                });
+
+            cy.window().then(async (win) => {
+                const stateVariables = await win.returnAllStateVariables1();
+                const i = stateVariables[0].sharedParameters.variantIndex;
+                expect(i).to.be.gte(1);
+                expect(i).to.be.lte(100);
+                expect(variantsObtained).to.not.include(i);
+                variantsObtained.push(i);
+            });
+
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `<text name="a">a</text>`,
+                    },
+                    "*",
+                );
+            });
+            cy.get("#a").should("have.text", "a");
+        }
+    });
+
+    it("get same variants when do specify variant index", () => {
+        let variantsObtained;
+        let numbersObtained;
+
+        for (let i = 0; i < 3; i++) {
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+        <selectFromSequence from="1" to="1000" name="n" />
+      `,
+                        requestedVariantIndex: 47,
+                    },
+                    "*",
+                );
+            });
+
+            cy.get("#n")
+                .invoke("text")
+                .then((text) => {
+                    const n = Number(text);
+                    expect(n).to.be.gte(1);
+                    expect(n).to.be.lte(1000);
+                    if (numbersObtained === undefined) {
+                        numbersObtained = n;
+                    } else {
+                        expect(n).eq(numbersObtained);
+                    }
+                });
+
+            cy.window().then(async (win) => {
+                const stateVariables = await win.returnAllStateVariables1();
+                const i = stateVariables[0].sharedParameters.variantIndex;
+                expect(i).to.be.gte(1);
+                expect(i).to.be.lte(100);
+                if (variantsObtained === undefined) {
+                    variantsObtained = i;
+                } else {
+                    expect(i).eq(variantsObtained);
+                }
+            });
+
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `<text name="a">a</text>`,
+                    },
+                    "*",
+                );
+            });
+            cy.get("#a").should("have.text", "a");
+        }
     });
 });
