@@ -61,8 +61,6 @@ export const FocusedMathInputContext = React.createContext<
     React.MutableRefObject<HTMLElement | null>
 >({ current: null });
 
-const rngClass = seedrandom.alea;
-
 /**
  * this is a hack for react-mathqill
  * error: global is not defined
@@ -223,7 +221,7 @@ export function DoenetViewer({
         // regenerate only if one of the props in propSet has changed
         if (thisPropSet.some((v, i) => v !== lastPropSet.current[i])) {
             if (requestedVariantIndex === undefined) {
-                let rng = rngClass();
+                let rng = seedrandom();
                 requestedVariantIndex = Math.floor(rng() * 1000000) + 1;
             }
             variantIndex.current = Math.round(requestedVariantIndex);
