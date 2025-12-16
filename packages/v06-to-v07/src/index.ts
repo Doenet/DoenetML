@@ -7,6 +7,7 @@ import { toXml } from "@doenet/parser";
 import { reparseAttribute, reparseAttributeV6 } from "./reparse-attribute";
 import {
     correctAttributeCapitalization,
+    correctComponentTypesAttributeCapitalization,
     correctElementCapitalization,
 } from "./normalize-capitalization";
 import { upgradeCollectElement } from "./upgrade-collect-element";
@@ -40,6 +41,7 @@ export async function updateSyntaxFromV06toV07_root(
     let processor = unified()
         .use(correctElementCapitalization)
         .use(correctAttributeCapitalization)
+        .use(correctComponentTypesAttributeCapitalization)
         .use(ensureDollarBeforeNamesOnSpecificAttributes)
         .use(upgradePathSlashesToDots)
         .use(removeNewNamespaceAttribute)
