@@ -56,6 +56,16 @@ export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
                         `$${fromValue}`,
                     );
                 }
+            } else if (node.attributes["target"]) {
+                // `target` could also now be`from`
+                renameAttrInPlace(node, "target", "from");
+                // Ensure the value starts with a dollar sign
+                const fromValue = toXml(node.attributes["from"].children);
+                if (!fromValue.startsWith("$")) {
+                    node.attributes["from"].children = reparseAttribute(
+                        `$${fromValue}`,
+                    );
+                }
             }
             const assignNames = node.attributes["assignNames"];
             if (!assignNames) {
