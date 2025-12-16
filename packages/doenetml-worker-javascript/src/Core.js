@@ -3115,6 +3115,12 @@ export default class Core {
         }
 
         if (component.constructor.addExtraSerializedChildrenWhenShadowing) {
+            let rendered = true;
+            if ("rendered" in component.state) {
+                rendered = await component.state.rendered.value;
+            }
+
+            if (rendered) {
             // add any serialized children that are beyond the replacements we already have
             serializedReplacements.push(
                 ...deepClone(
@@ -3123,6 +3129,7 @@ export default class Core {
                     ),
                 ),
             );
+            }
         }
 
         this.adjustForCreateComponentIdxName(serializedReplacements, component);
