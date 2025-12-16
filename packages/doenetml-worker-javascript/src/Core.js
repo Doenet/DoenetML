@@ -1843,11 +1843,11 @@ export default class Core {
         ) {
             let result = await this.processNewStateVariableValues(
                 {
-                [componentIdx]:
+                    [componentIdx]:
                         this.updateInfo
                             .stateVariableUpdatesForMissingComponents[
-                        componentIdx
-                    ],
+                            componentIdx
+                        ],
                 },
                 true,
             );
