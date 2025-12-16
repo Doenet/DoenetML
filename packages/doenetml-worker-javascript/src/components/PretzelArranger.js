@@ -250,7 +250,7 @@ export default class PretzelArranger extends CompositeComponent {
                 if (!validProblems) {
                     warnings.push({
                         message:
-                            "Invalid pretzel as a problem is missing a <statement> or a <givenAnswer>",
+                            "Invalid pretzel as a problem is missing a <statement> or an <answer>",
                         level: 1,
                     });
                 }
