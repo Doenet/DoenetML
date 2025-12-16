@@ -114,7 +114,11 @@ export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
             ).trim();
             // The `mathList` will have the name originally given to the `collect`
             // We need a new name for the collect.
-            const listName = toXml(node.attributes["name"].children);
+
+            // const listName = toXml(node.attributes["name"].children);
+            const listName = node.attributes["name"]
+                ? toXml(node.attributes["name"].children)
+                : getUniqueName(tree, "list");
             const collectName = getUniqueName(tree, `collect_${listName}`);
             node.attributes["name"] = {
                 type: "attribute",
