@@ -1849,6 +1849,7 @@ export default class Core {
                             componentIdx
                         ],
                 },
+                // This `true` indicates we have a new component
                 true,
             );
 
