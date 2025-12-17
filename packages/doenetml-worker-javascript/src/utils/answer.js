@@ -317,6 +317,7 @@ export function returnStandardAnswerStateVariableDefinition() {
         definition: function ({
             dependencyValues,
             justUpdatedForNewComponent,
+            initialAddPhase,
         }) {
             if (
                 dependencyValues.disableAfterCorrect &&
@@ -331,7 +332,10 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyValues.creditAchievedDependenciesAtSubmit !==
                 dependencyValues.currentCreditAchievedDependencies;
 
-            if (foundChange && !justUpdatedForNewComponent) {
+            if (
+                foundChange &&
+                !(justUpdatedForNewComponent || initialAddPhase)
+            ) {
                 return {
                     setValue: { justSubmitted: false },
                     setEssentialValue: { justSubmitted: false },
