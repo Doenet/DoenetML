@@ -3089,4 +3089,68 @@ d
         cy.get(cesc("#choiceInput1")).get(`[value="4"]`).should("be.disabled");
         cy.get(cesc("#choiceInput2")).get(`[value="4"]`).should("be.disabled");
     });
+
+    it("just submitted retained after reload, feedback condition edge case", () => {
+        // A regressions test for an edge case where the justSubmitted state variable
+        // of an answer was set to false when reloading the state.
+        // This DoenetML is a MWE where the combination of an award
+        // and a feedback condition triggered the bug.
+        let doenetML = `
+
+    <graph name="g">
+        <point name="A" />
+    </graph>
+
+    <answer name="ans">
+        <award>
+            <when>$A.y = $A.x</when>
+        </award>
+    </answer>
+    <feedback condition="$A.y != $A.x and $ans.justSubmitted">
+        hi
+    </feedback>
+    `;
+
+        cy.get("#testRunner_toggleControls").click();
+        cy.get("#testRunner_allowLocalState").click();
+        cy.wait(100);
+        cy.get("#testRunner_toggleControls").click();
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans_button").should("contain.text", "Check Work");
+
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "movePoint",
+                componentIdx: await win.resolvePath1("A"),
+                args: { x: 3, y: 4 },
+            });
+        });
+
+        cy.get("#ans_button").click();
+        cy.get("#ans_button").should("contain.text", "Incorrect");
+
+        cy.wait(1500); // wait for debounce
+
+        cy.reload();
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans_button").should("contain.text", "Incorrect");
+    });
 });
