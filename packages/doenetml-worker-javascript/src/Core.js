@@ -499,6 +499,8 @@ export default class Core {
         indexOfDefiningChildren,
         initialAdd = false,
     }) {
+        this.initialAddPhase = initialAdd;
+
         if (!Array.isArray(serializedComponents)) {
             serializedComponents = [serializedComponents];
         }
@@ -700,6 +702,7 @@ export default class Core {
             await this.processStateVariableTriggers(true);
         }
 
+        this.initialAddPhase = false;
         return newComponents;
     }
 
@@ -1857,7 +1860,6 @@ export default class Core {
             // that was saved to the database,
             // it may be necessary for a component to treat the value received differently
             // in the first pass of the definition.
-            // hence we set justUpdatedForNewComponent which will
             // Hence, we run the definition of all variables with the extra flag
             // justUpdatedForNewComponent = true
             let comp = this._components[componentIdx];
@@ -7153,6 +7155,7 @@ export default class Core {
         });
         definitionArgs.componentInfoObjects = this.componentInfoObjects;
         definitionArgs.justUpdatedForNewComponent = justUpdatedForNewComponent;
+        definitionArgs.initialAddPhase = this.initialAddPhase;
 
         definitionArgs.freshnessInfo = stateVarObj.freshnessInfo;
 
