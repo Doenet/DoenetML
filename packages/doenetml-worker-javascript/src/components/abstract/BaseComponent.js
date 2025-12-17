@@ -1256,7 +1256,9 @@ export default class BaseComponent {
         if (includeDefiningChildren) {
             if (
                 this.constructor.serializeReplacementsForChildren &&
-                this.isExpanded
+                this.isExpanded &&
+                (!("rendered" in this.state) ||
+                    (await this.state.rendered.value))
             ) {
                 for (let repl of this.replacements) {
                     if (typeof repl !== "object") {

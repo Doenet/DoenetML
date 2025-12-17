@@ -2618,15 +2618,11 @@ export default class Core {
     async addReplacementsToResolver({
         serializedReplacements,
         component,
-        overrideReplacementsAlreadyInResolver,
         updateOldReplacementsStart,
         updateOldReplacementsEnd,
         blankStringReplacements,
     }) {
-        if (
-            component.constructor.replacementsAlreadyInResolver &&
-            !overrideReplacementsAlreadyInResolver
-        ) {
+        if (component.constructor.replacementsAlreadyInResolver) {
             return;
         }
 
@@ -3120,14 +3116,21 @@ export default class Core {
         }
 
         if (component.constructor.addExtraSerializedChildrenWhenShadowing) {
-            // add any serialized children that are beyond the replacements we already have
-            serializedReplacements.push(
-                ...deepClone(
-                    component.serializedChildren.slice(
-                        serializedReplacements.length,
+            let rendered = true;
+            if ("rendered" in component.state) {
+                rendered = await component.state.rendered.value;
+            }
+
+            if (rendered) {
+                // add any serialized children that are beyond the replacements we already have
+                serializedReplacements.push(
+                    ...deepClone(
+                        component.serializedChildren.slice(
+                            serializedReplacements.length,
+                        ),
                     ),
-                ),
-            );
+                );
+            }
         }
 
         this.adjustForCreateComponentIdxName(serializedReplacements, component);
@@ -10582,17 +10585,36 @@ export default class Core {
 
                 let nComponents = this._components.length;
                 let newNComponents = nComponents;
-                for (let repl of replacementsToShadow) {
+                for (let [idx, repl] of replacementsToShadow.entries()) {
                     if (typeof repl === "object") {
                         const serializedComponent = await repl.serialize();
 
-                        const res = createNewComponentIndices(
-                            [serializedComponent],
-                            newNComponents,
-                        );
-                        newNComponents = res.nComponents;
+                        if (
+                            shadowingComponent.constructor
+                                .useSerializedChildrenComponentIndices
+                        ) {
+                            const res =
+                                createComponentIndicesFromSerializedChildren(
+                                    [serializedComponent],
+                                    [
+                                        shadowingComponent.serializedChildren[
+                                            idx
+                                        ],
+                                    ],
+                                    newNComponents,
+                                );
+                            newNComponents = res.nComponents;
 
-                        newSerializedReplacements.push(...res.components);
+                            newSerializedReplacements.push(...res.components);
+                        } else {
+                            const res = createNewComponentIndices(
+                                [serializedComponent],
+                                newNComponents,
+                            );
+                            newNComponents = res.nComponents;
+
+                            newSerializedReplacements.push(...res.components);
+                        }
                     } else {
                         newSerializedReplacements.push(repl);
                     }
@@ -10603,13 +10625,9 @@ export default class Core {
                     shadowingComponent,
                 );
 
-                // In this, we override `replacementsAlreadyInResolver` for groups,
-                // because if they get new replacements from a composite they are shadowing,
-                // they wouldn't have had them when the group was originally created.
                 await this.addReplacementsToResolver({
                     serializedReplacements: newSerializedReplacements,
                     component: shadowingComponent,
-                    overrideReplacementsAlreadyInResolver: true,
                     updateOldReplacementsStart,
                     updateOldReplacementsEnd,
                     blankStringReplacements,
