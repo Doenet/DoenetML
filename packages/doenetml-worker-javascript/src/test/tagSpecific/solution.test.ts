@@ -291,7 +291,7 @@ describe("Solution tag tests", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("p")]).be.undefined;
     });
 
-    it.only("referenced solution", async () => {
+    it("referenced solution", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <section name="s1"><solution name="sol">This is the text of the solution.</solution></section>
@@ -323,12 +323,16 @@ describe("Solution tag tests", async () => {
         ]);
     });
 
-    it.only("extended solution", async () => {
+    it("extended solution", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <solution name="sol"><p name="p1">This is the text of the solution.</p></solution>
 
   <solution name="sol2" extend="$sol"><p name="p2">More solution</p></solution>
+
+  <p name="p11" extend="$sol.p1" />
+  <p name="p21" extend="$sol2.p1" />
+  <p name="p22" extend="$sol2.p2" />
   `,
         });
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -344,6 +348,16 @@ describe("Solution tag tests", async () => {
             .undefined;
         expect(stateVariables[await resolvePathToNodeIdx("sol2.p2")]).be
             .undefined;
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p21")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p22")].stateValues.text,
+        ).eq("");
 
         await revealSolution({
             componentIdx: sol2,
@@ -369,7 +383,259 @@ describe("Solution tag tests", async () => {
                 .text,
         ).eq("More solution");
 
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
+        ).eq("This is the text of the solution.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p21")].stateValues.text,
+        ).eq("This is the text of the solution.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p22")].stateValues.text,
+        ).eq("More solution");
+    });
+
+    it("copied solution", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <solution name="sol"><p name="p1">This is the text of the solution.</p></solution>
+
+  <solution name="sol2" copy="$sol"><p name="p2">More solution</p></solution>
+
+  <p name="p11" extend="$sol.p1" />
+  <p name="p21" extend="$sol2.p1" />
+  <p name="p22" extend="$sol2.p2" />
+  `,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const sol = await resolvePathToNodeIdx("sol");
+        const sol2 = await resolvePathToNodeIdx("sol2");
+
+        expect(stateVariables[sol].activeChildren.length).eq(0);
+        expect(stateVariables[sol2].activeChildren.length).eq(0);
+        expect(stateVariables[await resolvePathToNodeIdx("sol.p1")]).be
+            .undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("sol2.p1")]).be
+            .undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("sol2.p2")]).be
+            .undefined;
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p21")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p22")].stateValues.text,
+        ).eq("");
+
+        await revealSolution({
+            componentIdx: sol2,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[sol].activeChildren.length).eq(0);
+        expect(stateVariables[sol2].activeChildren.length).eq(2);
+
+        expect(stateVariables[await resolvePathToNodeIdx("sol.p1")]).be
+            .undefined;
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sol2.p1")].stateValues
+                .text,
+        ).eq("This is the text of the solution.");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sol2.p2")].stateValues
+                .text,
+        ).eq("More solution");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p21")].stateValues.text,
+        ).eq("This is the text of the solution.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p22")].stateValues.text,
+        ).eq("More solution");
+
+        await revealSolution({
+            componentIdx: sol,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
         expect(stateVariables[sol].activeChildren.length).eq(1);
         expect(stateVariables[sol2].activeChildren.length).eq(2);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sol.p1")].stateValues
+                .text,
+        ).eq("This is the text of the solution.");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sol2.p1")].stateValues
+                .text,
+        ).eq("This is the text of the solution.");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sol2.p2")].stateValues
+                .text,
+        ).eq("More solution");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
+        ).eq("This is the text of the solution.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p21")].stateValues.text,
+        ).eq("This is the text of the solution.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p22")].stateValues.text,
+        ).eq("More solution");
+    });
+
+    it("extend section containing solution", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="sec">
+        <solution name="sol"><p name="p1">This is the text of the solution.</p></solution>
+    </section>
+
+    <section name="sec2" extend="$sec" />
+
+    <p name="p11" extend="$sol.p1" />
+    <p name="p21" extend="$sec2.sol.p1" />
+  `,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const sol = await resolvePathToNodeIdx("sol");
+        const sol2 = await resolvePathToNodeIdx("sec2.sol");
+
+        expect(stateVariables[sol].activeChildren.length).eq(0);
+        expect(stateVariables[sol2].activeChildren.length).eq(0);
+        expect(stateVariables[await resolvePathToNodeIdx("sol.p1")]).be
+            .undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("sec2.sol.p1")]).be
+            .undefined;
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p21")].stateValues.text,
+        ).eq("");
+
+        await revealSolution({
+            componentIdx: sol2,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[sol].activeChildren.length).eq(1);
+        expect(stateVariables[sol2].activeChildren.length).eq(1);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sol.p1")].stateValues
+                .text,
+        ).eq("This is the text of the solution.");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.sol.p1")]
+                .stateValues.text,
+        ).eq("This is the text of the solution.");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
+        ).eq("This is the text of the solution.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p21")].stateValues.text,
+        ).eq("This is the text of the solution.");
+    });
+
+    it("copy section containing solution", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="sec">
+        <solution name="sol"><p name="p1">This is the text of the solution.</p></solution>
+    </section>
+
+    <section name="sec2" copy="$sec" />
+
+    <p name="p11" extend="$sol.p1" />
+    <p name="p21" extend="$sec2.sol.p1" />
+  `,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const sol = await resolvePathToNodeIdx("sol");
+        const sol2 = await resolvePathToNodeIdx("sec2.sol");
+
+        expect(stateVariables[sol].activeChildren.length).eq(0);
+        expect(stateVariables[sol2].activeChildren.length).eq(0);
+        expect(stateVariables[await resolvePathToNodeIdx("sol.p1")]).be
+            .undefined;
+        expect(stateVariables[await resolvePathToNodeIdx("sec2.sol.p1")]).be
+            .undefined;
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p21")].stateValues.text,
+        ).eq("");
+
+        await revealSolution({
+            componentIdx: sol2,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[sol].activeChildren.length).eq(0);
+        expect(stateVariables[sol2].activeChildren.length).eq(1);
+
+        expect(stateVariables[await resolvePathToNodeIdx("sol.p1")]).be
+            .undefined;
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.sol.p1")]
+                .stateValues.text,
+        ).eq("This is the text of the solution.");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
+        ).eq("");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p21")].stateValues.text,
+        ).eq("This is the text of the solution.");
+
+        await revealSolution({
+            componentIdx: sol,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[sol].activeChildren.length).eq(1);
+        expect(stateVariables[sol2].activeChildren.length).eq(1);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sol.p1")].stateValues
+                .text,
+        ).eq("This is the text of the solution.");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2.sol.p1")]
+                .stateValues.text,
+        ).eq("This is the text of the solution.");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
+        ).eq("This is the text of the solution.");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p21")].stateValues.text,
+        ).eq("This is the text of the solution.");
     });
 });
