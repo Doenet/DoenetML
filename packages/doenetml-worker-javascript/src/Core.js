@@ -1841,12 +1841,17 @@ export default class Core {
             componentIdx in
             this.updateInfo.stateVariableUpdatesForMissingComponents
         ) {
-            let result = await this.processNewStateVariableValues({
-                [componentIdx]:
-                    this.updateInfo.stateVariableUpdatesForMissingComponents[
-                        componentIdx
-                    ],
-            });
+            let result = await this.processNewStateVariableValues(
+                {
+                    [componentIdx]:
+                        this.updateInfo
+                            .stateVariableUpdatesForMissingComponents[
+                            componentIdx
+                        ],
+                },
+                // This `true` indicates we have a new component
+                true,
+            );
 
             // In order to make sure that a component takes on the same value
             // that was saved to the database,
@@ -11914,8 +11919,11 @@ export default class Core {
         return { updatedComposites };
     }
 
-    async processNewStateVariableValues(newStateVariableValues) {
-        // console.log('process new state variable values')
+    async processNewStateVariableValues(
+        newStateVariableValues,
+        newComponent = false,
+    ) {
+        // console.log("process new state variable values");
         // console.log(JSON.parse(JSON.stringify(newStateVariableValues)));
 
         let nFailures = 0;
@@ -11952,6 +11960,13 @@ export default class Core {
                 let compStateObj = comp.state[vName];
                 if (compStateObj === undefined) {
                     let match = vName.match(/^__def_primitive_(\d+)$/);
+
+                    if (!match && newComponent) {
+                        // if we have a newly created component, then we don't ignore primitive definitions
+                        // (they are ignored as an optimization when changing variables dynamically
+                        // so that child don't have to be reprocessed)
+                        match = vName.match(/^__def_primitive_ignore_(\d+)$/);
+                    }
 
                     if (match) {
                         let childInd = Number(match[1]);

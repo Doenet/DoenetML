@@ -2,7 +2,7 @@
     "name": "@doenet/doenetml-iframe",
     "type": "module",
     "description": "A renderer for DoenetML contained in an iframe",
-    "version": "0.7.0-rc-2",
+    "version": "0.7.0-rc-3",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,

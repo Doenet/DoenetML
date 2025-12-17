@@ -1,7 +1,7 @@
 import me from "math-expressions";
 import { cesc } from "@doenet/utils";
 
-describe("Point Tag Tests 2", function () {
+describe("Point Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");
@@ -117,5 +117,58 @@ describe("Point Tag Tests 2", function () {
         });
 
         cy.get(cesc("#P0a")).should("have.text", "(−9.9,9.9)");
+    });
+
+    it("restore state with point coords depending on function", () => {
+        // Note: this test makes sure that the essential state and string children
+        // are restored for a case where the coords attribute depends on a function
+        let doenetML = `
+    <function name="five">5</function>
+    <graph> 
+        <point name="P" coords="(0,$$five(0))" />
+    </graph>
+    <p name="p">$P</p>
+    `;
+
+        cy.get("#testRunner_toggleControls").click();
+        cy.get("#testRunner_allowLocalState").click();
+        cy.wait(100);
+        cy.get("#testRunner_toggleControls").click();
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("contain.text", "(0,5)");
+
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "movePoint",
+                componentIdx: await win.resolvePath1("P"),
+                args: { x: 3, y: 9 },
+            });
+        });
+
+        cy.get("#p").should("contain.text", "(3,5)");
+
+        cy.wait(1500); // wait for debounce
+
+        cy.reload();
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("contain.text", "(3,5)");
     });
 });
