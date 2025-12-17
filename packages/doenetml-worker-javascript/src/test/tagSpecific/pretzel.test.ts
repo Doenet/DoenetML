@@ -7,13 +7,13 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("Pretzel tag tests", async () => {
-    it("basic pretzel", async () => {
+    it("basic pretzel, with answer or givenAnswer", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <pretzel name="p">
         <problem>
             <statement name="s1"><p>What is 1+1?</p></statement>
-            <givenAnswer name="a1"><p>2</p></givenAnswer>
+            <answer name="a1"><p>2</p></answer>
         </problem>
         <problem>
             <statement name="s2"><p>What is 1+2?</p></statement>
@@ -21,11 +21,11 @@ describe("Pretzel tag tests", async () => {
         </problem>
         <problem>
             <statement name="s3"><p>What is 1+3?</p></statement>
-            <givenAnswer name="a3"><p>4</p></givenAnswer>
+            <answer name="a3"><p>4</p></answer>
         </problem>
         <problem>
             <statement name="s4"><p>What is 1+4?</p></statement>
-            <givenAnswer name="a4"><p>5</p></givenAnswer>
+            <answer name="a4"><p>5</p></answer>
         </problem>
     </pretzel>
     `,
@@ -115,21 +115,21 @@ describe("Pretzel tag tests", async () => {
         }
     });
 
-    it("pretzel with missing statements and givenAnswers", async () => {
+    it("pretzel with missing statements and answers", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <pretzel name="p">
         <problem>
         </problem>
         <problem>
-            <givenAnswer name="a2"><p>3</p></givenAnswer>
+            <answer name="a2"><p>3</p></answer>
         </problem>
         <problem>
             <statement name="s3"><p>What is 1+3?</p></statement>
         </problem>
         <problem>
             <statement name="s4"><p>What is 1+4?</p></statement>
-            <givenAnswer name="a4"><p>5</p></givenAnswer>
+            <answer name="a4"><p>5</p></answer>
         </problem>
     </pretzel>
     `,
@@ -141,7 +141,7 @@ describe("Pretzel tag tests", async () => {
         expect(errorWarnings.warnings.length).eq(1);
 
         expect(errorWarnings.warnings[0].message).contain(
-            "Invalid pretzel as a problem is missing a <statement> or a <givenAnswer>",
+            "Invalid pretzel as a problem is missing a <statement> or an <answer>",
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
