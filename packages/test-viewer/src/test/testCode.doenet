@@ -1,3 +1,5 @@
+**test**
+
 <graph>
   <point name="P" x="3" y="1" />
   <rectangle width="40" height="40" center="(0,0)" filled name="R" />
@@ -20,8 +22,8 @@
   <p>A lovely section.</p>
   <problem>
     <p>
-      This problem is nested inside a section. The default number does not
-      include the parent number.
+    This problem is nested inside a section. The default number does not
+    include the parent number.
     </p>
   </problem>
 </section>
@@ -30,8 +32,8 @@
   <p>Another section!</p>
   <problem includeParentNumber="true">
     <p>
-      This exercise is nested inside a section. Rendering of the parent section
-      number has been included.
+    This exercise is nested inside a section. Rendering of the parent section
+    number has been included.
     </p>
   </problem>
 </section>
