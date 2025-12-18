@@ -1709,7 +1709,9 @@ export default class Core {
         // create component itself
         const newComponent = new componentClass({
             componentIdx,
-            rootName: this.rootNames?.[componentIdx] ?? componentIdx.toString(),
+            rootName:
+                this.rootNames?.[componentIdx] ??
+                "_id_" + componentIdx.toString(),
             ancestors,
             definingChildren,
             stateVariableDefinitions,
@@ -3578,7 +3580,7 @@ export default class Core {
                         compositeIdx: child.componentIdx,
                         compositeName:
                             this.rootNames?.[child.componentIdx] ??
-                            child.componentIdx.toString(),
+                            "_id_" + child.componentIdx.toString(),
                         extendIdx: await child.stateValues.extendIdx,
                         unresolvedPath: await child.stateValues.unresolvedPath,
                         firstInd: childInd,

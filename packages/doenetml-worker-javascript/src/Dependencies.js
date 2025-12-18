@@ -7830,7 +7830,7 @@ dependencyTypeArray.push(StringsFromReferenceAttribute);
 /**
  * A dependency that gives the `rendererId` of the specified component,
  * where `rendererId` is the `rootName` of the component, if it exists,
- * else the `componentIdx` as a string.
+ * else "_id_" followed by the `componentIdx` as a string.
  *
  * The `rootName` is the simplest unique reference to the component
  * when the document root is the origin. As `rootName` is designed to be

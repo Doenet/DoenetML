@@ -1,5 +1,3 @@
-import { cesc, deepCompare } from "@doenet/utils";
-
 describe("EditorViewer Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
