@@ -51,16 +51,24 @@ export function CypressTest() {
         );
     }
 
-    const [{ doenetMLstring, attemptNumber, externalDoenetMLs }, setBaseState] =
-        useState<{
-            doenetMLstring: string | null;
-            attemptNumber: number;
-            externalDoenetMLs: Record<string, string>;
-        }>({
-            doenetMLstring: null,
-            attemptNumber: testSettings.attemptNumber,
-            externalDoenetMLs: {},
-        });
+    const [
+        {
+            doenetMLstring,
+            attemptNumber,
+            externalDoenetMLs,
+            answerResponseCounts,
+        },
+        setBaseState,
+    ] = useState<{
+        doenetMLstring: string | null;
+        attemptNumber: number;
+        externalDoenetMLs: Record<string, string>;
+        answerResponseCounts?: Record<string, number>;
+    }>({
+        doenetMLstring: null,
+        attemptNumber: testSettings.attemptNumber,
+        externalDoenetMLs: {},
+    });
 
     const [updateNumber, setUpdateNumber] = useState(testSettings.updateNumber);
     const [controlsVisible, setControlsVisible] = useState(
@@ -110,6 +118,8 @@ export function CypressTest() {
         let newDoenetMLstring: string | null = null;
         let newAttemptNumber = attemptNumber;
         let newExternalDoenetMLs: Record<string, string> = {};
+        let newAnswerResponseCounts: Record<string, number> | undefined =
+            undefined;
 
         if (e.data.doenetML !== undefined) {
             newDoenetMLstring = e.data.doenetML;
@@ -128,6 +138,10 @@ export function CypressTest() {
             newExternalDoenetMLs = e.data.externalDoenetMLs;
         }
 
+        if (e.data.answerResponseCounts !== undefined) {
+            newAnswerResponseCounts = e.data.answerResponseCounts;
+        }
+
         // don't do anything if receive a message from another source (like the youtube player)
         if (
             typeof newDoenetMLstring === "string" ||
@@ -137,6 +151,7 @@ export function CypressTest() {
                 doenetMLstring: newDoenetMLstring,
                 attemptNumber: newAttemptNumber,
                 externalDoenetMLs: newExternalDoenetMLs,
+                answerResponseCounts: newAnswerResponseCounts,
             });
         }
     };
@@ -530,6 +545,8 @@ export function CypressTest() {
                 width="100%"
                 viewerLocation={viewerLocation}
                 fetchExternalDoenetML={fetchExternalDoenetML}
+                showAnswerResponseButton={answerResponseCounts !== undefined}
+                answerResponseCounts={answerResponseCounts}
             />
         );
         const viewer = (
@@ -564,6 +581,8 @@ export function CypressTest() {
                 render={render}
                 darkMode={darkMode}
                 fetchExternalDoenetML={fetchExternalDoenetML}
+                showAnswerResponseButton={answerResponseCounts !== undefined}
+                answerResponseCounts={answerResponseCounts}
             />
         );
 
