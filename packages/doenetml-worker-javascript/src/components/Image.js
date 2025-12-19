@@ -4,11 +4,9 @@ import {
     orderedWidthMidpoints,
     widthsBySize,
     sizePossibilities,
-    widthFractions,
     percentWidthsBySize,
     returnSelectedStyleStateVariableDefinition,
 } from "@doenet/utils";
-import me from "math-expressions";
 import {
     moveGraphicalObjectWithAnchorAction,
     returnAnchorAttributes,
@@ -27,6 +25,8 @@ export default class Image extends BlockComponent {
         });
     }
     static componentType = "image";
+
+    static renderChildren = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -64,13 +64,6 @@ export default class Image extends BlockComponent {
             defaultValue: "center",
             forRenderer: true,
             public: true,
-        };
-        attributes.description = {
-            createComponentOfType: "text",
-            createStateVariable: "description",
-            defaultValue: "",
-            public: true,
-            forRenderer: true,
         };
         attributes.decorative = {
             createComponentOfType: "boolean",
@@ -130,6 +123,19 @@ export default class Image extends BlockComponent {
         return attributes;
     }
 
+    static returnChildGroups() {
+        return [
+            {
+                group: "shortDescriptions",
+                componentTypes: ["shortDescription"],
+            },
+            {
+                group: "descriptions",
+                componentTypes: ["description"],
+            },
+        ];
+    }
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -140,12 +146,17 @@ export default class Image extends BlockComponent {
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
-        stateVariableDefinitions.descriptionWarning = {
-            forRenderer: true, // so that is always evaluated if image is rendered and warning produced
+        stateVariableDefinitions.shortDescription = {
+            forRenderer: true,
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
             returnDependencies: () => ({
-                description: {
-                    dependencyType: "stateVariable",
-                    variableName: "description",
+                shortDescriptionChild: {
+                    dependencyType: "child",
+                    childGroups: ["shortDescriptions"],
+                    variableNames: ["text"],
                 },
                 decorative: {
                     dependencyType: "stateVariable",
@@ -153,25 +164,49 @@ export default class Image extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                if (
-                    dependencyValues.description === "" &&
-                    dependencyValues.decorative === false
-                ) {
-                    const message =
-                        "Image must either have a description or be specified as decorative";
-                    return {
-                        sendWarnings: [
-                            {
-                                message,
-                                level: 1,
-                            },
-                        ],
-                        setValue: { descriptionWarning: message },
-                    };
-                } else {
-                    return { setValue: { descriptionWarning: null } };
+                let shortDescription = "";
+                const warnings = [];
+                if (dependencyValues.shortDescriptionChild.length > 0) {
+                    const shortDescriptionChild =
+                        dependencyValues.shortDescriptionChild[
+                            dependencyValues.shortDescriptionChild.length - 1
+                        ];
+
+                    shortDescription = shortDescriptionChild.stateValues.text;
+                } else if (!dependencyValues.decorative) {
+                    warnings.push({
+                        level: 1,
+                        message:
+                            "Image must either have a short description or be specified as decorative.",
+                    });
                 }
+
+                return {
+                    setValue: { shortDescription },
+                    sendWarnings: warnings,
+                };
             },
+        };
+
+        stateVariableDefinitions.childIndicesToRender = {
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                const descriptionIdx =
+                    dependencyValues.allChildren.findLastIndex(
+                        (child) => child.componentType === "description",
+                    );
+
+                const childIndicesToRender =
+                    descriptionIdx === -1 ? [] : [descriptionIdx];
+
+                return { setValue: { childIndicesToRender } };
+            },
+            markStale: () => ({ updateRenderedChildren: true }),
         };
 
         stateVariableDefinitions.size = {
