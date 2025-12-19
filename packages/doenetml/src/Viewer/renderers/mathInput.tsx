@@ -5,6 +5,7 @@ import useDoenetRenderer, {
 import { MathField } from "./mathquill/types";
 import { EditableMathField } from "./mathquill/EditableMathField";
 import "./mathquill/mathquill.css";
+import { DescriptionPopover } from "./utils/Description";
 
 import { MathJax } from "better-react-mathjax";
 
@@ -18,8 +19,15 @@ import {
 } from "./utils/checkWork";
 
 export default function MathInput(props: UseDoenetRendererProps) {
-    let { id, SVs, actions, sourceOfUpdate, ignoreUpdate, callAction } =
-        useDoenetRenderer(props);
+    let {
+        id,
+        SVs,
+        children,
+        actions,
+        sourceOfUpdate,
+        ignoreUpdate,
+        callAction,
+    } = useDoenetRenderer(props);
 
     // @ts-ignore
     MathInput.baseStateVariable = "rawRendererValue";
@@ -262,11 +270,21 @@ export default function MathInput(props: UseDoenetRendererProps) {
         );
     }
 
-    const description = SVs.description || undefined;
+    const shortDescription = SVs.shortDescription || undefined;
+
+    // description will be the one non-null child
+    const descriptionChild = children.find((child) => child);
+
+    const description = descriptionChild && (
+        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
+    );
 
     return (
         <React.Fragment>
-            <span id={id}>
+            <span
+                id={id}
+                style={{ display: "inline-flex", alignItems: "start" }}
+            >
                 <label style={{ display: "inline-flex", maxWidth: "100%" }}>
                     {label}
                     <span
@@ -279,7 +297,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                         <EditableMathField
                             style={mathInputStyle}
                             latex={rendererValue.current}
-                            ariaLabel={description}
+                            ariaLabel={shortDescription}
                             config={{
                                 autoCommands:
                                     "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
@@ -316,6 +334,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     </span>
                 </label>
                 {checkWorkComponent}
+                {description}
             </span>
         </React.Fragment>
     );

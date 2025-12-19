@@ -3,7 +3,7 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import { returnWrapNonLabelsSugarFunction } from "../utils/label";
+import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import Input from "./abstract/Input";
 
 export default class BooleanInput extends Input {
@@ -76,7 +76,7 @@ export default class BooleanInput extends Input {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push({
-            replacementFunction: returnWrapNonLabelsSugarFunction({
+            replacementFunction: returnWrapNonLabelsDescriptionsSugarFunction({
                 wrappingComponentType: "boolean",
             }),
         });
@@ -89,6 +89,14 @@ export default class BooleanInput extends Input {
             {
                 group: "labels",
                 componentTypes: ["label"],
+            },
+            {
+                group: "descriptions",
+                componentTypes: ["description"],
+            },
+            {
+                group: "shortDescriptions",
+                componentTypes: ["shortDescription"],
             },
             {
                 group: "booleans",

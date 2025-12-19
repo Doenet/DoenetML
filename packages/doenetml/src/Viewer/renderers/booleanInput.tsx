@@ -17,9 +17,10 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { DescriptionPopover } from "./utils/Description";
 
 export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
-    let { id, SVs, actions, ignoreUpdate, callAction } =
+    let { id, SVs, children, actions, ignoreUpdate, callAction } =
         useDoenetRenderer(props);
 
     // @ts-ignore
@@ -493,7 +494,14 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
         );
     }
 
-    const description = SVs.description || undefined;
+    const shortDescription = SVs.shortDescription || undefined;
+
+    // description will be the one non-null child
+    const descriptionChild = children.find((child) => child);
+
+    const description = descriptionChild && (
+        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
+    );
 
     if (SVs.asToggleButton) {
         input = (
@@ -504,7 +512,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 onClick={onChangeHandler}
                 value={label}
                 disabled={disabled}
-                ariaLabel={description}
+                ariaLabel={shortDescription}
             />
         );
     } else {
@@ -523,22 +531,30 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                     checked={rendererValue}
                     onChange={onChangeHandler}
                     disabled={disabled}
-                    aria-label={description}
+                    aria-label={shortDescription}
                 />
                 <span className={checkmarkClass}></span>
                 {label != "" ? (
                     <span style={{ marginLeft: "2px" }}>{label}</span>
                 ) : (
-                    <span>{label}</span>
+                    // Add a zero width space so that the vertical alignment is the same
+                    <span>&#8203;</span>
                 )}
             </label>
         );
     }
 
     return (
-        <React.Fragment>
-            <span id={id}>{input}</span>
+        <span
+            id={id}
+            style={{
+                display: "inline-flex",
+                alignItems: "start",
+            }}
+        >
+            {input}
             {checkWorkComponent}
-        </React.Fragment>
+            {description}
+        </span>
     );
 });

@@ -7,6 +7,8 @@ import InlineComponent from "./InlineComponent";
 export default class Input extends InlineComponent {
     static componentType = "_input";
 
+    static renderChildren = true;
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.collaborateGroups = {
@@ -15,12 +17,6 @@ export default class Input extends InlineComponent {
             defaultValue: null,
             public: true,
             excludeFromSchema: true,
-        };
-
-        attributes.description = {
-            createComponentOfType: "text",
-            createStateVariable: "descriptionPreliminary",
-            defaultValue: "",
         };
 
         Object.assign(attributes, returnLabelAttributes());
@@ -58,7 +54,6 @@ export default class Input extends InlineComponent {
                         "numPreviousIncorrectSubmissions",
                         "creditFactorUsed",
                         "nextCreditFactor",
-                        "description",
                     ],
                 },
             }),
@@ -352,49 +347,68 @@ export default class Input extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.description = {
+        stateVariableDefinitions.shortDescription = {
             forRenderer: true,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
             returnDependencies: () => ({
-                answerAncestor: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerAncestor",
+                shortDescriptionChild: {
+                    dependencyType: "child",
+                    childGroups: ["shortDescriptions"],
+                    variableNames: ["text"],
                 },
-                descriptionPreliminary: {
-                    dependencyType: "stateVariable",
-                    variableName: "descriptionPreliminary",
-                },
+
                 label: {
                     dependencyType: "stateVariable",
                     variableName: "label",
                 },
             }),
-            definition({ dependencyValues, usedDefault }) {
-                let description = dependencyValues.descriptionPreliminary;
-
-                if (
-                    usedDefault.descriptionPreliminary &&
-                    dependencyValues.answerAncestor
-                ) {
-                    description =
-                        dependencyValues.answerAncestor.stateValues.description;
-                }
-
+            definition({ dependencyValues }) {
+                let shortDescription = "";
                 const warnings = [];
+                if (dependencyValues.shortDescriptionChild.length > 0) {
+                    const shortDescriptionChild =
+                        dependencyValues.shortDescriptionChild[
+                            dependencyValues.shortDescriptionChild.length - 1
+                        ];
 
-                if (!description && !dependencyValues.label) {
+                    shortDescription = shortDescriptionChild.stateValues.text;
+                } else if (!dependencyValues.label) {
                     warnings.push({
-                        message:
-                            "Input (or answer producing an input) must have a description or a label.",
                         level: 1,
+                        message:
+                            "Input (or answer producing an input) must have a short description or a label.",
                     });
                 }
 
-                return { setValue: { description }, sendWarnings: warnings };
+                return {
+                    setValue: { shortDescription },
+                    sendWarnings: warnings,
+                };
             },
+        };
+
+        stateVariableDefinitions.childIndicesToRender = {
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                const descriptionIdx =
+                    dependencyValues.allChildren.findLastIndex(
+                        (child) => child.componentType === "description",
+                    );
+
+                const childIndicesToRender =
+                    descriptionIdx === -1 ? [] : [descriptionIdx];
+
+                return { setValue: { childIndicesToRender } };
+            },
+            markStale: () => ({ updateRenderedChildren: true }),
         };
 
         return stateVariableDefinitions;

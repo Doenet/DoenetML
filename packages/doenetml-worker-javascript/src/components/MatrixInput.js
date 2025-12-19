@@ -184,6 +184,14 @@ export class MatrixInput extends Input {
                 componentTypes: ["label"],
             },
             {
+                group: "descriptions",
+                componentTypes: ["description"],
+            },
+            {
+                group: "shortDescriptions",
+                componentTypes: ["shortDescription"],
+            },
+            {
                 group: "matrixComponentInputs",
                 componentTypes: ["_matrixComponentInput"],
                 excludeFromSchema: true,
@@ -2814,6 +2822,27 @@ export class MatrixInput extends Input {
             definition: () => ({ setValue: { componentType: "matrix" } }),
         };
 
+        stateVariableDefinitions.descriptionChildInd = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        descriptionChildInd:
+                            dependencyValues.allChildren.findLastIndex(
+                                (child) =>
+                                    child.componentType === "description",
+                            ),
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.childIndicesToRender = {
             returnDependencies: () => ({
                 numRows: {
@@ -2824,19 +2853,32 @@ export class MatrixInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "numColumns",
                 },
+                descriptionChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "descriptionChildInd",
+                },
             }),
             definition({ dependencyValues }) {
                 let nChildrenToRender =
                     dependencyValues.numRows * dependencyValues.numColumns;
 
+                const childIndicesToRender = [
+                    ...Array(nChildrenToRender).keys(),
+                ];
+
+                if (dependencyValues.descriptionChildInd !== -1) {
+                    childIndicesToRender.push(
+                        dependencyValues.descriptionChildInd,
+                    );
+                }
+
                 return {
                     setValue: {
-                        childIndicesToRender: [
-                            ...Array(nChildrenToRender).keys(),
-                        ],
+                        childIndicesToRender,
                     },
                 };
             },
+            markStale: () => ({ updateRenderedChildren: true }),
         };
 
         return stateVariableDefinitions;

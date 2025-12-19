@@ -6,7 +6,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
-import { returnWrapNonLabelsSugarFunction } from "../utils/label";
+import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import {
     latexToMathFactory,
     normalizeLatexString,
@@ -139,7 +139,7 @@ export default class MathInput extends Input {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push({
-            replacementFunction: returnWrapNonLabelsSugarFunction({
+            replacementFunction: returnWrapNonLabelsDescriptionsSugarFunction({
                 wrappingComponentType: "math",
                 wrapSingleIfNotWrappingComponentType: true,
             }),
@@ -153,6 +153,14 @@ export default class MathInput extends Input {
             {
                 group: "labels",
                 componentTypes: ["label"],
+            },
+            {
+                group: "descriptions",
+                componentTypes: ["description"],
+            },
+            {
+                group: "shortDescriptions",
+                componentTypes: ["shortDescription"],
             },
             {
                 group: "maths",
