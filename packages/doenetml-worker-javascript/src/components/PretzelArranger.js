@@ -335,25 +335,32 @@ export default class PretzelArranger extends CompositeComponent {
                             doenetAttributes: {},
                         },
                     },
-                    description: {
-                        type: "component",
-                        name: "description",
-                        component: {
-                            type: "serialized",
-                            componentType: "text",
-                            componentIdx: nComponents++,
-                            state: {
-                                value: "Enter number in sequence for this answer",
-                            },
-                            children: [],
-                            attributes: {},
-                            doenetAttributes: {},
-                        },
-                    },
                 },
                 doenetAttributes: {},
                 state: {},
-                children: [],
+                children: [
+                    {
+                        type: "serialized",
+                        componentType: "shortDescription",
+                        componentIdx: nComponents++,
+                        state: {},
+                        children: [
+                            {
+                                type: "serialized",
+                                componentType: "text",
+                                componentIdx: nComponents++,
+                                state: {
+                                    value: "Enter number in sequence for this answer",
+                                },
+                                children: [],
+                                attributes: {},
+                                doenetAttributes: {},
+                            },
+                        ],
+                        attributes: {},
+                        doenetAttributes: {},
+                    },
+                ],
             });
             if (thisStatement === null) {
                 replacements.push({
