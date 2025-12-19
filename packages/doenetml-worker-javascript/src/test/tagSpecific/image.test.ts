@@ -312,7 +312,7 @@ describe("Image tag tests", async () => {
         expect(errorWarnings.warnings.length).eq(1);
 
         expect(errorWarnings.warnings[0].message).contain(
-            `Image must either have a description or be specified as decorative`,
+            `Image must either have a short description or be specified as decorative`,
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(1);

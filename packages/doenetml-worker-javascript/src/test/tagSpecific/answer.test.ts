@@ -1452,7 +1452,7 @@ describe("Answer tag tests", async () => {
     it("warning for sugar with invalid type", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer type="bad" name="answer1" description="bad type">x</answer></p>
+  <p><answer type="bad" name="answer1"><shortDescription>bad type</shortDescription>x</answer></p>
   `,
         });
 
@@ -1467,7 +1467,7 @@ describe("Answer tag tests", async () => {
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(6);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(73);
+        expect(errorWarnings.warnings[0].position.end.column).eq(95);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputIdx =
@@ -6903,25 +6903,25 @@ What is the derivative of <function name="f">x^2</function>?
         expect(errorWarnings.warnings.length).eq(4);
 
         expect(errorWarnings.warnings[0].message).contain(
-            `must have a description or a label`,
+            `must have a short description or a label`,
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
 
         expect(errorWarnings.warnings[1].message).contain(
-            `must have a description or a label`,
+            `must have a short description or a label`,
         );
         expect(errorWarnings.warnings[1].position.start.line).eq(3);
         expect(errorWarnings.warnings[1].position.end.line).eq(3);
 
         expect(errorWarnings.warnings[2].message).contain(
-            `must have a description or a label`,
+            `must have a short description or a label`,
         );
         expect(errorWarnings.warnings[2].position.start.line).eq(4);
         expect(errorWarnings.warnings[2].position.end.line).eq(4);
 
         expect(errorWarnings.warnings[3].message).contain(
-            `must have a description or a label`,
+            `must have a short description or a label`,
         );
         expect(errorWarnings.warnings[3].position.start.line).eq(5);
         expect(errorWarnings.warnings[3].position.end.line).eq(9);

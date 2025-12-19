@@ -6480,10 +6480,12 @@ describe("Extend and references tests", async () => {
     it("handle extending or copying with invalid component type", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-        <graph description="A graph">
+        <graph>
+            <shortDescription>A graph</shortDescription>
             <point name="p" >(3,4)</point>
         </graph>
-        <graph name="g2" description="A graph with warnings">
+        <graph name="g2">
+            <shortDescription>A graph with warnings</shortDescription>
             <invalidName extend="$p" name="p2" /><anotherInvalidName copy="$p" name="p3" />
         </graph>
     `,
@@ -6499,9 +6501,9 @@ describe("Extend and references tests", async () => {
         );
 
         expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.start.line).eq(6);
+        expect(errorWarnings.warnings[0].position.start.line).eq(8);
         expect(errorWarnings.warnings[0].position.start.column).eq(13);
-        expect(errorWarnings.warnings[0].position.end.line).eq(6);
+        expect(errorWarnings.warnings[0].position.end.line).eq(8);
         expect(errorWarnings.warnings[0].position.end.column).eq(50);
 
         expect(errorWarnings.warnings[1].message).contain(
@@ -6509,9 +6511,9 @@ describe("Extend and references tests", async () => {
         );
 
         expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].position.start.line).eq(6);
+        expect(errorWarnings.warnings[1].position.start.line).eq(8);
         expect(errorWarnings.warnings[1].position.start.column).eq(50);
-        expect(errorWarnings.warnings[1].position.end.line).eq(6);
+        expect(errorWarnings.warnings[1].position.end.line).eq(8);
         expect(errorWarnings.warnings[1].position.end.column).eq(92);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -6526,7 +6528,7 @@ describe("Extend and references tests", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("g2")].activeChildren
                 .length,
-        ).eq(0);
+        ).eq(1);
     });
 
     it("reference inside composite adds to index resolution but not names", async () => {

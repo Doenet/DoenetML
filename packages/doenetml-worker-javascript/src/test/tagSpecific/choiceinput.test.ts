@@ -3922,7 +3922,7 @@ describe("ChoiceInput tag tests", async () => {
                     <choice>apple</choice>
                     <choice>banana</choice>
                 </choiceInput>
-                <choiceInput description="hello">
+                <choiceInput><shortDescription>hello</shortDescription>
                     <choice>apple</choice>
                     <choice>banana</choice>
                 </choiceInput>
@@ -3939,9 +3939,73 @@ describe("ChoiceInput tag tests", async () => {
         expect(errorWarnings.warnings.length).eq(1);
 
         expect(errorWarnings.warnings[0].message).contain(
-            `must have a description or a label`,
+            `must have a short description or a label`,
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.end.line).eq(5);
+    });
+
+    it("with description", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><choiceInput name="ci">
+        <label>Hi</label>
+        <choice>a</choice>
+        <choice>b</choice>
+        <description>
+            <p>Hello!</p>
+        </description>
+    </choiceInput></p>
+
+     `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .childIndicesToRender,
+        ).eqls([1, 2, 3]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ci")].activeChildren
+                .length,
+        ).eq(4);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ci")].activeChildren[3]
+                .componentType,
+        ).eq("description");
+    });
+
+    it("with description, inline", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><choiceInput name="ci" inline>
+        <label>Hi</label>
+        <choice>a</choice>
+        <choice>b</choice>
+        <description>
+            <p>Hello!</p>
+        </description>
+    </choiceInput></p>
+
+     `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ci")].stateValues
+                .childIndicesToRender,
+        ).eqls([3]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ci")].activeChildren
+                .length,
+        ).eq(4);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ci")].activeChildren[3]
+                .componentType,
+        ).eq("description");
     });
 });
