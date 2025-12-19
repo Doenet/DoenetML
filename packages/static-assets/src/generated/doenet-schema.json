@@ -5,7 +5,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -774,11 +774,11 @@
             "acceptsStringChildren": true
         },
         {
-            "name": "description",
+            "name": "shortDescription",
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -1016,7 +1016,7 @@
                 },
                 {
                     "name": "value",
-                    "type": "description",
+                    "type": "shortDescription",
                     "isArray": false
                 },
                 {
@@ -1029,11 +1029,423 @@
             "acceptsStringChildren": true
         },
         {
+            "name": "description",
+            "children": [
+                "title",
+                "rightHandSide",
+                "shortDescription",
+                "description",
+                "xLabel",
+                "yLabel",
+                "statement",
+                "introduction",
+                "conclusion",
+                "topic",
+                "br",
+                "hr",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "section",
+                "subsection",
+                "subsubsection",
+                "paragraphs",
+                "aside",
+                "objectives",
+                "problem",
+                "exercise",
+                "question",
+                "activity",
+                "example",
+                "definition",
+                "note",
+                "theorem",
+                "part",
+                "task",
+                "proof",
+                "problems",
+                "exercises",
+                "ol",
+                "ul",
+                "odeSystem",
+                "cobwebPolyline",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "equilibriumCurve",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "orbitalDiagram",
+                "orbitalDiagramInput",
+                "sideBySide",
+                "sbsGroup",
+                "stack",
+                "h",
+                "idx",
+                "div",
+                "span",
+                "pre",
+                "displayDoenetML",
+                "paginator",
+                "paginatorControls",
+                "matrixInput",
+                "solution",
+                "givenAnswer",
+                "document",
+                "text",
+                "textList",
+                "p",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "collect",
+                "ref",
+                "point",
+                "coords",
+                "line",
+                "lineSegment",
+                "ray",
+                "polyline",
+                "polygon",
+                "triangle",
+                "rectangle",
+                "regularPolygon",
+                "circle",
+                "parabola",
+                "curve",
+                "bezierControls",
+                "controlVectors",
+                "vector",
+                "angle",
+                "answer",
+                "award",
+                "when",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "graph",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "slider",
+                "spreadsheet",
+                "cell",
+                "row",
+                "column",
+                "cellBlock",
+                "tabular",
+                "table",
+                "figure",
+                "markers",
+                "repeat",
+                "repeatForSequence",
+                "pegboard",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "variantControl",
+                "selectFromSequence",
+                "select",
+                "group",
+                "animateFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "image",
+                "video",
+                "hint",
+                "intComma",
+                "pluralize",
+                "feedback",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "moduleAttributes",
+                "setup",
+                "footnote",
+                "caption",
+                "endpoint",
+                "sort",
+                "shuffle",
+                "solveEquations",
+                "subsetOfRealsInput",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
+                "regionHalfPlane",
+                "codeEditor",
+                "hasSameFactoring",
+                "dataFrame",
+                "summaryStatistics",
+                "legend",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "eigenDecomposition",
+                "latex",
+                "blockQuote",
+                "stickyGroup",
+                "pretzel",
+                "cascade",
+                "pointList",
+                "intervalList",
+                "vectorList"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true
+        },
+        {
             "name": "xLabel",
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -1363,7 +1775,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -1693,6 +2105,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -2104,6 +2517,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -2515,6 +2929,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -3484,7 +3899,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -3809,7 +4224,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -4131,7 +4546,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -4453,7 +4868,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -5142,7 +5557,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -21459,7 +21874,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -21709,7 +22124,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -21959,7 +22374,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -22209,7 +22624,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -22459,7 +22874,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -22709,7 +23124,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -22959,7 +23374,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -23209,7 +23624,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -23459,7 +23874,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -23709,7 +24124,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -24860,6 +25275,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -25397,6 +25813,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -25934,6 +26351,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -26471,6 +26889,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -27008,6 +27427,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -27571,6 +27991,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -28108,6 +28529,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -28645,6 +29067,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -29182,6 +29605,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -29719,6 +30143,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -30256,6 +30681,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -30793,6 +31219,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -31330,6 +31757,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -31867,6 +32295,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -32404,6 +32833,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -32941,6 +33371,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -33478,6 +33909,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -34032,6 +34464,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -34560,6 +34993,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -35335,6 +35769,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -39822,6 +40257,7 @@
         {
             "name": "sideBySide",
             "children": [
+                "description",
                 "statement",
                 "introduction",
                 "conclusion",
@@ -40235,6 +40671,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -41078,6 +41515,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -41489,6 +41927,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -41900,6 +42339,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -42238,6 +42678,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -42596,6 +43037,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -43087,6 +43529,8 @@
                 "xLabel",
                 "yLabel",
                 "label",
+                "description",
+                "shortDescription",
                 "matrix"
             ],
             "attributes": [
@@ -43136,9 +43580,6 @@
                 },
                 {
                     "name": "copy"
-                },
-                {
-                    "name": "description"
                 },
                 {
                     "name": "labelIsName",
@@ -43322,7 +43763,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "description",
+                    "name": "shortDescription",
                     "type": "text",
                     "isArray": false
                 },
@@ -43406,7 +43847,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -43541,6 +43982,7 @@
                 "matchesPattern",
                 "matrix",
                 "latex",
+                "description",
                 "statement",
                 "introduction",
                 "conclusion",
@@ -43709,7 +44151,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -43844,6 +44286,7 @@
                 "matchesPattern",
                 "matrix",
                 "latex",
+                "description",
                 "statement",
                 "introduction",
                 "conclusion",
@@ -44017,6 +44460,7 @@
                 "styleDefinition",
                 "feedbackDefinition",
                 "rightHandSide",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "statement",
@@ -44896,7 +45340,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -46941,6 +47385,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -53918,6 +54363,8 @@
                 "xLabel",
                 "yLabel",
                 "label",
+                "description",
+                "shortDescription",
                 "rightHandSide",
                 "topic",
                 "m",
@@ -55383,6 +55830,8 @@
                 "xLabel",
                 "yLabel",
                 "label",
+                "description",
+                "shortDescription",
                 "rightHandSide",
                 "topic",
                 "m",
@@ -55503,9 +55952,6 @@
                 },
                 {
                     "name": "copy"
-                },
-                {
-                    "name": "description"
                 },
                 {
                     "name": "labelIsName",
@@ -55696,7 +56142,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "description",
+                    "name": "shortDescription",
                     "type": "text",
                     "isArray": false
                 },
@@ -55841,6 +56287,8 @@
                 "xLabel",
                 "yLabel",
                 "label",
+                "description",
+                "shortDescription",
                 "rightHandSide",
                 "topic",
                 "m",
@@ -55956,9 +56404,6 @@
                 },
                 {
                     "name": "copy"
-                },
-                {
-                    "name": "description"
                 },
                 {
                     "name": "labelIsName",
@@ -56103,7 +56548,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "description",
+                    "name": "shortDescription",
                     "type": "text",
                     "isArray": false
                 },
@@ -56206,6 +56651,8 @@
                 "xLabel",
                 "yLabel",
                 "label",
+                "description",
+                "shortDescription",
                 "not",
                 "and",
                 "or",
@@ -56337,9 +56784,6 @@
                 },
                 {
                     "name": "copy"
-                },
-                {
-                    "name": "description"
                 },
                 {
                     "name": "labelIsName",
@@ -56481,7 +56925,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "description",
+                    "name": "shortDescription",
                     "type": "text",
                     "isArray": false
                 },
@@ -56515,6 +56959,8 @@
                 "xLabel",
                 "yLabel",
                 "label",
+                "description",
+                "shortDescription",
                 "choice"
             ],
             "attributes": [
@@ -56566,9 +57012,6 @@
                     "name": "copy"
                 },
                 {
-                    "name": "description"
-                },
-                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -56618,12 +57061,6 @@
                 },
                 {
                     "name": "placeHolder"
-                },
-                {
-                    "name": "submitLabel"
-                },
-                {
-                    "name": "submitLabelNoCorrectness"
                 }
             ],
             "properties": [
@@ -56683,16 +57120,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -56723,7 +57150,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "description",
+                    "name": "shortDescription",
                     "type": "text",
                     "isArray": false
                 },
@@ -56852,6 +57279,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -58048,7 +58476,9 @@
                 "triggerSet",
                 "booleanInput",
                 "textInput",
-                "graph"
+                "graph",
+                "shortDescription",
+                "description"
             ],
             "attributes": [
                 {
@@ -58251,9 +58681,6 @@
                     ]
                 },
                 {
-                    "name": "description"
-                },
-                {
                     "name": "decorative",
                     "values": [
                         "true",
@@ -58363,11 +58790,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "description",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
                     "name": "decorative",
                     "type": "boolean",
                     "isArray": false
@@ -58415,6 +58837,11 @@
                 {
                     "name": "padZeros",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "shortDescription",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -60033,6 +60460,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -61190,6 +61618,7 @@
                 "matrix",
                 "latex",
                 "title",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -62187,7 +62616,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -62322,6 +62751,7 @@
                 "matchesPattern",
                 "matrix",
                 "latex",
+                "description",
                 "statement",
                 "introduction",
                 "conclusion",
@@ -62515,7 +62945,7 @@
                 "caption",
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -62650,6 +63080,7 @@
                 "matchesPattern",
                 "matrix",
                 "latex",
+                "description",
                 "statement",
                 "introduction",
                 "conclusion",
@@ -63035,6 +63466,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -63363,6 +63795,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -65378,7 +65811,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -66053,6 +66486,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -67720,6 +68154,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -68642,7 +69077,10 @@
         },
         {
             "name": "image",
-            "children": [],
+            "children": [
+                "shortDescription",
+                "description"
+            ],
             "attributes": [
                 {
                     "name": "name"
@@ -68721,9 +69159,6 @@
                         "left",
                         "right"
                     ]
-                },
-                {
-                    "name": "description"
                 },
                 {
                     "name": "decorative",
@@ -68809,11 +69244,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "description",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
                     "name": "decorative",
                     "type": "boolean",
                     "isArray": false
@@ -68881,6 +69311,11 @@
                 {
                     "name": "anchor",
                     "type": "point",
+                    "isArray": false
+                },
+                {
+                    "name": "shortDescription",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -69119,6 +69554,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -70181,6 +70617,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -70517,6 +70954,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -70855,6 +71293,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -72144,6 +72583,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -72470,6 +72910,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -72790,6 +73231,7 @@
                 "feedbackDefinition",
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -73108,7 +73550,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -73363,7 +73805,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -73498,6 +73940,7 @@
                 "matchesPattern",
                 "matrix",
                 "latex",
+                "description",
                 "statement",
                 "introduction",
                 "conclusion",
@@ -74111,6 +74554,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -74462,6 +74906,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -75851,6 +76296,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -77059,6 +77505,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -78422,7 +78869,7 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "description",
+                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -80240,6 +80687,7 @@
             "children": [
                 "title",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -81115,6 +81563,7 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
+                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
