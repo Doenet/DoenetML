@@ -1,0 +1,62 @@
+.description summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.description[open] {
+    background-color: rgb(241, 241, 241);
+}
+.description .details-content {
+    background-color: rgb(241, 241, 241);
+    padding: 10px;
+}
+
+.description-popover-button {
+    background-color: white;
+    border: none;
+    padding: 0 4px 0 0;
+    cursor: pointer;
+}
+
+.description-popover {
+    z-index: 50;
+    display: flex;
+    max-width: min(calc(100vw - 16px), 320px);
+    flex-direction: column;
+    gap: 1rem;
+    border-radius: 0.5rem;
+    border-width: 1px;
+    border-style: solid;
+    border-color: hsl(204 20% 88%);
+    background-color: white;
+    padding: 1rem;
+    color: black;
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.description-popover:focus-visible,
+.description-popover[data-focus-visible] {
+    outline: 2px solid hsl(204 100% 40%);
+    outline-offset: 2px;
+}
+
+.description-popover:where(.dark, .dark *) {
+    border-color: hsl(204 4% 24%);
+    background-color: hsl(204 4% 16%);
+    color: white;
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.25),
+        0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.description-popover .arrow > svg {
+    fill: white;
+    stroke: hsl(204 20% 88%);
+}
+
+.description-popover .arrow:where(.dark, .dark *) > svg {
+    fill: hsl(204 4% 16%);
+    stroke: hsl(204 4% 24%);
+}
