@@ -4986,8 +4986,9 @@ class ChildDependency extends Dependency {
             this.originalDownstreamVariableNames = [];
         }
 
+        this.includeAllChildren = this.definition.includeAllChildren;
         this.childGroups = this.definition.childGroups;
-        if (!Array.isArray(this.childGroups)) {
+        if (!this.includeAllChildren && !Array.isArray(this.childGroups)) {
             throw Error(
                 `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: childGroups must be an array`,
             );
@@ -5079,9 +5080,9 @@ class ChildDependency extends Dependency {
             childDependencies.push(this);
         }
 
-        let activeChildrenIndices = parent.returnMatchedChildIndices(
-            this.childGroups,
-        );
+        let activeChildrenIndices = this.includeAllChildren
+            ? [...parent.activeChildren.keys()]
+            : parent.returnMatchedChildIndices(this.childGroups);
         if (activeChildrenIndices === undefined) {
             throw Error(
                 `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: childGroups ${this.childGroups} does not exist.`,
