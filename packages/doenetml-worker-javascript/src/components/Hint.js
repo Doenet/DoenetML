@@ -144,6 +144,7 @@ export default class Hint extends BlockComponent {
 
                 return { setValue: { childIndicesToRender } };
             },
+            markStale: () => ({ updateRenderedChildren: true }),
         };
 
         stateVariableDefinitions.title = {
