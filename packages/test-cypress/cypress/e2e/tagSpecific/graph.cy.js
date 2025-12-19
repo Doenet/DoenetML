@@ -386,12 +386,12 @@ describe("Graph Tag Tests", function () {
         cy.get(cesc("#showControls2")).should("have.text", "true");
     });
 
-    it("graph description is aria-label", () => {
+    it("graph short description is aria-label", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-    <graph description="A blank graph" name="g" />
+    <graph name="g"><shortDescription>A blank graph</shortDescription></graph>
     `,
                 },
                 "*",
@@ -490,5 +490,139 @@ describe("Graph Tag Tests", function () {
             .invoke("css", "height")
             .then((height) => parseInt(height))
             .should("be.equal", Math.floor(fullWidth / 4));
+    });
+
+    it("with description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph name="graph">
+        <shortDescription>A graph</shortDescription>
+        <description>
+            <p>A blank graph.</p>
+        </description>
+    </graph>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#graph-container [data-test='Description']").should(
+            "not.have.attr",
+            "open",
+        );
+        cy.get("#graph-container [data-test='Description Summary']").click();
+
+        cy.get("#graph-container [data-test='Description']").should(
+            "have.attr",
+            "open",
+        );
+
+        cy.get("#graph-container [data-test='Description']").should(
+            "contain.text",
+            "A blank graph.",
+        );
+
+        cy.get("#graph").click();
+        cy.get("#graph-container [data-test='Description']").should(
+            "have.attr",
+            "open",
+        );
+
+        cy.get("#graph-container [data-test='Description Summary']").click();
+
+        cy.get("#graph-container [data-test='Description']").should(
+            "not.have.attr",
+            "open",
+        );
+    });
+
+    it("with description, inline", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph name="graph" displayMode="inline">
+        <shortDescription>A graph</shortDescription>
+        <description>
+            <p>A blank graph.</p>
+        </description>
+    </graph>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#graph-container [data-test='Description Button']").should(
+            "be.visible",
+        );
+        cy.get("#graph-container [data-test='Description']").should(
+            "not.be.visible",
+        );
+        cy.get("#graph-container [data-test='Description Button']").click();
+
+        cy.get("#graph-container [data-test='Description']").should(
+            "contain.text",
+            "A blank graph.",
+        );
+
+        cy.get("#graph").click();
+
+        cy.get("#graph-container [data-test='Description']").should(
+            "not.be.visible",
+        );
+    });
+
+    it("without description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph name="graph">
+        <shortDescription>A graph</shortDescription>
+    </graph>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#graph").should("be.visible");
+        cy.get("#graph-container [data-test='Description']").should(
+            "not.exist",
+        );
+        cy.get("#graph-container [data-test='Description Button']").should(
+            "not.exist",
+        );
+    });
+
+    it("without description, inline", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph name="graph" displayMode="inline">
+        <shortDescription>A graph</shortDescription>
+    </graph>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#graph").should("be.visible");
+        cy.get("#graph-container [data-test='Description']").should(
+            "not.exist",
+        );
+        cy.get("#graph-container [data-test='Description Button']").should(
+            "not.exist",
+        );
     });
 });

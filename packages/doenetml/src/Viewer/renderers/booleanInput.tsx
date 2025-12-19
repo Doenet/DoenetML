@@ -523,7 +523,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
             checkmarkClass += " doenetml-checkmark-disabled";
         }
         input = (
-            <label className={containerClass}>
+            <label className={containerClass} id={`${id}-label`}>
                 <input
                     type="checkbox"
                     key={inputKey}

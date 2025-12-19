@@ -157,7 +157,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
         // inline="true"
         return (
-            <span style={{ display: "inline-flex", alignItems: "start" }}>
+            <span
+                style={{ display: "inline-flex", alignItems: "start" }}
+                id={id + "-container"}
+            >
                 <span style={{ display: "inline-flex", alignItems: "center" }}>
                     <label
                         style={{

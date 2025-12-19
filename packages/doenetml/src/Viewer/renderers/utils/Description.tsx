@@ -7,8 +7,8 @@ import "./Description.css";
 
 export function DescriptionAsDetails({ children }: { children: ReactNode }) {
     return (
-        <details className="description">
-            <summary title="more information">
+        <details className="description" data-test="Description">
+            <summary title="more information" data-test="Description Summary">
                 <MdInfoOutline />
             </summary>
             <div className="details-content">{children}</div>
@@ -26,6 +26,7 @@ export function DescriptionPopover({ children }: { children: ReactNode }) {
                 store={popover}
                 className="description-popover-button"
                 title="more information"
+                data-test="Description Button"
             >
                 <MdInfoOutline />
             </Ariakit.PopoverDisclosure>
@@ -36,6 +37,7 @@ export function DescriptionPopover({ children }: { children: ReactNode }) {
                 initialFocus={popoverRef}
                 gutter={2}
                 className="description-popover"
+                data-test="Description"
             >
                 <Ariakit.PopoverArrow />
                 {children}

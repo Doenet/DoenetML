@@ -11,7 +11,9 @@ describe("Image Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <image name="image1" source="http://mathinsight.org/media/image/image/giant_anteater.jpg" width="300px" description="A giant anteater" />
+  <image name="image1" source="http://mathinsight.org/media/image/image/giant_anteater.jpg" width="300px">
+    <shortDescription>A giant anteater</shortDescription>
+  </image>
   `,
                 },
                 "*",
@@ -329,5 +331,140 @@ describe("Image Tag Tests", function () {
         cy.get(cesc("#image1a"))
             .invoke("css", "aspectRatio")
             .should("equal", "auto");
+    });
+
+    it("with description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image"  source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
+        <shortDescription>A image</shortDescription>
+        <description>
+            <p>A anteater image.</p>
+        </description>
+    </image>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image-container [data-test='Description']").should(
+            "not.have.attr",
+            "open",
+        );
+        cy.get("#image-container [data-test='Description Summary']").click();
+
+        cy.get("#image-container [data-test='Description']").should(
+            "have.attr",
+            "open",
+        );
+
+        cy.get("#image-container [data-test='Description']").should(
+            "contain.text",
+            "A anteater image.",
+        );
+
+        cy.get("#image").click();
+        cy.get("#image-container [data-test='Description']").should(
+            "have.attr",
+            "open",
+        );
+
+        cy.get("#image-container [data-test='Description Summary']").click();
+
+        cy.get("#image-container [data-test='Description']").should(
+            "not.have.attr",
+            "open",
+        );
+    });
+
+    it("with description, inline", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" displayMode="inline" source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
+        <shortDescription>A image</shortDescription>
+        <description>
+            <p>A anteater image.</p>
+        </description>
+    </image>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image-container [data-test='Description Button']").should(
+            "be.visible",
+        );
+        cy.get("#image-container [data-test='Description']").should(
+            "not.be.visible",
+        );
+        cy.get("#image-container [data-test='Description Button']").click();
+
+        cy.get("#image-container [data-test='Description']").should(
+            "contain.text",
+            "A anteater image.",
+        );
+
+        cy.get("#image").click();
+
+        cy.get("#image-container [data-test='Description']").should(
+            "not.be.visible",
+        );
+    });
+
+    it("without description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image"  source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
+        <shortDescription>A image</shortDescription>
+    </image>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+
+        cy.get("#image-container [data-test='Description Button']").should(
+            "not.exist",
+        );
+        cy.get("#image-container [data-test='Description']").should(
+            "not.exist",
+        );
+    });
+
+    it("without description, inline", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" displayMode="inline" source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
+        <shortDescription>A image</shortDescription>
+    </image>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#image").should("be.visible");
+        cy.get("#image-container [data-test='Description Button']").should(
+            "not.exist",
+        );
+        cy.get("#image-container [data-test='Description']").should(
+            "not.exist",
+        );
     });
 });

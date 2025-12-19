@@ -181,6 +181,7 @@ export default React.memo(function MatrixInput(props) {
                     margin: "0px 4px 4px 4px",
                     alignItems: "start",
                 }}
+                id={`${id}-container`}
             >
                 <label style={{ display: "inline-flex", maxWidth: "100%" }}>
                     {label}

@@ -244,7 +244,7 @@ export default React.memo(function Graph(props) {
 
     if (!board) {
         return (
-            <div style={outerStyle} ref={ref}>
+            <div style={outerStyle} ref={ref} id={`${id}-container`}>
                 <div>
                     <div
                         id={`${id}-description`}
@@ -473,14 +473,15 @@ export default React.memo(function Graph(props) {
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
 
     const description =
-        descriptionChild && SVs.displayMode === "inline" ? (
+        descriptionChild &&
+        (SVs.displayMode === "inline" ? (
             <DescriptionPopover>{descriptionChild}</DescriptionPopover>
         ) : (
             <DescriptionAsDetails>{descriptionChild}</DescriptionAsDetails>
-        );
+        ));
 
     return (
-        <div style={outerStyle} ref={ref}>
+        <div style={outerStyle} ref={ref} id={`${id}-container`}>
             <div style={innerStyle}>
                 <div
                     id={`${id}-description`}

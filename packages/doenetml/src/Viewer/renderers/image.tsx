@@ -581,14 +581,15 @@ export default React.memo(function Image(props) {
     const descriptionChild = children.find((child) => child);
 
     const description =
-        descriptionChild && SVs.displayMode === "inline" ? (
+        descriptionChild &&
+        (SVs.displayMode === "inline" ? (
             <DescriptionPopover>{descriptionChild}</DescriptionPopover>
         ) : (
             <DescriptionAsDetails>{descriptionChild}</DescriptionAsDetails>
-        );
+        ));
 
     return (
-        <div style={outerStyle} ref={ref}>
+        <div style={outerStyle} ref={ref} id={`${id}-container`}>
             <div style={innerStyle}>
                 {urlOrSource ? (
                     <img

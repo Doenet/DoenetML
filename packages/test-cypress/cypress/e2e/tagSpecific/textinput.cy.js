@@ -155,4 +155,55 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc("#labelA")).should("have.text", "ABC");
         cy.get(cesc("#labelB")).should("have.text", "ABC");
     });
+
+    it("with description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <textInput name="ti">
+        <shortDescription>Enter something</shortDescription>
+        <description>
+            <p>Type what you like.</p>
+        </description>
+    </textInput>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ti [data-test='Description Button']").should("be.visible");
+        cy.get("#ti [data-test='Description']").should("not.be.visible");
+        cy.get("#ti [data-test='Description Button']").click();
+
+        cy.get("#ti [data-test='Description']").should(
+            "contain.text",
+            "Type what you like.",
+        );
+
+        cy.get("#ti_input").focus();
+        cy.get("#ti [data-test='Description']").should("not.be.visible");
+    });
+
+    it("without description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <textInput name="ti">
+        <shortDescription>Enter something</shortDescription>
+    </textInput>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ti").should("be.visible");
+        cy.get("#ti [data-test='Description Button']").should("not.exist");
+        cy.get("#ti [data-test='Description']").should("not.exist");
+    });
 });

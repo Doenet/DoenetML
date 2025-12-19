@@ -1047,4 +1047,126 @@ describe("ChoiceInput Tag Tests", function () {
             });
         }
     });
+
+    it("with description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="ci">
+        <choice>a</choice>
+        <choice>b</choice>
+        <shortDescription>Select</shortDescription>
+        <description>
+            <p>Select what you like.</p>
+        </description>
+    </choiceInput>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ci-label [data-test='Description Button']").should(
+            "be.visible",
+        );
+        cy.get("#ci-label [data-test='Description']").should("not.be.visible");
+        cy.get("#ci-label [data-test='Description Button']").click();
+
+        cy.get("#ci-label [data-test='Description']").should(
+            "contain.text",
+            "Select what you like.",
+        );
+
+        cy.get("#ci input").eq(0).focus();
+        cy.get("#ci-label [data-test='Description']").should("not.be.visible");
+    });
+
+    it("with description, inline", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="ci" inline>
+        <choice>a</choice>
+        <choice>b</choice>
+        <shortDescription>Select</shortDescription>
+        <description>
+            <p>Select what you like.</p>
+        </description>
+    </choiceInput>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ci-container [data-test='Description Button']").should(
+            "be.visible",
+        );
+        cy.get("#ci-container [data-test='Description']").should(
+            "not.be.visible",
+        );
+        cy.get("#ci-container [data-test='Description Button']").click();
+
+        cy.get("#ci-container [data-test='Description']").should(
+            "contain.text",
+            "Select what you like.",
+        );
+
+        cy.get("#ci").focus();
+        cy.get("#ci-container [data-test='Description']").should(
+            "not.be.visible",
+        );
+    });
+
+    it("without description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="ci">
+        <choice>a</choice>
+        <choice>b</choice>
+        <shortDescription>Select</shortDescription>
+    </choiceInput>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ci").should("be.visible");
+        cy.get("#ci-label [data-test='Description Button']").should(
+            "not.exist",
+        );
+        cy.get("#ci-label [data-test='Description']").should("not.exist");
+    });
+
+    it("without description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="ci" inline>
+        <choice>a</choice>
+        <choice>b</choice>
+        <shortDescription>Select</shortDescription>
+    </choiceInput>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ci").should("be.visible");
+        cy.get("#ci-label [data-test='Description Button']").should(
+            "not.exist",
+        );
+        cy.get("#ci-label [data-test='Description']").should("not.exist");
+    });
 });
