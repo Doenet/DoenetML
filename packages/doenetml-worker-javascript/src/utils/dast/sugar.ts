@@ -177,22 +177,6 @@ export function applySugar({
                             );
                         }
 
-                        if (preSugarIndsFoundInChildren.length > 0) {
-                            let sortedList = [
-                                ...preSugarIndsFoundInChildren,
-                            ].sort((a, b) => a - b);
-                            if (
-                                !sortedList.every(
-                                    (v, i) =>
-                                        v === preSugarIndsFoundInChildren[i],
-                                )
-                            ) {
-                                throw Error(
-                                    `Invalid sugar for ${componentType} as didn't return original components in order`,
-                                );
-                            }
-                        }
-
                         if (sugarResults.parametersForChildrenSugar) {
                             Object.assign(
                                 newParentParametersFromSugar,
