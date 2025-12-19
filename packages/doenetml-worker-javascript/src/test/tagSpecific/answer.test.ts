@@ -6882,7 +6882,7 @@ What is the derivative of <function name="f">x^2</function>?
         ).eqls([true, false, true]);
     });
 
-    it("warning if no description or label when generates input", async () => {
+    it("warning if no short description or label when generates input", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <answer>x</answer>
@@ -6977,5 +6977,72 @@ What is the derivative of <function name="f">x^2</function>?
             stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(1);
+    });
+
+    it("description and label added to sugared input", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><answer name="ans">
+        <award>x</award>
+        <label>Hi</label>
+        <description>
+            <p>Hello!</p>
+        </description>
+    </answer></p>
+
+     `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans")].activeChildren
+                .length,
+        ).eq(2);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans")].activeChildren[0]
+                .componentType,
+        ).eq("mathInput");
+
+        const mathInputIdx =
+            stateVariables[await resolvePathToNodeIdx("ans")].activeChildren[0]
+                .componentIdx;
+
+        expect(stateVariables[mathInputIdx].activeChildren.length).eq(2);
+        expect(stateVariables[mathInputIdx].activeChildren[0].componentType).eq(
+            "label",
+        );
+        expect(stateVariables[mathInputIdx].activeChildren[1].componentType).eq(
+            "description",
+        );
+    });
+
+    it("answer sugar is OK reordering children", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><answer name="ans">
+        <label>Hi</label>
+        <award><when>true</when></award>
+        <description>
+            <p>Hello!</p>
+        </description>
+    </answer></p>
+
+     `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans")].activeChildren
+                .length,
+        ).eq(3);
+
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("ans")
+            ].activeChildren.map((child) => child.componentType),
+        ).eqls(["label", "description", "award"]);
     });
 });

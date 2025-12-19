@@ -1791,7 +1791,7 @@ describe("TextInput tag tests", async () => {
         await check_items(string);
     });
 
-    it("warning if no description or label", async () => {
+    it("warning if no short description or label", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <textInput />

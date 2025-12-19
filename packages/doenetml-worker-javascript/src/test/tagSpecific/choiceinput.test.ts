@@ -3915,7 +3915,7 @@ describe("ChoiceInput tag tests", async () => {
         ).eq(`Selected values: y`);
     });
 
-    it("warning if no description or label", async () => {
+    it("warning if no short description or label", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <choiceInput>

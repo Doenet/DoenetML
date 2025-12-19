@@ -1379,7 +1379,7 @@ describe("Graph tag tests", async () => {
         ).eq(true);
     });
 
-    it("warning if no description specified and decorative is not set", async () => {
+    it("warning if no short description specified and decorative is not set", async () => {
         let { core } = await createTestCore({
             doenetML: `
 <graph name="graph1" />
@@ -1398,5 +1398,35 @@ describe("Graph tag tests", async () => {
         expect(errorWarnings.warnings[0].position.start.column).eq(1);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
         expect(errorWarnings.warnings[0].position.end.column).eq(24);
+    });
+
+    it("with description", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><graph name="graph">
+        <shortDescription>Hi</shortDescription>
+        <description>
+            <p>Hello!</p>
+        </description>
+    </graph></p>
+
+     `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("graph")].stateValues
+                .childIndicesToRender,
+        ).eqls([1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("graph")].activeChildren
+                .length,
+        ).eq(2);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("graph")]
+                .activeChildren[1].componentType,
+        ).eq("description");
     });
 });
