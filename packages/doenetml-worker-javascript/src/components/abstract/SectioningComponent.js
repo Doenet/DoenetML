@@ -384,6 +384,10 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "asList",
                 },
+                hideChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "hideChildren",
+                },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const childIndicesToRender = [];
@@ -396,6 +400,17 @@ export class SectioningComponent extends BlockComponent {
                     ind,
                     child,
                 ] of dependencyValues.allChildren.entries()) {
+                    // If `hideChildren` is set, string children should also be hidden.
+                    // However, string children cannot be hidden via the `childrenToHide`
+                    // state variable as it is based on component indices.
+                    // Instead, we remove strings from `childIndicesToRender`
+                    if (
+                        dependencyValues.hideChildren &&
+                        typeof child === "string"
+                    ) {
+                        continue;
+                    }
+
                     if (dependencyValues.asList) {
                         // if asList, then only include titleChild, sections, introduction, and conclusion
                         if (
@@ -453,11 +468,15 @@ export class SectioningComponent extends BlockComponent {
                     if (child.componentType === "cascadeMessage") {
                         // For <cascadeMessage>, the logic is inverted.
                         // It is hidden when `hideChildren` is `false`!
-                        if (!dependencyValues.hideChildren) {
+                        if (
+                            !dependencyValues.hideChildren &&
+                            typeof child === "object"
+                        ) {
                             childrenToHide.push(child.componentIdx);
                         }
                     } else if (
                         dependencyValues.hideChildren &&
+                        typeof child === "object" &&
                         child.componentIdx !==
                             dependencyValues.titleChildName &&
                         child.componentType !== "cascadeMessage"

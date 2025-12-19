@@ -1690,4 +1690,65 @@ describe("Cascade tag tests", async () => {
         await submitAnswer({ componentIdx: answer2Idx, core });
         await check_values(3);
     });
+
+    it("hide string children in sections", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w">
+  <title>My cascade</title>
+
+  <section boxed name="section1">
+    <title>First part</title>
+
+    What is 1+1? <answer name="ans">2</answer>
+  </section>
+
+
+  <section boxed name="section2">
+    <title>Second part</title>
+
+    What is 3+4? <answer name="ans">7</answer>
+  </section>
+
+</cascade>
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const answer1Idx = await resolvePathToNodeIdx("section1.ans");
+        const mathInput1Idx =
+            stateVariables[answer1Idx].stateValues.inputChildren[0]
+                .componentIdx;
+
+        const section2Idx = await resolvePathToNodeIdx("section2");
+        const answer2Idx = await resolvePathToNodeIdx("section2.ans");
+
+        const stringIdx = 2;
+        expect(stateVariables[section2Idx].activeChildren[stringIdx].trim()).eq(
+            "What is 3+4?",
+        );
+
+        // string indices 0,2,4 (in particular `stringIdx`) are not included in childIndicesToRender
+        expect(
+            stateVariables[section2Idx].stateValues.childIndicesToRender,
+        ).eqls([1, 3]);
+        expect(stateVariables[section2Idx].stateValues.childrenToHide).eqls([
+            answer2Idx,
+        ]);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: mathInput1Idx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answer1Idx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        // now string indices are rendered
+        expect(
+            stateVariables[section2Idx].stateValues.childIndicesToRender,
+        ).eqls([0, 1, 2, 3, 4]);
+        expect(stateVariables[section2Idx].stateValues.childrenToHide).eqls([]);
+    });
 });
