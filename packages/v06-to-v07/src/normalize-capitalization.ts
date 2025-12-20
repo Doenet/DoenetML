@@ -120,3 +120,53 @@ export const correctElementCapitalization: Plugin<
         });
     };
 };
+
+/**
+ * Normalize the capitalization of the value of the componentType attribute, which contain recognized DoenetML elements.
+ * e.g. `<foo componentType="mathinput" />` should become `<foo componentType="mathInput" />`
+ */
+export const correctComponentTypesAttributeCapitalization: Plugin<
+    [],
+    DastRootV6,
+    DastRootV6
+> = () => {
+    const componentInfoObjects = createComponentInfoObjects();
+    const correctCapitalization = Object.keys(
+        componentInfoObjects.allComponentClasses,
+    );
+    const correctCapitalizationMap = Object.fromEntries(
+        correctCapitalization.map((name) => [name.toLowerCase(), name]),
+    );
+
+    return (tree) => {
+        visit(tree, (node) => {
+            if (!isDastElement(node)) {
+                return;
+            }
+
+            if (node.attributes["componentTypes"]?.children.length !== 1) {
+                return;
+            }
+
+            const child = node.attributes["componentTypes"].children[0];
+
+            if (child.type !== "text") {
+                return;
+            }
+            const childStrings = child.value.split("/\s+/");
+
+            const newStrings = childStrings.map((s) => {
+                if (
+                    !correctCapitalizationMap[s.toLowerCase()] ||
+                    s === correctCapitalizationMap[s.toLowerCase()]
+                ) {
+                    return s;
+                } else {
+                    return correctCapitalizationMap[s.toLowerCase()];
+                }
+            });
+
+            child.value = newStrings.join(" ");
+        });
+    };
+};

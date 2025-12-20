@@ -203,6 +203,11 @@ describe("v06 to v07 update", () => {
         correctSource = `<collect componentType="point" name="points" from="$panel" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
+        // target attribute get converted as well
+        source = `<collect componentTypes="point" name="points" target="panel" assignNames="q1 q2 q3 q4 q5" />`;
+        correctSource = `<collect componentType="point" name="points" from="$panel" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
         // References to the old `assignNames` get updated
         source = `<collect componentTypes="point" name="points" source="panel" assignNames="q1 q2 q3 q4 q5" /> $q1 $q4`;
         correctSource = `<collect componentType="point" name="points" from="$panel" /> $points[1] $points[4]`;
@@ -222,6 +227,26 @@ describe("v06 to v07 update", () => {
         // References to the old `assignNames` get updated
         source = `<collect componentTypes="point" name="xs" source="panel" prop="x" assignNames="x1 x2 x3 x4 x5" /> $x1 $x4`;
         correctSource = `<setup><collect componentType="point" name="collect_xs" from="$panel" /></setup><mathList name="xs" extend="$collect_xs.x" /> $xs[1] $xs[4]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("collect prop without name", async () => {
+        source = `
+        <collect source="a" componentTypes="math" prop="value"/>
+`;
+        correctSource = `
+        <setup><collect from="$a" componentType="math" name="collect_list" /></setup><mathList name="list" extend="$collect_list.value" />
+`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("correct capitalization of componentTypes attribute", async () => {
+        source = `
+        <collect source="a" componentTypes="mathinput"/>
+`;
+        correctSource = `
+        <collect from="$a" componentType="mathInput" />
+`;
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
