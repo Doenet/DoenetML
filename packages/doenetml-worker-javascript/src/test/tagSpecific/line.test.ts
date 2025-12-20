@@ -1481,7 +1481,7 @@ describe("Line tag tests", async () => {
     it("lines with bad throughs", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <graph description="A graph with warnings">
+  <graph><shortDescription>A graph with warnings</shortDescription>
     <line name="l1" through="A" />
     <line name="l2" through="(x,y) (a,b)" />
     <line name="l3" through="(c,d) (a,b)" />
@@ -1578,7 +1578,7 @@ describe("Line tag tests", async () => {
     it("lines with bad equations", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <graph description="A graph with warnings">
+  <graph><shortDescription>A graph with warnings</shortDescription>
     <line name="l1">/2</line>
     <line name="l2">$invalid1</line>
     <line name="l3" equation="" />

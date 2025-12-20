@@ -121,7 +121,7 @@ describe("Warning Tests", async () => {
     it("From state variable definitions", async () => {
         let { core } = await createTestCore({
             doenetML: `
-<graph description="A graph with warnings">
+<graph><shortDescription>A graph with warnings</shortDescription>
   <line name="l1" through="(1,2) (3,4)" />
   <line name="l2" through="(1,2) (-3,4)" />
   <line name="l3" through="(-1,2) (-3,4)" />
@@ -161,7 +161,7 @@ describe("Warning Tests", async () => {
             doenetML: `
   <circle through="(a,b) (c,d)" name="c" />
 
-  <mathInput name="mi" description="change radius">$c.radius</mathInput>
+  <mathInput name="mi"><shortDescription>change radius</shortDescription>$c.radius</mathInput>
     `,
         });
 
@@ -220,14 +220,14 @@ describe("Warning Tests", async () => {
   <math name="m8" format="latex" extend="$m2" />
 
 
-  <textInput description="change format" name="ti1">$m1.format</textInput>
-  <textInput description="change format" name="ti2">$m2.format</textInput>
-  <textInput description="change format" name="ti3">$m3.format</textInput>
-  <textInput description="change format" name="ti4">$m4.format</textInput>
-  <textInput description="change format" name="ti5">$m5.format</textInput>
-  <textInput description="change format" name="ti6">$m6.format</textInput>
-  <textInput description="change format" name="ti7">$m7.format</textInput>
-  <textInput description="change format" name="ti8">$m8.format</textInput>
+  <textInput name="ti1"><shortDescription>change format</shortDescription>$m1.format</textInput>
+  <textInput name="ti2"><shortDescription>change format</shortDescription>$m2.format</textInput>
+  <textInput name="ti3"><shortDescription>change format</shortDescription>$m3.format</textInput>
+  <textInput name="ti4"><shortDescription>change format</shortDescription>$m4.format</textInput>
+  <textInput name="ti5"><shortDescription>change format</shortDescription>$m5.format</textInput>
+  <textInput name="ti6"><shortDescription>change format</shortDescription>$m6.format</textInput>
+  <textInput name="ti7"><shortDescription>change format</shortDescription>$m7.format</textInput>
+  <textInput name="ti8"><shortDescription>change format</shortDescription>$m8.format</textInput>
     `,
         });
 
@@ -474,11 +474,11 @@ describe("Warning Tests", async () => {
     it("Invalid children", async () => {
         let { core } = await createTestCore({
             doenetML: `
-  <p name="p1"><graph description="A graph" /></p>
+  <p name="p1"><graph /><shortDescription>A graph</shortDescription></p>
 
   <p name="p2">Hello</p>
 
-  <p name="p3" extend="$p2"><graph description="Another graph" /><p/></p>
+  <p name="p3" extend="$p2"><graph /><shortDescription>Another graph</shortDescription><p/></p>
 
   <p name="p4" extend="$p1"><figure /></p>
 
@@ -569,7 +569,7 @@ describe("Warning Tests", async () => {
         let { core } = await createTestCore({
             doenetML: `
     <p>
-        Numbers that add to 3: <mathInput name="n1" description="first number" /> <mathInput name="n2" description="second number" />
+        Numbers that add to 3: <mathInput name="n1" /><shortDescription>first number</shortDescription> <mathInput name="n2" /><shortDescription>second number</shortDescription>
         <answer name="sum3">
             <award referencesAreResponses="n1 n2"> <when>$n1+$n2=3</when> </award>
         </answer>

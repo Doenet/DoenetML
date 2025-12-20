@@ -1494,22 +1494,22 @@ describe("Answer tag tests", async () => {
         const doenetMLs = [
             `
     <answer name="ans">
-        <mathInput description="Enter answer" />
+        <mathInput><shortDescription>Enter answer</shortDescription></mathInput>
         <award><when>$ans</when></award>
     </answer>`,
             `
     <answer name="ans">
-        <mathInput description="Enter answer" />
+        <mathInput><shortDescription>Enter answer</shortDescription></mathInput>
         <award><when>$ans.submittedResponse=5</when></award>
     </answer>`,
             `
     <answer name="ans">
-        <mathInput description="Enter answer" />
+        <mathInput><shortDescription>Enter answer</shortDescription></mathInput>
         <award><when>$ans.submittedResponse1=5</when></award>
     </answer>`,
             `
     <answer name="ans">
-        <mathInput description="Enter answer" />
+        <mathInput><shortDescription>Enter answer</shortDescription></mathInput>
         <award><when>$ans.submittedResponses=5</when></award>
     </answer>`,
         ];
@@ -1595,7 +1595,7 @@ describe("Answer tag tests", async () => {
 
         let doenetML = `
     <answer name="ans">
-        <mathInput description="Enter answer" />
+        <mathInput><shortDescription>Enter answer</shortDescription></mathInput>
         <award><when>$ans.submittedResponse2=5</when></award>
     </answer>`;
 

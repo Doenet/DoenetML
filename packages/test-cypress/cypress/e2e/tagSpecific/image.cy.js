@@ -339,9 +339,9 @@ describe("Image Tag Tests", function () {
                 {
                     doenetML: `
     <image name="image"  source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
-        <shortDescription>A image</shortDescription>
+        <shortDescription>An image</shortDescription>
         <description>
-            <p>A anteater image.</p>
+            <p>An anteater image.</p>
         </description>
     </image>
 
@@ -364,7 +364,7 @@ describe("Image Tag Tests", function () {
 
         cy.get("#image-container [data-test='Description']").should(
             "contain.text",
-            "A anteater image.",
+            "An anteater image.",
         );
 
         cy.get("#image").click();
@@ -387,9 +387,9 @@ describe("Image Tag Tests", function () {
                 {
                     doenetML: `
     <image name="image" displayMode="inline" source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
-        <shortDescription>A image</shortDescription>
+        <shortDescription>An image</shortDescription>
         <description>
-            <p>A anteater image.</p>
+            <p>An anteater image.</p>
         </description>
     </image>
 
@@ -409,7 +409,7 @@ describe("Image Tag Tests", function () {
 
         cy.get("#image-container [data-test='Description']").should(
             "contain.text",
-            "A anteater image.",
+            "An anteater image.",
         );
 
         cy.get("#image").click();
@@ -425,7 +425,7 @@ describe("Image Tag Tests", function () {
                 {
                     doenetML: `
     <image name="image"  source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
-        <shortDescription>A image</shortDescription>
+        <shortDescription>An image</shortDescription>
     </image>
 
     `,
@@ -450,7 +450,7 @@ describe("Image Tag Tests", function () {
                 {
                     doenetML: `
     <image name="image" displayMode="inline" source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
-        <shortDescription>A image</shortDescription>
+        <shortDescription>An image</shortDescription>
     </image>
 
     `,

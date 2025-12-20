@@ -2746,7 +2746,7 @@ describe("Select tag tests", async () => {
             doenetML: `
     <p>No points for graph!</p>
 
-    <graph description="A graph"><select numToSelect="3">
+    <graph><shortDescription>A graph</shortDescription><select numToSelect="3">
       <option><point>(3,4)</point></option>
       <option><point>(5,6)</point></option>
     </select></graph>

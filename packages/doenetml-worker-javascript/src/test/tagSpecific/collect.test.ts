@@ -2486,7 +2486,7 @@ describe("Collect tag tests", async () => {
     it("collect warnings", async () => {
         let { core } = await createTestCore({
             doenetML: `
-    <graph name="g" description="A graph with warnings" />
+    <graph name="g"><shortDescription>A graph with warnings</shortDescription></graph>
     <collect from="$nothing" />
     <collect from="$g" componentType="abc" />
     `,

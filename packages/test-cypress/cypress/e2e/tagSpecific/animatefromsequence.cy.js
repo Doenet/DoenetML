@@ -2941,7 +2941,7 @@ describe("AnimateFromSequence Tag Tests", function () {
   <animateFromSequence target='$n.invalid' animationOn="true" />
   <animateFromSequence target='$p' animationOn="true" />
   <animateFromSequence target='$l.points[1].bad' animationOn="true" />
-  <booleanInput name="bi" description="check core" /><boolean extend="$bi" name="b" />
+  <booleanInput name="bi"><shortDescription>check core</shortDescription></booleanInput><boolean extend="$bi" name="b" />
   `,
                 },
                 "*",

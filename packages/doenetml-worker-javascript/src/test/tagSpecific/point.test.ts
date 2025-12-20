@@ -5693,14 +5693,14 @@ describe("Point tag tests", async () => {
     it("warnings from attractTo and constrainTo", async () => {
         let { core } = await createTestCore({
             doenetML: `
-<graph name="g" description="A graph with warnings">
+<graph name="g"><shortDescription>A graph with warnings</shortDescription>
   <legend name="lg"><label>point</label></legend>
   <point>
     <attractTo>$lg</attractTo>
   </point>
 </graph>
 
-<graph extend="$g" description="Another graph with warnings">
+<graph extend="$g"><shortDescription>Another graph with warnings</shortDescription>
   <point>(3,4)
     <constrainTo>$lg</constrainTo>
   </point>

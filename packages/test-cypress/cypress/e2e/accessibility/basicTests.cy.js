@@ -255,7 +255,9 @@ describe("Render commas tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-                    <image name="image1" source="http://mathinsight.org/media/image/image/giant_anteater.jpg" description="A giant anteater" />
+                    <image name="image1" source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
+                        <shortDescription>A giant anteater</shortDescription>
+                    </image>
                     <image name="image2" source="http://mathinsight.org/media/image/image/giant_anteater.jpg" decorative />
   `,
                 },
@@ -275,8 +277,10 @@ describe("Render commas tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <video name="video1" youtube="tJ4ypc5L6uU" description="Intro to Doenet" />
-    <video name="video2" source="https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-MP4-Video-File-for-Testing.mp4" description="Earth" />
+    <video name="video1" youtube="tJ4ypc5L6uU"><shortDescription>Intro to Doenet</shortDescription></video>
+    <video name="video2" source="https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-MP4-Video-File-for-Testing.mp4">
+        <shortDescription>Earth</shortDescription>
+    </video>
   `,
                 },
                 "*",
@@ -296,7 +300,7 @@ describe("Render commas tests", function () {
                 {
                     doenetML: `
     <graph name="graph1" decorative />
-    <graph name="graph2" description="A graph" />
+    <graph name="graph2"><shortDescription>A graph</shortDescription></graph>
   `,
                 },
                 "*",
@@ -405,40 +409,40 @@ describe("Render commas tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <p name="p">1+1 = <answer description="1+1">2</answer></p>
-    <p>1+1 = <answer forceFullCheckWorkButton description="1+1">2</answer></p>
-    <p>hello: <answer type="text" description="hello">hello</answer></p>
-    <p>bye: <answer type="text" forceFullCheckWorkButton description="bye">bye</answer></p>
-    <p>now: <answer type="text" expanded forceFullCheckWorkButton description="now">now</answer></p>
+    <p name="p">1+1 = <answer><shortDescription>1+1</shortDescription>2</answer></p>
+    <p>1+1 = <answer forceFullCheckWorkButton><shortDescription>1+1</shortDescription>2</answer></p>
+    <p>hello: <answer type="text"><shortDescription>hello</shortDescription>hello</answer></p>
+    <p>bye: <answer type="text" forceFullCheckWorkButton><shortDescription>bye</shortDescription>bye</answer></p>
+    <p>now: <answer type="text" expanded forceFullCheckWorkButton><shortDescription>now</shortDescription>now</answer></p>
     <p>Favorite animal:
-        <answer description="Favorite animal">
+        <answer><shortDescription>Favorite animal</shortDescription>
             <choice credit="1">dog</choice>
             <choice>cat</choice>
             <choice>monkey</choice>
         </answer>
     </p>
     <p>Favorite animal:
-        <answer selectMultiple description="Favorite animal">
+        <answer selectMultiple><shortDescription>Favorite animal</shortDescription>
             <choice credit="1">dog</choice>
             <choice>cat</choice>
             <choice>monkey</choice>
         </answer>
     </p>
     <p>Favorite fruit:
-        <answer inline description="Favorite fruit">
+        <answer inline><shortDescription>Favorite fruit</shortDescription>
             <choice credit="1">apple</choice>
             <choice>banana</choice>
             <choice>grape</choice>
         </answer>
     </p>
     <p>Favorite fruit:
-        <answer inline selectMultiple description="Favorite fruit">
+        <answer inline selectMultiple><shortDescription>Favorite fruit</shortDescription>
             <choice credit="1">apple</choice>
             <choice>banana</choice>
             <choice>grape</choice>
         </answer>
     </p>
-    <p><answer type="boolean" description="yes">true</answer></p>
+    <p><answer type="boolean"><shortDescription>yes</shortDescription>true</answer></p>
 
 
   `,
@@ -573,39 +577,39 @@ describe("Render commas tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <p name="p"><mathInput description="1+1"></mathInput></p>
-    <p><textInput description="hello"></textInput></p>
-    <p><textInput expanded description="now"></textInput></p>
+    <p name="p"><mathInput><shortDescription>1+1</shortDescription></mathInput></p>
+    <p><textInput><shortDescription>hello</shortDescription></textInput></p>
+    <p><textInput expanded><shortDescription>now</shortDescription></textInput></p>
     <p>
-        <choiceInput description="Favorite animal">
+        <choiceInput><shortDescription>Favorite animal</shortDescription>
             <choice>dog</choice>
             <choice>cat</choice>
             <choice>monkey</choice>
         </choiceInput>
     </p>
     <p>
-        <choiceInput selectMultiple description="Favorite animal">
+        <choiceInput selectMultiple><shortDescription>Favorite animal</shortDescription>
             <choice>dog</choice>
             <choice>cat</choice>
             <choice>monkey</choice>
         </choiceInput>
     </p>
     <p>
-        <choiceInput inline description="Favorite fruit">
+        <choiceInput inline><shortDescription>Favorite fruit</shortDescription>
             <choice>apple</choice>
             <choice>banana</choice>
             <choice>grape</choice>
         </choiceInput>
     </p>
     <p>
-        <choiceInput inline selectMultiple description="Favorite fruit">
+        <choiceInput inline selectMultiple><shortDescription>Favorite fruit</shortDescription>
             <choice>apple</choice>
             <choice>banana</choice>
             <choice>grape</choice>
         </choiceInput>
     </p>
-    <p><booleanInput description="yes"></booleanInput></p>
-    <p><matrixInput description="A"></matrixInput></p>
+    <p><booleanInput><shortDescription>yes</shortDescription></booleanInput></p>
+    <p><matrixInput><shortDescription>A</shortDescription></matrixInput></p>
 
   `,
                 },
@@ -881,7 +885,9 @@ describe("Render commas tests", function () {
                 {
                     doenetML: `
     <figure name="fig1">
-        <image source="http://mathinsight.org/media/image/image/giant_anteater.jpg" description="anteater" />
+        <image source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
+            <shortDescription>anteater</shortDescription>
+        </image>
         <caption>A giant anteater</caption>
     </figure>`,
                 },
