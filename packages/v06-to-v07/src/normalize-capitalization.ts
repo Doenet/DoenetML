@@ -122,7 +122,8 @@ export const correctElementCapitalization: Plugin<
 };
 
 /**
- * Normalize the capitalization the value of the componentType attribute, which contain recognized DoenetML elements.
+ * Normalize the capitalization of the value of the componentType attribute, which contain recognized DoenetML elements.
+ * e.g. `<foo componentType="mathinput" />` should become `<foo componentType="mathInput" />`
  */
 export const correctComponentTypesAttributeCapitalization: Plugin<
     [],
