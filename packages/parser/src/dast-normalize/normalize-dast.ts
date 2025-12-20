@@ -215,6 +215,7 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                     break;
                 case "image":
                 case "graph":
+                case "answer":
                 case "mathInput":
                 case "textInput":
                 case "booleanInput":
