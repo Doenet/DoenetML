@@ -8,6 +8,7 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { DescriptionPopover } from "./utils/Description";
 
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
@@ -104,7 +105,14 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         );
     }
 
-    const description = SVs.description || undefined;
+    const shortDescription = SVs.shortDescription || undefined;
+
+    const descriptionChild =
+        SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
+
+    const description = descriptionChild && (
+        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
+    );
 
     if (SVs.inline) {
         let selectStyle: React.CSSProperties = {};
@@ -149,30 +157,39 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
         // inline="true"
         return (
-            <React.Fragment>
-                <label
-                    style={{ display: "inline-flex", maxWidth: "100%" }}
-                    id={id + "-label"}
-                >
-                    {label}
-                    <select
-                        className="custom-select"
-                        id={id}
-                        onChange={onChangeHandler}
-                        value={"" + selectValue}
-                        disabled={disabled}
-                        multiple={SVs.selectMultiple}
-                        style={selectStyle}
-                        aria-label={description}
+            <span
+                style={{ display: "inline-flex", alignItems: "start" }}
+                id={id + "-container"}
+            >
+                <span style={{ display: "inline-flex", alignItems: "center" }}>
+                    <label
+                        style={{
+                            display: "inline-flex",
+                            maxWidth: "100%",
+                        }}
+                        id={id + "-label"}
                     >
-                        <option hidden={true} value="">
-                            {SVs.placeHolder}
-                        </option>
-                        {optionsList}
-                    </select>
-                </label>
-                {checkWorkComponent}
-            </React.Fragment>
+                        {label}
+                        <select
+                            className="custom-select"
+                            id={id}
+                            onChange={onChangeHandler}
+                            value={"" + selectValue}
+                            disabled={disabled}
+                            multiple={SVs.selectMultiple}
+                            style={selectStyle}
+                            aria-label={shortDescription}
+                        >
+                            <option hidden={true} value="">
+                                {SVs.placeHolder}
+                            </option>
+                            {optionsList}
+                        </select>
+                    </label>
+                    {checkWorkComponent}
+                </span>
+                {description}
+            </span>
         );
     } else {
         let checkWorkComponent = createCheckWorkComponent(
@@ -186,6 +203,8 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         let inputKey = id;
         let listStyle = {
             listStyleType: "none",
+            marginTop: label ? "10px" : "0px",
+            marginBottom: checkWorkComponent ? "10px" : "0px",
         };
 
         let keyBeginning = inputKey + "_choice";
@@ -196,10 +215,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
         let svData = SVs;
 
-        children = children.filter((child) => child !== null);
+        const choiceChildren = SVs.choiceChildIndices.map(
+            (ind: number) => children[ind],
+        );
 
         let choiceDoenetTags = (SVs.choiceOrder as number[])
-            .map((v) => children[v - 1])
+            .map((v) => choiceChildren[v - 1])
             .map(function (child, i) {
                 if (svData.choicesHidden[i]) {
                     return null;
@@ -214,7 +235,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                         radioClassName += " radio-checkmark-disabled";
                     }
                     return (
-                        <li>
+                        <li key={i}>
                             <label
                                 className={containerClassName}
                                 key={inputKey + "_choice" + (i + 1)}
@@ -251,7 +272,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                         checkboxClassName += " checkbox-checkmark-disabled";
                     }
                     return (
-                        <li>
+                        <li key={i}>
                             <label
                                 className={containerClassName}
                                 key={inputKey + "_choice" + (i + 1)}
@@ -283,12 +304,15 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             });
 
         return (
-            <div id={inputKey + "-label"}>
+            <div id={inputKey + "-label"} style={{ margin: "16px 0" }}>
                 {label}
                 <ul id={inputKey} style={listStyle}>
                     {choiceDoenetTags}
                 </ul>
-                {checkWorkComponent}
+                <span style={{ display: "inline-flex", alignItems: "start" }}>
+                    {checkWorkComponent}
+                    {description}
+                </span>
             </div>
         );
     }

@@ -1255,10 +1255,10 @@ d
             cy.get(cesc("#answer15_button")).should("contain.text", "Correct");
             cy.get(cesc("#answer16_button")).should("contain.text", "Correct");
 
-            cy.get(cesc("#_id_" + inputIndices[16])).click();
-            cy.get(cesc("#_id_" + inputIndices[17])).click();
-            cy.get(cesc("#_id_" + inputIndices[18])).click();
-            cy.get(cesc("#_id_" + inputIndices[19])).click();
+            cy.get(cesc("#_id_" + inputIndices[16]) + "-label").click();
+            cy.get(cesc("#_id_" + inputIndices[17]) + "-label").click();
+            cy.get(cesc("#_id_" + inputIndices[18]) + "-label").click();
+            cy.get(cesc("#_id_" + inputIndices[19]) + "-label").click();
             cy.get(cesc("#_id_" + inputIndices[16]) + "_button").click();
             cy.get(cesc("#_id_" + inputIndices[17]) + "_button").click();
             cy.get(cesc("#answer19_button")).click();
@@ -1391,10 +1391,10 @@ d
                 "Incorrect",
             );
 
-            cy.get(cesc("#_id_" + inputIndices[16])).click();
-            cy.get(cesc("#_id_" + inputIndices[17])).click();
-            cy.get(cesc("#_id_" + inputIndices[18])).click();
-            cy.get(cesc("#_id_" + inputIndices[19])).click();
+            cy.get(cesc("#_id_" + inputIndices[16]) + "-label").click();
+            cy.get(cesc("#_id_" + inputIndices[17]) + "-label").click();
+            cy.get(cesc("#_id_" + inputIndices[18]) + "-label").click();
+            cy.get(cesc("#_id_" + inputIndices[19]) + "-label").click();
             cy.get(cesc("#_id_" + inputIndices[16]) + "_button").click();
             cy.get(cesc("#_id_" + inputIndices[17]) + "_button").click();
             cy.get(cesc("#answer19_button")).click();
@@ -1531,11 +1531,11 @@ d
                 "Incorrect",
             );
 
-            cy.get(cesc("#_id_" + inputIndices[16])).click();
+            cy.get(cesc("#_id_" + inputIndices[16]) + "-label").click();
             cy.get(cesc("#_id_" + inputIndices[17]) + "_input").should(
                 "be.disabled",
             );
-            cy.get(cesc("#_id_" + inputIndices[18])).click();
+            cy.get(cesc("#_id_" + inputIndices[18]) + "-label").click();
             cy.get(cesc("#_id_" + inputIndices[19]) + "_input").should(
                 "be.disabled",
             );
@@ -1889,10 +1889,10 @@ d
             cy.get(cesc("#answer15_button")).should("contain.text", "Correct");
             cy.get(cesc("#answer16_button")).should("contain.text", "Correct");
 
-            cy.get(cesc("#_id_" + inputIndices[16])).click();
-            cy.get(cesc("#_id_" + inputIndices[17])).click();
-            cy.get(cesc("#_id_" + inputIndices[18])).click();
-            cy.get(cesc("#_id_" + inputIndices[19])).click();
+            cy.get(cesc("#_id_" + inputIndices[16]) + "-label").click();
+            cy.get(cesc("#_id_" + inputIndices[17]) + "-label").click();
+            cy.get(cesc("#_id_" + inputIndices[18]) + "-label").click();
+            cy.get(cesc("#_id_" + inputIndices[19]) + "-label").click();
             cy.get(cesc("#_id_" + inputIndices[16]) + "_button").click();
             cy.get(cesc("#_id_" + inputIndices[17]) + "_button").click();
             cy.get(cesc("#answer19_button")).click();
@@ -2015,11 +2015,11 @@ d
             );
             cy.get(cesc("#answer16_button")).should("contain.text", "Correct");
 
-            cy.get(cesc("#_id_" + inputIndices[16])).click();
+            cy.get(cesc("#_id_" + inputIndices[16]) + "-label").click();
             cy.get(cesc("#_id_" + inputIndices[17]) + "_input").should(
                 "be.disabled",
             );
-            cy.get(cesc("#_id_" + inputIndices[18])).click();
+            cy.get(cesc("#_id_" + inputIndices[18]) + "-label").click();
             cy.get(cesc("#_id_" + inputIndices[19]) + "_input").should(
                 "be.disabled",
             );
@@ -3152,5 +3152,226 @@ d
         });
 
         cy.get("#ans_button").should("contain.text", "Incorrect");
+    });
+
+    it("with description, math", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <answer name="ans">
+        x
+        <shortDescription>Enter something</shortDescription>
+        <description>
+            <p>Type what you like.</p>
+            <p>Including math: <m name="m">x^2+1</m></p>
+        </description>
+    </answer>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans [data-test='Description Button']").should("be.visible");
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#m").should("not.be.visible");
+        cy.get("#ans [data-test='Description Button']").click();
+
+        cy.get("#ans [data-test='Description']").should(
+            "contain.text",
+            "Type what you like.",
+        );
+
+        cy.get("#m").should("have.text", toMathJaxString("x2+1"));
+
+        cy.get("#ans textarea").focus();
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#m").should("not.be.visible");
+    });
+
+    it("with description, text", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <answer name="ans" type="text">
+        x
+        <shortDescription>Enter something</shortDescription>
+        <description>
+            <p>Type what you like.</p>
+        </description>
+    </answer>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans [data-test='Description Button']").should("be.visible");
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#ans [data-test='Description Button']").click();
+
+        cy.get("#ans [data-test='Description']").should(
+            "contain.text",
+            "Type what you like.",
+        );
+
+        cy.get("#ans input").focus();
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+    });
+
+    it("with description, boolean", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <answer name="ans" type="boolean">
+        true
+        <shortDescription>Click something</shortDescription>
+        <description>
+            <p>Click when you like.</p>
+        </description>
+    </answer>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans [data-test='Description Button']").should("be.visible");
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#ans [data-test='Description Button']").click();
+
+        cy.get("#ans [data-test='Description']").should(
+            "contain.text",
+            "Click when you like.",
+        );
+
+        cy.get("#ans input").focus();
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+    });
+
+    it("with description, choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <answer name="ans">
+        <shortDescription>Select something</shortDescription>
+        <choice>a</choice>
+        <choice>b</choice>
+        <description>
+            <p>Select what you like.</p>
+        </description>
+    </answer>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans [data-test='Description Button']").should("be.visible");
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#ans [data-test='Description Button']").click();
+
+        cy.get("#ans [data-test='Description']").should(
+            "contain.text",
+            "Select what you like.",
+        );
+
+        cy.get("#ans input").eq(0).focus();
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+    });
+
+    it("with description, choices, inline", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <answer name="ans" inline>
+        <shortDescription>Select something</shortDescription>
+        <choice>a</choice>
+        <choice>b</choice>
+        <description>
+            <p>Select what you like.</p>
+        </description>
+    </answer>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans [data-test='Description Button']").should("be.visible");
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#ans [data-test='Description Button']").click();
+
+        cy.get("#ans [data-test='Description']").should(
+            "contain.text",
+            "Select what you like.",
+        );
+
+        cy.get("#ans select").focus();
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+    });
+
+    it("with description, full answer button", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <answer name="ans" inline>
+        <shortDescription>Click something</shortDescription>
+        <award><when>true</when></award>
+        <description>
+            <p>Click when you like.</p>
+        </description>
+    </answer>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans [data-test='Description Button']").should("be.visible");
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#ans [data-test='Description Button']").click();
+
+        cy.get("#ans [data-test='Description']").should(
+            "contain.text",
+            "Click when you like.",
+        );
+
+        cy.get("#ans_button").focus();
+        cy.get("#ans [data-test='Description']").should("not.be.visible");
+    });
+
+    it("without description, full answer button", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <answer name="ans" inline>
+        <shortDescription>Click something</shortDescription>
+        <award><when>true</when></award>
+    </answer>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans_button").should("be.visible");
+
+        cy.get("#ans [data-test='Description Button']").should("not.exist");
+        cy.get("#ans [data-test='Description']").should("not.exist");
     });
 });

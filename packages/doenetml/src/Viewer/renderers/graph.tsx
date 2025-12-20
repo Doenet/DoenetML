@@ -9,6 +9,7 @@ import JXG from "jsxgraph";
 // import JXG from './jsxgraph';
 import { cesc } from "@doenet/utils";
 import { JXGBoard, JXGObject } from "./jsxgraph-distrib/types";
+import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 
 export const BoardContext = createContext<JXGBoard | null>();
 
@@ -183,13 +184,18 @@ export default React.memo(function Graph(props) {
         }
     }, [board]);
 
+    const graphicalChildren = [...children];
+    if (SVs.descriptionChildInd !== -1) {
+        graphicalChildren.splice(SVs.descriptionChildInd, 1);
+    }
+
     if (SVs.haveGraphParent) {
         // have have graph parent, then don't render graph
         // but just render children so that will be inside parent graph
         return (
             <>
                 <span id={id} />
-                {children}
+                {graphicalChildren}
             </>
         );
     }
@@ -201,13 +207,20 @@ export default React.memo(function Graph(props) {
     };
 
     let outerStyle = {};
+    let innerStyle = {};
 
     if (SVs.hidden) {
         divStyle.display = "none";
     } else if (SVs.displayMode === "inline") {
         outerStyle = { display: "inline-block", verticalAlign: "middle" };
+        innerStyle = {
+            display: "inline-flex",
+            alignItems: "start",
+            width: "100%",
+        };
     } else {
         outerStyle = { display: "flex", justifyContent: SVs.horizontalAlign };
+        innerStyle = { width: "100%" };
     }
 
     if (SVs.showBorder) {
@@ -220,7 +233,7 @@ export default React.memo(function Graph(props) {
     divStyle.backgroundColor = "var(--canvas)";
     divStyle.color = "var(--canvasText)";
 
-    let ariaLabel: string | undefined = SVs.description;
+    let ariaLabel: string | undefined = SVs.shortDescription;
     let role: string | undefined = "img";
     let ariaHidden = false;
     if (SVs.decorative) {
@@ -231,15 +244,17 @@ export default React.memo(function Graph(props) {
 
     if (!board) {
         return (
-            <div style={outerStyle} ref={ref}>
-                <div
-                    id={`${id}-description`}
-                    aria-label={ariaLabel}
-                    role={role}
-                    aria-hidden={ariaHidden}
-                    style={{ width: "100%" }}
-                >
-                    <div id={id} className="jxgbox" style={divStyle} />
+            <div style={outerStyle} ref={ref} id={`${id}-container`}>
+                <div>
+                    <div
+                        id={`${id}-description`}
+                        aria-label={ariaLabel}
+                        role={role}
+                        aria-hidden={ariaHidden}
+                        style={{ width: "100%", display: "block" }}
+                    >
+                        <div id={id} className="jxgbox" style={divStyle} />
+                    </div>
                 </div>
             </div>
         );
@@ -454,19 +469,33 @@ export default React.memo(function Graph(props) {
         }
     }
 
+    const descriptionChild =
+        SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
+
+    const description =
+        descriptionChild &&
+        (SVs.displayMode === "inline" ? (
+            <DescriptionPopover>{descriptionChild}</DescriptionPopover>
+        ) : (
+            <DescriptionAsDetails>{descriptionChild}</DescriptionAsDetails>
+        ));
+
     return (
-        <div style={outerStyle} ref={ref}>
-            <div
-                id={`${id}-description`}
-                aria-label={ariaLabel}
-                role={role}
-                aria-hidden={ariaHidden}
-                style={{ width: "100%" }}
-            >
-                <div id={id} className="jxgbox" style={divStyle} />
-                <BoardContext.Provider value={board}>
-                    {children}
-                </BoardContext.Provider>
+        <div style={outerStyle} ref={ref} id={`${id}-container`}>
+            <div style={innerStyle}>
+                <div
+                    id={`${id}-description`}
+                    aria-label={ariaLabel}
+                    role={role}
+                    aria-hidden={ariaHidden}
+                    style={{ width: "100%" }}
+                >
+                    <div id={id} className="jxgbox" style={divStyle} />
+                    <BoardContext.Provider value={board}>
+                        {graphicalChildren}
+                    </BoardContext.Provider>
+                </div>
+                {description}
             </div>
         </div>
     );

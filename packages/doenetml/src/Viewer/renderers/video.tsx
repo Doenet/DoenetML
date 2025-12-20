@@ -7,10 +7,11 @@ import React, { useRef, useEffect } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 import "./video.css";
 
 export default React.memo(function Video(props) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
 
     let player = useRef(null);
     let postSkipTime = useRef(null);
@@ -434,12 +435,17 @@ export default React.memo(function Video(props) {
     if (SVs.hidden) return null;
 
     let outerStyle = {};
+    let innerStyle = {};
 
     if (SVs.displayMode === "inline") {
         outerStyle = {
             display: "inline-block",
             verticalAlign: "middle",
             margin: "12px 0",
+        };
+        innerStyle = {
+            display: "inline-flex",
+            alignItems: "start",
         };
     } else {
         outerStyle = {
@@ -457,7 +463,18 @@ export default React.memo(function Video(props) {
 
     let videoTag;
 
-    const description = SVs.description || undefined;
+    const shortDescription = SVs.shortDescription || undefined;
+
+    // description will be the one non-null child
+    const descriptionChild = children.find((child) => child);
+
+    const description =
+        descriptionChild &&
+        (SVs.displayMode === "inline" ? (
+            <DescriptionPopover>{descriptionChild}</DescriptionPopover>
+        ) : (
+            <DescriptionAsDetails>{descriptionChild}</DescriptionAsDetails>
+        ));
 
     if (SVs.youtube) {
         videoTag = (
@@ -470,7 +487,7 @@ export default React.memo(function Video(props) {
                     "?enablejsapi=1&rel=0"
                 }
                 allow="autoplay; fullscreen"
-                title={description}
+                title={shortDescription}
             />
         );
     } else if (SVs.source) {
@@ -480,7 +497,7 @@ export default React.memo(function Video(props) {
                 id={id}
                 controls
                 style={videoStyle}
-                title={description}
+                title={shortDescription}
             >
                 <source
                     src={SVs.source}
@@ -501,11 +518,14 @@ export default React.memo(function Video(props) {
         <div
             tabIndex="0"
             style={outerStyle}
-            id={id + "_outer"}
+            id={`${id}-container`}
             ref={ref}
             className="video"
         >
-            {videoTag}
+            <div style={innerStyle}>
+                {videoTag}
+                {description}
+            </div>
         </div>
     );
 });

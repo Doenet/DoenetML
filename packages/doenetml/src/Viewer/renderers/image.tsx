@@ -6,12 +6,11 @@ import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import me from "math-expressions";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
+import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 
 export default React.memo(function Image(props) {
-    let { componentIdx, id, SVs, actions, callAction } = useDoenetRenderer(
-        props,
-        false,
-    );
+    let { componentIdx, id, SVs, children, actions, callAction } =
+        useDoenetRenderer(props, false);
     let [url, setUrl] = useState(null);
 
     Image.ignoreActionsWithoutCore = () => true;
@@ -538,12 +537,17 @@ export default React.memo(function Image(props) {
     if (SVs.hidden) return null;
 
     let outerStyle = {};
+    let innerStyle = {};
 
     if (SVs.displayMode === "inline") {
         outerStyle = {
             display: "inline-block",
             verticalAlign: "middle",
             margin: "12px 0",
+        };
+        innerStyle = {
+            display: "inline-flex",
+            alignItems: "start",
         };
     } else {
         outerStyle = {
@@ -567,24 +571,40 @@ export default React.memo(function Image(props) {
     }
 
     // If image is decorative, it is designated by having set alt="".
-    // If a description is merely missing (which will generate a warning)
+    // If a shortDescription is merely missing (which will generate a warning)
     // then the alt attribute is omitted.
-    const description = SVs.decorative ? "" : SVs.description || undefined;
+    const shortDescription = SVs.decorative
+        ? ""
+        : SVs.shortDescription || undefined;
+
+    // description will be the one non-null child
+    const descriptionChild = children.find((child) => child);
+
+    const description =
+        descriptionChild &&
+        (SVs.displayMode === "inline" ? (
+            <DescriptionPopover>{descriptionChild}</DescriptionPopover>
+        ) : (
+            <DescriptionAsDetails>{descriptionChild}</DescriptionAsDetails>
+        ));
 
     return (
-        <div style={outerStyle} ref={ref}>
-            {urlOrSource ? (
-                <img
-                    id={id}
-                    src={urlOrSource}
-                    style={imageStyle}
-                    alt={description}
-                />
-            ) : (
-                <div id={id} style={imageStyle}>
-                    {SVs.description}
-                </div>
-            )}
+        <div style={outerStyle} ref={ref} id={`${id}-container`}>
+            <div style={innerStyle}>
+                {urlOrSource ? (
+                    <img
+                        id={id}
+                        src={urlOrSource}
+                        style={imageStyle}
+                        alt={shortDescription}
+                    />
+                ) : (
+                    <div id={id} style={imageStyle}>
+                        {SVs.shortDescription}
+                    </div>
+                )}
+                {description}
+            </div>
         </div>
     );
 });

@@ -246,4 +246,60 @@ describe("MathInput Tag Tests", function () {
             "0px",
         );
     });
+
+    it("with description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="mi">
+        <shortDescription>Enter something</shortDescription>
+        <description>
+            <p>Type what you like.</p>
+            <p>Including math: <m name="m">x^2+1</m></p>
+        </description>
+    </mathInput>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#mi [data-test='Description Button']").should("be.visible");
+        cy.get("#mi [data-test='Description']").should("not.be.visible");
+        cy.get("#m").should("not.be.visible");
+        cy.get("#mi [data-test='Description Button']").click();
+
+        cy.get("#mi [data-test='Description']").should(
+            "contain.text",
+            "Type what you like.",
+        );
+
+        cy.get("#m").should("have.text", toMathJaxString("x2+1"));
+
+        cy.get("#mi textarea").focus();
+        cy.get("#mi [data-test='Description']").should("not.be.visible");
+        cy.get("#m").should("not.be.visible");
+    });
+
+    it("without description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="mi">
+        <shortDescription>Enter something</shortDescription>
+    </mathInput>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#mi").should("be.visible");
+        cy.get("#mi [data-test='Description Button']").should("not.exist");
+        cy.get("#mi [data-test='Description']").should("not.exist");
+    });
 });

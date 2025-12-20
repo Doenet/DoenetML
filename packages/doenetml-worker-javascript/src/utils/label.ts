@@ -12,7 +12,7 @@ export function returnLabelAttributes() {
     };
 }
 
-export function returnWrapNonLabelsSugarFunction({
+export function returnWrapNonLabelsDescriptionsSugarFunction({
     wrappingComponentType,
     createAttributeOfType,
     onlyStringOrMacros = false,
@@ -48,54 +48,76 @@ export function returnWrapNonLabelsSugarFunction({
             return { success: false as const };
         }
 
-        const componentIsLabel = (x: SerializedComponent | string) =>
+        const componentIsLabelOrDescription = (
+            x: SerializedComponent | string,
+        ) =>
             typeof x !== "string" &&
-            componentInfoObjects.componentIsSpecifiedType(x, "label");
-
+            (componentInfoObjects.componentIsSpecifiedType(x, "label") ||
+                componentInfoObjects.componentIsSpecifiedType(
+                    x,
+                    "description",
+                ) ||
+                componentInfoObjects.componentIsSpecifiedType(
+                    x,
+                    "shortDescription",
+                ));
         if (
             onlyStringOrMacros &&
             !matchedChildren.every(
                 (child) =>
                     typeof child === "string" ||
                     (child.extending && "Ref" in child.extending) ||
-                    componentIsLabel(child),
+                    componentIsLabelOrDescription(child),
             )
         ) {
             return { success: false as const };
         }
 
-        // wrap first group of non-label children in wrappingComponentType
+        // wrap first group of non-label/description children in wrappingComponentType
 
-        let childIsLabel = matchedChildren.map(componentIsLabel);
+        let childIsLabelDescription = matchedChildren.map(
+            componentIsLabelOrDescription,
+        );
 
         let childrenToWrap: (string | SerializedComponent)[] = [];
         let childrenToNotWrapBegin: (string | SerializedComponent)[] = [];
         let childrenToNotWrapEnd: (string | SerializedComponent)[] = [];
 
-        if (childIsLabel.filter((x) => x).length === 0) {
+        if (childIsLabelDescription.filter((x) => x).length === 0) {
             childrenToWrap = matchedChildren;
         } else {
-            if (childIsLabel[0]) {
-                // started with label, find first non-label child
-                const firstNonLabelInd = childIsLabel.indexOf(false);
-                if (firstNonLabelInd !== -1) {
+            if (childIsLabelDescription[0]) {
+                // started with label/description, find first non-label/description child
+                const firstNonLabelDescriptionInd =
+                    childIsLabelDescription.indexOf(false);
+                if (firstNonLabelDescriptionInd !== -1) {
                     childrenToNotWrapBegin = matchedChildren.slice(
                         0,
-                        firstNonLabelInd,
+                        firstNonLabelDescriptionInd,
                     );
-                    matchedChildren = matchedChildren.slice(firstNonLabelInd);
-                    childIsLabel = childIsLabel.slice(firstNonLabelInd);
+                    matchedChildren = matchedChildren.slice(
+                        firstNonLabelDescriptionInd,
+                    );
+                    childIsLabelDescription = childIsLabelDescription.slice(
+                        firstNonLabelDescriptionInd,
+                    );
                 }
             }
 
-            // now we don't have label at the beginning
-            // find first label ind
-            const firstLabelInd = childIsLabel.indexOf(true);
-            if (firstLabelInd === -1) {
+            // now we don't have label/description at the beginning
+            // find first label/description ind
+            const firstLabelDescriptionInd =
+                childIsLabelDescription.indexOf(true);
+            if (firstLabelDescriptionInd === -1) {
                 childrenToWrap = matchedChildren;
             } else {
-                childrenToWrap = matchedChildren.slice(0, firstLabelInd);
-                childrenToNotWrapEnd = matchedChildren.slice(firstLabelInd);
+                childrenToWrap = matchedChildren.slice(
+                    0,
+                    firstLabelDescriptionInd,
+                );
+                childrenToNotWrapEnd = matchedChildren.slice(
+                    firstLabelDescriptionInd,
+                );
             }
         }
 

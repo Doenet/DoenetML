@@ -407,4 +407,55 @@ describe("BooleanInput Tag Tests", function () {
             ).eq("Another Input");
         });
     });
+
+    it("with description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <booleanInput name="bi">
+        <shortDescription>Click</shortDescription>
+        <description>
+            <p>Click when you like.</p>
+        </description>
+    </booleanInput>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#bi [data-test='Description Button']").should("be.visible");
+        cy.get("#bi [data-test='Description']").should("not.be.visible");
+        cy.get("#bi [data-test='Description Button']").click();
+
+        cy.get("#bi [data-test='Description']").should(
+            "contain.text",
+            "Click when you like.",
+        );
+
+        cy.get("#bi input").focus();
+        cy.get("#bi [data-test='Description']").should("not.be.visible");
+    });
+
+    it("without description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <booleanInput name="bi">
+        <shortDescription>Click</shortDescription>
+    </booleanInput>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#bi").should("be.visible");
+        cy.get("#bi [data-test='Description Button']").should("not.exist");
+        cy.get("#bi [data-test='Description']").should("not.exist");
+    });
 });

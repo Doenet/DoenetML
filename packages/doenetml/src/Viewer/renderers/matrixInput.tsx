@@ -11,6 +11,7 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { DescriptionPopover } from "./utils/Description";
 
 export default React.memo(function MatrixInput(props) {
     let { id, SVs, actions, children, callAction } = useDoenetRenderer(props);
@@ -163,7 +164,14 @@ export default React.memo(function MatrixInput(props) {
         );
     }
 
-    const description = SVs.description || undefined;
+    const shortDescription = SVs.shortDescription || undefined;
+
+    const descriptionChild =
+        SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
+
+    const description = descriptionChild && (
+        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
+    );
 
     return (
         <React.Fragment>
@@ -171,12 +179,14 @@ export default React.memo(function MatrixInput(props) {
                 style={{
                     display: "inline-flex",
                     margin: "0px 4px 4px 4px",
+                    alignItems: "start",
                 }}
+                id={`${id}-container`}
             >
                 <label style={{ display: "inline-flex", maxWidth: "100%" }}>
                     {label}
                     <div className="matrix-input" id={id}>
-                        <table aria-label={description}>
+                        <table aria-label={shortDescription}>
                             <tbody>{matrixInputs}</tbody>
                         </table>
                     </div>
@@ -185,6 +195,7 @@ export default React.memo(function MatrixInput(props) {
                 {rowNumControls}
                 {colNumControls}
                 {checkWorkComponent}
+                {description}
             </div>
         </React.Fragment>
     );

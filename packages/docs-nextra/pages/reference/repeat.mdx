@@ -28,12 +28,12 @@ The behavior of the ` <repeat>{:dn}` component is similar to a for loop in other
 </numberList>
 
 <graph 
-  description="A graph of rectangles"
   size="small" 
   xmin="-1" 
   xmax="8" 
   ymin="-2" 
   ymax="14">
+    <shortDescription>A graph of rectangles</shortDescription>
     <repeat 
       for="$n" 
       valueName="v" 
@@ -197,7 +197,7 @@ attributes can be used.
 
 <sequence name="s" from="1" to="$n" hide/>
 
-<graph description="A graph of random points">
+<graph><shortDescription>A graph of random points</shortDescription>
   <repeat name="randomPoints" for="$s">
     <point>
       (<sampleRandomNumbers 

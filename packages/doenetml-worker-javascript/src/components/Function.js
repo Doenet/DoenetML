@@ -18,7 +18,7 @@ import {
 } from "../utils/rounding";
 import {
     returnLabelAttributes,
-    returnWrapNonLabelsSugarFunction,
+    returnWrapNonLabelsDescriptionsSugarFunction,
 } from "../utils/label";
 import {
     find_local_global_maxima,
@@ -160,7 +160,7 @@ export default class Function extends InlineComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push({
-            replacementFunction: returnWrapNonLabelsSugarFunction({
+            replacementFunction: returnWrapNonLabelsDescriptionsSugarFunction({
                 wrappingComponentType: "math",
             }),
         });

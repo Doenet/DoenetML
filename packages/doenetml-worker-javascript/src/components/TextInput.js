@@ -3,7 +3,7 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import { returnWrapNonLabelsSugarFunction } from "../utils/label";
+import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import { returnTextPieceStateVariableDefinitions } from "../utils/text";
 import Input from "./abstract/Input";
 
@@ -90,7 +90,7 @@ export default class Textinput extends Input {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push({
-            replacementFunction: returnWrapNonLabelsSugarFunction({
+            replacementFunction: returnWrapNonLabelsDescriptionsSugarFunction({
                 wrappingComponentType: "text",
                 wrapSingleIfNotWrappingComponentType: true,
             }),
@@ -104,6 +104,14 @@ export default class Textinput extends Input {
             {
                 group: "labels",
                 componentTypes: ["label"],
+            },
+            {
+                group: "descriptions",
+                componentTypes: ["description"],
+            },
+            {
+                group: "shortDescriptions",
+                componentTypes: ["shortDescription"],
             },
             {
                 group: "texts",

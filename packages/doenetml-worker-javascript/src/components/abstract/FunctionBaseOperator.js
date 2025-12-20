@@ -5,7 +5,7 @@ import {
     returnSymbolicFunctionFromFormula,
 } from "@doenet/utils";
 import { returnRoundingAttributeComponentShadowing } from "../../utils/rounding";
-import { returnWrapNonLabelsSugarFunction } from "../../utils/label";
+import { returnWrapNonLabelsDescriptionsSugarFunction } from "../../utils/label";
 
 export default class FunctionOperator extends Function {
     static componentType = "_functionOperator";
@@ -14,7 +14,7 @@ export default class FunctionOperator extends Function {
         let sugarInstructions = [];
 
         sugarInstructions.push({
-            replacementFunction: returnWrapNonLabelsSugarFunction({
+            replacementFunction: returnWrapNonLabelsDescriptionsSugarFunction({
                 wrappingComponentType: "math",
                 onlyStringOrMacros: true,
             }),

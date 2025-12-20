@@ -21,9 +21,8 @@ which renders a geometric angle when nested inside a [` <graph>{:dn}`](graph.mdx
 
 
 ```doenet-example
-<graph size="small" xmax="6" ymin="-6"
-  description="A graph of two lines and the angle between them"
->
+<graph size="small" xmax="6" ymin="-6">
+  <shortDescription>A graph of two lines and the angle between them</shortDescription>
   <line name="line1">y = 1/2 x + 4</line>
   <line name="line2">y = -x  - 1</line>
   <angle betweenLines="$line1 $line2" radius="3"/>
@@ -43,9 +42,8 @@ The ` <angle>{:dn}` component is specified by referencing those lines by name wi
 
 
 ```doenet-example
-<graph size="small" xmin="-6" xmax="6" ymin="-6" ymax="6"
-  description="A graph of the angle between three points"
->
+<graph size="small" xmin="-6" xmax="6" ymin="-6" ymax="6">
+  <shortDescription>A graph of the angle between three points</shortDescription>
   <angle through="(5,-3) (0,0) (5,4)"/>
 </graph>
 ```
@@ -63,9 +61,8 @@ Three points define the angle with the `through` attribute.
 
 ```doenet-editor-horiz
 Angle in radians: <mathInput name="userAngle"/>
-<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3"
-  description="A graph of the angle $userAngle"
->
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A graph of the angle $userAngle</shortDescription>
   <angle>$userAngle</angle>
 </graph>
 ```
@@ -83,7 +80,7 @@ This angle is then referenced by name within the opening and closing ` <angle>{:
 
 
 ```doenet-example
-  <graph size="small" description="A graph of an angle with radius set to 5">
+  <graph size="small"><shortDescription>A graph of an angle with radius set to 5</shortDescription>
     <angle degrees="65" radius="5"/>
   </graph>
 ```
@@ -100,7 +97,7 @@ The `radius` attribute is used to change the radius of the angle symbol shown on
 
 
 ```doenet-editor-horiz
-  <graph description="A graph of the angle between three points, demonstrating different options for the reflex angle">
+  <graph><shortDescription>A graph of the angle between three points, demonstrating different options for the reflex angle</shortDescription>
     <point name="A" fixed>(5, -3)</point>
     <point name="B" fixed>(0, 0)</point>
     <point name="C" styleNumber="2">(5, 4)</point>
@@ -134,9 +131,8 @@ points. Try dragging the red square (point C) to observe this difference in beha
 
 
 ```doenet-example
-<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3" 
-  description="A graph of an angle tagged as being in degrees"
->
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3" >
+  <shortDescription>A graph of an angle tagged as being in degrees</shortDescription>
   <angle name="a" inDegrees degrees="30"/>
 </graph>
 The angle <m>a</m> is $a
@@ -155,9 +151,8 @@ copied outside the graph should have units of degrees. Default = "false"; type =
 
 
 ```doenet-example
-<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3"
-  description="A graph of the angle 30 degrees"
->
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A graph of the angle 30 degrees</shortDescription>
   <angle degrees="30"/>
 </graph>
 ```
@@ -174,9 +169,8 @@ The `degrees` attribute specifies the measure of the angle in degrees; type = <e
 
 
 ```doenet-example
-<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3"
-  description="A graph of the angle pi/2 radians"
->
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A graph of the angle pi/2 radians</shortDescription>
   <angle radians="pi/2"/>
 </graph>
 ```
@@ -194,9 +188,8 @@ radians are the default units for angles in DoenetML.
 
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3"
-  description="A graph of the angle through three points"
->
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A graph of the angle through three points</shortDescription>
   <point name="p1">(5, -3)</point>
   <point name="p2">(0, 0)</point>
   <point name="p3">(5, 4)</point>
@@ -216,7 +209,7 @@ The `through` attribute accepts three points through which to construct the angl
 
 
 ```doenet-editor-horiz
-<graph description="A graph of the angle between two lines">
+<graph><shortDescription>A graph of the angle between two lines</shortDescription>
   <point name="A" labelIsName>(-8, 2)</point>
   <point name="B" labelIsName>(-4,-3)</point>
   <point name="C" labelIsName>(6, 4)</point>
@@ -239,7 +232,7 @@ The `betweenLines` attribute accepts two lines to construct the angle between. T
 
 ```doenet-example
 <graph xmin="-3" xmax="3" ymin="-3" ymax="3"
-  description="A graph of a right angle without emphasizeRightAngle set">
+ ><shortDescription>A graph of a right angle without emphasizeRightAngle set</shortDescription>
   
   <angle through="(1,1) (0,0) (-1,1)" />
   <angle betweenLines="$l1 $l2" emphasizeRightAngle="false" styleNumber="2" />
@@ -266,9 +259,8 @@ to negate this default convention. Default = "true", type = <em>boolean</em>.
 
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3"
-  description="A graph of the angle pi/2"
->
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A graph of the angle pi/2</shortDescription>
   <angle name="alpha" radians="pi/2"/>
 </graph>
 <p><c>radians</c> = $alpha.radians</p>
@@ -288,9 +280,8 @@ The above listed ` <angle>{:dn}` attributes are also accessible as properties.
 
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3"
-  description="A graph of the angle pi/2"
->
+<graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>A graph of the angle pi/2</shortDescription>
   <angle name="alpha" radians="pi/2"/>
 </graph>
 <p><c>angle</c> = $alpha.angle</p>

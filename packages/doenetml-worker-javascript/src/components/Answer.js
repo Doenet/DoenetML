@@ -304,11 +304,19 @@ export default class Answer extends InlineComponent {
             let foundResponse = false;
             let foundAward = false;
 
-            const labelChildren = matchedChildren.filter((child) =>
-                componentIsSpecifiedType(child, "label"),
+            const labelDescriptionChildren = matchedChildren.filter(
+                (child) =>
+                    componentIsSpecifiedType(child, "label") ||
+                    componentIsSpecifiedType(child, "description") ||
+                    componentIsSpecifiedType(child, "shortDescription"),
             );
             matchedChildren = matchedChildren.filter(
-                (child) => !componentIsSpecifiedType(child, "label"),
+                (child) =>
+                    !(
+                        componentIsSpecifiedType(child, "label") ||
+                        componentIsSpecifiedType(child, "description") ||
+                        componentIsSpecifiedType(child, "shortDescription")
+                    ),
             );
 
             // remove beginning and ending blank strings from matchedChildren
@@ -487,7 +495,10 @@ export default class Answer extends InlineComponent {
                         type: "serialized",
                         componentType: "choiceInput",
                         componentIdx: nComponents++,
-                        children: [...labelChildren, ...matchedChildren],
+                        children: [
+                            ...labelDescriptionChildren,
+                            ...matchedChildren,
+                        ],
                         attributes: {},
                         doenetAttributes: {},
                         state: {},
@@ -661,7 +672,7 @@ export default class Answer extends InlineComponent {
                         type: "serialized",
                         componentType: inputType,
                         componentIdx: nComponents++,
-                        children: labelChildren,
+                        children: labelDescriptionChildren,
                         attributes: {},
                         doenetAttributes: {},
                         state: {},
@@ -669,7 +680,7 @@ export default class Answer extends InlineComponent {
                     ...newChildren,
                 ];
             } else {
-                newChildren = [...labelChildren, ...newChildren];
+                newChildren = [...labelDescriptionChildren, ...newChildren];
             }
 
             return {
@@ -704,6 +715,14 @@ export default class Answer extends InlineComponent {
             {
                 group: "labels",
                 componentTypes: ["label"],
+            },
+            {
+                group: "descriptions",
+                componentTypes: ["description"],
+            },
+            {
+                group: "shortDescriptions",
+                componentTypes: ["shortDescription"],
             },
         ];
     }
@@ -768,7 +787,7 @@ export default class Answer extends InlineComponent {
                 "allInputChildrenIncludingSugared",
             ],
             additionalStateVariablesDefined: [
-                "inputChildIndices",
+                "inputChildRelativeIndices",
                 "skippedFirstInput",
             ],
             forRenderer: true,
@@ -808,7 +827,7 @@ export default class Answer extends InlineComponent {
                 let inputChildren = [
                     ...dependencyValues.allInputChildrenIncludingSugared,
                 ];
-                let inputChildIndices = [
+                let inputChildRelativeIndices = [
                     ...dependencyValues.allInputChildrenIncludingSugared.keys(),
                 ];
                 let skippedFirstInput = false;
@@ -828,21 +847,107 @@ export default class Answer extends InlineComponent {
                 ) {
                     skippedFirstInput = true;
                     inputChildren = inputChildren.slice(1);
-                    inputChildIndices = inputChildIndices.slice(1);
+                    inputChildRelativeIndices =
+                        inputChildRelativeIndices.slice(1);
                 }
 
                 return {
                     setValue: {
                         inputChildren,
-                        inputChildIndices,
+                        inputChildRelativeIndices,
                         skippedFirstInput,
                     },
                 };
             },
         };
 
+        stateVariableDefinitions.descriptionChildInd = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        descriptionChildInd:
+                            dependencyValues.allChildren.findLastIndex(
+                                (child) =>
+                                    child.componentType === "description",
+                            ),
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.inputChildIndices = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                },
+                skippedFirstInput: {
+                    dependencyType: "stateVariable",
+                    variableName: "skippedFirstInput",
+                },
+            }),
+            definition({ dependencyValues, componentInfoObjects }) {
+                let inputChildIndices = dependencyValues.allChildren
+                    .map((child, ind) =>
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: child.componentType,
+                            baseComponentType: "_input",
+                        })
+                            ? ind
+                            : -1,
+                    )
+                    .filter((ind) => ind !== -1);
+
+                if (dependencyValues.skippedFirstInput) {
+                    inputChildIndices = inputChildIndices.slice(1);
+                }
+                return { setValue: { inputChildIndices } };
+            },
+        };
+
+        stateVariableDefinitions.childIndicesToRender = {
+            returnDependencies: () => ({
+                inputChildIndices: {
+                    dependencyType: "stateVariable",
+                    variableName: "inputChildIndices",
+                },
+                descriptionChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "descriptionChildInd",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                const childIndicesToRender = [
+                    ...dependencyValues.inputChildIndices,
+                ];
+
+                if (dependencyValues.descriptionChildInd !== -1) {
+                    childIndicesToRender.push(
+                        dependencyValues.descriptionChildInd,
+                    );
+                }
+
+                return {
+                    setValue: {
+                        childIndicesToRender,
+                    },
+                };
+            },
+            markStale: () => ({ updateRenderedChildren: true }),
+        };
+
         stateVariableDefinitions.inputChildrenWithValues = {
-            stateVariablesDeterminingDependencies: ["inputChildIndices"],
+            stateVariablesDeterminingDependencies: [
+                "inputChildRelativeIndices",
+            ],
             forRenderer: true,
             returnDependencies: ({ stateValues }) => ({
                 inputChildren: {
@@ -853,7 +958,7 @@ export default class Answer extends InlineComponent {
                         "valueRecordedAtSubmit",
                         "value",
                     ],
-                    childIndices: stateValues.inputChildIndices,
+                    childIndices: stateValues.inputChildRelativeIndices,
                     variablesOptional: true,
                 },
             }),
@@ -1561,7 +1666,9 @@ export default class Answer extends InlineComponent {
                 "awardChildren",
                 "inputUsedIfSubmit",
             ],
-            stateVariablesDeterminingDependencies: ["inputChildIndices"],
+            stateVariablesDeterminingDependencies: [
+                "inputChildRelativeIndices",
+            ],
             returnDependencies: ({ stateValues }) => ({
                 awardChildren: {
                     dependencyType: "child",
@@ -1576,7 +1683,7 @@ export default class Answer extends InlineComponent {
                     dependencyType: "child",
                     childGroups: ["inputs"],
                     variableNames: ["creditAchievedIfSubmit", "value"], // include value so inputs always make dependency values change
-                    childIndices: stateValues.inputChildIndices,
+                    childIndices: stateValues.inputChildRelativeIndices,
                     variablesOptional: true,
                 },
                 numAwardsCredited: {

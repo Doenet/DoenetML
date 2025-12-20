@@ -23,7 +23,7 @@ Its behavior is similar to a for loop in other programming languages.
 
 
 ```doenet-editor-horiz
-<graph size="small" description="A graph of points along an ellipse">
+<graph size="small"><shortDescription>A graph of points along an ellipse</shortDescription>
   <repeatForSequence 
     from="0" 
     to="2pi" 
@@ -80,9 +80,8 @@ using array notation.
 
 
 ```doenet-example
-<graph xmin="-1" xmax="19" ymin="-1" ymax="12" identicalAxisScales
-  description="A graph of pentagons"
->
+<graph xmin="-1" xmax="19" ymin="-1" ymax="12" identicalAxisScales>
+  <shortDescription>A graph of pentagons</shortDescription>
 <repeatForSequence name="shapeGrid" from="3" to="17" step="7" valueName="xC" indexName="i">
   <repeatForSequence from="2" to="10" step="4" valueName="yC">
     <regularPolygon numSides="5" center="($xC, $yC)" styleNumber="$i" filled/>
@@ -105,7 +104,7 @@ over a combination of sequences with different ranges and steps.
   <mathInput name="n"/></p>
 <em>(Note, more than 10 takes some processing time...)</em>
 
-<graph description="A graph of $n random points">
+<graph><shortDescription>A graph of $n random points</shortDescription>
   <repeatForSequence name="randomPoints" from="1" to="$n">
     <point>
       (<sampleRandomNumbers 

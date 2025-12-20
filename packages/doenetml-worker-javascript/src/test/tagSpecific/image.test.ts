@@ -299,7 +299,7 @@ describe("Image tag tests", async () => {
         ).eq("q");
     });
 
-    it("warning if no description specified and decorative is not set", async () => {
+    it("warning if no short description specified and decorative is not set", async () => {
         let { core } = await createTestCore({
             doenetML: `
 <image name="image1" />
@@ -312,11 +312,41 @@ describe("Image tag tests", async () => {
         expect(errorWarnings.warnings.length).eq(1);
 
         expect(errorWarnings.warnings[0].message).contain(
-            `Image must either have a description or be specified as decorative`,
+            `Image must either have a short description or be specified as decorative`,
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(1);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
         expect(errorWarnings.warnings[0].position.end.column).eq(24);
+    });
+
+    it("with description", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><image name="image">
+        <shortDescription>Hi</shortDescription>
+        <description>
+            <p>Hello!</p>
+        </description>
+    </image></p>
+
+     `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("image")].stateValues
+                .childIndicesToRender,
+        ).eqls([1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("image")].activeChildren
+                .length,
+        ).eq(2);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("image")]
+                .activeChildren[1].componentType,
+        ).eq("description");
     });
 });

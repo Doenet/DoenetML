@@ -9,6 +9,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { MathJax } from "better-react-mathjax";
+import { DescriptionPopover } from "./utils/Description";
 
 export default React.memo(function Answer(props: UseDoenetRendererProps) {
     let {
@@ -44,24 +45,16 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         );
     }
 
-    // BADBADBAD: need to redo how getting the input child
-    // without using the internal guts of componentInstructions
-    // is just asking for trouble
+    const inputChildrenToRender = SVs.inputChildIndices.map(
+        (ind: number) => children[ind],
+    );
 
-    let inputChildrenToRender = null;
-    if (SVs.inputChildren.length > 0) {
-        let inputChildNames = SVs.inputChildren.map((x: any) => x.componentIdx);
-        inputChildrenToRender = children.filter(
-            //child might be null or a string
-            (child) =>
-                child &&
-                typeof child !== "string" &&
-                inputChildNames.includes(
-                    // @ts-ignore
-                    child.props.componentInstructions.componentIdx,
-                ),
-        );
-    }
+    const descriptionChild =
+        SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
+
+    const description = descriptionChild && (
+        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
+    );
 
     let answerResponseButton = null;
     if (showAnswerResponseButton) {
@@ -86,7 +79,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         true,
     );
 
-    if (label) {
+    if (label && checkWorkComponent) {
         // if label was not moved via sugar to an input child,
         // then add the label to the check work component
         checkWorkComponent = (
@@ -103,10 +96,18 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
     }
 
     return (
-        <span id={id} style={{ marginBottom: "4px" }}>
+        <span
+            id={id}
+            style={{
+                marginBottom: "4px",
+                display: "inline-flex",
+                alignItems: "start",
+            }}
+        >
             {inputChildrenToRender}
             {checkWorkComponent}
             {answerResponseButton}
+            {description}
         </span>
     );
 });

@@ -1452,7 +1452,7 @@ describe("Answer tag tests", async () => {
     it("warning for sugar with invalid type", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><answer type="bad" name="answer1" description="bad type">x</answer></p>
+  <p><answer type="bad" name="answer1"><shortDescription>bad type</shortDescription>x</answer></p>
   `,
         });
 
@@ -1467,7 +1467,7 @@ describe("Answer tag tests", async () => {
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(6);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(73);
+        expect(errorWarnings.warnings[0].position.end.column).eq(95);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputIdx =
@@ -1494,22 +1494,22 @@ describe("Answer tag tests", async () => {
         const doenetMLs = [
             `
     <answer name="ans">
-        <mathInput description="Enter answer" />
+        <mathInput><shortDescription>Enter answer</shortDescription></mathInput>
         <award><when>$ans</when></award>
     </answer>`,
             `
     <answer name="ans">
-        <mathInput description="Enter answer" />
+        <mathInput><shortDescription>Enter answer</shortDescription></mathInput>
         <award><when>$ans.submittedResponse=5</when></award>
     </answer>`,
             `
     <answer name="ans">
-        <mathInput description="Enter answer" />
+        <mathInput><shortDescription>Enter answer</shortDescription></mathInput>
         <award><when>$ans.submittedResponse1=5</when></award>
     </answer>`,
             `
     <answer name="ans">
-        <mathInput description="Enter answer" />
+        <mathInput><shortDescription>Enter answer</shortDescription></mathInput>
         <award><when>$ans.submittedResponses=5</when></award>
     </answer>`,
         ];
@@ -1595,7 +1595,7 @@ describe("Answer tag tests", async () => {
 
         let doenetML = `
     <answer name="ans">
-        <mathInput description="Enter answer" />
+        <mathInput><shortDescription>Enter answer</shortDescription></mathInput>
         <award><when>$ans.submittedResponse2=5</when></award>
     </answer>`;
 
@@ -6882,7 +6882,7 @@ What is the derivative of <function name="f">x^2</function>?
         ).eqls([true, false, true]);
     });
 
-    it("warning if no description or label when generates input", async () => {
+    it("warning if no short description or label when generates input", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <answer>x</answer>
@@ -6903,25 +6903,25 @@ What is the derivative of <function name="f">x^2</function>?
         expect(errorWarnings.warnings.length).eq(4);
 
         expect(errorWarnings.warnings[0].message).contain(
-            `must have a description or a label`,
+            `must have a short description or a label`,
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
 
         expect(errorWarnings.warnings[1].message).contain(
-            `must have a description or a label`,
+            `must have a short description or a label`,
         );
         expect(errorWarnings.warnings[1].position.start.line).eq(3);
         expect(errorWarnings.warnings[1].position.end.line).eq(3);
 
         expect(errorWarnings.warnings[2].message).contain(
-            `must have a description or a label`,
+            `must have a short description or a label`,
         );
         expect(errorWarnings.warnings[2].position.start.line).eq(4);
         expect(errorWarnings.warnings[2].position.end.line).eq(4);
 
         expect(errorWarnings.warnings[3].message).contain(
-            `must have a description or a label`,
+            `must have a short description or a label`,
         );
         expect(errorWarnings.warnings[3].position.start.line).eq(5);
         expect(errorWarnings.warnings[3].position.end.line).eq(9);
@@ -6977,5 +6977,72 @@ What is the derivative of <function name="f">x^2</function>?
             stateVariables[await resolvePathToNodeIdx("ans")].stateValues
                 .creditAchieved,
         ).eq(1);
+    });
+
+    it("description and label added to sugared input", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><answer name="ans">
+        <award>x</award>
+        <label>Hi</label>
+        <description>
+            <p>Hello!</p>
+        </description>
+    </answer></p>
+
+     `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans")].activeChildren
+                .length,
+        ).eq(2);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans")].activeChildren[0]
+                .componentType,
+        ).eq("mathInput");
+
+        const mathInputIdx =
+            stateVariables[await resolvePathToNodeIdx("ans")].activeChildren[0]
+                .componentIdx;
+
+        expect(stateVariables[mathInputIdx].activeChildren.length).eq(2);
+        expect(stateVariables[mathInputIdx].activeChildren[0].componentType).eq(
+            "label",
+        );
+        expect(stateVariables[mathInputIdx].activeChildren[1].componentType).eq(
+            "description",
+        );
+    });
+
+    it("answer sugar is OK reordering children", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><answer name="ans">
+        <label>Hi</label>
+        <award><when>true</when></award>
+        <description>
+            <p>Hello!</p>
+        </description>
+    </answer></p>
+
+     `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans")].activeChildren
+                .length,
+        ).eq(3);
+
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("ans")
+            ].activeChildren.map((child) => child.componentType),
+        ).eqls(["label", "description", "award"]);
     });
 });

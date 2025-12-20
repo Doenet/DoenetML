@@ -9,7 +9,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
-import { returnWrapNonLabelsSugarFunction } from "../utils/label";
+import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import { returnNVariables, roundForDisplay } from "../utils/math";
 
 export default class Line extends GraphicalComponent {
@@ -79,7 +79,7 @@ export default class Line extends GraphicalComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push({
-            replacementFunction: returnWrapNonLabelsSugarFunction({
+            replacementFunction: returnWrapNonLabelsDescriptionsSugarFunction({
                 wrappingComponentType: "math",
                 createAttributeOfType: "equation",
             }),

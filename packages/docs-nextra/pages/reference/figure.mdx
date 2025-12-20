@@ -23,7 +23,9 @@ component which acts as a container for an ` <image/>{:dn}` or ` <video/>{:dn}`.
 <section>
 <p><lorem generateWords="10"/></p>
   <figure>
-    <image size="tiny" source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg" description="a black and white engraving of the Doric column capital"/>
+    <image size="tiny" source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg">
+      <shortDescription>a black and white engraving of the Doric column capital</shortDescription>
+    </image>
     <caption>Example of the Doric order in greek architecture.</caption>
   </figure>
 <p><lorem generateWords="10"/></p>
@@ -43,7 +45,9 @@ This example illustrates a ` <figure>{:dn}` with a ` <caption>{:dn}` placed with
 
 ```doenet-editor-horiz
 <figure suppressFigureNameInCaption>
-  <image size="large" source="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Sous_la_Tour_Eiffel_1.jpg/640px-Sous_la_Tour_Eiffel_1.jpg" description="a photograph taken from the base of the Eiffel tower looking upwards"/>
+  <image size="large" source="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Sous_la_Tour_Eiffel_1.jpg/640px-Sous_la_Tour_Eiffel_1.jpg">
+    <shortDescription>a photograph taken from the base of the Eiffel tower looking upwards></shortDescription>
+  </image>
   <caption>View from the base of the Eiffel Tower</caption>
 </figure>
 ```
@@ -61,7 +65,9 @@ The `suppressFigureNameInCaption` overrides the default naming convention for ca
 
 ```doenet-editor-horiz
 <figure number="false">
-  <image size="small" source="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Currier_%26_Ives_Brooklyn2.jpg/640px-Currier_%26_Ives_Brooklyn2.jpg" description="An artistic rendering/map of the city of Brookly in 1879"/>
+  <image size="small" source="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Currier_%26_Ives_Brooklyn2.jpg/640px-Currier_%26_Ives_Brooklyn2.jpg">
+    <shortDescription>An artistic rendering/map of the city of Brookly in 1879</shortDescription>
+  </image>
   <caption>Aerial depiction of Brooklyn as it appeared in 1879.</caption>
 </figure>
 ```

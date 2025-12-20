@@ -17,9 +17,10 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import "./textInput.css";
+import { DescriptionPopover } from "./utils/Description";
 
 export default function TextInput(props: UseDoenetRendererProps) {
-    let { id, SVs, actions, ignoreUpdate, callAction } =
+    let { id, SVs, children, actions, ignoreUpdate, callAction } =
         useDoenetRenderer(props);
 
     let width = sizeToCSS(SVs.width);
@@ -570,7 +571,14 @@ export default function TextInput(props: UseDoenetRendererProps) {
         );
     }
 
-    const description = SVs.description || undefined;
+    const shortDescription = SVs.shortDescription || undefined;
+
+    // description will be the one non-null child
+    const descriptionChild = children.find((child) => child);
+
+    const description = descriptionChild && (
+        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
+    );
 
     const inputClass =
         "text-input" + (SVs.disabled ? " text-input-disabled" : "");
@@ -589,7 +597,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     onBlur={handleBlur}
                     onFocus={handleFocus}
                     className={inputClass}
-                    aria-label={description}
+                    aria-label={shortDescription}
                     style={{
                         margin: "0px 4px 4px 4px",
                         color: "var(--canvasText)",
@@ -613,7 +621,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     onBlur={handleBlur}
                     onFocus={handleFocus}
                     className={inputClass}
-                    aria-label={description}
+                    aria-label={shortDescription}
                     style={{
                         margin: "0px 4px 4px 4px",
                         color: "var(--canvasText)",
@@ -630,10 +638,15 @@ export default function TextInput(props: UseDoenetRendererProps) {
         <span
             className="textInputSurroundingBox"
             id={id}
-            style={{ display: "inline-flex", maxWidth: "100%" }}
+            style={{
+                display: "inline-flex",
+                maxWidth: "100%",
+                alignItems: "start",
+            }}
         >
             {input}
             {checkWorkComponent}
+            {description}
         </span>
     );
 }

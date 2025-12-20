@@ -1791,11 +1791,11 @@ describe("TextInput tag tests", async () => {
         await check_items(string);
     });
 
-    it("warning if no description or label", async () => {
+    it("warning if no short description or label", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <textInput />
-                <textInput description="hello" />
+                <textInput><shortDescription>hello</shortDescription></textInput>
                 <textInput><label>hello</label></textInput>
             `,
         });
@@ -1806,9 +1806,39 @@ describe("TextInput tag tests", async () => {
         expect(errorWarnings.warnings.length).eq(1);
 
         expect(errorWarnings.warnings[0].message).contain(
-            `must have a description or a label`,
+            `must have a short description or a label`,
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
+    });
+
+    it("with description", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><textInput name="ti">
+        <label>Hi</label>
+        <description>
+            <p>Hello!</p>
+        </description>
+    </textInput></p>
+
+     `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .childIndicesToRender,
+        ).eqls([1]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].activeChildren
+                .length,
+        ).eq(2);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].activeChildren[1]
+                .componentType,
+        ).eq("description");
     });
 });

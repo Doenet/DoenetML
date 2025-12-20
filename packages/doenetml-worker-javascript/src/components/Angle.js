@@ -6,7 +6,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
-import { returnWrapNonLabelsSugarFunction } from "../utils/label";
+import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 
 export default class Angle extends GraphicalComponent {
     static componentType = "angle";
@@ -73,7 +73,7 @@ export default class Angle extends GraphicalComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push({
-            replacementFunction: returnWrapNonLabelsSugarFunction({
+            replacementFunction: returnWrapNonLabelsDescriptionsSugarFunction({
                 wrappingComponentType: "math",
                 createAttributeOfType: "radians",
             }),

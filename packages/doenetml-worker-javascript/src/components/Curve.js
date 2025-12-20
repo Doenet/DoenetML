@@ -8,7 +8,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
-import { returnWrapNonLabelsSugarFunction } from "../utils/label";
+import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 
 export default class Curve extends GraphicalComponent {
     constructor(args) {
@@ -200,7 +200,7 @@ export default class Curve extends GraphicalComponent {
         };
 
         sugarInstructions.push({
-            replacementFunction: returnWrapNonLabelsSugarFunction({
+            replacementFunction: returnWrapNonLabelsDescriptionsSugarFunction({
                 onlyStringOrMacros: true,
                 customWrappingFunction: breakIntoFunctionsByCommas,
             }),

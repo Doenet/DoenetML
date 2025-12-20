@@ -89,24 +89,6 @@ export default class Choiceinput extends Input {
             forRenderer: true,
         };
 
-        attributes.submitLabel = {
-            createComponentOfType: "text",
-            createStateVariable: "submitLabel",
-            defaultValue: "Check Work",
-            public: true,
-            forRenderer: true,
-            fallBackToParentStateVariable: "submitLabel",
-        };
-
-        attributes.submitLabelNoCorrectness = {
-            createComponentOfType: "text",
-            createStateVariable: "submitLabelNoCorrectness",
-            defaultValue: "Submit Response",
-            public: true,
-            forRenderer: true,
-            fallBackToParentStateVariable: "submitLabelNoCorrectness",
-        };
-
         return attributes;
     }
 
@@ -115,6 +97,14 @@ export default class Choiceinput extends Input {
             {
                 group: "labels",
                 componentTypes: ["label"],
+            },
+            {
+                group: "descriptions",
+                componentTypes: ["description"],
+            },
+            {
+                group: "shortDescriptions",
+                componentTypes: ["shortDescription"],
             },
             {
                 group: "choices",
@@ -1433,22 +1423,67 @@ export default class Choiceinput extends Input {
             },
         };
 
+        stateVariableDefinitions.descriptionChildInd = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        descriptionChildInd:
+                            dependencyValues.allChildren.findLastIndex(
+                                (child) =>
+                                    child.componentType === "description",
+                            ),
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.choiceChildIndices = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        choiceChildIndices: dependencyValues.allChildren
+                            .map((child, ind) =>
+                                child.componentType === "choice" ? ind : -1,
+                            )
+                            .filter((ind) => ind !== -1),
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.childIndicesToRender = {
             returnDependencies: () => ({
                 children: {
                     dependencyType: "child",
-                    childGroups: ["labels", "choices"],
+                    includeAllChildren: true,
                 },
                 inline: {
                     dependencyType: "stateVariable",
                     variableName: "inline",
                 },
+                descriptionChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "descriptionChildInd",
+                },
             }),
             definition: function ({ dependencyValues }) {
-                if (dependencyValues.inline) {
-                    return { setValue: { childIndicesToRender: [] } };
-                } else {
-                    const childIndicesToRender = [];
+                const childIndicesToRender = [];
+
+                if (!dependencyValues.inline) {
                     for (const [
                         ind,
                         child,
@@ -1457,13 +1492,21 @@ export default class Choiceinput extends Input {
                             childIndicesToRender.push(ind);
                         }
                     }
-                    return {
-                        setValue: {
-                            childIndicesToRender,
-                        },
-                    };
                 }
+
+                if (dependencyValues.descriptionChildInd !== -1) {
+                    childIndicesToRender.push(
+                        dependencyValues.descriptionChildInd,
+                    );
+                }
+
+                return {
+                    setValue: {
+                        childIndicesToRender,
+                    },
+                };
             },
+            markStale: () => ({ updateRenderedChildren: true }),
         };
 
         return stateVariableDefinitions;

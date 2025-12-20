@@ -3786,7 +3786,7 @@ describe("Ray Tag Tests", function () {
     it("warnings", async () => {
         let { core } = await createTestCore({
             doenetML: `
-<graph description="A graph with warnings">
+<graph><shortDescription>A graph with warnings</shortDescription>
     <ray through="(1,2)" endpoint="(3,4)" direction="(5,6)" name="ray1" />
     <ray through="(1,2)" endpoint="(3,4,5)" name="ray2" />
     <ray through="(1,2)" direction="(3,4,5)" name="ray3" />
