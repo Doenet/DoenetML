@@ -25,6 +25,8 @@ export default class Video extends BlockComponent {
     }
     static componentType = "video";
 
+    static renderChildren = true;
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -59,13 +61,6 @@ export default class Video extends BlockComponent {
             forRenderer: true,
             public: true,
         };
-        attributes.description = {
-            createComponentOfType: "text",
-            createStateVariable: "description",
-            defaultValue: "",
-            public: true,
-            forRenderer: true,
-        };
 
         attributes.youtube = {
             createComponentOfType: "text",
@@ -85,8 +80,79 @@ export default class Video extends BlockComponent {
         return attributes;
     }
 
+    static returnChildGroups() {
+        return [
+            {
+                group: "shortDescriptions",
+                componentTypes: ["shortDescription"],
+            },
+            {
+                group: "descriptions",
+                componentTypes: ["description"],
+            },
+        ];
+    }
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        stateVariableDefinitions.shortDescription = {
+            forRenderer: true,
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                shortDescriptionChild: {
+                    dependencyType: "child",
+                    childGroups: ["shortDescriptions"],
+                    variableNames: ["text"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                let shortDescription = "";
+                const warnings = [];
+                if (dependencyValues.shortDescriptionChild.length > 0) {
+                    const shortDescriptionChild =
+                        dependencyValues.shortDescriptionChild[
+                            dependencyValues.shortDescriptionChild.length - 1
+                        ];
+
+                    shortDescription = shortDescriptionChild.stateValues.text;
+                } else {
+                    warnings.push({
+                        level: 1,
+                        message: "Video must have a short description.",
+                    });
+                }
+
+                return {
+                    setValue: { shortDescription },
+                    sendWarnings: warnings,
+                };
+            },
+        };
+
+        stateVariableDefinitions.childIndicesToRender = {
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                const descriptionIdx =
+                    dependencyValues.allChildren.findLastIndex(
+                        (child) => child.componentType === "description",
+                    );
+
+                const childIndicesToRender =
+                    descriptionIdx === -1 ? [] : [descriptionIdx];
+
+                return { setValue: { childIndicesToRender } };
+            },
+            markStale: () => ({ updateRenderedChildren: true }),
+        };
 
         stateVariableDefinitions.size = {
             public: true,

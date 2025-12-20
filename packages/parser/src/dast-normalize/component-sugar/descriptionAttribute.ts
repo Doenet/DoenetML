@@ -7,6 +7,7 @@ export function descriptionAttributeSugar(node: DastElement) {
     if (
         ![
             "image",
+            "video",
             "graph",
             "answer",
             "mathInput",
@@ -18,7 +19,7 @@ export function descriptionAttributeSugar(node: DastElement) {
     ) {
         // This should be unreachable
         throw Error(
-            "Description attribute sugar can only be applied to an `<image>`, `<graph>`, `<answer>` or `<*Input>`.",
+            "Description attribute sugar can only be applied to an `<image>`, `<video>`, `<graph>`, `<answer>` or `<*Input>`.",
         );
     }
 

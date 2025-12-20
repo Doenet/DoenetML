@@ -112297,12 +112297,6 @@
                         "right"
                     ]
                 },
-                "description": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "youtube": {
                     "optional": true,
                     "type": [
@@ -112316,7 +112310,14 @@
                     ]
                 }
             },
-            "children": [],
+            "children": [
+                {
+                    "ref": "shortDescription"
+                },
+                {
+                    "ref": "description"
+                }
+            ],
             "textChildrenAllowed": false,
             "properties": [
                 {
@@ -112355,11 +112356,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "description",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
                     "name": "youtube",
                     "type": "text",
                     "isArray": false
@@ -112391,6 +112387,11 @@
                 },
                 {
                     "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "shortDescription",
                     "type": "text",
                     "isArray": false
                 },

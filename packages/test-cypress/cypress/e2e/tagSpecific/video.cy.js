@@ -445,4 +445,139 @@ describe("Video Tag Tests", function () {
             });
         });
     }
+
+    it("with description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <video name="video" source="https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-MP4-Video-File-for-Testing.mp4">
+        <shortDescription>A video</shortDescription>
+        <description>
+            <p>An earth video.</p>
+        </description>
+    </video>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#video-container [data-test='Description']").should(
+            "not.have.attr",
+            "open",
+        );
+        cy.get("#video-container [data-test='Description Summary']").click();
+
+        cy.get("#video-container [data-test='Description']").should(
+            "have.attr",
+            "open",
+        );
+
+        cy.get("#video-container [data-test='Description']").should(
+            "contain.text",
+            "An earth video.",
+        );
+
+        cy.get("#video").click();
+        cy.get("#video-container [data-test='Description']").should(
+            "have.attr",
+            "open",
+        );
+
+        cy.get("#video-container [data-test='Description Summary']").click();
+
+        cy.get("#video-container [data-test='Description']").should(
+            "not.have.attr",
+            "open",
+        );
+    });
+
+    it("with description, inline", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <video name="video" displayMode="inline" source="https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-MP4-Video-File-for-Testing.mp4">
+        <shortDescription>A video</shortDescription>
+        <description>
+            <p>An earth video.</p>
+        </description>
+    </video>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#video-container [data-test='Description Button']").should(
+            "be.visible",
+        );
+        cy.get("#video-container [data-test='Description']").should(
+            "not.be.visible",
+        );
+        cy.get("#video-container [data-test='Description Button']").click();
+
+        cy.get("#video-container [data-test='Description']").should(
+            "contain.text",
+            "An earth video.",
+        );
+
+        cy.get("#video").click();
+
+        cy.get("#video-container [data-test='Description']").should(
+            "not.be.visible",
+        );
+    });
+
+    it("without description", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <video name="video" source="https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-MP4-Video-File-for-Testing.mp4">
+        <shortDescription>A video</shortDescription>
+    </video>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#video").should("be.visible");
+
+        cy.get("#video-container [data-test='Description Button']").should(
+            "not.exist",
+        );
+        cy.get("#video-container [data-test='Description']").should(
+            "not.exist",
+        );
+    });
+
+    it("without description, inline", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <video name="video" displayMode="inline" source="https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-MP4-Video-File-for-Testing.mp4">
+        <shortDescription>A video</shortDescription>
+    </video>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#video").should("be.visible");
+        cy.get("#video-container [data-test='Description Button']").should(
+            "not.exist",
+        );
+        cy.get("#video-container [data-test='Description']").should(
+            "not.exist",
+        );
+    });
 });

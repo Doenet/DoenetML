@@ -214,6 +214,7 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                     pretzelSugar(node);
                     break;
                 case "image":
+                case "video":
                 case "graph":
                 case "answer":
                 case "mathInput":

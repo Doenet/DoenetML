@@ -69339,7 +69339,10 @@
         },
         {
             "name": "video",
-            "children": [],
+            "children": [
+                "shortDescription",
+                "description"
+            ],
             "attributes": [
                 {
                     "name": "name"
@@ -69420,9 +69423,6 @@
                     ]
                 },
                 {
-                    "name": "description"
-                },
-                {
                     "name": "youtube"
                 },
                 {
@@ -69466,11 +69466,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "description",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
                     "name": "youtube",
                     "type": "text",
                     "isArray": false
@@ -69502,6 +69497,11 @@
                 },
                 {
                     "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "shortDescription",
                     "type": "text",
                     "isArray": false
                 },
