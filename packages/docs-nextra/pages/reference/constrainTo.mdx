@@ -21,7 +21,7 @@ import { AttrDisplay, PropDisplay } from "../../components"
 
 
 ```doenet-editor-horiz
-<graph size="small" description="A graph of a circle and a point">
+<graph size="small"><shortDescription>A graph of a circle and a point</shortDescription>
   <circle name="raceTrack" radius="5"/>
   <point name="car" labelIsName styleNumber="2">
     <constrainTo>$raceTrack</constrainTo>
@@ -47,7 +47,7 @@ The ` <point>{:dn}` named `car` is constrained to the ` <circle>{:dn}` named
   along the line.
 </p>
 
-<graph size="small" description="A graph of a line and a circle">
+<graph size="small"><shortDescription>A graph of a line and a circle</shortDescription>
   <line name="line1">y = x</line>
   <point name="p" hide>
     <constrainTo>$line1</constrainTo>
@@ -86,7 +86,7 @@ The original ` <point>{:dn}` can be hidden using the `hide` attribute.
 <number name="m">$$fprime($p.x)</number>
 </setup>
 
-<graph size="small" description="A graph of a function and a tangent line">
+<graph size="small"><shortDescription>A graph of a function and a tangent line</shortDescription>
   <function name="f">1/4 x^2</function>
   <line name="line1" through="$p" 
     slope="$m" styleNumber="2"/>
