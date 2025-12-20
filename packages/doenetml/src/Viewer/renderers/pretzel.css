@@ -208,3 +208,10 @@
         }
     }
 }
+
+/* Fix: Ensure div-based paragraphs maintain standard paragraph spacing */
+.doenetml-p {
+    display: block;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}

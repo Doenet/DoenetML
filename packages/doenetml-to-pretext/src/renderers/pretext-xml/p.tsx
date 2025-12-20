@@ -5,5 +5,5 @@ import type { PPropsInText } from "@doenet/doenetml-worker";
 export const P: BasicComponentWithPassthroughChildren<{
     props: PPropsInText;
 }> = ({ children, node }) => {
-    return <p {...node.attributes}>{children}</p>;
+    return (<div {...node.attributes} className="doenetml-p"> {children}</div>);
 };

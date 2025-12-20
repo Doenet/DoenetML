@@ -50,9 +50,9 @@ export default React.memo(function P(props: UseDoenetRendererProps) {
     }
 
     return (
-        <p id={id} ref={ref}>
+        <div id={id} ref={ref} className="doenetml-p">
             {children}
             {checkWorkComponent}
-        </p>
+        </div>
     );
 });
