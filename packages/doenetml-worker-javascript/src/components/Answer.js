@@ -906,8 +906,6 @@ export default class Answer extends InlineComponent {
                     )
                     .filter((ind) => ind !== -1);
 
-                console.log({ dependencyValues, inputChildIndices });
-
                 if (dependencyValues.skippedFirstInput) {
                     inputChildIndices = inputChildIndices.slice(1);
                 }

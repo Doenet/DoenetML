@@ -2762,7 +2762,7 @@ describe("Select tag tests", async () => {
             "Cannot select 3 components from only 2",
         );
         expect(errorWarnings.errors[0].position.start.line).eq(4);
-        expect(errorWarnings.errors[0].position.start.column).eq(34);
+        expect(errorWarnings.errors[0].position.start.column).eq(56);
         expect(errorWarnings.errors[0].position.end.line).eq(7);
         expect(errorWarnings.errors[0].position.end.column).eq(14);
     });

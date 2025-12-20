@@ -474,11 +474,11 @@ describe("Warning Tests", async () => {
     it("Invalid children", async () => {
         let { core } = await createTestCore({
             doenetML: `
-  <p name="p1"><graph /><shortDescription>A graph</shortDescription></p>
+  <p name="p1"><graph><shortDescription>A graph</shortDescription></graph></p>
 
   <p name="p2">Hello</p>
 
-  <p name="p3" extend="$p2"><graph /><shortDescription>Another graph</shortDescription><p/></p>
+  <p name="p3" extend="$p2"><graph><shortDescription>Another graph</shortDescription></graph><p/></p>
 
   <p name="p4" extend="$p1"><figure /></p>
 
@@ -499,7 +499,7 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(3);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(51);
+        expect(errorWarnings.warnings[0].position.end.column).eq(79);
 
         expect(errorWarnings.warnings[1].message).contain(
             `Invalid children for <p>`,
@@ -510,7 +510,7 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[1].position.start.line).eq(6);
         expect(errorWarnings.warnings[1].position.start.column).eq(3);
         expect(errorWarnings.warnings[1].position.end.line).eq(6);
-        expect(errorWarnings.warnings[1].position.end.column).eq(74);
+        expect(errorWarnings.warnings[1].position.end.column).eq(102);
 
         expect(errorWarnings.warnings[2].message).contain(
             `Invalid children for <p>`,
@@ -569,7 +569,9 @@ describe("Warning Tests", async () => {
         let { core } = await createTestCore({
             doenetML: `
     <p>
-        Numbers that add to 3: <mathInput name="n1" /><shortDescription>first number</shortDescription> <mathInput name="n2" /><shortDescription>second number</shortDescription>
+        Numbers that add to 3:
+        <mathInput name="n1"><shortDescription>first number</shortDescription></mathInput>
+        <mathInput name="n2"><shortDescription>second number</shortDescription></mathInput>
         <answer name="sum3">
             <award referencesAreResponses="n1 n2"> <when>$n1+$n2=3</when> </award>
         </answer>
@@ -587,9 +589,9 @@ describe("Warning Tests", async () => {
         );
 
         expect(errorWarnings.warnings[0].message).contain(`begin with a $`);
-        expect(errorWarnings.warnings[0].position.start.line).eq(5);
+        expect(errorWarnings.warnings[0].position.start.line).eq(7);
         expect(errorWarnings.warnings[0].position.start.column).eq(20);
-        expect(errorWarnings.warnings[0].position.end.line).eq(5);
+        expect(errorWarnings.warnings[0].position.end.line).eq(7);
         expect(errorWarnings.warnings[0].position.end.column).eq(50);
     });
 
