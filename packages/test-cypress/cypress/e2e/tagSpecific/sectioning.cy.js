@@ -194,7 +194,7 @@ describe("Sectioning Tag Tests", function () {
         cy.get(cesc("#sectionNumber1")).should("have.text", "1");
         cy.get(cesc("#sectionNumber2")).should("have.text", "2");
 
-        cy.get(cesc("#p1")).should("have.text", "Hello");
+        cy.get("#revised .para").eq(0).should("have.text", "Hello");
         cy.get(cesc("#revised") + " p:first-of-type").should(
             "have.text",
             "Hello",
