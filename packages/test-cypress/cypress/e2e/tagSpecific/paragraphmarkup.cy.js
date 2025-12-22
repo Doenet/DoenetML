@@ -51,7 +51,7 @@ describe("Paragraph Markup Tag Tests", function () {
         });
 
         cy.log("find quotes");
-        cy.get("p" + cesc("#p1")).should("have.text", "“Double quoted”");
+        cy.get(cesc("#p1")).should("have.text", "“Double quoted”");
     });
 
     it("sq", () => {
@@ -67,7 +67,7 @@ describe("Paragraph Markup Tag Tests", function () {
         });
 
         cy.log("find quotes");
-        cy.get("p" + cesc("#p1")).should("have.text", "‘Single quoted’");
+        cy.get(cesc("#p1")).should("have.text", "‘Single quoted’");
     });
 
     it("c", () => {

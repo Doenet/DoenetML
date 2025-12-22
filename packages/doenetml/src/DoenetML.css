@@ -395,6 +395,12 @@ div.jxgbox input[type="checkbox"] {
     padding: 1px 7px 1px 7px;
 }
 
+/* Fix: Ensure div-based paragraphs maintain standard paragraph spacing */
+.doenet-viewer .para {
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+}
+
 /**************************************************
  End JSXGraph styles 
  **************************************************/
