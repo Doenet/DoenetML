@@ -169,9 +169,17 @@ export default React.memo(function MatrixInput(props) {
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
 
-    const description = descriptionChild && (
-        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
-    );
+    let descriptionId: string | undefined = undefined;
+    let description: React.ReactNode | null = null;
+
+    if (descriptionChild) {
+        descriptionId = `${id}-description-content`;
+        description = (
+            <DescriptionPopover>
+                <div id={descriptionId}>{descriptionChild}</div>
+            </DescriptionPopover>
+        );
+    }
 
     return (
         <React.Fragment>
@@ -186,7 +194,10 @@ export default React.memo(function MatrixInput(props) {
                 <label style={{ display: "inline-flex", maxWidth: "100%" }}>
                     {label}
                     <div className="matrix-input" id={id}>
-                        <table aria-label={shortDescription}>
+                        <table
+                            aria-label={shortDescription}
+                            aria-details={descriptionId}
+                        >
                             <tbody>{matrixInputs}</tbody>
                         </table>
                     </div>

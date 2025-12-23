@@ -110,9 +110,17 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
 
-    const description = descriptionChild && (
-        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
-    );
+    let descriptionId: string | undefined = undefined;
+    let description: React.ReactNode | null = null;
+
+    if (descriptionChild) {
+        descriptionId = `${id}-description-content`;
+        description = (
+            <DescriptionPopover>
+                <div id={descriptionId}>{descriptionChild}</div>
+            </DescriptionPopover>
+        );
+    }
 
     if (SVs.inline) {
         let selectStyle: React.CSSProperties = {};
@@ -179,6 +187,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             multiple={SVs.selectMultiple}
                             style={selectStyle}
                             aria-label={shortDescription}
+                            aria-details={descriptionId}
                         >
                             <option hidden={true} value="">
                                 {SVs.placeHolder}
@@ -306,7 +315,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         return (
             <div id={inputKey + "-label"} style={{ margin: "16px 0" }}>
                 {label}
-                <ul id={inputKey} style={listStyle}>
+                <ul
+                    id={inputKey}
+                    style={listStyle}
+                    aria-label={shortDescription}
+                    aria-details={descriptionId}
+                >
                     {choiceDoenetTags}
                 </ul>
                 <span style={{ display: "inline-flex", alignItems: "start" }}>

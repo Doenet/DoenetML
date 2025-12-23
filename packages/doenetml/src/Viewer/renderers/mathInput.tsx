@@ -275,9 +275,17 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
 
-    const description = descriptionChild && (
-        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
-    );
+    let descriptionId: string | undefined = undefined;
+    let description: React.ReactNode | null = null;
+
+    if (descriptionChild) {
+        descriptionId = `${id}-description-content`;
+        description = (
+            <DescriptionPopover>
+                <div id={descriptionId}>{descriptionChild}</div>
+            </DescriptionPopover>
+        );
+    }
 
     return (
         <React.Fragment>
@@ -298,6 +306,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                             style={mathInputStyle}
                             latex={rendererValue.current}
                             ariaLabel={shortDescription}
+                            aria-details={descriptionId}
                             config={{
                                 autoCommands:
                                     "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
