@@ -91,7 +91,12 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         if (description) {
             // associate description with check work component
             checkWorkComponent = (
-                <span aria-details={descriptionId}>{checkWorkComponent}</span>
+                <span
+                    aria-details={descriptionId}
+                    data-test="Details Associated"
+                >
+                    {checkWorkComponent}
+                </span>
             );
         }
 
