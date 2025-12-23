@@ -514,6 +514,16 @@ describe("Graph Tag Tests", function () {
             "not.have.attr",
             "open",
         );
+        cy.get("#graph-description").should(
+            "have.attr",
+            "aria-details",
+            `graph-description-content`,
+        );
+        cy.get(`#graph-description-content`).should(
+            "contain.text",
+            "A blank graph.",
+        );
+
         cy.get("#graph-container [data-test='Description Summary']").click();
 
         cy.get("#graph-container [data-test='Description']").should(
@@ -564,6 +574,16 @@ describe("Graph Tag Tests", function () {
         cy.get("#graph-container [data-test='Description']").should(
             "not.be.visible",
         );
+        cy.get("#graph-description").should(
+            "have.attr",
+            "aria-details",
+            `graph-description-content`,
+        );
+        cy.get(`#graph-description-content`).should(
+            "contain.text",
+            "A blank graph.",
+        );
+
         cy.get("#graph-container [data-test='Description Button']").click();
 
         cy.get("#graph-container [data-test='Description']").should(
@@ -600,6 +620,7 @@ describe("Graph Tag Tests", function () {
         cy.get("#graph-container [data-test='Description Button']").should(
             "not.exist",
         );
+        cy.get("#graph-description").should("not.have.attr", "aria-details");
     });
 
     it("without description, inline", () => {
@@ -624,5 +645,6 @@ describe("Graph Tag Tests", function () {
         cy.get("#graph-container [data-test='Description Button']").should(
             "not.exist",
         );
+        cy.get("#graph-description").should("not.have.attr", "aria-details");
     });
 });

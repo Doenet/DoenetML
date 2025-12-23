@@ -428,6 +428,17 @@ describe("BooleanInput Tag Tests", function () {
 
         cy.get("#bi [data-test='Description Button']").should("be.visible");
         cy.get("#bi [data-test='Description']").should("not.be.visible");
+
+        cy.get("#bi_input").should(
+            "have.attr",
+            "aria-details",
+            `bi-description-content`,
+        );
+        cy.get(`#bi-description-content`).should(
+            "contain.text",
+            "Click when you like.",
+        );
+
         cy.get("#bi [data-test='Description Button']").click();
 
         cy.get("#bi [data-test='Description']").should(
@@ -457,5 +468,6 @@ describe("BooleanInput Tag Tests", function () {
         cy.get("#bi").should("be.visible");
         cy.get("#bi [data-test='Description Button']").should("not.exist");
         cy.get("#bi [data-test='Description']").should("not.exist");
+        cy.get("#bi_input").should("not.have.attr", "aria-details");
     });
 });

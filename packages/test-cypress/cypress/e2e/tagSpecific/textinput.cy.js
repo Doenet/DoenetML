@@ -176,6 +176,17 @@ describe("TextInput Tag Tests", function () {
 
         cy.get("#ti [data-test='Description Button']").should("be.visible");
         cy.get("#ti [data-test='Description']").should("not.be.visible");
+
+        cy.get("#ti_input").should(
+            "have.attr",
+            "aria-details",
+            `ti-description-content`,
+        );
+        cy.get(`#ti-description-content`).should(
+            "contain.text",
+            "Type what you like.",
+        );
+
         cy.get("#ti [data-test='Description Button']").click();
 
         cy.get("#ti [data-test='Description']").should(
@@ -205,5 +216,6 @@ describe("TextInput Tag Tests", function () {
         cy.get("#ti").should("be.visible");
         cy.get("#ti [data-test='Description Button']").should("not.exist");
         cy.get("#ti [data-test='Description']").should("not.exist");
+        cy.get("#ti_input").should("not.have.attr", "aria-details");
     });
 });

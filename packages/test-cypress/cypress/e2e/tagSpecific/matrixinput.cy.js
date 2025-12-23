@@ -78,6 +78,16 @@ describe("MatrixInput Tag Tests", function () {
         );
         cy.get("#m").should("not.be.visible");
 
+        cy.get("#mi table").should(
+            "have.attr",
+            "aria-details",
+            `mi-description-content`,
+        );
+        cy.get(`#mi-description-content`).should(
+            "contain.text",
+            "Type what you like.",
+        );
+
         cy.get("#mi-container [data-test='Description Button']").click();
 
         cy.get("#mi-container [data-test='Description']").should(
@@ -112,5 +122,6 @@ describe("MatrixInput Tag Tests", function () {
         cy.get("#mi").should("be.visible");
         cy.get("#mi [data-test='Description Button']").should("not.exist");
         cy.get("#mi [data-test='Description']").should("not.exist");
+        cy.get("#mi table").should("not.have.attr", "aria-details");
     });
 });

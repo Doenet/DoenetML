@@ -1072,6 +1072,16 @@ describe("ChoiceInput Tag Tests", function () {
             "be.visible",
         );
         cy.get("#ci-label [data-test='Description']").should("not.be.visible");
+        cy.get("#ci").should(
+            "have.attr",
+            "aria-details",
+            `ci-description-content`,
+        );
+        cy.get(`#ci-description-content`).should(
+            "contain.text",
+            "Select what you like.",
+        );
+
         cy.get("#ci-label [data-test='Description Button']").click();
 
         cy.get("#ci-label [data-test='Description']").should(
@@ -1109,6 +1119,16 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get("#ci-container [data-test='Description']").should(
             "not.be.visible",
         );
+        cy.get("#ci").should(
+            "have.attr",
+            "aria-details",
+            `ci-description-content`,
+        );
+        cy.get(`#ci-description-content`).should(
+            "contain.text",
+            "Select what you like.",
+        );
+
         cy.get("#ci-container [data-test='Description Button']").click();
 
         cy.get("#ci-container [data-test='Description']").should(
@@ -1144,6 +1164,7 @@ describe("ChoiceInput Tag Tests", function () {
             "not.exist",
         );
         cy.get("#ci-label [data-test='Description']").should("not.exist");
+        cy.get("#ci").should("not.have.attr", "aria-details");
     });
 
     it("without description", () => {
@@ -1168,5 +1189,6 @@ describe("ChoiceInput Tag Tests", function () {
             "not.exist",
         );
         cy.get("#ci-label [data-test='Description']").should("not.exist");
+        cy.get("#ci").should("not.have.attr", "aria-details");
     });
 });

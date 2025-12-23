@@ -355,6 +355,17 @@ describe("Image Tag Tests", function () {
             "not.have.attr",
             "open",
         );
+
+        cy.get("#image").should(
+            "have.attr",
+            "aria-details",
+            `image-description-content`,
+        );
+        cy.get(`#image-description-content`).should(
+            "contain.text",
+            "An anteater image.",
+        );
+
         cy.get("#image-container [data-test='Description Summary']").click();
 
         cy.get("#image-container [data-test='Description']").should(
@@ -405,6 +416,16 @@ describe("Image Tag Tests", function () {
         cy.get("#image-container [data-test='Description']").should(
             "not.be.visible",
         );
+        cy.get("#image").should(
+            "have.attr",
+            "aria-details",
+            `image-description-content`,
+        );
+        cy.get(`#image-description-content`).should(
+            "contain.text",
+            "An anteater image.",
+        );
+
         cy.get("#image-container [data-test='Description Button']").click();
 
         cy.get("#image-container [data-test='Description']").should(
@@ -442,6 +463,7 @@ describe("Image Tag Tests", function () {
         cy.get("#image-container [data-test='Description']").should(
             "not.exist",
         );
+        cy.get("#image").should("not.have.attr", "aria-details");
     });
 
     it("without description, inline", () => {
@@ -466,5 +488,6 @@ describe("Image Tag Tests", function () {
         cy.get("#image-container [data-test='Description']").should(
             "not.exist",
         );
+        cy.get("#image").should("not.have.attr", "aria-details");
     });
 });
