@@ -52,9 +52,17 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
 
-    const description = descriptionChild && (
-        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
-    );
+    let descriptionId: string | undefined = undefined;
+    let description: React.ReactNode | null = null;
+
+    if (descriptionChild) {
+        descriptionId = `${id}-description-content`;
+        description = (
+            <DescriptionPopover>
+                <div id={descriptionId}>{descriptionChild}</div>
+            </DescriptionPopover>
+        );
+    }
 
     let answerResponseButton = null;
     if (showAnswerResponseButton) {
@@ -79,20 +87,34 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         true,
     );
 
-    if (label && checkWorkComponent) {
-        // if label was not moved via sugar to an input child,
-        // then add the label to the check work component
-        checkWorkComponent = (
-            <label
-                style={{
-                    display: "inline-flex",
-                    maxWidth: "100%",
-                }}
-            >
-                <span style={{ marginRight: "4px" }}>{label}</span>
-                {checkWorkComponent}
-            </label>
-        );
+    if (checkWorkComponent) {
+        if (description) {
+            // associate description with check work component
+            checkWorkComponent = (
+                <span
+                    aria-details={descriptionId}
+                    data-test="Details Associated"
+                >
+                    {checkWorkComponent}
+                </span>
+            );
+        }
+
+        if (label) {
+            // if label was not moved via sugar to an input child,
+            // then add the label to the check work component
+            checkWorkComponent = (
+                <label
+                    style={{
+                        display: "inline-flex",
+                        maxWidth: "100%",
+                    }}
+                >
+                    <span style={{ marginRight: "4px" }}>{label}</span>
+                    {checkWorkComponent}
+                </label>
+            );
+        }
     }
 
     return (

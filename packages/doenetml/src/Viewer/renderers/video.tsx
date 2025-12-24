@@ -468,13 +468,22 @@ export default React.memo(function Video(props) {
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
 
-    const description =
-        descriptionChild &&
-        (SVs.displayMode === "inline" ? (
-            <DescriptionPopover>{descriptionChild}</DescriptionPopover>
-        ) : (
-            <DescriptionAsDetails>{descriptionChild}</DescriptionAsDetails>
-        ));
+    let descriptionId: string | undefined = undefined;
+    let description: React.ReactNode | null = null;
+
+    if (descriptionChild) {
+        descriptionId = `${id}-description-content`;
+        description =
+            SVs.displayMode === "inline" ? (
+                <DescriptionPopover>
+                    <div id={descriptionId}>{descriptionChild}</div>
+                </DescriptionPopover>
+            ) : (
+                <DescriptionAsDetails>
+                    <div id={descriptionId}>{descriptionChild}</div>
+                </DescriptionAsDetails>
+            );
+    }
 
     if (SVs.youtube) {
         videoTag = (
@@ -488,6 +497,7 @@ export default React.memo(function Video(props) {
                 }
                 allow="autoplay; fullscreen"
                 title={shortDescription}
+                aria-details={descriptionId}
             />
         );
     } else if (SVs.source) {
@@ -498,6 +508,7 @@ export default React.memo(function Video(props) {
                 controls
                 style={videoStyle}
                 title={shortDescription}
+                aria-details={descriptionId}
             >
                 <source
                     src={SVs.source}

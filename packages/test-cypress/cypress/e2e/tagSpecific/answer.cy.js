@@ -3177,6 +3177,15 @@ d
         cy.get("#ans [data-test='Description Button']").should("be.visible");
         cy.get("#ans [data-test='Description']").should("not.be.visible");
         cy.get("#m").should("not.be.visible");
+        cy.get("#ans .mq-editable-field")
+            .should("have.attr", "aria-details")
+            .then((ariaDetailsId) => {
+                cy.get(`#${ariaDetailsId}`).should(
+                    "contain.text",
+                    "Type what you like.",
+                );
+            });
+
         cy.get("#ans [data-test='Description Button']").click();
 
         cy.get("#ans [data-test='Description']").should(
@@ -3212,6 +3221,14 @@ d
 
         cy.get("#ans [data-test='Description Button']").should("be.visible");
         cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#ans input")
+            .should("have.attr", "aria-details")
+            .then((ariaDetailsId) => {
+                cy.get(`#${ariaDetailsId}`).should(
+                    "contain.text",
+                    "Type what you like.",
+                );
+            });
         cy.get("#ans [data-test='Description Button']").click();
 
         cy.get("#ans [data-test='Description']").should(
@@ -3244,6 +3261,15 @@ d
 
         cy.get("#ans [data-test='Description Button']").should("be.visible");
         cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#ans input")
+            .should("have.attr", "aria-details")
+            .then((ariaDetailsId) => {
+                cy.get(`#${ariaDetailsId}`).should(
+                    "contain.text",
+                    "Click when you like.",
+                );
+            });
+
         cy.get("#ans [data-test='Description Button']").click();
 
         cy.get("#ans [data-test='Description']").should(
@@ -3277,6 +3303,15 @@ d
 
         cy.get("#ans [data-test='Description Button']").should("be.visible");
         cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#ans ul")
+            .should("have.attr", "aria-details")
+            .then((ariaDetailsId) => {
+                cy.get(`#${ariaDetailsId}`).should(
+                    "contain.text",
+                    "Select what you like.",
+                );
+            });
+
         cy.get("#ans [data-test='Description Button']").click();
 
         cy.get("#ans [data-test='Description']").should(
@@ -3310,6 +3345,15 @@ d
 
         cy.get("#ans [data-test='Description Button']").should("be.visible");
         cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#ans select")
+            .should("have.attr", "aria-details")
+            .then((ariaDetailsId) => {
+                cy.get(`#${ariaDetailsId}`).should(
+                    "contain.text",
+                    "Select what you like.",
+                );
+            });
+
         cy.get("#ans [data-test='Description Button']").click();
 
         cy.get("#ans [data-test='Description']").should(
@@ -3342,6 +3386,15 @@ d
 
         cy.get("#ans [data-test='Description Button']").should("be.visible");
         cy.get("#ans [data-test='Description']").should("not.be.visible");
+        cy.get("#ans [data-test='Details Associated")
+            .should("have.attr", "aria-details")
+            .then((ariaDetailsId) => {
+                cy.get(`#${ariaDetailsId}`).should(
+                    "contain.text",
+                    "Click when you like.",
+                );
+            });
+
         cy.get("#ans [data-test='Description Button']").click();
 
         cy.get("#ans [data-test='Description']").should(
@@ -3373,5 +3426,6 @@ d
 
         cy.get("#ans [data-test='Description Button']").should("not.exist");
         cy.get("#ans [data-test='Description']").should("not.exist");
+        cy.get("#ans [data-test='Details Associated").should("not.exist");
     });
 });

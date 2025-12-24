@@ -468,6 +468,17 @@ describe("Video Tag Tests", function () {
             "not.have.attr",
             "open",
         );
+
+        cy.get("#video").should(
+            "have.attr",
+            "aria-details",
+            `video-description-content`,
+        );
+        cy.get(`#video-description-content`).should(
+            "contain.text",
+            "An earth video.",
+        );
+
         cy.get("#video-container [data-test='Description Summary']").click();
 
         cy.get("#video-container [data-test='Description']").should(
@@ -518,6 +529,17 @@ describe("Video Tag Tests", function () {
         cy.get("#video-container [data-test='Description']").should(
             "not.be.visible",
         );
+
+        cy.get("#video").should(
+            "have.attr",
+            "aria-details",
+            `video-description-content`,
+        );
+        cy.get(`#video-description-content`).should(
+            "contain.text",
+            "An earth video.",
+        );
+
         cy.get("#video-container [data-test='Description Button']").click();
 
         cy.get("#video-container [data-test='Description']").should(
@@ -555,6 +577,8 @@ describe("Video Tag Tests", function () {
         cy.get("#video-container [data-test='Description']").should(
             "not.exist",
         );
+
+        cy.get("#video").should("not.have.attr", "aria-details");
     });
 
     it("without description, inline", () => {
@@ -579,5 +603,7 @@ describe("Video Tag Tests", function () {
         cy.get("#video-container [data-test='Description']").should(
             "not.exist",
         );
+
+        cy.get("#video").should("not.have.attr", "aria-details");
     });
 });

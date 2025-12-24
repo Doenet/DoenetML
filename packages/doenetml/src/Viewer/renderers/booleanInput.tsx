@@ -499,9 +499,17 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
 
-    const description = descriptionChild && (
-        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
-    );
+    let descriptionId: string | undefined = undefined;
+    let description: React.ReactNode | null = null;
+
+    if (descriptionChild) {
+        descriptionId = `${id}-description-content`;
+        description = (
+            <DescriptionPopover>
+                <div id={descriptionId}>{descriptionChild}</div>
+            </DescriptionPopover>
+        );
+    }
 
     if (SVs.asToggleButton) {
         input = (
@@ -532,6 +540,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                     onChange={onChangeHandler}
                     disabled={disabled}
                     aria-label={shortDescription}
+                    aria-details={descriptionId}
                 />
                 <span className={checkmarkClass}></span>
                 {label != "" ? (

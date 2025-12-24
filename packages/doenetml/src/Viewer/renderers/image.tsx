@@ -580,13 +580,22 @@ export default React.memo(function Image(props) {
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
 
-    const description =
-        descriptionChild &&
-        (SVs.displayMode === "inline" ? (
-            <DescriptionPopover>{descriptionChild}</DescriptionPopover>
-        ) : (
-            <DescriptionAsDetails>{descriptionChild}</DescriptionAsDetails>
-        ));
+    let descriptionId: string | undefined = undefined;
+    let description: React.ReactNode | null = null;
+
+    if (descriptionChild) {
+        descriptionId = `${id}-description-content`;
+        description =
+            SVs.displayMode === "inline" ? (
+                <DescriptionPopover>
+                    <div id={descriptionId}>{descriptionChild}</div>
+                </DescriptionPopover>
+            ) : (
+                <DescriptionAsDetails>
+                    <div id={descriptionId}>{descriptionChild}</div>
+                </DescriptionAsDetails>
+            );
+    }
 
     return (
         <div style={outerStyle} ref={ref} id={`${id}-container`}>
@@ -597,6 +606,7 @@ export default React.memo(function Image(props) {
                         src={urlOrSource}
                         style={imageStyle}
                         alt={shortDescription}
+                        aria-details={descriptionId}
                     />
                 ) : (
                     <div id={id} style={imageStyle}>

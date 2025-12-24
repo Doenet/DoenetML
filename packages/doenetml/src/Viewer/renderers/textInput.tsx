@@ -576,9 +576,17 @@ export default function TextInput(props: UseDoenetRendererProps) {
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
 
-    const description = descriptionChild && (
-        <DescriptionPopover>{descriptionChild}</DescriptionPopover>
-    );
+    let descriptionId: string | undefined = undefined;
+    let description: React.ReactNode | null = null;
+
+    if (descriptionChild) {
+        descriptionId = `${id}-description-content`;
+        description = (
+            <DescriptionPopover>
+                <div id={descriptionId}>{descriptionChild}</div>
+            </DescriptionPopover>
+        );
+    }
 
     const inputClass =
         "text-input" + (SVs.disabled ? " text-input-disabled" : "");
@@ -598,6 +606,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     onFocus={handleFocus}
                     className={inputClass}
                     aria-label={shortDescription}
+                    aria-details={descriptionId}
                     style={{
                         margin: "0px 4px 4px 4px",
                         color: "var(--canvasText)",
@@ -622,6 +631,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     onFocus={handleFocus}
                     className={inputClass}
                     aria-label={shortDescription}
+                    aria-details={descriptionId}
                     style={{
                         margin: "0px 4px 4px 4px",
                         color: "var(--canvasText)",
