@@ -25,7 +25,7 @@ describe("detect version from namespace", () => {
         });
         expect(
             source.slice(version?.position.begin, version?.position.end),
-        ).toEqual("v" + versionString);
+        ).toEqual(versionString);
 
         source = `<document \nother-attr="https://doenet.org/spec/doenetml/v10"  xmlns="https://doenet.org/spec/doenetml/v${versionString}"><p>content</p></document>`;
         version = detectVersionFromDoenetML(source);
@@ -35,7 +35,7 @@ describe("detect version from namespace", () => {
         });
         expect(
             source.slice(version?.position.begin, version?.position.end),
-        ).toEqual("v" + versionString);
+        ).toEqual(versionString);
     });
     it("returns null on invalid or missing versions", () => {
         versionString = "0.7.0-alpha44";
