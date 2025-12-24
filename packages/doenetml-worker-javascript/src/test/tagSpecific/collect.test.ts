@@ -2501,9 +2501,9 @@ describe("Collect tag tests", async () => {
             "No referent found for reference: $nothing",
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(19);
+        expect(errorWarnings.warnings[0].position.start.column).eq(20);
         expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(27);
+        expect(errorWarnings.warnings[0].position.end.column).eq(28);
 
         expect(errorWarnings.warnings[1].message).contain(
             "No source found for collect",

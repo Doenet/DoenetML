@@ -616,9 +616,9 @@ describe("Warning Tests", async () => {
             "No referent found for reference: $__s",
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(5);
-        expect(errorWarnings.warnings[0].position.start.column).eq(19);
+        expect(errorWarnings.warnings[0].position.start.column).eq(20);
         expect(errorWarnings.warnings[0].position.end.line).eq(5);
-        expect(errorWarnings.warnings[0].position.end.column).eq(23);
+        expect(errorWarnings.warnings[0].position.end.column).eq(24);
 
         expect(errorWarnings.warnings[1].message).contain(
             "No source found for collect",
