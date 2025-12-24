@@ -1028,4 +1028,50 @@ describe("DAST", async () => {
           }
         `);
     });
+
+    it("Position of text nodes in attributes should not include quotations", () => {
+        let source: string;
+
+        source = `<m a="bc" />`;
+        let attrChildren = (lezerToDast(source).children[0] as DastElement)
+            .attributes.a.children;
+
+        expect(attrChildren[0].position).toMatchInlineSnapshot(`
+          {
+            "end": {
+              "column": 9,
+              "line": 1,
+              "offset": 8,
+            },
+            "start": {
+              "column": 7,
+              "line": 1,
+              "offset": 6,
+            },
+          }
+        `);
+    });
+
+    it("Correct position of macros in attributes", () => {
+        let source: string;
+
+        source = `<m a="$c" />`;
+        let attrChildren = (lezerToDast(source).children[0] as DastElement)
+            .attributes.a.children;
+
+        expect(attrChildren[0].position).toMatchInlineSnapshot(`
+          {
+            "end": {
+              "column": 9,
+              "line": 1,
+              "offset": 8,
+            },
+            "start": {
+              "column": 7,
+              "line": 1,
+              "offset": 6,
+            },
+          }
+        `);
+    });
 });

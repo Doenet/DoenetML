@@ -45,7 +45,7 @@ export function detectVersionFromDoenetML(
             version: versionString,
             position: {
                 begin: xmlnsTextNode.position?.start.offset! + offsetStart,
-                end: xmlnsTextNode.position?.start.offset! + offsetEnd + 1,
+                end: xmlnsTextNode.position?.start.offset! + offsetEnd,
             },
         };
     }

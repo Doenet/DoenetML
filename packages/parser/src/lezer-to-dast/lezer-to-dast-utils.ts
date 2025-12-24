@@ -98,16 +98,23 @@ export function attributeValueText(node: SyntaxNode, source: string): string {
 /**
  * Compute a `xast` position node from a `lezer` node. A map from
  * offsets to line/column information needs to be provided.
+ * If `adjustForQuotes` is true, then the position will be adjusted
+ * to be inside the quotes of an attribute value.
  */
 export function lezerNodeToPosition(
     node: SyntaxNode,
     offsetToPositionMap: OffsetToPositionMap,
+    adjustForQuotes = false,
 ): Position & {
     start: { offset: number };
     end: { offset: number };
 } {
     const { rowMap, columnMap } = offsetToPositionMap;
-    const { from, to } = node;
+    let { from, to } = node;
+    if (adjustForQuotes) {
+        from += 1;
+        to -= 1;
+    }
     return {
         start: {
             line: rowMap[from] + 1,
