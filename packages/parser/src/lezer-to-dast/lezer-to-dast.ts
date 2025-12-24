@@ -153,6 +153,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                                       position: lezerNodeToPosition(
                                           attrValue,
                                           offsetMap,
+                                          true,
                                       ),
                                   } as DastText,
                                   offsetMap,
