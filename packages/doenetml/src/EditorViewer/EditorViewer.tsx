@@ -112,6 +112,8 @@ export function EditorViewer({
 
     const viewerContainer = useRef<HTMLDivElement>(null);
 
+    const [viewerResetNum, setViewerResetNum] = useState(0);
+
     const [variants, setVariants] = useState({
         index: 1,
         numVariants: 1,
@@ -482,6 +484,17 @@ export function EditorViewer({
                         ) : undefined}
                     </UiButton>
                 )}
+                <UiButton
+                    data-test="Viewer Reset Button"
+                    title="Reset Viewer"
+                    onClick={() => {
+                        setViewerResetNum((n) => n + 1);
+                        setResponses([]);
+                    }}
+                    style={{ marginLeft: "8px" }}
+                >
+                    Reset
+                </UiButton>
                 {variants.numVariants > 1 && (
                     <VariantSelect
                         size="sm"
@@ -516,6 +529,7 @@ export function EditorViewer({
                         readOnly: false,
                     }}
                     activityId={activityId}
+                    key={viewerResetNum}
                     prefixForIds={prefixForIds}
                     attemptNumber={1}
                     generatedVariantCallback={(x: any) => {
