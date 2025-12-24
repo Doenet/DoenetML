@@ -491,7 +491,7 @@ export function EditorViewer({
                         setViewerResetNum((n) => n + 1);
                         setResponses([]);
                     }}
-                    style={{ marginLeft: "8px" }}
+                    style={{ marginLeft: readOnly ? undefined : "8px" }}
                 >
                     Reset
                 </UiButton>
