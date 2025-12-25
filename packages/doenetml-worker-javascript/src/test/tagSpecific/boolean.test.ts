@@ -1735,7 +1735,7 @@ describe("Boolean tag tests", async () => {
         ).to.be.true;
     });
 
-    it.only("match blanks, symbolicEquality", async () => {
+    it("match blanks, symbolicEquality", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <boolean name="b1" symbolicEquality>/a = /a</boolean>
