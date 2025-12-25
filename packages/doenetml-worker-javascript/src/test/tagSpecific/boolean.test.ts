@@ -1735,6 +1735,47 @@ describe("Boolean tag tests", async () => {
         ).to.be.true;
     });
 
+    it.only("match blanks, symbolicEquality", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b1" symbolicEquality>/a = /a</boolean>
+    <boolean name="b2" symbolicEquality matchBlanks>/a = /a</boolean>
+    <boolean name="b3" symbolicEquality><math>/a</math> = <math>/a</math></boolean>
+    <boolean name="b4" symbolicEquality matchBlanks><math>/a</math> = <math>/a</math></boolean>
+    <boolean name="b5" symbolicEquality><math>/a</math> = /a</boolean>
+    <boolean name="b6" symbolicEquality matchBlanks><math>/a</math> = /a</boolean>
+    <boolean name="b7" symbolicEquality><math>_6^14C</math> = <math>_6^14C</math></boolean>
+    <boolean name="b8" symbolicEquality matchBlanks><math>_6^14C</math> = <math>_6^14C</math></boolean>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`b1`)].stateValues.value,
+        ).to.be.false;
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`b2`)].stateValues.value,
+        ).to.be.true;
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`b3`)].stateValues.value,
+        ).to.be.false;
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`b4`)].stateValues.value,
+        ).to.be.true;
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`b5`)].stateValues.value,
+        ).to.be.false;
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`b6`)].stateValues.value,
+        ).to.be.true;
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`b7`)].stateValues.value,
+        ).to.be.false;
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`b8`)].stateValues.value,
+        ).to.be.true;
+    });
+
     it("boolean with symbolic functions", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
