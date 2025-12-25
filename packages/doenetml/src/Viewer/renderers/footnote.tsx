@@ -2,7 +2,12 @@ import React, { useState } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { TooltipProvider, TooltipAnchor, Tooltip } from "@ariakit/react";
+import {
+    TooltipProvider,
+    TooltipAnchor,
+    Tooltip,
+    Button,
+} from "@ariakit/react";
 
 export default React.memo(function Footnote(props: UseDoenetRendererProps) {
     let { id, SVs } = useDoenetRenderer(props, false);
@@ -24,36 +29,39 @@ export default React.memo(function Footnote(props: UseDoenetRendererProps) {
         footnoteMessage = <span style={footnoteMessageStyle}>{SVs.text}</span>;
     }
 
-    const footnoteStyle = {
-        textDecoration: "none",
+    const buttonStyle = {
+        backgroundColor: "white",
+        border: "none",
         color: "#1A5A99",
-        cursor: "pointer",
+        padding: "0",
     };
 
     return (
         <span id={id}>
-            <TooltipProvider>
-                <TooltipAnchor style={{ display: "inline" }}>
-                    <sup>
-                        <span
-                            style={footnoteStyle}
-                            onClick={(e) => {
-                                setIsVisible((was) => !was);
-                            }}
-                        >
-                            [{SVs.footnoteTag}]
-                        </span>
-                    </sup>
-                </TooltipAnchor>
-                <Tooltip
-                    style={{
-                        backgroundColor: "var(--mainGray)",
-                        padding: "0.2em 0.5em",
-                    }}
-                >
-                    {isVisible ? "Hide" : "Show"} footnote
-                </Tooltip>
-            </TooltipProvider>
+            <sup>
+                <TooltipProvider>
+                    <TooltipAnchor
+                        render={
+                            <Button
+                                style={buttonStyle}
+                                onClick={() => {
+                                    setIsVisible((was) => !was);
+                                }}
+                            />
+                        }
+                    >
+                        [{SVs.footnoteTag}]
+                    </TooltipAnchor>
+                    <Tooltip
+                        style={{
+                            backgroundColor: "var(--mainGray)",
+                            padding: "0.2em 0.5em",
+                        }}
+                    >
+                        {isVisible ? "Hide" : "Show"} footnote
+                    </Tooltip>
+                </TooltipProvider>
+            </sup>
             <span aria-live="polite">{footnoteMessage}</span>
         </span>
     );
