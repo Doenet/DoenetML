@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
+import { TooltipProvider, TooltipAnchor, Tooltip } from "@ariakit/react";
 
 export default React.memo(function Footnote(props: UseDoenetRendererProps) {
     let { id, SVs } = useDoenetRenderer(props, false);
@@ -23,29 +24,37 @@ export default React.memo(function Footnote(props: UseDoenetRendererProps) {
         footnoteMessage = <span style={footnoteMessageStyle}>{SVs.text}</span>;
     }
 
-    const buttonStyle = {
-        backgroundColor: "white",
-        border: "none",
-    };
-
     const footnoteStyle = {
         textDecoration: "none",
         color: "#1A5A99",
+        cursor: "pointer",
     };
 
     return (
         <span id={id}>
-            <sup>
-                <span
-                    style={buttonStyle}
-                    onClick={() => setIsVisible((was) => !was)}
+            <TooltipProvider>
+                <TooltipAnchor style={{ display: "inline" }}>
+                    <sup>
+                        <span
+                            style={footnoteStyle}
+                            onClick={(e) => {
+                                setIsVisible((was) => !was);
+                            }}
+                        >
+                            [{SVs.footnoteTag}]
+                        </span>
+                    </sup>
+                </TooltipAnchor>
+                <Tooltip
+                    style={{
+                        backgroundColor: "var(--mainGray)",
+                        padding: "0.2em 0.5em",
+                    }}
                 >
-                    <a href="#" title={SVs.text} style={footnoteStyle}>
-                        [{SVs.footnoteTag}]
-                    </a>
-                </span>
-            </sup>
-            {footnoteMessage}
+                    {isVisible ? "Hide" : "Show"} footnote
+                </Tooltip>
+            </TooltipProvider>
+            <span aria-live="polite">{footnoteMessage}</span>
         </span>
     );
 });
