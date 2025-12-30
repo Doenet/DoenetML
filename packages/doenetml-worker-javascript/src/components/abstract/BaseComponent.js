@@ -10,6 +10,7 @@ import {
 export default class BaseComponent {
     constructor({
         componentIdx,
+        stateId,
         rootName,
         ancestors,
         serializedComponent,
@@ -31,6 +32,7 @@ export default class BaseComponent {
         this.sharedParameters = sharedParameters;
 
         this.componentIdx = componentIdx;
+        this.stateId = stateId;
         this.rootName = rootName;
         this.ancestors = ancestors;
         this.counters = {};

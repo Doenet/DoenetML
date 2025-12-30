@@ -13,6 +13,7 @@ export type UnflattenedComponent = {
     type: "unflattened";
     componentType: string;
     componentIdx: number;
+    stateId?: string;
     children: (UnflattenedComponent | string)[];
     attributes: Record<string, UnflattenedAttribute>;
     doenetAttributes?: Record<string, any>;

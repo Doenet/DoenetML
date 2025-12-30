@@ -331,12 +331,14 @@ export function expandUnflattenedToSerializedComponents({
     nComponents,
     ignoreErrors = false,
     init = true,
+    stateIdInfo,
 }: {
     serializedComponents: (UnflattenedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
     ignoreErrors?: boolean;
     init?: boolean;
+    stateIdInfo?: { prefix: string; num: number };
 }): {
     components: (SerializedComponent | string)[];
     errors: ErrorRecord[];
@@ -370,6 +372,7 @@ export function expandUnflattenedToSerializedComponents({
                 componentClass,
                 componentInfoObjects,
                 nComponents,
+                stateIdInfo,
             });
             let attributes: Record<string, SerializedAttribute> =
                 expandResult.attributes;
@@ -383,6 +386,7 @@ export function expandUnflattenedToSerializedComponents({
                 componentClass,
                 componentInfoObjects,
                 nComponents,
+                stateIdInfo,
             });
             attributes = defaultPrimitiveResult.attributes;
             errors.push(...defaultPrimitiveResult.errors);
@@ -401,6 +405,7 @@ export function expandUnflattenedToSerializedComponents({
                     componentInfoObjects,
                     nComponents,
                     ignoreErrors,
+                    stateIdInfo,
                 });
 
                 const refResolution = refResolutionResult.refResolution;
@@ -442,6 +447,7 @@ export function expandUnflattenedToSerializedComponents({
             nComponents,
             ignoreErrors: ignoreErrorsInChildren,
             init: false,
+            stateIdInfo,
         });
         newComponent.children = res.components;
         errors.push(...res.errors);
@@ -465,11 +471,13 @@ function expandUnflattenedRefResolution({
     componentInfoObjects,
     nComponents,
     ignoreErrors,
+    stateIdInfo,
 }: {
     unflattenedRefResolution: UnflattenedRefResolution;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
     ignoreErrors: boolean;
+    stateIdInfo?: { prefix: string; num: number };
 }): {
     refResolution: SerializedRefResolution;
     errors: ErrorRecord[];
@@ -486,6 +494,7 @@ function expandUnflattenedRefResolution({
             componentInfoObjects,
             nComponents,
             ignoreErrors,
+            stateIdInfo,
         });
 
         unresolvedPath = res.expandedPath;
@@ -499,6 +508,7 @@ function expandUnflattenedRefResolution({
         componentInfoObjects,
         nComponents,
         ignoreErrors,
+        stateIdInfo,
     });
 
     const originalPath = res.expandedPath;
@@ -526,11 +536,13 @@ function expandUnflattenedPath({
     componentInfoObjects,
     nComponents,
     ignoreErrors,
+    stateIdInfo,
 }: {
     unflattenedPath: UnflattenedPathPart[];
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
     ignoreErrors: boolean;
+    stateIdInfo?: { prefix: string; num: number };
 }) {
     const errors: ErrorRecord[] = [];
     const warnings: WarningRecord[] = [];
@@ -542,6 +554,7 @@ function expandUnflattenedPath({
                 componentInfoObjects,
                 nComponents,
                 ignoreErrors,
+                stateIdInfo,
             });
             let valueComponents = res.components;
             errors.push(...res.errors);
@@ -586,11 +599,13 @@ export function expandAllUnflattenedAttributes({
     componentClass,
     componentInfoObjects,
     nComponents,
+    stateIdInfo,
 }: {
     unflattenedAttributes: Record<string, UnflattenedAttribute>;
     componentClass: DoenetMLComponentClass<any>;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
+    stateIdInfo?: { prefix: string; num: number };
 }): {
     attributes: Record<string, SerializedAttribute>;
     errors: ErrorRecord[];
@@ -624,6 +639,7 @@ export function expandAllUnflattenedAttributes({
                 allUnflattenedAttributes: unflattenedAttributes,
                 componentInfoObjects,
                 nComponents,
+                stateIdInfo,
             });
             attributes[attrName] = res.attribute;
             errors.push(...res.errors);
@@ -635,6 +651,7 @@ export function expandAllUnflattenedAttributes({
                 allUnflattenedAttributes: unflattenedAttributes,
                 componentInfoObjects,
                 nComponents,
+                stateIdInfo,
             });
             attributes[attr] = res.attribute;
             errors.push(...res.errors);
@@ -659,12 +676,14 @@ function addDefaultPrimitiveAttributes({
     componentClass,
     componentInfoObjects,
     nComponents,
+    stateIdInfo,
 }: {
     unflattenedAttributes: Record<string, UnflattenedAttribute>;
     currentAttributes: Record<string, SerializedAttribute>;
     componentClass: DoenetMLComponentClass<any>;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
+    stateIdInfo?: { prefix: string; num: number };
 }): {
     attributes: Record<string, SerializedAttribute>;
     errors: ErrorRecord[];
@@ -695,6 +714,7 @@ function addDefaultPrimitiveAttributes({
                 },
                 componentInfoObjects,
                 nComponents,
+                stateIdInfo,
             });
             newAttributes[attrName] = res.attribute;
             errors.push(...res.errors);
@@ -717,12 +737,14 @@ export function expandAttribute({
     allUnflattenedAttributes = {},
     componentInfoObjects,
     nComponents,
+    stateIdInfo,
 }: {
     attrDef?: AttributeDefinition<any>;
     attribute: UnflattenedAttribute | UnresolvedAttribute;
     allUnflattenedAttributes?: Record<string, UnflattenedAttribute>;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
+    stateIdInfo?: { prefix: string; num: number };
 }): {
     attribute: SerializedAttribute;
     errors: ErrorRecord[];
@@ -738,6 +760,7 @@ export function expandAttribute({
             attribute,
             componentInfoObjects,
             nComponents,
+            stateIdInfo,
         });
 
         const unflattenedComponent = initialResult.component;
@@ -793,6 +816,7 @@ export function expandAttribute({
             serializedComponents: [unflattenedComponent],
             componentInfoObjects,
             nComponents,
+            stateIdInfo,
         });
         errors.push(...res.errors);
         warnings.push(...res.warnings);
@@ -835,6 +859,7 @@ export function expandAttribute({
             serializedComponents: attribute.children,
             componentInfoObjects,
             nComponents,
+            stateIdInfo,
         });
         errors.push(...res.errors);
         warnings.push(...res.warnings);
@@ -904,11 +929,13 @@ function createInitialComponentFromAttribute({
     attribute,
     componentInfoObjects,
     nComponents,
+    stateIdInfo,
 }: {
     attrDef: AttributeDefinition<any>;
     attribute: UnflattenedAttribute | UnresolvedAttribute;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
+    stateIdInfo?: { prefix: string; num: number };
 }): { component: UnflattenedComponent; nComponents: number } {
     if (attrDef.createComponentOfType === undefined) {
         throw Error(
@@ -925,6 +952,9 @@ function createInitialComponentFromAttribute({
                     type: "unflattened",
                     componentType: attrDef.createComponentOfType,
                     componentIdx: nComponents++,
+                    stateId: stateIdInfo
+                        ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                        : undefined,
                     attributes: {},
                     children: [],
                     state: { value: attrDef.valueForTrue },
@@ -943,6 +973,9 @@ function createInitialComponentFromAttribute({
                     type: "unflattened",
                     componentType: attrDef.createComponentOfType,
                     componentIdx: nComponents++,
+                    stateId: stateIdInfo
+                        ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                        : undefined,
                     attributes: {},
                     children: [],
                     state: { value: true },
@@ -971,6 +1004,9 @@ function createInitialComponentFromAttribute({
                         type: "unflattened",
                         componentType: attrDef.createComponentOfType,
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         attributes: {},
                         children: [],
                         state: { value: attrDef.valueForTrue },
@@ -987,6 +1023,9 @@ function createInitialComponentFromAttribute({
                         type: "unflattened",
                         componentType: attrDef.createComponentOfType,
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         attributes: {},
                         children: [],
                         state: { value: attrDef.valueForFalse },
@@ -1005,6 +1044,9 @@ function createInitialComponentFromAttribute({
                     component: {
                         type: "unflattened",
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         componentType: attrDef.createComponentOfType,
                         attributes: {},
                         children: [],
@@ -1021,6 +1063,9 @@ function createInitialComponentFromAttribute({
         type: "unflattened",
         componentType: attrDef.createComponentOfType,
         componentIdx: nComponents++,
+        stateId: stateIdInfo
+            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+            : undefined,
         attributes: {},
         children: [],
         state: {},
@@ -1114,6 +1159,7 @@ export function convertUnresolvedAttributesForComponentType({
     compositeAttributesObj = {},
     dontSkipAttributes = [],
     nComponents,
+    stateIdInfo,
 }: {
     attributes: Record<string, SerializedAttribute>;
     componentType: string;
@@ -1121,6 +1167,10 @@ export function convertUnresolvedAttributesForComponentType({
     compositeAttributesObj?: Record<string, AttributeDefinition<any>>;
     dontSkipAttributes?: string[];
     nComponents: number;
+    stateIdInfo?: {
+        prefix: string;
+        num: number;
+    };
 }) {
     const errors: ErrorRecord[] = [];
     const warnings: WarningRecord[] = [];
@@ -1162,6 +1212,7 @@ export function convertUnresolvedAttributesForComponentType({
                     attribute,
                     componentInfoObjects,
                     nComponents,
+                    stateIdInfo,
                 });
 
                 newAttributes[attrName] = res.attribute;
@@ -1175,6 +1226,9 @@ export function convertUnresolvedAttributesForComponentType({
                         .children) {
                         if (typeof child === "object") {
                             child.componentIdx = nComponents++;
+                            child.stateId = stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined;
                         }
                     }
 
@@ -1191,6 +1245,7 @@ export function convertUnresolvedAttributesForComponentType({
                         serializedComponents,
                         componentInfoObjects,
                         nComponents,
+                        stateIdInfo,
                     });
                     errors.push(...sugarResult.errors);
                     warnings.push(...sugarResult.warnings);
@@ -1231,11 +1286,16 @@ export function convertAttributeValuesForComponentType({
     componentType,
     componentInfoObjects,
     nComponents,
+    stateIdInfo,
 }: {
     attributeValues: Record<string, unknown>;
     componentType: string;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
+    stateIdInfo?: {
+        prefix: string;
+        num: number;
+    };
 }) {
     const errors: ErrorRecord[] = [];
     const warnings: WarningRecord[] = [];
@@ -1266,6 +1326,9 @@ export function convertAttributeValuesForComponentType({
                 component: {
                     type: "serialized",
                     componentIdx: nComponents++,
+                    stateId: stateIdInfo
+                        ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                        : undefined,
                     componentType: attrDef.createComponentOfType,
                     attributes: {},
                     doenetAttributes: {},

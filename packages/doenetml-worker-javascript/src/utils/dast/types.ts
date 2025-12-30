@@ -12,6 +12,7 @@ export type SerializedComponent = {
     type: "serialized";
     componentType: string;
     componentIdx: number;
+    stateId?: string;
     children: (SerializedComponent | string)[];
     attributes: Record<string, SerializedAttribute>;
     position?: Position;
