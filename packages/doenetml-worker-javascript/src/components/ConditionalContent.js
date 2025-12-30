@@ -156,7 +156,6 @@ export default class ConditionalContent extends CompositeComponent {
         let replacementResults = await this.getReplacements(
             component,
             components,
-            nComponents,
         );
 
         workspace.previousSelectedIndex =
@@ -166,10 +165,10 @@ export default class ConditionalContent extends CompositeComponent {
         // console.log(JSON.parse(JSON.stringify(replacementResults)));
         // console.log(replacements);
 
-        return replacementResults;
+        return { ...replacementResults, nComponents };
     }
 
-    static async getReplacements(component, components, nComponents) {
+    static async getReplacements(component, components) {
         let errors = [];
         let warnings = [];
 
@@ -186,28 +185,23 @@ export default class ConditionalContent extends CompositeComponent {
             // use state, not stateValues, as read only proxy messes up internal
             // links between descendant variant components and the components themselves
 
-            let serializedGrandchildren = deepClone(
-                await components[selectedChildComponentIdx].state
-                    .serializedChildren.value,
+            // the child of each case is a group wrapping the actual content
+            let serializedChild = deepClone(
+                (
+                    await components[selectedChildComponentIdx].state
+                        .serializedChildren.value
+                )[0],
             );
-            let serializedChild = {
-                type: "serialized",
-                componentType: "group",
-                componentIdx: nComponents++,
-                state: { rendered: true },
-                attributes: {},
-                doenetAttributes: Object.assign(
-                    {},
-                    components[selectedChildComponentIdx].doenetAttributes,
-                ),
-                children: serializedGrandchildren,
-                variants: {
-                    desiredVariant: {
-                        seed:
-                            component.sharedParameters.variantSeed +
-                            "|" +
-                            selectedIndex.toString(),
-                    },
+            serializedChild.doenetAttributes = Object.assign(
+                {},
+                components[selectedChildComponentIdx].doenetAttributes,
+            );
+            serializedChild.variants = {
+                desiredVariant: {
+                    seed:
+                        component.sharedParameters.variantSeed +
+                        "|" +
+                        selectedIndex.toString(),
                 },
             };
 
@@ -218,7 +212,6 @@ export default class ConditionalContent extends CompositeComponent {
             replacements,
             errors,
             warnings,
-            nComponents,
         };
     }
 
@@ -300,11 +293,9 @@ export default class ConditionalContent extends CompositeComponent {
         const replacementResults = await this.getReplacements(
             component,
             components,
-            nComponents,
         );
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
-        nComponents = replacementResults.nComponents;
 
         const replacementInstruction = {
             changeType: "add",
