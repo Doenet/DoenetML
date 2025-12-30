@@ -274,6 +274,7 @@ export default class Intersection extends CompositeComponent {
             components,
             componentInfoObjects,
             nComponents,
+            workspace,
         });
 
         let serializedIntersections = replacementResults.replacements;

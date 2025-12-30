@@ -3294,6 +3294,7 @@ export default class Core {
                         component.constructor.createAttributesObject(),
                     components: this._components,
                     nComponents: newNComponents,
+                    stateIdInfo,
                     publicCaseInsensitiveAliasSubstitutions:
                         this.publicCaseInsensitiveAliasSubstitutions.bind(this),
                 },

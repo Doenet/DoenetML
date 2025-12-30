@@ -303,6 +303,7 @@ export default class Group extends CompositeComponent {
         component,
         componentInfoObjects,
         nComponents,
+        workspace,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -338,6 +339,7 @@ export default class Group extends CompositeComponent {
                     component,
                     componentInfoObjects,
                     nComponents,
+                    workspace,
                 });
 
                 let replacements = createResult.replacements;

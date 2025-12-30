@@ -269,6 +269,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         componentInfoObjects,
         flags,
         nComponents,
+        workspace,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -307,6 +308,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
                     startNum: component.replacements.length,
                     flags,
                     nComponents,
+                    workspace,
                 });
                 errors.push(...result.errors);
                 warnings.push(...result.warnings);

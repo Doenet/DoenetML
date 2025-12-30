@@ -687,6 +687,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         component,
         componentInfoObjects,
         nComponents,
+        workspace,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -724,6 +725,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     componentInfoObjects,
                     startNum: component.replacements.length,
                     nComponents,
+                    workspace,
                 });
                 errors.push(...result.errors);
                 warnings.push(...result.warnings);
