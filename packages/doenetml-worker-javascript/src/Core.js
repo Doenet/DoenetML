@@ -2520,8 +2520,11 @@ export default class Core {
         //   to a public state variable, substituting aliases if necessary
         let initialNComponents;
         let result;
+        const originalWorkspace = { ...component.replacementsWorkspace };
+
         do {
             initialNComponents = this.components.length;
+            component.replacementsWorkspace = { ...originalWorkspace };
             result = await component.constructor.createSerializedReplacements({
                 component: this.components[component.componentIdx], // to create proxy
                 components: this.components,
@@ -9882,8 +9885,11 @@ export default class Core {
         //   to a public state variable, substituting aliases if necessary
         let initialNComponents;
         let replacementResults;
+        const originalWorkspace = { ...component.replacementsWorkspace };
+
         do {
             initialNComponents = this.components.length;
+            component.replacementsWorkspace = { ...originalWorkspace };
             replacementResults =
                 await component.constructor.calculateReplacementChanges({
                     component: proxiedComponent,
