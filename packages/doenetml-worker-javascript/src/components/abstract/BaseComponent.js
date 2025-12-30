@@ -1418,9 +1418,11 @@ export default class BaseComponent {
             for (let varName in this.state) {
                 if (!(varName in serializedComponent.state)) {
                     let stateVar = this.state[varName];
-                    if (stateVar.hasEssential && !stateVar.usedDefault) {
-                        serializedComponent.state[varName] =
-                            await this.stateValues[varName];
+                    if (stateVar.hasEssential) {
+                        const value = await this.stateValues[varName];
+                        if (!stateVar.usedDefault) {
+                            serializedComponent.state[varName] = value;
+                        }
                     }
                 }
             }
