@@ -1,3 +1,4 @@
+import { stat } from "node:fs";
 import { ComponentInfoObjects } from "./componentInfoObjects";
 import { SerializedAttribute, SerializedComponent } from "./dast/types";
 
@@ -25,6 +26,7 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
     customWrappingFunction: (
         arg: (SerializedComponent | string)[],
         nComponents: number,
+        stateIdInfo?: { prefix: string; num: number },
     ) => { newChildren: (SerializedComponent | string)[]; nComponents: number };
     wrapSingleIfNotWrappingComponentType?: boolean;
 }) {
@@ -32,10 +34,12 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
         matchedChildren,
         componentInfoObjects,
         nComponents,
+        stateIdInfo,
     }: {
         matchedChildren: (string | SerializedComponent)[];
         componentInfoObjects: ComponentInfoObjects;
         nComponents: number;
+        stateIdInfo?: { prefix: string; num: number };
     }):
         | { success: false }
         | {
@@ -136,6 +140,9 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
                             type: "serialized",
                             componentType: wrappingComponentType,
                             componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
                             children: childrenToWrap,
                             attributes: {},
                             state: {},
@@ -169,6 +176,7 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
                 const wrapResult = customWrappingFunction(
                     childrenToWrap,
                     nComponents,
+                    stateIdInfo,
                 );
 
                 wrappedChildren = wrapResult.newChildren;
@@ -179,6 +187,9 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
                         type: "serialized",
                         componentType: wrappingComponentType,
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: childrenToWrap,
                         attributes: {},
                         state: {},

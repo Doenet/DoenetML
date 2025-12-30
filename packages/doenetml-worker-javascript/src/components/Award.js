@@ -7,6 +7,7 @@ import {
 } from "../utils/booleanLogic";
 import { unwrapSource } from "../utils/dast/convertNormalizedDast";
 import { comparePathsIgnorePosition } from "../utils/dast/path";
+import { stat } from "node:fs";
 
 export default class Award extends BaseComponent {
     static componentType = "award";
@@ -184,6 +185,7 @@ export default class Award extends BaseComponent {
             parentAttributes,
             componentInfoObjects,
             nComponents,
+            stateIdInfo,
         }) {
             // wrap with componentType if have more than one child or a single string
 
@@ -270,6 +272,9 @@ export default class Award extends BaseComponent {
                         type: "serialized",
                         componentType: type,
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: matchedChildren,
                         attributes: {},
                         doenetAttributes: {},

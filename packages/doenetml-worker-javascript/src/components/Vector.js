@@ -102,6 +102,7 @@ export default class Vector extends GraphicalComponent {
             matchedChildren,
             componentInfoObjects,
             nComponents,
+            stateIdInfo,
         }) {
             let componentIsSpecifiedType =
                 componentInfoObjects.componentIsSpecifiedType;
@@ -186,10 +187,16 @@ export default class Vector extends GraphicalComponent {
                                 type: "serialized",
                                 componentType: "mathList",
                                 componentIdx: nComponents++,
+                                stateId: stateIdInfo
+                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                    : undefined,
                                 children: breakResult.pieces.map((x) => ({
                                     type: "serialized",
                                     componentType: "math",
                                     componentIdx: nComponents++,
+                                    stateId: stateIdInfo
+                                        ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                        : undefined,
                                     children: x,
                                     attributes: {},
                                     doenetAttributes: {},
@@ -225,6 +232,9 @@ export default class Vector extends GraphicalComponent {
                             type: "serialized",
                             componentType: "coords",
                             componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
                             children: componentChildren,
                             state: {},
                             attributes: {},

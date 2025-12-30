@@ -345,6 +345,7 @@ export function gatherRawRoundingFixedResponseAttributes(
 
 export function addShadowRoundingAttributes({
     nComponents,
+    stateIdInfo,
     source,
     compositeIdx,
     attributes,
@@ -384,6 +385,9 @@ export function addShadowRoundingAttributes({
                 componentType:
                     roundingAttributes[attrName].createComponentOfType,
                 componentIdx: nComponents++,
+                stateId: stateIdInfo
+                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                    : undefined,
                 attributes: {},
                 doenetAttributes: {},
                 state: {},

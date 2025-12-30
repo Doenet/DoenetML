@@ -36,6 +36,7 @@ export default class BezierControls extends InlineComponent {
         let createControlVectorsList = function ({
             matchedChildren,
             nComponents,
+            stateIdInfo,
             componentInfoObjects,
         }) {
             let results = groupIntoVectorsSeparatedBySpacesOutsideParens({
@@ -62,6 +63,9 @@ export default class BezierControls extends InlineComponent {
                             type: "serialized",
                             componentType: "controlVectors",
                             componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
                             children: [child],
                             attributes: {},
                             doenetAttributes: {},

@@ -471,6 +471,10 @@ export default class Collect extends CompositeComponent {
 
         let numReplacementsFoundSoFar = 0;
 
+        workspace.numReplacementsByCollected = [
+            ...workspace.numReplacementsByCollected,
+        ];
+
         // adjust workspace variables by any replacements that were deleted
         for (
             let collectedNum = 0;

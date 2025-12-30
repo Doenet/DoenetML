@@ -45,7 +45,11 @@ export default class SolveEquations extends InlineComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let wrapStringsAndMacros = function ({ matchedChildren, nComponents }) {
+        let wrapStringsAndMacros = function ({
+            matchedChildren,
+            nComponents,
+            stateIdInfo,
+        }) {
             // only apply if all children are strings or macros
             if (
                 !matchedChildren.every(
@@ -72,6 +76,9 @@ export default class SolveEquations extends InlineComponent {
                         type: "serialized",
                         componentType: "math",
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: matchedChildren,
                         attributes: {},
                         doenetAttributes: {},

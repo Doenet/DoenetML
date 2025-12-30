@@ -14,10 +14,12 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
         matchedChildren,
         componentInfoObjects,
         nComponents,
+        stateIdInfo,
     }: {
         matchedChildren: (string | SerializedComponent)[];
         componentInfoObjects: ComponentInfoObjects;
         nComponents: number;
+        stateIdInfo?: { prefix: string; num: number };
     }) {
         // Split strings and interleaving children by spaces in the strings that are outside parens.
         // The resulting groups are wrapped by a componentType unless the group is either
@@ -62,6 +64,9 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
                     componentType,
                     children: pieces,
                     componentIdx: nComponents++,
+                    stateId: stateIdInfo
+                        ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                        : undefined,
                     attributes: {},
                     state: {},
                     doenetAttributes: {},

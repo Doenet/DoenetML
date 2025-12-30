@@ -80,10 +80,15 @@ export default class VectorListComponent extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({ matchedChildren, nComponents }) {
+            replacementFunction: function ({
+                matchedChildren,
+                nComponents,
+                stateIdInfo,
+            }) {
                 return groupIntoVectorsSeparatedBySpacesOutsideParens({
                     matchedChildren,
                     nComponents,
+                    stateIdInfo,
                 });
             },
         });
@@ -512,6 +517,15 @@ export default class VectorListComponent extends CompositeComponent {
         workspace,
         nComponents,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -555,6 +569,7 @@ export default class VectorListComponent extends CompositeComponent {
                     componentType: "vector",
                     componentInfoObjects,
                     nComponents,
+                    stateIdInfo,
                 });
 
                 attributes = JSON.parse(JSON.stringify(res.attributes));
@@ -564,6 +579,7 @@ export default class VectorListComponent extends CompositeComponent {
             if (copyChildSource) {
                 nComponents = addShadowRoundingAttributes({
                     nComponents,
+                    stateIdInfo,
                     source: copyChildSource,
                     compositeIdx: copyChild.componentIdx,
                     attributes,
@@ -585,6 +601,7 @@ export default class VectorListComponent extends CompositeComponent {
                     type: "serialized",
                     componentType: "math",
                     componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     attributes: {},
                     doenetAttributes: {},
                     children: [],
@@ -605,6 +622,7 @@ export default class VectorListComponent extends CompositeComponent {
                 type: "serialized",
                 componentType: "mathList",
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: {},
                 doenetAttributes: {},
                 children: mathListChildren,
@@ -621,6 +639,7 @@ export default class VectorListComponent extends CompositeComponent {
                 type: "serialized",
                 componentType: "vector",
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes,
                 doenetAttributes: {},
                 children: [],
@@ -637,6 +656,8 @@ export default class VectorListComponent extends CompositeComponent {
 
         workspace.componentsCopied = componentsCopied;
         workspace.numVectors = numVectors;
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,

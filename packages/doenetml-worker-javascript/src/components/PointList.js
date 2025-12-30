@@ -8,6 +8,7 @@ import {
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedLists";
+import { stat } from "node:fs";
 
 export default class PointList extends CompositeComponent {
     static componentType = "pointList";
@@ -80,10 +81,15 @@ export default class PointList extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({ matchedChildren, nComponents }) {
+            replacementFunction: function ({
+                matchedChildren,
+                nComponents,
+                stateIdInfo,
+            }) {
                 return groupIntoPointsSeparatedBySpacesOutsideParens({
                     matchedChildren,
                     nComponents,
+                    stateIdInfo,
                 });
             },
         });
@@ -513,6 +519,15 @@ export default class PointList extends CompositeComponent {
         workspace,
         nComponents,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -556,6 +571,7 @@ export default class PointList extends CompositeComponent {
                     componentType: "point",
                     componentInfoObjects,
                     nComponents,
+                    stateIdInfo,
                 });
 
                 attributes = JSON.parse(JSON.stringify(res.attributes));
@@ -565,6 +581,7 @@ export default class PointList extends CompositeComponent {
             if (copyChildSource) {
                 nComponents = addShadowRoundingAttributes({
                     nComponents,
+                    stateIdInfo,
                     source: copyChildSource,
                     compositeIdx: copyChild.componentIdx,
                     attributes,
@@ -586,6 +603,7 @@ export default class PointList extends CompositeComponent {
                     type: "serialized",
                     componentType: "math",
                     componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     attributes: {},
                     doenetAttributes: {},
                     children: [],
@@ -606,6 +624,7 @@ export default class PointList extends CompositeComponent {
                 type: "serialized",
                 componentType: "mathList",
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: {},
                 doenetAttributes: {},
                 children: mathListChildren,
@@ -622,6 +641,7 @@ export default class PointList extends CompositeComponent {
                 type: "serialized",
                 componentType: "point",
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes,
                 doenetAttributes: {},
                 children: [],
@@ -638,6 +658,8 @@ export default class PointList extends CompositeComponent {
 
         workspace.componentsCopied = componentsCopied;
         workspace.numPoints = numPoints;
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,

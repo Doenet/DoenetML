@@ -240,9 +240,18 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
     static async createSerializedReplacements({
         component,
-        componentInfoObjects,
+        workspace,
         nComponents,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -273,12 +282,15 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                 type: "serialized",
                 componentType: "integer",
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 state: { value, fixed: true },
                 attributes: {},
                 doenetAttributes: {},
                 children: [],
             });
         }
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,

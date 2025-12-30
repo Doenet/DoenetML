@@ -9,7 +9,11 @@ export default class TupleList extends MathList {
     static returnSugarInstructions() {
         let sugarInstructions = [];
 
-        let createTupleList = function ({ matchedChildren, nComponents }) {
+        let createTupleList = function ({
+            matchedChildren,
+            nComponents,
+            stateIdInfo,
+        }) {
             let results = breakEmbeddedStringsIntoParensPieces({
                 componentList: matchedChildren,
             });
@@ -26,6 +30,9 @@ export default class TupleList extends MathList {
                             type: "serialized",
                             componentType: "math",
                             componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
                             children: piece,
                             attributes: {},
                             doenetAttributes: {},

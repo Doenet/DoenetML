@@ -69,10 +69,15 @@ export default class TextList extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({ matchedChildren, nComponents }) {
+            replacementFunction: function ({
+                matchedChildren,
+                nComponents,
+                stateIdInfo,
+            }) {
                 return groupIntoTextsSeparatedBySpaces({
                     matchedChildren,
                     nComponents,
+                    stateIdInfo,
                 });
             },
         });
@@ -306,6 +311,15 @@ export default class TextList extends CompositeComponent {
         workspace,
         nComponents,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -334,6 +348,7 @@ export default class TextList extends CompositeComponent {
                     componentType: "text",
                     componentInfoObjects,
                     nComponents,
+                    stateIdInfo,
                 });
 
                 attributesFromComposite = res.attributes;
@@ -350,6 +365,7 @@ export default class TextList extends CompositeComponent {
                 type: "serialized",
                 componentType: "text",
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: JSON.parse(JSON.stringify(attributesFromComposite)),
                 doenetAttributes: {},
                 children: [],
@@ -375,6 +391,8 @@ export default class TextList extends CompositeComponent {
 
         workspace.componentsCopied = componentsCopied;
         workspace.numComponents = numComponents;
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,

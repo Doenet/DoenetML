@@ -78,7 +78,17 @@ export default class ModuleAttributes extends CompositeComponent {
         components,
         componentInfoObjects,
         nComponents,
+        workspace,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         const errors = [];
         const warnings = [];
 
@@ -158,6 +168,7 @@ export default class ModuleAttributes extends CompositeComponent {
                 serializedComponents: attributeFromModule.children,
                 componentInfoObjects,
                 nComponents,
+                stateIdInfo,
             });
             errors.push(...expandResult.errors);
             warnings.push(...expandResult.warnings);
@@ -177,6 +188,7 @@ export default class ModuleAttributes extends CompositeComponent {
                 serializedComponents: [child],
                 componentInfoObjects,
                 nComponents,
+                stateIdInfo,
             });
 
             errors.push(...sugarResult.errors);
@@ -192,11 +204,14 @@ export default class ModuleAttributes extends CompositeComponent {
             type: "serialized",
             componentType: "setup",
             componentIdx: nComponents++,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
             children: componentsForModuleAttributes,
             attributes: {},
             doenetAttributes: {},
             state: {},
         };
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements: [setup],

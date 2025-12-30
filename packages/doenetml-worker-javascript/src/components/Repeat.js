@@ -293,6 +293,10 @@ export default class Repeat extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
         const numIterates = await component.stateValues.numIterates;
 
         workspace.lastReplacementParameters = {
@@ -313,6 +317,7 @@ export default class Repeat extends CompositeComponent {
                 components,
                 nComponents,
                 isUpdate,
+                workspace,
             });
             replacements.push(...res.replacements);
             errors.push(...res.errors);
@@ -330,6 +335,7 @@ export default class Repeat extends CompositeComponent {
         components,
         isUpdate = false,
         nComponents,
+        workspace,
     }) {
         let errors = [];
         let warnings = [];
@@ -348,7 +354,16 @@ export default class Repeat extends CompositeComponent {
             },
         ];
 
-        const idxResult = createNewComponentIndices(replacements, nComponents);
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
+        const idxResult = createNewComponentIndices(
+            replacements,
+            nComponents,
+            stateIdInfo,
+        );
         replacements = idxResult.components;
         nComponents = idxResult.nComponents;
 
@@ -363,6 +378,7 @@ export default class Repeat extends CompositeComponent {
             componentInfoObjects,
             compositeAttributesObj,
             nComponents,
+            stateIdInfo,
         });
 
         const attributesFromComposite = res.attributes;
@@ -375,6 +391,7 @@ export default class Repeat extends CompositeComponent {
             component,
             iter,
             nComponents,
+            stateIdInfo,
         );
 
         replacements[0] = aliasResult.replacement;
@@ -388,6 +405,8 @@ export default class Repeat extends CompositeComponent {
                 replacement: replacements[0],
             });
         }
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return { replacements, errors, warnings, nComponents };
     }
@@ -592,6 +611,7 @@ export default class Repeat extends CompositeComponent {
                         components,
                         isUpdate: true,
                         nComponents,
+                        workspace,
                     });
                     replacements.push(...res.replacements);
                     errors.push(...res.errors);
@@ -785,6 +805,7 @@ async function addAndLinkAliasComponents(
     component,
     iter,
     nComponents,
+    stateIdInfo,
 ) {
     let sourcesComponentIdx = await component.stateValues.sourcesComponentIdx;
 
@@ -792,6 +813,7 @@ async function addAndLinkAliasComponents(
         type: "serialized",
         componentType: "setup",
         componentIdx: nComponents++,
+        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
         attributes: {},
         doenetAttributes: {},
         state: {},
@@ -815,6 +837,7 @@ async function addAndLinkAliasComponents(
             type: "serialized",
             componentType: "_copy",
             componentIdx: nComponents++,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
             attributes: {
                 createComponentIdx: {
                     type: "primitive",
@@ -859,6 +882,7 @@ async function addAndLinkAliasComponents(
             type: "serialized",
             componentType: "integer",
             componentIdx: indexComponentIdx,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
             attributes: {
                 name: {
                     type: "primitive",

@@ -184,7 +184,17 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         component,
         componentInfoObjects,
         nComponents,
+        workspace,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -206,6 +216,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     componentType: "number",
                     componentInfoObjects,
                     nComponents,
+                    stateIdInfo,
                 });
 
                 attributesFromComposite = res.attributes;
@@ -215,12 +226,15 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                 type: "serialized",
                 componentType: "number",
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: attributesFromComposite,
                 state: { value, fixed: true },
                 doenetAttributes: {},
                 children: [],
             });
         }
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,

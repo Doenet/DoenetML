@@ -31,18 +31,26 @@ export class Extremum extends BaseComponent {
         let breakIntoLocationValueByCommas = function ({
             matchedChildren,
             nComponents,
+            stateIdInfo,
         }) {
-            let childrenToComponentFunction = (x, nComponents) => ({
+            let childrenToComponentFunction = (
+                x,
+                newNComponents,
+                newStateIdInfo,
+            ) => ({
                 component: {
                     type: "serialized",
                     componentType: "math",
-                    componentIdx: nComponents++,
+                    componentIdx: newNComponents++,
+                    stateId: newStateIdInfo
+                        ? `${newStateIdInfo.prefix}${newStateIdInfo.num++}`
+                        : undefined,
                     children: x,
                     attributes: {},
                     doenetAttributes: {},
                     state: {},
                 },
-                nComponents,
+                nComponents: newNComponents,
             });
 
             let breakFunction = returnBreakStringsSugarFunction({
@@ -50,7 +58,15 @@ export class Extremum extends BaseComponent {
                 mustStripOffOuterParentheses: true,
             });
 
-            let result = breakFunction({ matchedChildren, nComponents });
+            const newStateIdInfo = stateIdInfo
+                ? { prefix: stateIdInfo.prefix, num: stateIdInfo.num }
+                : undefined;
+
+            let result = breakFunction({
+                matchedChildren,
+                nComponents,
+                stateIdInfo: newStateIdInfo,
+            });
 
             if (!result.success && matchedChildren.length === 1) {
                 // if didn't succeed and just have a single string child,
@@ -65,6 +81,9 @@ export class Extremum extends BaseComponent {
                                 type: "serialized",
                                 componentType: "math",
                                 componentIdx: nComponents++,
+                                stateId: stateIdInfo
+                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                    : undefined,
                                 children: matchedChildren,
                                 attributes: {},
                                 doenetAttributes: {},
@@ -78,6 +97,9 @@ export class Extremum extends BaseComponent {
 
             if (result.success) {
                 nComponents = result.nComponents;
+                if (stateIdInfo) {
+                    stateIdInfo.num = newStateIdInfo.num;
+                }
                 if (result.newChildren.length === 1) {
                     // one component is a value
                     return {
@@ -291,7 +313,11 @@ export class Extrema extends BaseComponent {
         let sugarInstructions = super.returnSugarInstructions();
         let extremaClass = this;
 
-        let createExtremumList = function ({ matchedChildren, nComponents }) {
+        let createExtremumList = function ({
+            matchedChildren,
+            nComponents,
+            stateIdInfo,
+        }) {
             let results = breakEmbeddedStringsIntoParensPieces({
                 componentList: matchedChildren,
             });
@@ -308,6 +334,9 @@ export class Extrema extends BaseComponent {
                             type: "serialized",
                             componentType: extremaClass.componentTypeSingular,
                             componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
                             children: piece,
                             attributes: {},
                             doenetAttributes: {},

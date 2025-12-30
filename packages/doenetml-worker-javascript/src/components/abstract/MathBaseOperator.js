@@ -37,6 +37,7 @@ export default class MathOperator extends MathComponent {
         let breakStringsIntoMathsBySpaces = function ({
             matchedChildren,
             nComponents,
+            stateIdInfo,
         }) {
             // break any string by white space and wrap pieces with math or number
 
@@ -53,6 +54,9 @@ export default class MathOperator extends MathComponent {
                                     ? "number"
                                     : "math",
                                 componentIdx: nComponents++,
+                                stateId: stateIdInfo
+                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                    : undefined,
                                 children: [s],
                                 attributes: {},
                                 doenetAttributes: {},
