@@ -21,7 +21,8 @@ import { AttrDisplay, PropDisplay } from "../../components"
 </graph>
 
 <p>In general, each graph should have a description attribute set to a textual description of the graph contents.</p>
-<graph><shortDescription>A graph of the unit circle</shortDescription>
+<graph>
+  <shortDescription>A graph of the unit circle</shortDescription>
   <circle fixed />
 </graph>
 
@@ -70,7 +71,8 @@ When the `identicalAxisScales` attribute is used, the overall proportions of the
   displayXAxis="false" 
   displayYAxis="false" 
   size="small"
- ><shortDescription>A graph without x or y-axis displayed</shortDescription>
+  >
+    <shortDescription>A graph without x or y-axis displayed</shortDescription>
     <point/>
     <line>y = x</line>
 </graph>
@@ -94,7 +96,8 @@ to `true` or `false`.
   displayXAxisTickLabels="false" 
   displayYAxisTickLabels="false" 
   size="small"
- ><shortDescription>A graph without axis tick labels</shortDescription>
+  >
+    <shortDescription>A graph without axis tick labels</shortDescription>
     <point/>
     <line>y = x</line>
 </graph>
@@ -117,7 +120,8 @@ rendering of the axes tick labels to `true` or `false`.
   xLabelPosition="left" 
   yLabelPosition="bottom" 
   showNavigation="false"
- ><shortDescription>A graph with the x-label at the left and the y-label at the bottom</shortDescription>
+  >
+    <shortDescription>A graph with the x-label at the left and the y-label at the bottom</shortDescription>
     <xLabel><m>x</m></xLabel>
     <yLabel><m>y</m></yLabel>
     <point/> 
@@ -145,7 +149,7 @@ a `bottom` position for the $y$-axis label. The default position is `top`.
   name="g" 
   yLabelAlignment="right"  
   showNavigation="false">
-  <shortDescription>A graph with the y-label aligned to the right of the axis</shortDescription>
+    <shortDescription>A graph with the y-label aligned to the right of the axis</shortDescription>
     <yLabel><m>y</m></yLabel>
     <xLabel><m>x</m></xLabel>
     <point/>
@@ -167,13 +171,13 @@ the label appears to the left of the vertical axis.
 
 
 ```doenet-editor-horiz
-<graph xTickScaleFactor="pi"
- ><shortDescription>A graph where the x-tick scale factor is pi</shortDescription>
+<graph xTickScaleFactor="pi">
+  <shortDescription>A graph where the x-tick scale factor is pi</shortDescription>
   <function>sin(x)</function>
 </graph>
 
-<graph yTickScaleFactor="pi"
- ><shortDescription>A graph where the y-tick scale factor is pi</shortDescription>
+<graph yTickScaleFactor="pi">
+  <shortDescription>A graph where the y-tick scale factor is pi</shortDescription>
   <function>1/x</function>
 </graph>
 ```
@@ -191,13 +195,13 @@ multiplier to the $x$-axis and the $y$-axis, respectively.
 
 
 ```doenet-example
-<graph name="g" showNavigation="false" size="small"
- ><shortDescription>A graph where the navigation controls are not shown</shortDescription>
+<graph name="g" showNavigation="false" size="small">
+  <shortDescription>A graph where the navigation controls are not shown</shortDescription>
   <point/>
   <line>y = x</line>
 </graph>
 
-<graph extend="$g" showNavigation="true"
+<graph extend="$g" showNavigation="true">
   <shortDescription>A graph where the navigation controls are shown (the default)</shortDescription>
 </graph>
 ```
@@ -215,13 +219,13 @@ By default, `showNavigation` is set to `true`.
 
 
 ```doenet-example
-<graph name="g" fixAxes="true" size="small"
- ><shortDescription>A graph with the axes fixed</shortDescription>
+<graph name="g" fixAxes="true" size="small">
+  <shortDescription>A graph with the axes fixed</shortDescription>
   <point/>
   <line>y = x</line>
 </graph>
 
-<graph extend="$g" fixAxes="false" link="false"
+<graph extend="$g" fixAxes="false" link="false">
   <shortDescription>A graph without the axes fixed (the default)</shortDescription>
 </graph>
 ```
@@ -242,27 +246,27 @@ will also not appear. By default, `fixAxes` is set to `false`.
 ```doenet-editor-horiz
 <p>Graph 1: If you zoom in and out below,
   the grid adapts.</p>
-<graph name="g" grid size="small"
- ><shortDescription>A graph with a grid that adapts when the graph zoom is changed</shortDescription>
+<graph name="g" grid size="small">
+  <shortDescription>A graph with a grid that adapts when the graph zoom is changed</shortDescription>
   <point/>
   <line>y = x</line>
 </graph>
 
 <p>Graph 2: If you zoom in and out below, 
   the grid remains constant.</p>
-<graph extend="$g" grid="1 1"
+<graph extend="$g" grid="1 1">
   <shortDescription>A graph with a grid that is fixed at interval of 1</shortDescription>
 </graph>
 
 <p>Graph 3: If you zoom in and out below, 
   the grid remains constant.</p>
-<graph extend="$g" grid="5 1"
+<graph extend="$g" grid="5 1">
   <shortDescription>A graph with a grid that is fixed at an interval 5 in the x-direction and 1 in the y-direction.</shortDescription>
 </graph>
 
 <p>Graph 4: If you zoom in and out below, 
   the grid adapts.</p>
-<graph extend="$g" grid="dense"
+<graph extend="$g" grid="dense">
   <shortDescription>A graph with a dense grid that adapts when the graph zoom is changed</shortDescription>
 </graph>
 ```
@@ -288,7 +292,8 @@ Unless the `grid="a b"` specification is used, all grid spacings adapt to the sc
   displayYAxis="false" 
   showNavigation="false" 
   showBorder="false"
- ><shortDescription>A graph without a border showing a pentagon, circle, and rectangle</shortDescription>
+  >
+    <shortDescription>A graph without a border showing a pentagon, circle, and rectangle</shortDescription>
     <regularPolygon 
       numSides="5" 
       sideLength="4" 
@@ -320,7 +325,8 @@ The `showBorder` attribute can be set to `false` to suppress rendering of the de
 
 
 ```doenet-editor-horiz
-<graph name="g" size="small"><shortDescription>A graph of a pentagon</shortDescription>
+<graph name="g" size="small">
+  <shortDescription>A graph of a pentagon</shortDescription>
   <regularPolygon numSides="5" sideLength="4" filled/>
 </graph>
 
@@ -345,7 +351,8 @@ The above listed ` <graph>{:dn}` attributes are also accessible as properties.
 
 
 ```doenet-editor-horiz
-<graph name="g" size="small"><shortDescription>A graph of a pentagon</shortDescription>
+<graph name="g" size="small">
+  <shortDescription>A graph of a pentagon</shortDescription>
   <regularPolygon numSides="5" sideLength="4" filled/>
 </graph>
 
@@ -371,7 +378,8 @@ The above listed ` <graph>{:dn}` attributes are also accessible as properties.
 
 
 ```doenet-editor-horiz
-<graph name="g" size="small"><shortDescription>A graph of a pentagon</shortDescription>
+<graph name="g" size="small">
+  <shortDescription>A graph of a pentagon</shortDescription>
   <regularPolygon numSides="5" sideLength="4" filled/>
 </graph>
 

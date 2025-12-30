@@ -96,7 +96,8 @@ A ` <graph>{:dn}` without border, axes, or navigation buttons appears invisible.
 
 
 ```doenet-editor-horiz
-<graph xmin="-3" ymin="-3" ><shortDescription>A graph of distance increasing linearly with time</shortDescription>
+<graph xmin="-3" ymin="-3">
+  <shortDescription>A graph of distance increasing linearly with time</shortDescription>
   <xLabel>time</xLabel>
   <yLabel>distance</yLabel>
   <lineSegment endpoints="(0,0) (12,6)"/>
@@ -116,7 +117,8 @@ children of the ` <graph>{:dn}`.
 
 
 ```doenet-editor-horiz
-<graph><shortDescription>A graph of two points and a line</shortDescription>
+<graph>
+  <shortDescription>A graph of two points and a line</shortDescription>
   <point styleNumber="2"/>
   <point coords="(3,3)"/>
   <line styleNumber="3">y = 1/2 x - 2</line>
@@ -145,7 +147,8 @@ component. See ` <legend>{:dn}` for more examples.
   <math name="m1">2 $ti</math> = 
   <math simplify>$m1</math></p>
 
-<graph><shortDescription>A graph demonstrating components it can contain</shortDescription>
+<graph>
+  <shortDescription>A graph demonstrating components it can contain</shortDescription>
   <number anchor="(5,-5)" name="t">0</number>
   
   <image source="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Squirrel_in_Chandigarh.jpg/2560px-Squirrel_in_Chandigarh.jpg" 
@@ -207,7 +210,8 @@ performed for math entered into a ` <textInput/>{:dn}`.
   ymin="-2" 
   ymax="2" 
   size="small"
- ><shortDescription>A graph with different scales for x and y</shortDescription>
+ >
+    <shortDescription>A graph with different scales for x and y</shortDescription>
     <point/>
     <line>y = x</line>
 </graph>
@@ -231,7 +235,8 @@ is also specified, as illustrated in the second graph.
 ```doenet-example
 <p>Enter a width for the graph:
 <mathInput name="w" prefill="80"/> pixels.</p>
-<graph name="g" width="$w"><shortDescription>A graph of size $g.size</shortDescription>
+<graph name="g" width="$w">
+  <shortDescription>A graph of size $g.size</shortDescription>
   <point/>
   <line>y = x</line>
 </graph> 
@@ -254,7 +259,8 @@ the `size` category that corresponds to that width and sizes the graph according
 
 
 ```doenet-example
-<graph name="g" size="small"><shortDescription>A small graph</shortDescription>
+<graph name="g" size="small">
+  <shortDescription>A small graph</shortDescription>
   <point/>
   <line>y = x</line>
 </graph>
@@ -275,7 +281,8 @@ The `size` attribute specifies one of 5 size categories for the
 
 
 ```doenet-example
-<graph name="g" aspectRatio="2/1"><shortDescription>A wide graph</shortDescription>
+<graph name="g" aspectRatio="2/1">
+  <shortDescription>A wide graph</shortDescription>
   <point/>
   <line>y = x</line>
 </graph>
@@ -297,7 +304,8 @@ The `aspectRatio` attribute allows for customization of the graph's default prop
 
 
 ```doenet-example
-<graph name="g" displayMode="inline" size="tiny"><shortDescription>A tiny inline graph</shortDescription>
+<graph name="g" displayMode="inline" size="tiny">
+  <shortDescription>A tiny inline graph</shortDescription>
   <point/>
   <line>y = x</line>
 </graph>
@@ -320,7 +328,8 @@ modes are `inline`, and `block`.
 
 ```doenet-example
 <p>A left graph</p>  
-<graph name="g" displayMode="block" horizontalAlign="left" size="tiny"><shortDescription>A tiny left-aligned graph</shortDescription>
+<graph name="g" displayMode="block" horizontalAlign="left" size="tiny">
+  <shortDescription>A tiny left-aligned graph</shortDescription>
   <point/>
   <line>y = x</line>
 </graph>
