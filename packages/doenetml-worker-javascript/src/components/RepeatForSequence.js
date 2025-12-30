@@ -406,9 +406,9 @@ export default class RepeatForSequence extends CompositeComponent {
 
         let replacementChanges = [];
 
-        let lrp = workspace.lastReplacementParameters;
+        let lrp = { ...workspace.lastReplacementParameters };
 
-        // if invalid, withhold any previous replacementsreplacements
+        // if invalid, withhold any previous replacements
         if (!(await component.stateValues.validSequence)) {
             let currentReplacementsWithheld = component.replacementsToWithhold;
             if (!currentReplacementsWithheld) {
@@ -432,6 +432,8 @@ export default class RepeatForSequence extends CompositeComponent {
             // That way, if later restore to previous parameter set,
             // we can restore the old replacements
             lrp.length = 0;
+
+            workspace.lastReplacementParameters = lrp;
 
             return { replacementChanges };
         }
@@ -604,6 +606,8 @@ export default class RepeatForSequence extends CompositeComponent {
         lrp.length = length;
         lrp.step = step;
         lrp.exclude = exclude;
+
+        workspace.lastReplacementParameters = lrp;
 
         return { replacementChanges, nComponents };
     }

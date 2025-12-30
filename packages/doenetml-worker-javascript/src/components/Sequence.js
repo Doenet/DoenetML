@@ -204,7 +204,7 @@ export default class Sequence extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
-        let lrp = workspace.lastReplacementParameters;
+        let lrp = { ...workspace.lastReplacementParameters };
 
         let replacementChanges = [];
 
@@ -232,6 +232,7 @@ export default class Sequence extends CompositeComponent {
             // That way, if later restore to previous parameter set,
             // we can restore the old replacements
             lrp.length = 0;
+            workspace.lastReplacementParameters = lrp;
 
             return { replacementChanges };
         }
@@ -444,6 +445,8 @@ export default class Sequence extends CompositeComponent {
         lrp.length = length;
         lrp.step = step;
         lrp.exclude = exclude;
+
+        workspace.lastReplacementParameters = lrp;
 
         return { replacementChanges, nComponents };
     }
