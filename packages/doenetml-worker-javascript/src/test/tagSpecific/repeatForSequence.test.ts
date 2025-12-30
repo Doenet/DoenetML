@@ -1740,7 +1740,7 @@ describe("RepeatForSequence tag tests", async () => {
         const endingState = scoreState.state;
 
         // reload with saved state
-        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             initialState: endingState,
         }));
@@ -1866,7 +1866,7 @@ describe("RepeatForSequence tag tests", async () => {
         const endingState = scoreState.state;
 
         // reload with saved state
-        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             initialState: endingState,
         }));
@@ -2024,7 +2024,7 @@ describe("RepeatForSequence tag tests", async () => {
         const endingState = scoreState.state;
 
         // reload with saved state
-        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             initialState: endingState,
         }));
@@ -2232,7 +2232,7 @@ describe("RepeatForSequence tag tests", async () => {
         endingState = scoreState.state;
 
         // reload with saved state again
-        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             initialState: endingState,
         }));
@@ -2252,8 +2252,6 @@ describe("RepeatForSequence tag tests", async () => {
             componentIdx: await resolvePathToNodeIdx("sec1.n"),
             core,
         });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
 
         await check_items(2, [2, 4], 2, [3, 6]);
     });
@@ -2360,7 +2358,7 @@ describe("RepeatForSequence tag tests", async () => {
         const endingState = scoreState.state;
 
         // reload with saved state
-        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             initialState: endingState,
         }));
@@ -2536,7 +2534,7 @@ describe("RepeatForSequence tag tests", async () => {
         const endingState = scoreState.state;
 
         // reload with saved state
-        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
             initialState: endingState,
         }));

@@ -7,7 +7,6 @@ import {
 } from "../utils/booleanLogic";
 import { unwrapSource } from "../utils/dast/convertNormalizedDast";
 import { comparePathsIgnorePosition } from "../utils/dast/path";
-import { stat } from "node:fs";
 
 export default class Award extends BaseComponent {
     static componentType = "award";

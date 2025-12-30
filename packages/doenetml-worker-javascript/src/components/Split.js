@@ -1,4 +1,3 @@
-import { stat } from "node:fs";
 import CompositeComponent from "./abstract/CompositeComponent";
 
 export default class Split extends CompositeComponent {

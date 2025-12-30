@@ -11,7 +11,6 @@ import {
     convertUnresolvedAttributesForComponentType,
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
-import { stat } from "node:fs";
 
 export default class Copy extends CompositeComponent {
     static componentType = "_copy";
@@ -2891,7 +2890,7 @@ export async function replacementFromProp({
                         type: "serialized",
                         componentType: createComponentOfType,
                         componentIdx: nComponents++,
-                        stateIdInfo: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                         attributes: {},
                         doenetAttributes: {},
                         children: [],
@@ -3066,7 +3065,7 @@ export async function replacementFromProp({
                                 type: "serialized",
                                 componentType: createComponentOfType,
                                 componentIdx: nComponents++,
-                                stateIdInfo: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                                 attributes: attributesForReplacement,
                                 doenetAttributes: {},
                                 children: [],

@@ -94,7 +94,7 @@ export default class IntervalList extends CompositeComponent {
                             componentType: "interval",
                             componentIdx: nComponents++,
                             stateId: stateIdInfo
-                                ? `${stateIdInfo.prefix}${nComponents}`
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
                                 : undefined,
                             attributes: {},
                             doenetAttributes: {},

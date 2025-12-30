@@ -1,4 +1,3 @@
-import { stat } from "node:fs";
 import { ComponentInfoObjects } from "./componentInfoObjects";
 import { SerializedAttribute, SerializedComponent } from "./dast/types";
 

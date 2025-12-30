@@ -8,7 +8,6 @@ import {
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedLists";
-import { stat } from "node:fs";
 
 export default class PointList extends CompositeComponent {
     static componentType = "pointList";
