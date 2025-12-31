@@ -89,8 +89,7 @@ describe("callAction tag tests", async () => {
     });
 
     it("add and delete points", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const doenetML = `
     <section name="theGraphs">
       <title>The graphs</title>
       <graph name="g">
@@ -110,59 +109,70 @@ describe("callAction tag tests", async () => {
     <callAction name="deletePoint" target="$theGraphs.g" actionName="deleteChildren" number="1" >
       <label>delete point</label>
     </callAction>
-    `,
+    `;
+
+        async function check_items(n: number, points: number[][]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            for (let i = 1; i <= n; i++) {
+                expect(
+                    cleanLatex(
+                        stateVariables[await resolvePathToNodeIdx(`ps[${i}]`)]
+                            .stateValues.latex,
+                    ),
+                ).eq(`(${points[i - 1][0]},${points[i - 1][1]})`);
+            }
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`ps[${n + 1}]`)],
+            ).eq(undefined);
+
+            const g1 =
+                stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
+            const g2 =
+                stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
+            const g3 =
+                stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
+            const g4 =
+                stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
+            const gs = [g1, g2, g3, g4];
+
+            for (let g of gs) {
+                let pointNames = g.stateValues.graphicalDescendants.map(
+                    (x: any) => x.componentIdx,
+                );
+                expect(pointNames.length).eq(n);
+                for (let i = 0; i < n; i++) {
+                    expect(
+                        stateVariables[pointNames[i]].stateValues.xs.map(
+                            (x: any) => x.tree,
+                        ),
+                    ).eqls(points[i]);
+                }
+            }
+        }
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
         });
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[1]")].stateValues
-                    .latex,
-            ),
-        ).eq("(1,2)");
-
-        let g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
-        let g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
-        let g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
-        let g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
-        let gs = [g1, g2, g3, g4];
-
-        for (let g of gs) {
-            expect(g.stateValues.graphicalDescendants.length).eq(1);
-        }
+        let n = 1;
+        let points = [[1, 2]];
+        await check_items(n, points);
 
         await callAction({
             componentIdx: await resolvePathToNodeIdx("addPoint"),
             core,
         });
-        stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
-            ),
-        ).eq("(3,4)");
+        n = 2;
+        points.push([3, 4]);
+        await check_items(n, points);
 
-        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
-        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
-        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
-        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
-        gs = [g1, g2, g3, g4];
-
-        for (let g of gs) {
-            let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentIdx,
-            );
-            expect(pointNames.length).eq(2);
-            expect(
-                stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
-            ).eqls([1, 2]);
-            expect(
-                stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
-            ).eqls([3, 4]);
-        }
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
 
         await movePoint({
             componentIdx: g1.stateValues.graphicalDescendants[1].componentIdx,
@@ -170,65 +180,30 @@ describe("callAction tag tests", async () => {
             y: 5,
             core,
         });
-        stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
-            ),
-        ).eq("(-2,5)");
+        points[1] = [-2, 5];
+        await check_items(n, points);
 
-        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
-        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
-        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
-        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
-        gs = [g1, g2, g3, g4];
-
-        for (let g of gs) {
-            let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentIdx,
-            );
-            expect(
-                stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
-            ).eqls([-2, 5]);
-        }
+        // check state persists after saving and reloading core
+        await core.saveImmediately();
+        let savedState = scoreState.state;
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: savedState,
+        }));
+        await check_items(n, points);
 
         await callAction({
             componentIdx: await resolvePathToNodeIdx("addPoint"),
             core,
         });
+
+        n = 3;
+        points.push([3, 4]);
+        await check_items(n, points);
+
         stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[3]")].stateValues
-                    .latex,
-            ),
-        ).eq("(3,4)");
-
-        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
-        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
-        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
-        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
-        gs = [g1, g2, g3, g4];
-
-        for (let g of gs) {
-            let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentIdx,
-            );
-            expect(pointNames.length).eq(3);
-            expect(
-                stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
-            ).eqls([1, 2]);
-            expect(
-                stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
-            ).eqls([-2, 5]);
-            expect(
-                stateVariables[pointNames[2]].stateValues.xs.map((x) => x.tree),
-            ).eqls([3, 4]);
-        }
-
+        let g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
         await movePoint({
             componentIdx: g2.stateValues.graphicalDescendants[2].componentIdx,
             x: 7,
@@ -236,58 +211,20 @@ describe("callAction tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[3]")].stateValues
-                    .latex,
-            ),
-        ).eq("(7,-9)");
-
-        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
-        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
-        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
-        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
-        gs = [g1, g2, g3, g4];
-
-        for (let g of gs) {
-            let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentIdx,
-            );
-            expect(
-                stateVariables[pointNames[2]].stateValues.xs.map((x) => x.tree),
-            ).eqls([7, -9]);
-        }
+        points[2] = [7, -9];
+        await check_items(n, points);
 
         await callAction({
             componentIdx: await resolvePathToNodeIdx("deletePoint"),
             core,
         });
+
+        n = 2;
+        points.pop();
+        await check_items(n, points);
+
         stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(stateVariables[await resolvePathToNodeIdx("ps[3]")]).eq(
-            undefined,
-        );
-
-        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
-        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
-        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
-        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
-        gs = [g1, g2, g3, g4];
-
-        for (let g of gs) {
-            let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentIdx,
-            );
-            expect(pointNames.length).eq(2);
-            expect(
-                stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
-            ).eqls([1, 2]);
-            expect(
-                stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
-            ).eqls([-2, 5]);
-        }
+        let g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
 
         await movePoint({
             componentIdx: g3.stateValues.graphicalDescendants[1].componentIdx,
@@ -296,116 +233,134 @@ describe("callAction tag tests", async () => {
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
+        points[1] = [1, 0];
+        await check_items(n, points);
 
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
-            ),
-        ).eq("(1,0)");
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deletePoint"),
+            core,
+        });
 
-        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
-        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
-        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
-        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
-        gs = [g1, g2, g3, g4];
+        n = 1;
+        points.pop();
+        await check_items(n, points);
 
-        for (let g of gs) {
-            let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentIdx,
-            );
-            expect(
-                stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
-            ).eqls([1, 0]);
-        }
+        await core.saveImmediately();
+        savedState = scoreState.state;
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: savedState,
+        }));
+        await check_items(n, points);
 
         await callAction({
             componentIdx: await resolvePathToNodeIdx("deletePoint"),
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(stateVariables[await resolvePathToNodeIdx("ps[2]")]).eq(
-            undefined,
-        );
-
-        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
-        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
-        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
-        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
-        gs = [g1, g2, g3, g4];
-
-        for (let g of gs) {
-            let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentIdx,
-            );
-            expect(pointNames.length).eq(1);
-            expect(
-                stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
-            ).eqls([1, 2]);
-        }
-
-        await callAction({
-            componentIdx: await resolvePathToNodeIdx("deletePoint"),
-            core,
-        });
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[1]")].stateValues
-                    .latex,
-            ),
-        ).eq("(1,2)");
-
-        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
-        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
-        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
-        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
-        gs = [g1, g2, g3, g4];
-
-        for (let g of gs) {
-            let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentIdx,
-            );
-            expect(pointNames.length).eq(1);
-            expect(
-                stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
-            ).eqls([1, 2]);
-        }
+        await check_items(n, points);
 
         await callAction({
             componentIdx: await resolvePathToNodeIdx("addPoint"),
             core,
         });
-        stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ps[2]")].stateValues
-                    .latex,
-            ),
-        ).eq("(3,4)");
+        n = 2;
+        points.push([3, 4]);
+        await check_items(n, points);
 
-        g1 = stateVariables[await resolvePathToNodeIdx("theGraphs.g")];
-        g2 = stateVariables[await resolvePathToNodeIdx("theGraphs.g2")];
-        g3 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g")];
-        g4 = stateVariables[await resolvePathToNodeIdx("theGraphs2.g2")];
-        gs = [g1, g2, g3, g4];
+        // save state and reload core to make sure state persists
+        await core.saveImmediately();
+        const endingState = scoreState.state;
 
-        for (let g of gs) {
-            let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentIdx,
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: endingState,
+        }));
+
+        await check_items(n, points);
+    });
+
+    it("reloaded state does not remember deleted point coordinates", async () => {
+        const doenetML = `
+    <graph name="g"></graph>
+      
+    <callAction name="addPoint" target="$g" actionName="addChildren">
+      <label>add point</label>
+      <point>(3,4)</point>
+    </callAction>
+    <callAction name="deletePoint" target="$g" actionName="deleteChildren" number="1" >
+      <label>delete point</label>
+    </callAction>
+    `;
+
+        async function check_items(point: number[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
             );
-            expect(pointNames.length).eq(2);
+
+            const g = stateVariables[await resolvePathToNodeIdx("g")];
+
+            let pointNames = g.stateValues.graphicalDescendants.map(
+                (x: any) => x.componentIdx,
+            );
+            expect(pointNames.length).eq(1);
             expect(
-                stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
-            ).eqls([1, 2]);
-            expect(
-                stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
-            ).eqls([3, 4]);
+                stateVariables[pointNames[0]].stateValues.xs.map(
+                    (x: any) => x.tree,
+                ),
+            ).eqls(point);
         }
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addPoint"),
+            core,
+        });
+
+        let point = [3, 4];
+        await check_items(point);
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let g = stateVariables[await resolvePathToNodeIdx("g")];
+
+        await movePoint({
+            componentIdx: g.stateValues.graphicalDescendants[0].componentIdx,
+            x: -2,
+            y: 5,
+            core,
+        });
+
+        point = [-2, 5];
+        await check_items(point);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deletePoint"),
+            core,
+        });
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addPoint"),
+            core,
+        });
+
+        point = [3, 4];
+        await check_items(point);
+
+        // save state and reload core to make sure state persists with point in its original position (3,4)
+        await core.saveImmediately();
+        const endingState = scoreState.state;
+
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: endingState,
+        }));
+
+        await check_items(point);
     });
 
     async function test_chained_actions(
@@ -450,13 +405,17 @@ describe("callAction tag tests", async () => {
 
         let pointIndices = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(pointIndices.length).eq(2);
         expect(
-            stateVariables[pointIndices[0]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointIndices[0]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([1, 2]);
         expect(
-            stateVariables[pointIndices[1]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointIndices[1]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([3, 4]);
 
         await movePoint({ componentIdx: pointIndices[1], x: -2, y: 5, core });
@@ -471,9 +430,11 @@ describe("callAction tag tests", async () => {
 
         pointIndices = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(
-            stateVariables[pointIndices[1]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointIndices[1]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([-2, 5]);
 
         let numbers2 = stateVariables[
@@ -585,16 +546,16 @@ describe("callAction tag tests", async () => {
 
             let pointIndices = stateVariables[
                 await resolvePathToNodeIdx(`sets[${ind}].g`)
-            ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+            ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
             expect(pointIndices.length).eq(2);
             expect(
                 stateVariables[pointIndices[0]].stateValues.xs.map(
-                    (x) => x.tree,
+                    (x: any) => x.tree,
                 ),
             ).eqls([1, 2]);
             expect(
                 stateVariables[pointIndices[1]].stateValues.xs.map(
-                    (x) => x.tree,
+                    (x: any) => x.tree,
                 ),
             ).eqls([3, 4]);
 
@@ -617,10 +578,10 @@ describe("callAction tag tests", async () => {
 
             pointIndices = stateVariables[
                 await resolvePathToNodeIdx(`sets[${ind}].g`)
-            ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+            ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
             expect(
                 stateVariables[pointIndices[1]].stateValues.xs.map(
-                    (x) => x.tree,
+                    (x: any) => x.tree,
                 ),
             ).eqls([-2, 5]);
 
@@ -709,13 +670,17 @@ describe("callAction tag tests", async () => {
 
         let pointIndices = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(pointIndices.length).eq(2);
         expect(
-            stateVariables[pointIndices[0]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointIndices[0]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([1, 2]);
         expect(
-            stateVariables[pointIndices[1]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointIndices[1]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([3, 4]);
 
         await movePoint({ componentIdx: pointIndices[1], x: -2, y: 5, core });
@@ -730,9 +695,11 @@ describe("callAction tag tests", async () => {
 
         pointIndices = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(
-            stateVariables[pointIndices[1]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointIndices[1]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([-2, 5]);
 
         let numbers2 = stateVariables[
@@ -768,16 +735,22 @@ describe("callAction tag tests", async () => {
 
         pointIndices = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(pointIndices.length).eq(3);
         expect(
-            stateVariables[pointIndices[0]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointIndices[0]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([1, 2]);
         expect(
-            stateVariables[pointIndices[1]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointIndices[1]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([-2, 5]);
         expect(
-            stateVariables[pointIndices[2]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointIndices[2]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([3, 4]);
 
         await movePoint({ componentIdx: pointIndices[2], x: 7, y: -9, core });
@@ -793,9 +766,11 @@ describe("callAction tag tests", async () => {
 
         pointIndices = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(
-            stateVariables[pointIndices[2]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointIndices[2]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([7, -9]);
 
         expect(
@@ -2138,13 +2113,17 @@ describe("callAction tag tests", async () => {
 
         let pointNames = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(pointNames.length).eq(2);
         expect(
-            stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointNames[0]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([1, 2]);
         expect(
-            stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointNames[1]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([3, 4]);
 
         await movePoint({ componentIdx: pointNames[1], x: -2, y: 5, core });
@@ -2160,9 +2139,11 @@ describe("callAction tag tests", async () => {
 
         pointNames = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(
-            stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointNames[1]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([-2, 5]);
 
         let numbers2 = stateVariables[
@@ -2271,13 +2252,17 @@ describe("callAction tag tests", async () => {
 
         let pointNames = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(pointNames.length).eq(2);
         expect(
-            stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointNames[0]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([1, 2]);
         expect(
-            stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointNames[1]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([3, 4]);
 
         await movePoint({ componentIdx: pointNames[1], x: -2, y: 5, core });
@@ -2293,9 +2278,11 @@ describe("callAction tag tests", async () => {
 
         pointNames = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(
-            stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointNames[1]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([-2, 5]);
 
         let numbers2 = stateVariables[
@@ -2390,13 +2377,17 @@ describe("callAction tag tests", async () => {
 
         let pointNames = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(pointNames.length).eq(2);
         expect(
-            stateVariables[pointNames[0]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointNames[0]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([1, 2]);
         expect(
-            stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointNames[1]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([3, 4]);
 
         await movePoint({ componentIdx: pointNames[1], x: -2, y: 5, core });
@@ -2412,9 +2403,11 @@ describe("callAction tag tests", async () => {
 
         pointNames = stateVariables[
             await resolvePathToNodeIdx("g")
-        ].stateValues.graphicalDescendants.map((x) => x.componentIdx);
+        ].stateValues.graphicalDescendants.map((x: any) => x.componentIdx);
         expect(
-            stateVariables[pointNames[1]].stateValues.xs.map((x) => x.tree),
+            stateVariables[pointNames[1]].stateValues.xs.map(
+                (x: any) => x.tree,
+            ),
         ).eqls([-2, 5]);
 
         let numbers2 = stateVariables[
