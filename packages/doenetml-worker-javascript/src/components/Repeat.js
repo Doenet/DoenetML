@@ -968,6 +968,16 @@ export function remapExtendIndices(components, extendIdxMapping) {
                     [attr.component],
                     extendIdxMapping,
                 )[0];
+            } else if (attr.type === "references") {
+                attr.references = remapExtendIndices(
+                    attr.references,
+                    extendIdxMapping,
+                );
+            } else if (attr.type === "unresolved") {
+                attr.children = remapExtendIndices(
+                    attr.children,
+                    extendIdxMapping,
+                );
             }
         }
 

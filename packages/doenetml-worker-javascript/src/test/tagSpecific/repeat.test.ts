@@ -1759,6 +1759,34 @@ describe("Repeat tag tests", async () => {
         ).eq("2, 4, 6");
     });
 
+    it("repeat remaps extend indices of all attributes", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<module name="mod">
+    <moduleAttributes>
+        <number name="num">1</number>
+    </moduleAttributes>
+    <number name="num2" extend="$num" />
+</module>
+
+<repeat for="5" valueName="v" name="r" type="number">
+    <module copy="$mod" num="$v" name="mod2" />
+    <ref to="$v" name="ref">hmm</ref>
+</repeat>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`r[1].mod2.num2`)]
+                .stateValues.value,
+        ).eq(5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`r[1].ref`)].stateValues
+                .targetComponent.componentType,
+        ).eq("number");
+    });
+
     it("isResponse", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

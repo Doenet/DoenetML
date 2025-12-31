@@ -1428,6 +1428,34 @@ describe("RepeatForSequence tag tests", async () => {
         await check_items(2);
     });
 
+    it("repeatForSequence remaps extend indices of all attributes", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<module name="mod">
+    <moduleAttributes>
+        <number name="num">1</number>
+    </moduleAttributes>
+    <number name="num2" extend="$num" />
+</module>
+
+<repeatForSequence length="1" from="5" valueName="v" name="r">
+    <module copy="$mod" num="$v" name="mod2" />
+    <ref to="$v" name="ref">hmm</ref>
+</repeatForSequence>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`r[1].mod2.num2`)]
+                .stateValues.value,
+        ).eq(5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`r[1].ref`)].stateValues
+                .targetComponent.componentType,
+        ).eq("number");
+    });
+
     function create_as_list_template(inner_content: string) {
         return `
       <p name="pdefault">
