@@ -2,9 +2,9 @@ use super::*;
 
 use doenetml_core::{
     components::{
-        ActionsEnum,
         doenet::point::{PointActions, PointMoveActionArgs, PointProps},
         types::{Action, ActionBody},
+        ActionsEnum,
     },
     dast::{ForRenderPropValue, ForRenderPropValueOrContent, ForRenderProps},
     state::types::math_expr::{JsMathExpr, MathExpr},
@@ -324,8 +324,8 @@ fn rendered_props_with_references() {
 
     let p_dast_idx = 2;
     let q2_dast_idx = 3;
-    let p2_dast_idx = 4;
-    let q_dast_idx = 5;
+    let p2_dast_idx = 5;
+    let q_dast_idx = 6;
 
     // check the flat dast
     let flat_dast = core.to_flat_dast();
