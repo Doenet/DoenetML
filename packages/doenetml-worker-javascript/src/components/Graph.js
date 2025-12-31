@@ -1778,73 +1778,18 @@ export default class Graph extends BlockComponent {
         });
     }
 
-    async addChildren({
-        serializedComponents,
-        actionId,
-        sourceInformation = {},
-        skipRendererUpdate = false,
-    }) {
-        if (serializedComponents && serializedComponents.length > 0) {
-            return await this.coreFunctions.performUpdate({
-                updateInstructions: [
-                    {
-                        updateType: "addComponents",
-                        serializedComponents,
-                        parentIdx: this.componentIdx,
-                    },
-                    {
-                        updateType: "updateValue",
-                        componentIdx: this.componentIdx,
-                        stateVariable: "numChildrenAdded",
-                        value:
-                            (await this.stateValues.numChildrenAdded) +
-                            serializedComponents.length,
-                    },
-                ],
-                actionId,
-                sourceInformation,
-                skipRendererUpdate,
-            });
-        }
+    async addChildren(args) {
+        const dynamicChildren =
+            this.definingChildren[this.definingChildren.length - 1];
+
+        return await dynamicChildren.addChildren(args);
     }
 
-    async deleteChildren({
-        number,
-        actionId,
-        sourceInformation = {},
-        skipRendererUpdate = false,
-    }) {
-        let numberToDelete = Math.min(
-            number,
-            await this.stateValues.numChildrenAdded,
-        );
+    async deleteChildren(args) {
+        const dynamicChildren =
+            this.definingChildren[this.definingChildren.length - 1];
 
-        if (numberToDelete > 0) {
-            let numChildren = this.definingChildren.length;
-            let componentIndicesToDelete = this.definingChildren
-                .slice(numChildren - numberToDelete, numChildren)
-                .map((x) => x.componentIdx);
-
-            return await this.coreFunctions.performUpdate({
-                updateInstructions: [
-                    {
-                        updateType: "deleteComponents",
-                        componentIndices: componentIndicesToDelete,
-                    },
-                    {
-                        updateType: "updateValue",
-                        componentIdx: this.componentIdx,
-                        stateVariable: "numChildrenAdded",
-                        value:
-                            (await this.stateValues.numChildrenAdded) -
-                            numberToDelete,
-                    },
-                ],
-                actionId,
-                sourceInformation,
-                skipRendererUpdate,
-            });
-        }
+        return await dynamicChildren.deleteChildren(args);
     }
 
     recordVisibilityChange({ isVisible }) {

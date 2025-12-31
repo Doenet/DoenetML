@@ -17,6 +17,7 @@ import { postponeRenderSugar } from "./component-sugar/postponeRender";
 import { pluginEnforceValidNames } from "./enforce-valid-names";
 import { pretzelSugar } from "./component-sugar/pretzel";
 import { descriptionAttributeSugar } from "./component-sugar/descriptionAttribute";
+import { graphSugar } from "./component-sugar/graph";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
@@ -213,9 +214,12 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                 case "pretzel":
                     pretzelSugar(node);
                     break;
+                case "graph":
+                    graphSugar(node);
+                    descriptionAttributeSugar(node);
+                    break;
                 case "image":
                 case "video":
-                case "graph":
                 case "answer":
                 case "mathInput":
                 case "textInput":
