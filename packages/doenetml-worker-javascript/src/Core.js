@@ -9718,6 +9718,9 @@ export default class Core {
             const componentIdx = Number(componentIdxStr);
             let component = this._components[componentIdx];
 
+            // delete from cumulativeStateVariableChanges
+            delete this.cumulativeStateVariableChanges[component.stateId];
+
             // console.log(`deregistering ${componentIdx}`)
 
             // don't use recursive form since all children should already be included
