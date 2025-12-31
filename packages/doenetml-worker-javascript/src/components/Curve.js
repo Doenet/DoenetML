@@ -151,18 +151,26 @@ export default class Curve extends GraphicalComponent {
         let breakIntoFunctionsByCommas = function (
             childrenToBreak,
             nComponents,
+            stateIdInfo,
         ) {
-            let childrenToComponentFunction = (x, nComponents) => ({
+            let childrenToComponentFunction = (
+                x,
+                newNComponents,
+                newStateIdInfo,
+            ) => ({
                 component: {
                     type: "serialized",
                     componentType: "function",
-                    componentIdx: nComponents++,
+                    componentIdx: newNComponents++,
+                    stateId: newStateIdInfo
+                        ? `${newStateIdInfo.prefix}${newStateIdInfo.num++}`
+                        : undefined,
                     children: x,
                     attributes: {},
                     doenetAttributes: {},
                     state: {},
                 },
-                nComponents,
+                nComponents: newNComponents,
             });
 
             let breakFunction = returnBreakStringsSugarFunction({
@@ -170,9 +178,14 @@ export default class Curve extends GraphicalComponent {
                 mustStripOffOuterParentheses: true,
             });
 
+            const newStateIdInfo = stateIdInfo
+                ? { prefix: stateIdInfo.prefix, num: stateIdInfo.num }
+                : undefined;
+
             let result = breakFunction({
                 matchedChildren: childrenToBreak,
                 nComponents,
+                stateIdInfo: newStateIdInfo,
             });
 
             let functionChildren = [];
@@ -180,6 +193,9 @@ export default class Curve extends GraphicalComponent {
             if (result.success) {
                 functionChildren = result.newChildren;
                 nComponents = result.nComponents;
+                if (stateIdInfo) {
+                    stateIdInfo.num = newStateIdInfo.num;
+                }
             } else {
                 // if didn't succeed,
                 // then just wrap children with a function
@@ -188,6 +204,9 @@ export default class Curve extends GraphicalComponent {
                         type: "serialized",
                         componentType: "function",
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: childrenToBreak,
                         attributes: {},
                         doenetAttributes: {},

@@ -160,6 +160,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     compositeAttributesObj,
     components,
     nComponents,
+    stateIdInfo,
     publicCaseInsensitiveAliasSubstitutions,
 }) {
     let errors = [];
@@ -297,6 +298,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                     JSON.stringify(component.attributes.createComponentIdx),
                 );
                 replacements[0].componentIdx = nComponents++;
+                replacements[0].stateId = `${stateIdInfo.prefix}${stateIdInfo.num++}`;
             }
 
             return {
@@ -348,6 +350,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                     JSON.stringify(component.attributes.createComponentIdx),
                 );
                 theReplacement.componentIdx = nComponents++;
+                theReplacement.stateId = `${stateIdInfo.prefix}${stateIdInfo.num++}`;
             }
 
             return {
@@ -406,6 +409,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                 componentInfoObjects,
                 compositeAttributesObj,
                 nComponents,
+                stateIdInfo,
             });
 
             const attributesFromComposite = res.attributes;
@@ -414,6 +418,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             replacements.push({
                 componentType: requiredComponentType,
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: attributesFromComposite,
                 doenetAttributes: {},
                 state: {},

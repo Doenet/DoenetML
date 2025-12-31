@@ -114,6 +114,7 @@ export default class Point extends GraphicalComponent {
             matchedChildren,
             componentInfoObjects,
             nComponents,
+            stateIdInfo,
         }) {
             let componentIsSpecifiedType =
                 componentInfoObjects.componentIsSpecifiedType;
@@ -230,10 +231,16 @@ export default class Point extends GraphicalComponent {
                                 type: "serialized",
                                 componentType: "mathList",
                                 componentIdx: nComponents++,
+                                stateId: stateIdInfo
+                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                    : undefined,
                                 children: breakResult.pieces.map((x, i) => ({
                                     type: "serialized",
                                     componentType: "math",
                                     componentIdx: nComponents++,
+                                    stateId: stateIdInfo
+                                        ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                        : undefined,
                                     children: x,
                                     attributes: {},
                                     doenetAttributes: {},
@@ -269,7 +276,10 @@ export default class Point extends GraphicalComponent {
                         component: {
                             type: "serialized",
                             componentType: "coords",
-                            componentIdx: nComponents + 1,
+                            componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
                             children: componentChildren,
                             state: {},
                             attributes: {},
@@ -281,7 +291,7 @@ export default class Point extends GraphicalComponent {
                     ...nonComponentChildrenBegin,
                     ...nonComponentChildrenEnd,
                 ],
-                nComponents: nComponents + 2,
+                nComponents,
             };
         };
 

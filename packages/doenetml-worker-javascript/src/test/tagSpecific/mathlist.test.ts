@@ -1883,4 +1883,68 @@ describe("MathList tag tests", async () => {
                 .text,
         ).eq("false, false, true");
     });
+
+    it("mathList from repeatForSequence, reload state", async () => {
+        const doenetML = `
+<p>n: <mathInput name="n">2</mathInput></p>
+<mathList name="ml">
+    <repeatForSequence from="2" to="$n" valueName="v">
+        <math>$v <math>x</math></math>
+    </repeatForSequence>
+</mathList>
+
+<mathInput name="mi1">$ml[1]</mathInput>
+<mathInput name="mi2">$ml[2]</mathInput>
+    `;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        await updateMathInputValue({
+            latex: "2y",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "3z",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("ml")
+            ].stateValues.maths.map((x: any) => x.tree),
+        ).eqls([
+            ["*", 2, "y"],
+            ["*", 3, "z"],
+        ]);
+
+        await core.saveImmediately();
+
+        const endingState = scoreState.state;
+
+        // reload with saved state
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: endingState,
+        }));
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("ml")
+            ].stateValues.maths.map((x: any) => x.tree),
+        ).eqls([
+            ["*", 2, "y"],
+            ["*", 3, "z"],
+        ]);
+    });
 });

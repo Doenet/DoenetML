@@ -221,10 +221,19 @@ export default class SamplePrimeNumbers extends CompositeComponent {
 
     static async createSerializedReplacements({
         component,
-        componentInfoObjects,
+        workspace,
         startNum = 0,
         nComponents,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -237,12 +246,15 @@ export default class SamplePrimeNumbers extends CompositeComponent {
                 type: "serialized",
                 componentType: "integer",
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 state: { value, fixed: true },
                 attributes: {},
                 doenetAttributes: {},
                 children: [],
             });
         }
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,
@@ -257,6 +269,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         componentInfoObjects,
         flags,
         nComponents,
+        workspace,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -295,6 +308,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
                     startNum: component.replacements.length,
                     flags,
                     nComponents,
+                    workspace,
                 });
                 errors.push(...result.errors);
                 warnings.push(...result.warnings);

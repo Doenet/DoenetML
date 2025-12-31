@@ -285,7 +285,20 @@ export default class PretzelArranger extends CompositeComponent {
         return stateVariableDefinitions;
     }
 
-    static async createSerializedReplacements({ component, nComponents }) {
+    static async createSerializedReplacements({
+        component,
+        nComponents,
+        workspace,
+    }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         const errors = [];
         const warnings = [];
 
@@ -307,6 +320,7 @@ export default class PretzelArranger extends CompositeComponent {
                     type: "serialized",
                     componentType: "span",
                     componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     attributes: {},
                     doenetAttributes: {},
                     state: {},
@@ -319,6 +333,7 @@ export default class PretzelArranger extends CompositeComponent {
                 type: "serialized",
                 componentType: "textInput",
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: {
                     width: {
                         type: "component",
@@ -327,6 +342,7 @@ export default class PretzelArranger extends CompositeComponent {
                             type: "serialized",
                             componentType: "componentSize",
                             componentIdx: nComponents++,
+                            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                             state: {
                                 componentSize: { size: 15, isAbsolute: true },
                             },
@@ -343,12 +359,14 @@ export default class PretzelArranger extends CompositeComponent {
                         type: "serialized",
                         componentType: "shortDescription",
                         componentIdx: nComponents++,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                         state: {},
                         children: [
                             {
                                 type: "serialized",
                                 componentType: "text",
                                 componentIdx: nComponents++,
+                                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                                 state: {
                                     value: "Enter number in sequence for this answer",
                                 },
@@ -367,6 +385,7 @@ export default class PretzelArranger extends CompositeComponent {
                     type: "serialized",
                     componentType: "statement",
                     componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     attributes: {},
                     doenetAttributes: {},
                     state: {},
@@ -376,6 +395,8 @@ export default class PretzelArranger extends CompositeComponent {
                 replacements.push(thisStatement);
             }
         }
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,

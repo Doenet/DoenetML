@@ -44,6 +44,7 @@ export default class Split extends CompositeComponent {
             matchedChildren,
             componentAttributes,
             nComponents,
+            stateIdInfo,
         }) {
             let type = componentAttributes.type;
             if (!["text"].includes(type)) {
@@ -57,6 +58,9 @@ export default class Split extends CompositeComponent {
                         type: "serialized",
                         componentType: type,
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: matchedChildren,
                         attributes: {},
                         doenetAttributes: {},
@@ -247,6 +251,15 @@ export default class Split extends CompositeComponent {
         nComponents,
         workspace,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         const errors = [];
         const warnings = [];
 
@@ -256,6 +269,7 @@ export default class Split extends CompositeComponent {
             type: "serialized",
             componentType: "text",
             componentIdx: nComponents++,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
             attributes: {},
             doenetAttributes: {},
             children: [],
@@ -272,6 +286,8 @@ export default class Split extends CompositeComponent {
         }));
 
         workspace.values = [...values];
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,

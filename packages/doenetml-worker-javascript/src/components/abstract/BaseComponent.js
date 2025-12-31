@@ -10,6 +10,7 @@ import {
 export default class BaseComponent {
     constructor({
         componentIdx,
+        stateId,
         rootName,
         ancestors,
         serializedComponent,
@@ -31,6 +32,7 @@ export default class BaseComponent {
         this.sharedParameters = sharedParameters;
 
         this.componentIdx = componentIdx;
+        this.stateId = stateId;
         this.rootName = rootName;
         this.ancestors = ancestors;
         this.counters = {};
@@ -1418,9 +1420,11 @@ export default class BaseComponent {
             for (let varName in this.state) {
                 if (!(varName in serializedComponent.state)) {
                     let stateVar = this.state[varName];
-                    if (stateVar.hasEssential && !stateVar.usedDefault) {
-                        serializedComponent.state[varName] =
-                            await this.stateValues[varName];
+                    if (stateVar.hasEssential) {
+                        const value = await this.stateValues[varName];
+                        if (!stateVar.usedDefault) {
+                            serializedComponent.state[varName] = value;
+                        }
                     }
                 }
             }

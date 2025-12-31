@@ -5,6 +5,7 @@ import {
     updateMathInputValue,
     updateTextInputValue,
 } from "../utils/actions";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -18,7 +19,7 @@ describe("Split tag tests", async () => {
         pName = "pList",
         replacements_all_of_type,
     }: {
-        core;
+        core: PublicDoenetMLCore;
         resolvePathToNodeIdx: ResolvePathToNodeIdx;
         sorted_result: string[];
         pName?: string;

@@ -94,6 +94,7 @@ export default class NumberComponent extends InlineComponent {
                 matchedChildren,
                 componentAttributes,
                 nComponents,
+                stateIdInfo,
             }) => ({
                 success: !componentAttributes.convertBoolean,
                 newChildren: [
@@ -101,6 +102,9 @@ export default class NumberComponent extends InlineComponent {
                         type: "serialized",
                         componentType: "math",
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: matchedChildren,
                         attributes: {},
                         doenetAttributes: {},

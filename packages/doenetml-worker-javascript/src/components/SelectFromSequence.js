@@ -266,7 +266,17 @@ export default class SelectFromSequence extends Sequence {
         component,
         componentInfoObjects,
         nComponents,
+        workspace,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -278,6 +288,7 @@ export default class SelectFromSequence extends Sequence {
                         type: "serialized",
                         componentType: "_error",
                         componentIdx: nComponents++,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                         state: { message: errorMessage },
                         attributes: {},
                         doenetAttributes: {},
@@ -317,6 +328,7 @@ export default class SelectFromSequence extends Sequence {
                     componentType,
                     componentInfoObjects,
                     nComponents,
+                    stateIdInfo,
                 }));
 
             nComponents = res.nComponents;
@@ -330,12 +342,15 @@ export default class SelectFromSequence extends Sequence {
                 type: "serialized",
                 componentType,
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: attributesFromComposite,
                 doenetAttributes: {},
                 children: [],
                 state: { value, fixed: true },
             });
         }
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,

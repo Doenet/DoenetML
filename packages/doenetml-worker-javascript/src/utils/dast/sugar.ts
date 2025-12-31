@@ -28,6 +28,7 @@ export function applySugar({
     componentInfoObjects,
     isAttributeComponent = false,
     nComponents,
+    stateIdInfo,
 }: {
     serializedComponents: (string | SerializedComponent)[];
     parentParametersFromSugar?: Record<string, any>;
@@ -35,6 +36,7 @@ export function applySugar({
     componentInfoObjects: ComponentInfoObjects;
     isAttributeComponent?: boolean;
     nComponents: number;
+    stateIdInfo?: { prefix: string; num: number };
 }): {
     components: (string | SerializedComponent)[];
     errors: ErrorRecord[];
@@ -115,6 +117,7 @@ export function applySugar({
                         componentInfoObjects,
                         isAttributeComponent,
                         nComponents,
+                        stateIdInfo,
                     });
 
                     if (sugarResults.warnings) {
@@ -209,6 +212,7 @@ export function applySugar({
                                         serializedComponents: newChildren,
                                         componentInfoObjects,
                                         nComponents,
+                                        stateIdInfo,
                                     });
                                 newComponent.children = expandResult.components;
                                 errors.push(...expandResult.errors);
@@ -253,6 +257,7 @@ export function applySugar({
                                         componentClass,
                                         componentInfoObjects,
                                         nComponents,
+                                        stateIdInfo,
                                     });
                                 Object.assign(
                                     newComponent.attributes,
@@ -290,6 +295,7 @@ export function applySugar({
                 parentAttributes: componentAttributes,
                 componentInfoObjects,
                 nComponents,
+                stateIdInfo,
             });
             newComponent.children = res.components;
             errors.push(...res.errors);
@@ -306,6 +312,7 @@ export function applySugar({
                         componentInfoObjects,
                         isAttributeComponent: true,
                         nComponents,
+                        stateIdInfo,
                     });
                     attribute.component = res
                         .components[0] as SerializedComponent;

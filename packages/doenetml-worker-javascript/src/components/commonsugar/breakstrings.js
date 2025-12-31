@@ -28,7 +28,7 @@ export function returnBreakStringsSugarFunction({
     childrenToComponentFunction,
     mustStripOffOuterParentheses = false,
 }) {
-    return function ({ matchedChildren, nComponents }) {
+    return function ({ matchedChildren, nComponents, stateIdInfo }) {
         let Nparens = 0;
         let pieces = [];
         let currentPiece = [];
@@ -117,7 +117,11 @@ export function returnBreakStringsSugarFunction({
 
         const newChildren = [];
         for (const piece of pieces) {
-            const res = childrenToComponentFunction(piece, nComponents);
+            const res = childrenToComponentFunction(
+                piece,
+                nComponents,
+                stateIdInfo,
+            );
             newChildren.push(res.component);
             nComponents = res.nComponents;
         }

@@ -76,6 +76,7 @@ export async function createTestCore({
     initializeCounters = {},
     requestSolutionView = async () => ({ allowView: true }),
     externalDoenetMLs = {},
+    initialState,
 }: {
     doenetML: string;
     requestedVariantIndex?: number;
@@ -86,6 +87,7 @@ export async function createTestCore({
         allowView: boolean;
     }>;
     externalDoenetMLs?: Record<string, string>;
+    initialState?: string;
 }) {
     const wasmBuffer = fs.readFileSync(
         path.resolve(
@@ -180,15 +182,36 @@ export async function createTestCore({
         calculateRootNames,
     });
 
+    const scoreState = {
+        score: 0,
+        state: "",
+    };
+
+    function reportScoreAndStateCallback(data: {
+        score: number;
+        state: unknown;
+    }) {
+        scoreState.score = data.score;
+
+        if (
+            typeof data.state === "object" &&
+            data.state !== null &&
+            "coreState" in data.state
+        ) {
+            scoreState.state = data.state.coreState as string;
+        }
+    }
+
     const dastResult = await core.createCoreGenerateDast(
         {
             coreId: "",
             cid: "",
             initializeCounters,
             theme,
+            stateVariableChanges: initialState,
         },
         () => null,
-        () => null,
+        reportScoreAndStateCallback,
         () => null,
         () => null,
         () => null,
@@ -210,5 +233,5 @@ export async function createTestCore({
         return resolvePathImmediatelyToNodeIdx(name, rustCore, core, origin);
     }
 
-    return { core, rustCore, resolvePathToNodeIdx };
+    return { core, rustCore, resolvePathToNodeIdx, scoreState };
 }

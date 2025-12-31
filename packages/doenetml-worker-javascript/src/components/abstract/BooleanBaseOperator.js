@@ -15,6 +15,7 @@ export default class BooleanOperator extends BooleanComponent {
         let breakStringsIntoBooleansBySpaces = function ({
             matchedChildren,
             nComponents,
+            stateIdInfo,
         }) {
             // break any string by white space and wrap pieces with boolean
 
@@ -29,6 +30,9 @@ export default class BooleanOperator extends BooleanComponent {
                                 type: "serialized",
                                 componentType: "boolean",
                                 componentIdx: nComponents++,
+                                stateId: stateIdInfo
+                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                    : undefined,
                                 attributes: {},
                                 doenetAttributes: {},
                                 state: {},

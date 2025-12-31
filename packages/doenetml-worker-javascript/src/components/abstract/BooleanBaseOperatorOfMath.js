@@ -10,7 +10,11 @@ export default class BooleanBaseOperatorOfMath extends BooleanComponent {
     static returnSugarInstructions() {
         let sugarInstructions = [];
 
-        let wrapStringsAndMacros = function ({ matchedChildren, nComponents }) {
+        let wrapStringsAndMacros = function ({
+            matchedChildren,
+            nComponents,
+            stateIdInfo,
+        }) {
             // only apply if all children are strings or macros
             if (
                 !matchedChildren.every(
@@ -37,6 +41,9 @@ export default class BooleanBaseOperatorOfMath extends BooleanComponent {
                         type: "serialized",
                         componentType: "math",
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         attributes: {},
                         doenetAttributes: {},
                         state: {},

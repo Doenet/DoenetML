@@ -227,6 +227,7 @@ export default class Answer extends InlineComponent {
             componentAttributes,
             componentInfoObjects,
             nComponents,
+            stateIdInfo,
         }) {
             // if children are strings and macros
             // wrap with award
@@ -495,6 +496,9 @@ export default class Answer extends InlineComponent {
                         type: "serialized",
                         componentType: "choiceInput",
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: [
                             ...labelDescriptionChildren,
                             ...matchedChildren,
@@ -655,6 +659,9 @@ export default class Answer extends InlineComponent {
                         type: "serialized",
                         componentType: "award",
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: awardChildren,
                         attributes: {},
                         doenetAttributes: {},
@@ -672,6 +679,9 @@ export default class Answer extends InlineComponent {
                         type: "serialized",
                         componentType: inputType,
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: labelDescriptionChildren,
                         attributes: {},
                         doenetAttributes: {},

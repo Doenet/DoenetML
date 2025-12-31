@@ -31,7 +31,11 @@ export default class DirectionComponent extends BaseComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let wrapNonMathInMath = function ({ matchedChildren, nComponents }) {
+        let wrapNonMathInMath = function ({
+            matchedChildren,
+            nComponents,
+            stateIdInfo,
+        }) {
             if (matchedChildren.length === 0) {
                 return { success: false };
             }
@@ -47,6 +51,9 @@ export default class DirectionComponent extends BaseComponent {
                             type: "serialized",
                             componentType: "math",
                             componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
                             children: matchedChildren,
                             attributes: {},
                             doenetAttributes: {},

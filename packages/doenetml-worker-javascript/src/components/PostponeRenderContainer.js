@@ -38,6 +38,7 @@ export default class PostponeRenderContainer extends Group {
         component,
         componentInfoObjects,
         nComponents,
+        workspace,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -52,6 +53,7 @@ export default class PostponeRenderContainer extends Group {
                 component,
                 componentInfoObjects,
                 nComponents,
+                workspace,
             });
             let replacements = replacementResults.replacements;
             errors.push(...replacementResults.errors);

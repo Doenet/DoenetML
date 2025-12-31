@@ -84,6 +84,7 @@ export default class Substitute extends CompositeComponent {
             matchedChildren,
             componentAttributes,
             nComponents,
+            stateIdInfo,
         }) {
             let type = componentAttributes.type?.value;
             if (!["math", "text"].includes(type)) {
@@ -97,6 +98,9 @@ export default class Substitute extends CompositeComponent {
                         type: "serialized",
                         componentType: type,
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: matchedChildren,
                         attributes: {},
                         doenetAttributes: {},
@@ -448,10 +452,18 @@ export default class Substitute extends CompositeComponent {
 
     static async createSerializedReplacements({
         component,
-        componentInfoObjects,
-        flags,
+        workspace,
         nComponents,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -460,6 +472,7 @@ export default class Substitute extends CompositeComponent {
             type: "serialized",
             componentType: type,
             componentIdx: nComponents++,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
             state: { value: await component.stateValues.value },
             attributes: {},
             doenetAttributes: {},
@@ -495,6 +508,7 @@ export default class Substitute extends CompositeComponent {
                     type: "serialized",
                     componentType: attributesComponentTypes[attr],
                     componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     attributes: {},
                     doenetAttributes: {},
                     children: [],
@@ -518,6 +532,8 @@ export default class Substitute extends CompositeComponent {
 
             serializedReplacement.attributes = attributes;
         }
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements: [serializedReplacement],

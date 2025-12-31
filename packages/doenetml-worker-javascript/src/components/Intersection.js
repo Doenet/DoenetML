@@ -135,7 +135,12 @@ export default class Intersection extends CompositeComponent {
         component,
         componentInfoObjects,
         nComponents,
+        workspace,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
         let errors = [];
         let warnings = [];
 
@@ -191,10 +196,16 @@ export default class Intersection extends CompositeComponent {
             return { replacements: [], errors, warnings, nComponents };
         }
 
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let serializedReplacements = points.map((pt) => ({
             type: "serialized",
             componentType: "point",
             componentIdx: nComponents++,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
             state: {
                 coords: me.fromAst(["vector", ...pt]),
                 draggable: false,
@@ -217,6 +228,7 @@ export default class Intersection extends CompositeComponent {
                     componentType: repl.componentType,
                     componentInfoObjects,
                     nComponents,
+                    stateIdInfo,
                 });
 
                 const attributesFromComposite = res.attributes;
@@ -228,6 +240,8 @@ export default class Intersection extends CompositeComponent {
                 Object.assign(repl.attributes, attributesFromComposite);
             }
         }
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements: serializedReplacements,
@@ -242,6 +256,7 @@ export default class Intersection extends CompositeComponent {
         components,
         componentInfoObjects,
         nComponents,
+        workspace,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -249,11 +264,17 @@ export default class Intersection extends CompositeComponent {
 
         let replacementChanges = [];
 
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let replacementResults = await this.createSerializedReplacements({
             component,
             components,
             componentInfoObjects,
             nComponents,
+            workspace,
         });
 
         let serializedIntersections = replacementResults.replacements;
@@ -301,6 +322,8 @@ export default class Intersection extends CompositeComponent {
         }
 
         if (recreateReplacements === false) {
+            // reset replacementsCreated to overwrite any changes made in createSerializedReplacements
+            workspace.replacementsCreated = stateIdInfo.num;
             return { replacementChanges, nComponents };
         }
 
@@ -313,6 +336,8 @@ export default class Intersection extends CompositeComponent {
             serializedReplacements: serializedIntersections,
         };
         nComponents = newNComponents;
+
+        // keep the new value of replacementsCreated that was set in createSerializedReplacements
 
         return { replacementChanges: [replacementInstruction], nComponents };
     }
