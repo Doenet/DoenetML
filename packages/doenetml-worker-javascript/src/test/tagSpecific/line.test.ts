@@ -1730,9 +1730,9 @@ describe("Line tag tests", async () => {
             "No referent found for reference: $invalid2",
         );
         expect(errorWarnings.warnings[1].position.start.line).eq(7);
-        expect(errorWarnings.warnings[1].position.start.column).eq(30);
+        expect(errorWarnings.warnings[1].position.start.column).eq(31);
         expect(errorWarnings.warnings[1].position.end.line).eq(7);
-        expect(errorWarnings.warnings[1].position.end.column).eq(39);
+        expect(errorWarnings.warnings[1].position.end.column).eq(40);
 
         expect(errorWarnings.warnings[2].message).contain(
             "Invalid format for equation of line in variables x and y",

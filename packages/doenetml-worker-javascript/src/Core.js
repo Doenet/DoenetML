@@ -238,6 +238,7 @@ export default class Core {
         serializedComponents[0].doenetAttributes.cid = this.cid;
 
         this._components = [];
+        this.componentIdxByStateId = {};
         this._components[this.nComponentsInit - 1] = undefined;
         this.componentsToRender = {};
         this.componentsWithChangedChildrenToRender = new Set([]);
@@ -397,8 +398,10 @@ export default class Core {
             await this.performAction({
                 actionName: "updateValue",
                 componentIdx:
-                    this.cumulativeStateVariableChanges
-                        .__componentNeedingUpdateValue,
+                    this.componentIdxByStateId[
+                        this.cumulativeStateVariableChanges
+                            .__componentNeedingUpdateValue
+                    ],
                 args: { doNotIgnore: true },
             });
         }
@@ -1706,9 +1709,13 @@ export default class Core {
         delete this.updateInfo.deletedComponents[componentIdx];
         delete this.updateInfo.deletedStateVariables[componentIdx];
 
+        const stateId = serializedComponent.stateId ?? componentIdx.toString();
+        this.componentIdxByStateId[stateId] = componentIdx;
+
         // create component itself
         const newComponent = new componentClass({
             componentIdx,
+            stateId,
             rootName:
                 this.rootNames?.[componentIdx] ??
                 "_id_" + componentIdx.toString(),
@@ -1842,17 +1849,16 @@ export default class Core {
     }
 
     async checkForStateVariablesUpdatesForNewComponent(componentIdx) {
+        let comp = this._components[componentIdx];
+        const stateId = comp.stateId;
         if (
-            componentIdx in
-            this.updateInfo.stateVariableUpdatesForMissingComponents
+            stateId in this.updateInfo.stateVariableUpdatesForMissingComponents
         ) {
             let result = await this.processNewStateVariableValues(
                 {
                     [componentIdx]:
                         this.updateInfo
-                            .stateVariableUpdatesForMissingComponents[
-                            componentIdx
-                        ],
+                            .stateVariableUpdatesForMissingComponents[stateId],
                 },
                 // This `true` indicates we have a new component
                 true,
@@ -1864,13 +1870,12 @@ export default class Core {
             // in the first pass of the definition.
             // Hence, we run the definition of all variables with the extra flag
             // justUpdatedForNewComponent = true
-            let comp = this._components[componentIdx];
             if (
                 comp.constructor.processWhenJustUpdatedForNewComponent ||
                 result.foundIgnore
             ) {
                 for (let vName in this.updateInfo
-                    .stateVariableUpdatesForMissingComponents[componentIdx]) {
+                    .stateVariableUpdatesForMissingComponents[stateId]) {
                     if (comp.state[vName]) {
                         this.updateInfo.stateVariablesToEvaluate.push({
                             componentIdx,
@@ -1887,7 +1892,7 @@ export default class Core {
                             // of expressionWithCodes
                             comp.reprocessAfterEvaluate =
                                 this.updateInfo.stateVariableUpdatesForMissingComponents[
-                                    componentIdx
+                                    stateId
                                 ];
                         }
                     }
@@ -1895,7 +1900,7 @@ export default class Core {
             }
 
             delete this.updateInfo.stateVariableUpdatesForMissingComponents[
-                componentIdx
+                stateId
             ];
         }
     }
@@ -2520,8 +2525,11 @@ export default class Core {
         //   to a public state variable, substituting aliases if necessary
         let initialNComponents;
         let result;
+        const originalWorkspace = { ...component.replacementsWorkspace };
+
         do {
             initialNComponents = this.components.length;
+            component.replacementsWorkspace = { ...originalWorkspace };
             result = await component.constructor.createSerializedReplacements({
                 component: this.components[component.componentIdx], // to create proxy
                 components: this.components,
@@ -3053,6 +3061,15 @@ export default class Core {
         // and make those be the replacements of the shadowing composite
         let serializedReplacements = [];
 
+        if (component.replacementsWorkspace.replacementsCreated === undefined) {
+            component.replacementsWorkspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: component.replacementsWorkspace.replacementsCreated,
+        };
+
         let nComponents = this._components.length;
         let newNComponents = nComponents;
 
@@ -3100,6 +3117,7 @@ export default class Core {
                         [serializedComponent],
                         [component.serializedChildren[idx]],
                         newNComponents,
+                        stateIdInfo,
                     );
                     newNComponents = res.nComponents;
 
@@ -3108,6 +3126,7 @@ export default class Core {
                     const res = createNewComponentIndices(
                         [serializedComponent],
                         newNComponents,
+                        stateIdInfo,
                         idxMapOverride,
                     );
                     newNComponents = res.nComponents;
@@ -3259,6 +3278,13 @@ export default class Core {
         // }
 
         if (!foundCircular) {
+            if (
+                component.replacementsWorkspace.replacementsCreated ===
+                undefined
+            ) {
+                component.replacementsWorkspace.replacementsCreated = 0;
+            }
+
             let verificationResult = await verifyReplacementsMatchSpecifiedType(
                 {
                     component,
@@ -3268,6 +3294,7 @@ export default class Core {
                         component.constructor.createAttributesObject(),
                     components: this._components,
                     nComponents: newNComponents,
+                    stateIdInfo,
                     publicCaseInsensitiveAliasSubstitutions:
                         this.publicCaseInsensitiveAliasSubstitutions.bind(this),
                 },
@@ -3301,6 +3328,8 @@ export default class Core {
         //     `serialized replacements for ${component.componentIdx} who is shadowing ${shadowedComposite.componentIdx}`,
         // );
         // console.log(deepClone(serializedReplacements));
+
+        component.replacementsWorkspace.replacementsCreated = stateIdInfo.num;
 
         await this.addReplacementsToResolver({
             serializedReplacements,
@@ -7696,11 +7725,8 @@ export default class Core {
                 );
             }
 
-            if (
-                !this.essentialValuesSavedInDefinition[component.componentIdx]
-            ) {
-                this.essentialValuesSavedInDefinition[component.componentIdx] =
-                    {};
+            if (!this.essentialValuesSavedInDefinition[component.stateId]) {
+                this.essentialValuesSavedInDefinition[component.stateId] = {};
             }
 
             let essentialVarName = varName;
@@ -7722,16 +7748,16 @@ export default class Core {
                 // so that it will be saved to the database during the next update
 
                 if (
-                    !this.essentialValuesSavedInDefinition[
-                        component.componentIdx
-                    ][varName]
+                    !this.essentialValuesSavedInDefinition[component.stateId][
+                        varName
+                    ]
                 ) {
                     // include key mergeObject to let external functions
                     // know that new attributes of the object
                     // should be merged into the old object
-                    this.essentialValuesSavedInDefinition[
-                        component.componentIdx
-                    ][varName] = {
+                    this.essentialValuesSavedInDefinition[component.stateId][
+                        varName
+                    ] = {
                         mergeObject: true,
                     };
                 }
@@ -7743,10 +7769,9 @@ export default class Core {
                         arrayValues: essentialArray,
                     });
 
-                    this.essentialValuesSavedInDefinition[
-                        component.componentIdx
-                    ][varName][arrayKey] =
-                        result.setEssentialValue[varName][arrayKey];
+                    this.essentialValuesSavedInDefinition[component.stateId][
+                        varName
+                    ][arrayKey] = result.setEssentialValue[varName][arrayKey];
                 }
             } else {
                 component.essentialState[essentialVarName] =
@@ -7755,7 +7780,7 @@ export default class Core {
                 // Since setting an essential value during a definition,
                 // we also add the value to essentialValuesSavedInDefinition
                 // so that it will be saved to the database during the next update
-                this.essentialValuesSavedInDefinition[component.componentIdx][
+                this.essentialValuesSavedInDefinition[component.stateId][
                     varName
                 ] = result.setEssentialValue[varName];
             }
@@ -9882,8 +9907,11 @@ export default class Core {
         //   to a public state variable, substituting aliases if necessary
         let initialNComponents;
         let replacementResults;
+        const originalWorkspace = { ...component.replacementsWorkspace };
+
         do {
             initialNComponents = this.components.length;
+            component.replacementsWorkspace = { ...originalWorkspace };
             replacementResults =
                 await component.constructor.calculateReplacementChanges({
                     component: proxiedComponent,
@@ -10588,6 +10616,15 @@ export default class Core {
             if (shadowingComponent.isExpanded) {
                 let newSerializedReplacements = [];
 
+                // since replacing all replacements, reset replacementsCreated count
+                shadowingComponent.replacementsWorkspace.replacementsCreated = 0;
+
+                const stateIdInfo = {
+                    prefix: `${shadowingComponent.stateId}|`,
+                    num: shadowingComponent.replacementsWorkspace
+                        .replacementsCreated,
+                };
+
                 let nComponents = this._components.length;
                 let newNComponents = nComponents;
                 for (let [idx, repl] of replacementsToShadow.entries()) {
@@ -10607,6 +10644,7 @@ export default class Core {
                                         ],
                                     ],
                                     newNComponents,
+                                    stateIdInfo,
                                 );
                             newNComponents = res.nComponents;
 
@@ -10615,6 +10653,7 @@ export default class Core {
                             const res = createNewComponentIndices(
                                 [serializedComponent],
                                 newNComponents,
+                                stateIdInfo,
                             );
                             newNComponents = res.nComponents;
 
@@ -10624,6 +10663,9 @@ export default class Core {
                         newSerializedReplacements.push(repl);
                     }
                 }
+
+                shadowingComponent.replacementsWorkspace.replacementsCreated =
+                    stateIdInfo.num;
 
                 this.adjustForCreateComponentIdxName(
                     newSerializedReplacements,
@@ -11422,7 +11464,7 @@ export default class Core {
                 instruction.updateType === "setComponentNeedingUpdateValue"
             ) {
                 this.cumulativeStateVariableChanges.__componentNeedingUpdateValue =
-                    instruction.componentIdx;
+                    this._components[instruction.componentIdx].stateId;
             } else if (
                 instruction.updateType === "unsetComponentNeedingUpdateValue"
             ) {
@@ -11488,25 +11530,24 @@ export default class Core {
 
         // start with any essential values saved when calculating definitions
         if (Object.keys(this.essentialValuesSavedInDefinition).length > 0) {
-            for (const componentIdxStr in this
-                .essentialValuesSavedInDefinition) {
-                const componentIdx = Number(componentIdxStr);
+            for (const stateId in this.essentialValuesSavedInDefinition) {
+                const componentIdx = this.componentIdxByStateId[stateId];
                 let essentialState =
                     this._components[componentIdx]?.essentialState;
                 if (essentialState) {
-                    if (!this.cumulativeStateVariableChanges[componentIdx]) {
-                        this.cumulativeStateVariableChanges[componentIdx] = {};
+                    if (!this.cumulativeStateVariableChanges[stateId]) {
+                        this.cumulativeStateVariableChanges[stateId] = {};
                     }
                     for (let varName in this.essentialValuesSavedInDefinition[
-                        componentIdx
+                        stateId
                     ]) {
                         if (essentialState[varName] !== undefined) {
                             let cumValues =
-                                this.cumulativeStateVariableChanges[
-                                    componentIdx
-                                ][varName];
+                                this.cumulativeStateVariableChanges[stateId][
+                                    varName
+                                ];
                             // if cumValues is an object with mergeObject = true,
-                            // then merge attributes from newStateVariableValues into cumValues
+                            // then merge attributes from essentialState into cumValues
                             if (
                                 typeof cumValues === "object" &&
                                 cumValues !== null &&
@@ -11519,9 +11560,9 @@ export default class Core {
                                     ),
                                 );
                             } else {
-                                this.cumulativeStateVariableChanges[
-                                    componentIdx
-                                ][varName] = removeFunctionsMathExpressionClass(
+                                this.cumulativeStateVariableChanges[stateId][
+                                    varName
+                                ] = removeFunctionsMathExpressionClass(
                                     essentialState[varName],
                                 );
                             }
@@ -11536,14 +11577,13 @@ export default class Core {
         for (let newValuesProcessed of newStateVariableValuesProcessed) {
             for (const componentIdxStr in newValuesProcessed) {
                 const componentIdx = Number(componentIdxStr);
-                if (!this.cumulativeStateVariableChanges[componentIdx]) {
-                    this.cumulativeStateVariableChanges[componentIdx] = {};
+                const stateId = this._components[componentIdx].stateId;
+                if (!this.cumulativeStateVariableChanges[stateId]) {
+                    this.cumulativeStateVariableChanges[stateId] = {};
                 }
                 for (let varName in newValuesProcessed[componentIdx]) {
                     let cumValues =
-                        this.cumulativeStateVariableChanges[componentIdx][
-                            varName
-                        ];
+                        this.cumulativeStateVariableChanges[stateId][varName];
                     // if cumValues is an object with mergeObject = true,
                     // then merge attributes from newStateVariableValues into cumValues
                     if (
@@ -11558,11 +11598,10 @@ export default class Core {
                             ),
                         );
                     } else {
-                        this.cumulativeStateVariableChanges[componentIdx][
-                            varName
-                        ] = removeFunctionsMathExpressionClass(
-                            newValuesProcessed[componentIdx][varName],
-                        );
+                        this.cumulativeStateVariableChanges[stateId][varName] =
+                            removeFunctionsMathExpressionClass(
+                                newValuesProcessed[componentIdx][varName],
+                            );
                     }
                 }
             }

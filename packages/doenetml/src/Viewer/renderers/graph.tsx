@@ -220,7 +220,7 @@ export default React.memo(function Graph(props) {
         };
     } else {
         outerStyle = { display: "flex", justifyContent: SVs.horizontalAlign };
-        innerStyle = { width: "100%" };
+        innerStyle = { maxWidth: "100%" };
     }
 
     if (SVs.showBorder) {
@@ -251,7 +251,7 @@ export default React.memo(function Graph(props) {
                         aria-label={ariaLabel}
                         role={role}
                         aria-hidden={ariaHidden}
-                        style={{ width: "100%", display: "block" }}
+                        style={{ maxWidth: "100%", display: "block" }}
                     >
                         <div id={id} className="jxgbox" style={divStyle} />
                     </div>
@@ -497,7 +497,7 @@ export default React.memo(function Graph(props) {
                     aria-label={ariaLabel}
                     role={role}
                     aria-hidden={ariaHidden}
-                    style={{ width: "100%" }}
+                    style={{ maxWidth: "100%" }}
                     aria-details={descriptionId}
                 >
                     <div id={id} className="jxgbox" style={divStyle} />

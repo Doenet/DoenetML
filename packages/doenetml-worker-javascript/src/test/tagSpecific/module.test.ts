@@ -1412,4 +1412,82 @@ describe("Module tag tests", async () => {
                 .coords.tree,
         ).eqls(["vector", 6, 7]);
     });
+
+    it("module state inside repeat loaded correctly", async () => {
+        const doenetML = `
+<module name="p">
+    <moduleAttributes>
+        <point name="vertex">(0,0)</point>
+    </moduleAttributes>
+    <parabola vertex="$vertex" />
+    <point name="vertex2" extend="$vertex" />
+</module>
+
+<p>y: <number name="y">3</number></p>
+<p>n: <mathInput name="n" prefill="1" /></p>
+<graph>
+    <repeatForSequence length="$n" valueName="v" name="r">
+        <setup>
+            <number copy="$v" name="v2" />
+        </setup>
+
+        <module copy="$p" vertex="($v2,$y)" name="p2" />
+    </repeatForSequence>
+</graph>
+`;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("r[1].p2.vertex2"),
+            x: 5,
+            y: 7,
+            core,
+        });
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("r[2].p2.vertex2"),
+            x: 9,
+            y: -3,
+            core,
+        });
+
+        await core.saveImmediately();
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r[1].p2.vertex2")]
+                .stateValues.coords.tree,
+        ).eqls(["vector", 5, -3]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r[2].p2.vertex2")]
+                .stateValues.coords.tree,
+        ).eqls(["vector", 9, -3]);
+
+        const endingState = scoreState.state;
+
+        // reload with saved state
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: endingState,
+        }));
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r[1].p2.vertex2")]
+                .stateValues.coords.tree,
+        ).eqls(["vector", 5, -3]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r[2].p2.vertex2")]
+                .stateValues.coords.tree,
+        ).eqls(["vector", 9, -3]);
+    });
 });

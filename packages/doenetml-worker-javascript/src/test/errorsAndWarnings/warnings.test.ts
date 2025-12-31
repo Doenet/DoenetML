@@ -616,9 +616,9 @@ describe("Warning Tests", async () => {
             "No referent found for reference: $__s",
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(5);
-        expect(errorWarnings.warnings[0].position.start.column).eq(19);
+        expect(errorWarnings.warnings[0].position.start.column).eq(20);
         expect(errorWarnings.warnings[0].position.end.line).eq(5);
-        expect(errorWarnings.warnings[0].position.end.column).eq(23);
+        expect(errorWarnings.warnings[0].position.end.column).eq(24);
 
         expect(errorWarnings.warnings[1].message).contain(
             "No source found for collect",
@@ -665,5 +665,30 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[1].position.start.column).eq(20);
         expect(errorWarnings.warnings[1].position.end.line).eq(2);
         expect(errorWarnings.warnings[1].position.end.column).eq(34);
+    });
+
+    it("Correctly get reference text when extend with an index", async () => {
+        // Note: since extending with an index, the reference cannot be resolved in the first pass before core is initialized.
+        // Instead, the warning is generated after core can determine what replacements the group has.
+        // This tests that the correct text is used for the reference in that case, where the text has to be rebuilt from the source and position info.
+        let { core } = await createTestCore({
+            doenetML: `
+<group name="g"></group>
+<text extend="$g[1]" />
+    `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            "No referent found for reference: $g[1]",
+        );
+        expect(errorWarnings.warnings[0].position.start.line).eq(3);
+        expect(errorWarnings.warnings[0].position.start.column).eq(1);
+        expect(errorWarnings.warnings[0].position.end.line).eq(3);
+        expect(errorWarnings.warnings[0].position.end.column).eq(24);
     });
 });

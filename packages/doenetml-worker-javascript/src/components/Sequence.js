@@ -93,6 +93,15 @@ export default class Sequence extends CompositeComponent {
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`)
 
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -163,6 +172,7 @@ export default class Sequence extends CompositeComponent {
                     componentType,
                     componentInfoObjects,
                     nComponents,
+                    stateIdInfo,
                 });
 
                 nComponents = res.nComponents;
@@ -173,6 +183,7 @@ export default class Sequence extends CompositeComponent {
                 type: "serialized",
                 componentType,
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: attributesFromComposite,
                 doenetAttributes: {},
                 children: [],
@@ -183,6 +194,8 @@ export default class Sequence extends CompositeComponent {
 
         // console.log(`replacements for ${component.componentIdx}`);
         // console.log(replacements);
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,
@@ -204,7 +217,7 @@ export default class Sequence extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
-        let lrp = workspace.lastReplacementParameters;
+        let lrp = { ...workspace.lastReplacementParameters };
 
         let replacementChanges = [];
 
@@ -232,6 +245,7 @@ export default class Sequence extends CompositeComponent {
             // That way, if later restore to previous parameter set,
             // we can restore the old replacements
             lrp.length = 0;
+            workspace.lastReplacementParameters = lrp;
 
             return { replacementChanges };
         }
@@ -365,6 +379,11 @@ export default class Sequence extends CompositeComponent {
             if (numReplacementsToAdd > 0) {
                 // Need to add more replacement components
 
+                const stateIdInfo = {
+                    prefix: `${component.stateId}|`,
+                    num: workspace.replacementsCreated,
+                };
+
                 let newSerializedReplacements = [];
 
                 let attributesToConvert = {};
@@ -408,6 +427,7 @@ export default class Sequence extends CompositeComponent {
                                 componentType,
                                 componentInfoObjects,
                                 nComponents,
+                                stateIdInfo,
                             },
                         );
 
@@ -419,6 +439,7 @@ export default class Sequence extends CompositeComponent {
                         type: "serialized",
                         componentType,
                         componentIdx: nComponents++,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                         attributes: attributesFromComposite,
                         state: { value: componentValue, fixed: true },
                         doenetAttributes: {},
@@ -436,6 +457,8 @@ export default class Sequence extends CompositeComponent {
                     replacementsToWithhold: 0,
                 };
                 replacementChanges.push(replacementInstruction);
+
+                workspace.replacementsCreated = stateIdInfo.num;
             }
         }
 
@@ -444,6 +467,8 @@ export default class Sequence extends CompositeComponent {
         lrp.length = length;
         lrp.step = step;
         lrp.exclude = exclude;
+
+        workspace.lastReplacementParameters = lrp;
 
         return { replacementChanges, nComponents };
     }

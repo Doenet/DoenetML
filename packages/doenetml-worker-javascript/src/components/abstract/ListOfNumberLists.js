@@ -16,6 +16,7 @@ export default class ListOfNumberLists extends InlineComponent {
         let breakIntoNumberListsByParens = function ({
             matchedChildren,
             nComponents,
+            stateIdInfo,
         }) {
             let results = breakEmbeddedStringsIntoParensPieces({
                 componentList: matchedChildren,
@@ -32,6 +33,9 @@ export default class ListOfNumberLists extends InlineComponent {
                     type: "serialized",
                     componentType: "numberList",
                     componentIdx: nComponents++,
+                    stateId: stateIdInfo
+                        ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                        : undefined,
                     children: x,
                     attributes: {},
                     doenetAttributes: {},

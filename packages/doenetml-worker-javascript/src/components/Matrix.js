@@ -52,6 +52,7 @@ export default class Matrix extends MathComponent {
             matchedChildren,
             componentInfoObjects,
             nComponents,
+            stateIdInfo,
         }) {
             if (matchedChildren.length === 0) {
                 return { success: false };
@@ -112,6 +113,9 @@ export default class Matrix extends MathComponent {
                             type: "serialized",
                             componentType: "math",
                             componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
                             children: matchedChildren,
                             attributes: {},
                             doenetAttributes: {},

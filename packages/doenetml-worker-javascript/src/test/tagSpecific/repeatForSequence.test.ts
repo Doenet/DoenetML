@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     movePoint,
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
     updateValue,
 } from "../utils/actions";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -222,7 +224,7 @@ describe("RepeatForSequence tag tests", async () => {
                     let componentIdx = point1IndicesForGraph[ind];
                     expect(
                         stateVariables[componentIdx].stateValues.xs.map(
-                            (x) => x.tree,
+                            (x: any) => x.tree,
                         ),
                     ).eqls(val);
                 }
@@ -230,7 +232,7 @@ describe("RepeatForSequence tag tests", async () => {
                     let componentIdx = point2IndicesForGraph[ind];
                     expect(
                         stateVariables[componentIdx].stateValues.xs.map(
-                            (x) => x.tree,
+                            (x: any) => x.tree,
                         ),
                     ).eqls(val);
                 }
@@ -311,7 +313,7 @@ describe("RepeatForSequence tag tests", async () => {
 
                     expect(
                         stateVariables[pointIdx].stateValues.xs.map(
-                            (x) => x.tree,
+                            (x: any) => x.tree,
                         ),
                     ).eqls(pointsByRepeat[i1][i2][i3]);
 
@@ -682,10 +684,18 @@ describe("RepeatForSequence tag tests", async () => {
                 const p1 = await resolvePathToNodeIdx(`repeat[${ind + 1}].P1`);
                 const p2 = await resolvePathToNodeIdx(`repeat[${ind + 1}].P2`);
                 expect(
-                    rnd(stateVariables[p1].stateValues.xs.map((x) => x.tree)),
+                    rnd(
+                        stateVariables[p1].stateValues.xs.map(
+                            (x: any) => x.tree,
+                        ),
+                    ),
                 ).eqls(P1s[ind]);
                 expect(
-                    rnd(stateVariables[p2].stateValues.xs.map((x) => x.tree)),
+                    rnd(
+                        stateVariables[p2].stateValues.xs.map(
+                            (x: any) => x.tree,
+                        ),
+                    ),
                 ).eqls(P2s[ind]);
 
                 expect(
@@ -867,7 +877,7 @@ describe("RepeatForSequence tag tests", async () => {
                         stateVariables[g].activeChildren[i].componentIdx;
                     expect(
                         stateVariables[childA].stateValues.xs.map(
-                            (x) => x.tree,
+                            (x: any) => x.tree,
                         ),
                     ).eqls(points1[i]);
 
@@ -877,7 +887,7 @@ describe("RepeatForSequence tag tests", async () => {
 
                     expect(
                         stateVariables[childB].stateValues.xs.map(
-                            (x) => x.tree,
+                            (x: any) => x.tree,
                         ),
                     ).eqls(points2[i]);
                 }
@@ -1161,7 +1171,7 @@ describe("RepeatForSequence tag tests", async () => {
         await check_items(1, 2, 1, 2);
     });
 
-    it("repeatForSequence hide dynamically", async () => {
+    it("repeatForSequence hides dynamically", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name='h1' prefill="false" >
@@ -1293,6 +1303,159 @@ describe("RepeatForSequence tag tests", async () => {
         await check_items(h1, h2, n1, n2);
     });
 
+    it("copied repeatForSequence updates correctly", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p>n: <mathInput name="n" prefill="0" /></p>
+    <repeatForSequence length="$n" name="r" valueName="v">
+        <p>$v + $v = <answer name="ans">2$v</answer></p>
+    </repeatForSequence>
+    <repeatForSequence copy="$r" name="r2" />`,
+        });
+
+        async function check_items(n: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value.tree,
+            ).eq(n);
+
+            for (let i = 1; i <= n; i++) {
+                const ansIdx = await resolvePathToNodeIdx(`r[${i}].ans`);
+                const mathInputIdx =
+                    stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+                expect(stateVariables[mathInputIdx].stateValues.value.tree).eq(
+                    2 * i,
+                );
+                expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
+                expect(stateVariables[ansIdx].stateValues.justSubmitted).eq(
+                    true,
+                );
+                expect(stateVariables[ansIdx].stateValues.showCorrectness).eq(
+                    true,
+                );
+
+                const ans2Idx = await resolvePathToNodeIdx(`r2[${i}].ans`);
+                const mathInput2Idx =
+                    stateVariables[ans2Idx].activeChildren[0].componentIdx;
+                expect(stateVariables[mathInput2Idx].stateValues.value.tree).eq(
+                    3 * i,
+                );
+                expect(stateVariables[ans2Idx].stateValues.creditAchieved).eq(
+                    0,
+                );
+                expect(stateVariables[ans2Idx].stateValues.justSubmitted).eq(
+                    true,
+                );
+                expect(stateVariables[ans2Idx].stateValues.showCorrectness).eq(
+                    true,
+                );
+            }
+        }
+
+        await check_items(0);
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const ans11Idx = await resolvePathToNodeIdx(`r[1].ans`);
+        const mathInput11Idx =
+            stateVariables[ans11Idx].activeChildren[0].componentIdx;
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: mathInput11Idx,
+            core,
+        });
+        await submitAnswer({
+            componentIdx: ans11Idx,
+            core,
+        });
+
+        const ans21Idx = await resolvePathToNodeIdx(`r2[1].ans`);
+        const mathInput21Idx =
+            stateVariables[ans21Idx].activeChildren[0].componentIdx;
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: mathInput21Idx,
+            core,
+        });
+        await submitAnswer({
+            componentIdx: ans21Idx,
+            core,
+        });
+
+        await check_items(1);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        const ans12Idx = await resolvePathToNodeIdx(`r[2].ans`);
+        const mathInput12Idx =
+            stateVariables[ans12Idx].activeChildren[0].componentIdx;
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: mathInput12Idx,
+            core,
+        });
+        await submitAnswer({
+            componentIdx: ans12Idx,
+            core,
+        });
+
+        const ans22Idx = await resolvePathToNodeIdx(`r2[2].ans`);
+        const mathInput22Idx =
+            stateVariables[ans22Idx].activeChildren[0].componentIdx;
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: mathInput22Idx,
+            core,
+        });
+        await submitAnswer({
+            componentIdx: ans22Idx,
+            core,
+        });
+        await check_items(2);
+    });
+
+    it("repeatForSequence remaps extend indices of all attributes", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<module name="mod">
+    <moduleAttributes>
+        <number name="num">1</number>
+    </moduleAttributes>
+    <number name="num2" extend="$num" />
+</module>
+
+<repeatForSequence length="1" from="5" valueName="v" name="r">
+    <module copy="$mod" num="$v" name="mod2" />
+    <ref to="$v" name="ref">hmm</ref>
+</repeatForSequence>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`r[1].mod2.num2`)]
+                .stateValues.value,
+        ).eq(5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`r[1].ref`)].stateValues
+                .targetComponent.componentType,
+        ).eq("number");
+    });
+
     function create_as_list_template(inner_content: string) {
         return `
       <p name="pdefault">
@@ -1329,7 +1492,7 @@ describe("RepeatForSequence tag tests", async () => {
     }
 
     async function test_as_list_maps(
-        core,
+        core: PublicDoenetMLCore,
         items: string[],
         resolvePathToNodeIdx: ResolvePathToNodeIdx,
     ) {
@@ -1502,5 +1665,908 @@ describe("RepeatForSequence tag tests", async () => {
             stateVariables[await resolvePathToNodeIdx("r2[2].p")].stateValues
                 .isResponse,
         ).eq(false);
+    });
+
+    it("restore state with answers", async () => {
+        const doenetML = `
+    <p>n: <mathInput name="n" prefill="0" /></p>
+    <repeatForSequence valueName="v" length="$n" name="r">
+        <p name="p">$v + $v = <answer name="ans">2$v</answer></p>
+    </repeatForSequence>
+    `;
+
+        async function check_items(count: number, answers: number[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value.tree,
+            ).eq(count);
+
+            for (let i = 0; i < count; i++) {
+                const pIdx = await resolvePathToNodeIdx(`r[${i + 1}].p`);
+                const ansIdx = await resolvePathToNodeIdx(`r[${i + 1}].ans`);
+                const mathInputIdx =
+                    stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+                expect(stateVariables[pIdx].stateValues.text.trim()).eq(
+                    `${i + 1} + ${i + 1} =`,
+                );
+
+                expect(stateVariables[mathInputIdx].stateValues.value.tree).eq(
+                    answers[i],
+                );
+
+                expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
+                expect(stateVariables[ansIdx].stateValues.justSubmitted).eq(
+                    true,
+                );
+            }
+        }
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await check_items(0, []);
+
+        // set to length 1 and submit correct answer
+        let count = 1;
+        await updateMathInputValue({
+            latex: count.toString(),
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ansIdx1 = await resolvePathToNodeIdx(`r[1].ans`);
+        const mathInputIdx1 =
+            stateVariables[ansIdx1].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: mathInputIdx1,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("r[1].ans"),
+            core,
+        });
+        await check_items(1, [2]);
+
+        // set to length 2 and submit correct answers
+        count = 2;
+        await updateMathInputValue({
+            latex: count.toString(),
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ansIdx2 = await resolvePathToNodeIdx(`r[2].ans`);
+        const mathInputIdx2 =
+            stateVariables[ansIdx2].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: mathInputIdx2,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("r[2].ans"),
+            core,
+        });
+        await check_items(2, [2, 4]);
+
+        const endingState = scoreState.state;
+
+        // reload with saved state
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: endingState,
+        }));
+
+        await check_items(2, [2, 4]);
+    });
+
+    it("restore state with answers, extended", async () => {
+        const doenetML = `
+    <section name="sec1">
+    <p>n: <mathInput name="n" prefill="0" /></p>
+    <repeatForSequence valueName="v" length="$n" name="r">
+        <p name="p">$v + $v = <answer name="ans">2$v</answer></p>
+    </repeatForSequence>
+    </section>
+    <section name="sec2">
+        <repeatForSequence extend="$sec1.r" name="r" />
+    </section>
+    <section name="sec3" extend="$sec1" />
+    <section name="sec4" extend="$sec2" />
+    
+    
+    `;
+
+        async function check_items(count: number, answers: number[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value.tree,
+            ).eq(count);
+
+            for (let i = 0; i < count; i++) {
+                for (let j = 1; j <= 4; j++) {
+                    const pIdx = await resolvePathToNodeIdx(
+                        `sec${j}.r[${i + 1}].p`,
+                    );
+                    const ansIdx = await resolvePathToNodeIdx(
+                        `sec${j}.r[${i + 1}].ans`,
+                    );
+                    const mathInputIdx =
+                        stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+                    expect(stateVariables[pIdx].stateValues.text.trim()).eq(
+                        `${i + 1} + ${i + 1} =`,
+                    );
+
+                    expect(
+                        stateVariables[mathInputIdx].stateValues.value.tree,
+                    ).eq(answers[i]);
+
+                    expect(
+                        stateVariables[ansIdx].stateValues.creditAchieved,
+                    ).eq(1);
+                    expect(stateVariables[ansIdx].stateValues.justSubmitted).eq(
+                        true,
+                    );
+                }
+            }
+        }
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await check_items(0, []);
+
+        // set to length 1 and submit correct answer
+        let count = 1;
+        await updateMathInputValue({
+            latex: count.toString(),
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ansIdx1 = await resolvePathToNodeIdx(`sec1.r[1].ans`);
+        const mathInputIdx1 =
+            stateVariables[ansIdx1].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: mathInputIdx1,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("sec1.r[1].ans"),
+            core,
+        });
+        await check_items(1, [2]);
+
+        // set to length 2 and submit correct answers
+        count = 2;
+        await updateMathInputValue({
+            latex: count.toString(),
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ansIdx2 = await resolvePathToNodeIdx(`sec1.r[2].ans`);
+        const mathInputIdx2 =
+            stateVariables[ansIdx2].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: mathInputIdx2,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("sec1.r[2].ans"),
+            core,
+        });
+        await check_items(2, [2, 4]);
+
+        const endingState = scoreState.state;
+
+        // reload with saved state
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: endingState,
+        }));
+
+        await check_items(2, [2, 4]);
+    });
+
+    it("restore state with answers, copied", async () => {
+        const doenetML = `
+    <section name="sec1">
+    <p>n: <mathInput name="n" prefill="0" /></p>
+    <repeatForSequence valueName="v" length="$n" name="r">
+        <p name="p">$v + $v = <answer name="ans">2$v</answer></p>
+    </repeatForSequence>
+    </section>
+    <section name="sec2">
+        <repeatForSequence copy="$sec1.r" name="r" />
+    </section>
+    <section name="sec3" copy="$sec1" />
+    <section name="sec4" copy="$sec2" />
+    `;
+
+        async function check_items(count: number, answers: number[][]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value.tree,
+            ).eq(count);
+
+            for (let i = 0; i < count; i++) {
+                for (let j = 1; j <= 4; j++) {
+                    const pIdx = await resolvePathToNodeIdx(
+                        `sec${j}.r[${i + 1}].p`,
+                    );
+                    const ansIdx = await resolvePathToNodeIdx(
+                        `sec${j}.r[${i + 1}].ans`,
+                    );
+                    const mathInputIdx =
+                        stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+                    expect(stateVariables[pIdx].stateValues.text.trim()).eq(
+                        `${i + 1} + ${i + 1} =`,
+                    );
+
+                    expect(
+                        stateVariables[mathInputIdx].stateValues.value.tree,
+                    ).eq(answers[j - 1][i]);
+
+                    expect(
+                        stateVariables[ansIdx].stateValues.creditAchieved,
+                    ).eq(j == 1 ? 1 : 0);
+                    expect(stateVariables[ansIdx].stateValues.justSubmitted).eq(
+                        true,
+                    );
+                    expect(
+                        stateVariables[ansIdx].stateValues.showCorrectness,
+                    ).eq(true);
+                }
+            }
+        }
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await check_items(0, []);
+
+        // set to length 1 and submit answers
+        let count = 1;
+        await updateMathInputValue({
+            latex: count.toString(),
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: count.toString(),
+            componentIdx: await resolvePathToNodeIdx("sec3.n"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ansIdx1s: number[] = [];
+        for (let j = 1; j <= 4; j++) {
+            ansIdx1s.push(await resolvePathToNodeIdx(`sec${j}.r[1].ans`));
+        }
+
+        const mathInputIdx1s = ansIdx1s.map(
+            (ansIdx1) => stateVariables[ansIdx1].activeChildren[0].componentIdx,
+        );
+
+        const answers: number[][] = [[], [], [], []];
+
+        for (let j = 0; j < 4; j++) {
+            answers[j].push(2 + 10 * j);
+
+            await updateMathInputValue({
+                latex: answers[j][0].toString(),
+                componentIdx: mathInputIdx1s[j],
+                core,
+            });
+            await submitAnswer({
+                componentIdx: ansIdx1s[j],
+                core,
+            });
+        }
+
+        await check_items(1, answers);
+
+        // set to length 2 and submit correct answers
+        count = 2;
+        await updateMathInputValue({
+            latex: count.toString(),
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        await updateMathInputValue({
+            latex: count.toString(),
+            componentIdx: await resolvePathToNodeIdx("sec3.n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ansIdx2s: number[] = [];
+        for (let j = 1; j <= 4; j++) {
+            ansIdx2s.push(await resolvePathToNodeIdx(`sec${j}.r[2].ans`));
+        }
+
+        const mathInputIdx2s = ansIdx2s.map(
+            (ansIdx2) => stateVariables[ansIdx2].activeChildren[0].componentIdx,
+        );
+
+        for (let j = 0; j < 4; j++) {
+            answers[j].push(4 + 10 * j);
+
+            await updateMathInputValue({
+                latex: answers[j][1].toString(),
+                componentIdx: mathInputIdx2s[j],
+                core,
+            });
+            await submitAnswer({
+                componentIdx: ansIdx2s[j],
+                core,
+            });
+        }
+
+        await check_items(2, answers);
+
+        const endingState = scoreState.state;
+
+        // reload with saved state
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: endingState,
+        }));
+
+        await check_items(2, answers);
+    });
+
+    it("restore state with two repeatForSequences with answers", async () => {
+        const doenetML = `
+    <section name="sec1">
+    <p>n: <mathInput name="n" prefill="0" /></p>
+    <repeatForSequence valueName="v" length="$n" name="r">
+        <p name="p">$v + $v = <answer name="ans">2$v</answer></p>
+    </repeatForSequence>
+    </section>
+    <section name="sec2">
+    <p>n: <mathInput name="n" prefill="0" /></p>
+    <repeatForSequence valueName="v" length="$n" name="r">
+        <p name="p">$v + $v + $v = <answer name="ans">3$v</answer></p>
+    </repeatForSequence>
+    </section>
+    `;
+
+        async function check_items(
+            count1: number,
+            answers1: number[],
+            count2: number,
+            answers2: number[],
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("sec1.n")].stateValues
+                    .value.tree,
+            ).eq(count1);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("sec2.n")].stateValues
+                    .value.tree,
+            ).eq(count2);
+
+            for (let i = 0; i < count1; i++) {
+                const pIdx = await resolvePathToNodeIdx(`sec1.r[${i + 1}].p`);
+                const ansIdx = await resolvePathToNodeIdx(
+                    `sec1.r[${i + 1}].ans`,
+                );
+                const mathInputIdx =
+                    stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+                expect(stateVariables[pIdx].stateValues.text.trim()).eq(
+                    `${i + 1} + ${i + 1} =`,
+                );
+
+                expect(stateVariables[mathInputIdx].stateValues.value.tree).eq(
+                    answers1[i],
+                );
+
+                expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
+                expect(stateVariables[ansIdx].stateValues.justSubmitted).eq(
+                    true,
+                );
+            }
+
+            for (let i = 0; i < count2; i++) {
+                const pIdx = await resolvePathToNodeIdx(`sec2.r[${i + 1}].p`);
+                const ansIdx = await resolvePathToNodeIdx(
+                    `sec2.r[${i + 1}].ans`,
+                );
+                const mathInputIdx =
+                    stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+                expect(stateVariables[pIdx].stateValues.text.trim()).eq(
+                    `${i + 1} + ${i + 1} + ${i + 1} =`,
+                );
+
+                expect(stateVariables[mathInputIdx].stateValues.value.tree).eq(
+                    answers2[i],
+                );
+
+                expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
+                expect(stateVariables[ansIdx].stateValues.justSubmitted).eq(
+                    true,
+                );
+            }
+        }
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await check_items(0, [], 0, []);
+
+        // set first to length 2 and submit correct answers
+        let count1 = 2;
+        await updateMathInputValue({
+            latex: count1.toString(),
+            componentIdx: await resolvePathToNodeIdx("sec1.n"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ansIdx11 = await resolvePathToNodeIdx(`sec1.r[1].ans`);
+        const mathInputIdx11 =
+            stateVariables[ansIdx11].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: mathInputIdx11,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("sec1.r[1].ans"),
+            core,
+        });
+
+        const ansIdx12 = await resolvePathToNodeIdx(`sec1.r[2].ans`);
+        const mathInputIdx12 =
+            stateVariables[ansIdx12].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: mathInputIdx12,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("sec1.r[2].ans"),
+            core,
+        });
+
+        await check_items(2, [2, 4], 0, []);
+
+        // set second to length 2 and submit correct answers
+        let count2 = 2;
+        await updateMathInputValue({
+            latex: count2.toString(),
+            componentIdx: await resolvePathToNodeIdx("sec2.n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ansIdx21 = await resolvePathToNodeIdx(`sec2.r[1].ans`);
+        const mathInputIdx21 =
+            stateVariables[ansIdx21].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: mathInputIdx21,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("sec2.r[1].ans"),
+            core,
+        });
+
+        const ansIdx22 = await resolvePathToNodeIdx(`sec2.r[2].ans`);
+        const mathInputIdx22 =
+            stateVariables[ansIdx22].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: mathInputIdx22,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("sec2.r[2].ans"),
+            core,
+        });
+
+        await check_items(2, [2, 4], 2, [3, 6]);
+
+        let endingState = scoreState.state;
+
+        // reload with saved state
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: endingState,
+        }));
+
+        await check_items(2, [2, 4], 2, [3, 6]);
+
+        // set both to length 0
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("sec1.n"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("sec2.n"),
+            core,
+        });
+        await check_items(0, [], 0, []);
+
+        // since did not submit answer, need to save state manually to avoid waiting for debounce
+        await core.saveImmediately();
+
+        endingState = scoreState.state;
+
+        // reload with saved state again
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: endingState,
+        }));
+
+        await check_items(0, [], 0, []);
+
+        // set both to length 2 in reverse order
+        count2 = 2;
+        await updateMathInputValue({
+            latex: count2.toString(),
+            componentIdx: await resolvePathToNodeIdx("sec2.n"),
+            core,
+        });
+        count1 = 2;
+        await updateMathInputValue({
+            latex: count1.toString(),
+            componentIdx: await resolvePathToNodeIdx("sec1.n"),
+            core,
+        });
+
+        await check_items(2, [2, 4], 2, [3, 6]);
+    });
+
+    it("restore state with copy", async () => {
+        const doenetML = `
+    <p>n: <mathInput name="n" prefill="0" /></p>
+    <repeatForSequence valueName="v" length="$n" name="r">
+        <graph>
+            <point name="P">
+                (<number copy="$n" />, <number copy="$v" />)
+            </point>
+        </graph>
+    </repeatForSequence>
+    `;
+
+        async function check_items(count: number, points: number[][]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value.tree,
+            ).eq(count);
+
+            for (let i = 0; i < count; i++) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i + 1}].P`)]
+                        .stateValues.xs[0].tree,
+                ).eq(points[i][0]);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i + 1}].P`)]
+                        .stateValues.xs[1].tree,
+                ).eq(points[i][1]);
+            }
+        }
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await check_items(0, []);
+
+        // set to length 1
+        let count = 1;
+        await updateMathInputValue({
+            latex: count.toString(),
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        await check_items(1, [[1, 1]]);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("r[1].P"),
+            x: 5,
+            y: 7,
+            core,
+        });
+        await check_items(1, [[5, 7]]);
+
+        // set to length 3
+        count = 3;
+        await updateMathInputValue({
+            latex: count.toString(),
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_items(3, [
+            [5, 7],
+            [3, 2],
+            [3, 3],
+        ]);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("r[3].P"),
+            x: 9,
+            y: 11,
+            core,
+        });
+        await check_items(3, [
+            [5, 7],
+            [3, 2],
+            [9, 11],
+        ]);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("r[2].P"),
+            x: 4,
+            y: 6,
+            core,
+        });
+        await check_items(3, [
+            [5, 7],
+            [4, 6],
+            [9, 11],
+        ]);
+
+        // since did not submit answer, need to save state manually to avoid waiting for debounce
+        await core.saveImmediately();
+
+        const endingState = scoreState.state;
+
+        // reload with saved state
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: endingState,
+        }));
+
+        await check_items(3, [
+            [5, 7],
+            [4, 6],
+            [9, 11],
+        ]);
+    });
+
+    it("restore state with nested repeatForSequences", async () => {
+        const doenetML = `
+    <p>n1: <mathInput name="n1" prefill="0" /></p>
+    <p>n2: <mathInput name="n2" prefill="0" /></p>
+    <repeatForSequence valueName="v1" length="$n1" name="r1">
+        <repeatForSequence valueName="v2" length="$n2" name="r2">
+            <p name="p">$v1 + 10$v2 = <answer name="ans">$v1+10$v2</answer></p>
+        </repeatForSequence>
+    </repeatForSequence>
+    `;
+
+        async function check_items(n1: number, n2: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n1")].stateValues
+                    .value.tree,
+            ).eq(n1);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n2")].stateValues
+                    .value.tree,
+            ).eq(n2);
+
+            for (let i = 0; i < n1; i++) {
+                for (let j = 0; j < n2; j++) {
+                    const pIdx = await resolvePathToNodeIdx(
+                        `r1[${i + 1}].r2[${j + 1}].p`,
+                    );
+                    const ansIdx = await resolvePathToNodeIdx(
+                        `r1[${i + 1}].r2[${j + 1}].ans`,
+                    );
+                    const mathInputIdx =
+                        stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+                    expect(stateVariables[pIdx].stateValues.text.trim()).eq(
+                        `${i + 1} + 10${j + 1} =`,
+                    );
+
+                    expect(
+                        stateVariables[mathInputIdx].stateValues.value.tree,
+                    ).eq(i + 1 + 10 * (j + 1));
+
+                    expect(
+                        stateVariables[ansIdx].stateValues.creditAchieved,
+                    ).eq(1);
+                    expect(stateVariables[ansIdx].stateValues.justSubmitted).eq(
+                        true,
+                    );
+                }
+            }
+        }
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        await check_items(0, 0);
+
+        // set both to length 1 and submit correct answer
+        let n1 = 1;
+        await updateMathInputValue({
+            latex: n1.toString(),
+            componentIdx: await resolvePathToNodeIdx("n1"),
+            core,
+        });
+        let n2 = 1;
+        await updateMathInputValue({
+            latex: n2.toString(),
+            componentIdx: await resolvePathToNodeIdx("n2"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ansIdx11 = await resolvePathToNodeIdx(`r1[1].r2[1].ans`);
+        const mathInputIdx11 =
+            stateVariables[ansIdx11].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "11",
+            componentIdx: mathInputIdx11,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("r1[1].r2[1].ans"),
+            core,
+        });
+        await check_items(1, 1);
+
+        // set to n1 to 2 and submit correct answers
+        n1 = 2;
+        await updateMathInputValue({
+            latex: n1.toString(),
+            componentIdx: await resolvePathToNodeIdx("n1"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ansIdx21 = await resolvePathToNodeIdx(`r1[2].r2[1].ans`);
+        const mathInputIdx21 =
+            stateVariables[ansIdx21].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "12",
+            componentIdx: mathInputIdx21,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("r1[2].r2[1].ans"),
+            core,
+        });
+        await check_items(2, 1);
+
+        // set n2 to 2 and submit correct answers
+        n2 = 2;
+        await updateMathInputValue({
+            latex: n2.toString(),
+            componentIdx: await resolvePathToNodeIdx("n2"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        const ansIdx12 = await resolvePathToNodeIdx(`r1[1].r2[2].ans`);
+        const mathInputIdx12 =
+            stateVariables[ansIdx12].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "21",
+            componentIdx: mathInputIdx12,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("r1[1].r2[2].ans"),
+            core,
+        });
+
+        const ansIdx22 = await resolvePathToNodeIdx(`r1[2].r2[2].ans`);
+        const mathInputIdx22 =
+            stateVariables[ansIdx22].activeChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "22",
+            componentIdx: mathInputIdx22,
+            core,
+        });
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("r1[2].r2[2].ans"),
+            core,
+        });
+
+        await check_items(2, 2);
+
+        const endingState = scoreState.state;
+
+        // reload with saved state
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: endingState,
+        }));
+
+        await check_items(2, 2);
     });
 });

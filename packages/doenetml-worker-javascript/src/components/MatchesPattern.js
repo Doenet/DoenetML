@@ -62,6 +62,7 @@ export default class MatchesPattern extends BooleanComponent {
             matchedChildren,
             componentInfoObjects,
             nComponents,
+            stateIdInfo,
         }) {
             // if have no children or a single math, don't do anything
             if (
@@ -82,6 +83,9 @@ export default class MatchesPattern extends BooleanComponent {
                         type: "serialized",
                         componentType: "math",
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: matchedChildren,
                         attributes: {},
                         doenetAttributes: {},

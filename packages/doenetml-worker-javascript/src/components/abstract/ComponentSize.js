@@ -41,6 +41,7 @@ export class ComponentSize extends InlineComponent {
         let addNumberAroundMultipleComponents = function ({
             matchedChildren,
             nComponents,
+            stateIdInfo,
         }) {
             // if last child is a string, extract unit if it exists
             let lastChild = matchedChildren[matchedChildren.length - 1];
@@ -68,6 +69,9 @@ export class ComponentSize extends InlineComponent {
                                 type: "serialized",
                                 componentType: "number",
                                 componentIdx: nComponents++,
+                                stateId: stateIdInfo
+                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                    : undefined,
                                 children: childrenForNumber,
                                 attributes: {},
                                 doenetAttributes: {},
@@ -525,6 +529,7 @@ export class ComponentSizeList extends BaseComponent {
         let breakIntoComponentSizesByEmbeddedSpaces = function ({
             matchedChildren,
             nComponents,
+            stateIdInfo,
         }) {
             // break components into pieces by any spaces in a string
             // and wrap pieces with componentSize
@@ -538,6 +543,9 @@ export class ComponentSizeList extends BaseComponent {
                         type: "serialized",
                         componentType: "componentSize",
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: piece,
                         attributes: {},
                         doenetAttributes: {},

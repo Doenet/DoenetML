@@ -2,6 +2,12 @@ import React, { useState } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
+import {
+    TooltipProvider,
+    TooltipAnchor,
+    Tooltip,
+    Button,
+} from "@ariakit/react";
 
 export default React.memo(function Footnote(props: UseDoenetRendererProps) {
     let { id, SVs } = useDoenetRenderer(props, false);
@@ -26,26 +32,37 @@ export default React.memo(function Footnote(props: UseDoenetRendererProps) {
     const buttonStyle = {
         backgroundColor: "white",
         border: "none",
-    };
-
-    const footnoteStyle = {
-        textDecoration: "none",
         color: "#1A5A99",
+        padding: "0",
     };
 
     return (
         <span id={id}>
             <sup>
-                <span
-                    style={buttonStyle}
-                    onClick={() => setIsVisible((was) => !was)}
-                >
-                    <a href="#" title={SVs.text} style={footnoteStyle}>
+                <TooltipProvider>
+                    <TooltipAnchor
+                        render={
+                            <Button
+                                style={buttonStyle}
+                                onClick={() => {
+                                    setIsVisible((was) => !was);
+                                }}
+                            />
+                        }
+                    >
                         [{SVs.footnoteTag}]
-                    </a>
-                </span>
+                    </TooltipAnchor>
+                    <Tooltip
+                        style={{
+                            backgroundColor: "var(--mainGray)",
+                            padding: "0.2em 0.5em",
+                        }}
+                    >
+                        {isVisible ? "Hide" : "Show"} footnote
+                    </Tooltip>
+                </TooltipProvider>
             </sup>
-            {footnoteMessage}
+            <span aria-live="polite">{footnoteMessage}</span>
         </span>
     );
 });

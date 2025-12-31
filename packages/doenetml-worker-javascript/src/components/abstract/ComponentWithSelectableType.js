@@ -27,6 +27,7 @@ export class ComponentWithSelectableType extends BaseComponent {
             componentAttributes,
             parentAttributes,
             nComponents,
+            stateIdInfo,
         }) {
             let warnings = [];
             let type = componentAttributes.type?.value;
@@ -61,6 +62,9 @@ export class ComponentWithSelectableType extends BaseComponent {
                         type: "serialized",
                         componentType,
                         componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
                         children: matchedChildren,
                         attributes: {},
                         doenetAttributes: {},
@@ -419,6 +423,7 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
             componentAttributes,
             parentAttributes,
             nComponents,
+            stateIdInfo,
         }) {
             let results = breakEmbeddedStringsIntoParensPieces({
                 componentList: matchedChildren,
@@ -450,6 +455,9 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
                 type: "serialized",
                 componentType: "_componentListWithSelectableType",
                 componentIdx: nComponents++,
+                stateId: stateIdInfo
+                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                    : undefined,
                 attributes: {
                     type: {
                         type: "primitive",

@@ -33,6 +33,7 @@ export default class OrbitalDiagram extends BlockComponent {
                 replacementFunction: function ({
                     matchedChildren,
                     nComponents,
+                    stateIdInfo,
                 }) {
                     if (
                         matchedChildren.length === 1 &&
@@ -48,6 +49,9 @@ export default class OrbitalDiagram extends BlockComponent {
                                 type: "serialized",
                                 componentType: "tupleList",
                                 componentIdx: nComponents++,
+                                stateId: stateIdInfo
+                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                    : undefined,
                                 children: matchedChildren,
                                 attributes: {},
                                 doenetAttributes: {},

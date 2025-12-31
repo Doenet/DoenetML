@@ -216,6 +216,7 @@ export default class Group extends CompositeComponent {
         components,
         nComponents,
         componentInfoObjects,
+        workspace,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
         let errors = [];
@@ -230,6 +231,11 @@ export default class Group extends CompositeComponent {
             let replacements = deepClone(
                 await component.state.serializedChildren.value,
             );
+
+            const stateIdInfo = {
+                prefix: `${component.stateId}|`,
+                num: workspace.replacementsCreated,
+            };
 
             if ("isResponse" in component.attributes) {
                 // pass isResponse to replacements
@@ -246,6 +252,7 @@ export default class Group extends CompositeComponent {
                         componentType: repl.componentType,
                         componentInfoObjects,
                         nComponents,
+                        stateIdInfo,
                     });
 
                     nComponents = res.nComponents;
@@ -258,6 +265,10 @@ export default class Group extends CompositeComponent {
                 }
             }
 
+            if (workspace.replacementsCreated === undefined) {
+                workspace.replacementsCreated = 0;
+            }
+
             let verificationResult = await verifyReplacementsMatchSpecifiedType(
                 {
                     component,
@@ -267,6 +278,7 @@ export default class Group extends CompositeComponent {
                     components,
                     publicCaseInsensitiveAliasSubstitutions,
                     nComponents,
+                    stateIdInfo,
                 },
             );
             nComponents = verificationResult.nComponents;
@@ -275,6 +287,8 @@ export default class Group extends CompositeComponent {
 
             // console.log(`serialized replacements for ${component.componentIdx}`)
             // console.log(JSON.parse(JSON.stringify(verificationResult.replacements)))
+
+            workspace.replacementsCreated = stateIdInfo.num;
 
             return {
                 replacements: verificationResult.replacements,
@@ -289,6 +303,7 @@ export default class Group extends CompositeComponent {
         component,
         componentInfoObjects,
         nComponents,
+        workspace,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -324,6 +339,7 @@ export default class Group extends CompositeComponent {
                     component,
                     componentInfoObjects,
                     nComponents,
+                    workspace,
                 });
 
                 let replacements = createResult.replacements;

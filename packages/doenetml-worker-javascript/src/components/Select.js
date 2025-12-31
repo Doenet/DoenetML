@@ -552,8 +552,18 @@ export default class Select extends CompositeComponent {
         components,
         componentInfoObjects,
         nComponents,
+        workspace,
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`);
+
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
 
         let errors = [];
         let warnings = [];
@@ -595,6 +605,7 @@ export default class Select extends CompositeComponent {
             const idxResult = createNewComponentIndices(
                 serializedGrandchildren,
                 nComponents,
+                stateIdInfo,
             );
             serializedGrandchildren = idxResult.components;
             nComponents = idxResult.nComponents;
@@ -603,6 +614,7 @@ export default class Select extends CompositeComponent {
                 type: "serialized",
                 componentType: "group",
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes: {},
                 doenetAttributes: Object.assign(
                     {},
@@ -640,6 +652,8 @@ export default class Select extends CompositeComponent {
                 }
             }
         }
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return { replacements, errors, warnings, nComponents };
     }

@@ -165,7 +165,7 @@ describe("Normalize dast", async () => {
             '<conditionalContent><case condition="a">b</case></conditionalContent>';
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><conditionalContent><case condition="a">b</case></conditionalContent></document>',
+            '<document><conditionalContent><case condition="a"><group>b</group></case></conditionalContent></document>',
         );
 
         // else changes to cases
@@ -173,14 +173,14 @@ describe("Normalize dast", async () => {
             '<conditionalContent><case condition="a">b</case><else>c</else></conditionalContent>';
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><conditionalContent><case condition="a">b</case><case>c</case></conditionalContent></document>',
+            '<document><conditionalContent><case condition="a"><group>b</group></case><case><group>c</group></case></conditionalContent></document>',
         );
 
         // with no else/cases, we add a single case
         source = '<conditionalContent condition="a">b</conditionalContent>';
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><conditionalContent><case condition="a">b</case></conditionalContent></document>',
+            '<document><conditionalContent><case condition="a"><group>b</group></case></conditionalContent></document>',
         );
     });
 

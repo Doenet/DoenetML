@@ -140,9 +140,18 @@ export default class Lorem extends CompositeComponent {
 
     static async createSerializedReplacements({
         component,
-        componentInfoObjects,
+        workspace,
         nComponents,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -171,6 +180,7 @@ export default class Lorem extends CompositeComponent {
                     type: "serialized",
                     componentType: "p",
                     componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     attributes: {},
                     doenetAttributes: {},
                     state: {},
@@ -189,6 +199,7 @@ export default class Lorem extends CompositeComponent {
                         type: "serialized",
                         componentType: "text",
                         componentIdx: nComponents++,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                         attributes: {},
                         doenetAttributes: {},
                         state: {},
@@ -201,6 +212,7 @@ export default class Lorem extends CompositeComponent {
                     type: "serialized",
                     componentType: "text",
                     componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     attributes: {},
                     doenetAttributes: {},
                     state: {},
@@ -218,6 +230,7 @@ export default class Lorem extends CompositeComponent {
                         type: "serialized",
                         componentType: "text",
                         componentIdx: nComponents++,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                         attributes: {},
                         doenetAttributes: {},
                         state: {},
@@ -233,6 +246,8 @@ export default class Lorem extends CompositeComponent {
             }
         }
 
+        workspace.replacementsCreated = stateIdInfo.num;
+
         return {
             replacements,
             errors,
@@ -245,6 +260,7 @@ export default class Lorem extends CompositeComponent {
         component,
         componentInfoObjects,
         nComponents,
+        workspace,
     }) {
         // TODO: don't yet have a way to return errors and warnings!
         let errors = [];
@@ -254,6 +270,7 @@ export default class Lorem extends CompositeComponent {
             component,
             componentInfoObjects,
             nComponents,
+            workspace,
         });
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);

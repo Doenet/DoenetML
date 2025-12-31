@@ -1027,6 +1027,10 @@ export default class Copy extends CompositeComponent {
         // console.log(await component.stateValues.effectivePropNameBySource);
         // console.log(await component.stateValues.replacementSources)
 
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
         let errors = [];
         let warnings = [];
 
@@ -1049,6 +1053,11 @@ export default class Copy extends CompositeComponent {
             // no valid target, so no replacements other than copied in children
             let replacements = [];
 
+            const stateIdInfo = {
+                prefix: `${component.stateId}|`,
+                num: workspace.replacementsCreated,
+            };
+
             if (component.attributes.copyInChildren?.primitive.value) {
                 // even though don't have valid target,
                 // if copyInChildren, then include children added directly to component
@@ -1067,6 +1076,7 @@ export default class Copy extends CompositeComponent {
                     componentInfoObjects,
                     compositeAttributesObj,
                     nComponents,
+                    stateIdInfo,
                 });
 
                 const attributesFromComposite = res.attributes;
@@ -1086,6 +1096,7 @@ export default class Copy extends CompositeComponent {
                         type: "serialized",
                         componentType,
                         componentIdx: nComponents++,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                         attributes,
                         doenetAttributes: {},
                         state: {},
@@ -1108,6 +1119,7 @@ export default class Copy extends CompositeComponent {
                     compositeAttributesObj,
                     components,
                     nComponents,
+                    stateIdInfo,
                     publicCaseInsensitiveAliasSubstitutions,
                 },
             );
@@ -1120,6 +1132,8 @@ export default class Copy extends CompositeComponent {
                 component,
                 componentInfoObjects,
             );
+
+            workspace.replacementsCreated = stateIdInfo.num;
 
             return {
                 replacements: verificationResult.replacements,
@@ -1169,6 +1183,10 @@ export default class Copy extends CompositeComponent {
         }
 
         let replacements = [];
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
 
         let numReplacementsBySource = [];
         let numNonStringReplacementsBySource = [];
@@ -1198,6 +1216,7 @@ export default class Copy extends CompositeComponent {
                 sourceNum,
                 components,
                 nComponents,
+                stateIdInfo,
                 allDoenetMLs,
                 numReplacementsSoFar,
                 numNonStringReplacementsSoFar,
@@ -1243,6 +1262,7 @@ export default class Copy extends CompositeComponent {
             compositeAttributesObj,
             components,
             nComponents,
+            stateIdInfo,
             publicCaseInsensitiveAliasSubstitutions,
         });
         errors.push(...verificationResult.errors);
@@ -1255,6 +1275,8 @@ export default class Copy extends CompositeComponent {
             component,
             componentInfoObjects,
         );
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         // console.log(`serialized replacements for ${component.componentIdx}`);
         // console.log(JSON.parse(JSON.stringify(replacements)));
@@ -1272,6 +1294,7 @@ export default class Copy extends CompositeComponent {
         sourceNum,
         components,
         nComponents,
+        stateIdInfo,
         allDoenetMLs,
         numReplacementsSoFar,
         numNonStringReplacementsSoFar,
@@ -1353,6 +1376,7 @@ export default class Copy extends CompositeComponent {
                 component,
                 components,
                 nComponents,
+                stateIdInfo,
                 replacementSource,
                 propName,
                 allDoenetMLs,
@@ -1390,6 +1414,7 @@ export default class Copy extends CompositeComponent {
                         componentInfoObjects,
                         compositeAttributesObj,
                         nComponents,
+                        stateIdInfo,
                     });
 
                     const attributesFromComposite = res.attributes;
@@ -1409,6 +1434,7 @@ export default class Copy extends CompositeComponent {
                             type: "serialized",
                             componentType,
                             componentIdx: nComponents++,
+                            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                             attributes,
                             doenetAttributes: {},
                             state: {},
@@ -1460,6 +1486,7 @@ export default class Copy extends CompositeComponent {
             let res = createNewComponentIndices(
                 serializedReplacements,
                 nComponents,
+                stateIdInfo,
             );
             serializedReplacements = res.components;
             nComponents = res.nComponents;
@@ -1475,6 +1502,7 @@ export default class Copy extends CompositeComponent {
                     type: "serialized",
                     componentType: "_error",
                     componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     state: { message },
                     attributes: {},
                     doenetAttributes: {},
@@ -1522,6 +1550,7 @@ export default class Copy extends CompositeComponent {
                 compositeAttributesObj,
                 dontSkipAttributes: ["asList"],
                 nComponents,
+                stateIdInfo,
             });
 
             const attributesFromComposite = res.attributes;
@@ -1599,6 +1628,10 @@ export default class Copy extends CompositeComponent {
             !replacementSourceIdentities
         ) {
             let replacementChanges = [];
+            const stateIdInfo = {
+                prefix: `${component.stateId}|`,
+                num: workspace.replacementsCreated,
+            };
 
             if (component.replacements.length > 0) {
                 let replacementInstruction = {
@@ -1627,6 +1660,7 @@ export default class Copy extends CompositeComponent {
                     compositeAttributesObj,
                     components,
                     nComponents,
+                    stateIdInfo,
                     publicCaseInsensitiveAliasSubstitutions,
                 },
             );
@@ -1650,6 +1684,8 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
             );
 
+            workspace.replacementsCreated = stateIdInfo.num;
+
             return {
                 replacementChanges: verificationResult.replacementChanges,
                 nComponents,
@@ -1658,6 +1694,10 @@ export default class Copy extends CompositeComponent {
 
         if (await component.stateValues.targetInactive) {
             let replacementChanges = [];
+            const stateIdInfo = {
+                prefix: `${component.stateId}|`,
+                num: workspace.replacementsCreated,
+            };
 
             let nReplacements = component.replacements.length;
             if (nReplacements > 0) {
@@ -1678,6 +1718,7 @@ export default class Copy extends CompositeComponent {
                         compositeAttributesObj,
                         components,
                         nComponents,
+                        stateIdInfo,
                         publicCaseInsensitiveAliasSubstitutions,
                     });
                 errors.push(...verificationResult.errors);
@@ -1692,6 +1733,8 @@ export default class Copy extends CompositeComponent {
                 replacementChanges,
                 componentInfoObjects,
             );
+
+            workspace.replacementsCreated = stateIdInfo.num;
 
             return { replacementChanges, nComponents };
         }
@@ -1737,6 +1780,10 @@ export default class Copy extends CompositeComponent {
         }
 
         let replacementChanges = [];
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
 
         if (component.replacementsToWithhold > 0) {
             let replacementInstruction = {
@@ -1953,6 +2000,7 @@ export default class Copy extends CompositeComponent {
                     numReplacementsToDelete,
                     components,
                     nComponents,
+                    stateIdInfo,
                     compositeAttributesObj,
                     componentInfoObjects,
                     numComponentsForSource,
@@ -2034,11 +2082,17 @@ export default class Copy extends CompositeComponent {
                 continue;
             }
 
+            const newStateIdInfo = {
+                prefix: `${component.stateId}|`,
+                num: stateIdInfo.num,
+            };
+
             let results = await this.createReplacementForSource({
                 component,
                 sourceNum,
                 components,
                 nComponents,
+                stateIdInfo: newStateIdInfo,
                 numReplacementsSoFar,
                 numNonStringReplacementsSoFar,
                 compositeAttributesObj,
@@ -2082,6 +2136,7 @@ export default class Copy extends CompositeComponent {
 
                 recreateRemaining = true;
                 nComponents = nComponentsForNew;
+                stateIdInfo.num = newStateIdInfo.num;
 
                 // since deleted remaining, change in workspace
                 // so that don't attempt to delete again
@@ -2149,6 +2204,7 @@ export default class Copy extends CompositeComponent {
                     if (foundDifference) {
                         // TODO: we could be more conservative and calculate the maximum componentIdx in the new replacements we used
                         nComponents = nComponentsForNew;
+                        stateIdInfo.num = newStateIdInfo.num;
                         let replacementInstruction = {
                             changeType: "add",
                             changeTopLevelReplacements: true,
@@ -2199,6 +2255,7 @@ export default class Copy extends CompositeComponent {
             compositeAttributesObj,
             components,
             nComponents,
+            stateIdInfo,
             publicCaseInsensitiveAliasSubstitutions,
         });
         errors.push(...verificationResult.errors);
@@ -2225,6 +2282,8 @@ export default class Copy extends CompositeComponent {
         // console.log("replacementChanges");
         // console.log(replacementChanges);
 
+        workspace.replacementsCreated = stateIdInfo.num;
+
         return {
             replacementChanges,
             nComponents,
@@ -2239,6 +2298,7 @@ export default class Copy extends CompositeComponent {
         numReplacementsToDelete,
         components,
         nComponents,
+        stateIdInfo,
         compositeAttributesObj,
         componentInfoObjects,
         numComponentsForSource,
@@ -2254,6 +2314,7 @@ export default class Copy extends CompositeComponent {
             numNonStringReplacementsSoFar,
             components,
             nComponents,
+            stateIdInfo,
             compositeAttributesObj,
             componentInfoObjects,
             numComponentsForSource,
@@ -2309,6 +2370,7 @@ export async function replacementFromProp({
     component,
     components,
     nComponents,
+    stateIdInfo,
     replacementSource,
     propName,
     allDoenetMLs,
@@ -2536,6 +2598,7 @@ export async function replacementFromProp({
                         componentInfoObjects,
                         compositeAttributesObj,
                         nComponents,
+                        stateIdInfo,
                     });
 
                     const attributesFromComposite = res.attributes;
@@ -2623,6 +2686,7 @@ export async function replacementFromProp({
                                         type: "serialized",
                                         componentType: attributeComponentType,
                                         componentIdx: nComponents++,
+                                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                                         attributes: {},
                                         doenetAttributes: {},
                                         state: {},
@@ -2657,6 +2721,7 @@ export async function replacementFromProp({
                             type: "serialized",
                             componentType: createComponentOfType,
                             componentIdx: nComponents++,
+                            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                             attributes: attributesForReplacement,
                             doenetAttributes: {},
                             children: [],
@@ -2719,6 +2784,7 @@ export async function replacementFromProp({
                                 componentType: createComponentOfType,
                                 componentInfoObjects,
                                 nComponents,
+                                stateIdInfo,
                             });
 
                             const attributesFromComponent = res.attributes;
@@ -2744,6 +2810,7 @@ export async function replacementFromProp({
                                         let res = createNewComponentIndices(
                                             [serializedComponent],
                                             nComponents,
+                                            stateIdInfo,
                                         );
                                         nComponents = res.nComponents;
 
@@ -2805,6 +2872,7 @@ export async function replacementFromProp({
                             type: "serialized",
                             componentType: createComponentOfType,
                             componentIdx: nComponents++,
+                            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                             attributes: attributesForReplacement,
                             doenetAttributes: {},
                             state: {
@@ -2822,6 +2890,7 @@ export async function replacementFromProp({
                         type: "serialized",
                         componentType: createComponentOfType,
                         componentIdx: nComponents++,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                         attributes: {},
                         doenetAttributes: {},
                         children: [],
@@ -2966,6 +3035,7 @@ export async function replacementFromProp({
                                             componentType:
                                                 attributeComponentType,
                                             componentIdx: nComponents++,
+                                            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                                             attributes: {},
                                             doenetAttributes: {},
                                             state: {},
@@ -2995,6 +3065,7 @@ export async function replacementFromProp({
                                 type: "serialized",
                                 componentType: createComponentOfType,
                                 componentIdx: nComponents++,
+                                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                                 attributes: attributesForReplacement,
                                 doenetAttributes: {},
                                 children: [],
@@ -3057,6 +3128,7 @@ export async function replacementFromProp({
                                         componentType: createComponentOfType,
                                         componentInfoObjects,
                                         nComponents,
+                                        stateIdInfo,
                                     });
 
                                 const attributesFromComponent = res.attributes;
@@ -3084,6 +3156,7 @@ export async function replacementFromProp({
                                             let res = createNewComponentIndices(
                                                 [serializedComponent],
                                                 nComponents,
+                                                stateIdInfo,
                                             );
                                             nComponents = res.nComponents;
 
@@ -3146,6 +3219,7 @@ export async function replacementFromProp({
                                 type: "serialized",
                                 componentType: createComponentOfType,
                                 componentIdx: nComponents++,
+                                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                                 attributes: attributesForReplacement,
                                 doenetAttributes: {},
                                 children: [],
@@ -3191,6 +3265,7 @@ export async function replacementFromProp({
                                 type: "serialized",
                                 componentType: wrapCT,
                                 componentIdx: nComponents++,
+                                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                                 children,
                                 attributes,
                                 doenetAttributes: {},
@@ -3272,6 +3347,7 @@ export async function replacementFromProp({
                                             componentType:
                                                 attributeComponentType,
                                             componentIdx: nComponents++,
+                                            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                                             attributes: {},
                                             doenetAttributes: {},
                                             state: {},
@@ -3327,6 +3403,7 @@ export async function replacementFromProp({
                                             componentType: piece.componentType,
                                             componentInfoObjects,
                                             nComponents,
+                                            stateIdInfo,
                                         });
 
                                     additionalAttributes = res.attributes;
@@ -3372,6 +3449,7 @@ export async function replacementFromProp({
                     componentInfoObjects,
                     compositeAttributesObj,
                     nComponents,
+                    stateIdInfo,
                 });
 
                 const attributesFromComposite = res.attributes;
@@ -3451,6 +3529,7 @@ export async function replacementFromProp({
                         type: "serialized",
                         componentType: createComponentOfType,
                         componentIdx: nComponents++,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                         attributes: {},
                         doenetAttributes: {},
                         state: {},
@@ -3505,6 +3584,7 @@ export async function replacementFromProp({
                 componentInfoObjects,
                 compositeAttributesObj,
                 nComponents,
+                stateIdInfo,
             });
 
             const attributesFromComposite = res.attributes;
@@ -3540,6 +3620,7 @@ export async function replacementFromProp({
                                 type: "serialized",
                                 componentType: attributeComponentType,
                                 componentIdx: nComponents++,
+                                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                                 attributes: {},
                                 doenetAttributes: {},
                                 state: {},
@@ -3573,6 +3654,7 @@ export async function replacementFromProp({
                     componentType:
                         stateVarObj.shadowingInstructions.createComponentOfType,
                     componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     attributes: attributesForReplacement,
                     doenetAttributes: {},
                     state: {},
@@ -3638,6 +3720,7 @@ export async function replacementFromProp({
                                 .createComponentOfType,
                         componentInfoObjects,
                         nComponents,
+                        stateIdInfo,
                     });
 
                     const attributesFromComponent = res.attributes;
@@ -3658,6 +3741,7 @@ export async function replacementFromProp({
                                 let res = createNewComponentIndices(
                                     [serializedComponent],
                                     nComponents,
+                                    stateIdInfo,
                                 );
                                 nComponents = res.nComponents;
 
@@ -3713,6 +3797,7 @@ export async function replacementFromProp({
                     componentType:
                         stateVarObj.shadowingInstructions.createComponentOfType,
                     componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     attributes: attributesForReplacement,
                     doenetAttributes: {},
                     children: [],

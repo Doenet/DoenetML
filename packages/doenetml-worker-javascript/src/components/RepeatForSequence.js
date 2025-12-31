@@ -269,6 +269,10 @@ export default class RepeatForSequence extends CompositeComponent {
         let errors = [];
         let warnings = [];
 
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
         if (!(await component.stateValues.validSequence)) {
             workspace.lastReplacementParameters = {
                 from: null,
@@ -307,6 +311,7 @@ export default class RepeatForSequence extends CompositeComponent {
                 componentInfoObjects,
                 components,
                 nComponents,
+                workspace,
             });
             replacements.push(...res.replacements);
             errors.push(...res.errors);
@@ -325,6 +330,7 @@ export default class RepeatForSequence extends CompositeComponent {
         components,
         isUpdate = false,
         nComponents,
+        workspace,
     }) {
         let errors = [];
         let warnings = [];
@@ -343,7 +349,16 @@ export default class RepeatForSequence extends CompositeComponent {
             },
         ];
 
-        const idxResult = createNewComponentIndices(replacements, nComponents);
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
+        const idxResult = createNewComponentIndices(
+            replacements,
+            nComponents,
+            stateIdInfo,
+        );
         replacements = idxResult.components;
         nComponents = idxResult.nComponents;
 
@@ -358,6 +373,7 @@ export default class RepeatForSequence extends CompositeComponent {
             componentInfoObjects,
             compositeAttributesObj,
             nComponents,
+            stateIdInfo,
         });
 
         const attributesFromComposite = res.attributes;
@@ -370,6 +386,7 @@ export default class RepeatForSequence extends CompositeComponent {
             component,
             iter,
             nComponents,
+            stateIdInfo,
         );
 
         replacements[0] = aliasResult.replacement;
@@ -384,6 +401,8 @@ export default class RepeatForSequence extends CompositeComponent {
                 replacement: replacements[0],
             });
         }
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,
@@ -406,9 +425,9 @@ export default class RepeatForSequence extends CompositeComponent {
 
         let replacementChanges = [];
 
-        let lrp = workspace.lastReplacementParameters;
+        let lrp = { ...workspace.lastReplacementParameters };
 
-        // if invalid, withhold any previous replacementsreplacements
+        // if invalid, withhold any previous replacements
         if (!(await component.stateValues.validSequence)) {
             let currentReplacementsWithheld = component.replacementsToWithhold;
             if (!currentReplacementsWithheld) {
@@ -432,6 +451,8 @@ export default class RepeatForSequence extends CompositeComponent {
             // That way, if later restore to previous parameter set,
             // we can restore the old replacements
             lrp.length = 0;
+
+            workspace.lastReplacementParameters = lrp;
 
             return { replacementChanges };
         }
@@ -579,6 +600,7 @@ export default class RepeatForSequence extends CompositeComponent {
                         componentInfoObjects,
                         components,
                         nComponents,
+                        workspace,
                     });
                     newSerializedReplacements.push(...res.replacements);
                     errors.push(...res.errors);
@@ -604,6 +626,8 @@ export default class RepeatForSequence extends CompositeComponent {
         lrp.length = length;
         lrp.step = step;
         lrp.exclude = exclude;
+
+        workspace.lastReplacementParameters = lrp;
 
         return { replacementChanges, nComponents };
     }
@@ -713,11 +737,13 @@ async function addAndLinkAliasComponents(
     component,
     iter,
     nComponents,
+    stateIdInfo,
 ) {
     const setupComponent = {
         type: "serialized",
         componentType: "setup",
         componentIdx: nComponents++,
+        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
         attributes: {},
         doenetAttributes: {},
         state: {},
@@ -748,6 +774,7 @@ async function addAndLinkAliasComponents(
             type: "serialized",
             componentType: type,
             componentIdx: valueComponentIdx,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
             attributes: {
                 name: {
                     type: "primitive",
@@ -777,6 +804,7 @@ async function addAndLinkAliasComponents(
             type: "serialized",
             componentType: "integer",
             componentIdx: indexComponentIdx,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
             attributes: {
                 name: {
                     type: "primitive",

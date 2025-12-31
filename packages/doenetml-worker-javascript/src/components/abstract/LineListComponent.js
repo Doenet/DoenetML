@@ -14,6 +14,7 @@ export default class LineListComponent extends BaseComponent {
         let breakStringsIntoLinesBySpaces = function ({
             matchedChildren,
             nComponents,
+            stateIdInfo,
         }) {
             // break any string by white space and wrap pieces with line
 
@@ -28,6 +29,9 @@ export default class LineListComponent extends BaseComponent {
                                 type: "serialized",
                                 componentType: "line",
                                 componentIdx: nComponents++,
+                                stateId: stateIdInfo
+                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                    : undefined,
                                 children: [s],
                                 attributes: {},
                                 doenetAttributes: {},

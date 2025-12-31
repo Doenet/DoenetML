@@ -119,10 +119,15 @@ export default class MathList extends CompositeComponent {
             });
 
         sugarInstructions.push({
-            replacementFunction: function ({ matchedChildren, nComponents }) {
+            replacementFunction: function ({
+                matchedChildren,
+                nComponents,
+                stateIdInfo,
+            }) {
                 return groupIntoMathsSeparatedBySpaces({
                     matchedChildren,
                     nComponents,
+                    stateIdInfo,
                 });
             },
         });
@@ -563,6 +568,15 @@ export default class MathList extends CompositeComponent {
         workspace,
         nComponents,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -605,6 +619,7 @@ export default class MathList extends CompositeComponent {
                     componentType: "math",
                     componentInfoObjects,
                     nComponents,
+                    stateIdInfo,
                 });
 
                 attributes = JSON.parse(JSON.stringify(res.attributes));
@@ -614,6 +629,7 @@ export default class MathList extends CompositeComponent {
             if (copyChildSource) {
                 nComponents = addShadowRoundingAttributes({
                     nComponents,
+                    stateIdInfo,
                     source: copyChildSource,
                     compositeIdx: copyChild.componentIdx,
                     attributes,
@@ -639,6 +655,7 @@ export default class MathList extends CompositeComponent {
                 type: "serialized",
                 componentType: "math",
                 componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                 attributes,
                 doenetAttributes: {},
                 children: [],
@@ -663,6 +680,8 @@ export default class MathList extends CompositeComponent {
 
         workspace.componentsCopied = componentsCopied;
         workspace.numComponents = numComponents;
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,

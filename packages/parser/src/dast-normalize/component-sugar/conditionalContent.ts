@@ -7,6 +7,8 @@ import { isDastElement } from "../../types-util";
  *   and move the `condition` attribute of the `<conditionalContent>` to the `<case>`.
  * 2. Otherwise, turn any `<else>` children to `<case>`.
  *
+ * In addition, wrap the children of each `<case>` in a `<group>`.
+ *
  * For example,
  * ```xml
  * <conditionalContent condition="$x">Hello</conditionalContent>
@@ -14,7 +16,7 @@ import { isDastElement } from "../../types-util";
  * becomes
  * ```xml
  * <conditionalContent>
- *   <case condition="$x">Hello</case>
+ *   <case condition="$x"><group>Hello</group></case>
  * </conditionalContent>
  * ```
  * and
@@ -27,8 +29,8 @@ import { isDastElement } from "../../types-util";
  * becomes
  * ```xml
  * <conditionalContent>
- *   <case condition="$x">Hello</case>
- *   <case>Bye</case>
+ *   <case condition="$x"><group>Hello</group></case>
+ *   <case><group>Bye</group></case>
  * </conditionalContent>
  * ```
  */
@@ -72,6 +74,24 @@ export function conditionalContentSugar(node: DastElement) {
         if (node.attributes.condition) {
             attributes.condition = node.attributes.condition;
             delete node.attributes.condition;
+        }
+    }
+
+    // Wrap the children of each `<case>` in a `<group>`
+    for (const child of node.children) {
+        if (!isDastElement(child)) {
+            continue;
+        }
+        if (child.name === "case") {
+            child.children = [
+                {
+                    type: "element",
+                    name: "group",
+                    children: child.children,
+                    attributes: {},
+                    source_doc: child.source_doc,
+                },
+            ];
         }
     }
 }

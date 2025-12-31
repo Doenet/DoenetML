@@ -72,7 +72,11 @@ export default class IntervalList extends CompositeComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let createIntervalList = function ({ matchedChildren, nComponents }) {
+        let createIntervalList = function ({
+            matchedChildren,
+            nComponents,
+            stateIdInfo,
+        }) {
             let results = breakEmbeddedStringsIntoIntervalPieces({
                 componentList: matchedChildren,
             });
@@ -89,6 +93,9 @@ export default class IntervalList extends CompositeComponent {
                             type: "serialized",
                             componentType: "interval",
                             componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
                             attributes: {},
                             doenetAttributes: {},
                             state: {},
@@ -387,6 +394,15 @@ export default class IntervalList extends CompositeComponent {
         workspace,
         nComponents,
     }) {
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let errors = [];
         let warnings = [];
 
@@ -429,6 +445,7 @@ export default class IntervalList extends CompositeComponent {
                     componentType: "interval",
                     componentInfoObjects,
                     nComponents,
+                    stateIdInfo,
                 });
 
                 attributes = JSON.parse(JSON.stringify(res.attributes));
@@ -438,6 +455,7 @@ export default class IntervalList extends CompositeComponent {
             if (copyChildSource) {
                 nComponents = addShadowRoundingAttributes({
                     nComponents,
+                    stateIdInfo,
                     source: copyChildSource,
                     compositeIdx: copyChild.componentIdx,
                     attributes,
@@ -456,6 +474,9 @@ export default class IntervalList extends CompositeComponent {
                 type: "serialized",
                 componentType: "interval",
                 componentIdx: nComponents++,
+                stateId: stateIdInfo
+                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                    : undefined,
                 attributes,
                 doenetAttributes: {},
                 children: [],
@@ -481,6 +502,8 @@ export default class IntervalList extends CompositeComponent {
 
         workspace.componentsCopied = componentsCopied;
         workspace.numIntervals = numIntervals;
+
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,
