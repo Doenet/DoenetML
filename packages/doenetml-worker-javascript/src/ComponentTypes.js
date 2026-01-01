@@ -169,6 +169,7 @@ import StickyGroup from "./components/StickyGroup";
 import Pretzel from "./components/Pretzel";
 import PretzelArranger from "./components/PretzelArranger";
 import Cascade from "./components/Cascade";
+import DynamicChildren from "./components/DynamicChildren";
 
 //Extended
 import * as ComponentSize from "./components/abstract/ComponentSize";
@@ -365,6 +366,7 @@ const componentTypeArray = [
     Pretzel,
     PretzelArranger,
     Cascade,
+    DynamicChildren,
 
     BaseComponent,
     InlineComponent,
