@@ -470,8 +470,8 @@ export function EditorViewer({
                         disabled={!codeChanged && !documentInteracted}
                         title={
                             platform == "Mac"
-                                ? "Updates Viewer cmd+s"
-                                : "Updates Viewer ctrl+s"
+                                ? `${updateWord} Viewer cmd+s`
+                                : `${updateWord} Viewer ctrl+s`
                         }
                         onClick={() => {
                             setDocumentInteracted(false);
