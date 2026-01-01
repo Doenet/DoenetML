@@ -995,6 +995,14 @@ describe("Math expressions equality tests", async () => {
                 symbolicSimplifyEqual: true,
                 symbolicSimplifyExpandEqual: true,
             },
+            {
+                expr1: "<math>3/4 - 1/2i</math>",
+                expr2: "<math>3/4 + (-1)/2i</math>",
+                equal: true,
+                symbolicEqual: true,
+                symbolicSimplifyEqual: true,
+                symbolicSimplifyExpandEqual: true,
+            },
         ];
 
         let doenetML = "";
