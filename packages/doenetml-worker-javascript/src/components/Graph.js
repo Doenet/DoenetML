@@ -1780,7 +1780,7 @@ export default class Graph extends BlockComponent {
 
     async addChildren(args) {
         const dynamicChildren = this.definingChildren.findLast(
-            (child) => child.componentType === "dynamicChildren",
+            (child) => child.componentType === "_dynamicChildren",
         );
 
         return await dynamicChildren.addChildren(args);
@@ -1788,7 +1788,7 @@ export default class Graph extends BlockComponent {
 
     async deleteChildren(args) {
         const dynamicChildren = this.definingChildren.findLast(
-            (child) => child.componentType === "dynamicChildren",
+            (child) => child.componentType === "_dynamicChildren",
         );
 
         return await dynamicChildren.deleteChildren(args);
