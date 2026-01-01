@@ -99,8 +99,13 @@ export function EditorViewer({
     const [activityId, setActivityId] = useState(specifiedActivityId ?? id);
 
     const [codeChanged, setCodeChanged] = useState(false);
+    const [documentInteracted, setDocumentInteracted] = useState(false);
+    const [updateWord, setUpdateWord] = useState("Reset");
+
     const codeChangedRef = useRef(false); //To keep value up to date in the code mirror function
     codeChangedRef.current = codeChanged;
+    const documentInteractedRef = useRef(false); //To keep value up to date in the code mirror function
+    documentInteractedRef.current = documentInteracted;
 
     const [viewerDoenetML, setViewerDoenetML] = useState(initialDoenetML);
     const lastReportedDoenetML = useRef(initialDoenetML);
@@ -148,6 +153,12 @@ export function EditorViewer({
         function submittedResponseListener(event: any) {
             if (event.data.subject == "SPLICE.sendEvent") {
                 const data = event.data.data;
+                if (data.verb !== "experienced" && data.verb !== "isVisible") {
+                    setDocumentInteracted(true);
+                    if (!codeChangedRef.current) {
+                        setUpdateWord("Reset");
+                    }
+                }
                 if (data.verb === "submitted") {
                     const object = JSON.parse(data.object);
                     const answerId = object.rootName;
@@ -218,6 +229,7 @@ export function EditorViewer({
 
                 if (!codeChangedRef.current) {
                     setCodeChanged(true);
+                    setUpdateWord("Update");
                 }
 
                 immediateDoenetmlChangeCallback?.(value);
@@ -266,20 +278,28 @@ export function EditorViewer({
                 event.preventDefault();
                 event.stopPropagation();
                 window.clearTimeout(updateValueTimer.current ?? undefined);
-                setViewerDoenetML(editorDoenetMLRef.current);
-                if (
-                    lastReportedDoenetML.current !== editorDoenetMLRef.current
-                ) {
-                    lastReportedDoenetML.current = editorDoenetMLRef.current;
-                    if (!showViewer) {
-                        doenetmlChangeCallback?.(editorDoenetMLRef.current);
-                    }
-                }
+                updateValueTimer.current = null;
 
-                setCodeChanged(false);
+                setDocumentInteracted(false);
                 setResponses([]);
 
-                updateValueTimer.current = null;
+                if (codeChangedRef.current) {
+                    setViewerDoenetML(editorDoenetMLRef.current);
+                    if (
+                        lastReportedDoenetML.current !==
+                        editorDoenetMLRef.current
+                    ) {
+                        lastReportedDoenetML.current =
+                            editorDoenetMLRef.current;
+                        if (!showViewer) {
+                            doenetmlChangeCallback?.(editorDoenetMLRef.current);
+                        }
+                    }
+
+                    setCodeChanged(false);
+                } else if (documentInteractedRef.current) {
+                    setViewerResetNum((n) => n + 1);
+                }
             }
         };
 
@@ -447,35 +467,41 @@ export function EditorViewer({
                 {!readOnly && (
                     <UiButton
                         data-test="Viewer Update Button"
-                        disabled={!codeChanged}
+                        disabled={!codeChanged && !documentInteracted}
                         title={
                             platform == "Mac"
                                 ? "Updates Viewer cmd+s"
                                 : "Updates Viewer ctrl+s"
                         }
                         onClick={() => {
-                            setViewerDoenetML(editorDoenetMLRef.current);
-                            window.clearTimeout(
-                                updateValueTimer.current ?? undefined,
-                            );
-                            if (
-                                lastReportedDoenetML.current !==
-                                editorDoenetMLRef.current
-                            ) {
-                                lastReportedDoenetML.current =
-                                    editorDoenetMLRef.current;
-                                if (!showViewer) {
-                                    doenetmlChangeCallback?.(
-                                        editorDoenetMLRef.current,
-                                    );
-                                }
-                            }
-                            setCodeChanged(false);
-                            updateValueTimer.current = null;
+                            setDocumentInteracted(false);
                             setResponses([]);
+
+                            if (!codeChanged) {
+                                setViewerResetNum((n) => n + 1);
+                            } else {
+                                setViewerDoenetML(editorDoenetMLRef.current);
+                                window.clearTimeout(
+                                    updateValueTimer.current ?? undefined,
+                                );
+                                if (
+                                    lastReportedDoenetML.current !==
+                                    editorDoenetMLRef.current
+                                ) {
+                                    lastReportedDoenetML.current =
+                                        editorDoenetMLRef.current;
+                                    if (!showViewer) {
+                                        doenetmlChangeCallback?.(
+                                            editorDoenetMLRef.current,
+                                        );
+                                    }
+                                }
+                                setCodeChanged(false);
+                                updateValueTimer.current = null;
+                            }
                         }}
                     >
-                        <RxUpdate /> Update{" "}
+                        <RxUpdate /> {updateWord}{" "}
                         {codeChanged ? (
                             <BsExclamationTriangleFill
                                 fontSize="18px"
@@ -484,17 +510,6 @@ export function EditorViewer({
                         ) : undefined}
                     </UiButton>
                 )}
-                <UiButton
-                    data-test="Viewer Reset Button"
-                    title="Reset Viewer"
-                    onClick={() => {
-                        setViewerResetNum((n) => n + 1);
-                        setResponses([]);
-                    }}
-                    style={{ marginLeft: readOnly ? undefined : "8px" }}
-                >
-                    Reset
-                </UiButton>
                 {variants.numVariants > 1 && (
                     <VariantSelect
                         size="sm"
@@ -524,7 +539,7 @@ export function EditorViewer({
                         allowSaveState: false,
                         saveRendererState: false,
                         allowLocalState: false,
-                        allowSaveEvents: showResponses,
+                        allowSaveEvents: true,
                         messageParent: false,
                         readOnly: false,
                     }}
