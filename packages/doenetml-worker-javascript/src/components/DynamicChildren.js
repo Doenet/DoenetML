@@ -110,6 +110,8 @@ export default class DynamicChildren extends CompositeComponent {
                 sourceInformation,
                 skipRendererUpdate,
             });
+        } else {
+            return undefined;
         }
     }
 
@@ -140,6 +142,8 @@ export default class DynamicChildren extends CompositeComponent {
                 sourceInformation,
                 skipRendererUpdate,
             });
+        } else {
+            return undefined;
         }
     }
 
@@ -176,7 +180,7 @@ export default class DynamicChildren extends CompositeComponent {
         workspace.nGroups = nGroups;
 
         // console.log(`serialized replacements for ${component.componentIdx}`)
-        // console.log(JSON.parse(JSON.stringify(verificationResult.replacements)))
+        // console.log(JSON.parse(JSON.stringify(replacements)))
 
         return {
             replacements,

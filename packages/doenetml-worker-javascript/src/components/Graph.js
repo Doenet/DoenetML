@@ -1779,15 +1779,17 @@ export default class Graph extends BlockComponent {
     }
 
     async addChildren(args) {
-        const dynamicChildren =
-            this.definingChildren[this.definingChildren.length - 1];
+        const dynamicChildren = this.definingChildren.findLast(
+            (child) => child.componentType === "dynamicChildren",
+        );
 
         return await dynamicChildren.addChildren(args);
     }
 
     async deleteChildren(args) {
-        const dynamicChildren =
-            this.definingChildren[this.definingChildren.length - 1];
+        const dynamicChildren = this.definingChildren.findLast(
+            (child) => child.componentType === "dynamicChildren",
+        );
 
         return await dynamicChildren.deleteChildren(args);
     }

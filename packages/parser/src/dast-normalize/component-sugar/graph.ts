@@ -1,4 +1,4 @@
-import { DastElement, DastElementContent } from "../../types";
+import { DastElement } from "../../types";
 
 /**
  * Add a `<_dynamicChildren>` to the children so additional children can be added via an addChildren action.
