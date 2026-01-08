@@ -59,14 +59,6 @@ export default class Choiceinput extends Input {
         attributes.inline = {
             createComponentOfType: "boolean",
         };
-        // XXX: remove newInline attribute and always use new format
-        // once we get it working
-        attributes.newInline = {
-            createComponentOfType: "boolean",
-            createStateVariable: "newInline",
-            defaultValue: false,
-            forRenderer: true,
-        };
         attributes.shuffleOrder = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "shuffleOrder",

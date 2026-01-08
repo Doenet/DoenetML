@@ -7,11 +7,13 @@ import { MathJax } from "better-react-mathjax";
 import { JXGObject } from "./jsxgraph-distrib/types";
 import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
+import { ChoiceInputInlineContext } from "./choiceInput";
 
 export default React.memo(function Angle(props: UseDoenetRendererProps) {
     let { id, SVs } = useDoenetRenderer(props);
 
     const board = useContext(BoardContext);
+    const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
     let point1JXG = useRef(null);
     let point2JXG = useRef(null);
@@ -218,8 +220,10 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
         return <span id={id} />;
     }
 
-    let mathJaxify = "\\(" + SVs.latexForRenderer + "\\)";
-    let style = textRendererStyle(darkMode, SVs.selectedStyle);
+    const mathJaxify = "\\(" + SVs.latexForRenderer + "\\)";
+    const style = !choiceInputInlineContext.inOption
+        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        : undefined;
     return (
         <span style={style} id={id}>
             <MathJax hideUntilTypeset={"first"} inline dynamic>

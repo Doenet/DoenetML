@@ -8,6 +8,7 @@ import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import { JXGObject } from "./jsxgraph-distrib/types";
+import { ChoiceInputInlineContext } from "./choiceInput";
 
 export default React.memo(function Vector(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -17,6 +18,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     Vector.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
+    const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
     let vectorJXG = useRef<JXGObject | null>(null);
     let point1JXG = useRef<JXGObject | null>(null);
@@ -739,9 +741,10 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         return null;
     }
 
-    let mathJaxify = "\\(" + SVs.latex + "\\)";
-
-    let style = textRendererStyle(darkMode, SVs.selectedStyle);
+    const mathJaxify = "\\(" + SVs.latex + "\\)";
+    const style = !choiceInputInlineContext.inOption
+        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        : undefined;
     return (
         <span style={style} id={id}>
             <MathJax hideUntilTypeset={"first"} inline dynamic>

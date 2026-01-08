@@ -1,15 +1,29 @@
-import React, { useRef, useState } from "react";
+import React, { createContext, useRef, useState } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
-import Select, { components } from "react-select";
+import Select, { components, MultiValue, OnChangeValue } from "react-select";
 import "./choiceInput.css";
 import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
+
+// type guard
+const isMultiValue = <T,>(
+    val: OnChangeValue<T, boolean>,
+): val is MultiValue<T> => {
+    return Array.isArray(val);
+};
+
+type Option = { value: number; label: any };
+
+export const ChoiceInputInlineContext = createContext<{
+    isHidden: boolean;
+    inOption: boolean;
+}>({ isHidden: false, inOption: false });
 
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
@@ -40,6 +54,32 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         callAction({
             action: actions.submitAnswer,
         });
+
+    function onChangeHandlerInline(newValue: OnChangeValue<Option, boolean>) {
+        let newSelectedIndices: number[] = [];
+
+        if (isMultiValue(newValue)) {
+            newSelectedIndices = newValue.map((v) => Number(v.value));
+        } else if (newValue) {
+            newSelectedIndices = [Number(newValue.value)];
+        }
+
+        if (
+            rendererSelectedIndices.length !== newSelectedIndices.length ||
+            rendererSelectedIndices.some((v, i) => v != newSelectedIndices[i])
+        ) {
+            setRendererSelectedIndices(newSelectedIndices);
+            selectedIndicesWhenSetState.current = SVs.selectedIndices;
+
+            callAction({
+                action: actions.updateSelectedIndices,
+                args: {
+                    selectedIndices: newSelectedIndices,
+                },
+                baseVariableValue: newSelectedIndices,
+            });
+        }
+    }
 
     function onChangeHandler(
         e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>,
@@ -125,96 +165,91 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
     if (SVs.inline) {
         let svData = SVs;
-        // XXX: newInline attribute and always use new format
-        // once we get it working
-        // Issues remaining to be solved before we merge in this code:
-        // 1. The styling for a focused input needs to be clearer.
-        //    Should it have the outline border like the others?
-        // 2. When a choice has math, the keyboard navigation is broken.
-        // 3. When a choice has math and is selected, the text is still black in the menu
-        //    and the contrast between the text and blue background is too low.
-        if (SVs.newInline) {
-            const customOption = (props: any) => {
-                return (
-                    <components.Option {...props}>
-                        <div style={{ pointerEvents: "none" }}>
-                            {props.label}
-                        </div>
-                    </components.Option>
-                );
-            };
-
-            const choiceChildren = SVs.choiceChildIndices.map(
-                (ind: number) => children[ind],
-            );
-
-            let choiceOptions = (SVs.choiceOrder as number[])
-                .map((v) => choiceChildren[v - 1])
-                .map(function (child, i) {
-                    if (svData.choicesHidden[i]) {
-                        return null;
-                    }
-                    return { value: i + 1, label: child };
-                });
-
-            const valuePadding = "2px 0px 2px 6px";
-
-            const customStyles = {
-                control: (provided: any, state: any) => ({
-                    ...provided,
-                    background: "#fff",
-                    borderColor: "#9e9e9e",
-                    minHeight: "0.8lh",
-                    boxShadow: state.isFocused ? null : null,
-                }),
-
-                valueContainer: (provided: any, state: any) => ({
-                    ...provided,
-                    padding: valuePadding,
-                }),
-
-                input: (provided: any, state: any) => ({
-                    ...provided,
-                    margin: "0px",
-                }),
-                indicatorSeparator: (state: any) => ({
-                    display: "none",
-                }),
-                indicatorsContainer: (provided: any, state: any) => ({
-                    ...provided,
-                    height: "0.8lh",
-                }),
-                dropdownIndicator: (provided: any, state: any) => ({
-                    ...provided,
-                    padding: "2px",
-                }),
-            };
-
+        const customOption = (props: any) => {
             return (
-                // 1. Grid wrapper: 'inline-grid' makes it shrink, '1fr' aligns the stack
+                <components.Option {...props}>
+                    <div style={{ pointerEvents: "none" }}>{props.label}</div>
+                </components.Option>
+            );
+        };
+
+        const choiceChildren = SVs.choiceChildIndices.map(
+            (ind: number) => children[ind],
+        );
+
+        let choiceOptions = (SVs.choiceOrder as number[])
+            .map((v) => choiceChildren[v - 1])
+            .map(function (child, i) {
+                if (svData.choicesHidden[i]) {
+                    return null;
+                }
+                return { value: i + 1, label: child };
+            })
+            .filter((opt) => opt !== null) as Option[];
+
+        const getOptionFromIndex = (index: number) => {
+            return choiceOptions[index - 1];
+        };
+
+        const valuePadding = "2px 0px 2px 6px";
+
+        const customStyles = {
+            control: (provided: any) => ({
+                ...provided,
+                background: "#fff",
+                borderColor: "#9e9e9e",
+                minHeight: "0.8lh",
+            }),
+
+            valueContainer: (provided: any) => ({
+                ...provided,
+                padding: valuePadding,
+            }),
+
+            input: (provided: any) => ({
+                ...provided,
+                margin: "0px",
+            }),
+            indicatorSeparator: () => ({
+                display: "none",
+            }),
+            indicatorsContainer: (provided: any) => ({
+                ...provided,
+                height: "0.8lh",
+            }),
+            dropdownIndicator: (provided: any) => ({
+                ...provided,
+                padding: "2px",
+            }),
+        };
+
+        return (
+            // 1. Grid wrapper: 'inline-grid' makes it shrink, '1fr' aligns the stack
+            <div
+                style={{
+                    display: "inline-grid",
+                    gridTemplateColumns: "1fr",
+                    alignItems: "center",
+                    verticalAlign: "middle",
+                    fontSize: "80%",
+                }}
+            >
+                {/* 2. Ghost Element: Invisible, but dictates the width */}
                 <div
                     style={{
-                        display: "inline-grid",
-                        gridTemplateColumns: "1fr",
-                        alignItems: "center",
-                        verticalAlign: "0.6ex",
-                        fontSize: "80%",
+                        gridArea: "1 / 1 / 2 / 2", // row 1, col 1
+                        visibility: "hidden", // Hide it
+                        height: 0, // Take up no vertical space
+                        padding: valuePadding,
+                        border: "1px solid transparent", // Add border width if your Select has borders
+                        whiteSpace: "nowrap", // Prevent wrapping
+                        overflow: "hidden",
                     }}
                 >
-                    {/* 2. Ghost Element: Invisible, but dictates the width */}
-                    <div
-                        style={{
-                            gridArea: "1 / 1 / 2 / 2", // row 1, col 1
-                            visibility: "hidden", // Hide it
-                            height: 0, // Take up no vertical space
-                            padding: valuePadding,
-                            border: "1px solid transparent", // Add border width if your Select has borders
-                            whiteSpace: "nowrap", // Prevent wrapping
-                            overflow: "hidden",
-                        }}
+                    {/* Render all of the labels here so the browser calculates the width */}
+                    <ChoiceInputInlineContext.Provider
+                        value={{ isHidden: true, inOption: false }}
                     >
-                        {/* Render all of the labels here so the browser calculates the width */}
-
                         {choiceOptions
                             .filter((opt) => opt !== null)
                             .map((opt) => (
@@ -231,114 +266,40 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                     <span
                                         style={{
                                             display: "inline-block",
-                                            width: "22px",
+                                            width: "30px",
                                         }}
-                                    >
-                                        hi
-                                    </span>
+                                    ></span>
                                 </div>
                             ))}
-                    </div>
+                    </ChoiceInputInlineContext.Provider>
+                </div>
 
-                    {/* 3. The Actual Select */}
-                    <div
-                        style={{
-                            gridArea: "1 / 1 / 2 / 2", // also row 1, col 1, so on top of ghost
-                            width: "100%",
-                        }}
+                {/* 3. The Actual Select */}
+                <div
+                    style={{
+                        gridArea: "1 / 1 / 2 / 2", // also row 1, col 1, so on top of ghost
+                        width: "100%",
+                    }}
+                >
+                    <ChoiceInputInlineContext.Provider
+                        value={{ isHidden: false, inOption: true }}
                     >
                         <Select
+                            isMulti={SVs.selectMultiple}
                             styles={customStyles}
                             options={choiceOptions}
                             components={{ Option: customOption }}
                             menuPlacement="auto"
+                            className="custom-select"
+                            onChange={onChangeHandlerInline}
+                            value={rendererSelectedIndices.map((ind) =>
+                                getOptionFromIndex(ind),
+                            )}
                         />
-                    </div>
+                    </ChoiceInputInlineContext.Provider>
                 </div>
-            );
-        } else {
-            // inline="true", not newInline
-            let selectStyle: React.CSSProperties = {};
-
-            if (disabled) {
-                selectStyle.cursor = "not-allowed";
-                selectStyle.borderColor = getComputedStyle(
-                    document.documentElement,
-                ).getPropertyValue("--mainGray");
-            }
-
-            const checkWorkComponent = createCheckWorkComponent(
-                SVs,
-                id,
-                validationState,
-                submitAnswer,
-                false,
-            );
-
-            let optionsList = SVs.choiceTexts.map(function (
-                s: number,
-                i: number,
-            ) {
-                if (svData.choicesHidden[i]) {
-                    return null;
-                }
-                return (
-                    <option
-                        key={i + 1}
-                        value={i + 1}
-                        disabled={svData.choicesDisabled[i]}
-                    >
-                        {s}
-                    </option>
-                );
-            });
-
-            let selectValue =
-                rendererSelectedIndices === undefined
-                    ? ""
-                    : !SVs.selectMultiple
-                      ? (rendererSelectedIndices[0] ?? "")
-                      : rendererSelectedIndices;
-
-            return (
-                <span
-                    style={{ display: "inline-flex", alignItems: "start" }}
-                    id={id + "-container"}
-                >
-                    <span
-                        style={{ display: "inline-flex", alignItems: "center" }}
-                    >
-                        <label
-                            style={{
-                                display: "inline-flex",
-                                maxWidth: "100%",
-                            }}
-                            id={id + "-label"}
-                        >
-                            {label}
-                            <select
-                                className="custom-select"
-                                id={id}
-                                onChange={onChangeHandler}
-                                value={"" + selectValue}
-                                disabled={disabled}
-                                multiple={SVs.selectMultiple}
-                                style={selectStyle}
-                                aria-label={shortDescription}
-                                aria-details={descriptionId}
-                            >
-                                <option hidden={true} value="">
-                                    {SVs.placeHolder}
-                                </option>
-                                {optionsList}
-                            </select>
-                        </label>
-                        {checkWorkComponent}
-                    </span>
-                    {description}
-                </span>
-            );
-        }
+            </div>
+        );
     } else {
         let checkWorkComponent = createCheckWorkComponent(
             SVs,

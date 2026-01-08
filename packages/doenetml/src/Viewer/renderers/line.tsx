@@ -7,6 +7,7 @@ import { MathJax } from "better-react-mathjax";
 import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
+import { ChoiceInputInlineContext } from "./choiceInput";
 
 export default React.memo(function Line(props) {
     let { componentIdx, id, SVs, actions, callAction } =
@@ -15,6 +16,7 @@ export default React.memo(function Line(props) {
     Line.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
+    const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
     let lineJXG = useRef({});
 
@@ -511,8 +513,10 @@ export default React.memo(function Line(props) {
         return null;
     }
 
-    let mathJaxify = "\\(" + SVs.latex + "\\)";
-    let style = textRendererStyle(darkMode, SVs.selectedStyle);
+    const mathJaxify = "\\(" + SVs.latex + "\\)";
+    const style = !choiceInputInlineContext.inOption
+        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        : undefined;
     return (
         <span style={style} id={id}>
             <MathJax hideUntilTypeset={"first"} inline dynamic>

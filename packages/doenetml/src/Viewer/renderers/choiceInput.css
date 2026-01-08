@@ -209,9 +209,8 @@
 
 /* CUSTOM STYLING FOR SELECT */
 .custom-select {
-    border: var(--mainBorder);
+    /* border: var(--mainBorder); */
     border-radius: var(--mainBorderRadius);
-    /* height: 24px; */ /* Note: commented this out because needs to work for select-multiple */
     margin: 0px 4px 4px 4px;
 }
 
