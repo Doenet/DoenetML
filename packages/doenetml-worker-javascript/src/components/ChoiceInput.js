@@ -59,6 +59,14 @@ export default class Choiceinput extends Input {
         attributes.inline = {
             createComponentOfType: "boolean",
         };
+        // XXX: remove newInline attribute and always use new format
+        // once we get it working
+        attributes.newInline = {
+            createComponentOfType: "boolean",
+            createStateVariable: "newInline",
+            defaultValue: false,
+            forRenderer: true,
+        };
         attributes.shuffleOrder = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "shuffleOrder",
@@ -1483,14 +1491,12 @@ export default class Choiceinput extends Input {
             definition: function ({ dependencyValues }) {
                 const childIndicesToRender = [];
 
-                if (!dependencyValues.inline) {
-                    for (const [
-                        ind,
-                        child,
-                    ] of dependencyValues.children.entries()) {
-                        if (child.componentType === "choice") {
-                            childIndicesToRender.push(ind);
-                        }
+                for (const [
+                    ind,
+                    child,
+                ] of dependencyValues.children.entries()) {
+                    if (child.componentType === "choice") {
+                        childIndicesToRender.push(ind);
                     }
                 }
 
