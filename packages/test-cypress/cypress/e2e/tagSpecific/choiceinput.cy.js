@@ -1,5 +1,3 @@
-import {} from "@doenet/utils";
-
 describe("ChoiceInput Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
