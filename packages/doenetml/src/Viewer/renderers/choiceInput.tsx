@@ -351,7 +351,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             isDisabled={disabled}
                             isOptionDisabled={(opt) => !!opt.isDisabled}
                             aria-label={shortDescription}
-                            aria-details={descriptionId}
+                            // Note: aria-details added in CustomInput
                         />
                     </ChoiceInputInlineContext.Provider>
                 </div>
