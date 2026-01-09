@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe("ChoiceInput Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -27,10 +25,8 @@ describe("ChoiceInput Tag Tests", function () {
         });
 
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
-        cy.get(cesc("#p1")).should("have.text", "Selected value: ");
-        cy.get(cesc("#p2")).should("have.text", "Selected index: ");
-
-        cy.get(cesc("#choiceInput1")).should("have.value", "");
+        cy.get("#p1").should("have.text", "Selected value: ");
+        cy.get("#p2").should("have.text", "Selected index: ");
 
         let choices, choiceOrder;
         cy.window().then(async (win) => {
@@ -93,19 +89,28 @@ describe("ChoiceInput Tag Tests", function () {
 
         for (let i = 0; i < 4; i++) {
             if (i === 2) {
-                cy.get(cesc(`#choiceInput1`))
-                    .get('[value="3"]')
-                    .should("be.disabled");
+                cy.get(`#choiceInput1`).click();
+
+                cy.get(`#choiceInput1 [class*="menu"]`).within(() => {
+                    cy.contains(choices[i])
+                        .parent()
+                        .parent()
+                        .should("have.attr", "aria-disabled", "true");
+                });
+                cy.get(`#choiceInput1`).click();
             } else {
-                cy.get(cesc(`#choiceInput1`))
-                    .select(`${i + 1}`)
+                cy.get(`#choiceInput1`).click();
+                cy.get('#choiceInput1 [class*="menu"]')
+                    .within(() => {
+                        cy.contains(choices[i]).click({ force: true });
+                    })
                     .then(() => {
                         // make this asynchronous  so that choices is populated before line is executed
-                        cy.get(cesc("#p1")).should(
+                        cy.get("#p1").should(
                             "have.text",
                             "Selected value: " + choices[i],
                         );
-                        cy.get(cesc("#p2")).should(
+                        cy.get("#p2").should(
                             "have.text",
                             "Selected index: " + (i + 1),
                         );
@@ -170,10 +175,8 @@ describe("ChoiceInput Tag Tests", function () {
         });
 
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
-        cy.get(cesc("#p1")).should("have.text", "Selected value: ");
-        cy.get(cesc("#p2")).should("have.text", "Selected index: ");
-
-        cy.get(cesc("#choiceInput1")).should("have.value", "");
+        cy.get("#p1").should("have.text", "Selected value: ");
+        cy.get("#p2").should("have.text", "Selected index: ");
 
         let choices, choiceOrder;
         cy.window().then(async (win) => {
@@ -235,19 +238,25 @@ describe("ChoiceInput Tag Tests", function () {
 
         for (let i = 0; i < 4; i++) {
             if (i === 2) {
-                cy.get(cesc(`#choiceInput1`))
-                    .get('[value="3"]')
-                    .should("not.exist");
+                cy.get(`#choiceInput1`).click();
+
+                cy.get(`#choiceInput1 [class*="menu"]`).within(() => {
+                    cy.contains(choices[i]).should("not.exist");
+                });
+                cy.get(`#choiceInput1`).click();
             } else {
-                cy.get(cesc(`#choiceInput1`))
-                    .select(`${i + 1}`)
+                cy.get(`#choiceInput1`).click();
+                cy.get('#choiceInput1 [class*="menu"]')
+                    .within(() => {
+                        cy.contains(choices[i]).click({ force: true });
+                    })
                     .then(() => {
                         // make this asynchronous  so that choices is populated before line is executed
-                        cy.get(cesc("#p1")).should(
+                        cy.get("#p1").should(
                             "have.text",
                             "Selected value: " + choices[i],
                         );
-                        cy.get(cesc("#p2")).should(
+                        cy.get("#p2").should(
                             "have.text",
                             "Selected index: " + (i + 1),
                         );
@@ -312,8 +321,8 @@ describe("ChoiceInput Tag Tests", function () {
         });
 
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
-        cy.get(cesc("#p1")).should("have.text", "Selected value: ");
-        cy.get(cesc("#p2")).should("have.text", "Selected index: ");
+        cy.get("#p1").should("have.text", "Selected value: ");
+        cy.get("#p2").should("have.text", "Selected index: ");
 
         let choices;
         cy.window().then(async (win) => {
@@ -361,19 +370,19 @@ describe("ChoiceInput Tag Tests", function () {
 
         for (let i = 0; i < 4; i++) {
             if (i === 2) {
-                cy.get(cesc(`#choiceInput1_choice${i + 1}_input`)).should(
+                cy.get(`#choiceInput1_choice${i + 1}_input`).should(
                     "be.disabled",
                 );
             } else {
-                cy.get(cesc(`#choiceInput1_choice${i + 1}_input`))
+                cy.get(`#choiceInput1_choice${i + 1}_input`)
                     .click()
                     .then(() => {
                         // make this asynchronous  so that choices is populated before line is executed
-                        cy.get(cesc("#p1")).should(
+                        cy.get("#p1").should(
                             "have.text",
                             "Selected value: " + choices[i],
                         );
-                        cy.get(cesc("#p2")).should(
+                        cy.get("#p2").should(
                             "have.text",
                             "Selected index: " + (i + 1),
                         );
@@ -438,8 +447,8 @@ describe("ChoiceInput Tag Tests", function () {
         });
 
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
-        cy.get(cesc("#p1")).should("have.text", "Selected value: ");
-        cy.get(cesc("#p2")).should("have.text", "Selected index: ");
+        cy.get("#p1").should("have.text", "Selected value: ");
+        cy.get("#p2").should("have.text", "Selected index: ");
 
         let choices;
         cy.window().then(async (win) => {
@@ -487,19 +496,19 @@ describe("ChoiceInput Tag Tests", function () {
 
         for (let i = 0; i < 4; i++) {
             if (i === 2) {
-                cy.get(cesc(`#choiceInput1_choice${i + 1}_input`)).should(
+                cy.get(`#choiceInput1_choice${i + 1}_input`).should(
                     "not.exist",
                 );
             } else {
-                cy.get(cesc(`#choiceInput1_choice${i + 1}_input`))
+                cy.get(`#choiceInput1_choice${i + 1}_input`)
                     .click()
                     .then(() => {
                         // make this asynchronous  so that choices is populated before line is executed
-                        cy.get(cesc("#p1")).should(
+                        cy.get("#p1").should(
                             "have.text",
                             "Selected value: " + choices[i],
                         );
-                        cy.get(cesc("#p2")).should(
+                        cy.get("#p2").should(
                             "have.text",
                             "Selected index: " + (i + 1),
                         );
@@ -564,8 +573,8 @@ describe("ChoiceInput Tag Tests", function () {
         });
 
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
-        cy.get(cesc("#p1")).should("have.text", "Selected values: ");
-        cy.get(cesc("#p2")).should("have.text", "Selected indices: ");
+        cy.get("#p1").should("have.text", "Selected values: ");
+        cy.get("#p2").should("have.text", "Selected indices: ");
 
         let choices, choiceOrder;
         cy.window().then(async (win) => {
@@ -630,16 +639,16 @@ describe("ChoiceInput Tag Tests", function () {
         cy.log("select options in order");
 
         for (let i = 0; i < 4; i++) {
-            cy.get(cesc(`#choiceInput1_choice${i + 1}_input`))
+            cy.get(`#choiceInput1_choice${i + 1}_input`)
                 .click()
                 .then(() => {
                     // make this asynchronous so that choices is populated before line is executed
-                    cy.get(cesc("#p1")).should(
+                    cy.get("#p1").should(
                         "have.text",
                         "Selected values: " +
                             choices.slice(0, i + 1).join(", "),
                     );
-                    cy.get(cesc("#p2")).should(
+                    cy.get("#p2").should(
                         "have.text",
                         "Selected indices: " +
                             [...Array(i + 1).keys()]
@@ -680,15 +689,15 @@ describe("ChoiceInput Tag Tests", function () {
         cy.log("deselect options in order");
 
         for (let i = 0; i < 4; i++) {
-            cy.get(cesc(`#choiceInput1_choice${i + 1}_input`))
+            cy.get(`#choiceInput1_choice${i + 1}_input`)
                 .click()
                 .then(() => {
                     // make this asynchronous so that choices is populated before line is executed
-                    cy.get(cesc("#p1")).should(
+                    cy.get("#p1").should(
                         "have.text",
                         "Selected values: " + choices.slice(i + 1).join(", "),
                     );
-                    cy.get(cesc("#p2")).should(
+                    cy.get("#p2").should(
                         "have.text",
                         "Selected indices: " +
                             [...Array(3 - i).keys()]
@@ -729,15 +738,15 @@ describe("ChoiceInput Tag Tests", function () {
         cy.log("select options in reverse order");
 
         for (let i = 3; i >= 0; i--) {
-            cy.get(cesc(`#choiceInput1_choice${i + 1}_input`))
+            cy.get(`#choiceInput1_choice${i + 1}_input`)
                 .click()
                 .then(() => {
                     // make this asynchronous so that choices is populated before line is executed
-                    cy.get(cesc("#p1")).should(
+                    cy.get("#p1").should(
                         "have.text",
                         "Selected values: " + choices.slice(i).join(", "),
                     );
-                    cy.get(cesc("#p2")).should(
+                    cy.get("#p2").should(
                         "have.text",
                         "Selected indices: " +
                             [...Array(4 - i).keys()]
@@ -796,11 +805,9 @@ describe("ChoiceInput Tag Tests", function () {
             );
         });
 
-        cy.get(cesc("#choiceInput1")).invoke("val").should("deep.equal", []);
-
         let originalChoices = ["cat", "dog", "monkey", "mouse"];
-        cy.get(cesc("#p1")).should("have.text", "Selected values: ");
-        cy.get(cesc("#p2")).should("have.text", "Selected indices: ");
+        cy.get("#p1").should("have.text", "Selected values: ");
+        cy.get("#p2").should("have.text", "Selected indices: ");
 
         let choices, choiceOrder;
         cy.window().then(async (win) => {
@@ -865,29 +872,22 @@ describe("ChoiceInput Tag Tests", function () {
         cy.log("select options in order");
 
         for (let i = 0; i < 4; i++) {
-            // TODO: the onChange handler wasn't triggering when didn't first deselect
-            // so, as a stopgap, we're deselecting all here.
-            // We shouldn't need to do this!
-
-            cy.get(cesc(`#choiceInput1`)).select([]);
-
-            cy.get(cesc(`#choiceInput1`))
-                .select([...Array(i + 1).keys()].map((x) => String(x + 1)))
+            cy.get(`#choiceInput1`)
+                .find('svg[aria-hidden="true"]')
+                .last() // Gets the dropdown arrow, not the X
+                .click();
+            cy.get('#choiceInput1 [class*="menu"]')
+                .within(() => {
+                    cy.contains(choices[i]).click({ force: true });
+                })
                 .then(() => {
-                    let selectedInds = [...Array(i + 1).keys()].map((x) =>
-                        String(x + 1),
-                    );
-                    cy.get(cesc("#choiceInput1"))
-                        .invoke("val")
-                        .should("deep.equal", selectedInds);
-
                     // make this asynchronous so that choices is populated before line is executed
-                    cy.get(cesc("#p1")).should(
+                    cy.get("#p1").should(
                         "have.text",
                         "Selected values: " +
                             choices.slice(0, i + 1).join(", "),
                     );
-                    cy.get(cesc("#p2")).should(
+                    cy.get("#p2").should(
                         "have.text",
                         "Selected indices: " +
                             [...Array(i + 1).keys()]
@@ -929,30 +929,22 @@ describe("ChoiceInput Tag Tests", function () {
 
         for (let i = 0; i < 4; i++) {
             cy.window().then(async (win) => {
-                let indicesToSelect = [...Array(3 - i).keys()].map((x) =>
-                    String(x + 2 + i),
-                );
-                if (i === 3) {
-                    indicesToSelect = [""];
-                }
+                // make this asynchronous so that choices is populated before line is executed
 
-                cy.get(cesc(`#choiceInput1`))
-                    .select(indicesToSelect)
+                // Click the X next to a specific value
+                cy.get("#choiceInput1")
+                    .contains(choices[i]) // The selected value
+                    .parent()
+                    .parent() // The container with the X
+                    .find('[role="button"]') // The X button
+                    .click()
                     .then(() => {
-                        let selectedInds = [...Array(3 - i).keys()].map((x) =>
-                            String(x + 2 + i),
-                        );
-                        cy.get(cesc("#choiceInput1"))
-                            .invoke("val")
-                            .should("deep.equal", selectedInds);
-
-                        // make this asynchronous so that choices is populated before line is executed
-                        cy.get(cesc("#p1")).should(
+                        cy.get("#p1").should(
                             "have.text",
                             "Selected values: " +
                                 choices.slice(i + 1).join(", "),
                         );
-                        cy.get(cesc("#p2")).should(
+                        cy.get("#p2").should(
                             "have.text",
                             "Selected indices: " +
                                 [...Array(3 - i).keys()]
@@ -994,26 +986,27 @@ describe("ChoiceInput Tag Tests", function () {
         cy.log("select options in reverse order");
 
         for (let i = 3; i >= 0; i--) {
-            cy.get(cesc(`#choiceInput1`))
-                .select([...Array(4 - i).keys()].map((x) => String(x + 1 + i)))
+            cy.get(`#choiceInput1`)
+                .find('svg[aria-hidden="true"]')
+                .last() // Gets the dropdown arrow, not the X
+                .click();
+            cy.get('#choiceInput1 [class*="menu"]')
+                .within(() => {
+                    cy.contains(choices[i]).click({ force: true });
+                })
                 .then(() => {
-                    let selectedInds = [...Array(4 - i).keys()].map((x) =>
-                        String(x + 1 + i),
-                    );
-                    cy.get(cesc("#choiceInput1"))
-                        .invoke("val")
-                        .should("deep.equal", selectedInds);
-
                     // make this asynchronous so that choices is populated before line is executed
-                    cy.get(cesc("#p1")).should(
+                    cy.get("#p1").should(
                         "have.text",
-                        "Selected values: " + choices.slice(i).join(", "),
+                        "Selected values: " +
+                            choices.slice(i).reverse().join(", "),
                     );
-                    cy.get(cesc("#p2")).should(
+                    cy.get("#p2").should(
                         "have.text",
                         "Selected indices: " +
                             [...Array(4 - i).keys()]
                                 .map((x) => x + 1 + i)
+                                .reverse()
                                 .join(", "),
                     );
                 });
@@ -1023,11 +1016,13 @@ describe("ChoiceInput Tag Tests", function () {
                 expect(
                     stateVariables[await win.resolvePath1("choiceInput1")]
                         .stateValues.selectedValues,
-                ).eqls(choices.slice(i));
+                ).eqls(choices.slice(i).reverse());
                 expect(
                     stateVariables[await win.resolvePath1("choiceInput1")]
                         .stateValues.selectedIndices,
-                ).eqls([...Array(4 - i).keys()].map((x) => x + 1 + i));
+                ).eqls(
+                    [...Array(4 - i).keys()].map((x) => x + 1 + i).reverse(),
+                );
                 expect(
                     stateVariables[await win.resolvePath1("choice1")]
                         .stateValues.selected,
@@ -1072,6 +1067,7 @@ describe("ChoiceInput Tag Tests", function () {
             "be.visible",
         );
         cy.get("#ci-label [data-test='Description']").should("not.be.visible");
+        cy.get("#ci").should("have.attr", "aria-label", `Select`);
         cy.get("#ci").should(
             "have.attr",
             "aria-details",
@@ -1119,7 +1115,9 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get("#ci-container [data-test='Description']").should(
             "not.be.visible",
         );
-        cy.get("#ci").should(
+        cy.get("#ci input").should("have.attr", "aria-label", `Select`);
+
+        cy.get("#ci input").should(
             "have.attr",
             "aria-details",
             `ci-description-content`,
@@ -1136,7 +1134,7 @@ describe("ChoiceInput Tag Tests", function () {
             "Select what you like.",
         );
 
-        cy.get("#ci").focus();
+        cy.get("#ci input").focus();
         cy.get("#ci-container [data-test='Description']").should(
             "not.be.visible",
         );
@@ -1167,7 +1165,7 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get("#ci").should("not.have.attr", "aria-details");
     });
 
-    it("without description", () => {
+    it("without description, inline", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1189,6 +1187,6 @@ describe("ChoiceInput Tag Tests", function () {
             "not.exist",
         );
         cy.get("#ci-label [data-test='Description']").should("not.exist");
-        cy.get("#ci").should("not.have.attr", "aria-details");
+        cy.get("#ci input").should("not.have.attr", "aria-details");
     });
 });

@@ -13,6 +13,7 @@ import {
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
+import { ChoiceInputInlineContext } from "./choiceInput";
 
 export default React.memo(function MathComponent(
     props: UseDoenetRendererProps,
@@ -28,6 +29,7 @@ export default React.memo(function MathComponent(
     let anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
+    const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
     let pointerAtDown = useRef<[number, number] | null>(null);
     let pointAtDown = useRef<[number, number, number] | null>(null);
@@ -565,13 +567,19 @@ export default React.memo(function MathComponent(
         );
     }
 
-    let style = textRendererStyle(darkMode, SVs.selectedStyle);
+    const style = !choiceInputInlineContext.inOption
+        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        : undefined;
+
+    const hideUntilTypeset = !choiceInputInlineContext.isHidden
+        ? "first"
+        : undefined;
 
     return (
         <>
             {anchors}
             <span style={style} id={id}>
-                <MathJax hideUntilTypeset={"first"} inline dynamic>
+                <MathJax hideUntilTypeset={hideUntilTypeset} inline dynamic>
                     {latexWithDelims}
                 </MathJax>
             </span>

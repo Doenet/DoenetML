@@ -11,6 +11,7 @@ import {
     POINTER_DRAG_THRESHOLD,
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
+import { ChoiceInputInlineContext } from "./choiceInput";
 
 export default React.memo(function NumberComponent(props) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -23,6 +24,7 @@ export default React.memo(function NumberComponent(props) {
     let anchorRel = useRef(null);
 
     const board = useContext(BoardContext);
+    const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
     let pointerAtDown = useRef(false);
     let pointAtDown = useRef(false);
@@ -466,7 +468,10 @@ export default React.memo(function NumberComponent(props) {
         number = "\\(" + number + "\\)";
     }
 
-    let style = textRendererStyle(darkMode, SVs.selectedStyle);
+    const style = !choiceInputInlineContext.inOption
+        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        : undefined;
+
     return (
         <span style={style} id={id}>
             <MathJax hideUntilTypeset={"first"} inline dynamic>

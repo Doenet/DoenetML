@@ -624,6 +624,71 @@ describe("Render commas tests", function () {
         });
     });
 
+    it("inline choice input menu with selected items", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>
+        <choiceInput inline name="ci1"><shortDescription>Favorite fruit</shortDescription>
+            <choice>apple 
+                <text>and</text>
+                <math>x^2</math>
+                <number>3</number>
+                <point>(3,4)</point>
+                <vector>(5,6)</vector>
+                <angle>pi</angle>
+                <line>y=4x+1</line>
+                <label>hi <m>\\frac{y}{x}</m></label>
+            </choice>
+            <choice>banana
+                <text>and</text>
+                <math>x^2</math>
+                <number>3</number>
+                <point>(3,4)</point>
+                <vector>(5,6)</vector>
+                <angle>pi</angle>
+                <line>y=4x+1</line>
+                <label>hi <m>\\frac{y}{x}</m></label>
+            </choice>
+            <choice>grape
+                <text>and</text>
+                <math>x^2</math>
+                <number>3</number>
+                <point>(3,4)</point>
+                <vector>(5,6)</vector>
+                <angle>pi</angle>
+                <line>y=4x+1</line>
+                <label>hi <m>\\frac{y}{x}</m></label>
+            </choice>
+        </choiceInput>
+    </p>
+
+
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#ci1`).click();
+        cy.get('#ci1 [class*="menu"]').within(() => {
+            cy.contains("apple").click({ force: true });
+        });
+        cy.get(`#ci1`).click();
+
+        // Hover over the banana option
+        cy.get('#ci1 [class*="menu"]')
+            .contains("banana")
+            .parent()
+            .parent()
+            .trigger("mouseover");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
     it("check work buttons", () => {
         cy.window().then(async (win) => {
             win.postMessage(

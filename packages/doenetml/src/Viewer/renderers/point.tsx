@@ -16,6 +16,7 @@ import {
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
+import { ChoiceInputInlineContext } from "./choiceInput";
 
 export default React.memo(function Point(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -27,6 +28,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
     // console.log(`for point ${name}, SVs: `, SVs)
 
     const board = useContext(BoardContext);
+    const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
     let pointJXG = useRef<JXGObject | null>(null);
     let shadowPointJXG = useRef<JXGObject | null>(null);
@@ -686,8 +688,10 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
 
     //Render text coordinates when outside of graph
 
-    let mathJaxify = "\\(" + SVs.latex + "\\)";
-    let style = textRendererStyle(darkMode, SVs.selectedStyle);
+    const mathJaxify = "\\(" + SVs.latex + "\\)";
+    const style = !choiceInputInlineContext.inOption
+        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        : undefined;
     return (
         <span style={style} id={id}>
             <MathJax hideUntilTypeset={"first"} inline dynamic>

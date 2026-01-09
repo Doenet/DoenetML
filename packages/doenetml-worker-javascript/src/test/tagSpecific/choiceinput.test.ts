@@ -3997,7 +3997,7 @@ describe("ChoiceInput tag tests", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                 .childIndicesToRender,
-        ).eqls([3]);
+        ).eqls([1, 2, 3]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ci")].activeChildren
                 .length,

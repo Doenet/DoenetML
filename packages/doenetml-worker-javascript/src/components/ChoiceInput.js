@@ -1483,14 +1483,12 @@ export default class Choiceinput extends Input {
             definition: function ({ dependencyValues }) {
                 const childIndicesToRender = [];
 
-                if (!dependencyValues.inline) {
-                    for (const [
-                        ind,
-                        child,
-                    ] of dependencyValues.children.entries()) {
-                        if (child.componentType === "choice") {
-                            childIndicesToRender.push(ind);
-                        }
+                for (const [
+                    ind,
+                    child,
+                ] of dependencyValues.children.entries()) {
+                    if (child.componentType === "choice") {
+                        childIndicesToRender.push(ind);
                     }
                 }
 

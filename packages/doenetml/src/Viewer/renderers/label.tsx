@@ -10,6 +10,7 @@ import {
     POINTER_DRAG_THRESHOLD,
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
+import { ChoiceInputInlineContext } from "./choiceInput";
 
 export default React.memo(function Label(props) {
     let { componentIdx, id, SVs, children, actions, callAction } =
@@ -22,6 +23,7 @@ export default React.memo(function Label(props) {
     let anchorRel = useRef(null);
 
     const board = useContext(BoardContext);
+    const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
     let pointerAtDown = useRef(null);
     let pointAtDown = useRef(null);
@@ -476,7 +478,9 @@ export default React.memo(function Label(props) {
         return null;
     }
 
-    let style = textRendererStyle(darkMode, SVs.selectedStyle);
+    const style = !choiceInputInlineContext.inOption
+        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        : undefined;
 
     let label = SVs.value;
 
