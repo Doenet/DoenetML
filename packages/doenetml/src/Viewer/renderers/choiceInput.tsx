@@ -20,6 +20,15 @@ const isMultiValue = <T,>(
 
 type Option = { value: number; label: any; isDisabled: boolean };
 
+/**
+ * The ChoiceInputInlineContext provides information about two modifications needed in descendants
+ * 1. isHidden: indicates that the content is being rendered invisibly to size the select input.
+ *    It is used by the math renderer to turn off hideUntilTypeset, which would cause it to
+ *    overwrite the invisible rendering and add tab stops to the invisible content.
+ * 2. inOption: indicates that the content is being rendered inside a select option.
+ *    It is used to turn off color specifications so that the font color of selected options
+ *    can be set to white for contrast.
+ */
 export const ChoiceInputInlineContext = createContext<{
     isHidden: boolean;
     inOption: boolean;
@@ -163,6 +172,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
     if (SVs.inline) {
         let svData = SVs;
+
+        // Custom Option to disable pointer events on option content
+        // to keep MathJax from interfering with option selection
         const CustomOption = (props: any) => {
             return (
                 <components.Option {...props}>
@@ -171,6 +183,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             );
         };
 
+        // Custom Input to add aria-details
         const CustomInput = (props: any) => {
             return <components.Input {...props} aria-details={descriptionId} />;
         };
@@ -255,6 +268,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             }),
         };
 
+        // The select is wrapped in a grid with an invisible ghost element
+        // that has all options rendered. This allows the select to
+        // dynamically size to fit the widest option.
         const selectWithDynamicWidth = (
             // 1. Grid wrapper: 'inline-grid' makes it shrink, '1fr' aligns the stack
             <div
@@ -270,10 +286,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 <div
                     style={{
                         gridArea: "1 / 1 / 2 / 2", // row 1, col 1
-                        visibility: "hidden", // Hide it
-                        height: 0, // Take up no vertical space
+                        visibility: "hidden",
+                        height: 0,
                         padding: valuePadding,
-                        border: "1px solid transparent", // Add border width if your Select has borders
+                        border: "1px solid transparent",
                         whiteSpace: "nowrap", // Prevent wrapping
                         overflow: "hidden",
                     }}

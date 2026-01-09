@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("Answer Tag Tests", function () {
