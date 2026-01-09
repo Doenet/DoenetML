@@ -18,7 +18,7 @@ const isMultiValue = <T,>(
     return Array.isArray(val);
 };
 
-type Option = { value: number; label: any };
+type Option = { value: number; label: any; isDisabled: boolean };
 
 export const ChoiceInputInlineContext = createContext<{
     isHidden: boolean;
@@ -64,21 +64,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             newSelectedIndices = [Number(newValue.value)];
         }
 
-        if (
-            rendererSelectedIndices.length !== newSelectedIndices.length ||
-            rendererSelectedIndices.some((v, i) => v != newSelectedIndices[i])
-        ) {
-            setRendererSelectedIndices(newSelectedIndices);
-            selectedIndicesWhenSetState.current = SVs.selectedIndices;
-
-            callAction({
-                action: actions.updateSelectedIndices,
-                args: {
-                    selectedIndices: newSelectedIndices,
-                },
-                baseVariableValue: newSelectedIndices,
-            });
-        }
+        finishChangeHandler(newSelectedIndices);
     }
 
     function onChangeHandler(
@@ -114,6 +100,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             }
         }
 
+        finishChangeHandler(newSelectedIndices);
+    }
+
+    function finishChangeHandler(newSelectedIndices: number[]) {
         if (
             rendererSelectedIndices.length !== newSelectedIndices.length ||
             rendererSelectedIndices.some((v, i) => v != newSelectedIndices[i])
@@ -163,14 +153,26 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         );
     }
 
+    const checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState,
+        submitAnswer,
+        !SVs.inline,
+    );
+
     if (SVs.inline) {
         let svData = SVs;
-        const customOption = (props: any) => {
+        const CustomOption = (props: any) => {
             return (
                 <components.Option {...props}>
                     <div style={{ pointerEvents: "none" }}>{props.label}</div>
                 </components.Option>
             );
+        };
+
+        const CustomInput = (props: any) => {
+            return <components.Input {...props} aria-details={descriptionId} />;
         };
 
         const choiceChildren = SVs.choiceChildIndices.map(
@@ -183,7 +185,11 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 if (svData.choicesHidden[i]) {
                     return null;
                 }
-                return { value: i + 1, label: child };
+                return {
+                    value: i + 1,
+                    label: child,
+                    isDisabled: !!svData.choicesDisabled[i],
+                };
             })
             .filter((opt) => opt !== null) as Option[];
 
@@ -193,12 +199,28 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
         const valuePadding = "2px 0px 2px 6px";
 
+        let selectStyle: React.CSSProperties = {};
+
+        if (disabled) {
+            selectStyle.cursor = "not-allowed";
+            selectStyle.borderColor = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainGray");
+        } else {
+            selectStyle.cursor = "pointer";
+            selectStyle.border = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue("--mainBorder");
+        }
+
         const customStyles = {
             control: (provided: any) => ({
                 ...provided,
+                ...selectStyle,
                 background: "#fff",
-                borderColor: "#9e9e9e",
                 minHeight: "0.8lh",
+                pointerEvents: disabled ? "auto" : undefined,
+                boxShadow: "none",
             }),
 
             valueContainer: (provided: any) => ({
@@ -221,9 +243,19 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 ...provided,
                 padding: "2px",
             }),
+            option: (provided: any, state: any) => ({
+                ...provided,
+                cursor: state.isDisabled ? "not-allowed" : "pointer",
+                backgroundColor: state.isSelected
+                    ? "#0056b3" // Darker blue for better contrast
+                    : state.isFocused
+                      ? "#e9ecef"
+                      : "#fff",
+                color: state.isSelected ? "#fff" : "#000",
+            }),
         };
 
-        return (
+        const selectWithDynamicWidth = (
             // 1. Grid wrapper: 'inline-grid' makes it shrink, '1fr' aligns the stack
             <div
                 style={{
@@ -285,30 +317,53 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                         value={{ isHidden: false, inOption: true }}
                     >
                         <Select
+                            id={id}
                             isMulti={SVs.selectMultiple}
                             styles={customStyles}
                             options={choiceOptions}
-                            components={{ Option: customOption }}
+                            components={{
+                                Option: CustomOption,
+                                Input: CustomInput,
+                            }}
                             menuPlacement="auto"
                             className="custom-select"
                             onChange={onChangeHandlerInline}
                             value={rendererSelectedIndices.map((ind) =>
                                 getOptionFromIndex(ind),
                             )}
+                            placeholder={SVs.placeHolder}
+                            isDisabled={disabled}
+                            isOptionDisabled={(opt) => !!opt.isDisabled}
+                            aria-label={shortDescription}
+                            aria-details={descriptionId}
                         />
                     </ChoiceInputInlineContext.Provider>
                 </div>
             </div>
         );
-    } else {
-        let checkWorkComponent = createCheckWorkComponent(
-            SVs,
-            id,
-            validationState,
-            submitAnswer,
-            true,
-        );
 
+        return (
+            <span
+                style={{ display: "inline-flex", alignItems: "start" }}
+                id={id + "-container"}
+            >
+                <span style={{ display: "inline-flex", alignItems: "center" }}>
+                    <label
+                        style={{
+                            display: "inline-flex",
+                            maxWidth: "100%",
+                        }}
+                        id={id + "-label"}
+                    >
+                        {label}
+                        {selectWithDynamicWidth}
+                    </label>
+                    {checkWorkComponent}
+                </span>
+                {description}
+            </span>
+        );
+    } else {
         let inputKey = id;
         let listStyle = {
             listStyleType: "none",
