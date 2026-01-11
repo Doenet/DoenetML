@@ -592,9 +592,11 @@ function checkIfInheritOrAdapt({
  *
  * For the purposes of building the schema, inheritance can be overridden by the static variable `inSchemaOnlyInheritAs`
  * on the component class object.
- * The rules for determining if component type `cType` inherits from component type`baseType` are:
- * - `cType` does not have `inSchemaOnlyInheritAs` set and it inherits from `baseType` (or is `baseType`),
- * - `cType` has `inSchemaOnlyInheritAs` set and `baseType` is in that list.
+ *
+ * The rules for determining if component type `startingType` inherits from component type`destinationType`
+ * depend on whether the component class of  `startingType` has `inSchemaOnlyInheritAs` set:
+ * - if `inSchemaOnlyInheritAs` is not set, `startingType` must inherit from `destinationType` (or be equal to `destinationType`),
+ * - if `inSchemaOnlyInheritAs` is set, `destinationType` must be in that list or be equal to `startingType`.
  *
  * Return true if `startingType` inherits from `destinationType`.
  * Otherwise return false.
