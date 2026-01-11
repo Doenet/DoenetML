@@ -320,18 +320,21 @@ export function getSchema() {
             arrayEntryPrefixes,
             aliases,
         }: {
-            stateVariableDescriptions: Record<
-                string,
-                PublicStateVariableDescription
-            >;
+            stateVariableDescriptions: Record<string, StateVariableDescription>;
             arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
             aliases: Record<string, string>;
         } = componentInfoObjects.publicStateVariableInfo[type];
 
+        const publicStateVariableDescriptions =
+            stateVariableDescriptions as Record<
+                string,
+                PublicStateVariableDescription
+            >;
+
         const properties: PropertyDescription[] = [];
 
-        for (const varName in stateVariableDescriptions) {
-            const description = stateVariableDescriptions[varName];
+        for (const varName in publicStateVariableDescriptions) {
+            const description = publicStateVariableDescriptions[varName];
 
             properties.push(
                 propFromDescription({
@@ -348,7 +351,8 @@ export function getSchema() {
 
         for (const aliasName in aliases) {
             const aliasTargetName = aliases[aliasName];
-            const aliasTarget = stateVariableDescriptions[aliasTargetName];
+            const aliasTarget =
+                publicStateVariableDescriptions[aliasTargetName];
             if (aliasTarget) {
                 properties.push(
                     propFromDescription({
@@ -365,7 +369,7 @@ export function getSchema() {
                         const arrayEntry = arrayEntryPrefixes[prefix];
                         const arrayVariableName = arrayEntry.arrayVariableName;
                         const arrayStateVarDescription =
-                            stateVariableDescriptions[arrayVariableName];
+                            publicStateVariableDescriptions[arrayVariableName];
 
                         const arrayEntryDescription: PublicStateVariableDescription =
                             {
