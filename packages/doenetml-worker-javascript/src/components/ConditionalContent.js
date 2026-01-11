@@ -6,12 +6,23 @@ export default class ConditionalContent extends CompositeComponent {
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
-    static additionalSchemaAttributes = [{ name: "condition" }];
-
     static createsVariants = true;
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
+
+    static createAttributesObject() {
+        let attributes = super.createAttributesObject();
+        // the `condition` attribute is not actually used on conditionalContent,
+        // but we include it here so it shows up in the schema.
+        // If the conditionalContent does not have any case/else children,
+        // then its condition attribute will be moved via sugar to a case child.
+        attributes.condition = {
+            createComponentOfType: "boolean",
+        };
+
+        return attributes;
+    }
 
     // conditionalContent can be authored with any children.
     // Case children will be sugared in so they are the only child group.

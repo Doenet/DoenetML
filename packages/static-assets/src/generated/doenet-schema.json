@@ -66002,7 +66002,11 @@
                     "name": "copy"
                 },
                 {
-                    "name": "condition"
+                    "name": "condition",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [

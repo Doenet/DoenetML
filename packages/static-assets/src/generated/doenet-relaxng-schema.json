@@ -106960,7 +106960,8 @@
                 "condition": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "true",
+                        "false"
                     ]
                 }
             },

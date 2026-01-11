@@ -60,8 +60,6 @@ type ComponentClass = {
     additionalSchemaChildren?: string[];
     /** If `true` and `additionalSchemaChildren` is set, then those children will not be inherited by subclasses */
     additionalSchemaChildrenDoNotInherit?: boolean;
-    /** Additional attributes to add to the schema for this component */
-    additionalSchemaAttributes?: SchemaAttribute[];
 };
 
 interface ComponentInfoObjects extends ReturnType<
@@ -266,10 +264,6 @@ export function getSchema() {
 
                 attributes.push(attrSpec);
             }
-        }
-
-        if (cClass.additionalSchemaAttributes) {
-            attributes.push(...cClass.additionalSchemaAttributes);
         }
 
         const childGroups = cClass.returnChildGroups();
