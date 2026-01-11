@@ -6,10 +6,17 @@ export default class ConditionalContent extends CompositeComponent {
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
+    static additionalSchemaAttributes = [{ name: "condition" }];
+
     static createsVariants = true;
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
+
+    // conditionalContent can be authored with any children.
+    // Case children will be sugared in so they are the only child group.
+    // We need to allow for any children in the schema.
+    static additionalSchemaChildren = ["_base"];
 
     static returnChildGroups() {
         return [
