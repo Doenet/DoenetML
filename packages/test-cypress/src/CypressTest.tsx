@@ -575,6 +575,7 @@ export function CypressTest() {
                 fetchExternalDoenetML={fetchExternalDoenetML}
                 showAnswerResponseButton={answerResponseCounts !== undefined}
                 answerResponseCounts={answerResponseCounts}
+                readOnly={readOnly}
             />
         );
         const viewer = (
