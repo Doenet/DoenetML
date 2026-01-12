@@ -88,6 +88,7 @@ export default function VariantSelect({
             </div>
             <Ariakit.Button
                 title="Select next variant"
+                data-test="Next Variant"
                 className="button prev-next-button"
                 disabled={index == array.length - 1}
                 onClick={() => {
@@ -105,6 +106,7 @@ export default function VariantSelect({
             </Ariakit.Button>
             <Ariakit.Button
                 title="Select previous variant"
+                data-test="Previous Variant"
                 className="button prev-next-button"
                 disabled={index < 1}
                 onClick={() => {
