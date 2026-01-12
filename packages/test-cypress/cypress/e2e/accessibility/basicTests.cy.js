@@ -1240,4 +1240,105 @@ describe("Render commas tests", function () {
             onlyWarnImpacts: ["moderate", "minor"],
         });
     });
+
+    it("code editor", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    
+    <codeEditor name="ce">
+        <title>Example Test Content</title>
+
+        <math name="x">5</math>
+        <p>The value of x is: $x.value </p>
+
+        <!-- Commented out -->
+
+        Invalid closing tag: </section>
+
+        Missing closing tag: <section>
+        <invalidTag />
+    </codeEditor>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ce").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("DoenetEditor", () => {
+        cy.get("#testRunner_toggleControls").click();
+        cy.get("#testRunner_showEditor").click();
+        cy.wait(100);
+        cy.get("#testRunner_toggleControls").click();
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <title>Example Test Content</title>
+
+        <math name="x">5</math>
+        <p>The value of x is: $x.value </p>
+
+        <!-- Commented out -->
+
+        Invalid closing tag: </section>
+
+        Missing closing tag: <section>
+        <invalidTag />
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#x").should("be.visible");
+
+        cy.checkAccessibility(null, {
+            // onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("DoenetEditor - read only", () => {
+        cy.get("#testRunner_toggleControls").click();
+        cy.get("#testRunner_showEditor").click();
+        cy.get("#testRunner_readOnly").click();
+        cy.wait(100);
+        cy.get("#testRunner_toggleControls").click();
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <title>Example Test Content</title>
+
+        <math name="x">5</math>
+        <p>The value of x is: $x.value </p>
+
+        <!-- Commented out -->
+
+        Invalid closing tag: </section>
+
+        Missing closing tag: <section>
+        <invalidTag />
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#x").should("be.visible");
+
+        cy.checkAccessibility(null, {
+            // onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
 });

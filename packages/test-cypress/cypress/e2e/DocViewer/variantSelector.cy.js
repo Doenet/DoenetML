@@ -34,7 +34,6 @@ describe("Variant Selector Tests", function () {
         // Check that first variant is selected
         cy.window().then(async (win) => {
             const stateVariables = await win.returnAllStateVariables1();
-            console.log({ stateVariables });
 
             const sharedParameters = stateVariables[0].sharedParameters;
             expect(sharedParameters.variant.index).to.equal(1);
