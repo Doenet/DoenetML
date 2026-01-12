@@ -14,6 +14,7 @@ import { useIsOnPage } from "./utils/visibility";
 import { Provider as ReduxProvider } from "react-redux";
 import { store, useAppDispatch } from "./state";
 import { keyboardSlice } from "./state/slices/keyboard";
+import { setVariantsFromCallback } from "./utils/variants";
 
 export const version: string = DOENETML_VERSION;
 
@@ -181,14 +182,24 @@ export function DoenetViewer({
 
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
+    if (
+        (flags.allowLocalState || flags.allowLoadState) &&
+        includeVariantSelector
+    ) {
+        console.warn(
+            "includeVariantSelector cannot be used with allowLocalState or allowLoadState. Disabling includeVariantSelector.",
+        );
+        includeVariantSelector = false;
+    }
+
     const generatedVariantCallback = useCallback(
-        (newVariants: any) => {
-            specifiedGeneratedVariantCallback?.(newVariants);
+        (x: any) => {
+            specifiedGeneratedVariantCallback?.(x);
             if (includeVariantSelector) {
-                setVariants(newVariants);
+                setVariantsFromCallback(x, variants, setVariants);
             }
         },
-        [specifiedGeneratedVariantCallback, includeVariantSelector],
+        [specifiedGeneratedVariantCallback, includeVariantSelector, variants],
     );
 
     let variantSelector = null;

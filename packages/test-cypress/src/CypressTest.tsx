@@ -21,6 +21,7 @@ export function CypressTest() {
         darkMode: "light" | "dark";
         showEditor: boolean;
         viewerLocation: "left" | "right" | "bottom" | "top";
+        includeVariantSelector: boolean;
     } = {
         updateNumber: 0,
         attemptNumber: 1,
@@ -39,6 +40,7 @@ export function CypressTest() {
         darkMode: "light",
         showEditor: false,
         viewerLocation: "right",
+        includeVariantSelector: false,
     };
 
     //@ts-ignore
@@ -104,6 +106,9 @@ export function CypressTest() {
     const [showEditor, setShowEditor] = useState(testSettings.showEditor);
     const [viewerLocation, setViewerLocation] = useState(
         testSettings.viewerLocation,
+    );
+    const [includeVariantSelector, setIncludeVariantSelector] = useState(
+        testSettings.includeVariantSelector,
     );
 
     const solutionDisplayMode = "button";
@@ -490,6 +495,7 @@ export function CypressTest() {
                     <label>
                         Viewer location{" "}
                         <select
+                            id="testRunner_viewerLocation"
                             value={viewerLocation}
                             onChange={(e) => {
                                 testSettings.viewerLocation = e.target.value;
@@ -506,6 +512,28 @@ export function CypressTest() {
                             <option value="top">top</option>
                             <option value="bottom">bottom</option>
                         </select>
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        Include Variant Selector{" "}
+                        <input
+                            id="testRunner_includeVariantSelector"
+                            type="checkbox"
+                            checked={includeVariantSelector}
+                            onChange={() => {
+                                testSettings.includeVariantSelector =
+                                    !testSettings.includeVariantSelector;
+                                localStorage.setItem(
+                                    "test settings",
+                                    JSON.stringify(testSettings),
+                                );
+                                setIncludeVariantSelector(
+                                    (was: boolean) => !was,
+                                );
+                                setUpdateNumber((was: number) => was + 1);
+                            }}
+                        />
                     </label>
                 </div>
             </div>
@@ -583,6 +611,7 @@ export function CypressTest() {
                 fetchExternalDoenetML={fetchExternalDoenetML}
                 showAnswerResponseButton={answerResponseCounts !== undefined}
                 answerResponseCounts={answerResponseCounts}
+                includeVariantSelector={includeVariantSelector}
             />
         );
 

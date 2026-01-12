@@ -2,7 +2,7 @@
     "name": "@doenet/v06-to-v07",
     "type": "module",
     "description": "Convert DoenetML v0.6 syntax to v0.7 syntax",
-    "version": "0.7.1",
+    "version": "0.7.2",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
