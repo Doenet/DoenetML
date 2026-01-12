@@ -183,11 +183,11 @@ export function DoenetViewer({
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
     if (
-        (flags.allowLocalState || flags.allowSaveState) &&
+        (flags.allowLocalState || flags.allowLoadState) &&
         includeVariantSelector
     ) {
         console.warn(
-            "includeVariantSelector cannot be used with allowLocalState or allowSaveState. Disabling includeVariantSelector.",
+            "includeVariantSelector cannot be used with allowLocalState or allowLoadState. Disabling includeVariantSelector.",
         );
         includeVariantSelector = false;
     }

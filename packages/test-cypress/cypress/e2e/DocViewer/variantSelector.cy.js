@@ -112,6 +112,7 @@ describe("Variant Selector Tests", function () {
     it("no variant selector if allowLocalState is set", () => {
         cy.get("#testRunner_toggleControls").click();
         cy.get("#testRunner_allowLocalState").click();
+        cy.get("#testRunner_includeVariantSelector").click();
         cy.wait(100);
         cy.get("#testRunner_toggleControls").click();
 
@@ -132,6 +133,7 @@ describe("Variant Selector Tests", function () {
     it("no variant selector if allowLoadState is set", () => {
         cy.get("#testRunner_toggleControls").click();
         cy.get("#testRunner_allowLoadState").click();
+        cy.get("#testRunner_includeVariantSelector").click();
         cy.wait(100);
         cy.get("#testRunner_toggleControls").click();
 
