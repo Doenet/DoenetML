@@ -88,7 +88,7 @@ export class cascadeMessage extends P {
     static inSchemaOnlyInheritAs = [];
 }
 
-// TODO: Else is is never used, as it is sugared into a Case.
+// TODO: Else is never used, as it is sugared into a Case.
 // The component is created just so that it is added to the schema.
 // Consider an approach to add to the schema without creating a component.
 export class Else extends Case {
