@@ -1,3 +1,5 @@
+import React from "react";
+
 /**
  * Set variants state variable from the doenet generatedVariantCallback result.
  *

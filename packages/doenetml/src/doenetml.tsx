@@ -199,7 +199,7 @@ export function DoenetViewer({
                 setVariantsFromCallback(x, variants, setVariants);
             }
         },
-        [specifiedGeneratedVariantCallback, includeVariantSelector],
+        [specifiedGeneratedVariantCallback, includeVariantSelector, variants],
     );
 
     let variantSelector = null;

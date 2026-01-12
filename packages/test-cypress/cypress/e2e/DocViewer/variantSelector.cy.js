@@ -72,7 +72,7 @@ describe("Variant Selector Tests", function () {
         });
     });
 
-    it("no variant selector if includeVariantSelect is not set", () => {
+    it("no variant selector if includeVariantSelector is not set", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
