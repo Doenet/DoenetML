@@ -25,13 +25,40 @@ type ComponentClass = {
         excludeFromSchema?: boolean;
     }[];
     returnStateVariableDefinitions: () => Record<string, unknown>;
+    /**
+     * If a component class has the static variable excludeFromSchema set,
+     * then we ignore it completely in the schema.
+     */
     excludeFromSchema: boolean;
+    /**
+     * If a composite component class has the static variable allowInSchemaAsComponent set
+     * then we will treat it as though it were any of those
+     * component types (as well as its actual component type)
+     * when determining schema relationships
+     */
     allowInSchemaAsComponent?: string[];
     createAttributesObject: () => Record<string, AttributeObject>;
-    inSchemaOnlyInheritAs: string[];
+    /**
+     * If set, then for the purpose of generating the schema,
+     * this component will act as though it could only be inherited from the specified component types.
+     * If an empty array, then it will be treated as though it did not inherit from any other component type.
+     * (It is assumed, but not checked, that the component actually does inherit from those types.)
+     */
+    inSchemaOnlyInheritAs?: string[];
     getAdapterComponentType: (...args: any[]) => string;
     numAdapters: number;
+    /**
+     * The static variable additionalSchemaChildren on a component class
+     * can be used to add children to the schema that wouldn't show up otherwise.
+     * Two uses are:
+     * 1. to include children that are accepted by sugar but are not in a child group
+     *    because the sugar moves them to no longer be children.
+     * 2. to add composite children to the schema even though they should be expanded.
+     *    (Typically composite children are not added to a child group,
+     *    as that would prevent the composite from being expanded)
+     */
     additionalSchemaChildren?: string[];
+    /** If `true` and `additionalSchemaChildren` is set, then those children will not be inherited by subclasses */
     additionalSchemaChildrenDoNotInherit?: boolean;
 };
 
@@ -85,26 +112,73 @@ type PublicStateVariableDescription = {
     arrayVarNameFromPropIndex?: Function;
 };
 
+type SchemaAttribute = { name: string; values?: unknown[] };
+
+type SchemaElement = {
+    /** The component type of this component */
+    name: string;
+    /** The types of children this component can have */
+    children: string[];
+    /** The attributes that can be specified on this component */
+    attributes: SchemaAttribute[];
+    /** The properties (public state variables) that this component has */
+    properties: PropertyDescription[];
+    /** Whether this component can be a top-level component */
+    top: boolean;
+    /** Whether this component accepts string children */
+    acceptsStringChildren: boolean;
+};
+
+/**
+ * Generates a comprehensive schema of all DoenetML components and their metadata.
+ *
+ * This function creates a schema that includes:
+ * - All non-abstract, non-excluded component types
+ * - Component attributes with their valid values
+ * - Component children relationships (including inherited/adapted types)
+ * - Public state variables (i.e., properties)
+ * - Array entry prefixes and property aliases
+ *
+ * The schema generation process:
+ * 1. Creates component info objects and filters out excluded components
+ * 2. Builds a map of inherited and adapted component types
+ * 3. Removes abstract components (prefixed with "_")
+ * 4. For each component, collects:
+ *    - Attributes from the component's attribute object
+ *    - Valid child component types from child groups
+ *    - String children acceptance flags
+ *    - Additional schema children from component class metadata
+ *    - Public state variable descriptions and aliases
+ *
+ * @returns {Object} An object containing an `elements` array of {@link SchemaElement} objects,
+ *          where each element represents a component type with its full schema definition
+ *          including name, children, attributes, properties, and string acceptance
+ */
 export function getSchema() {
-    let componentInfoObjects =
+    const componentInfoObjects =
         createComponentInfoObjects() as ComponentInfoObjects;
     let componentClasses = componentInfoObjects.allComponentClasses;
 
-    // If a component class has static variable excludeFromSchema set,
+    // If a component class has the static variable excludeFromSchema set,
     // then we ignore it completely.
-    for (let type in componentClasses) {
-        let cClass = componentClasses[type];
+    for (const type in componentClasses) {
+        const cClass = componentClasses[type];
         if (cClass.excludeFromSchema) {
             delete componentClasses[type];
         }
     }
 
-    let inheritedOrAdaptedTypes: Record<string, string | string[]> = {};
+    /**
+     * A record of, for each component type, the list of all component types that
+     * inherit from or adapt to that component type.
+     */
+    const inheritedOrAdaptedTypes: Record<string, string[]> = {};
 
-    for (let type1 in componentClasses) {
-        let inherited: string[] = [];
-        for (let type2 in componentClasses) {
-            if (type2[0] == "_") {
+    for (const type1 in componentClasses) {
+        const inherited: string[] = [];
+        for (const type2 in componentClasses) {
+            // Skip abstract components
+            if (type2[0] === "_") {
                 continue;
             }
 
@@ -121,9 +195,9 @@ export function getSchema() {
 
             // If a composite component class has the static variable allowInSchemaAsComponent set
             // then we will, in addition, treat is as though it were any of those
-            // component types when determining children for the schema
+            // component types when determining schema relationships
 
-            let cClass = componentClasses[type2];
+            const cClass = componentClasses[type2];
             if (
                 componentInfoObjects.isInheritedComponentType({
                     inheritedComponentType: type2,
@@ -151,31 +225,31 @@ export function getSchema() {
     // Remove abstract components from the schema
     // (Use shallow copy as we still need them in componentInfoObjects for other functionality.)
     componentClasses = { ...componentClasses };
-    for (let type in componentClasses) {
+    for (const type in componentClasses) {
         if (type[0] === "_") {
             delete componentClasses[type];
         }
     }
 
-    let elements: Record<string, any>[] = [];
+    const elements: SchemaElement[] = [];
 
-    for (let type in componentClasses) {
+    for (const type in componentClasses) {
         let children: string[] = [];
         let acceptsStringChildren = false;
 
-        let attributes = [];
+        const attributes: SchemaAttribute[] = [];
 
-        let cClass = componentClasses[type];
+        const cClass = componentClasses[type];
 
-        let attrObj = cClass.createAttributesObject();
+        const attrObj = cClass.createAttributesObject();
 
-        for (let attrName in attrObj) {
-            let attrDef = attrObj[attrName];
+        for (const attrName in attrObj) {
+            const attrDef = attrObj[attrName];
 
             // one can add a excludeFromSchema to an attribute definition
             // to keep it from showing up in the schema
             if (!attrDef.excludeFromSchema) {
-                let attrSpec: { name: string; values?: unknown[] } = {
+                const attrSpec: { name: string; values?: unknown[] } = {
                     name: attrName,
                 };
 
@@ -192,13 +266,13 @@ export function getSchema() {
             }
         }
 
-        let childGroups = cClass.returnChildGroups();
+        const childGroups = cClass.returnChildGroups();
 
-        for (let groupObj of childGroups) {
+        for (const groupObj of childGroups) {
             // one can add a excludeFromSchema to a child group
             // to keep it from showing up in the schema
             if (!groupObj.excludeFromSchema) {
-                for (let type2 of groupObj.componentTypes) {
+                for (const type2 of groupObj.componentTypes) {
                     if (type2 in inheritedOrAdaptedTypes) {
                         children.push(...inheritedOrAdaptedTypes[type2]);
                     }
@@ -221,7 +295,7 @@ export function getSchema() {
         // 2. to add composite children to the schema even though they should be expanded,
         //    (as adding a composite child to a child group will prevent it from being expanded)
         if (cClass.additionalSchemaChildren) {
-            for (let type2 of cClass.additionalSchemaChildren) {
+            for (const type2 of cClass.additionalSchemaChildren) {
                 if (type2 in inheritedOrAdaptedTypes) {
                     if (cClass.additionalSchemaChildrenDoNotInherit) {
                         children.push(type2);
@@ -241,23 +315,26 @@ export function getSchema() {
 
         children = [...new Set(children)];
 
-        let {
+        const {
             stateVariableDescriptions,
             arrayEntryPrefixes,
             aliases,
         }: {
-            stateVariableDescriptions: Record<
-                string,
-                PublicStateVariableDescription
-            >;
+            stateVariableDescriptions: Record<string, StateVariableDescription>;
             arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
             aliases: Record<string, string>;
         } = componentInfoObjects.publicStateVariableInfo[type];
 
-        let properties: PropertyDescription[] = [];
+        const publicStateVariableDescriptions =
+            stateVariableDescriptions as Record<
+                string,
+                PublicStateVariableDescription
+            >;
 
-        for (let varName in stateVariableDescriptions) {
-            let description = stateVariableDescriptions[varName];
+        const properties: PropertyDescription[] = [];
+
+        for (const varName in publicStateVariableDescriptions) {
+            const description = publicStateVariableDescriptions[varName];
 
             properties.push(
                 propFromDescription({
@@ -268,13 +345,14 @@ export function getSchema() {
             );
         }
 
-        let arrayEntryPrefixesLongestToShortest = Object.keys(
+        const arrayEntryPrefixesLongestToShortest = Object.keys(
             arrayEntryPrefixes,
         ).sort((a, b) => b.length - a.length);
 
-        for (let aliasName in aliases) {
-            let aliasTargetName = aliases[aliasName];
-            let aliasTarget = stateVariableDescriptions[aliasTargetName];
+        for (const aliasName in aliases) {
+            const aliasTargetName = aliases[aliasName];
+            const aliasTarget =
+                publicStateVariableDescriptions[aliasTargetName];
             if (aliasTarget) {
                 properties.push(
                     propFromDescription({
@@ -284,16 +362,16 @@ export function getSchema() {
                     }),
                 );
             } else {
-                for (let prefix of arrayEntryPrefixesLongestToShortest) {
+                for (const prefix of arrayEntryPrefixesLongestToShortest) {
                     if (
                         aliasTargetName.substring(0, prefix.length) === prefix
                     ) {
-                        let arrayEntry = arrayEntryPrefixes[prefix];
-                        let arrayVariableName = arrayEntry.arrayVariableName;
-                        let arrayStateVarDescription =
-                            stateVariableDescriptions[arrayVariableName];
+                        const arrayEntry = arrayEntryPrefixes[prefix];
+                        const arrayVariableName = arrayEntry.arrayVariableName;
+                        const arrayStateVarDescription =
+                            publicStateVariableDescriptions[arrayVariableName];
 
-                        let arrayEntryDescription: PublicStateVariableDescription =
+                        const arrayEntryDescription: PublicStateVariableDescription =
                             {
                                 public: true,
                                 createComponentOfType:
@@ -333,7 +411,6 @@ export function getSchema() {
         });
     }
 
-    // For now, we're just copying these schema from this console output
     return { elements };
 }
 
@@ -346,23 +423,23 @@ function propFromDescription({
     description: PublicStateVariableDescription;
     arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
 }) {
-    let componentType = description.createComponentOfType;
+    const componentType = description.createComponentOfType;
 
-    let prop: PropertyDescription = {
+    const prop: PropertyDescription = {
         name: varName,
         type: componentType,
         isArray: description.isArray,
     };
 
     if (description.isArray) {
-        let numDimensions = description.numDimensions || 1;
+        const numDimensions = description.numDimensions || 1;
 
         prop.numDimensions = numDimensions;
         prop.indexedArrayDescription = [];
 
-        let wrappingComponents = description.wrappingComponents || [];
+        const wrappingComponents = description.wrappingComponents || [];
 
-        let arrayEntryPrefixesLongestToShortest = Object.keys(
+        const arrayEntryPrefixesLongestToShortest = Object.keys(
             arrayEntryPrefixes,
         ).sort((a, b) => b.length - a.length);
 
@@ -382,7 +459,7 @@ function propFromDescription({
             propIndexStandin.push(1);
 
             // TODO: fix technical debt so don't have to go through varName
-            let varNameForIndexed = description.arrayVarNameFromPropIndex?.(
+            const varNameForIndexed = description.arrayVarNameFromPropIndex?.(
                 propIndexStandin,
                 varName,
             ) as string;
@@ -391,10 +468,10 @@ function propFromDescription({
 
             for (let prefix of arrayEntryPrefixesLongestToShortest) {
                 if (varNameForIndexed.substring(0, prefix.length) === prefix) {
-                    let prefixDescription = arrayEntryPrefixes[prefix];
+                    const prefixDescription = arrayEntryPrefixes[prefix];
 
-                    let numDimensions = prefixDescription.numDimensions;
-                    let wrappingComponents =
+                    const numDimensions = prefixDescription.numDimensions;
+                    const wrappingComponents =
                         prefixDescription.wrappingComponents;
 
                     prop.indexedArrayDescription.push(
@@ -429,7 +506,7 @@ function createArrayElementDescription(
         // the last dimension of the array is wrapped,
         // which means the final result isn't actually an array,
         // but a single component of the wrapped type
-        let wrapping = wrappingComponents[wrappingComponents.length - 1][0];
+        const wrapping = wrappingComponents[wrappingComponents.length - 1][0];
 
         return {
             isArray: false,
@@ -442,7 +519,7 @@ function createArrayElementDescription(
         // although the last dimension isn't wrapped, some inner dimension is wrapped,
         // which means the final result is an array, but of a lower dimensions,
         // with type given by the last wrapping component
-        let wrapping = wrappingComponents[wrappingComponents.length - 1][0];
+        const wrapping = wrappingComponents[wrappingComponents.length - 1][0];
 
         return {
             isArray: true,
@@ -462,6 +539,15 @@ function createArrayElementDescription(
     }
 }
 
+/**
+ * Determine if `startingType` either inherits from or adapts to `destinationType`.
+ *
+ * For the purposes of building the schema, inheritance can be overridden by the static variable `inSchemaOnlyInheritAs`
+ * on the component class object. (See `checkIfInherit` for details.)
+ *
+ * Return true if `startingType` inherits from `destinationType` or adapts into a component type that inherits from `destinationType`.
+ * Otherwise return false.
+ */
 function checkIfInheritOrAdapt({
     startingType,
     destinationType,
@@ -471,7 +557,65 @@ function checkIfInheritOrAdapt({
     destinationType: string;
     componentInfoObjects: ComponentInfoObjects;
 }) {
-    let startingClass = componentInfoObjects.allComponentClasses[startingType];
+    if (
+        checkIfInherit({
+            startingType,
+            destinationType,
+            componentInfoObjects,
+        })
+    ) {
+        return true;
+    }
+
+    const startingClass =
+        componentInfoObjects.allComponentClasses[startingType];
+    const numAdapters = startingClass.numAdapters;
+
+    for (let n = 0; n < numAdapters; n++) {
+        const adapterComponentType = startingClass.getAdapterComponentType(
+            n,
+            componentInfoObjects.publicStateVariableInfo,
+        );
+
+        if (
+            checkIfInherit({
+                startingType: adapterComponentType,
+                destinationType,
+                componentInfoObjects,
+            })
+        ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Determine if `startingType` inherits from `destinationType`.
+ *
+ * For the purposes of building the schema, inheritance can be overridden by the static variable `inSchemaOnlyInheritAs`
+ * on the component class object.
+ *
+ * The rules for determining if component type `startingType` inherits from component type `destinationType`
+ * depend on whether the component class of  `startingType` has `inSchemaOnlyInheritAs` set:
+ * - if `inSchemaOnlyInheritAs` is not set, `startingType` must inherit from `destinationType` (or be equal to `destinationType`),
+ * - if `inSchemaOnlyInheritAs` is set, `destinationType` must be in that list or be equal to `startingType`.
+ *
+ * Return true if `startingType` inherits from `destinationType`.
+ * Otherwise return false.
+ */
+function checkIfInherit({
+    startingType,
+    destinationType,
+    componentInfoObjects,
+}: {
+    startingType: string;
+    destinationType: string;
+    componentInfoObjects: ComponentInfoObjects;
+}) {
+    const startingClass =
+        componentInfoObjects.allComponentClasses[startingType];
 
     // The static variable inSchemaOnlyInheritAs overrides the standard inheritance
     // rules for determining the children of the schema.
@@ -495,31 +639,5 @@ function checkIfInheritOrAdapt({
         return true;
     }
 
-    let numAdapters = startingClass.numAdapters;
-
-    for (let n = 0; n < numAdapters; n++) {
-        let adapterComponentType = startingClass.getAdapterComponentType(
-            n,
-            componentInfoObjects.publicStateVariableInfo,
-        );
-
-        let adapterClass =
-            componentInfoObjects.allComponentClasses[adapterComponentType];
-
-        if (adapterClass.inSchemaOnlyInheritAs) {
-            if (
-                adapterComponentType === destinationType ||
-                adapterClass.inSchemaOnlyInheritAs.includes(destinationType)
-            ) {
-                return true;
-            }
-        } else if (
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: adapterComponentType,
-                baseComponentType: destinationType,
-            })
-        ) {
-            return true;
-        }
-    }
+    return false;
 }

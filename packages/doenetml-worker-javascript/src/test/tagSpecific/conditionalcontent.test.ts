@@ -1644,4 +1644,31 @@ describe("Conditional content tag tests", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("B ");
     });
+
+    it("warning if add a condition attribute with case children", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+        <conditionalContent condition="true">
+            <case condition="true">A</case>
+            <else>B</else>
+        </conditionalContent>
+
+        <conditionalContent condition="true">
+            C
+        </conditionalContent>
+  `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            `Attribute \`condition\` is ignored on a <conditionalContent> component with case or else children`,
+        );
+        expect(errorWarnings.warnings[0].level).eq(1);
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.line).eq(5);
+    });
 });

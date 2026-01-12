@@ -8,6 +8,7 @@ import MathList from "./MathList";
 import { Div } from "./Divisions";
 import Setup from "./Setup";
 import P from "./P";
+import Case from "./Case";
 
 export class Title extends TextOrInline {
     static componentType = "title";
@@ -85,4 +86,11 @@ export class cascadeMessage extends P {
     static componentType = "cascadeMessage";
     static rendererType = "p";
     static inSchemaOnlyInheritAs = [];
+}
+
+// TODO: Else is never used, as it is sugared into a Case.
+// The component is created just so that it is added to the schema.
+// Consider an approach to add to the schema without creating a component.
+export class Else extends Case {
+    static componentType = "else";
 }

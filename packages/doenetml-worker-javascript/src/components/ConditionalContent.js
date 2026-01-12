@@ -11,6 +11,24 @@ export default class ConditionalContent extends CompositeComponent {
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
+    static createAttributesObject() {
+        let attributes = super.createAttributesObject();
+        // the `condition` attribute is not actually used on conditionalContent,
+        // but we include it here so it shows up in the schema.
+        // If the conditionalContent does not have any case/else children,
+        // then its condition attribute will be moved via sugar to a case child.
+        attributes.condition = {
+            createComponentOfType: "boolean",
+        };
+
+        return attributes;
+    }
+
+    // conditionalContent can be authored with any children.
+    // Case children will be sugared in so they are the only child group.
+    // We need to allow for any children in the schema.
+    static additionalSchemaChildren = ["_base", "else"];
+
     static returnChildGroups() {
         return [
             {
@@ -22,6 +40,33 @@ export default class ConditionalContent extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        stateVariableDefinitions.warnIfCondition = {
+            returnDependencies: () => ({
+                conditionAttribute: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "condition",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const warnings = [];
+                if (dependencyValues.conditionAttribute) {
+                    // If the condition attribute was not moved to a case child via sugar,
+                    // then warn that it is not used on conditionalContent
+
+                    warnings.push({
+                        message:
+                            "Attribute `condition` is ignored on a <conditionalContent> component with case or else children.",
+                        level: 1,
+                    });
+                }
+
+                return {
+                    sendWarnings: warnings,
+                    setValue: { warnIfCondition: null },
+                };
+            },
+        };
 
         stateVariableDefinitions.numCases = {
             additionalStateVariablesDefined: ["caseChildren"],
@@ -74,6 +119,10 @@ export default class ConditionalContent extends CompositeComponent {
                 selectedIndex: {
                     dependencyType: "stateVariable",
                     variableName: "selectedIndex",
+                },
+                warnIfCondition: {
+                    dependencyType: "stateVariable",
+                    variableName: "warnIfCondition",
                 },
             }),
             markStale: () => ({ updateReplacements: true }),
