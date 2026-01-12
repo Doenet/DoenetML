@@ -29,6 +29,7 @@ import {
     SelectProvider,
     useTabStore,
 } from "@ariakit/react";
+import { setVariantsFromCallback } from "../utils/variants";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
@@ -548,34 +549,7 @@ export function EditorViewer({
                     prefixForIds={prefixForIds}
                     attemptNumber={1}
                     generatedVariantCallback={(x: any) => {
-                        const allPossibleVariants = x.allPossibleVariants;
-                        if (Array.isArray(allPossibleVariants)) {
-                            const numVariants = allPossibleVariants.length;
-                            if (
-                                typeof x.variantInfo === "object" &&
-                                typeof x.variantInfo.index === "number"
-                            ) {
-                                const index = x.variantInfo.index;
-
-                                // If the variant generated does not match the variant prescribed,
-                                // set the variants state variable to match.
-                                if (
-                                    index !== variants.index ||
-                                    numVariants !== variants.numVariants ||
-                                    allPossibleVariants.some(
-                                        (v, i) =>
-                                            v !==
-                                            variants.allPossibleVariants[i],
-                                    )
-                                ) {
-                                    setVariants({
-                                        index,
-                                        numVariants,
-                                        allPossibleVariants,
-                                    });
-                                }
-                            }
-                        }
+                        setVariantsFromCallback(x, variants, setVariants);
                     }}
                     requestedVariantIndex={variants.index}
                     setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
