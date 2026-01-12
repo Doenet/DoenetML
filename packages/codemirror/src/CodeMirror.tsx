@@ -20,6 +20,7 @@ const CodeMirror = React.memo(function CodeMirror({
     onBlur,
     onFocus,
     languageServerRef,
+    ariaLabel = "DoenetML code editor",
 }: {
     value: string;
     onChange?: (str: string) => void;
@@ -35,6 +36,10 @@ const CodeMirror = React.memo(function CodeMirror({
         lsp: typeof uniqueLanguageServerInstance;
         documentUri: string;
     } | null>;
+    /**
+     * Accessible label for the editor. Defaults to "DoenetML code editor".
+     */
+    ariaLabel?: string;
 }) {
     // Only one language server runs for all documents, so we specify a document id to keep different instances different.
     const [documentId, _] = React.useState(() =>
@@ -68,6 +73,8 @@ const CodeMirror = React.memo(function CodeMirror({
             syntaxHighlightingExtension,
             readOnly ? readOnlyColorTheme : colorTheme,
             EditorView.lineWrapping,
+            // Add aria-label to the contenteditable element for accessibility
+            EditorView.contentAttributes.of({ "aria-label": ariaLabel }),
         ];
         if (!readOnly) {
             extensions.push(tabExtension);
@@ -76,7 +83,7 @@ const CodeMirror = React.memo(function CodeMirror({
             extensions.push(EditorState.readOnly.of(true));
         }
         return extensions;
-    }, [documentId, readOnly]);
+    }, [documentId, readOnly, ariaLabel]);
 
     return (
         <div className="mathjax_ignore" style={{ height: "100%" }}>
