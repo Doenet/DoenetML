@@ -25,6 +25,7 @@ import "./editor-viewer.css";
 import {
     Select,
     SelectItem,
+    SelectLabel,
     SelectPopover,
     SelectProvider,
     useTabStore,
@@ -388,31 +389,35 @@ export function EditorViewer({
             <div className="formatter-and-version">
                 {showFormatter ? (
                     <>
-                        <div className="label">Format as</div>
-                        <div className="wrapper">
-                            <SelectProvider
-                                defaultValue={"DoenetML"}
-                                setValue={(e) => {
-                                    setFormatAsDoenetML(e === "DoenetML");
-                                }}
-                            >
+                        {/* <div className="label">Format as</div> */}
+
+                        <SelectProvider
+                            defaultValue={"DoenetML"}
+                            setValue={(e) => {
+                                setFormatAsDoenetML(e === "DoenetML");
+                            }}
+                        >
+                            <SelectLabel className="label">
+                                Format as
+                            </SelectLabel>
+                            <div className="wrapper">
                                 <Select className="button" />
-                                <SelectPopover
-                                    sameWidth
-                                    gutter={2}
-                                    className="popover"
-                                >
-                                    <SelectItem
-                                        className="select-item"
-                                        value="DoenetML"
-                                    />
-                                    <SelectItem
-                                        className="select-item"
-                                        value="XML"
-                                    />
-                                </SelectPopover>
-                            </SelectProvider>
-                        </div>
+                            </div>
+                            <SelectPopover
+                                sameWidth
+                                gutter={2}
+                                className="popover"
+                            >
+                                <SelectItem
+                                    className="select-item"
+                                    value="DoenetML"
+                                />
+                                <SelectItem
+                                    className="select-item"
+                                    value="XML"
+                                />
+                            </SelectPopover>
+                        </SelectProvider>
                         <UiButton
                             title="Format your source code"
                             onClick={async () => {
