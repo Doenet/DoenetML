@@ -144,11 +144,29 @@ export function returnScoredSectionStateVariableDefinition() {
                 dependencyType: "flag",
                 flagName: "showCorrectness",
             },
+            sectionAncestor: {
+                dependencyType: "ancestor",
+                componentType: "_sectioningComponent",
+                variableNames: ["showCorrectness"],
+            },
+            documentAncestor: {
+                dependencyType: "ancestor",
+                componentType: "document",
+                variableNames: ["showCorrectness"],
+            },
         }),
         definition({ dependencyValues, usedDefault }) {
             let showCorrectness;
             if (!usedDefault.showCorrectnessPreliminary) {
                 showCorrectness = dependencyValues.showCorrectnessPreliminary;
+            } else if (dependencyValues.sectionAncestor) {
+                showCorrectness =
+                    dependencyValues.sectionAncestor.stateValues
+                        .showCorrectness;
+            } else if (dependencyValues.documentAncestor) {
+                showCorrectness =
+                    dependencyValues.documentAncestor.stateValues
+                        .showCorrectness;
             } else {
                 showCorrectness =
                     dependencyValues.showCorrectnessFlag !== false;
