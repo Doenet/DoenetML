@@ -3259,4 +3259,44 @@ d
         cy.get("#ans [data-test='Description']").should("not.exist");
         cy.get("#ans [data-test='Details Associated").should("not.exist");
     });
+
+    it("answer display mode changes with block choiceInput children", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <answer name="ans1" inline>
+        <choice>a</choice>
+        <choice>b</choice>
+    </answer>
+    <answer name="ans2">
+        <choice>1</choice>
+        <choice>2</choice>
+    </answer>
+    <answer name="ans3">
+        <choiceInput inline>
+            <choice>x</choice>
+            <choice>y</choice>
+        </choiceInput>
+    </answer>
+    <answer name="ans4">
+        <choiceInput>
+            <choice>m</choice>
+            <choice>n</choice>
+        </choiceInput>
+    </answer>
+    <answer name="ans5">x</answer>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans1").should("have.css", "display", "inline-flex");
+        cy.get("#ans2").should("have.css", "display", "flex");
+        cy.get("#ans3").should("have.css", "display", "inline-flex");
+        cy.get("#ans4").should("have.css", "display", "flex");
+        cy.get("#ans5").should("have.css", "display", "inline-flex");
+    });
 });
