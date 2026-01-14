@@ -6157,7 +6157,7 @@ What is the derivative of <function name="f">x^2</function>?
         });
     });
 
-    it("hand-graded answer have showCorrectness false by default", async () => {
+    it("hand-graded answers have showCorrectness false by default", async () => {
         const doenetML = `
 <answer handGraded name="a1">x</answer>
 <answer handGraded name="a2" showCorrectness="true">x</answer>
