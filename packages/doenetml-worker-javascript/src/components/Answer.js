@@ -271,14 +271,9 @@ export default class Answer extends InlineComponent {
                 return false;
             }
 
-            function addResponsesToCompositeDescendants(components) {
+            function addResponsesToReferenceDescendants(components) {
                 for (let component of components) {
-                    if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: component.componentType,
-                            baseComponentType: "_composite",
-                        })
-                    ) {
+                    if (component.componentType === "_copy") {
                         if (!component.attributes) {
                             component.attributes = {};
                         }
@@ -288,7 +283,7 @@ export default class Answer extends InlineComponent {
                             children: ["true"],
                         };
                     } else if (component.children) {
-                        addResponsesToCompositeDescendants(component.children);
+                        addResponsesToReferenceDescendants(component.children);
                     }
                 }
             }
@@ -556,7 +551,7 @@ export default class Answer extends InlineComponent {
                     for (let child of matchedChildren) {
                         if (componentIsSpecifiedType(child, "award")) {
                             if (child.children?.length > 0) {
-                                addResponsesToCompositeDescendants(
+                                addResponsesToReferenceDescendants(
                                     child.children,
                                 );
                             }
