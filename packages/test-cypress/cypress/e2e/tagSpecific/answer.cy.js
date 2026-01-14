@@ -3285,7 +3285,13 @@ d
             <choice>n</choice>
         </choiceInput>
     </answer>
-    <answer name="ans5">x</answer>
+    <answer name="ans5" inline>
+        <choiceInput inline="false">
+            <choice>m</choice>
+            <choice>n</choice>
+        </choiceInput>
+    </answer>
+    <answer name="ans6">x</answer>
 
     `,
                 },
@@ -3298,5 +3304,6 @@ d
         cy.get("#ans3").should("have.css", "display", "inline-flex");
         cy.get("#ans4").should("have.css", "display", "flex");
         cy.get("#ans5").should("have.css", "display", "inline-flex");
+        cy.get("#ans6").should("have.css", "display", "inline-flex");
     });
 });

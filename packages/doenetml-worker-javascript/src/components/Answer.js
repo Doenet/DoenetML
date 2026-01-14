@@ -48,6 +48,7 @@ export default class Answer extends InlineComponent {
         attributes.inline = {
             createComponentOfType: "boolean",
             createStateVariable: "inline",
+            forRenderer: true,
             defaultValue: false,
             public: true,
         };
