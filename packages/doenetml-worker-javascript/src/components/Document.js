@@ -48,7 +48,12 @@ export default class Document extends BaseComponent {
         attributes.showCorrectness = {
             createComponentOfType: "boolean",
             createStateVariable: "showCorrectnessPreliminary",
-            defaultValue: null,
+            defaultValue: true,
+        };
+        attributes.colorCorrectness = {
+            createComponentOfType: "boolean",
+            createStateVariable: "colorCorrectnessPreliminary",
+            defaultValue: true,
         };
         attributes.submitLabel = {
             createComponentOfType: "text",

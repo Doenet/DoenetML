@@ -17,17 +17,11 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { addValidationStateToShortDescription } from "./utils/description";
 
 export default function MathInput(props: UseDoenetRendererProps) {
-    let {
-        id,
-        SVs,
-        children,
-        actions,
-        sourceOfUpdate,
-        ignoreUpdate,
-        callAction,
-    } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, ignoreUpdate, callAction } =
+        useDoenetRenderer(props);
 
     // @ts-ignore
     MathInput.baseStateVariable = "rawRendererValue";
@@ -270,7 +264,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         );
     }
 
-    const shortDescription = SVs.shortDescription || undefined;
+    let shortDescription = SVs.shortDescription || undefined;
 
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
@@ -284,6 +278,23 @@ export default function MathInput(props: UseDoenetRendererProps) {
             <DescriptionPopover>
                 <div id={descriptionId}>{descriptionChild}</div>
             </DescriptionPopover>
+        );
+    }
+
+    if (SVs.colorCorrectness) {
+        if (validationState.current === "correct") {
+            mathInputStyle.borderColor = "var(--lightGreen)";
+            mathInputStyle.outlineColor = "var(--lightGreen)";
+        } else if (validationState.current === "incorrect") {
+            mathInputStyle.borderColor = "var(--lightRed)";
+            mathInputStyle.outlineColor = "var(--lightRed)";
+        } else if (validationState.current === "partialcorrect") {
+            mathInputStyle.borderColor = "#ffd894"; // Light Yellow
+            mathInputStyle.outlineColor = "#ffd894";
+        }
+        shortDescription = addValidationStateToShortDescription(
+            validationState.current,
+            shortDescription,
         );
     }
 

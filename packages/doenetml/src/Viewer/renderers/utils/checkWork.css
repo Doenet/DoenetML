@@ -9,6 +9,11 @@
     margin: 0px 4px 4px 0px;
 }
 
+.doenet-viewer button.check-work:focus {
+    outline: var(--mainBorder);
+    outline-offset: 2px;
+}
+
 .doenet-viewer button.check-work-unvalidated {
     background-color: var(--mainBlue);
     color: white;
@@ -18,6 +23,10 @@
         background-color: var(--lightBlue);
         color: black;
     }
+}
+
+.doenet-viewer button.check-work-unvalidated:focus {
+    outline-color: var(--mainBlue);
 }
 
 .doenet-viewer button.check-work-unvalidated:disabled {
@@ -43,6 +52,10 @@
     }
 }
 
+.doenet-viewer button.check-work-correct:focus {
+    outline-color: #3e844a; /* Dark Green */
+}
+
 .doenet-viewer button.check-work-incorrect {
     background-color: var(--mainRed);
     color: white;
@@ -54,7 +67,11 @@
     }
 }
 
-.doenet-viewer button.check-work-partially-correct {
+.doenet-viewer button.check-work-incorrect:focus {
+    outline-color: var(--mainRed);
+}
+
+.doenet-viewer button.check-work-partialcorrect {
     background-color: #a36600; /* Dark Yellow */
     color: white;
     cursor: default;
@@ -63,6 +80,10 @@
         background-color: #efab34; /* Light Yellow */
         color: black;
     }
+}
+
+.doenet-viewer button.check-work-partialcorrect:focus {
+    outline-color: #a36600; /* Dark Yellow */
 }
 
 .doenet-viewer button.check-work-response-saved {
@@ -74,6 +95,9 @@
         background-color: rgb(161, 129, 224); /* Light Purple */
         color: black;
     }
+}
+.doenet-viewer button.check-work-response-saved:focus {
+    outline-color: rgb(74, 3, 217); /* Dark Purple */
 }
 
 /* A utility class to hide content visually but keep it accessible */

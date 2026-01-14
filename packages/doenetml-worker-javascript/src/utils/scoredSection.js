@@ -21,7 +21,12 @@ export function returnScoredSectionAttributes() {
         showCorrectness: {
             createComponentOfType: "boolean",
             createStateVariable: "showCorrectnessPreliminary",
-            defaultValue: null,
+            defaultValue: false,
+        },
+        colorCorrectness: {
+            createComponentOfType: "boolean",
+            createStateVariable: "colorCorrectnessPreliminary",
+            defaultValue: false,
         },
         submitLabel: {
             createComponentOfType: "text",
@@ -172,6 +177,47 @@ export function returnScoredSectionStateVariableDefinition() {
                     dependencyValues.showCorrectnessFlag !== false;
             }
             return { setValue: { showCorrectness } };
+        },
+    };
+
+    stateVariableDefinitions.colorCorrectness = {
+        forRenderer: true,
+        returnDependencies: () => ({
+            colorCorrectnessPreliminary: {
+                dependencyType: "stateVariable",
+                variableName: "colorCorrectnessPreliminary",
+            },
+            showCorrectness: {
+                dependencyType: "stateVariable",
+                variableName: "showCorrectness",
+            },
+            sectionAncestor: {
+                dependencyType: "ancestor",
+                componentType: "_sectioningComponent",
+                variableNames: ["colorCorrectness"],
+            },
+            documentAncestor: {
+                dependencyType: "ancestor",
+                componentType: "document",
+                variableNames: ["colorCorrectness"],
+            },
+        }),
+        definition({ dependencyValues, usedDefault }) {
+            let colorCorrectness = true;
+            if (!dependencyValues.showCorrectness) {
+                colorCorrectness = false;
+            } else if (!usedDefault.colorCorrectnessPreliminary) {
+                colorCorrectness = dependencyValues.colorCorrectnessPreliminary;
+            } else if (dependencyValues.sectionAncestor) {
+                colorCorrectness =
+                    dependencyValues.sectionAncestor.stateValues
+                        .colorCorrectness;
+            } else if (dependencyValues.documentAncestor) {
+                colorCorrectness =
+                    dependencyValues.documentAncestor.stateValues;
+            }
+
+            return { setValue: { colorCorrectness } };
         },
     };
 

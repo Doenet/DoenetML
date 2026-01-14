@@ -1,7 +1,7 @@
 /* CUSTOM STYLING FOR RADIO BUTTON */
 
 /* Customize the label (the container) */
-.radio-container {
+.doenet-viewer .radio-container {
     display: block;
     position: relative;
     padding-left: 24px;
@@ -14,20 +14,20 @@
     user-select: none;
 }
 
-.radio-container label {
+.doenet-viewer .radio-container label {
     cursor: pointer;
 }
 
-.radio-container-disabled {
+.doenet-viewer .radio-container-disabled {
     cursor: not-allowed;
 }
 
-.radio-container-disabled label {
+.doenet-viewer .radio-container-disabled label {
     cursor: not-allowed;
 }
 
 /* Hide the browser's default radio button */
-.radio-container input {
+.doenet-viewer .radio-container input {
     position: absolute;
     opacity: 0;
     cursor: pointer;
@@ -35,12 +35,12 @@
     width: 1;
 }
 
-.radio-container-disabled input {
+.doenet-viewer .radio-container-disabled input {
     cursor: not-allowed;
 }
 
 /* Create a custom radio button */
-.radio-checkmark {
+.doenet-viewer .radio-checkmark {
     position: absolute;
     top: 0;
     left: 0;
@@ -52,47 +52,73 @@
     border-radius: 50%;
 }
 
-.radio-checkmark-disabled {
+.doenet-viewer .radio-checkmark-disabled {
     background-color: var(--mainGray);
     border-color: var(--mainGray);
     cursor: not-allowed;
 }
 
+.doenet-viewer .radio-checkmark-correct {
+    border-color: var(--lightGreen);
+}
+.doenet-viewer .radio-checkmark-incorrect {
+    border-color: var(--lightRed);
+}
+.doenet-viewer .radio-checkmark-partialcorrect {
+    border-color: #ffd894; /* Light Yellow */
+}
+
 /* On mouse-over, add a grey background color */
-.radio-container:hover input ~ .radio-checkmark {
+.doenet-viewer .radio-container:hover input ~ .radio-checkmark {
     background-color: var(--lightBlue);
 }
 
 /* On mouse-over of disabled, keep the grey background color */
-.radio-container:hover input ~ .radio-checkmark-disabled {
+.doenet-viewer .radio-container:hover input ~ .radio-checkmark-disabled {
     background-color: var(--mainGray);
 }
 
 /* When the radio button is checked, add a blue background */
-.radio-container input:checked ~ .radio-checkmark {
+.doenet-viewer .radio-container input:checked ~ .radio-checkmark {
     background-color: var(--mainBlue);
 }
 
 /* When a radio button has focus, add a dark blue outline */
-.radio-container:focus-within input ~ .radio-checkmark {
+.doenet-viewer .radio-container:focus-within input ~ .radio-checkmark {
     outline: 2px solid var(--mainBlue);
     outline-offset: 2px;
 }
 
+.doenet-viewer .radio-container:focus-within input ~ .radio-checkmark-correct {
+    outline-color: var(--lightGreen);
+}
+.doenet-viewer
+    .radio-container:focus-within
+    input
+    ~ .radio-checkmark-incorrect {
+    outline-color: var(--lightRed);
+}
+.doenet-viewer
+    .radio-container:focus-within
+    input
+    ~ .radio-checkmark-partialcorrect {
+    outline-color: #ffd894; /* Light Yellow */
+}
+
 /* Create the indicator (the dot/circle - hidden when not checked) */
-.radio-checkmark:after {
+.doenet-viewer .radio-checkmark:after {
     content: "";
     position: absolute;
     display: none;
 }
 
 /* Show the indicator (dot/circle) when checked */
-.radio-container input:checked ~ .radio-checkmark:after {
+.doenet-viewer .radio-container input:checked ~ .radio-checkmark:after {
     display: block;
 }
 
 /* Style the indicator (dot/circle) */
-.radio-container .radio-checkmark:after {
+.doenet-viewer .radio-container .radio-checkmark:after {
     top: 6px;
     left: 6px;
     width: 6px;
@@ -104,7 +130,7 @@
 /* CUSTOM STYLING FOR CHECKBOX */
 
 /* Customize the label (the container) */
-.checkbox-container {
+.doenet-viewer .checkbox-container {
     display: block;
     position: relative;
     padding-left: 24px;
@@ -117,20 +143,20 @@
     user-select: none;
 }
 
-.checkbox-container label {
+.doenet-viewer .checkbox-container label {
     cursor: pointer;
 }
 
-.checkbox-container-disabled {
+.doenet-viewer .checkbox-container-disabled {
     cursor: not-allowed;
 }
 
-.checkbox-container-disabled label {
+.doenet-viewer .checkbox-container-disabled label {
     cursor: not-allowed;
 }
 
 /* Hide the browser's default checkbox */
-.checkbox-container input {
+.doenet-viewer .checkbox-container input {
     position: absolute;
     opacity: 0;
     cursor: pointer;
@@ -138,12 +164,12 @@
     width: 1;
 }
 
-.checkbox-container-disabled input {
+.doenet-viewer .checkbox-container-disabled input {
     cursor: not-allowed;
 }
 
 /* Create a custom checkbox */
-.checkbox-checkmark {
+.doenet-viewer .checkbox-checkmark {
     position: absolute;
     top: 0;
     left: 0;
@@ -155,47 +181,75 @@
     border-radius: var(--mainBorderRadius);
 }
 
-.checkbox-checkmark-disabled {
+.doenet-viewer .checkbox-checkmark-disabled {
     background-color: var(--mainGray);
     border-color: var(--mainGray);
     cursor: not-allowed;
 }
 
+.doenet-viewer .checkbox-checkmark-correct {
+    border-color: var(--lightGreen);
+}
+.doenet-viewer .checkbox-checkmark-incorrect {
+    border-color: var(--lightRed);
+}
+.doenet-viewer .checkbox-checkmark-partialcorrect {
+    border-color: #ffd894; /* Light Yellow */
+}
+
 /* On mouse-over, add a light blue background color */
-.checkbox-container:hover input ~ .checkbox-checkmark {
+.doenet-viewer .checkbox-container:hover input ~ .checkbox-checkmark {
     background-color: var(--lightBlue);
 }
 
 /* On mouse-over of disabled, keep the grey background color */
-.checkbox-container:hover input ~ .checkbox-checkmark-disabled {
+.doenet-viewer .checkbox-container:hover input ~ .checkbox-checkmark-disabled {
     background-color: var(--mainGray);
 }
 
 /* When the checkbox is checked, add a dark blue background */
-.checkbox-container input:checked ~ .checkbox-checkmark {
+.doenet-viewer .checkbox-container input:checked ~ .checkbox-checkmark {
     background-color: var(--mainBlue);
 }
 
 /* When a checkbox has focus, add a dark blue outline */
-.checkbox-container:focus-within input ~ .checkbox-checkmark {
+.doenet-viewer .checkbox-container:focus-within input ~ .checkbox-checkmark {
     outline: 2px solid var(--mainBlue);
     outline-offset: 2px;
 }
+.doenet-viewer
+    .checkbox-container:focus-within
+    input
+    ~ .checkbox-checkmark-correct {
+    outline-color: var(--lightGreen);
+}
+.doenet-viewer
+    .checkbox-container:focus-within
+    input
+    ~ .checkbox-checkmark-incorrect {
+    outline-color: var(--lightRed);
+}
+.doenet-viewer
+    .checkbox-container:focus-within
+    input
+    ~ .checkbox-checkmark-partialcorrect {
+    outline-color: #ffd894; /* Light Yellow */
+}
 
 /* Create the checkmark/indicator (hidden when not checked) */
-.checkbox-checkmark:after {
+.doenet-viewer .checkbox-checkmark:after {
     content: "";
     position: absolute;
     display: none;
 }
 
 /* Show the checkmark when checked */
-.checkbox-container input:checked ~ .checkbox-checkmark:after {
+.doenet-viewer .checkbox-container input:checked ~ .checkbox-checkmark:after {
     display: block;
 }
 
 /* Style the checkmark/indicator */
-.checkbox-container .checkbox-checkmark:after {
+.doenet-viewer .checkbox-container .checkbox-checkmark:after {
     left: 5px;
     top: 1px;
     width: 5px;
@@ -208,12 +262,39 @@
 }
 
 /* CUSTOM STYLING FOR SELECT */
-.custom-select {
+.doenet-viewer .custom-select {
     border-radius: var(--mainBorderRadius);
     margin: 0px 4px 4px 4px;
+    border: var(--mainBorder);
+    cursor: pointer;
 }
 
-.custom-select:focus-within {
+.doenet-viewer .custom-select-disabled {
+    border: 2px solid var(--mainGray);
+    cursor: not-allowed;
+}
+
+.doenet-viewer .custom-select-correct {
+    border-color: var(--lightGreen);
+}
+.doenet-viewer .custom-select-incorrect {
+    border-color: var(--lightRed);
+}
+.doenet-viewer .custom-select-partialcorrect {
+    border-color: #ffd894; /* Light Yellow */
+}
+
+.doenet-viewer .custom-select:focus-within {
     outline: var(--mainBorder);
     outline-offset: 2px;
+}
+
+.doenet-viewer .custom-select-correct:focus-within {
+    outline-color: var(--lightGreen);
+}
+.doenet-viewer .custom-select-incorrect:focus-within {
+    outline-color: var(--lightRed);
+}
+.doenet-viewer .custom-select-partialcorrect:focus-within {
+    outline-color: #ffd894; /* Light Yellow */
 }

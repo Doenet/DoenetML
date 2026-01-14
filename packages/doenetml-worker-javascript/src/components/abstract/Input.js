@@ -19,6 +19,10 @@ export default class Input extends InlineComponent {
             excludeFromSchema: true,
         };
 
+        attributes.forAnswer = {
+            createReferences: true,
+        };
+
         Object.assign(attributes, returnLabelAttributes());
 
         return attributes;
@@ -36,6 +40,65 @@ export default class Input extends InlineComponent {
             definition: () => ({ setValue: { numValues: 1 } }),
         };
 
+        stateVariableDefinitions.answerDelegateIdx = {
+            returnDependencies: () => ({
+                forAnswer: {
+                    dependencyType: "attributeRefResolutions",
+                    attributeName: "forAnswer",
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.forAnswer?.length === 1) {
+                    const forAnswer = dependencyValues.forAnswer[0];
+
+                    if (!forAnswer.unresolvedPath) {
+                        return {
+                            setValue: {
+                                answerDelegateIdx: forAnswer.componentIdx,
+                            },
+                        };
+                    }
+                }
+                return {
+                    setValue: {
+                        answerDelegateIdx: null,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.answerDelegate = {
+            stateVariablesDeterminingDependencies: ["answerDelegateIdx"],
+            returnDependencies({ stateValues }) {
+                let dependencies = {};
+                if (stateValues.answerDelegateIdx !== null) {
+                    dependencies.answerDelegate = {
+                        dependencyType: "multipleStateVariables",
+                        componentIdx: stateValues.answerDelegateIdx,
+                        variableNames: [
+                            "justSubmitted",
+                            "creditAchieved",
+                            "showCorrectness",
+                            "colorCorrectness",
+                        ],
+                        variablesOptional: true,
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                let answerDelegate = null;
+                if (
+                    dependencyValues.answerDelegate &&
+                    dependencyValues.answerDelegate.componentType === "answer"
+                ) {
+                    answerDelegate = dependencyValues.answerDelegate;
+                }
+
+                return { setValue: { answerDelegate } };
+            },
+        };
+
         stateVariableDefinitions.answerAncestor = {
             returnDependencies: () => ({
                 answerAncestor: {
@@ -46,6 +109,7 @@ export default class Input extends InlineComponent {
                         "justSubmitted",
                         "creditAchieved",
                         "showCorrectness",
+                        "colorCorrectness",
                         "submitLabel",
                         "submitLabelNoCorrectness",
                         "numAttemptsLeft",
@@ -117,12 +181,20 @@ export default class Input extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "answerAncestor",
                 },
+                answerDelegate: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerDelegate",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let creditAchieved = 0;
                 if (dependencyValues.answerAncestor) {
                     creditAchieved =
                         dependencyValues.answerAncestor.stateValues
+                            .creditAchieved;
+                } else if (dependencyValues.answerDelegate) {
+                    creditAchieved =
+                        dependencyValues.answerDelegate.stateValues
                             .creditAchieved;
                 }
                 return {
@@ -159,15 +231,28 @@ export default class Input extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "answerAncestor",
                 },
+                answerDelegate: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerDelegate",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let justSubmitted = false;
 
-                if (
-                    dependencyValues.answerAncestor &&
-                    dependencyValues.answerAncestor.stateValues.justSubmitted
-                ) {
-                    justSubmitted = true;
+                if (dependencyValues.answerAncestor) {
+                    if (
+                        dependencyValues.answerAncestor.stateValues
+                            .justSubmitted
+                    ) {
+                        justSubmitted = true;
+                    }
+                } else if (dependencyValues.answerDelegate) {
+                    if (
+                        dependencyValues.answerDelegate.stateValues
+                            .justSubmitted
+                    ) {
+                        justSubmitted = true;
+                    }
                 }
                 return {
                     setValue: { justSubmitted },
@@ -186,6 +271,10 @@ export default class Input extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "answerAncestor",
                 },
+                answerDelegate: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerDelegate",
+                },
             }),
             definition({ dependencyValues }) {
                 let showCorrectness;
@@ -193,11 +282,48 @@ export default class Input extends InlineComponent {
                     showCorrectness =
                         dependencyValues.answerAncestor.stateValues
                             .showCorrectness;
+                } else if (dependencyValues.answerDelegate) {
+                    showCorrectness =
+                        dependencyValues.answerDelegate.stateValues
+                            .showCorrectness;
                 } else {
                     showCorrectness =
                         dependencyValues.showCorrectnessFlag !== false;
                 }
                 return { setValue: { showCorrectness } };
+            },
+        };
+
+        stateVariableDefinitions.colorCorrectness = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+                answerDelegate: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerDelegate",
+                },
+                showCorrectness: {
+                    dependencyType: "stateVariable",
+                    variableName: "showCorrectness",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let colorCorrectness = true;
+                if (!dependencyValues.showCorrectness) {
+                    colorCorrectness = false;
+                } else if (dependencyValues.answerAncestor) {
+                    colorCorrectness =
+                        dependencyValues.answerAncestor.stateValues
+                            .colorCorrectness;
+                } else if (dependencyValues.answerDelegate) {
+                    colorCorrectness =
+                        dependencyValues.answerDelegate.stateValues
+                            .colorCorrectness;
+                }
+                return { setValue: { colorCorrectness } };
             },
         };
 

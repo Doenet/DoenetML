@@ -10,6 +10,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
+import { addValidationStateToShortDescription } from "./utils/description";
 
 // type guard
 const isMultiValue = <T,>(
@@ -145,7 +146,14 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         );
     }
 
-    const shortDescription = SVs.shortDescription || undefined;
+    let shortDescription = SVs.shortDescription || undefined;
+
+    if (SVs.colorCorrectness) {
+        shortDescription = addValidationStateToShortDescription(
+            validationState,
+            shortDescription,
+        );
+    }
 
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
@@ -213,17 +221,14 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         const valuePadding = "2px 0px 2px 6px";
 
         let selectStyle: React.CSSProperties = {};
+        let inputClasses = "custom-select";
 
         if (disabled) {
-            selectStyle.cursor = "not-allowed";
-            selectStyle.borderColor = getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGray");
-        } else {
-            selectStyle.cursor = "pointer";
-            selectStyle.border = getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainBorder");
+            inputClasses += " custom-select-disabled";
+        }
+
+        if (SVs.colorCorrectness) {
+            inputClasses += ` custom-select-${validationState}`;
         }
 
         const customStyles = {
@@ -342,7 +347,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                 Input: CustomInput,
                             }}
                             menuPlacement="auto"
-                            className="custom-select"
+                            className={inputClasses}
                             onChange={onChangeHandlerInline}
                             value={rendererSelectedIndices.map((ind) =>
                                 getOptionFromIndex(ind),
@@ -414,6 +419,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                         containerClassName += " radio-container-disabled";
                         radioClassName += " radio-checkmark-disabled";
                     }
+
+                    if (SVs.colorCorrectness) {
+                        radioClassName += ` radio-checkmark-${validationState}`;
+                    }
                     return (
                         <li key={i}>
                             <label
@@ -450,6 +459,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     if (checkboxDisabled) {
                         containerClassName += " checkbox-container-disabled";
                         checkboxClassName += " checkbox-checkmark-disabled";
+                    }
+
+                    if (SVs.colorCorrectness) {
+                        checkboxClassName += ` checkbox-checkmark-${validationState}`;
                     }
                     return (
                         <li key={i}>
