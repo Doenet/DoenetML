@@ -7357,4 +7357,276 @@ What is the derivative of <function name="f">x^2</function>?
             ].activeChildren.map((child) => child.componentType),
         ).eqls(["label", "description", "award"]);
     });
+
+    it("color correctness set on sugared inputs", async () => {
+        const doenetML = `
+    <answer name="ans1">x</answer>
+    <answer name="ans2" colorCorrectness="false">x</answer>
+    <answer name="ans3" colorCorrectness="true">x</answer>
+
+    <section colorCorrectness="false" name="sec">
+        <answer name="ans4">x</answer>
+        <answer name="ans5" colorCorrectness="false">x</answer>
+        <answer name="ans6" colorCorrectness="true">x</answer>
+    </section>
+
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+        const answer3Idx = await resolvePathToNodeIdx("ans3");
+        const answer4Idx = await resolvePathToNodeIdx("ans4");
+        const answer5Idx = await resolvePathToNodeIdx("ans5");
+        const answer6Idx = await resolvePathToNodeIdx("ans6");
+
+        const mathInput1Idx =
+            stateVariables[answer1Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput2Idx =
+            stateVariables[answer2Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput3Idx =
+            stateVariables[answer3Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput4Idx =
+            stateVariables[answer4Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput5Idx =
+            stateVariables[answer5Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput6Idx =
+            stateVariables[answer6Idx].stateValues.inputChildren[0]
+                .componentIdx;
+
+        expect(stateVariables[answer1Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer3Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer4Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer6Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput4Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput6Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+
+        // check document
+        expect(stateVariables[0].stateValues.colorCorrectness).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .colorCorrectness,
+        ).eq(false);
+    });
+
+    it("color correctness set on sugared inputs, influenced by document", async () => {
+        const doenetML = `
+    <document colorCorrectness="false">
+        <answer name="ans1">x</answer>
+        <answer name="ans2" colorCorrectness="false">x</answer>
+        <answer name="ans3" colorCorrectness="true">x</answer>
+
+        <section colorCorrectness="true" name="sec">
+            <answer name="ans4">x</answer>
+            <answer name="ans5" colorCorrectness="false">x</answer>
+            <answer name="ans6" colorCorrectness="true">x</answer>
+        </section>
+    </document>
+
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+        const answer3Idx = await resolvePathToNodeIdx("ans3");
+        const answer4Idx = await resolvePathToNodeIdx("ans4");
+        const answer5Idx = await resolvePathToNodeIdx("ans5");
+        const answer6Idx = await resolvePathToNodeIdx("ans6");
+
+        const mathInput1Idx =
+            stateVariables[answer1Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput2Idx =
+            stateVariables[answer2Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput3Idx =
+            stateVariables[answer3Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput4Idx =
+            stateVariables[answer4Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput5Idx =
+            stateVariables[answer5Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput6Idx =
+            stateVariables[answer6Idx].stateValues.inputChildren[0]
+                .componentIdx;
+
+        expect(stateVariables[answer1Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer3Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer4Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer6Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput4Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput6Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+
+        // check document
+        expect(stateVariables[0].stateValues.colorCorrectness).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .colorCorrectness,
+        ).eq(true);
+    });
+
+    it("color correctness turned off when show correctness is false", async () => {
+        const doenetML = `
+    <answer name="ans1">x</answer>
+    <answer name="ans2" colorCorrectness="false">x</answer>
+    <answer name="ans3" colorCorrectness="true">x</answer>
+
+    <section showCorrectness="false" name="sec">
+        <answer name="ans4">x</answer>
+        <answer name="ans5" colorCorrectness="false">x</answer>
+        <answer name="ans6" colorCorrectness="true">x</answer>
+    </section>
+
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+        const answer3Idx = await resolvePathToNodeIdx("ans3");
+        const answer4Idx = await resolvePathToNodeIdx("ans4");
+        const answer5Idx = await resolvePathToNodeIdx("ans5");
+        const answer6Idx = await resolvePathToNodeIdx("ans6");
+
+        const mathInput1Idx =
+            stateVariables[answer1Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput2Idx =
+            stateVariables[answer2Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput3Idx =
+            stateVariables[answer3Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput4Idx =
+            stateVariables[answer4Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput5Idx =
+            stateVariables[answer5Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput6Idx =
+            stateVariables[answer6Idx].stateValues.inputChildren[0]
+                .componentIdx;
+
+        expect(stateVariables[answer1Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer3Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer4Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer6Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput4Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput6Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+
+        // check document
+        expect(stateVariables[0].stateValues.colorCorrectness).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .colorCorrectness,
+        ).eq(false);
+    });
 });

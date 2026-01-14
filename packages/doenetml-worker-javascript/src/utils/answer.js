@@ -167,7 +167,8 @@ export function returnStandardAnswerStateVariableDefinition() {
                         .colorCorrectness;
             } else if (dependencyValues.documentAncestor) {
                 colorCorrectness =
-                    dependencyValues.documentAncestor.stateValues;
+                    dependencyValues.documentAncestor.stateValues
+                        .colorCorrectness;
             }
 
             return { setValue: { colorCorrectness } };
