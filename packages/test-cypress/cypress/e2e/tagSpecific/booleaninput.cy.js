@@ -218,7 +218,7 @@ describe("BooleanInput Tag Tests", function () {
         });
 
         cy.log("set as toggle button");
-        cy.get(cesc("#atb") + " .doenetml-checkmark").click();
+        cy.get(cesc("#atb") + " .checkmark").click();
 
         cy.log("Test values displayed in browser");
         cy.get(cesc("#v")).should("have.text", "true");
