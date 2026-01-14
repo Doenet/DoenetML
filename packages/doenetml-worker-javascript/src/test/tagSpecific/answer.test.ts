@@ -1787,6 +1787,35 @@ describe("Answer tag tests", async () => {
         });
     });
 
+    it("answer from mathList, no response indicated", async () => {
+        const doenetML = `
+    <mathInput name="mi1" /> <mathInput name="mi2" />
+    <answer matchPartial name="answer1"><award><when>
+      <mathList>$mi1 $mi2</mathList> = <mathList>x+y z</mathList>
+    </when></award></answer>
+
+  `;
+
+        await test_answer_multiple_inputs({
+            doenetML,
+            answers: [
+                { values: ["x+y", "z"], credit: 1 },
+                { values: ["x", "z"], credit: 0.5 },
+                { values: ["x", ""], credit: 0 },
+                { values: ["z", ""], credit: 0.5 },
+                { values: ["", "z"], credit: 0.5 },
+                { values: ["", "x"], credit: 0 },
+                { values: ["", "x+y"], credit: 0.5 },
+                { values: ["x+y", ""], credit: 0.5 },
+                { values: ["z", "x+y"], credit: 0.5 },
+            ],
+            inputs: [
+                { type: "math", name: "mi1" },
+                { type: "math", name: "mi2" },
+            ],
+        });
+    });
+
     it("answer sugar from numberList", async () => {
         const doenetML = `
     <answer name="answer1" matchPartial><numberList>1 2</numberList></answer>
@@ -1848,6 +1877,35 @@ describe("Answer tag tests", async () => {
             inputs: [
                 { type: "number", name: "mi1" },
                 { type: "number", name: "mi2" },
+            ],
+        });
+    });
+
+    it("answer from numberList, no response indicated", async () => {
+        const doenetML = `
+    <mathInput name="mi1" /> <mathInput name="mi2" />
+    <answer matchPartial name="answer1"><award><when>
+      <numberList>$mi1 $mi2</numberList> = <numberList>1 2</numberList>
+    </when></award></answer>
+
+  `;
+
+        await test_answer_multiple_inputs({
+            doenetML,
+            answers: [
+                { values: ["1", "2"], credit: 1 },
+                { values: ["3", "2"], credit: 0.5 },
+                { values: ["3", ""], credit: 0 },
+                { values: ["2", ""], credit: 0.5 },
+                { values: ["", "2"], credit: 0.5 },
+                { values: ["", "3"], credit: 0 },
+                { values: ["", "1"], credit: 0.5 },
+                { values: ["1", ""], credit: 0.5 },
+                { values: ["2", "1"], credit: 0.5 },
+            ],
+            inputs: [
+                { type: "math", name: "mi1" },
+                { type: "math", name: "mi2" },
             ],
         });
     });
@@ -2032,6 +2090,30 @@ describe("Answer tag tests", async () => {
         });
     });
 
+    it("answer from textList, no response indicated", async () => {
+        const doenetML = `
+    <textInput name="ti1" /> <textInput name="ti2" />
+    <answer name="answer1"><award matchPartial><when>
+      <textList>$ti1 $ti2</textList>=<textList>  hello there </textList>
+    </when></award></answer>
+
+  `;
+
+        await test_answer_multiple_inputs({
+            doenetML,
+            answers: [
+                { values: [" hello  ", " there "], credit: 1 },
+                { values: ["hello", "then"], credit: 0.5 },
+                { values: ["hello,there", ""], credit: 0 },
+                { values: ["there", ""], credit: 0.5 },
+            ],
+            inputs: [
+                { type: "text", name: "ti1" },
+                { type: "text", name: "ti2" },
+            ],
+        });
+    });
+
     it("answer award with boolean", async () => {
         const doenetML = `
     <answer name="answer1"><award><boolean>true</boolean></award></answer>
@@ -2109,6 +2191,30 @@ describe("Answer tag tests", async () => {
     <booleanInput name="bi1" /> <booleanInput name="bi2" />
     <answer name="answer1"><award matchPartial matchByExactPositions><when>
       <booleanList isResponse>$bi1 $bi2</booleanList>=<booleanList>  false true </booleanList>
+    </when></award></answer>
+
+  `;
+
+        await test_answer_multiple_inputs({
+            doenetML,
+            answers: [
+                { values: ["false", "true"], credit: 1 },
+                { values: ["false", "false"], credit: 0.5 },
+                { values: ["true", "false"], credit: 0 },
+                { values: ["true", "true"], credit: 0.5 },
+            ],
+            inputs: [
+                { type: "boolean", name: "bi1" },
+                { type: "boolean", name: "bi2" },
+            ],
+        });
+    });
+
+    it("answer from booleanList, no response indicated", async () => {
+        const doenetML = `
+    <booleanInput name="bi1" /> <booleanInput name="bi2" />
+    <answer name="answer1"><award matchPartial matchByExactPositions><when>
+      <booleanList>$bi1 $bi2</booleanList>=<booleanList>  false true </booleanList>
     </when></award></answer>
 
   `;
