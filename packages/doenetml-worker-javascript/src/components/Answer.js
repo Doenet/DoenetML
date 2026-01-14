@@ -775,6 +775,8 @@ export default class Answer extends InlineComponent {
                 allInputChildrenIncludingSugared: {
                     dependencyType: "child",
                     childGroups: ["inputs"],
+                    variableNames: ["inline"],
+                    variablesOptional: true,
                 },
             }),
             definition({ dependencyValues }) {
@@ -861,6 +863,26 @@ export default class Answer extends InlineComponent {
                         inputChildren,
                         inputChildRelativeIndices,
                         skippedFirstInput,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.haveBlockInputChild = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                inputChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "inputChildren",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        haveBlockInputChild:
+                            dependencyValues.inputChildren.some(
+                                (child) => child.stateValues.inline === false,
+                            ),
                     },
                 };
             },
