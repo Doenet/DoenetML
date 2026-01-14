@@ -6157,6 +6157,212 @@ What is the derivative of <function name="f">x^2</function>?
         });
     });
 
+    it("hand-graded answer have showCorrectness false by default", async () => {
+        const doenetML = `
+<answer handGraded name="a1">x</answer>
+<answer handGraded name="a2" showCorrectness="true">x</answer>
+<answer handGraded name="a3" showCorrectness="false">x</answer>
+`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                .showCorrectness,
+        ).eq(false);
+    });
+
+    it("show correctness propagates from section to answer", async () => {
+        const doenetML = `
+<section showCorrectness="false" name="sec1">
+    <answer name="a1">x</answer>
+    <answer name="a2" showCorrectness="true">x</answer>
+    <answer name="a3" showCorrectness="false">x</answer>
+</section>
+
+<section name="sec2">
+    <answer name="a4">x</answer>
+    <answer name="a5" showCorrectness="true">x</answer>
+    <answer name="a6" showCorrectness="false">x</answer>
+</section>
+`;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a6")].stateValues
+                .showCorrectness,
+        ).eq(false);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2")].stateValues
+                .showCorrectness,
+        ).eq(true);
+
+        // document
+        expect(stateVariables[0].stateValues.showCorrectness).eq(true);
+    });
+
+    it("show correctness propagates from document to answer", async () => {
+        const doenetML = `
+<document showCorrectness="false">
+    <section showCorrectness="true" name="sec1">
+        <answer name="a1">x</answer>
+        <answer name="a2" showCorrectness="true">x</answer>
+        <answer name="a3" showCorrectness="false">x</answer>
+    </section>
+
+    <section name="sec2">
+        <answer name="a4">x</answer>
+        <answer name="a5" showCorrectness="true">x</answer>
+        <answer name="a6" showCorrectness="false">x</answer>
+    </section>
+</document>
+`;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a6")].stateValues
+                .showCorrectness,
+        ).eq(false);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2")].stateValues
+                .showCorrectness,
+        ).eq(false);
+
+        // document
+        expect(stateVariables[0].stateValues.showCorrectness).eq(false);
+    });
+
+    it("show correctness propagates from flag", async () => {
+        const doenetML = `
+    <section showCorrectness="true" name="sec1">
+        <answer name="a1">x</answer>
+        <answer name="a2" showCorrectness="true">x</answer>
+        <answer name="a3" showCorrectness="false">x</answer>
+    </section>
+
+    <section name="sec2">
+        <answer name="a4">x</answer>
+        <answer name="a5" showCorrectness="true">x</answer>
+        <answer name="a6" showCorrectness="false">x</answer>
+    </section>
+`;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            flags: { showCorrectness: false },
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a3")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a4")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a5")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a6")].stateValues
+                .showCorrectness,
+        ).eq(false);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec1")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec2")].stateValues
+                .showCorrectness,
+        ).eq(false);
+
+        // document
+        expect(stateVariables[0].stateValues.showCorrectness).eq(false);
+    });
+
     it("display digits for credit achieved", async () => {
         const doenetML = `
   <p><answer name="default">
