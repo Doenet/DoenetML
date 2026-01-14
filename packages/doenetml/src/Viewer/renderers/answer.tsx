@@ -122,7 +122,10 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
             id={id}
             style={{
                 marginBottom: "4px",
-                display: "inline-flex",
+                display:
+                    SVs.inline || !SVs.haveBlockInputChild
+                        ? "inline-flex"
+                        : "flex",
                 alignItems: "start",
             }}
         >

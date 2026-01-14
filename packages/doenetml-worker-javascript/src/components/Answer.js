@@ -48,6 +48,7 @@ export default class Answer extends InlineComponent {
         attributes.inline = {
             createComponentOfType: "boolean",
             createStateVariable: "inline",
+            forRenderer: true,
             defaultValue: false,
             public: true,
         };
@@ -861,6 +862,28 @@ export default class Answer extends InlineComponent {
                         inputChildren,
                         inputChildRelativeIndices,
                         skippedFirstInput,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.haveBlockInputChild = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                allInputChildrenIncludingSugared: {
+                    dependencyType: "child",
+                    childGroups: ["inputs"],
+                    variableNames: ["inline"],
+                    variablesOptional: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        haveBlockInputChild:
+                            dependencyValues.allInputChildrenIncludingSugared.some(
+                                (child) => child.stateValues.inline === false,
+                            ),
                     },
                 };
             },
