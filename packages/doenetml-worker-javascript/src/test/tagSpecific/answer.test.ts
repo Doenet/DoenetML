@@ -7542,9 +7542,9 @@ What is the derivative of <function name="f">x^2</function>?
 
     it("color correctness turned off when show correctness is false", async () => {
         const doenetML = `
-    <answer name="ans1">x</answer>
-    <answer name="ans2" colorCorrectness="false">x</answer>
-    <answer name="ans3" colorCorrectness="true">x</answer>
+    <answer name="ans1" showCorrectness="false">x</answer>
+    <answer name="ans2" showCorrectness="false" colorCorrectness="false">x</answer>
+    <answer name="ans3" showCorrectness="false" colorCorrectness="true">x</answer>
 
     <section showCorrectness="false" name="sec">
         <answer name="ans4">x</answer>
@@ -7586,13 +7586,13 @@ What is the derivative of <function name="f">x^2</function>?
                 .componentIdx;
 
         expect(stateVariables[answer1Idx].stateValues.colorCorrectness).eq(
-            true,
+            false,
         );
         expect(stateVariables[answer2Idx].stateValues.colorCorrectness).eq(
             false,
         );
         expect(stateVariables[answer3Idx].stateValues.colorCorrectness).eq(
-            true,
+            false,
         );
         expect(stateVariables[answer4Idx].stateValues.colorCorrectness).eq(
             false,
@@ -7601,16 +7601,16 @@ What is the derivative of <function name="f">x^2</function>?
             false,
         );
         expect(stateVariables[answer6Idx].stateValues.colorCorrectness).eq(
-            true,
+            false,
         );
         expect(stateVariables[mathInput1Idx].stateValues.colorCorrectness).eq(
-            true,
+            false,
         );
         expect(stateVariables[mathInput2Idx].stateValues.colorCorrectness).eq(
             false,
         );
         expect(stateVariables[mathInput3Idx].stateValues.colorCorrectness).eq(
-            true,
+            false,
         );
         expect(stateVariables[mathInput4Idx].stateValues.colorCorrectness).eq(
             false,
@@ -7619,7 +7619,7 @@ What is the derivative of <function name="f">x^2</function>?
             false,
         );
         expect(stateVariables[mathInput6Idx].stateValues.colorCorrectness).eq(
-            true,
+            false,
         );
 
         // check document
@@ -7628,5 +7628,109 @@ What is the derivative of <function name="f">x^2</function>?
             stateVariables[await resolvePathToNodeIdx("sec")].stateValues
                 .colorCorrectness,
         ).eq(false);
+    });
+
+    it("state variables propagated when forAnswer set on input", async () => {
+        // The state variables colorCorrectness, showCorrectness, justSubmitted, creditAchieved
+        // should be propagated from answer to input when forAnswer is set.
+        const doenetML = `
+    <mathInput name="mi1" forAnswer="$ans1" />
+    <answer name="ans1"><award><when>$mi1=x</when></award></answer>
+
+    <mathInput name="mi2" forAnswer="$ans2" />
+    <answer name="ans2" colorCorrectness="false"><award><when>$mi2=x</when></award></answer>
+
+    <mathInput name="mi3" forAnswer="$ans3" />
+    <answer name="ans3" showCorrectness="false"><award><when>$mi3=x</when></award></answer>
+
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+
+        const mathInput1Idx = await resolvePathToNodeIdx("mi1");
+        const mathInput2Idx = await resolvePathToNodeIdx("mi2");
+        const mathInput3Idx = await resolvePathToNodeIdx("mi3");
+
+        expect(stateVariables[mathInput1Idx].stateValues.showCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+
+        expect(stateVariables[mathInput2Idx].stateValues.showCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+
+        expect(stateVariables[mathInput3Idx].stateValues.showCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[mathInput3Idx].stateValues.creditAchieved).eq(0);
+
+        await submitAnswer({ componentIdx: answer1Idx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[mathInput3Idx].stateValues.creditAchieved).eq(0);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInput1Idx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(0);
+
+        await submitAnswer({ componentIdx: answer1Idx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[mathInput3Idx].stateValues.creditAchieved).eq(0);
     });
 });
