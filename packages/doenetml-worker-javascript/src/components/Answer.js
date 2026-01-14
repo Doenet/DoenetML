@@ -775,8 +775,6 @@ export default class Answer extends InlineComponent {
                 allInputChildrenIncludingSugared: {
                     dependencyType: "child",
                     childGroups: ["inputs"],
-                    variableNames: ["inline"],
-                    variablesOptional: true,
                 },
             }),
             definition({ dependencyValues }) {
@@ -871,16 +869,18 @@ export default class Answer extends InlineComponent {
         stateVariableDefinitions.haveBlockInputChild = {
             forRenderer: true,
             returnDependencies: () => ({
-                inputChildren: {
-                    dependencyType: "stateVariable",
-                    variableName: "inputChildren",
+                allInputChildrenIncludingSugared: {
+                    dependencyType: "child",
+                    childGroups: ["inputs"],
+                    variableNames: ["inline"],
+                    variablesOptional: true,
                 },
             }),
             definition({ dependencyValues }) {
                 return {
                     setValue: {
                         haveBlockInputChild:
-                            dependencyValues.inputChildren.some(
+                            dependencyValues.allInputChildrenIncludingSugared.some(
                                 (child) => child.stateValues.inline === false,
                             ),
                     },
