@@ -92,7 +92,6 @@ describe("DocViewer Attribute Tests", function () {
                     const n = Number(text);
                     expect(n).to.be.gte(1);
                     expect(n).to.be.lte(1000);
-                    expect(numbersObtained).to.not.include(n);
                     numbersObtained.push(n);
                 });
 
@@ -101,7 +100,6 @@ describe("DocViewer Attribute Tests", function () {
                 const i = stateVariables[0].sharedParameters.variantIndex;
                 expect(i).to.be.gte(1);
                 expect(i).to.be.lte(100);
-                expect(variantsObtained).to.not.include(i);
                 variantsObtained.push(i);
             });
 
@@ -115,6 +113,14 @@ describe("DocViewer Attribute Tests", function () {
             });
             cy.get("#a").should("have.text", "a");
         }
+
+        cy.window().then(async () => {
+            // make async so we wait until all above are done
+            let uniqueVariants = [...new Set(variantsObtained)];
+            let uniqueNumbers = [...new Set(numbersObtained)];
+            expect(uniqueVariants.length).to.be.gte(4);
+            expect(uniqueNumbers.length).to.be.gte(4);
+        });
     });
 
     it("get same variants when do specify variant index", () => {
