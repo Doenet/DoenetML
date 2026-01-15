@@ -1343,6 +1343,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -2422,6 +2429,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -2841,6 +2855,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -3254,6 +3275,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -4139,6 +4167,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -25969,6 +26004,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -26508,6 +26550,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -27059,6 +27108,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -27604,6 +27660,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -28143,6 +28206,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -28720,6 +28790,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -29259,6 +29336,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -29810,6 +29894,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -30349,6 +30440,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -30900,6 +30998,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -31439,6 +31544,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -31990,6 +32102,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -32529,6 +32648,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -33080,6 +33206,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -33619,6 +33752,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -34170,6 +34310,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -34709,6 +34856,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -35277,6 +35431,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -35807,6 +35968,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -36592,6 +36760,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -42351,6 +42526,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -42764,6 +42946,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -45269,6 +45458,13 @@
                     ]
                 },
                 {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -46102,6 +46298,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -82697,6 +82900,13 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"

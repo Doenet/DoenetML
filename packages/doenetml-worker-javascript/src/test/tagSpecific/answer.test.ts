@@ -6183,18 +6183,32 @@ What is the derivative of <function name="f">x^2</function>?
         ).eq(false);
     });
 
-    it("show correctness propagates from section to answer", async () => {
+    it("show correctness propagates from section to paragraph to answer", async () => {
         const doenetML = `
 <section showCorrectness="false" name="sec1">
-    <answer name="a1">x</answer>
-    <answer name="a2" showCorrectness="true">x</answer>
-    <answer name="a3" showCorrectness="false">x</answer>
+    <p>
+        <answer name="a1">x</answer>
+        <answer name="a2" showCorrectness="true">x</answer>
+        <answer name="a3" showCorrectness="false">x</answer>
+    </p>
+    <p showCorrectness="true">
+        <answer name="a4">x</answer>
+        <answer name="a5" showCorrectness="true">x</answer>
+        <answer name="a6" showCorrectness="false">x</answer>
+    </p>
 </section>
 
 <section name="sec2">
-    <answer name="a4">x</answer>
-    <answer name="a5" showCorrectness="true">x</answer>
-    <answer name="a6" showCorrectness="false">x</answer>
+    <p>
+        <answer name="a7">x</answer>
+        <answer name="a8" showCorrectness="true">x</answer>
+        <answer name="a9" showCorrectness="false">x</answer>
+    </p>
+    <p showCorrectness="false">
+        <answer name="a10">x</answer>
+        <answer name="a11" showCorrectness="true">x</answer>
+        <answer name="a12" showCorrectness="false">x</answer>
+    </p>
 </section>
 `;
 
@@ -6228,6 +6242,30 @@ What is the derivative of <function name="f">x^2</function>?
             stateVariables[await resolvePathToNodeIdx("a6")].stateValues
                 .showCorrectness,
         ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a7")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a8")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a9")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a10")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a11")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a12")].stateValues
+                .showCorrectness,
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("sec1")].stateValues
@@ -6242,19 +6280,37 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[0].stateValues.showCorrectness).eq(true);
     });
 
-    it("show correctness propagates from document to answer", async () => {
+    it("show correctness propagates from document section to li to answer", async () => {
         const doenetML = `
 <document showCorrectness="false">
     <section showCorrectness="true" name="sec1">
-        <answer name="a1">x</answer>
-        <answer name="a2" showCorrectness="true">x</answer>
-        <answer name="a3" showCorrectness="false">x</answer>
+        <ol>
+            <li>
+                <answer name="a1">x</answer>
+                <answer name="a2" showCorrectness="true">x</answer>
+                <answer name="a3" showCorrectness="false">x</answer>
+            </li>
+            <li showCorrectness="false">
+                <answer name="a4">x</answer>
+                <answer name="a5" showCorrectness="true">x</answer>
+                <answer name="a6" showCorrectness="false">x</answer>
+            </li>
+        </ol>
     </section>
 
     <section name="sec2">
-        <answer name="a4">x</answer>
-        <answer name="a5" showCorrectness="true">x</answer>
-        <answer name="a6" showCorrectness="false">x</answer>
+        <ol>
+            <li>
+                <answer name="a7">x</answer>
+                <answer name="a8" showCorrectness="true">x</answer>
+                <answer name="a9" showCorrectness="false">x</answer>
+            </li>
+            <li showCorrectness="true">
+                <answer name="a10">x</answer>
+                <answer name="a11" showCorrectness="true">x</answer>
+                <answer name="a12" showCorrectness="false">x</answer>
+            </li>
+        </ol>
     </section>
 </document>
 `;
@@ -6287,6 +6343,30 @@ What is the derivative of <function name="f">x^2</function>?
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("a6")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a7")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a8")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a9")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a10")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a11")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a12")].stateValues
                 .showCorrectness,
         ).eq(false);
 
@@ -7364,11 +7444,18 @@ What is the derivative of <function name="f">x^2</function>?
     <answer name="ans2" colorCorrectness="false">x</answer>
     <answer name="ans3" colorCorrectness="true">x</answer>
 
-    <section colorCorrectness="false" name="sec">
+    <div colorCorrectness="false" name="div">
         <answer name="ans4">x</answer>
         <answer name="ans5" colorCorrectness="false">x</answer>
         <answer name="ans6" colorCorrectness="true">x</answer>
-    </section>
+
+        <span colorCorrectness="true" name="span">
+            <answer name="ans7">x</answer>
+            <answer name="ans8" colorCorrectness="false">x</answer>
+            <answer name="ans9" colorCorrectness="true">x</answer>
+        </span>
+    </div>
+
 
   `;
         const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -7383,6 +7470,9 @@ What is the derivative of <function name="f">x^2</function>?
         const answer4Idx = await resolvePathToNodeIdx("ans4");
         const answer5Idx = await resolvePathToNodeIdx("ans5");
         const answer6Idx = await resolvePathToNodeIdx("ans6");
+        const answer7Idx = await resolvePathToNodeIdx("ans7");
+        const answer8Idx = await resolvePathToNodeIdx("ans8");
+        const answer9Idx = await resolvePathToNodeIdx("ans9");
 
         const mathInput1Idx =
             stateVariables[answer1Idx].stateValues.inputChildren[0]
@@ -7401,6 +7491,15 @@ What is the derivative of <function name="f">x^2</function>?
                 .componentIdx;
         const mathInput6Idx =
             stateVariables[answer6Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput7Idx =
+            stateVariables[answer7Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput8Idx =
+            stateVariables[answer8Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput9Idx =
+            stateVariables[answer9Idx].stateValues.inputChildren[0]
                 .componentIdx;
 
         expect(stateVariables[answer1Idx].stateValues.colorCorrectness).eq(
@@ -7421,6 +7520,15 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[answer6Idx].stateValues.colorCorrectness).eq(
             true,
         );
+        expect(stateVariables[answer7Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer8Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer9Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
         expect(stateVariables[mathInput1Idx].stateValues.colorCorrectness).eq(
             true,
         );
@@ -7439,13 +7547,26 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[mathInput6Idx].stateValues.colorCorrectness).eq(
             true,
         );
+        expect(stateVariables[mathInput7Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput8Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput9Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
 
         // check document
         expect(stateVariables[0].stateValues.colorCorrectness).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+            stateVariables[await resolvePathToNodeIdx("div")].stateValues
                 .colorCorrectness,
         ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("span")].stateValues
+                .colorCorrectness,
+        ).eq(true);
     });
 
     it("color correctness set on sugared inputs, influenced by document", async () => {

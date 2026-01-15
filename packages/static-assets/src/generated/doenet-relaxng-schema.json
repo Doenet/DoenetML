@@ -2109,6 +2109,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -4264,6 +4271,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -5169,6 +5183,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -6068,6 +6089,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -7749,6 +7777,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -40045,6 +40080,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -41088,6 +41130,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -42143,6 +42192,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -43192,6 +43248,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -44235,6 +44298,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -45316,6 +45386,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -46359,6 +46436,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -47414,6 +47498,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -48457,6 +48548,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -49512,6 +49610,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -50555,6 +50660,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -51610,6 +51722,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -52653,6 +52772,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -53708,6 +53834,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -54751,6 +54884,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -55806,6 +55946,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -56849,6 +56996,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -57924,6 +58078,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -58961,6 +59122,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -60308,6 +60476,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -68838,6 +69013,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -69737,6 +69919,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -75014,6 +75203,13 @@
                         "false"
                     ]
                 },
+                "forceIndividualAnswerColoring": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "submitLabel": {
                     "optional": true,
                     "type": [
@@ -76792,6 +76988,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",
@@ -135388,6 +135591,13 @@
                     ]
                 },
                 "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceIndividualAnswerColoring": {
                     "optional": true,
                     "type": [
                         "true",

@@ -55,6 +55,11 @@ export default class Document extends BaseComponent {
             createStateVariable: "colorCorrectnessPreliminary",
             defaultValue: true,
         };
+        attributes.forceIndividualAnswerColoring = {
+            createComponentOfType: "boolean",
+            createStateVariable: "forceIndividualAnswerColoring",
+            defaultValue: false,
+        };
         attributes.submitLabel = {
             createComponentOfType: "text",
             createStateVariable: "submitLabel",
@@ -629,30 +634,37 @@ export default class Document extends BaseComponent {
         stateVariableDefinitions.createSubmitAllButton = {
             forRenderer: true,
             additionalStateVariablesDefined: [
-                {
-                    variableName: "suppressAnswerSubmitButtons",
-                    forRenderer: true,
-                },
+                "suppressAnswerSubmitButtons",
+                "descendantColorCorrectnessBasedOnIdx",
             ],
             returnDependencies: () => ({
                 documentWideCheckWork: {
                     dependencyType: "stateVariable",
                     variableName: "documentWideCheckWork",
                 },
+                forceIndividualAnswerColoring: {
+                    dependencyType: "stateVariable",
+                    variableName: "forceIndividualAnswerColoring",
+                },
             }),
             definition({ dependencyValues, componentIdx }) {
                 let createSubmitAllButton = false;
                 let suppressAnswerSubmitButtons = false;
+                let descendantColorCorrectnessBasedOnIdx = null;
 
                 if (dependencyValues.documentWideCheckWork) {
                     createSubmitAllButton = true;
                     suppressAnswerSubmitButtons = true;
+                    if (!dependencyValues.forceIndividualAnswerColoring) {
+                        descendantColorCorrectnessBasedOnIdx = componentIdx;
+                    }
                 }
 
                 return {
                     setValue: {
                         createSubmitAllButton,
                         suppressAnswerSubmitButtons,
+                        descendantColorCorrectnessBasedOnIdx,
                     },
                 };
             },

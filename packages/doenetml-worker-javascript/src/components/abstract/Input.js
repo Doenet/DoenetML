@@ -40,6 +40,59 @@ export default class Input extends InlineComponent {
             definition: () => ({ setValue: { numValues: 1 } }),
         };
 
+        stateVariableDefinitions.answerOverrideIdx = {
+            returnDependencies: () => ({
+                ancestorForOverride: {
+                    dependencyType: "ancestor",
+                    variableNames: ["descendantColorCorrectnessBasedOnIdx"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                let answerOverrideIdx = null;
+                if (
+                    typeof dependencyValues.ancestorForOverride?.stateValues
+                        .descendantColorCorrectnessBasedOnIdx === "number"
+                ) {
+                    answerOverrideIdx =
+                        dependencyValues.ancestorForOverride.stateValues
+                            .descendantColorCorrectnessBasedOnIdx;
+                }
+
+                return {
+                    setValue: { answerOverrideIdx },
+                };
+            },
+        };
+
+        stateVariableDefinitions.answerOverride = {
+            stateVariablesDeterminingDependencies: ["answerOverrideIdx"],
+            returnDependencies({ stateValues }) {
+                let dependencies = {};
+                if (stateValues.answerOverrideIdx !== null) {
+                    dependencies.answerOverride = {
+                        dependencyType: "multipleStateVariables",
+                        componentIdx: stateValues.answerOverrideIdx,
+                        variableNames: [
+                            "justSubmitted",
+                            "creditAchieved",
+                            "showCorrectness",
+                            "colorCorrectness",
+                        ],
+                        variablesOptional: true,
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                let answerOverride = null;
+                if (dependencyValues.answerOverride) {
+                    answerOverride = dependencyValues.answerOverride;
+                }
+
+                return { setValue: { answerOverride } };
+            },
+        };
+
         stateVariableDefinitions.answerDelegateIdx = {
             returnDependencies: () => ({
                 forAnswer: {
@@ -185,10 +238,18 @@ export default class Input extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "answerDelegate",
                 },
+                answerOverride: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerOverride",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let creditAchieved = 0;
-                if (dependencyValues.answerAncestor) {
+                if (dependencyValues.answerOverride) {
+                    creditAchieved =
+                        dependencyValues.answerOverride.stateValues
+                            .creditAchieved;
+                } else if (dependencyValues.answerAncestor) {
                     creditAchieved =
                         dependencyValues.answerAncestor.stateValues
                             .creditAchieved;
@@ -235,11 +296,22 @@ export default class Input extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "answerDelegate",
                 },
+                answerOverride: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerOverride",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let justSubmitted = false;
 
-                if (dependencyValues.answerAncestor) {
+                if (dependencyValues.answerOverride) {
+                    if (
+                        dependencyValues.answerOverride.stateValues
+                            .justSubmitted
+                    ) {
+                        justSubmitted = true;
+                    }
+                } else if (dependencyValues.answerAncestor) {
                     if (
                         dependencyValues.answerAncestor.stateValues
                             .justSubmitted
@@ -275,10 +347,18 @@ export default class Input extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "answerDelegate",
                 },
+                answerOverride: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerOverride",
+                },
             }),
             definition({ dependencyValues }) {
                 let showCorrectness;
-                if (dependencyValues.answerAncestor) {
+                if (dependencyValues.answerOverride) {
+                    showCorrectness =
+                        dependencyValues.answerOverride.stateValues
+                            .showCorrectness;
+                } else if (dependencyValues.answerAncestor) {
                     showCorrectness =
                         dependencyValues.answerAncestor.stateValues
                             .showCorrectness;
@@ -305,6 +385,10 @@ export default class Input extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "answerDelegate",
                 },
+                answerOverride: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerOverride",
+                },
                 showCorrectness: {
                     dependencyType: "stateVariable",
                     variableName: "showCorrectness",
@@ -314,6 +398,10 @@ export default class Input extends InlineComponent {
                 let colorCorrectness = true;
                 if (!dependencyValues.showCorrectness) {
                     colorCorrectness = false;
+                } else if (dependencyValues.answerOverride) {
+                    colorCorrectness =
+                        dependencyValues.answerOverride.stateValues
+                            .colorCorrectness;
                 } else if (dependencyValues.answerAncestor) {
                     colorCorrectness =
                         dependencyValues.answerAncestor.stateValues

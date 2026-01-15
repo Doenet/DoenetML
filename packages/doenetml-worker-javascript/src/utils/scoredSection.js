@@ -28,6 +28,11 @@ export function returnScoredSectionAttributes() {
             createStateVariable: "colorCorrectnessPreliminary",
             defaultValue: false,
         },
+        forceIndividualAnswerColoring: {
+            createComponentOfType: "boolean",
+            createStateVariable: "forceIndividualAnswerColoring",
+            defaultValue: false,
+        },
         submitLabel: {
             createComponentOfType: "text",
             createStateVariable: "submitLabel",
@@ -149,14 +154,8 @@ export function returnScoredSectionStateVariableDefinition() {
                 dependencyType: "flag",
                 flagName: "showCorrectness",
             },
-            sectionAncestor: {
+            showCorrectnessAncestor: {
                 dependencyType: "ancestor",
-                componentType: "_sectioningComponent",
-                variableNames: ["showCorrectness"],
-            },
-            documentAncestor: {
-                dependencyType: "ancestor",
-                componentType: "document",
                 variableNames: ["showCorrectness"],
             },
         }),
@@ -164,13 +163,9 @@ export function returnScoredSectionStateVariableDefinition() {
             let showCorrectness;
             if (!usedDefault.showCorrectnessPreliminary) {
                 showCorrectness = dependencyValues.showCorrectnessPreliminary;
-            } else if (dependencyValues.sectionAncestor) {
+            } else if (dependencyValues.showCorrectnessAncestor) {
                 showCorrectness =
-                    dependencyValues.sectionAncestor.stateValues
-                        .showCorrectness;
-            } else if (dependencyValues.documentAncestor) {
-                showCorrectness =
-                    dependencyValues.documentAncestor.stateValues
+                    dependencyValues.showCorrectnessAncestor.stateValues
                         .showCorrectness;
             } else {
                 showCorrectness =
@@ -191,14 +186,8 @@ export function returnScoredSectionStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "showCorrectness",
             },
-            sectionAncestor: {
+            colorCorrectnessAncestor: {
                 dependencyType: "ancestor",
-                componentType: "_sectioningComponent",
-                variableNames: ["colorCorrectness"],
-            },
-            documentAncestor: {
-                dependencyType: "ancestor",
-                componentType: "document",
                 variableNames: ["colorCorrectness"],
             },
         }),
@@ -208,13 +197,9 @@ export function returnScoredSectionStateVariableDefinition() {
                 colorCorrectness = false;
             } else if (!usedDefault.colorCorrectnessPreliminary) {
                 colorCorrectness = dependencyValues.colorCorrectnessPreliminary;
-            } else if (dependencyValues.sectionAncestor) {
+            } else if (dependencyValues.colorCorrectnessAncestor) {
                 colorCorrectness =
-                    dependencyValues.sectionAncestor.stateValues
-                        .colorCorrectness;
-            } else if (dependencyValues.documentAncestor) {
-                colorCorrectness =
-                    dependencyValues.documentAncestor.stateValues
+                    dependencyValues.colorCorrectnessAncestor.stateValues
                         .colorCorrectness;
             }
 
@@ -423,79 +408,52 @@ export function returnScoredSectionStateVariableDefinition() {
     stateVariableDefinitions.createSubmitAllButton = {
         forRenderer: true,
         additionalStateVariablesDefined: [
-            {
-                variableName: "suppressAnswerSubmitButtons",
-                forRenderer: true,
-            },
+            "suppressAnswerSubmitButtons",
+            "descendantColorCorrectnessBasedOnIdx",
         ],
         returnDependencies: () => ({
             sectionWideCheckWork: {
                 dependencyType: "stateVariable",
                 variableName: "sectionWideCheckWork",
             },
-            sectionAncestor: {
-                dependencyType: "ancestor",
-                componentType: "_sectioningComponent",
-                variableNames: ["suppressAnswerSubmitButtons"],
+            forceIndividualAnswerColoring: {
+                dependencyType: "stateVariable",
+                variableName: "forceIndividualAnswerColoring",
             },
-            documentAncestor: {
+            ancestorDeterminingSubmit: {
                 dependencyType: "ancestor",
-                componentType: "document",
-                variableNames: ["suppressAnswerSubmitButtons"],
-            },
-            pAncestor: {
-                dependencyType: "ancestor",
-                componentType: "p",
-                variableNames: ["suppressAnswerSubmitButtons"],
-            },
-            liAncestor: {
-                dependencyType: "ancestor",
-                componentType: "li",
-                variableNames: ["suppressAnswerSubmitButtons"],
-            },
-            divAncestor: {
-                dependencyType: "ancestor",
-                componentType: "div",
-                variableNames: ["suppressAnswerSubmitButtons"],
-            },
-            spanAncestor: {
-                dependencyType: "ancestor",
-                componentType: "span",
-                variableNames: ["suppressAnswerSubmitButtons"],
+                variableNames: [
+                    "suppressAnswerSubmitButtons",
+                    "descendantColorCorrectnessBasedOnIdx",
+                ],
             },
         }),
-        definition({ dependencyValues }) {
-            let warnings = [];
-
+        definition({ dependencyValues, componentIdx }) {
             let createSubmitAllButton = false;
             let suppressAnswerSubmitButtons = false;
-
+            let descendantColorCorrectnessBasedOnIdx = null;
             if (
-                dependencyValues.documentAncestor.stateValues
-                    .suppressAnswerSubmitButtons ||
-                dependencyValues.sectionAncestor?.stateValues
-                    .suppressAnswerSubmitButtons ||
-                dependencyValues.pAncestor?.stateValues
-                    .suppressAnswerSubmitButtons ||
-                dependencyValues.liAncestor?.stateValues
-                    .suppressAnswerSubmitButtons ||
-                dependencyValues.divAncestor?.stateValues
-                    .suppressAnswerSubmitButtons ||
-                dependencyValues.spanAncestor?.stateValues
+                dependencyValues.ancestorDeterminingSubmit?.stateValues
                     .suppressAnswerSubmitButtons
             ) {
                 suppressAnswerSubmitButtons = true;
+                descendantColorCorrectnessBasedOnIdx =
+                    dependencyValues.ancestorDeterminingSubmit.stateValues
+                        .descendantColorCorrectnessBasedOnIdx;
             } else if (dependencyValues.sectionWideCheckWork) {
                 createSubmitAllButton = true;
                 suppressAnswerSubmitButtons = true;
+                if (!dependencyValues.forceIndividualAnswerColoring) {
+                    descendantColorCorrectnessBasedOnIdx = componentIdx;
+                }
             }
 
             return {
                 setValue: {
                     createSubmitAllButton,
                     suppressAnswerSubmitButtons,
+                    descendantColorCorrectnessBasedOnIdx,
                 },
-                sendWarnings: warnings,
             };
         },
     };

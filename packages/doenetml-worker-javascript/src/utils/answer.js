@@ -100,14 +100,8 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "handGraded",
             },
-            sectionAncestor: {
+            showCorrectnessAncestor: {
                 dependencyType: "ancestor",
-                componentType: "_sectioningComponent",
-                variableNames: ["showCorrectness"],
-            },
-            documentAncestor: {
-                dependencyType: "ancestor",
-                componentType: "document",
                 variableNames: ["showCorrectness"],
             },
         }),
@@ -117,13 +111,9 @@ export function returnStandardAnswerStateVariableDefinition() {
                 showCorrectness = dependencyValues.showCorrectnessPreliminary;
             } else if (dependencyValues.handGraded) {
                 showCorrectness = false;
-            } else if (dependencyValues.sectionAncestor) {
+            } else if (dependencyValues.showCorrectnessAncestor) {
                 showCorrectness =
-                    dependencyValues.sectionAncestor.stateValues
-                        .showCorrectness;
-            } else if (dependencyValues.documentAncestor) {
-                showCorrectness =
-                    dependencyValues.documentAncestor.stateValues
+                    dependencyValues.showCorrectnessAncestor.stateValues
                         .showCorrectness;
             } else {
                 showCorrectness =
@@ -144,14 +134,8 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "showCorrectness",
             },
-            sectionAncestor: {
+            colorCorrectnessAncestor: {
                 dependencyType: "ancestor",
-                componentType: "_sectioningComponent",
-                variableNames: ["colorCorrectness"],
-            },
-            documentAncestor: {
-                dependencyType: "ancestor",
-                componentType: "document",
                 variableNames: ["colorCorrectness"],
             },
         }),
@@ -161,13 +145,9 @@ export function returnStandardAnswerStateVariableDefinition() {
                 colorCorrectness = false;
             } else if (!usedDefault.colorCorrectnessPreliminary) {
                 colorCorrectness = dependencyValues.colorCorrectnessPreliminary;
-            } else if (dependencyValues.sectionAncestor) {
+            } else if (dependencyValues.colorCorrectnessAncestor) {
                 colorCorrectness =
-                    dependencyValues.sectionAncestor.stateValues
-                        .colorCorrectness;
-            } else if (dependencyValues.documentAncestor) {
-                colorCorrectness =
-                    dependencyValues.documentAncestor.stateValues
+                    dependencyValues.colorCorrectnessAncestor.stateValues
                         .colorCorrectness;
             }
 
