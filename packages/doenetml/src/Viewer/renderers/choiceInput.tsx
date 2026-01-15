@@ -220,7 +220,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
         const valuePadding = "2px 0px 2px 6px";
 
-        let selectStyle: React.CSSProperties = {};
         let inputClasses = "custom-select";
 
         if (disabled) {
@@ -234,7 +233,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         const customStyles = {
             control: (provided: any) => ({
                 ...provided,
-                ...selectStyle,
                 background: "#fff",
                 minHeight: "0.8lh",
                 pointerEvents: disabled ? "auto" : undefined,

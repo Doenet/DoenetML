@@ -3355,9 +3355,6 @@ d
 
         cy.window().then((win) => {
             // Get CSS variable values from the root element
-            const computedStyle = win.getComputedStyle(
-                win.document.documentElement,
-            );
             const correctColor = getCSSVariableAsRGB(win, "--lightGreen");
             const incorrectColor = getCSSVariableAsRGB(win, "--lightRed");
 
