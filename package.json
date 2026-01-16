@@ -41,7 +41,9 @@
         "docs": "npm run build --workspace packages/docs-nextra & npm run dev --workspace packages/docs-nextra",
         "prettier:check": "prettier --check .",
         "prettier:format": "prettier --write .",
-        "test": "npm run test -ws --if-present -- run"
+        "publish": "npm run publish -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07",
+        "test": "npm run test -ws --if-present -- run",
+        "version": "npm version -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07"
     },
     "prettier": {
         "tabWidth": 4
