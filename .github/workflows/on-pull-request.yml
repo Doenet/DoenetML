@@ -229,6 +229,8 @@ jobs:
               uses: actions/setup-node@v3
               with:
                   node-version: ${{ matrix.node-version }}
+                  registry-url: https://registry.npmjs.org
+                  always-auth: true
                   cache: "npm"
             - run: npm ci
 
@@ -259,4 +261,5 @@ jobs:
             - name: Publish dev release
               run: npm run publish -- --tag dev
               env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   WIREIT_CACHE: "local"
