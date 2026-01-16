@@ -1,4 +1,3 @@
-import { set } from "idb-keyval";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("Variant Selector Tests", function () {
