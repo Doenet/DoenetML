@@ -225,7 +225,7 @@ export function DocViewer({
             }
             if (e.data.subject === "SPLICE.getState.response") {
                 if (messageIdFromGetState.current === e.data.message_id) {
-                    if (e.data.state) {
+                    if (e.data.state && e.data.state.cid === cid.current) {
                         // Reset error messages, core.
                         // Then process loaded state and initialize
 
