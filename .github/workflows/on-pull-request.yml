@@ -222,6 +222,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
         permissions:
             id-token: write
+            contents: read
         strategy:
             matrix:
                 node-version: [24.x]
@@ -245,13 +246,6 @@ jobs:
               run: |
                   ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
 
-            - name: Build workspaces
-              run: |
-                  export NODE_OPTIONS="--max_old_space_size=6114"
-                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
-              env:
-                  WIREIT_CACHE: "local"
-
             - name: Update versions
               run: |
                   CURRENT_VERSION=$(node -p "require('./package.json').version")
@@ -259,6 +253,13 @@ jobs:
                   COMMIT_HASH=$(git rev-parse --short HEAD)
                   VERSION="${CURRENT_VERSION}-dev.${TIMESTAMP}.${COMMIT_HASH}"
                   npm run version -- ${VERSION} --no-git-tag-version
+
+            - name: Build workspaces
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
+              env:
+                  WIREIT_CACHE: "local"
 
             - name: Publish dev release
               run: npm run publish -- --tag dev
