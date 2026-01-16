@@ -1,6 +1,6 @@
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
-describe("Variant Selector Tests", function () {
+describe("Save and Load State Tests", function () {
     let savedState = null;
 
     function setUpStateListeners() {
