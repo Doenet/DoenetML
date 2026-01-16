@@ -213,3 +213,50 @@ jobs:
 
             - name: Prettier Check
               run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci
+
+    dev-release:
+        name: Dev Release
+        runs-on: ubuntu-latest
+        needs: [test, test-cypress]
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        strategy:
+            matrix:
+                node-version: [24.x]
+
+        steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: build-artifacts
+
+            - name: Debug Build Artifacts
+              run: |
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
+
+            - name: Build workspaces
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Update versions
+              run: |
+                  CURRENT_VERSION=$(node -p "require('./package.json').version")
+                  TIMESTAMP=$(date +%Y%m%d%H%M%S)
+                  COMMIT_HASH=$(git rev-parse --short HEAD)
+                  VERSION="${CURRENT_VERSION}-dev.${TIMESTAMP}.${COMMIT_HASH}"
+                  npm run version -- ${VERSION} --no-git-tag-version
+
+            - name: Publish dev release
+              run: npm run publish -- --tag dev
+              env:
+                  WIREIT_CACHE: "local"
