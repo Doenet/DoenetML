@@ -1336,6 +1336,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -2408,6 +2422,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -2820,6 +2848,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -3226,6 +3268,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -4104,6 +4160,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -25927,6 +25997,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -26459,6 +26543,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -27003,6 +27101,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -27541,6 +27653,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -28073,6 +28199,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -28643,6 +28783,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -29175,6 +29329,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -29719,6 +29887,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -30251,6 +30433,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -30795,6 +30991,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -31327,6 +31537,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -31871,6 +32095,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -32403,6 +32641,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -32947,6 +33199,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -33479,6 +33745,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -34023,6 +34303,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -34555,6 +34849,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -35116,6 +35424,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -35639,6 +35961,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -36417,6 +36753,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -42169,6 +42519,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -42575,6 +42939,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -43933,6 +44311,9 @@
                     "name": "copy"
                 },
                 {
+                    "name": "forAnswer"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -45070,6 +45451,20 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "submitLabel"
                 },
                 {
@@ -45896,6 +46291,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"
@@ -54879,6 +55288,13 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "disableAfterCorrect",
                     "values": [
                         "true",
@@ -55098,6 +55514,11 @@
                 {
                     "name": "maxNumAttempts",
                     "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "colorCorrectnessPreliminary",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -56305,6 +56726,9 @@
                     "name": "copy"
                 },
                 {
+                    "name": "forAnswer"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -56757,6 +57181,9 @@
                     "name": "copy"
                 },
                 {
+                    "name": "forAnswer"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -57137,6 +57564,9 @@
                     "name": "copy"
                 },
                 {
+                    "name": "forAnswer"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",
@@ -57361,6 +57791,9 @@
                 },
                 {
                     "name": "copy"
+                },
+                {
+                    "name": "forAnswer"
                 },
                 {
                     "name": "labelIsName",
@@ -81950,6 +82383,13 @@
                     ]
                 },
                 {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "disableAfterCorrect",
                     "values": [
                         "true",
@@ -82016,6 +82456,11 @@
                 {
                     "name": "maxNumAttempts",
                     "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "colorCorrectnessPreliminary",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -82448,6 +82893,20 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "colorCorrectness",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "forceIndividualAnswerColoring",
                     "values": [
                         "true",
                         "false"

@@ -18,6 +18,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
+import { addValidationStateToShortDescription } from "./utils/description";
 
 export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
@@ -494,7 +495,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
         );
     }
 
-    const shortDescription = SVs.shortDescription || undefined;
+    let shortDescription = SVs.shortDescription || undefined;
 
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
@@ -524,11 +525,19 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
             />
         );
     } else {
-        let containerClass = "doenetml-boolean-container";
-        let checkmarkClass = "doenetml-checkmark";
+        let containerClass = "boolean-container";
+        let checkmarkClass = "checkmark";
         if (disabled) {
-            containerClass += " doenetml-boolean-container-disabled";
-            checkmarkClass += " doenetml-checkmark-disabled";
+            containerClass += " boolean-container-disabled";
+            checkmarkClass += " checkmark-disabled";
+        }
+
+        if (SVs.colorCorrectness) {
+            checkmarkClass += ` checkmark-${validationState}`;
+            shortDescription = addValidationStateToShortDescription(
+                validationState,
+                shortDescription,
+            );
         }
         input = (
             <label className={containerClass} id={`${id}-label`}>

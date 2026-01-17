@@ -13,3 +13,24 @@
     border: 2px solid var(--mainGray);
     cursor: not-allowed;
 }
+
+.doenet-viewer .text-input-correct {
+    border-color: var(--lightGreen);
+
+    &:focus {
+        outline-color: var(--lightGreen);
+    }
+}
+.doenet-viewer .text-input-incorrect {
+    border-color: var(--lightRed);
+    &:focus {
+        outline-color: var(--lightRed);
+    }
+}
+
+.doenet-viewer .text-input-partialcorrect {
+    border-color: #ffd894; /* Light Yellow */
+    &:focus {
+        outline-color: #ffd894;
+    }
+}

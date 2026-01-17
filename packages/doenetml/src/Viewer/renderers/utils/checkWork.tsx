@@ -87,9 +87,8 @@ export function createCheckWorkComponent(
             </span>
         );
     } else if (SVs.showCorrectness) {
+        buttonClassNames.push(`check-work-${validationState}`);
         if (validationState === "correct") {
-            buttonClassNames.push("check-work-correct");
-
             // When the button changes to "Correct", it should be read by the screen reader
             liveLabel = "Correct";
             buttonContent = showText ? <>&nbsp; Correct</> : null;
@@ -103,8 +102,6 @@ export function createCheckWorkComponent(
                 </span>
             );
         } else if (validationState === "incorrect") {
-            buttonClassNames.push("check-work-incorrect");
-
             // When the button changes to "Incorrect", it should be read by the screen reader
             liveLabel = "Incorrect";
             buttonContent = showText ? <>&nbsp; Incorrect</> : null;
@@ -119,7 +116,6 @@ export function createCheckWorkComponent(
             );
         } else {
             // partially correct
-            buttonClassNames.push("check-work-partially-correct");
             const percent = Math.round(SVs.creditAchieved * 100);
             const partialText = SVs.creditIsReducedByAttempt
                 ? `${percent}% Credit`

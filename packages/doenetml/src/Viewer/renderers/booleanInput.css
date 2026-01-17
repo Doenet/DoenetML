@@ -1,5 +1,5 @@
 /* Customize the label (the container) */
-.doenetml-boolean-container {
+.doenet-viewer .boolean-container {
     /* display: inline-block; */
     position: relative;
     padding-left: 24px;
@@ -13,7 +13,7 @@
     user-select: none;
 }
 
-.doenetml-boolean-container-disabled {
+.doenet-viewer .boolean-container-disabled {
     cursor: not-allowed;
 }
 
@@ -30,7 +30,7 @@
 } */
 
 /* Hide the browser's default checkbox */
-.doenetml-boolean-container input[type="checkbox"] {
+.doenet-viewer .boolean-container input[type="checkbox"] {
     position: absolute;
     opacity: 0;
     cursor: pointer;
@@ -39,7 +39,7 @@
 }
 
 /* Create a custom checkbox */
-.doenetml-checkmark {
+.doenet-viewer .checkmark {
     position: absolute;
     top: 0;
     left: 0;
@@ -53,54 +53,82 @@
     box-sizing: content-box;
 }
 
-.doenetml-checkmark-disabled {
+.doenet-viewer .checkmark-disabled {
     background-color: var(--mainGray);
     border-color: var(--mainGray);
 }
+.doenet-viewer .checkmark-correct {
+    border-color: var(--lightGreen);
+}
+.doenet-viewer .checkmark-incorrect {
+    border-color: var(--lightRed);
+}
+.doenet-viewer .checkmark-partialcorrect {
+    border-color: #ffd894; /* Light Yellow */
+}
 
 /* On mouse-over, add a light blue background color */
-.doenetml-boolean-container:hover input[type="checkbox"] ~ .doenetml-checkmark {
+.doenet-viewer .boolean-container:hover input[type="checkbox"] ~ .checkmark {
     background-color: var(--lightBlue);
 }
 
 /* On mouse-over of disabled, keep the grey background color */
-.doenetml-boolean-container:hover
+.doenet-viewer
+    .boolean-container:hover
     input[type="checkbox"]
-    ~ .doenetml-checkmark-disabled {
+    ~ .checkmark-disabled {
     background-color: var(--mainGray);
 }
 
 /* When the checkbox is checked, add a dark blue background */
-.doenetml-boolean-container
-    input[type="checkbox"]:checked
-    ~ .doenetml-checkmark {
+.doenet-viewer .boolean-container input[type="checkbox"]:checked ~ .checkmark {
     background-color: var(--mainBlue);
 }
 
 /* When a checkbox has focus, add a dark blue outline */
-.doenetml-boolean-container:focus-within
+.doenet-viewer
+    .boolean-container:focus-within
     input[type="checkbox"]
-    ~ .doenetml-checkmark {
+    ~ .checkmark {
     outline: 2px solid var(--canvasText);
     outline-offset: 2px;
 }
+.doenet-viewer
+    .boolean-container:focus-within
+    input[type="checkbox"]
+    ~ .checkmark-correct {
+    outline-color: var(--lightGreen);
+}
+.doenet-viewer
+    .boolean-container:focus-within
+    input[type="checkbox"]
+    ~ .checkmark-incorrect {
+    outline-color: var(--lightRed);
+}
+.doenet-viewer
+    .boolean-container:focus-within
+    input[type="checkbox"]
+    ~ .checkmark-partialcorrect {
+    outline-color: #ffd894; /* Light Yellow */
+}
 
 /* Create the checkmark/indicator (hidden when not checked) */
-.doenetml-checkmark:after {
+.doenet-viewer .checkmark:after {
     content: "";
     position: absolute;
     display: none;
 }
 
 /* Show the checkmark when checked */
-.doenetml-boolean-container
+.doenet-viewer
+    .boolean-container
     input[type="checkbox"]:checked
-    ~ .doenetml-checkmark:after {
+    ~ .checkmark:after {
     display: block;
 }
 
 /* Style the checkmark/indicator */
-.doenetml-boolean-container .doenetml-checkmark:after {
+.doenet-viewer .boolean-container .checkmark:after {
     left: 5px;
     top: 1px;
     width: 5px;

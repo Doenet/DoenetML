@@ -3306,4 +3306,460 @@ d
         cy.get("#ans5").should("have.css", "display", "inline-flex");
         cy.get("#ans6").should("have.css", "display", "inline-flex");
     });
+
+    it("input's border color changes with correctness by default", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <answer name="ansMath">
+        <shortDescription>What is x?</shortDescription>
+        <award>x</award>
+        <award credit="0.5">y</award>
+    </answer>
+    <answer name="ansText" type="text">
+        <label>Say hello:</label>
+        <award>hello</award>
+        <award credit="0.5">bye</award>
+    </answer>
+    <answer name="ansBool" type="boolean">
+        <label>click</label>
+        true
+    </answer>
+    <answer name="ansChoice">
+        <label>Pick the right fruit</label>
+        <choice credit="1">apple</choice>
+        <choice>banana</choice>
+        <choice credit="0.5">cherry</choice>
+    </answer>
+    <answer name="ansChoiceInline" inline>
+        <shortDescription>Pick the right color</shortDescription>
+        <choice credit="1">red</choice>
+        <choice>green</choice>
+        <choice credit="0.5">blue</choice>
+    </answer>
+    `,
+                },
+                "*",
+            );
+        });
+
+        function getCSSVariableAsRGB(win, varName) {
+            const el = win.document.createElement("div");
+            el.style.color = `var(${varName})`;
+            win.document.body.appendChild(el);
+            const rgbValue = win.getComputedStyle(el).color;
+            el.remove();
+            return rgbValue;
+        }
+
+        cy.window().then((win) => {
+            // Get CSS variable values from the root element
+            const correctColor = getCSSVariableAsRGB(win, "--lightGreen");
+            const incorrectColor = getCSSVariableAsRGB(win, "--lightRed");
+
+            const defaultColor = "rgb(0, 0, 0)"; // black
+            const partialColor = "rgb(255, 216, 148)"; // light yellow
+
+            // Math answer
+            cy.get("#ansMath textarea").as("mathInput");
+            cy.get("#ansMath .mq-editable-field").as("mathInputField");
+            cy.get("@mathInputField")
+                .should("have.css", "border-color", defaultColor)
+                .should("have.attr", "aria-label", "What is x?");
+
+            cy.get("@mathInput").type("x{enter}", { force: true });
+            cy.get("@mathInputField")
+                .should("have.css", "border-color", correctColor)
+                .should("have.attr", "aria-label", "What is x? (Correct)");
+            cy.get("@mathInput").type("{backspace}y{enter}", { force: true });
+            cy.get("@mathInputField")
+                .should("have.css", "border-color", partialColor)
+                .should(
+                    "have.attr",
+                    "aria-label",
+                    "What is x? (Partially correct)",
+                );
+            cy.get("@mathInput").type("{backspace}z{enter}", { force: true });
+            cy.get("@mathInputField")
+                .should("have.css", "border-color", incorrectColor)
+                .should("have.attr", "aria-label", "What is x? (Incorrect)");
+
+            // Text answer
+            cy.get("#ansText input").as("textInput");
+            cy.get("@textInput")
+                .should("have.css", "border-color", defaultColor)
+                .should("not.have.attr", "aria-label");
+            cy.get("@textInput").type("hello{enter}", { force: true }).blur();
+            cy.get("@textInput")
+                .should("have.css", "border-color", correctColor)
+                .should("have.attr", "aria-label", "(Correct)");
+            cy.get("@textInput").clear().type("bye{enter}", { force: true });
+            cy.get("@textInput")
+                .should("have.css", "border-color", partialColor)
+                .should("have.attr", "aria-label", "(Partially correct)");
+            cy.get("@textInput").clear().type("hi{enter}", { force: true });
+            cy.get("@textInput")
+                .should("have.css", "border-color", incorrectColor)
+                .should("have.attr", "aria-label", "(Incorrect)");
+
+            // Boolean answer
+            cy.get("#ansBool input").as("boolInput");
+            cy.get("#ansBool .checkmark").as("boolCheckmark");
+            cy.get("@boolCheckmark").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@boolInput").should("not.have.attr", "aria-label");
+
+            cy.get("@boolInput").check({ force: true });
+            cy.get("#ansBool button").click(); // to submit
+            cy.get("@boolCheckmark").should(
+                "have.css",
+                "border-color",
+                correctColor,
+            );
+            cy.get("@boolInput").should("have.attr", "aria-label", "(Correct)");
+
+            cy.get("@boolInput").uncheck({ force: true });
+            cy.get("#ansBool button").click(); // to submit
+            cy.get("@boolCheckmark").should(
+                "have.css",
+                "border-color",
+                incorrectColor,
+            );
+            cy.get("@boolInput").should(
+                "have.attr",
+                "aria-label",
+                "(Incorrect)",
+            );
+
+            // choice answer
+            cy.get("#ansChoice .radio-checkmark").as("choiceRadios");
+            cy.get("@choiceRadios").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("#ansChoice ul").should("not.have.attr", "aria-label");
+
+            cy.get("#ansChoice button").click(); // to submit without selection
+            cy.get("@choiceRadios").should(
+                "have.css",
+                "border-color",
+                incorrectColor,
+            );
+            cy.get("#ansChoice ul").should(
+                "have.attr",
+                "aria-label",
+                "(Incorrect)",
+            );
+
+            cy.get("@choiceRadios").eq(0).click({ force: true });
+            cy.get("#ansChoice button").click(); // to submit
+            cy.get("@choiceRadios").should(
+                "have.css",
+                "border-color",
+                correctColor,
+            );
+            cy.get("#ansChoice ul").should(
+                "have.attr",
+                "aria-label",
+                "(Correct)",
+            );
+
+            cy.get("@choiceRadios").eq(1).click({ force: true });
+            cy.get("#ansChoice button").click(); // to submit
+            cy.get("@choiceRadios").should(
+                "have.css",
+                "border-color",
+                incorrectColor,
+            );
+            cy.get("#ansChoice ul").should(
+                "have.attr",
+                "aria-label",
+                "(Incorrect)",
+            );
+
+            cy.get("@choiceRadios").eq(2).click({ force: true });
+            cy.get("#ansChoice button").click(); // to submit
+            cy.get("@choiceRadios").should(
+                "have.css",
+                "border-color",
+                partialColor,
+            );
+            cy.get("#ansChoice ul").should(
+                "have.attr",
+                "aria-label",
+                "(Partially correct)",
+            );
+
+            // choice inline answer
+            cy.get("#ansChoiceInline .custom-select").as("choiceInlineSelect");
+            cy.get("#ansChoiceInline .custom-select input").as(
+                "choiceInlineSelectInput",
+            );
+            cy.get("@choiceInlineSelect").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@choiceInlineSelectInput").should(
+                "have.attr",
+                "aria-label",
+                "Pick the right color",
+            );
+
+            cy.get("#ansChoiceInline button").click(); // to submit without selection
+            cy.get("@choiceInlineSelect").should(
+                "have.css",
+                "border-color",
+                incorrectColor,
+            );
+            cy.get("@choiceInlineSelectInput").should(
+                "have.attr",
+                "aria-label",
+                "Pick the right color (Incorrect)",
+            );
+
+            cy.get("@choiceInlineSelect").click();
+            cy.get('#ansChoiceInline [class*="menu"]')
+                .contains("red")
+                .click({ force: true });
+            cy.get("#ansChoiceInline button").click();
+            cy.get("@choiceInlineSelect").should(
+                "have.css",
+                "border-color",
+                correctColor,
+            );
+            cy.get("@choiceInlineSelectInput").should(
+                "have.attr",
+                "aria-label",
+                "Pick the right color (Correct)",
+            );
+
+            cy.get("@choiceInlineSelect").click();
+            cy.get('#ansChoiceInline [class*="menu"]')
+                .contains("green")
+                .click({ force: true });
+            cy.get("#ansChoiceInline button").click();
+            cy.get("@choiceInlineSelect").should(
+                "have.css",
+                "border-color",
+                incorrectColor,
+            );
+            cy.get("@choiceInlineSelectInput").should(
+                "have.attr",
+                "aria-label",
+                "Pick the right color (Incorrect)",
+            );
+
+            cy.get("@choiceInlineSelect").click();
+            cy.get('#ansChoiceInline [class*="menu"]')
+                .contains("blue")
+                .click({ force: true });
+            cy.get("#ansChoiceInline button").click();
+            cy.get("@choiceInlineSelect").should(
+                "have.css",
+                "border-color",
+                partialColor,
+            );
+            cy.get("@choiceInlineSelectInput").should(
+                "have.attr",
+                "aria-label",
+                "Pick the right color (Partially correct)",
+            );
+        });
+    });
+
+    it("input's border color does not change if colorCorrectness is false", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <answer name="ansMath" colorCorrectness="false">
+        <award>x</award>
+        <award credit="0.5">y</award>
+    </answer>
+    <answer name="ansText" type="text" colorCorrectness="false">
+        <award>hello</award>
+        <award credit="0.5">bye</award>
+    </answer>
+    <answer name="ansBool" type="boolean" colorCorrectness="false">true</answer>
+    <answer name="ansChoice" colorCorrectness="false">
+        <choice credit="1">apple</choice>
+        <choice>banana</choice>
+        <choice credit="0.5">cherry</choice>
+    </answer>
+    <answer name="ansChoiceInline" inline colorCorrectness="false">
+        <choice credit="1">red</choice>
+        <choice>green</choice>
+        <choice credit="0.5">blue</choice>
+    </answer>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.window().then((win) => {
+            const defaultColor = "rgb(0, 0, 0)"; // black
+
+            // Math answer
+            cy.get("#ansMath textarea").as("mathInput");
+            cy.get("#ansMath .mq-editable-field").as("mathInputField");
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@mathInput").type("x{enter}", { force: true });
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@mathInput").type("{backspace}y{enter}", { force: true });
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@mathInput").type("{backspace}z{enter}", { force: true });
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+
+            // Text answer
+            cy.get("#ansText input").as("textInput");
+            cy.get("@textInput").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@textInput").type("hello{enter}", { force: true }).blur();
+            cy.get("@textInput").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@textInput").clear().type("bye{enter}", { force: true });
+            cy.get("@textInput").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@textInput").clear().type("hi{enter}", { force: true });
+            cy.get("@textInput").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+
+            // Boolean answer
+            cy.get("#ansBool input").as("boolInput");
+            cy.get("#ansBool .checkmark").as("boolCheckmark");
+            cy.get("@boolCheckmark").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@boolInput").check({ force: true });
+            cy.get("#ansBool button").click(); // to submit
+            cy.get("@boolCheckmark").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@boolInput").uncheck({ force: true });
+            cy.get("#ansBool button").click(); // to submit
+            cy.get("@boolCheckmark").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+
+            // choice answer
+            cy.get("#ansChoice .radio-checkmark").as("choiceRadios");
+            cy.get("@choiceRadios").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("#ansChoice button").click(); // to submit without selection
+            cy.get("@choiceRadios").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@choiceRadios").eq(0).click({ force: true });
+            cy.get("#ansChoice button").click(); // to submit
+            cy.get("@choiceRadios").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@choiceRadios").eq(1).click({ force: true });
+            cy.get("#ansChoice button").click(); // to submit
+            cy.get("@choiceRadios").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@choiceRadios").eq(2).click({ force: true });
+            cy.get("#ansChoice button").click(); // to submit
+            cy.get("@choiceRadios").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+
+            // choice inline answer
+            cy.get("#ansChoiceInline .custom-select").as("choiceInlineSelect");
+            cy.get("@choiceInlineSelect").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("#ansChoiceInline button").click(); // to submit without selection
+            cy.get("@choiceInlineSelect").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@choiceInlineSelect").click();
+            cy.get('#ansChoiceInline [class*="menu"]')
+                .contains("red")
+                .click({ force: true });
+            cy.get("#ansChoiceInline button").click();
+            cy.get("@choiceInlineSelect").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@choiceInlineSelect").click();
+            cy.get('#ansChoiceInline [class*="menu"]')
+                .contains("green")
+                .click({ force: true });
+            cy.get("#ansChoiceInline button").click();
+            cy.get("@choiceInlineSelect").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            cy.get("@choiceInlineSelect").click();
+            cy.get('#ansChoiceInline [class*="menu"]')
+                .contains("blue")
+                .click({ force: true });
+            cy.get("#ansChoiceInline button").click();
+            cy.get("@choiceInlineSelect").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+        });
+    });
 });

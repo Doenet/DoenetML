@@ -18,6 +18,7 @@ import {
 } from "./utils/checkWork";
 import "./textInput.css";
 import { DescriptionPopover } from "./utils/Description";
+import { addValidationStateToShortDescription } from "./utils/description";
 
 export default function TextInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
@@ -571,7 +572,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         );
     }
 
-    const shortDescription = SVs.shortDescription || undefined;
+    let shortDescription = SVs.shortDescription || undefined;
 
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
@@ -588,8 +589,17 @@ export default function TextInput(props: UseDoenetRendererProps) {
         );
     }
 
-    const inputClass =
+    let inputClass =
         "text-input" + (SVs.disabled ? " text-input-disabled" : "");
+
+    if (SVs.colorCorrectness) {
+        inputClass += ` text-input-${validationState}`;
+        shortDescription = addValidationStateToShortDescription(
+            validationState,
+            shortDescription,
+        );
+    }
+
     if (SVs.expanded) {
         input = (
             <label style={{ display: "inline-flex", maxWidth: "100%" }}>
@@ -646,7 +656,6 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     return (
         <span
-            className="textInputSurroundingBox"
             id={id}
             style={{
                 display: "inline-flex",

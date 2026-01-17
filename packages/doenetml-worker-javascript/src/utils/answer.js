@@ -32,7 +32,13 @@ export function returnStandardAnswerAttributes() {
         showCorrectness: {
             createComponentOfType: "boolean",
             createStateVariable: "showCorrectnessPreliminary",
-            defaultValue: null,
+            defaultValue: true,
+        },
+        colorCorrectness: {
+            createComponentOfType: "boolean",
+            createStateVariable: "colorCorrectnessPreliminary",
+            defaultValue: true,
+            public: true,
         },
 
         disableAfterCorrect: {
@@ -94,14 +100,8 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "handGraded",
             },
-            sectionAncestor: {
+            showCorrectnessAncestor: {
                 dependencyType: "ancestor",
-                componentType: "_sectioningComponent",
-                variableNames: ["showCorrectness"],
-            },
-            documentAncestor: {
-                dependencyType: "ancestor",
-                componentType: "document",
                 variableNames: ["showCorrectness"],
             },
         }),
@@ -111,19 +111,47 @@ export function returnStandardAnswerStateVariableDefinition() {
                 showCorrectness = dependencyValues.showCorrectnessPreliminary;
             } else if (dependencyValues.handGraded) {
                 showCorrectness = false;
-            } else if (dependencyValues.sectionAncestor) {
+            } else if (dependencyValues.showCorrectnessAncestor) {
                 showCorrectness =
-                    dependencyValues.sectionAncestor.stateValues
-                        .showCorrectness;
-            } else if (dependencyValues.documentAncestor) {
-                showCorrectness =
-                    dependencyValues.documentAncestor.stateValues
+                    dependencyValues.showCorrectnessAncestor.stateValues
                         .showCorrectness;
             } else {
                 showCorrectness =
                     dependencyValues.showCorrectnessFlag !== false;
             }
             return { setValue: { showCorrectness } };
+        },
+    };
+
+    stateVariableDefinitions.colorCorrectness = {
+        forRenderer: true,
+        returnDependencies: () => ({
+            colorCorrectnessPreliminary: {
+                dependencyType: "stateVariable",
+                variableName: "colorCorrectnessPreliminary",
+            },
+            showCorrectness: {
+                dependencyType: "stateVariable",
+                variableName: "showCorrectness",
+            },
+            colorCorrectnessAncestor: {
+                dependencyType: "ancestor",
+                variableNames: ["colorCorrectness"],
+            },
+        }),
+        definition({ dependencyValues, usedDefault }) {
+            let colorCorrectness = true;
+            if (!dependencyValues.showCorrectness) {
+                colorCorrectness = false;
+            } else if (!usedDefault.colorCorrectnessPreliminary) {
+                colorCorrectness = dependencyValues.colorCorrectnessPreliminary;
+            } else if (dependencyValues.colorCorrectnessAncestor) {
+                colorCorrectness =
+                    dependencyValues.colorCorrectnessAncestor.stateValues
+                        .colorCorrectness;
+            }
+
+            return { setValue: { colorCorrectness } };
         },
     };
 

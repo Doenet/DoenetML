@@ -6183,18 +6183,32 @@ What is the derivative of <function name="f">x^2</function>?
         ).eq(false);
     });
 
-    it("show correctness propagates from section to answer", async () => {
+    it("show correctness propagates from section to paragraph to answer", async () => {
         const doenetML = `
 <section showCorrectness="false" name="sec1">
-    <answer name="a1">x</answer>
-    <answer name="a2" showCorrectness="true">x</answer>
-    <answer name="a3" showCorrectness="false">x</answer>
+    <p>
+        <answer name="a1">x</answer>
+        <answer name="a2" showCorrectness="true">x</answer>
+        <answer name="a3" showCorrectness="false">x</answer>
+    </p>
+    <p showCorrectness="true">
+        <answer name="a4">x</answer>
+        <answer name="a5" showCorrectness="true">x</answer>
+        <answer name="a6" showCorrectness="false">x</answer>
+    </p>
 </section>
 
 <section name="sec2">
-    <answer name="a4">x</answer>
-    <answer name="a5" showCorrectness="true">x</answer>
-    <answer name="a6" showCorrectness="false">x</answer>
+    <p>
+        <answer name="a7">x</answer>
+        <answer name="a8" showCorrectness="true">x</answer>
+        <answer name="a9" showCorrectness="false">x</answer>
+    </p>
+    <p showCorrectness="false">
+        <answer name="a10">x</answer>
+        <answer name="a11" showCorrectness="true">x</answer>
+        <answer name="a12" showCorrectness="false">x</answer>
+    </p>
 </section>
 `;
 
@@ -6228,6 +6242,30 @@ What is the derivative of <function name="f">x^2</function>?
             stateVariables[await resolvePathToNodeIdx("a6")].stateValues
                 .showCorrectness,
         ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a7")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a8")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a9")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a10")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a11")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a12")].stateValues
+                .showCorrectness,
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("sec1")].stateValues
@@ -6242,19 +6280,37 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[0].stateValues.showCorrectness).eq(true);
     });
 
-    it("show correctness propagates from document to answer", async () => {
+    it("show correctness propagates from document section to li to answer", async () => {
         const doenetML = `
 <document showCorrectness="false">
     <section showCorrectness="true" name="sec1">
-        <answer name="a1">x</answer>
-        <answer name="a2" showCorrectness="true">x</answer>
-        <answer name="a3" showCorrectness="false">x</answer>
+        <ol>
+            <li>
+                <answer name="a1">x</answer>
+                <answer name="a2" showCorrectness="true">x</answer>
+                <answer name="a3" showCorrectness="false">x</answer>
+            </li>
+            <li showCorrectness="false">
+                <answer name="a4">x</answer>
+                <answer name="a5" showCorrectness="true">x</answer>
+                <answer name="a6" showCorrectness="false">x</answer>
+            </li>
+        </ol>
     </section>
 
     <section name="sec2">
-        <answer name="a4">x</answer>
-        <answer name="a5" showCorrectness="true">x</answer>
-        <answer name="a6" showCorrectness="false">x</answer>
+        <ol>
+            <li>
+                <answer name="a7">x</answer>
+                <answer name="a8" showCorrectness="true">x</answer>
+                <answer name="a9" showCorrectness="false">x</answer>
+            </li>
+            <li showCorrectness="true">
+                <answer name="a10">x</answer>
+                <answer name="a11" showCorrectness="true">x</answer>
+                <answer name="a12" showCorrectness="false">x</answer>
+            </li>
+        </ol>
     </section>
 </document>
 `;
@@ -6287,6 +6343,30 @@ What is the derivative of <function name="f">x^2</function>?
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("a6")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a7")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a8")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a9")].stateValues
+                .showCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a10")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a11")].stateValues
+                .showCorrectness,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a12")].stateValues
                 .showCorrectness,
         ).eq(false);
 
@@ -7356,5 +7436,690 @@ What is the derivative of <function name="f">x^2</function>?
                 await resolvePathToNodeIdx("ans")
             ].activeChildren.map((child) => child.componentType),
         ).eqls(["label", "description", "award"]);
+    });
+
+    it("color correctness set on sugared inputs", async () => {
+        const doenetML = `
+    <answer name="ans1">x</answer>
+    <answer name="ans2" colorCorrectness="false">x</answer>
+    <answer name="ans3" colorCorrectness="true">x</answer>
+
+    <div colorCorrectness="false" name="div">
+        <answer name="ans4">x</answer>
+        <answer name="ans5" colorCorrectness="false">x</answer>
+        <answer name="ans6" colorCorrectness="true">x</answer>
+
+        <span colorCorrectness="true" name="span">
+            <answer name="ans7">x</answer>
+            <answer name="ans8" colorCorrectness="false">x</answer>
+            <answer name="ans9" colorCorrectness="true">x</answer>
+        </span>
+    </div>
+
+
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+        const answer3Idx = await resolvePathToNodeIdx("ans3");
+        const answer4Idx = await resolvePathToNodeIdx("ans4");
+        const answer5Idx = await resolvePathToNodeIdx("ans5");
+        const answer6Idx = await resolvePathToNodeIdx("ans6");
+        const answer7Idx = await resolvePathToNodeIdx("ans7");
+        const answer8Idx = await resolvePathToNodeIdx("ans8");
+        const answer9Idx = await resolvePathToNodeIdx("ans9");
+
+        const mathInput1Idx =
+            stateVariables[answer1Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput2Idx =
+            stateVariables[answer2Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput3Idx =
+            stateVariables[answer3Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput4Idx =
+            stateVariables[answer4Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput5Idx =
+            stateVariables[answer5Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput6Idx =
+            stateVariables[answer6Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput7Idx =
+            stateVariables[answer7Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput8Idx =
+            stateVariables[answer8Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput9Idx =
+            stateVariables[answer9Idx].stateValues.inputChildren[0]
+                .componentIdx;
+
+        expect(stateVariables[answer1Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer3Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer4Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer6Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer7Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer8Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer9Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput4Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput6Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput7Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput8Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput9Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+
+        // check document
+        expect(stateVariables[0].stateValues.colorCorrectness).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("div")].stateValues
+                .colorCorrectness,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("span")].stateValues
+                .colorCorrectness,
+        ).eq(true);
+    });
+
+    it("color correctness set on sugared inputs, influenced by document", async () => {
+        const doenetML = `
+    <document colorCorrectness="false">
+        <answer name="ans1">x</answer>
+        <answer name="ans2" colorCorrectness="false">x</answer>
+        <answer name="ans3" colorCorrectness="true">x</answer>
+
+        <section colorCorrectness="true" name="sec">
+            <answer name="ans4">x</answer>
+            <answer name="ans5" colorCorrectness="false">x</answer>
+            <answer name="ans6" colorCorrectness="true">x</answer>
+        </section>
+    </document>
+
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+        const answer3Idx = await resolvePathToNodeIdx("ans3");
+        const answer4Idx = await resolvePathToNodeIdx("ans4");
+        const answer5Idx = await resolvePathToNodeIdx("ans5");
+        const answer6Idx = await resolvePathToNodeIdx("ans6");
+
+        const mathInput1Idx =
+            stateVariables[answer1Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput2Idx =
+            stateVariables[answer2Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput3Idx =
+            stateVariables[answer3Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput4Idx =
+            stateVariables[answer4Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput5Idx =
+            stateVariables[answer5Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput6Idx =
+            stateVariables[answer6Idx].stateValues.inputChildren[0]
+                .componentIdx;
+
+        expect(stateVariables[answer1Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer3Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer4Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[answer5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer6Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput4Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput6Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+
+        // check document
+        expect(stateVariables[0].stateValues.colorCorrectness).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .colorCorrectness,
+        ).eq(true);
+    });
+
+    it("color correctness turned off when show correctness is false", async () => {
+        const doenetML = `
+    <answer name="ans1" showCorrectness="false">x</answer>
+    <answer name="ans2" showCorrectness="false" colorCorrectness="false">x</answer>
+    <answer name="ans3" showCorrectness="false" colorCorrectness="true">x</answer>
+
+    <section showCorrectness="false" name="sec">
+        <answer name="ans4">x</answer>
+        <answer name="ans5" colorCorrectness="false">x</answer>
+        <answer name="ans6" colorCorrectness="true">x</answer>
+    </section>
+
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+        const answer3Idx = await resolvePathToNodeIdx("ans3");
+        const answer4Idx = await resolvePathToNodeIdx("ans4");
+        const answer5Idx = await resolvePathToNodeIdx("ans5");
+        const answer6Idx = await resolvePathToNodeIdx("ans6");
+
+        const mathInput1Idx =
+            stateVariables[answer1Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput2Idx =
+            stateVariables[answer2Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput3Idx =
+            stateVariables[answer3Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput4Idx =
+            stateVariables[answer4Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput5Idx =
+            stateVariables[answer5Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const mathInput6Idx =
+            stateVariables[answer6Idx].stateValues.inputChildren[0]
+                .componentIdx;
+
+        expect(stateVariables[answer1Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer3Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer4Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[answer6Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput4Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput5Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput6Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+
+        // check document
+        expect(stateVariables[0].stateValues.colorCorrectness).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .colorCorrectness,
+        ).eq(false);
+    });
+
+    it("state variables propagated when forAnswer set on input", async () => {
+        // The state variables colorCorrectness, showCorrectness, justSubmitted, creditAchieved
+        // should be propagated from answer to input when forAnswer is set.
+        const doenetML = `
+    <mathInput name="mi1" forAnswer="$ans1" />
+    <answer name="ans1"><award><when>$mi1=x</when></award></answer>
+
+    <mathInput name="mi2" forAnswer="$ans2" />
+    <answer name="ans2" colorCorrectness="false"><award><when>$mi2=x</when></award></answer>
+
+    <mathInput name="mi3" forAnswer="$ans3" />
+    <answer name="ans3" showCorrectness="false"><award><when>$mi3=x</when></award></answer>
+
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+
+        const mathInput1Idx = await resolvePathToNodeIdx("mi1");
+        const mathInput2Idx = await resolvePathToNodeIdx("mi2");
+        const mathInput3Idx = await resolvePathToNodeIdx("mi3");
+
+        expect(stateVariables[mathInput1Idx].stateValues.showCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.colorCorrectness).eq(
+            true,
+        );
+
+        expect(stateVariables[mathInput2Idx].stateValues.showCorrectness).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+
+        expect(stateVariables[mathInput3Idx].stateValues.showCorrectness).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.colorCorrectness).eq(
+            false,
+        );
+
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[mathInput3Idx].stateValues.creditAchieved).eq(0);
+
+        await submitAnswer({ componentIdx: answer1Idx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[mathInput3Idx].stateValues.creditAchieved).eq(0);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInput1Idx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(0);
+
+        await submitAnswer({ componentIdx: answer1Idx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.justSubmitted).eq(
+            false,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[mathInput3Idx].stateValues.creditAchieved).eq(0);
+    });
+
+    it("answer coloring based on section-wide check work by default", async () => {
+        const doenetML = `
+    <section name="sec" sectionWideCheckWork>
+        <answer name="ans1">
+            <mathInput name="mi1"/>
+                x
+            </answer>
+        <mathInput name="mi2" forAnswer="$ans2"/>
+        <answer name="ans2">
+            <award><when>$mi2=a</when></award>
+        </answer>
+    </section>
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const secIdx = await resolvePathToNodeIdx("sec");
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+        const mathInput1Idx = await resolvePathToNodeIdx("mi1");
+        const mathInput2Idx = await resolvePathToNodeIdx("mi2");
+
+        await core.requestAction({
+            componentIdx: secIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInput1Idx,
+            core,
+        });
+
+        await core.requestAction({
+            componentIdx: secIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[secIdx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[secIdx].stateValues.creditAchieved).eq(0.5);
+
+        // answer credit credit achieved are their individual credit achieved
+        expect(stateVariables[answer1Idx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[answer1Idx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answer2Idx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[answer2Idx].stateValues.creditAchieved).eq(0);
+
+        // since math input are supposed to show the color of the section,
+        // they should reflect the credit achieved of the section as a whole
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(
+            0.5,
+        );
+
+        expect(stateVariables[mathInput2Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(
+            0.5,
+        );
+    });
+
+    it("force individual answer coloring  with section-wide check work", async () => {
+        const doenetML = `
+    <section name="sec" sectionWideCheckWork forceIndividualAnswerColoring>
+        <answer name="ans1">
+            <mathInput name="mi1"/>
+                x
+            </answer>
+        <mathInput name="mi2" forAnswer="$ans2"/>
+        <answer name="ans2">
+            <award><when>$mi2=a</when></award>
+        </answer>
+    </section>
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const secIdx = await resolvePathToNodeIdx("sec");
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+        const mathInput1Idx = await resolvePathToNodeIdx("mi1");
+        const mathInput2Idx = await resolvePathToNodeIdx("mi2");
+
+        await core.requestAction({
+            componentIdx: secIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInput1Idx,
+            core,
+        });
+
+        await core.requestAction({
+            componentIdx: secIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[secIdx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[secIdx].stateValues.creditAchieved).eq(0.5);
+
+        // answer credit credit achieved are their individual credit achieved
+        expect(stateVariables[answer1Idx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[answer1Idx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answer2Idx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[answer2Idx].stateValues.creditAchieved).eq(0);
+
+        // since forceIndividualAnswerColoring is set,
+        // math inputs should reflect their own answer credit achieved
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(1);
+
+        expect(stateVariables[mathInput2Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(0);
+    });
+
+    it("answer coloring based on document-wide check work by default", async () => {
+        const doenetML = `
+    <document name="doc" documentWideCheckWork>
+        <answer name="ans1">
+            <mathInput name="mi1"/>
+                x
+            </answer>
+        <mathInput name="mi2" forAnswer="$ans2"/>
+        <answer name="ans2">
+            <award><when>$mi2=a</when></award>
+        </answer>
+    </document>
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const docIdx = await resolvePathToNodeIdx("doc");
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+        const mathInput1Idx = await resolvePathToNodeIdx("mi1");
+        const mathInput2Idx = await resolvePathToNodeIdx("mi2");
+
+        await core.requestAction({
+            componentIdx: docIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInput1Idx,
+            core,
+        });
+
+        await core.requestAction({
+            componentIdx: docIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[docIdx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[docIdx].stateValues.creditAchieved).eq(0.5);
+
+        // answer credit credit achieved are their individual credit achieved
+        expect(stateVariables[answer1Idx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[answer1Idx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answer2Idx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[answer2Idx].stateValues.creditAchieved).eq(0);
+
+        // since math input are supposed to show the color of the document,
+        // they should reflect the credit achieved of the document as a whole
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(
+            0.5,
+        );
+
+        expect(stateVariables[mathInput2Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(
+            0.5,
+        );
+    });
+
+    it("force individual answer coloring  with document-wide check work", async () => {
+        const doenetML = `
+    <document name="doc" documentWideCheckWork forceIndividualAnswerColoring>
+        <answer name="ans1">
+            <mathInput name="mi1"/>
+                x
+            </answer>
+        <mathInput name="mi2" forAnswer="$ans2"/>
+        <answer name="ans2">
+            <award><when>$mi2=a</when></award>
+        </answer>
+    </document>
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const docIdx = await resolvePathToNodeIdx("doc");
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+        const mathInput1Idx = await resolvePathToNodeIdx("mi1");
+        const mathInput2Idx = await resolvePathToNodeIdx("mi2");
+
+        await core.requestAction({
+            componentIdx: docIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: mathInput1Idx,
+            core,
+        });
+
+        await core.requestAction({
+            componentIdx: docIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[docIdx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[docIdx].stateValues.creditAchieved).eq(0.5);
+
+        // answer credit credit achieved are their individual credit achieved
+        expect(stateVariables[answer1Idx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[answer1Idx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answer2Idx].stateValues.justSubmitted).eq(true);
+        expect(stateVariables[answer2Idx].stateValues.creditAchieved).eq(0);
+
+        // since forceIndividualAnswerColoring is set,
+        // math inputs should reflect their own answer credit achieved
+        expect(stateVariables[mathInput1Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(1);
+
+        expect(stateVariables[mathInput2Idx].stateValues.justSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(0);
     });
 });
