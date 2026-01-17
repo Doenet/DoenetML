@@ -265,3 +265,11 @@ jobs:
               run: npm run publish -- --tag dev
               env:
                   WIREIT_CACHE: "local"
+
+            - name: Purge jsDelivr cache
+              run: |
+                  # Purge package-level cache for standalone package
+                  curl -f https://purge.jsdelivr.net/npm/@doenet/standalone@dev
+                  # Purge critical standalone files explicitly
+                  curl -f https://purge.jsdelivr.net/npm/@doenet/standalone@dev/doenet-standalone.js
+                  curl -f https://purge.jsdelivr.net/npm/@doenet/standalone@dev/style.css
