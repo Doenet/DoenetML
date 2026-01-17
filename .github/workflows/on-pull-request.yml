@@ -265,3 +265,26 @@ jobs:
               run: npm run publish -- --tag dev
               env:
                   WIREIT_CACHE: "local"
+
+            - name: Purge jsDelivr cache
+              run: |
+                  echo "Waiting for npm package propagation before purging jsDelivr cache..."
+                  sleep 15
+
+                  echo "Purging jsDelivr cache for @doenet/standalone@dev (package-level)..."
+                  if ! curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone@dev; then
+                      echo "Error: Failed to purge package-level cache for @doenet/standalone@dev" >&2
+                      exit 1
+                  fi
+
+                  echo "Purging jsDelivr cache for @doenet/standalone@dev/doenet-standalone.js..."
+                  if ! curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone@dev/doenet-standalone.js; then
+                      echo "Error: Failed to purge cache for doenet-standalone.js" >&2
+                      exit 1
+                  fi
+
+                  echo "Purging jsDelivr cache for @doenet/standalone@dev/style.css..."
+                  if ! curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone@dev/style.css; then
+                      echo "Error: Failed to purge cache for style.css" >&2
+                      exit 1
+                  fi
