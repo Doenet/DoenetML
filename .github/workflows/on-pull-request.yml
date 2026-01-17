@@ -248,7 +248,7 @@ jobs:
 
             - name: Update versions
               run: |
-                  CURRENT_VERSION=$(node -p "require('./package.json').version")
+                  CURRENT_VERSION=$(node -p "require('./packages/doenetml/package.json').version")
                   TIMESTAMP=$(date +%Y%m%d%H%M%S)
                   COMMIT_HASH=$(git rev-parse --short HEAD)
                   VERSION="${CURRENT_VERSION}-dev.${TIMESTAMP}.${COMMIT_HASH}"
@@ -264,5 +264,4 @@ jobs:
             - name: Publish dev release
               run: npm run publish -- --tag dev
               env:
-                  npm_config_provenance: true
                   WIREIT_CACHE: "local"
