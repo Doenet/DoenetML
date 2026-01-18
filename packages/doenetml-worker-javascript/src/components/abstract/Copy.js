@@ -34,6 +34,7 @@ export default class Copy extends CompositeComponent {
         delete attributes.fixed;
         delete attributes.styleNumber;
         delete attributes.isResponse;
+        delete attributes.isPotentialResponse;
         delete attributes.hide;
 
         attributes.createComponentOfType = {

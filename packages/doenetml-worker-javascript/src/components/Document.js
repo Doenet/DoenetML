@@ -38,6 +38,7 @@ export default class Document extends BaseComponent {
         delete attributes.fixed;
         delete attributes.styleNumber;
         delete attributes.isResponse;
+        delete attributes.isPotentialResponse;
 
         attributes.documentWideCheckWork = {
             createComponentOfType: "boolean",

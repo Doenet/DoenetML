@@ -50,6 +50,9 @@ export default class IntervalList extends CompositeComponent {
         attributes.isResponse = {
             leaveRaw: true,
         };
+        attributes.isPotentialResponse = {
+            leaveRaw: true,
+        };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
@@ -434,7 +437,7 @@ export default class IntervalList extends CompositeComponent {
 
         let numIntervals = await component.stateValues.numIntervals;
         for (let i = 0; i < numIntervals; i++) {
-            // allow one to override the fixed and isResponse attributes
+            // allow one to override the fixed, isResponse, and isPotentialResponse attributes
             // as well as rounding settings
             // by specifying it on the list
             let attributes = {};

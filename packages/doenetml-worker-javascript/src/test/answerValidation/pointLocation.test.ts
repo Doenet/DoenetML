@@ -124,8 +124,8 @@ describe("point location validation tests", async () => {
             </point>
         </graph>
         <p><answer name="ans"><award><when>
-            $A.x{isResponse} = $goal.x and 
-            $A.y{isResponse} = $goal.y
+            $A.x = $goal.x and 
+            $A.y = $goal.y
         </when></award></answer></p>
         `;
 

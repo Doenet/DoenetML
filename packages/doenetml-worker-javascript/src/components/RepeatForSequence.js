@@ -56,6 +56,9 @@ export default class RepeatForSequence extends CompositeComponent {
         attributes.isResponse = {
             leaveRaw: true,
         };
+        attributes.isPotentialResponse = {
+            leaveRaw: true,
+        };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
@@ -364,8 +367,8 @@ export default class RepeatForSequence extends CompositeComponent {
 
         let compositeAttributesObj = this.createAttributesObject();
 
-        // pass isResponse to replacements
-        // (only isResponse will be copied, as it is only attribute with leaveRaw)
+        // pass isResponse and isPotentialResponse to replacements
+        // (only isResponse and isPotentialResponse will be copied, as they are only attributes with leaveRaw)
 
         const res = convertUnresolvedAttributesForComponentType({
             attributes: component.attributes,

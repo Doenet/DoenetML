@@ -272,19 +272,21 @@ export default class Answer extends InlineComponent {
                 return false;
             }
 
-            function addResponsesToReferenceDescendants(components) {
+            function addPotentialResponsesToReferenceDescendants(components) {
                 for (let component of components) {
                     if (component.componentType === "_copy") {
                         if (!component.attributes) {
                             component.attributes = {};
                         }
-                        component.attributes.isResponse = {
+                        component.attributes.isPotentialResponse = {
                             type: "unresolved",
-                            name: "isResponse",
+                            name: "isPotentialResponse",
                             children: ["true"],
                         };
                     } else if (component.children) {
-                        addResponsesToReferenceDescendants(component.children);
+                        addPotentialResponsesToReferenceDescendants(
+                            component.children,
+                        );
                     }
                 }
             }
@@ -548,11 +550,11 @@ export default class Answer extends InlineComponent {
 
                 if (!foundResponse) {
                     // definitely have a case where there is not a response
-                    // look inside each award and add isResponse to any composites
+                    // look inside each award and add isPotentialResponse to any reference
                     for (let child of matchedChildren) {
                         if (componentIsSpecifiedType(child, "award")) {
                             if (child.children?.length > 0) {
-                                addResponsesToReferenceDescendants(
+                                addPotentialResponsesToReferenceDescendants(
                                     child.children,
                                 );
                             }
@@ -1043,6 +1045,7 @@ export default class Answer extends InlineComponent {
         };
 
         stateVariableDefinitions.numResponses = {
+            additionalStateVariablesDefined: ["usePotentialResponses"],
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1074,7 +1077,11 @@ export default class Answer extends InlineComponent {
                             dependencyType: "descendant",
                             ancestorIdx: child.componentIdx,
                             componentTypes: ["_base"],
-                            variableNames: ["isResponse", "numValues"],
+                            variableNames: [
+                                "isResponse",
+                                "isPotentialResponse",
+                                "numValues",
+                            ],
                             variablesOptional: true,
                             recurseToMatchedChildren: true,
                             includeNonActiveChildren: true,
@@ -1106,6 +1113,7 @@ export default class Answer extends InlineComponent {
             },
             definition({ dependencyValues, componentInfoObjects }) {
                 let numResponses = 0;
+                let numPotentialResponses = 0;
 
                 for (let [
                     ind,
@@ -1121,7 +1129,9 @@ export default class Answer extends InlineComponent {
                             "child" + ind
                         ]) {
                             if (
-                                !descendant.stateValues.isResponse ||
+                                (!descendant.stateValues.isResponse &&
+                                    !descendant.stateValues
+                                        .isPotentialResponse) ||
                                 componentInfoObjects.isInheritedComponentType({
                                     inheritedComponentType:
                                         descendant.componentType,
@@ -1131,13 +1141,13 @@ export default class Answer extends InlineComponent {
                                 continue;
                             }
 
-                            if (
-                                descendant.stateValues.numValues === undefined
-                            ) {
-                                numResponses += 1;
+                            let numValues =
+                                descendant.stateValues.numValues ?? 1;
+
+                            if (descendant.stateValues.isResponse) {
+                                numResponses += numValues;
                             } else {
-                                numResponses +=
-                                    descendant.stateValues.numValues;
+                                numPotentialResponses += numValues;
                             }
                         }
                     } else if (
@@ -1165,7 +1175,15 @@ export default class Answer extends InlineComponent {
                     }
                 }
 
-                return { setValue: { numResponses } };
+                let usePotentialResponses = false;
+                if (numResponses === 0 && numPotentialResponses > 0) {
+                    numResponses = numPotentialResponses;
+                    usePotentialResponses = true;
+                }
+
+                return {
+                    setValue: { numResponses, usePotentialResponses },
+                };
             },
         };
 
@@ -1204,6 +1222,10 @@ export default class Answer extends InlineComponent {
                             (x) => x.componentType,
                         ),
                     },
+                    usePotentialResponses: {
+                        dependencyType: "stateVariable",
+                        variableName: "usePotentialResponses",
+                    },
                 };
 
                 for (let [
@@ -1222,6 +1244,7 @@ export default class Answer extends InlineComponent {
                             componentTypes: ["_base"],
                             variableNames: [
                                 "isResponse",
+                                "isPotentialResponse",
                                 "value",
                                 "values",
                                 "formula",
@@ -1292,7 +1315,10 @@ export default class Answer extends InlineComponent {
                             "child" + ind
                         ]) {
                             if (
-                                !descendant.stateValues.isResponse ||
+                                (!descendant.stateValues.isResponse &&
+                                    (!globalDependencyValues.usePotentialResponses ||
+                                        !descendant.stateValues
+                                            .isPotentialResponse)) ||
                                 componentInfoObjects.isInheritedComponentType({
                                     inheritedComponentType:
                                         descendant.componentType,

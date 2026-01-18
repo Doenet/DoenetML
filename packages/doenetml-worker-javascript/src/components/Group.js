@@ -45,6 +45,9 @@ export default class Group extends CompositeComponent {
         attributes.isResponse = {
             leaveRaw: true,
         };
+        attributes.isPotentialResponse = {
+            leaveRaw: true,
+        };
         attributes.createComponentOfType = {
             createPrimitiveOfType: "string",
         };
@@ -237,8 +240,20 @@ export default class Group extends CompositeComponent {
                 num: workspace.replacementsCreated,
             };
 
-            if ("isResponse" in component.attributes) {
-                // pass isResponse to replacements
+            if (
+                "isResponse" in component.attributes ||
+                "isPotentialResponse" in component.attributes
+            ) {
+                // pass isResponse, isPotentialResponse to replacements
+
+                const attributes = {};
+                if ("isResponse" in component.attributes) {
+                    attributes.isResponse = component.attributes.isResponse;
+                }
+                if ("isPotentialResponse" in component.attributes) {
+                    attributes.isPotentialResponse =
+                        component.attributes.isPotentialResponse;
+                }
 
                 for (let repl of replacements) {
                     if (typeof repl !== "object") {
@@ -246,9 +261,7 @@ export default class Group extends CompositeComponent {
                     }
 
                     const res = convertUnresolvedAttributesForComponentType({
-                        attributes: {
-                            isResponse: component.attributes.isResponse,
-                        },
+                        attributes,
                         componentType: repl.componentType,
                         componentInfoObjects,
                         nComponents,
