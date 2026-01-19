@@ -48,14 +48,14 @@ are then listed in the opening tag of the custom ` <module>{:dn}` component.
     displayXAxis="false" 
     displayYAxis="false">
   <shortDescription>A graph of balloons</shortDescription>
-  <module extend="$drawBalloon"/>
+  <module copy="$drawBalloon"/>
   <module 
-    extend="$drawBalloon" 
+    copy="$drawBalloon" 
     center="(-5,0)" 
     color="1"
   />
   <module 
-    extend="$drawBalloon" 
+    copy="$drawBalloon" 
     center="(5,1)" 
     color="3" 
     radius="3"
@@ -71,6 +71,7 @@ are copied into the graph when the module is referenced.
 
 Referencing the module multiple times within the `<graph>{:dn}` and varying the
 attribute values has the effect of creating a "bunch" of balloons.
+Note the use of the `copy` attribute (rather than the `extend` attribute) so that each balloon is an independent copy.
 
 
 
