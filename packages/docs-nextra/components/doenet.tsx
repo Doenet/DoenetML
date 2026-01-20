@@ -11,7 +11,7 @@ import "@doenet/virtual-keyboard/style.css";
 export function DoenetViewer({
     source,
 }: React.PropsWithChildren<{ source: string }>) {
-    return <DoenetViewerOrig doenetML={source} />;
+    return <DoenetViewerOrig doenetML={source} doenetmlVersion="dev" />;
 }
 
 export function DoenetEditor({
@@ -32,6 +32,7 @@ export function DoenetEditor({
                 showFormatter={showFormatter}
                 viewerLocation={viewerLocation}
                 height={height}
+                doenetmlVersion="dev"
             />
         </div>
     );
