@@ -3784,7 +3784,6 @@ d
             const incorrectColor = getCSSVariableAsRGB(win, "--lightRed");
 
             const defaultColor = "rgb(0, 0, 0)"; // black
-            const partialColor = "rgb(255, 216, 148)"; // light yellow
 
             cy.get("#b textarea").as("mathInput");
             cy.get("#b .mq-editable-field").as("mathInputField");
