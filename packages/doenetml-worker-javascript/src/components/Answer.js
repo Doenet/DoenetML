@@ -1050,12 +1050,25 @@ export default class Answer extends InlineComponent {
                     dependencyType: "componentsReferencingAttribute",
                     attributeName: "forAnswer",
                 },
+                inputChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "inputChildrenWithValues",
+                },
             }),
             definition({ dependencyValues }) {
                 const inputsForAnswer = [];
 
                 if (dependencyValues.inputsReferencing) {
-                    inputsForAnswer.push(...dependencyValues.inputsReferencing);
+                    // add any inputs that reference this answer
+                    // but aren't an input child
+                    inputsForAnswer.push(
+                        ...dependencyValues.inputsReferencing.filter(
+                            (comp) =>
+                                !dependencyValues.inputChildren
+                                    .map((child) => child.componentIdx)
+                                    .includes(comp.componentIdx),
+                        ),
+                    );
                 }
 
                 return { setValue: { inputsForAnswer } };
@@ -1090,7 +1103,7 @@ export default class Answer extends InlineComponent {
                     ind,
                     inputComp,
                 ] of stateValues.inputsForAnswer.entries()) {
-                    dependencies["inputForAnswer" + ind] = {
+                    dependencies["inputForAnswerNValues" + ind] = {
                         dependencyType: "stateVariable",
                         componentIdx: inputComp.componentIdx,
                         variableName: "numValues",
@@ -1155,7 +1168,8 @@ export default class Answer extends InlineComponent {
                     ind < dependencyValues.numInputsForAnswer;
                     ind++
                 ) {
-                    let numValues = dependencyValues["inputForAnswer" + ind];
+                    let numValues =
+                        dependencyValues["inputForAnswerNValues" + ind];
                     if (numValues === undefined) {
                         numResponses += 1;
                     } else {
@@ -1285,22 +1299,10 @@ export default class Answer extends InlineComponent {
                     ind,
                     inputComp,
                 ] of stateValues.inputsForAnswer.entries()) {
-                    globalDependencies["inputForAnswerValue" + ind] = {
-                        dependencyType: "stateVariable",
+                    globalDependencies["inputForAnswer" + ind] = {
+                        dependencyType: "multipleStateVariables",
                         componentIdx: inputComp.componentIdx,
-                        variableName: "value",
-                        variablesOptional: true,
-                    };
-                    globalDependencies["inputForAnswerValues" + ind] = {
-                        dependencyType: "stateVariable",
-                        componentIdx: inputComp.componentIdx,
-                        variableName: "values",
-                        variablesOptional: true,
-                    };
-                    globalDependencies["inputForAnswerComponentType" + ind] = {
-                        dependencyType: "stateVariable",
-                        componentIdx: inputComp.componentIdx,
-                        variableName: "componentType",
+                        variableNames: ["value", "values", "componentType"],
                         variablesOptional: true,
                     };
                 }
@@ -1339,22 +1341,10 @@ export default class Answer extends InlineComponent {
                             baseComponentType: "_input",
                         })
                     ) {
-                        globalDependencies["childValue" + ind] = {
-                            dependencyType: "stateVariable",
+                        globalDependencies["child" + ind] = {
+                            dependencyType: "multipleStateVariables",
                             componentIdx: child.componentIdx,
-                            variableName: "value",
-                            variablesOptional: true,
-                        };
-                        globalDependencies["childValues" + ind] = {
-                            dependencyType: "stateVariable",
-                            componentIdx: child.componentIdx,
-                            variableName: "values",
-                            variablesOptional: true,
-                        };
-                        globalDependencies["childComponentType" + ind] = {
-                            dependencyType: "stateVariable",
-                            componentIdx: child.componentIdx,
-                            variableName: "componentType",
+                            variableNames: ["value", "values", "componentType"],
                             variablesOptional: true,
                         };
                     } else {
@@ -1383,24 +1373,9 @@ export default class Answer extends InlineComponent {
                     ind < globalDependencyValues.numInputsForAnswer;
                     ind++
                 ) {
-                    // reconstruct input in same way as for other components
-                    const componentType =
-                        globalDependencyValues[
-                            "inputForAnswerComponentType" + ind
-                        ];
-                    let input = {
-                        componentType,
-                        stateValues: {
-                            value: globalDependencyValues[
-                                "inputForAnswerValue" + ind
-                            ],
-                            values: globalDependencyValues[
-                                "inputForAnswerValues" + ind
-                            ],
-                            componentType,
-                        },
-                    };
-
+                    const input =
+                        globalDependencyValues["inputForAnswer" + ind];
+                    input.componentType = input.stateValues.componentType;
                     responseComponents.push(input);
                 }
 
@@ -1439,23 +1414,8 @@ export default class Answer extends InlineComponent {
                             baseComponentType: "_input",
                         })
                     ) {
-                        // reconstruct child in same way as for other components
-                        let child = {
-                            componentType: childType,
-                            stateValues: {
-                                value: globalDependencyValues[
-                                    "childValue" + ind
-                                ],
-                                values: globalDependencyValues[
-                                    "childValues" + ind
-                                ],
-                                componentType:
-                                    globalDependencyValues[
-                                        "childComponentType" + ind
-                                    ],
-                            },
-                        };
-
+                        const child = globalDependencyValues["child" + ind];
+                        child.componentType = child.stateValues.componentType;
                         responseComponents.push(child);
                     } else {
                         // considerAsResponses

@@ -7772,39 +7772,41 @@ class AttributeRefResolutions extends Dependency {
                         composite: comp,
                     });
                 }
-            }
 
-            newValue.push({
-                componentIdx: extendIdx,
-                unresolvedPath: comp.stateValues.unresolvedPath,
-                originalPath: comp.stateValues.originalPath,
-            });
+                newValue.push({
+                    componentIdx: extendIdx,
+                    unresolvedPath: comp.stateValues.unresolvedPath,
+                    originalPath: comp.stateValues.originalPath,
+                });
 
-            // if any componentsReferencingAttribute dependencies exist for this extendIdx,
-            // then add blockers to recalculate them
-            if (
-                this.dependencyHandler.updateTriggers
-                    .componentsReferencingAttributeByReferenced[extendIdx]
-            ) {
-                for (let dep of this.dependencyHandler.updateTriggers
-                    .componentsReferencingAttributeByReferenced[extendIdx]) {
-                    for (let varName of dep.upstreamVariableNames) {
-                        await this.dependencyHandler.addBlocker({
-                            blockerComponentIdx: dep.upstreamComponentIdx,
-                            blockerType: "recalculateDownstreamComponents",
-                            blockerStateVariable: varName,
-                            blockerDependency: dep.dependencyName,
-                            componentIdxBlocked: dep.upstreamComponentIdx,
-                            typeBlocked: "stateVariable",
-                            stateVariableBlocked: varName,
-                        });
+                // if any componentsReferencingAttribute dependencies exist for this extendIdx,
+                // then add blockers to recalculate them
+                if (
+                    this.dependencyHandler.updateTriggers
+                        .componentsReferencingAttributeByReferenced[extendIdx]
+                ) {
+                    for (let dep of this.dependencyHandler.updateTriggers
+                        .componentsReferencingAttributeByReferenced[
+                        extendIdx
+                    ]) {
+                        for (let varName of dep.upstreamVariableNames) {
+                            await this.dependencyHandler.addBlocker({
+                                blockerComponentIdx: dep.upstreamComponentIdx,
+                                blockerType: "recalculateDownstreamComponents",
+                                blockerStateVariable: varName,
+                                blockerDependency: dep.dependencyName,
+                                componentIdxBlocked: dep.upstreamComponentIdx,
+                                typeBlocked: "stateVariable",
+                                stateVariableBlocked: varName,
+                            });
+                        }
+                        await this.dependencyHandler.addBlockersFromChangedStateVariableDependencies(
+                            {
+                                componentIdx: dep.upstreamComponentIdx,
+                                stateVariables: dep.upstreamVariableNames,
+                            },
+                        );
                     }
-                    await this.dependencyHandler.addBlockersFromChangedStateVariableDependencies(
-                        {
-                            componentIdx: dep.upstreamComponentIdx,
-                            stateVariables: dep.upstreamVariableNames,
-                        },
-                    );
                 }
             }
         }

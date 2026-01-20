@@ -8061,6 +8061,194 @@ What is the derivative of <function name="f">x^2</function>?
         await checkResponse(["\uff3f", "\uff3f"], ["\uff3f", "\uff3f"], 0);
     });
 
+    it("responses determined by forAnswer on input plus referencesAreResponses", async () => {
+        const doenetML = `
+    <mathInput name="mi1" forAnswer="$ans1" />
+    <mathInput name="mi2" />
+    <math name="a">x</math>
+    <math name="b">y</math>
+    <answer name="ans1">
+        <award referencesAreResponses="$mi2"><when>$mi1=$a and $mi2=$b</when></award>
+    </answer>
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function checkResponse(
+            currentResponses: string[],
+            submittedResponses: string[],
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const answerIdx = await resolvePathToNodeIdx("ans1");
+            expect(stateVariables[answerIdx].stateValues.numResponses).eq(
+                currentResponses.length,
+            );
+            expect(
+                stateVariables[answerIdx].stateValues.currentResponses.map(
+                    (x: any) => x.tree,
+                ),
+            ).eqls(currentResponses);
+            expect(
+                stateVariables[answerIdx].stateValues.submittedResponses.map(
+                    (x: any) => x.tree,
+                ),
+            ).eqls(submittedResponses);
+        }
+
+        await checkResponse(["\uff3f", "\uff3f"], []);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await checkResponse(["x", "\uff3f"], []);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        await checkResponse(["x", "y"], []);
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+        await checkResponse(["x", "y"], ["x", "y"]);
+    });
+
+    it("responses determined by forAnswer on inputs, redundant since children", async () => {
+        const doenetML = `
+    <math name="a">x</math>
+    <math name="b">y</math>
+    <answer name="ans1">
+        <mathInput name="mi1" forAnswer="$ans1" />
+        <mathInput name="mi2" forAnswer="$ans1" />
+        <award><when>$mi1=$a and $mi2=$b</when></award>
+    </answer>
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function checkResponse(
+            currentResponses: string[],
+            submittedResponses: string[],
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const answerIdx = await resolvePathToNodeIdx("ans1");
+            expect(stateVariables[answerIdx].stateValues.numResponses).eq(
+                currentResponses.length,
+            );
+            expect(
+                stateVariables[answerIdx].stateValues.currentResponses.map(
+                    (x: any) => x.tree,
+                ),
+            ).eqls(currentResponses);
+            expect(
+                stateVariables[answerIdx].stateValues.submittedResponses.map(
+                    (x: any) => x.tree,
+                ),
+            ).eqls(submittedResponses);
+        }
+
+        await checkResponse(["\uff3f", "\uff3f"], []);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await checkResponse(["x", "\uff3f"], []);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        await checkResponse(["x", "y"], []);
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+        await checkResponse(["x", "y"], ["x", "y"]);
+    });
+
+    it("invalid forAnswer ignored", async () => {
+        const doenetML = `
+    <mathInput name="mi1" forAnswer="$ansDoesNotExist" />
+    <mathInput name="mi2" forAnswer="$ans1" />
+    <math name="a">x</math>
+    <math name="b">y</math>
+    <answer name="ans1">
+        <award><when>$mi1=$a and $mi2=$b</when></award>
+    </answer>
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function checkResponse(
+            currentResponses: string[],
+            submittedResponses: string[],
+            creditAchieved: number,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const answerIdx = await resolvePathToNodeIdx("ans1");
+            expect(stateVariables[answerIdx].stateValues.numResponses).eq(
+                currentResponses.length,
+            );
+            expect(
+                stateVariables[answerIdx].stateValues.currentResponses.map(
+                    (x: any) => x.tree,
+                ),
+            ).eqls(currentResponses);
+            expect(
+                stateVariables[answerIdx].stateValues.submittedResponses.map(
+                    (x: any) => x.tree,
+                ),
+            ).eqls(submittedResponses);
+            expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
+                creditAchieved,
+            );
+        }
+
+        await checkResponse(["\uff3f"], [], 0);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await checkResponse(["\uff3f"], [], 0);
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        await checkResponse(["y"], [], 0);
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+        await checkResponse(["y"], ["y"], 1);
+    });
+
     it("answer coloring based on section-wide check work by default", async () => {
         const doenetML = `
     <section name="sec" sectionWideCheckWork>
