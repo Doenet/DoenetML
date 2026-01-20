@@ -61,7 +61,10 @@ export function returnUnorderedListStateVariableDefinitions() {
             }
         },
         definition({ dependencyValues }) {
-            if (dependencyValues.extendListSourceIdx) {
+            if (
+                typeof dependencyValues.extendListSourceIdx === "number" &&
+                dependencyValues.extendListSourceIdx !== -1
+            ) {
                 return {
                     setValue: {
                         extendListSourceIdx:
@@ -162,7 +165,7 @@ export function returnUnorderedListStateVariableDefinitions() {
                 },
             };
 
-            if (stateValues.extendListSourceIdx) {
+            if (stateValues.extendListSourceIdx !== null) {
                 dependencies.unorderedFromExtended = {
                     dependencyType: "stateVariable",
                     componentIdx: stateValues.extendListSourceIdx,

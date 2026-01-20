@@ -166,7 +166,7 @@ export default class Copy extends CompositeComponent {
             // then remove the relevant code from `Dependencies`
             // determineDependenciesImmediately: true,
             returnDependencies({ stateValues }) {
-                if (stateValues.extendIdx != undefined) {
+                if (stateValues.extendIdx !== -1) {
                     return {
                         extendedComponent: {
                             dependencyType: "componentIdentity",

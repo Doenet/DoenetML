@@ -7295,15 +7295,8 @@ class RefResolutionDependency extends Dependency {
             this.addUpdateTriggerForMissingComponent(nodeIdx);
             this.missingComponentBlockers.push(nodeIdx);
 
-            // XXX: if uncomment the next two lines, then
-            // "get document credit even when have composites as a siblings" of `document.test.ts` fails
-            // because a copy does not update its replacements when it should
-            // (its `extendedComponent` state variable is not updating event after its `extendIdx` variable updates).
-            // This is due to some flaw in the update logic, but haven't yet been able to track it down!
-            // There is no good reason for uncommenting the below code to trigger than behavior.
-
-            // this.extendIdx = -1;
-            // this.unresolvedPath = this.originalPath;
+            this.extendIdx = -1;
+            this.unresolvedPath = this.originalPath;
 
             return {
                 success: true,
@@ -7754,7 +7747,7 @@ class AttributeRefResolutions extends Dependency {
                 originalPath: comp.stateValues.originalPath,
             });
 
-            if (extendIdx >= 0) {
+            if (extendIdx !== -1) {
                 if (!this.extendIndicesResolved.includes(extendIdx)) {
                     this.extendIndicesResolved.push(extendIdx);
 

@@ -425,11 +425,13 @@ export default class IntervalList extends CompositeComponent {
                 : null;
         let copyChildSource;
         if (copyChild) {
-            const cIdx = await copyChild?.stateValues.extendIdx;
-            copyChildSource = {
-                componentIdx: cIdx,
-                componentType: components[cIdx].componentType,
-            };
+            const cIdx = await copyChild.stateValues.extendIdx;
+            if (cIdx !== -1) {
+                copyChildSource = {
+                    componentIdx: cIdx,
+                    componentType: components[cIdx].componentType,
+                };
+            }
         }
 
         let childIndicesByInterval =
