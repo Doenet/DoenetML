@@ -7873,12 +7873,6 @@ class ComponentsReferencingAttributeDependency extends Dependency {
             };
         }
 
-        let attributeRefResolutionDeps =
-            this.dependencyHandler
-                .attributeRefResolutionDependenciesByReferenced[
-                this.referencedIdx
-            ];
-
         if (
             !this.dependencyHandler.updateTriggers
                 .componentsReferencingAttributeByReferenced[this.referencedIdx]
@@ -7890,6 +7884,12 @@ class ComponentsReferencingAttributeDependency extends Dependency {
         this.dependencyHandler.updateTriggers.componentsReferencingAttributeByReferenced[
             this.referencedIdx
         ].push(this);
+
+        let attributeRefResolutionDeps =
+            this.dependencyHandler
+                .attributeRefResolutionDependenciesByReferenced[
+                this.referencedIdx
+            ];
 
         if (attributeRefResolutionDeps) {
             if (!this.allowUnresolvedPath) {
