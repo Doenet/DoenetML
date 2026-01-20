@@ -272,19 +272,21 @@ export default class Answer extends InlineComponent {
                 return false;
             }
 
-            function addResponsesToReferenceDescendants(components) {
+            function addPotentialResponsesToReferenceDescendants(components) {
                 for (let component of components) {
                     if (component.componentType === "_copy") {
                         if (!component.attributes) {
                             component.attributes = {};
                         }
-                        component.attributes.isResponse = {
+                        component.attributes.isPotentialResponse = {
                             type: "unresolved",
-                            name: "isResponse",
+                            name: "isPotentialResponse",
                             children: ["true"],
                         };
                     } else if (component.children) {
-                        addResponsesToReferenceDescendants(component.children);
+                        addPotentialResponsesToReferenceDescendants(
+                            component.children,
+                        );
                     }
                 }
             }
@@ -548,11 +550,11 @@ export default class Answer extends InlineComponent {
 
                 if (!foundResponse) {
                     // definitely have a case where there is not a response
-                    // look inside each award and add isResponse to any composites
+                    // look inside each award and add isPotentialResponse to any reference
                     for (let child of matchedChildren) {
                         if (componentIsSpecifiedType(child, "award")) {
                             if (child.children?.length > 0) {
-                                addResponsesToReferenceDescendants(
+                                addPotentialResponsesToReferenceDescendants(
                                     child.children,
                                 );
                             }
@@ -1042,13 +1044,46 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.inputsForAnswer = {
+            returnDependencies: () => ({
+                inputsReferencing: {
+                    dependencyType: "componentsReferencingAttribute",
+                    attributeName: "forAnswer",
+                },
+                inputChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "inputChildrenWithValues",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const inputsForAnswer = [];
+
+                if (dependencyValues.inputsReferencing) {
+                    // add any inputs that reference this answer
+                    // but aren't an input child
+                    inputsForAnswer.push(
+                        ...dependencyValues.inputsReferencing.filter(
+                            (comp) =>
+                                !dependencyValues.inputChildren
+                                    .map((child) => child.componentIdx)
+                                    .includes(comp.componentIdx),
+                        ),
+                    );
+                }
+
+                return { setValue: { inputsForAnswer } };
+            },
+        };
+
         stateVariableDefinitions.numResponses = {
+            additionalStateVariablesDefined: ["usePotentialResponses"],
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
             },
             stateVariablesDeterminingDependencies: [
                 "awardInputResponseChildren",
+                "inputsForAnswer",
             ],
             returnDependencies({ stateValues, componentInfoObjects }) {
                 let dependencies = {
@@ -1058,7 +1093,23 @@ export default class Answer extends InlineComponent {
                             (x) => x.componentType,
                         ),
                     },
+                    numInputsForAnswer: {
+                        dependencyType: "value",
+                        value: stateValues.inputsForAnswer.length,
+                    },
                 };
+
+                for (let [
+                    ind,
+                    inputComp,
+                ] of stateValues.inputsForAnswer.entries()) {
+                    dependencies["inputForAnswerNValues" + ind] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: inputComp.componentIdx,
+                        variableName: "numValues",
+                        variablesOptional: true,
+                    };
+                }
 
                 for (let [
                     ind,
@@ -1074,7 +1125,11 @@ export default class Answer extends InlineComponent {
                             dependencyType: "descendant",
                             ancestorIdx: child.componentIdx,
                             componentTypes: ["_base"],
-                            variableNames: ["isResponse", "numValues"],
+                            variableNames: [
+                                "isResponse",
+                                "isPotentialResponse",
+                                "numValues",
+                            ],
                             variablesOptional: true,
                             recurseToMatchedChildren: true,
                             includeNonActiveChildren: true,
@@ -1106,6 +1161,21 @@ export default class Answer extends InlineComponent {
             },
             definition({ dependencyValues, componentInfoObjects }) {
                 let numResponses = 0;
+                let numPotentialResponses = 0;
+
+                for (
+                    let ind = 0;
+                    ind < dependencyValues.numInputsForAnswer;
+                    ind++
+                ) {
+                    let numValues =
+                        dependencyValues["inputForAnswerNValues" + ind];
+                    if (numValues === undefined) {
+                        numResponses += 1;
+                    } else {
+                        numResponses += numValues;
+                    }
+                }
 
                 for (let [
                     ind,
@@ -1121,7 +1191,9 @@ export default class Answer extends InlineComponent {
                             "child" + ind
                         ]) {
                             if (
-                                !descendant.stateValues.isResponse ||
+                                (!descendant.stateValues.isResponse &&
+                                    !descendant.stateValues
+                                        .isPotentialResponse) ||
                                 componentInfoObjects.isInheritedComponentType({
                                     inheritedComponentType:
                                         descendant.componentType,
@@ -1131,13 +1203,13 @@ export default class Answer extends InlineComponent {
                                 continue;
                             }
 
-                            if (
-                                descendant.stateValues.numValues === undefined
-                            ) {
-                                numResponses += 1;
+                            let numValues =
+                                descendant.stateValues.numValues ?? 1;
+
+                            if (descendant.stateValues.isResponse) {
+                                numResponses += numValues;
                             } else {
-                                numResponses +=
-                                    descendant.stateValues.numValues;
+                                numPotentialResponses += numValues;
                             }
                         }
                     } else if (
@@ -1165,7 +1237,15 @@ export default class Answer extends InlineComponent {
                     }
                 }
 
-                return { setValue: { numResponses } };
+                let usePotentialResponses = false;
+                if (numResponses === 0 && numPotentialResponses > 0) {
+                    numResponses = numPotentialResponses;
+                    usePotentialResponses = true;
+                }
+
+                return {
+                    setValue: { numResponses, usePotentialResponses },
+                };
             },
         };
 
@@ -1183,6 +1263,7 @@ export default class Answer extends InlineComponent {
             entryPrefixes: ["currentResponse"],
             stateVariablesDeterminingDependencies: [
                 "awardInputResponseChildren",
+                "inputsForAnswer",
             ],
             returnArraySizeDependencies: () => ({
                 numResponses: {
@@ -1204,7 +1285,27 @@ export default class Answer extends InlineComponent {
                             (x) => x.componentType,
                         ),
                     },
+                    numInputsForAnswer: {
+                        dependencyType: "value",
+                        value: stateValues.inputsForAnswer.length,
+                    },
+                    usePotentialResponses: {
+                        dependencyType: "stateVariable",
+                        variableName: "usePotentialResponses",
+                    },
                 };
+
+                for (let [
+                    ind,
+                    inputComp,
+                ] of stateValues.inputsForAnswer.entries()) {
+                    globalDependencies["inputForAnswer" + ind] = {
+                        dependencyType: "multipleStateVariables",
+                        componentIdx: inputComp.componentIdx,
+                        variableNames: ["value", "values", "componentType"],
+                        variablesOptional: true,
+                    };
+                }
 
                 for (let [
                     ind,
@@ -1222,6 +1323,7 @@ export default class Answer extends InlineComponent {
                             componentTypes: ["_base"],
                             variableNames: [
                                 "isResponse",
+                                "isPotentialResponse",
                                 "value",
                                 "values",
                                 "formula",
@@ -1239,22 +1341,10 @@ export default class Answer extends InlineComponent {
                             baseComponentType: "_input",
                         })
                     ) {
-                        globalDependencies["childValue" + ind] = {
-                            dependencyType: "stateVariable",
+                        globalDependencies["child" + ind] = {
+                            dependencyType: "multipleStateVariables",
                             componentIdx: child.componentIdx,
-                            variableName: "value",
-                            variablesOptional: true,
-                        };
-                        globalDependencies["childValues" + ind] = {
-                            dependencyType: "stateVariable",
-                            componentIdx: child.componentIdx,
-                            variableName: "values",
-                            variablesOptional: true,
-                        };
-                        globalDependencies["childComponentType" + ind] = {
-                            dependencyType: "stateVariable",
-                            componentIdx: child.componentIdx,
-                            variableName: "componentType",
+                            variableNames: ["value", "values", "componentType"],
                             variablesOptional: true,
                         };
                     } else {
@@ -1278,6 +1368,17 @@ export default class Answer extends InlineComponent {
 
                 let responseComponents = [];
 
+                for (
+                    let ind = 0;
+                    ind < globalDependencyValues.numInputsForAnswer;
+                    ind++
+                ) {
+                    const input =
+                        globalDependencyValues["inputForAnswer" + ind];
+                    input.componentType = input.stateValues.componentType;
+                    responseComponents.push(input);
+                }
+
                 for (let [
                     ind,
                     childType,
@@ -1292,7 +1393,10 @@ export default class Answer extends InlineComponent {
                             "child" + ind
                         ]) {
                             if (
-                                !descendant.stateValues.isResponse ||
+                                (!descendant.stateValues.isResponse &&
+                                    (!globalDependencyValues.usePotentialResponses ||
+                                        !descendant.stateValues
+                                            .isPotentialResponse)) ||
                                 componentInfoObjects.isInheritedComponentType({
                                     inheritedComponentType:
                                         descendant.componentType,
@@ -1310,23 +1414,8 @@ export default class Answer extends InlineComponent {
                             baseComponentType: "_input",
                         })
                     ) {
-                        // reconstruct child in same way as for other components
-                        let child = {
-                            componentType: childType,
-                            stateValues: {
-                                value: globalDependencyValues[
-                                    "childValue" + ind
-                                ],
-                                values: globalDependencyValues[
-                                    "childValues" + ind
-                                ],
-                                componentType:
-                                    globalDependencyValues[
-                                        "childComponentType" + ind
-                                    ],
-                            },
-                        };
-
+                        const child = globalDependencyValues["child" + ind];
+                        child.componentType = child.stateValues.componentType;
                         responseComponents.push(child);
                     } else {
                         // considerAsResponses

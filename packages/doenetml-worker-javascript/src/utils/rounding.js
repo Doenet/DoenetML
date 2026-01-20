@@ -308,7 +308,10 @@ export function gatherRawRoundingFixedResponseAttributes(
                         .extendListViaComposite
                 ];
 
-            if (typeof composite.stateValues.extendIdx === "number") {
+            if (
+                typeof composite.stateValues.extendIdx === "number" &&
+                composite.stateValues.extendIdx !== -1
+            ) {
                 componentForRawAttributes =
                     components[composite.stateValues.extendIdx];
             } else {
@@ -323,7 +326,10 @@ export function gatherRawRoundingFixedResponseAttributes(
                         .copyListViaComposite
                 ];
 
-            if (typeof composite.stateValues.extendIdx === "number") {
+            if (
+                typeof composite.stateValues.extendIdx === "number" &&
+                composite.stateValues.extendIdx !== -1
+            ) {
                 componentForRawAttributes =
                     components[composite.stateValues.extendIdx];
             } else {

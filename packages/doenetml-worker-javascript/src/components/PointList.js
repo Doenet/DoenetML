@@ -52,6 +52,9 @@ export default class PointList extends CompositeComponent {
         attributes.isResponse = {
             leaveRaw: true,
         };
+        attributes.isPotentialResponse = {
+            leaveRaw: true,
+        };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
@@ -546,11 +549,13 @@ export default class PointList extends CompositeComponent {
                 : null;
         let copyChildSource;
         if (copyChild) {
-            const cIdx = await copyChild?.stateValues.extendIdx;
-            copyChildSource = {
-                componentIdx: cIdx,
-                componentType: components[cIdx].componentType,
-            };
+            const cIdx = await copyChild.stateValues.extendIdx;
+            if (cIdx !== -1) {
+                copyChildSource = {
+                    componentIdx: cIdx,
+                    componentType: components[cIdx].componentType,
+                };
+            }
         }
 
         let childIndicesByPoint =
@@ -559,7 +564,7 @@ export default class PointList extends CompositeComponent {
         let numPoints = await component.stateValues.numPoints;
         let numDimensions = await component.stateValues.numDimensions;
         for (let i = 0; i < numPoints; i++) {
-            // allow one to override the fixed and isResponse attributes
+            // allow one to override the fixed, isResponse, and isPotentialResponse attributes
             // as well as rounding settings
             // by specifying it on the list
             let attributes = {};

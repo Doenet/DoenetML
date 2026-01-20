@@ -3344,15 +3344,6 @@ d
             );
         });
 
-        function getCSSVariableAsRGB(win, varName) {
-            const el = win.document.createElement("div");
-            el.style.color = `var(${varName})`;
-            win.document.body.appendChild(el);
-            const rgbValue = win.getComputedStyle(el).color;
-            el.remove();
-            return rgbValue;
-        }
-
         cy.window().then((win) => {
             // Get CSS variable values from the root element
             const correctColor = getCSSVariableAsRGB(win, "--lightGreen");
@@ -3762,4 +3753,135 @@ d
             );
         });
     });
+
+    it("mathInput with forAnswer colors border and determines response", () => {
+        // Also test that bug where current responses was not rendering correctly.
+        // Since update renderer calls were in the wrong order,
+        // the change to one current response was getting overwritten by the original calculation of two responses.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<p>
+    Enter <math name="a">x</math>: <mathInput name="b" forAnswer="$ans" />
+    <answer name="ans"><award><when>$b = $a</when></award></answer>
+</p>
+
+<p name="pNum">Number of responses: $ans.numResponses</p>
+<p name="pCur">Current responses: $ans.currentResponses</p>
+<p name="pSub">Submitted responses: $ans.submittedResponses</p>
+
+<p name="pText">$pCur.text</p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.window().then((win) => {
+            // Get CSS variable values from the root element
+            const correctColor = getCSSVariableAsRGB(win, "--lightGreen");
+            const incorrectColor = getCSSVariableAsRGB(win, "--lightRed");
+
+            const defaultColor = "rgb(0, 0, 0)"; // black
+
+            cy.get("#b textarea").as("mathInput");
+            cy.get("#b .mq-editable-field").as("mathInputField");
+
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+
+            cy.get("#pNum").should("have.text", "Number of responses: 1");
+            cy.get("#pCur").should("have.text", "Current responses: \uff3f");
+            cy.get("#pSub").should("have.text", "Submitted responses: ");
+            cy.get("#pText").should("have.text", "Current responses: \uff3f");
+
+            cy.get("@mathInput").type("x{enter}", { force: true });
+
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+
+            cy.get("#pNum").should("have.text", "Number of responses: 1");
+            cy.get("#pCur").should(
+                "have.text",
+                `Current responses: ${toMathJaxString("x")}`,
+            );
+            cy.get("#pSub").should("have.text", "Submitted responses: ");
+            cy.get("#pText").should("have.text", "Current responses: x");
+
+            cy.get("#ans").click(); // submit answer
+
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                correctColor,
+            );
+
+            cy.get("#pNum").should("have.text", "Number of responses: 1");
+            cy.get("#pCur").should(
+                "have.text",
+                `Current responses: ${toMathJaxString("x")}`,
+            );
+            cy.get("#pSub").should(
+                "have.text",
+                `Submitted responses: ${toMathJaxString("x")}`,
+            );
+            cy.get("#pText").should("have.text", "Current responses: x");
+
+            cy.get("@mathInput").type("{end}{backspace}y{enter}", {
+                force: true,
+            });
+
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+
+            cy.get("#pNum").should("have.text", "Number of responses: 1");
+            cy.get("#pCur").should(
+                "have.text",
+                `Current responses: ${toMathJaxString("y")}`,
+            );
+            cy.get("#pSub").should(
+                "have.text",
+                `Submitted responses: ${toMathJaxString("x")}`,
+            );
+            cy.get("#pText").should("have.text", "Current responses: y");
+
+            cy.get("#ans").click(); // submit answer
+
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                incorrectColor,
+            );
+
+            cy.get("#pNum").should("have.text", "Number of responses: 1");
+            cy.get("#pCur").should(
+                "have.text",
+                `Current responses: ${toMathJaxString("y")}`,
+            );
+            cy.get("#pSub").should(
+                "have.text",
+                `Submitted responses: ${toMathJaxString("y")}`,
+            );
+            cy.get("#pText").should("have.text", "Current responses: y");
+        });
+    });
 });
+
+function getCSSVariableAsRGB(win, varName) {
+    const el = win.document.createElement("div");
+    el.style.color = `var(${varName})`;
+    win.document.body.appendChild(el);
+    const rgbValue = win.getComputedStyle(el).color;
+    el.remove();
+    return rgbValue;
+}

@@ -47,6 +47,9 @@ export default class TextList extends CompositeComponent {
         attributes.isResponse = {
             leaveRaw: true,
         };
+        attributes.isPotentialResponse = {
+            leaveRaw: true,
+        };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
@@ -327,7 +330,7 @@ export default class TextList extends CompositeComponent {
         let componentsCopied = [];
 
         let attributesToConvert = {};
-        for (let attr of ["fixed", "isResponse"]) {
+        for (let attr of ["fixed", "isResponse", "isPotentialResponse"]) {
             if (attr in component.attributes) {
                 attributesToConvert[attr] = component.attributes[attr];
             }
@@ -338,7 +341,7 @@ export default class TextList extends CompositeComponent {
 
         let numComponents = await component.stateValues.numComponents;
         for (let i = 0; i < numComponents; i++) {
-            // allow one to override the fixed and isResponse attributes
+            // allow one to override the fixed, isResponse, and isPotentialResponse attributes
             // by specifying it on the sequence
             let attributesFromComposite = {};
 

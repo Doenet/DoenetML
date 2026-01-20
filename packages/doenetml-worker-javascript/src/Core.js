@@ -454,7 +454,7 @@ export default class Core {
         );
     }
 
-    async callUpdateRenderers(args, init = false) {
+    callUpdateRenderers(args, init = false) {
         let errorWarnings = undefined;
         if (this.newErrorWarning) {
             errorWarnings = this.getErrorWarnings().errorWarnings;
@@ -592,24 +592,6 @@ export default class Core {
                 this.document,
             );
 
-            // initializing renderer instructions could trigger more composite updates
-            // (presumably from deriving child results)
-            // if so, make replacement changes and update renderer instructions again
-            // TODO: should we check for child results earlier so we don't have to check them
-            // when updating renderer instructions?
-            if (this.updateInfo.compositesToUpdateReplacements.size > 0) {
-                await this.replacementChangesFromCompositesToUpdate();
-
-                let componentNamesToUpdate = [
-                    ...this.updateInfo.componentsToUpdateRenderers,
-                ];
-                this.updateInfo.componentsToUpdateRenderers.clear();
-
-                await this.updateRendererInstructions({
-                    componentNamesToUpdate,
-                });
-            }
-
             this.documentRendererInstructions = results.componentToRender;
 
             let updateInstructions = [
@@ -632,6 +614,24 @@ export default class Core {
                     },
                 ];
                 this.callUpdateRenderers({ updateInstructions });
+            }
+
+            // initializing renderer instructions could trigger more composite updates
+            // (presumably from deriving child results)
+            // if so, make replacement changes and update renderer instructions again
+            // TODO: should we check for child results earlier so we don't have to check them
+            // when updating renderer instructions?
+            if (this.updateInfo.compositesToUpdateReplacements.size > 0) {
+                await this.replacementChangesFromCompositesToUpdate();
+
+                let componentNamesToUpdate = [
+                    ...this.updateInfo.componentsToUpdateRenderers,
+                ];
+                this.updateInfo.componentsToUpdateRenderers.clear();
+
+                await this.updateRendererInstructions({
+                    componentNamesToUpdate,
+                });
             }
 
             await this.processStateVariableTriggers(true);

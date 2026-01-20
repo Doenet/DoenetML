@@ -53,6 +53,9 @@ export default class NumberList extends CompositeComponent {
         attributes.isResponse = {
             leaveRaw: true,
         };
+        attributes.isPotentialResponse = {
+            leaveRaw: true,
+        };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
@@ -601,11 +604,13 @@ export default class NumberList extends CompositeComponent {
                 : null;
         let copyChildSource;
         if (copyChild) {
-            const cIdx = await copyChild?.stateValues.extendIdx;
-            copyChildSource = {
-                componentIdx: cIdx,
-                componentType: components[cIdx].componentType,
-            };
+            const cIdx = await copyChild.stateValues.extendIdx;
+            if (cIdx !== -1) {
+                copyChildSource = {
+                    componentIdx: cIdx,
+                    componentType: components[cIdx].componentType,
+                };
+            }
         }
 
         let childInfoByComponent =
@@ -613,7 +618,7 @@ export default class NumberList extends CompositeComponent {
 
         let numComponents = await component.stateValues.numComponents;
         for (let i = 0; i < numComponents; i++) {
-            // allow one to override the fixed and isResponse attributes
+            // allow one to override the fixed, isResponse, and isPotentialResponse attributes
             // as well as rounding settings
             // by specifying it on the list
             let attributes = {};

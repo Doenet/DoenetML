@@ -52,6 +52,9 @@ export default class VectorListComponent extends CompositeComponent {
         attributes.isResponse = {
             leaveRaw: true,
         };
+        attributes.isPotentialResponse = {
+            leaveRaw: true,
+        };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
@@ -545,11 +548,13 @@ export default class VectorListComponent extends CompositeComponent {
                 : null;
         let copyChildSource;
         if (copyChild) {
-            const cIdx = await copyChild?.stateValues.extendIdx;
-            copyChildSource = {
-                componentIdx: cIdx,
-                componentType: components[cIdx].componentType,
-            };
+            const cIdx = await copyChild.stateValues.extendIdx;
+            if (cIdx !== -1) {
+                copyChildSource = {
+                    componentIdx: cIdx,
+                    componentType: components[cIdx].componentType,
+                };
+            }
         }
 
         let childIndicesByVector =
@@ -558,7 +563,7 @@ export default class VectorListComponent extends CompositeComponent {
         let numVectors = await component.stateValues.numVectors;
         let numDimensions = await component.stateValues.numDimensions;
         for (let i = 0; i < numVectors; i++) {
-            // allow one to override the fixed and isResponse attributes
+            // allow one to override the fixed, isResponse, and isPotentialResponse attributes
             // as well as rounding settings
             // by specifying it on the list
             let attributes = {};
