@@ -7751,7 +7751,7 @@ What is the derivative of <function name="f">x^2</function>?
         ).eq(false);
     });
 
-    it("state variables propagated when forAnswer set on input", async () => {
+    it("correctness state variables propagated when forAnswer set on input", async () => {
         // The state variables colorCorrectness, showCorrectness, justSubmitted, creditAchieved
         // should be propagated from answer to input when forAnswer is set.
         const doenetML = `
@@ -7853,6 +7853,212 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[mathInput1Idx].stateValues.creditAchieved).eq(1);
         expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(0);
         expect(stateVariables[mathInput3Idx].stateValues.creditAchieved).eq(0);
+    });
+
+    it("responses determined by forAnswer on input", async () => {
+        const doenetML = `
+    <mathInput name="mi1" forAnswer="$ans1" />
+    <mathInput name="mi2" forAnswer="$ans1" />
+    <math name="a">x</math>
+    <math name="b">y</math>
+    <answer name="ans1">
+        <award><when>$mi1=$a and $mi2=$b</when></award>
+    </answer>
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function checkResponse(
+            currentResponses: string[],
+            submittedResponses: string[],
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const answerIdx = await resolvePathToNodeIdx("ans1");
+            expect(stateVariables[answerIdx].stateValues.numResponses).eq(
+                currentResponses.length,
+            );
+            expect(
+                stateVariables[answerIdx].stateValues.currentResponses.map(
+                    (x: any) => x.tree,
+                ),
+            ).eqls(currentResponses);
+            expect(
+                stateVariables[answerIdx].stateValues.submittedResponses.map(
+                    (x: any) => x.tree,
+                ),
+            ).eqls(submittedResponses);
+        }
+
+        await checkResponse(["\uff3f", "\uff3f"], []);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await checkResponse(["x", "\uff3f"], []);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        await checkResponse(["x", "y"], []);
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+        await checkResponse(["x", "y"], ["x", "y"]);
+    });
+
+    it("responses determined by forAnswer on input, change dynamically", async () => {
+        const doenetML = `
+    <booleanInput name="bi" />
+    <conditionalContent name="cc">
+        <case condition="$bi">
+            <mathInput name="mi1" forAnswer="$ans1" />
+            <mathInput name="mi2" forAnswer="$ans1" />
+            <math name="a">x</math>
+            <math name="b">y</math>
+        </case>
+        <else>
+            <mathInput name="mi1" forAnswer="$ans1" prefill="u" />
+            <mathInput name="mi2" forAnswer="$ans1" prefill="v" />
+            <math name="a">u</math>
+            <math name="b">v</math>
+        </else>
+    </conditionalContent>
+
+    <answer name="ans1">
+        <award><when>$cc.mi1=$cc.a and $cc.mi2=$cc.b</when></award>
+    </answer>
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function checkResponse(
+            currentResponses: string[],
+            submittedResponses: string[],
+            creditAchieved: number,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const answerIdx = await resolvePathToNodeIdx("ans1");
+            expect(stateVariables[answerIdx].stateValues.numResponses).eq(
+                currentResponses.length,
+            );
+            expect(
+                stateVariables[answerIdx].stateValues.currentResponses.map(
+                    (x: any) => x.tree,
+                ),
+            ).eqls(currentResponses);
+            expect(
+                stateVariables[answerIdx].stateValues.submittedResponses.map(
+                    (x: any) => x.tree,
+                ),
+            ).eqls(submittedResponses);
+            expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
+                creditAchieved,
+            );
+        }
+
+        await checkResponse(["u", "v"], [], 0);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("cc.mi1"),
+            core,
+        });
+        await checkResponse(["x", "v"], [], 0);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("cc.mi2"),
+            core,
+        });
+        await checkResponse(["x", "y"], [], 0);
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+        await checkResponse(["x", "y"], ["x", "y"], 0);
+
+        // now change condition so different inputs are used
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        await checkResponse(["\uff3f", "\uff3f"], ["x", "y"], 0);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("cc.mi1"),
+            core,
+        });
+        await checkResponse(["x", "\uff3f"], ["x", "y"], 0);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("cc.mi2"),
+            core,
+        });
+        await checkResponse(["x", "y"], ["x", "y"], 0);
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+        await checkResponse(["x", "y"], ["x", "y"], 1);
+
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: await resolvePathToNodeIdx("cc.mi2"),
+            core,
+        });
+        await checkResponse(["x", "z"], ["x", "y"], 1);
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+        await checkResponse(["x", "z"], ["x", "z"], 0);
+
+        // switch back to other condition
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        await checkResponse(["u", "v"], ["x", "z"], 0);
+
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+        await checkResponse(["u", "v"], ["u", "v"], 1);
+
+        // switch back again
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        await checkResponse(["\uff3f", "\uff3f"], ["u", "v"], 1);
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+        await checkResponse(["\uff3f", "\uff3f"], ["\uff3f", "\uff3f"], 0);
     });
 
     it("answer coloring based on section-wide check work by default", async () => {
