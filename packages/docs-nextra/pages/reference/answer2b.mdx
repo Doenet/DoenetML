@@ -145,7 +145,38 @@ specified or we are in assignment where the Show Correctness setting has been se
 The `showCorrectness` attribute on ` <answer>{:dn}` will override these settings to either 
 always show or never show correctness.
 
+---
 
+### Example: colorCorrectness
+
+```doenet-example
+<p>Default behavior:
+  <answer>
+    <label>1+1=</label>
+    2
+  </answer>
+</p>
+
+<p><attr>colorCorrectness</attr> set to false:
+  <answer colorCorrectness="false">
+    <label>2+2=</label>
+    4
+  </answer>
+</p>
+
+<p><attr>colorCorrectness</attr> is always false if <attr>showCorrectness</attr> is false:
+  <answer colorCorrectness="true" showCorrectness="false">
+    <label>3+3=</label>
+    6
+  </answer>
+</p>
+```
+
+The `colorCorrectness` attribute defaults to `true`, which means answer boxes by default have a colored border (and corresponding aria-label)
+to indicate the correctness of the response.
+
+If an input (e.g., `<mathInput>:{dn}`) is linked to an answer with the `forAnswer` attribute,
+then that input's box coloring will be determined by the answer's `colorCorrectness` attribute.
 
 ---
 
