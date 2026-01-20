@@ -38,12 +38,15 @@ export class DependencyHandler {
             dependenciesMissingComponentBySpecifiedName: {},
             dependenciesBasedOnDependenciesOfStateVariables: {},
             primaryShadowDependencies: {},
+            componentsReferencingAttributeByReferenced: {},
         };
 
         this.resolveBlockers = {
             neededToResolve: {},
             resolveBlockedBy: {},
         };
+
+        this.attributeRefResolutionDependenciesByReferenced = {};
     }
 
     async setUpComponentDependencies(component) {
@@ -7699,6 +7702,8 @@ class AttributeRefResolutions extends Dependency {
         ];
 
         this.missingComponentBlockers = [];
+
+        this.extendIndicesResolved = [];
     }
 
     async determineDownstreamComponents() {
@@ -7740,11 +7745,71 @@ class AttributeRefResolutions extends Dependency {
     async getValue() {
         const result = await super.getValue();
 
-        result.value = result.value.map((comp) => ({
-            componentIdx: comp.stateValues.extendIdx,
-            unresolvedPath: comp.stateValues.unresolvedPath,
-            originalPath: comp.stateValues.originalPath,
-        }));
+        const newValue = [];
+
+        for (const comp of result.value) {
+            const extendIdx = comp.stateValues.extendIdx;
+
+            if (extendIdx >= 0) {
+                if (!this.extendIndicesResolved.includes(extendIdx)) {
+                    this.extendIndicesResolved.push(extendIdx);
+
+                    // add this dependency to the list of attributeRefResolution dependencies
+                    // for the referenced component
+                    let attributeRefResolutionDeps =
+                        this.dependencyHandler
+                            .attributeRefResolutionDependenciesByReferenced[
+                            extendIdx
+                        ];
+                    if (!attributeRefResolutionDeps) {
+                        attributeRefResolutionDeps =
+                            this.dependencyHandler.attributeRefResolutionDependenciesByReferenced[
+                                extendIdx
+                            ] = [];
+                    }
+                    attributeRefResolutionDeps.push({
+                        dependency: this,
+                        composite: comp,
+                    });
+                }
+            }
+
+            newValue.push({
+                componentIdx: extendIdx,
+                unresolvedPath: comp.stateValues.unresolvedPath,
+                originalPath: comp.stateValues.originalPath,
+            });
+
+            // if any componentsReferencingAttribute dependencies exist for this extendIdx,
+            // then add blockers to recalculate them
+            if (
+                this.dependencyHandler.updateTriggers
+                    .componentsReferencingAttributeByReferenced[extendIdx]
+            ) {
+                for (let dep of this.dependencyHandler.updateTriggers
+                    .componentsReferencingAttributeByReferenced[extendIdx]) {
+                    for (let varName of dep.upstreamVariableNames) {
+                        await this.dependencyHandler.addBlocker({
+                            blockerComponentIdx: dep.upstreamComponentIdx,
+                            blockerType: "recalculateDownstreamComponents",
+                            blockerStateVariable: varName,
+                            blockerDependency: dep.dependencyName,
+                            componentIdxBlocked: dep.upstreamComponentIdx,
+                            typeBlocked: "stateVariable",
+                            stateVariableBlocked: varName,
+                        });
+                    }
+                    await this.dependencyHandler.addBlockersFromChangedStateVariableDependencies(
+                        {
+                            componentIdx: dep.upstreamComponentIdx,
+                            stateVariables: dep.upstreamVariableNames,
+                        },
+                    );
+                }
+            }
+        }
+
+        result.value = newValue;
         result.usedDefault = !this.foundAttribute;
 
         return result;
@@ -7754,10 +7819,134 @@ class AttributeRefResolutions extends Dependency {
         for (const componentIdx of this.missingComponentBlockers) {
             this.deleteUpdateTriggerForMissingComponent(componentIdx);
         }
+
+        // delete this dependency from the list of attributeRefResolution dependencies
+        // for each referenced component
+        for (const extendIdx of this.extendIndicesResolved) {
+            let attributeRefResolutionDeps =
+                this.dependencyHandler
+                    .attributeRefResolutionDependenciesByReferenced[extendIdx];
+            if (attributeRefResolutionDeps) {
+                let ind = attributeRefResolutionDeps.findIndex(
+                    (entry) => entry.dependency === this,
+                );
+                if (ind !== -1) {
+                    attributeRefResolutionDeps.splice(ind, 1);
+                }
+            }
+        }
     }
 }
 
 dependencyTypeArray.push(AttributeRefResolutions);
+
+/**
+ * A dependency that gives the list of components that reference
+ * a given component via an attribute that was marked `createReferences: true`.
+ *
+ * Any plain strings in the attribute are ignored. Returns an array
+ * with an entry for each component that references the given component.
+ */
+class ComponentsReferencingAttributeDependency extends Dependency {
+    static dependencyType = "componentsReferencingAttribute";
+
+    setUpParameters() {
+        if (this.definition.referencedIdx != undefined) {
+            this.referencedIdx = this.definition.referencedIdx;
+            this.specifiedComponentName = this.referencedIdx;
+        } else {
+            this.referencedIdx = this.upstreamComponentIdx;
+        }
+
+        this.attributeName = this.definition.attributeName;
+
+        this.allowUnresolvedPath = this.definition.allowUnresolvedPath || false;
+
+        this.missingComponentBlockers = [];
+    }
+
+    async determineDownstreamComponents() {
+        let referencedComponent =
+            this.dependencyHandler._components[this.referencedIdx];
+
+        if (!referencedComponent) {
+            this.addBlockerUpdateTriggerForMissingComponent(this.referencedIdx);
+            this.missingComponentBlockers.push(this.referencedIdx);
+
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        let attributeRefResolutionDeps =
+            this.dependencyHandler
+                .attributeRefResolutionDependenciesByReferenced[
+                this.referencedIdx
+            ];
+
+        if (
+            !this.dependencyHandler.updateTriggers
+                .componentsReferencingAttributeByReferenced[this.referencedIdx]
+        ) {
+            this.dependencyHandler.updateTriggers.componentsReferencingAttributeByReferenced[
+                this.referencedIdx
+            ] = [];
+        }
+        this.dependencyHandler.updateTriggers.componentsReferencingAttributeByReferenced[
+            this.referencedIdx
+        ].push(this);
+
+        if (attributeRefResolutionDeps) {
+            if (!this.allowUnresolvedPath) {
+                attributeRefResolutionDeps = attributeRefResolutionDeps.filter(
+                    (entry) =>
+                        entry.composite.stateValues.unresolvedPath === null,
+                );
+            }
+
+            if (this.attributeName) {
+                attributeRefResolutionDeps = attributeRefResolutionDeps.filter(
+                    (entry) =>
+                        entry.dependency.attributeName === this.attributeName,
+                );
+            }
+
+            const downstreamComponentIndices = [];
+            const downstreamComponentTypes = [];
+
+            for (const entry of attributeRefResolutionDeps) {
+                const parentIdx = entry.dependency.parentIdx;
+                const parent = this.dependencyHandler._components[parentIdx];
+                if (parent) {
+                    downstreamComponentIndices.push(parentIdx);
+                    downstreamComponentTypes.push(parent.componentType);
+                }
+            }
+
+            return {
+                success: true,
+                downstreamComponentIndices: downstreamComponentIndices,
+                downstreamComponentTypes: downstreamComponentTypes,
+            };
+        }
+
+        return {
+            success: false,
+            downstreamComponentIndices: [],
+            downstreamComponentTypes: [],
+        };
+    }
+
+    deleteFromUpdateTriggers() {
+        for (const componentIdx of this.missingComponentBlockers) {
+            this.deleteUpdateTriggerForMissingComponent(componentIdx);
+        }
+    }
+}
+
+dependencyTypeArray.push(ComponentsReferencingAttributeDependency);
 
 /**
  * A dependency that gives the (non-blank) strings from an attribute

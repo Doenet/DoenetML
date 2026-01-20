@@ -1052,8 +1052,6 @@ export default class Answer extends InlineComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                console.log("def of inputsForAnswer", dependencyValues);
-
                 const inputsForAnswer = [];
 
                 if (dependencyValues.inputsReferencing) {
