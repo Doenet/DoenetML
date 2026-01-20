@@ -169,6 +169,34 @@ The `prefill` attribute specifies initial text for the ` <textInput/>{:dn}`.
 
 The `expanded` attribute renders a larger ` <textInput/>{:dn}` space. The dimensions of the input space can be further customized with the `height` and `width` attributes.
 
+---
+
+### Attribute Example: forAnswer
+
+```doenet-editor-horiz
+<setup>
+  <textList name="validColors">red orange yellow green blue indigo violet</textList>
+</setup>
+<p>Enter two colors of ROYGBIV.
+  <textInput name="c1" forAnswer="$ans">
+    <shortDescription>first color</shortDescription>
+  </textInput>
+  <textInput name="c2" forAnswer="$ans">
+    <shortDescription>second color</shortDescription>
+  </textInput>
+  <answer name="ans" matchPartial caseInsensitiveMatch>
+    <shortDescription>Enter two colors of ROYGBYV</shortDescription>
+    <award><when>$c1 elementof $validColors and $c2 elementof $validColors</when></award>
+  </answer>
+</p>
+
+<p>Submitted responses: $ans.submittedResponses</p>
+
+```
+
+Specifying the attribute `forAnswer` of a `<textInput>` does two things:
+1. It colors the border of the text input based on the correctness of the response (assuming `colorCorrectness` is set).
+2. It includes the value of the text input as a response of the answer.
 
 
 ---
