@@ -47,6 +47,7 @@ export default class Group extends CompositeComponent {
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
+            excludeFromSchema: true,
         };
         attributes.createComponentOfType = {
             createPrimitiveOfType: "string",

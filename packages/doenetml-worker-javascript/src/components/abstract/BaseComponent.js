@@ -382,7 +382,7 @@ export default class BaseComponent {
                 createPrimitiveOfType: "boolean",
                 createStateVariable: "isPotentialResponse",
                 defaultValue: false,
-                public: true,
+                excludeFromSchema: true,
             },
             permid: {
                 createPrimitiveOfType: "string",
