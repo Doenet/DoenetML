@@ -66,6 +66,7 @@ export default class Repeat extends CompositeComponent {
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
+            excludeFromSchema: true,
         };
 
         attributes.asList = {

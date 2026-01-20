@@ -52,6 +52,7 @@ export default class IntervalList extends CompositeComponent {
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
+            excludeFromSchema: true,
         };
 
         attributes.asList = {

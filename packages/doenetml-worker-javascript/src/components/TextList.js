@@ -49,6 +49,7 @@ export default class TextList extends CompositeComponent {
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
+            excludeFromSchema: true,
         };
 
         attributes.asList = {

@@ -54,6 +54,7 @@ export default class PointList extends CompositeComponent {
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
+            excludeFromSchema: true,
         };
 
         attributes.asList = {

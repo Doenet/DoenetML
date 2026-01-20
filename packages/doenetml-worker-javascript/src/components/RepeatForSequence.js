@@ -58,6 +58,7 @@ export default class RepeatForSequence extends CompositeComponent {
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
+            excludeFromSchema: true,
         };
 
         attributes.asList = {
