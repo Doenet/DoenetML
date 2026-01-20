@@ -7647,7 +7647,7 @@ class RefResolutionDependency extends Dependency {
         const result = await super.getValue();
 
         result.value = {
-            extendIdx: this.extendIdx,
+            extendIdx: this.extendIdx ?? -1,
             unresolvedPath: this.unresolvedPath,
             originalPath: this.originalPath,
         };
@@ -7680,8 +7680,6 @@ dependencyTypeArray.push(RefResolutionDependency);
  * - unresolvedPath: any unresolved path remaining after `componentIdx` was resolved
  * - originalPath: the original path corresponding to the given reference
  */
-// TODO: should the componentIdx be `undefined` or `-1` if no referent?
-// We seem to be inconsistent in this convention.
 class AttributeRefResolutions extends Dependency {
     static dependencyType = "attributeRefResolutions";
 
@@ -7750,6 +7748,12 @@ class AttributeRefResolutions extends Dependency {
         for (const comp of result.value) {
             const extendIdx = comp.stateValues.extendIdx;
 
+            newValue.push({
+                componentIdx: extendIdx,
+                unresolvedPath: comp.stateValues.unresolvedPath,
+                originalPath: comp.stateValues.originalPath,
+            });
+
             if (extendIdx >= 0) {
                 if (!this.extendIndicesResolved.includes(extendIdx)) {
                     this.extendIndicesResolved.push(extendIdx);
@@ -7772,12 +7776,6 @@ class AttributeRefResolutions extends Dependency {
                         composite: comp,
                     });
                 }
-
-                newValue.push({
-                    componentIdx: extendIdx,
-                    unresolvedPath: comp.stateValues.unresolvedPath,
-                    originalPath: comp.stateValues.originalPath,
-                });
 
                 // if any componentsReferencingAttribute dependencies exist for this extendIdx,
                 // then add blockers to recalculate them
