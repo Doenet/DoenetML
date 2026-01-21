@@ -155,11 +155,11 @@ In order to display the problem number in addition to the custom ` <title>{:dn}`
 
 ---
 
-### Attribute Example: aggregateScores and sectionWideCheckWork
+### Attribute Example: sectionWideCheckWork
 
 
 ```doenet-example
-<problem sectionWideCheckWork aggregateScores>
+<problem sectionWideCheckWork>
   <title>Multiple questions</title>
     <p>Enter <m>x</m>: <answer>x</answer></p>
     <p>Enter <m>y</m>: <answer>y</answer></p>
@@ -169,7 +169,27 @@ In order to display the problem number in addition to the custom ` <title>{:dn}`
 
 
 
-The `aggregateScores` and `sectionWideCheckWork` attributes together combine validation for all ` <answer>{:dn}` components within the ` <problem>{:dn}` under a single "Check Work" button.
+The `sectionWideCheckWork` attribute combines validation for all ` <answer>{:dn}` components within the ` <problem>{:dn}` under a single "Check Work" button.
+
+---
+
+### Attribute Example: forceIndividualAnswerColoring
+
+
+```doenet-example
+<problem sectionWideCheckWork forceIndividualAnswerColoring><title>Multiple questions</title>
+  <p>Enter <m>x</m>: <answer>x</answer></p>
+  <p>Enter <m>y</m>: <answer>y</answer></p>
+  <p>Enter <m>z</m>: <answer>z</answer></p>
+</problem>
+```
+
+Typically, the `sectionWideCheckWork` attribute causes all answer box border colors
+to correspond to the overall correctness of the entire problem
+(i.e., the colors don't reveal additional information about which answer is correct).
+If `forceIndividualAnswerColoring` is also specified, then each answer box border
+will instead be colored according to its own answer's correctness.
+
 
 
 ---

@@ -187,6 +187,32 @@ behavior by specifying `splitSymbols="false"`.
 
 ---
 
+### Attribute Example: forAnswer
+
+```doenet-editor-horiz
+<p>Enter two numbers that add to 5.
+  <mathInput name="n1" forAnswer="$ans">
+    <shortDescription>first number</shortDescription>
+  </mathInput>
+  <mathInput name="n2" forAnswer="$ans">
+    <shortDescription>second number</shortDescription>
+  </mathInput>
+  <answer name="ans">
+    <shortDescription>Enter two numbers that add to 5</shortDescription>
+    <award><when>$n1 + $n2 = 5</when></award>
+  </answer>
+</p>
+
+<p>Submitted responses: $ans.submittedResponses</p>
+
+```
+
+Specifying the attribute `forAnswer` of a `<mathInput>` does two things:
+1. It colors the border of the math input based on the correctness of the response (assuming `colorCorrectness` is not set to `false`).
+2. It includes the value of the math input as a response of the answer.
+
+---
+
 ### Attribute Example: bindValueTo
 
 
@@ -204,15 +230,16 @@ Then, try changing the value in the input box.</p>
 <p>The bound radius of the circle through the points $A, $B, and $C is 
   <mathInput bindValueTo="$circ.radius" />. 
 </p> 
+
+<p>Alternate way to access the bound radius: <mathInput>$circ.radius</mathInput></p>
 ```
-
-
 
 The `bindValueTo` attribute is used to create a bidirectional link between the 
 value of a ` <mathInput/>{:dn}` and that of another component. This attribute 
 accepts a reference to a named math component or the property of a named component as input.
 
-
+An alternative way to create the same bidirectional link is to simply put the reference to the 
+component as a child of the `<mathInput>{:dn}`.
 
 ---
 

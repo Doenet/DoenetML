@@ -172,11 +172,11 @@ the `includeAutoNumber` attribute to `true`.
 
 ---
 
-### Attribute Example: aggregateScores and sectionWideCheckWork
+### Attribute Example: sectionWideCheckWork
 
 
 ```doenet-example
-<section sectionWideCheckWork aggregateScores><title>Multiple questions</title>
+<section sectionWideCheckWork><title>Multiple questions</title>
   <p>Enter <m>x</m>: <answer>x</answer></p>
   <p>Enter <m>y</m>: <answer>y</answer></p>
   <p>Enter <m>z</m>: <answer>z</answer></p>
@@ -185,9 +185,29 @@ the `includeAutoNumber` attribute to `true`.
 
 
 
-The `aggregateScores` and `sectionWideCheckWork` attributes together combine 
+The `sectionWideCheckWork` attribute combines 
 validation for all ` <answer>{:dn}` components within the ` <section>{:dn}` under a 
 single "Check Work" button.
+
+
+---
+
+### Attribute Example: forceIndividualAnswerColoring
+
+
+```doenet-example
+<section sectionWideCheckWork forceIndividualAnswerColoring><title>Multiple questions</title>
+  <p>Enter <m>x</m>: <answer>x</answer></p>
+  <p>Enter <m>y</m>: <answer>y</answer></p>
+  <p>Enter <m>z</m>: <answer>z</answer></p>
+</section>
+```
+
+Typically, the `sectionWideCheckWork` attribute causes all answer box border colors
+to correspond to the overall correctness of the entire section
+(i.e., the colors don't reveal additional information about which answer is correct).
+If `forceIndividualAnswerColoring` is also specified, then each answer box border
+will instead be colored according to its own answer's correctness.
 
 
 ---
