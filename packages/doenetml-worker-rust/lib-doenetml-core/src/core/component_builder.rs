@@ -458,6 +458,7 @@ impl ComponentBuilder {
                         // For example,  `<textInput name="i" />$i.value`
                         // should become `<textInput name="i" /><text extend="$i.value" />`
                         // rather than   `<textInput name="i" /><textInput extend="$i.value" />`
+                        #[allow(clippy::unnecessary_unwrap)]
                         let path = ref_resolution.unresolved_path.as_ref().unwrap();
                         if path.len() == 1 && path[0].index.is_empty() {
                             let path_part = &path[0];
