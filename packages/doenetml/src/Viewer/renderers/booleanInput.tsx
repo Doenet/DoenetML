@@ -532,13 +532,6 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
             checkmarkClass += " checkmark-disabled";
         }
 
-        if (SVs.colorCorrectness) {
-            checkmarkClass += ` checkmark-${validationState}`;
-            shortDescription = addValidationStateToShortDescription(
-                validationState,
-                shortDescription,
-            );
-        }
         input = (
             <label className={containerClass} id={`${id}-label`}>
                 <input

@@ -283,14 +283,14 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     if (SVs.colorCorrectness) {
         if (validationState.current === "correct") {
-            mathInputStyle.borderColor = "var(--lightGreen)";
-            mathInputStyle.outlineColor = "var(--lightGreen)";
+            mathInputStyle.borderColor = "var(--mainGreen)";
+            mathInputStyle.outlineColor = "var(--mainGreen)";
         } else if (validationState.current === "incorrect") {
-            mathInputStyle.borderColor = "var(--lightRed)";
-            mathInputStyle.outlineColor = "var(--lightRed)";
+            mathInputStyle.borderColor = "var(--mainRed)";
+            mathInputStyle.outlineColor = "var(--mainRed)";
         } else if (validationState.current === "partialcorrect") {
-            mathInputStyle.borderColor = "#ffd894"; // Light Yellow
-            mathInputStyle.outlineColor = "#ffd894";
+            mathInputStyle.borderColor = "var(--mainOrange)";
+            mathInputStyle.outlineColor = "var(--mainOrange)";
         }
         shortDescription = addValidationStateToShortDescription(
             validationState.current,

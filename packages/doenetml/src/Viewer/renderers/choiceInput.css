@@ -58,16 +58,6 @@
     cursor: not-allowed;
 }
 
-.doenet-viewer .radio-checkmark-correct {
-    border-color: var(--lightGreen);
-}
-.doenet-viewer .radio-checkmark-incorrect {
-    border-color: var(--lightRed);
-}
-.doenet-viewer .radio-checkmark-partialcorrect {
-    border-color: #ffd894; /* Light Yellow */
-}
-
 /* On mouse-over, add a grey background color */
 .doenet-viewer .radio-container:hover input ~ .radio-checkmark {
     background-color: var(--lightBlue);
@@ -87,22 +77,6 @@
 .doenet-viewer .radio-container:focus-within input ~ .radio-checkmark {
     outline: 2px solid var(--mainBlue);
     outline-offset: 2px;
-}
-
-.doenet-viewer .radio-container:focus-within input ~ .radio-checkmark-correct {
-    outline-color: var(--lightGreen);
-}
-.doenet-viewer
-    .radio-container:focus-within
-    input
-    ~ .radio-checkmark-incorrect {
-    outline-color: var(--lightRed);
-}
-.doenet-viewer
-    .radio-container:focus-within
-    input
-    ~ .radio-checkmark-partialcorrect {
-    outline-color: #ffd894; /* Light Yellow */
 }
 
 /* Create the indicator (the dot/circle - hidden when not checked) */
@@ -187,16 +161,6 @@
     cursor: not-allowed;
 }
 
-.doenet-viewer .checkbox-checkmark-correct {
-    border-color: var(--lightGreen);
-}
-.doenet-viewer .checkbox-checkmark-incorrect {
-    border-color: var(--lightRed);
-}
-.doenet-viewer .checkbox-checkmark-partialcorrect {
-    border-color: #ffd894; /* Light Yellow */
-}
-
 /* On mouse-over, add a light blue background color */
 .doenet-viewer .checkbox-container:hover input ~ .checkbox-checkmark {
     background-color: var(--lightBlue);
@@ -216,24 +180,6 @@
 .doenet-viewer .checkbox-container:focus-within input ~ .checkbox-checkmark {
     outline: 2px solid var(--mainBlue);
     outline-offset: 2px;
-}
-.doenet-viewer
-    .checkbox-container:focus-within
-    input
-    ~ .checkbox-checkmark-correct {
-    outline-color: var(--lightGreen);
-}
-.doenet-viewer
-    .checkbox-container:focus-within
-    input
-    ~ .checkbox-checkmark-incorrect {
-    outline-color: var(--lightRed);
-}
-.doenet-viewer
-    .checkbox-container:focus-within
-    input
-    ~ .checkbox-checkmark-partialcorrect {
-    outline-color: #ffd894; /* Light Yellow */
 }
 
 /* Create the checkmark/indicator (hidden when not checked) */
@@ -275,13 +221,13 @@
 }
 
 .doenet-viewer .custom-select-correct {
-    border-color: var(--lightGreen);
+    border-color: var(--mainGreen);
 }
 .doenet-viewer .custom-select-incorrect {
-    border-color: var(--lightRed);
+    border-color: var(--mainRed);
 }
 .doenet-viewer .custom-select-partialcorrect {
-    border-color: #ffd894; /* Light Yellow */
+    border-color: var(--mainOrange);
 }
 
 .doenet-viewer .custom-select:focus-within {
@@ -290,11 +236,12 @@
 }
 
 .doenet-viewer .custom-select-correct:focus-within {
-    outline-color: var(--lightGreen);
+    outline-color: var(--mainGreen);
 }
 .doenet-viewer .custom-select-incorrect:focus-within {
-    outline-color: var(--lightRed);
+    border-color: var(--mainRed);
+    outline-color: var(--mainRed);
 }
 .doenet-viewer .custom-select-partialcorrect:focus-within {
-    outline-color: #ffd894; /* Light Yellow */
+    outline-color: var(--mainOrange);
 }
