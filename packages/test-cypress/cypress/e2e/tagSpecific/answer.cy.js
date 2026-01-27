@@ -3346,11 +3346,11 @@ d
 
         cy.window().then((win) => {
             // Get CSS variable values from the root element
-            const correctColor = getCSSVariableAsRGB(win, "--lightGreen");
-            const incorrectColor = getCSSVariableAsRGB(win, "--lightRed");
+            const correctColor = getCSSVariableAsRGB(win, "--mainGreen");
+            const incorrectColor = getCSSVariableAsRGB(win, "--mainRed");
 
             const defaultColor = "rgb(0, 0, 0)"; // black
-            const partialColor = "rgb(255, 216, 148)"; // light yellow
+            const partialColor = getCSSVariableAsRGB(win, "--mainOrange");
 
             // Math answer
             cy.get("#ansMath textarea").as("mathInput");
@@ -3780,8 +3780,8 @@ d
 
         cy.window().then((win) => {
             // Get CSS variable values from the root element
-            const correctColor = getCSSVariableAsRGB(win, "--lightGreen");
-            const incorrectColor = getCSSVariableAsRGB(win, "--lightRed");
+            const correctColor = getCSSVariableAsRGB(win, "--mainGreen");
+            const incorrectColor = getCSSVariableAsRGB(win, "--mainRed");
 
             const defaultColor = "rgb(0, 0, 0)"; // black
 
