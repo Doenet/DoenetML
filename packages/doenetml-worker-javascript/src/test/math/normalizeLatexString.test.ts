@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeLatexString } from "../utils/math";
+import { normalizeLatexString } from "../../utils/math";
 
 describe("normalizeLatexString unicode substitutions", () => {
     it("converts Greek letter alpha", () => {
@@ -150,5 +150,17 @@ describe("normalizeLatexString double script handling", () => {
         const input = "x_ {_ {n}}";
         const output = normalizeLatexString(input);
         expect(output).toBe("x_{n}");
+    });
+
+    it("handles three superscripts in a row", () => {
+        const input = "x^{^{^{2}}}";
+        const output = normalizeLatexString(input);
+        expect(output).toBe("x^{2}");
+    });
+
+    it("handles three subscripts in a row", () => {
+        const input = "x_{_{_{5}}}";
+        const output = normalizeLatexString(input);
+        expect(output).toBe("x_{5}");
     });
 });
