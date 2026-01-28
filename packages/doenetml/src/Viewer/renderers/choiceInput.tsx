@@ -148,13 +148,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
     let shortDescription = SVs.shortDescription || undefined;
 
-    if (SVs.colorCorrectness) {
-        shortDescription = addValidationStateToShortDescription(
-            validationState,
-            shortDescription,
-        );
-    }
-
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
 
@@ -179,7 +172,14 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     );
 
     if (SVs.inline) {
-        let svData = SVs;
+        // since we color correctness for inline choiceInput,
+        // modify shortDescription to include correctness state
+        if (SVs.colorCorrectness) {
+            shortDescription = addValidationStateToShortDescription(
+                validationState,
+                shortDescription,
+            );
+        }
 
         // Custom Option to disable pointer events on option content
         // to keep MathJax from interfering with option selection
@@ -203,13 +203,13 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         let choiceOptions = (SVs.choiceOrder as number[])
             .map((v) => choiceChildren[v - 1])
             .map(function (child, i) {
-                if (svData.choicesHidden[i]) {
+                if (SVs.choicesHidden[i]) {
                     return null;
                 }
                 return {
                     value: i + 1,
                     label: child,
-                    isDisabled: !!svData.choicesDisabled[i],
+                    isDisabled: !!SVs.choicesDisabled[i],
                 };
             })
             .filter((opt) => opt !== null) as Option[];
@@ -237,6 +237,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 minHeight: "0.8lh",
                 pointerEvents: disabled ? "auto" : undefined,
                 boxShadow: "none",
+                border: "none",
             }),
 
             valueContainer: (provided: any) => ({
@@ -396,8 +397,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             inputType = "checkbox";
         }
 
-        let svData = SVs;
-
         const choiceChildren = SVs.choiceChildIndices.map(
             (ind: number) => children[ind],
         );
@@ -405,12 +404,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         let choiceDoenetTags = (SVs.choiceOrder as number[])
             .map((v) => choiceChildren[v - 1])
             .map(function (child, i) {
-                if (svData.choicesHidden[i]) {
+                if (SVs.choicesHidden[i]) {
                     return null;
                 }
                 if (inputType == "radio") {
                     // selectMultiple="false"
-                    let radioDisabled = disabled || svData.choicesDisabled[i];
+                    let radioDisabled = disabled || SVs.choicesDisabled[i];
                     let containerClassName = "radio-container";
                     let radioClassName = "radio-checkmark";
                     if (radioDisabled) {
@@ -418,9 +417,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                         radioClassName += " radio-checkmark-disabled";
                     }
 
-                    if (SVs.colorCorrectness) {
-                        radioClassName += ` radio-checkmark-${validationState}`;
-                    }
                     return (
                         <li key={i}>
                             <label
@@ -450,8 +446,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     );
                 } else if (inputType == "checkbox") {
                     // selectMultiple="true"
-                    let checkboxDisabled =
-                        disabled || svData.choicesDisabled[i];
+                    let checkboxDisabled = disabled || SVs.choicesDisabled[i];
                     let containerClassName = "checkbox-container";
                     let checkboxClassName = "checkbox-checkmark";
                     if (checkboxDisabled) {
@@ -459,9 +454,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                         checkboxClassName += " checkbox-checkmark-disabled";
                     }
 
-                    if (SVs.colorCorrectness) {
-                        checkboxClassName += ` checkbox-checkmark-${validationState}`;
-                    }
                     return (
                         <li key={i}>
                             <label
@@ -478,7 +470,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                     )}
                                     onChange={onChangeHandler}
                                     disabled={
-                                        disabled || svData.choicesDisabled[i]
+                                        disabled || SVs.choicesDisabled[i]
                                     }
                                 />
                                 <span className={checkboxClassName} />

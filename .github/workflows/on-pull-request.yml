@@ -137,6 +137,13 @@ jobs:
               env:
                   CYPRESS_SKIP_YOUTUBE_TESTS: true
 
+            - name: Upload screenshots on failure
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: cypress-screenshots
+                  path: ./packages/test-cypress/cypress/screenshots
+
     lint:
         name: Lint Rust Code
         runs-on: ubuntu-latest

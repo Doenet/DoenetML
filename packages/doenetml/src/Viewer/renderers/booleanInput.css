@@ -57,15 +57,6 @@
     background-color: var(--mainGray);
     border-color: var(--mainGray);
 }
-.doenet-viewer .checkmark-correct {
-    border-color: var(--lightGreen);
-}
-.doenet-viewer .checkmark-incorrect {
-    border-color: var(--lightRed);
-}
-.doenet-viewer .checkmark-partialcorrect {
-    border-color: #ffd894; /* Light Yellow */
-}
 
 /* On mouse-over, add a light blue background color */
 .doenet-viewer .boolean-container:hover input[type="checkbox"] ~ .checkmark {
@@ -92,24 +83,6 @@
     ~ .checkmark {
     outline: 2px solid var(--canvasText);
     outline-offset: 2px;
-}
-.doenet-viewer
-    .boolean-container:focus-within
-    input[type="checkbox"]
-    ~ .checkmark-correct {
-    outline-color: var(--lightGreen);
-}
-.doenet-viewer
-    .boolean-container:focus-within
-    input[type="checkbox"]
-    ~ .checkmark-incorrect {
-    outline-color: var(--lightRed);
-}
-.doenet-viewer
-    .boolean-container:focus-within
-    input[type="checkbox"]
-    ~ .checkmark-partialcorrect {
-    outline-color: #ffd894; /* Light Yellow */
 }
 
 /* Create the checkmark/indicator (hidden when not checked) */

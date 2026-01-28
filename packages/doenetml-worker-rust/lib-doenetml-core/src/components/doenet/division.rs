@@ -521,6 +521,7 @@ mod custom_props {
                 {
                     // Infer our division type from our parent
                     return PropCalcResult::FromDefault(
+                        #[allow(clippy::unnecessary_unwrap)]
                         required_data.parent_division.unwrap().value.next_division(),
                     );
                 }
