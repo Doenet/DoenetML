@@ -59,6 +59,14 @@ export default class Choice extends InlineComponent {
             newName: "disabledOriginal",
         });
 
+        // The text state variable uses hiddenIgnoreParent
+        // rather than hidden so that it does not depend
+        // on the hidden state variable of its ancestors.
+        // If a multiple choice is inside a cascade,
+        // the hidden of the parent could change after answer submission.
+        // Since a choice's text could be a credit achieved dependency
+        // of the answer, this could lead to the answer's justSubmitted
+        // state variable becoming false immediately after submission.
         stateVariableDefinitions.text = {
             public: true,
             shadowingInstructions: {
@@ -68,12 +76,30 @@ export default class Choice extends InlineComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["children"],
-                    variableNames: ["text", "hidden"],
+                    variableNames: ["text", "hiddenIgnoreParent"],
                     variablesOptional: true,
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let text = textFromChildren(dependencyValues.inlineChildren);
+                const inlineChildren = dependencyValues.inlineChildren.map(
+                    (child) => {
+                        if (typeof child !== "object") {
+                            return child;
+                        } else {
+                            child = { ...child };
+                            child.stateValues = { ...child.stateValues };
+                            child.stateValues.hidden =
+                                child.stateValues.hiddenIgnoreParent;
+                            delete child.stateValues.hiddenIgnoreParent;
+                            return child;
+                        }
+                    },
+                );
+
+                inlineChildren.compositeReplacementRange =
+                    dependencyValues.inlineChildren.compositeReplacementRange;
+
+                let text = textFromChildren(inlineChildren);
 
                 return { setValue: { text } };
             },

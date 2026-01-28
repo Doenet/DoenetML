@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { submitAnswer, updateMathInputValue } from "../utils/actions";
+import {
+    submitAnswer,
+    updateMathInputValue,
+    updateSelectedIndices,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1750,5 +1754,109 @@ describe("Cascade tag tests", async () => {
             stateVariables[section2Idx].stateValues.childIndicesToRender,
         ).eqls([0, 1, 2, 3, 4]);
         expect(stateVariables[section2Idx].stateValues.childrenToHide).eqls([]);
+    });
+
+    it("just submitted is not set to false in choice input inside cascade", async () => {
+        const doenetML = `
+<cascade>
+  <section boxed>
+    <answer name="ans1">
+      <choiceInput name="ci1">
+        <choice credit="1"><text>correct</text></choice>
+        <choice><m>1 > 2</m></choice>
+      </choiceInput>
+    </answer>
+  </section>
+  <section boxed>
+    <answer name="ans2">
+      <choiceInput name="ci2">
+        <choice><text>incorrect</text></choice>
+        <choice credit="1"><m>1 < 2</m></choice>
+      </choiceInput>
+    </answer>
+  </section>
+</cascade>
+  `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function check_items(
+            justSubmitted: boolean[],
+            creditAchieved: number[],
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
+                    .justSubmitted,
+            ).eq(justSubmitted[0]);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
+                    .creditAchieved,
+            ).eq(creditAchieved[0]);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                    .hidden,
+            ).eq(creditAchieved[0] < 1);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
+                    .justSubmitted,
+            ).eq(justSubmitted[1]);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
+                    .creditAchieved,
+            ).eq(creditAchieved[1]);
+        }
+
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci1"),
+            selectedIndices: [1],
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+
+        await check_items([true, false], [1, 0]);
+
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci1"),
+            selectedIndices: [2],
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+
+        await check_items([true, false], [0, 0]);
+
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci1"),
+            selectedIndices: [1],
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans1"),
+            core,
+        });
+
+        await check_items([true, false], [1, 0]);
+
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci2"),
+            selectedIndices: [2],
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans2"),
+            core,
+        });
+        await check_items([true, true], [1, 1]);
     });
 });
