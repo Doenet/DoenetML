@@ -60,11 +60,13 @@ export const Graph: BasicComponent = ({ node }) => {
               --donutTopping: #6d4445;
               --mainRed: #c1292e;
               --lightRed: hsl(0, 54%, 82%);
-              --mainGreen: #459152;
+              --mainGreen: #3e844a;
               --lightGreen: #a6f19f;
               --lightYellow: #f5ed85;
               --whiteBlankLink: #6d4445;
               --mainYellow: #94610a;
+              --lightOrange: #efab34;
+              --mainOrange: #a36600;
               --mainPurple: #4a03d9;
             }
         `;

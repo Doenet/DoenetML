@@ -1,7 +1,4 @@
-import { cesc } from "@doenet/utils";
-import { toMathJaxString } from "../../../src/util/mathDisplay";
-
-describe("Render commas tests", function () {
+describe("Basic accessibility tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("");

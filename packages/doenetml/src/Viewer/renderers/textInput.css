@@ -15,22 +15,22 @@
 }
 
 .doenet-viewer .text-input-correct {
-    border-color: var(--lightGreen);
+    border-color: var(--mainGreen);
 
     &:focus {
-        outline-color: var(--lightGreen);
+        outline-color: var(--mainGreen);
     }
 }
 .doenet-viewer .text-input-incorrect {
-    border-color: var(--lightRed);
+    border-color: var(--mainRed);
     &:focus {
-        outline-color: var(--lightRed);
+        outline-color: var(--mainRed);
     }
 }
 
 .doenet-viewer .text-input-partialcorrect {
-    border-color: #ffd894; /* Light Yellow */
+    border-color: var(--mainOrange);
     &:focus {
-        outline-color: #ffd894;
+        outline-color: var(--mainOrange);
     }
 }

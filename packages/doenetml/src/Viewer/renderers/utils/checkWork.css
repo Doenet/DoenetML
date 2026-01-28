@@ -42,7 +42,7 @@
 }
 
 .doenet-viewer button.check-work-correct {
-    background-color: #3e844a; /* Dark Green */
+    background-color: var(--mainGreen);
     color: white;
     cursor: default;
 
@@ -53,7 +53,7 @@
 }
 
 .doenet-viewer button.check-work-correct:focus {
-    outline-color: #3e844a; /* Dark Green */
+    outline-color: var(--mainGreen);
 }
 
 .doenet-viewer button.check-work-incorrect {
@@ -72,18 +72,18 @@
 }
 
 .doenet-viewer button.check-work-partialcorrect {
-    background-color: #a36600; /* Dark Yellow */
+    background-color: var(--mainOrange);
     color: white;
     cursor: default;
 
     &:hover {
-        background-color: #efab34; /* Light Yellow */
+        background-color: var(--lightOrange);
         color: black;
     }
 }
 
 .doenet-viewer button.check-work-partialcorrect:focus {
-    outline-color: #a36600; /* Dark Yellow */
+    outline-color: var(--mainOrange);
 }
 
 .doenet-viewer button.check-work-response-saved {
