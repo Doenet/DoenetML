@@ -180,7 +180,6 @@ export default class Choiceinput extends Input {
                 choiceChildren: {
                     dependencyType: "child",
                     childGroups: ["choices"],
-                    variableNames: ["text"],
                 },
                 shuffleOrder: {
                     dependencyType: "stateVariable",
@@ -359,7 +358,6 @@ export default class Choiceinput extends Input {
                 choiceChildren: {
                     dependencyType: "child",
                     childGroups: ["choices"],
-                    // variableNames: ["text", "selected", "submitted", "credit"]
                 },
             }),
             definition: function ({ dependencyValues }) {
@@ -745,15 +743,6 @@ export default class Choiceinput extends Input {
             hasEssential: true,
             returnDependencies() {
                 return {
-                    choiceOrder: {
-                        dependencyType: "stateVariable",
-                        variableName: "choiceOrder",
-                    },
-                    choiceChildren: {
-                        dependencyType: "child",
-                        childGroups: ["choices"],
-                        variableNames: ["text"],
-                    },
                     indicesMatchedByBoundValue: {
                         dependencyType: "stateVariable",
                         variableName: "indicesMatchedByBoundValue",
@@ -814,9 +803,10 @@ export default class Choiceinput extends Input {
                     };
                 }
             },
-            inverseDefinition({
+            async inverseDefinition({
                 desiredStateVariableValues,
                 dependencyValues,
+                stateValues,
             }) {
                 let instructions = [
                     {
@@ -830,17 +820,13 @@ export default class Choiceinput extends Input {
                     if (
                         desiredStateVariableValues.allSelectedIndices.length > 0
                     ) {
-                        let choiceChildrenOrdered =
-                            dependencyValues.choiceOrder.map(
-                                (i) => dependencyValues.choiceChildren[i - 1],
-                            );
                         let selectedTexts = [];
+                        const choiceTexts = await stateValues.choiceTexts;
+
                         for (let ind of desiredStateVariableValues.allSelectedIndices) {
-                            let selectedChild = choiceChildrenOrdered[ind - 1];
-                            if (selectedChild) {
-                                selectedTexts.push(
-                                    selectedChild.stateValues.text,
-                                );
+                            let selectedText = choiceTexts[ind - 1];
+                            if (selectedText) {
+                                selectedTexts.push(selectedText);
                             }
                         }
                         desiredText = selectedTexts.join(", ");

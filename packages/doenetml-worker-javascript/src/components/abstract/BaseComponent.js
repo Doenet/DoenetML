@@ -533,6 +533,35 @@ export default class BaseComponent {
             },
         };
 
+        stateVariableDefinitions.hiddenIgnoreParent = {
+            returnDependencies: () => ({
+                hide: {
+                    dependencyType: "stateVariable",
+                    variableName: "hide",
+                    variablesOptional: true,
+                },
+                sourceCompositeHidden: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "hidden",
+                },
+                adapterSourceHidden: {
+                    dependencyType: "adapterSourceStateVariable",
+                    variableName: "hidden",
+                },
+            }),
+            definition: ({ dependencyValues }) => {
+                return {
+                    setValue: {
+                        hiddenIgnoreParent: Boolean(
+                            dependencyValues.sourceCompositeHidden ||
+                            dependencyValues.adapterSourceHidden ||
+                            dependencyValues.hide,
+                        ),
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.disabled = {
             public: true,
             shadowingInstructions: {
