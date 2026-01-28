@@ -12086,4 +12086,55 @@ describe("MathInput tag tests", async () => {
                 .componentType,
         ).eq("description");
     });
+
+    it("remove repeated superscript and subscripts", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi1" prefillLatex="x^{^{2}}"/>
+    <mathInput name="mi2" prefillLatex="y_{_{3}}"/>
+
+    <p name="pLatex1">$mi1.rawRendererValue</p>
+    <p name="pLatex2">$mi2.rawRendererValue</p>
+    <p name="pValue1"><math name="m1" extend="$mi1" /></p>
+    <p name="pValue2"><math name="m2" extend="$mi2" /></p>
+    <p name="pValueLatex1">$m1.latex</p>
+    <p name="pValueLatex2">$m2.latex</p>
+    
+     `,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pLatex1")].stateValues
+                .text,
+        ).eq("x^{^{2}}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pLatex2")].stateValues
+                .text,
+        ).eq("y_{_{3}}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pValue1")].stateValues
+                .text,
+        ).eq("x²");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pValue2")].stateValues
+                .text,
+        ).eq("y₃");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pValueLatex1")]
+                .stateValues.text,
+        ).eq("x^{2}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pValueLatex2")]
+                .stateValues.text,
+        ).eq("y_{3}");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
+        ).eqls(me.fromLatex("x^2").tree);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(me.fromLatex("y_3").tree);
+    });
 });

@@ -464,7 +464,7 @@ export function normalizeLatexString(
         latexString = latexString.replace(/(\b|\\ )U(\b|\\ )/g, "$1\\cup$2");
     }
 
-    latexString = removeDoubleScripts(latexString);
+    latexString = removeRepeatedSuperSubScripts(latexString);
 
     return latexString;
 }
@@ -1116,16 +1116,17 @@ export function textToLatex(text: string) {
 }
 
 /**
- * Collapse double exponents or subscripts in a LaTeX string.
+ * Collapse repeated exponents or subscripts in a LaTeX string.
  *
  * Examples:
  * - x^{^{2}} -> x^{2}
  * - x_{_{5}} -> x_{5}
  * - x^{^{\frac{8}{3}}} -> x^{\frac{8}{3}}
+ * - x^{^{^{2}}} -> x^{2} (handles multiple levels)
  *
  * Handles nested braces inside the inner script.
  */
-function removeDoubleScripts(latex: string) {
+function removeRepeatedSuperSubScripts(latex: string) {
     let newLatex = latex;
 
     const isWhitespace = (char: string) => /\s/.test(char);
@@ -1148,79 +1149,87 @@ function removeDoubleScripts(latex: string) {
         return -1;
     };
 
-    const removeDoubleScript = (scriptChar: "^" | "_") => {
-        let i = 0;
-        while (i < newLatex.length) {
-            if (newLatex[i] !== scriptChar) {
-                i++;
-                continue;
-            }
+    const removeRepScript = (scriptChar: "^" | "_") => {
+        let changed = true;
+        while (changed) {
+            changed = false;
+            let i = 0;
+            while (i < newLatex.length) {
+                if (newLatex[i] !== scriptChar) {
+                    i++;
+                    continue;
+                }
 
-            let j = i + 1;
-            while (j < newLatex.length && isWhitespace(newLatex[j])) {
-                j++;
-            }
+                let j = i + 1;
+                while (j < newLatex.length && isWhitespace(newLatex[j])) {
+                    j++;
+                }
 
-            if (newLatex[j] !== "{") {
-                i++;
-                continue;
-            }
+                if (newLatex[j] !== "{") {
+                    i++;
+                    continue;
+                }
 
-            let outerOpen = j;
-            let outerClose = findMatchingBrace(newLatex, outerOpen);
-            if (outerClose === -1) {
-                i++;
-                continue;
-            }
+                let outerOpen = j;
+                let outerClose = findMatchingBrace(newLatex, outerOpen);
+                if (outerClose === -1) {
+                    i++;
+                    continue;
+                }
 
-            let k = outerOpen + 1;
-            while (k < outerClose && isWhitespace(newLatex[k])) {
-                k++;
-            }
+                let k = outerOpen + 1;
+                while (k < outerClose && isWhitespace(newLatex[k])) {
+                    k++;
+                }
 
-            if (newLatex[k] !== scriptChar) {
-                i = outerClose + 1;
-                continue;
-            }
+                if (newLatex[k] !== scriptChar) {
+                    i = outerClose + 1;
+                    continue;
+                }
 
-            let l = k + 1;
-            while (l < outerClose && isWhitespace(newLatex[l])) {
-                l++;
-            }
+                let l = k + 1;
+                while (l < outerClose && isWhitespace(newLatex[l])) {
+                    l++;
+                }
 
-            if (newLatex[l] !== "{") {
-                i = outerClose + 1;
-                continue;
-            }
+                if (newLatex[l] !== "{") {
+                    i = outerClose + 1;
+                    continue;
+                }
 
-            let innerOpen = l;
-            let innerClose = findMatchingBrace(newLatex, innerOpen);
-            if (innerClose === -1 || innerClose > outerClose) {
-                i = outerClose + 1;
-                continue;
-            }
+                let innerOpen = l;
+                let innerClose = findMatchingBrace(newLatex, innerOpen);
+                if (innerClose === -1 || innerClose > outerClose) {
+                    i = outerClose + 1;
+                    continue;
+                }
 
-            let trailing = innerClose + 1;
-            while (trailing < outerClose && isWhitespace(newLatex[trailing])) {
-                trailing++;
-            }
+                let trailing = innerClose + 1;
+                while (
+                    trailing < outerClose &&
+                    isWhitespace(newLatex[trailing])
+                ) {
+                    trailing++;
+                }
 
-            if (trailing !== outerClose) {
-                i = outerClose + 1;
-                continue;
-            }
+                if (trailing !== outerClose) {
+                    i = outerClose + 1;
+                    continue;
+                }
 
-            let innerScript = newLatex.substring(innerOpen + 1, innerClose);
-            newLatex =
-                newLatex.substring(0, i) +
-                `${scriptChar}{${innerScript}}` +
-                newLatex.substring(outerClose + 1);
-            i = i + 1 + innerScript.length + 2;
+                let innerScript = newLatex.substring(innerOpen + 1, innerClose);
+                newLatex =
+                    newLatex.substring(0, i) +
+                    `${scriptChar}{${innerScript}}` +
+                    newLatex.substring(outerClose + 1);
+                changed = true;
+                i = i + 1 + innerScript.length + 2;
+            }
         }
     };
 
-    removeDoubleScript("^");
-    removeDoubleScript("_");
+    removeRepScript("^");
+    removeRepScript("_");
 
     return newLatex;
 }
