@@ -239,7 +239,6 @@
     outline-color: var(--mainGreen);
 }
 .doenet-viewer .custom-select-incorrect:focus-within {
-    border-color: var(--mainRed);
     outline-color: var(--mainRed);
 }
 .doenet-viewer .custom-select-partialcorrect:focus-within {

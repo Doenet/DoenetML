@@ -3307,7 +3307,7 @@ d
         cy.get("#ans6").should("have.css", "display", "inline-flex");
     });
 
-    it.only("input's border color changes with correctness by default", () => {
+    it("input's border color changes with correctness by default", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
