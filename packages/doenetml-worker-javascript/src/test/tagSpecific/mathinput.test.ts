@@ -12087,7 +12087,7 @@ describe("MathInput tag tests", async () => {
         ).eq("description");
     });
 
-    it("remove repeated superscript and subscripts", async () => {
+    it("remove repeated superscripts and subscripts", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi1" prefillLatex="x^{^{2}}"/>
