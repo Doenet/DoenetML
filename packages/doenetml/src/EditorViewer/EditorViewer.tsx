@@ -412,6 +412,7 @@ export function EditorViewer({
                                 sameWidth
                                 gutter={2}
                                 className="popover"
+                                data-test="Format As Select Popover"
                             >
                                 <SelectItem
                                     className="select-item"

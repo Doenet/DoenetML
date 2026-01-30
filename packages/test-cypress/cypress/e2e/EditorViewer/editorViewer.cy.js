@@ -159,7 +159,10 @@ describe("EditorViewer Tests", function () {
 
         cy.log("Format as DoenetML");
         cy.get("[data-test='Format As Select']").click();
-        cy.contains(".select-item", "DoenetML").click();
+        cy.contains(
+            "[data-test='Format As Select Popover'] .select-item",
+            "DoenetML",
+        ).click();
 
         cy.contains("[data-test='Format DoenetML Button']", "Format").click();
 
