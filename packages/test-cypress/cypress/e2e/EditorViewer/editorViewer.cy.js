@@ -124,4 +124,48 @@ describe("EditorViewer Tests", function () {
         cy.get(".cm-activeLine").type("{ctrl+s}");
         cy.get("#ti_input").should("have.value", "");
     });
+
+    it("format as button", () => {
+        cy.get("#testRunner_toggleControls").click();
+        cy.get("#testRunner_showEditor").click();
+        cy.wait(100);
+        cy.get("#testRunner_toggleControls").click();
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `<math expand>x < y</math>`,
+                },
+                "*",
+            );
+        });
+
+        cy.get(".cm-content").should(
+            "contain.text",
+            "<math expand>x < y</math>",
+        );
+
+        cy.log("Format as XML");
+
+        cy.get("[data-test='Format As Select']").click();
+        cy.contains(".select-item", "XML").click();
+
+        cy.contains("[data-test='Format DoenetML Button']", "Format").click();
+
+        cy.get(".cm-content").should(
+            "contain.text",
+            '<math expand="true">x &lt; y</math>',
+        );
+
+        cy.log("Format as DoenetML");
+        cy.get("[data-test='Format As Select']").click();
+        cy.contains(".select-item", "DoenetML").click();
+
+        cy.contains("[data-test='Format DoenetML Button']", "Format").click();
+
+        cy.get(".cm-content").should(
+            "contain.text",
+            '<math expand="true">x < y</math>',
+        );
+    });
 });

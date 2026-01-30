@@ -112,6 +112,7 @@ export function EditorViewer({
     const [viewerDoenetML, setViewerDoenetML] = useState(initialDoenetML);
     const lastReportedDoenetML = useRef(initialDoenetML);
     const editorDoenetMLRef = useRef(initialDoenetML);
+    const [editorDoenetML, setEditorDoenetML] = useState(initialDoenetML);
 
     const [formatAsDoenetML, setFormatAsDoenetML] = useState(true);
 
@@ -211,6 +212,7 @@ export function EditorViewer({
 
     useEffect(() => {
         editorDoenetMLRef.current = initialDoenetML;
+        setEditorDoenetML(initialDoenetML);
     }, [initialDoenetML]);
 
     // call documentStructure callback followed by doenetmlChangeCallback
@@ -338,7 +340,7 @@ export function EditorViewer({
     const tabStore = useTabStore();
     const codeMirror = (
         <CodeMirror
-            value={initialDoenetML}
+            value={editorDoenetML}
             readOnly={readOnly}
             onBlur={onBlur}
             onChange={onEditorChange}
@@ -401,7 +403,10 @@ export function EditorViewer({
                                 Format as
                             </SelectLabel>
                             <div className="wrapper">
-                                <Select className="button" />
+                                <Select
+                                    className="button"
+                                    data-test="Format As Select"
+                                />
                             </div>
                             <SelectPopover
                                 sameWidth
@@ -420,6 +425,7 @@ export function EditorViewer({
                         </SelectProvider>
                         <UiButton
                             title="Format your source code"
+                            data-test="Format DoenetML Button"
                             onClick={async () => {
                                 const printed = await prettyPrint(
                                     editorDoenetMLRef.current,
@@ -429,6 +435,8 @@ export function EditorViewer({
                                     },
                                 );
                                 onEditorChange(printed);
+                                // also update editorDoenetML so that CodeMirror updates
+                                setEditorDoenetML(printed);
                             }}
                         >
                             Format
