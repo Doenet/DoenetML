@@ -3774,7 +3774,7 @@ d
         });
     });
 
-    it("foreceSmallCheckworkButton attribute forces small check work button", () => {
+    it("forceSmallCheckworkButton and attribute forces small check work button", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -3862,6 +3862,77 @@ d
         cy.get("#ans2_button [aria-hidden='true']").then(($el) => {
             expect(hasDirectText($el[0], "50% Correct")).to.equal(true);
             expect(hasDirectText($el[0], "50 %")).to.equal(false);
+        });
+    });
+
+    it("forceFullCheckworkButton and attribute forces large check work button", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>
+        <answer name="ans1">
+            <label>1+1=</label>
+            2
+        </answer>
+    </p>
+    
+    <p>
+        <answer name="ans2" forceFullCheckworkButton>
+            <label>2+2=</label>
+            4
+        </answer>
+    </p>
+    
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans1 button").should("contain.text", "Check Work");
+        cy.get("#ans2 button").should("contain.text", "Check Work");
+
+        // Check that ans1 does not have a visible "Check Work" text node, while ans2 does,
+        // which indicates that ans1 is using the small check work button and ans2 is using the full check work button.
+        // (Both components have "Check Work" in the title of the SVG and in the visually hidden text for screen readers.)
+        cy.get("#ans1 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Check Work")).to.equal(false);
+        });
+        cy.get("#ans2 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Check Work")).to.equal(true);
+        });
+
+        cy.get("#ans1 textarea").type("2", { force: true });
+        cy.get("#ans2 textarea").type("4", { force: true });
+
+        cy.get("#ans1 button").click();
+        cy.get("#ans2 button").click();
+
+        cy.get("#ans1 button").should("contain.text", "Correct");
+        cy.get("#ans2 button").should("contain.text", "Correct");
+
+        cy.get("#ans1 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Correct")).to.equal(false);
+        });
+        cy.get("#ans2 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Correct")).to.equal(true);
+        });
+
+        cy.get("#ans1 textarea").type("{end}{backspace}3", { force: true });
+        cy.get("#ans2 textarea").type("{end}{backspace}5", { force: true });
+
+        cy.get("#ans1 button").click();
+        cy.get("#ans2 button").click();
+
+        cy.get("#ans1 button").should("contain.text", "Incorrect");
+        cy.get("#ans2 button").should("contain.text", "Incorrect");
+
+        cy.get("#ans1 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Incorrect")).to.equal(false);
+        });
+        cy.get("#ans2 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Incorrect")).to.equal(true);
         });
     });
 });
