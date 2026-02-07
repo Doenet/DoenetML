@@ -55335,6 +55335,13 @@
                     ]
                 },
                 {
+                    "name": "forceSmallCheckworkButton",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "simplifyOnCompare",
                     "values": [
                         "none",
@@ -55558,6 +55565,11 @@
                 },
                 {
                     "name": "forceFullCheckworkButton",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "forceSmallCheckworkButton",
                     "type": "boolean",
                     "isArray": false
                 },

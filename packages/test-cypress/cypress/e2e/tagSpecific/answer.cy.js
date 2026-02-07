@@ -3773,6 +3773,97 @@ d
             cy.get("#pText").should("have.text", "Current responses: y");
         });
     });
+
+    it("foreceSmallCheckworkButton attribute forces small check work button", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>
+        <mathInput name="mi1" forAnswer="ans1"><label>1+1=</label></mathInput>
+        <answer name="ans1" forceSmallCheckworkButton>
+            <award symbolicEquality><when>$mi1 = 2</when></award>
+            <award credit="0.5"><when>$mi1 = 2</when></award>
+        </answer>
+    </p>
+    
+    <p>
+        <mathInput name="mi2" forAnswer="ans2"><label>2+2=</label></mathInput>
+        <answer name="ans2">
+            <award symbolicEquality><when>$mi2 = 4</when></award>
+            <award credit="0.5"><when>$mi2 = 4</when></award>
+        </answer>
+    </p>
+    
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans1_button").should("contain.text", "Check Work");
+        cy.get("#ans2_button").should("contain.text", "Check Work");
+
+        // Check that ans1 does not have a visible "Check Work" text node, while ans2 does,
+        // which indicates that ans1 is using the small check work button and ans2 is using the full check work button.
+        // (Both components have "Check Work" in the title of the SVG and in the visually hidden text for screen readers.)
+        cy.get("#ans1_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Check Work")).to.equal(false);
+        });
+        cy.get("#ans2_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Check Work")).to.equal(true);
+        });
+
+        cy.get("#mi1 textarea").type("2", { force: true });
+        cy.get("#mi2 textarea").type("4", { force: true });
+
+        cy.get("#ans1_button").click();
+        cy.get("#ans2_button").click();
+
+        cy.get("#ans1_button").should("contain.text", "Correct");
+        cy.get("#ans2_button").should("contain.text", "Correct");
+
+        cy.get("#ans1_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Correct")).to.equal(false);
+        });
+        cy.get("#ans2_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Correct")).to.equal(true);
+        });
+
+        cy.get("#mi1 textarea").type("{end}{backspace}3", { force: true });
+        cy.get("#mi2 textarea").type("{end}{backspace}5", { force: true });
+
+        cy.get("#ans1_button").click();
+        cy.get("#ans2_button").click();
+
+        cy.get("#ans1_button").should("contain.text", "Incorrect");
+        cy.get("#ans2_button").should("contain.text", "Incorrect");
+
+        cy.get("#ans1_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Incorrect")).to.equal(false);
+        });
+        cy.get("#ans2_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Incorrect")).to.equal(true);
+        });
+
+        cy.get("#mi1 textarea").type("{end}{backspace}1+1", { force: true });
+        cy.get("#mi2 textarea").type("{end}{backspace}2+2", { force: true });
+
+        cy.get("#ans1_button").click();
+        cy.get("#ans2_button").click();
+
+        cy.get("#ans1_button").should("contain.text", "50% Correct");
+        cy.get("#ans2_button").should("contain.text", "50% Correct");
+
+        cy.get("#ans1_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "50% Correct")).to.equal(false);
+            expect(hasDirectText($el[0], "50 %")).to.equal(true);
+        });
+        cy.get("#ans2_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "50% Correct")).to.equal(true);
+            expect(hasDirectText($el[0], "50 %")).to.equal(false);
+        });
+    });
 });
 
 function getCSSVariableAsRGB(win, varName) {
@@ -3782,4 +3873,16 @@ function getCSSVariableAsRGB(win, varName) {
     const rgbValue = win.getComputedStyle(el).color;
     el.remove();
     return rgbValue;
+}
+
+/**
+ * Returns true when an element has a direct text-node child matching text.
+ * Ignores text that appears only in deeper descendants.
+ */
+function hasDirectText(element, text) {
+    return Array.from(element.childNodes).some(
+        (node) =>
+            node.nodeType === Node.TEXT_NODE &&
+            node.textContent.trim() === text,
+    );
 }

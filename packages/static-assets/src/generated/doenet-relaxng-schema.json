@@ -90048,6 +90048,13 @@
                         "false"
                     ]
                 },
+                "forceSmallCheckworkButton": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "simplifyOnCompare": {
                     "optional": true,
                     "type": [
@@ -90590,6 +90597,11 @@
                 },
                 {
                     "name": "forceFullCheckworkButton",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "forceSmallCheckworkButton",
                     "type": "boolean",
                     "isArray": false
                 },

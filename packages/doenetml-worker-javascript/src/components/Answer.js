@@ -64,6 +64,13 @@ export default class Answer extends InlineComponent {
             defaultValue: false,
             public: true,
         };
+        attributes.forceSmallCheckworkButton = {
+            createComponentOfType: "boolean",
+            createStateVariable: "forceSmallCheckworkButton",
+            forRenderer: true,
+            defaultValue: false,
+            public: true,
+        };
         attributes.simplifyOnCompare = {
             createComponentOfType: "text",
             createStateVariable: "simplifyOnCompare",
