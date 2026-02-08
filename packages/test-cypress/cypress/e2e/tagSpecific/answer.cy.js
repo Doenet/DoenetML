@@ -1043,7 +1043,7 @@ describe("Answer Tag Tests", function () {
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-d
+  
   <p><answer name="answer17" type="boolean">true</answer></p>
   <p><answer name="answer18" type="boolean" maxNumAttempts="2">true</answer></p>
   <p><answer name="answer19" type="boolean" forceFullCheckWorkButton>true</answer></p>

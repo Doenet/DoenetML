@@ -686,7 +686,7 @@ describe("Problem Tag Tests", function () {
         });
     });
 
-    it("document wide check work supercedes section", () => {
+    it("document wide check work supersedes section", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
