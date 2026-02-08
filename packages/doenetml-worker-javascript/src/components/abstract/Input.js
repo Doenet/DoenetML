@@ -40,118 +40,6 @@ export default class Input extends InlineComponent {
             definition: () => ({ setValue: { numValues: 1 } }),
         };
 
-        stateVariableDefinitions.answerOverrideIdx = {
-            returnDependencies: () => ({
-                ancestorForOverride: {
-                    dependencyType: "ancestor",
-                    variableNames: ["descendantColorCorrectnessBasedOnIdx"],
-                },
-            }),
-            definition({ dependencyValues }) {
-                let answerOverrideIdx = null;
-                if (
-                    typeof dependencyValues.ancestorForOverride?.stateValues
-                        .descendantColorCorrectnessBasedOnIdx === "number"
-                ) {
-                    answerOverrideIdx =
-                        dependencyValues.ancestorForOverride.stateValues
-                            .descendantColorCorrectnessBasedOnIdx;
-                }
-
-                return {
-                    setValue: { answerOverrideIdx },
-                };
-            },
-        };
-
-        stateVariableDefinitions.answerOverride = {
-            stateVariablesDeterminingDependencies: ["answerOverrideIdx"],
-            returnDependencies({ stateValues }) {
-                let dependencies = {};
-                if (stateValues.answerOverrideIdx !== null) {
-                    dependencies.answerOverride = {
-                        dependencyType: "multipleStateVariables",
-                        componentIdx: stateValues.answerOverrideIdx,
-                        variableNames: [
-                            "justSubmitted",
-                            "creditAchieved",
-                            "showCorrectness",
-                            "colorCorrectness",
-                        ],
-                        variablesOptional: true,
-                    };
-                }
-                return dependencies;
-            },
-            definition({ dependencyValues }) {
-                let answerOverride = null;
-                if (dependencyValues.answerOverride) {
-                    answerOverride = dependencyValues.answerOverride;
-                }
-
-                return { setValue: { answerOverride } };
-            },
-        };
-
-        stateVariableDefinitions.answerDelegateIdx = {
-            returnDependencies: () => ({
-                forAnswer: {
-                    dependencyType: "attributeRefResolutions",
-                    attributeName: "forAnswer",
-                },
-            }),
-            definition({ dependencyValues }) {
-                if (dependencyValues.forAnswer?.length === 1) {
-                    const forAnswer = dependencyValues.forAnswer[0];
-
-                    if (!forAnswer.unresolvedPath) {
-                        return {
-                            setValue: {
-                                answerDelegateIdx: forAnswer.componentIdx,
-                            },
-                        };
-                    }
-                }
-                return {
-                    setValue: {
-                        answerDelegateIdx: null,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.answerDelegate = {
-            stateVariablesDeterminingDependencies: ["answerDelegateIdx"],
-            returnDependencies({ stateValues }) {
-                let dependencies = {};
-                if (stateValues.answerDelegateIdx !== null) {
-                    dependencies.answerDelegate = {
-                        dependencyType: "multipleStateVariables",
-                        componentIdx: stateValues.answerDelegateIdx,
-                        variableNames: [
-                            "justSubmitted",
-                            "creditAchieved",
-                            "showCorrectness",
-                            "colorCorrectness",
-                        ],
-                        variablesOptional: true,
-                    };
-                }
-                return dependencies;
-            },
-            definition({ dependencyValues }) {
-                let answerDelegate = null;
-                if (
-                    dependencyValues.answerDelegate &&
-                    dependencyValues.answerDelegate.componentType === "answer"
-                ) {
-                    answerDelegate = dependencyValues.answerDelegate;
-                }
-
-                return { setValue: { answerDelegate } };
-            },
-        };
-
         stateVariableDefinitions.answerAncestor = {
             returnDependencies: () => ({
                 answerAncestor: {
@@ -171,6 +59,8 @@ export default class Input extends InlineComponent {
                         "numPreviousIncorrectSubmissions",
                         "creditFactorUsed",
                         "nextCreditFactor",
+                        "forceFullCheckWorkButton",
+                        "forceSmallCheckWorkButton",
                     ],
                 },
             }),
@@ -179,6 +69,221 @@ export default class Input extends InlineComponent {
                     setValue: {
                         answerAncestor: dependencyValues.answerAncestor,
                     },
+                };
+            },
+        };
+
+        stateVariableDefinitions.sectionDeterminingColorCorrectness = {
+            returnDependencies: () => ({
+                ancestorForOverride: {
+                    dependencyType: "ancestor",
+                    variableNames: ["descendantColorCorrectnessBasedOnIdx"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                let sectionDeterminingColorCorrectness = null;
+                if (
+                    typeof dependencyValues.ancestorForOverride?.stateValues
+                        .descendantColorCorrectnessBasedOnIdx === "number"
+                ) {
+                    sectionDeterminingColorCorrectness =
+                        dependencyValues.ancestorForOverride.stateValues
+                            .descendantColorCorrectnessBasedOnIdx;
+                }
+
+                return {
+                    setValue: { sectionDeterminingColorCorrectness },
+                };
+            },
+        };
+
+        stateVariableDefinitions.answerSpecifiedInForAnswer = {
+            returnDependencies: () => ({
+                forAnswer: {
+                    dependencyType: "attributeRefResolutions",
+                    attributeName: "forAnswer",
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.forAnswer?.length === 1) {
+                    const forAnswer = dependencyValues.forAnswer[0];
+
+                    if (!forAnswer.unresolvedPath) {
+                        return {
+                            setValue: {
+                                answerSpecifiedInForAnswer:
+                                    forAnswer.componentIdx,
+                            },
+                        };
+                    }
+                }
+                return {
+                    setValue: {
+                        answerSpecifiedInForAnswer: null,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.componentDeterminingDisplayedCorrectness = {
+            stateVariablesDeterminingDependencies: [
+                "sectionDeterminingColorCorrectness",
+                "answerAncestor",
+                "answerSpecifiedInForAnswer",
+            ],
+            returnDependencies({ stateValues }) {
+                let dependencies = {};
+                if (stateValues.sectionDeterminingColorCorrectness !== null) {
+                    dependencies.sectionDeterminingColorCorrectness = {
+                        dependencyType: "multipleStateVariables",
+                        componentIdx:
+                            stateValues.sectionDeterminingColorCorrectness,
+                        variableNames: [
+                            "justSubmitted",
+                            "creditAchieved",
+                            "showCorrectness",
+                            "colorCorrectness",
+                        ],
+                        variablesOptional: true,
+                    };
+                } else if (stateValues.answerAncestor) {
+                    dependencies.answerAncestor = {
+                        dependencyType: "stateVariable",
+                        variableName: "answerAncestor",
+                    };
+                } else if (stateValues.answerSpecifiedInForAnswer !== null) {
+                    dependencies.answerSpecifiedInForAnswer = {
+                        dependencyType: "multipleStateVariables",
+                        componentIdx: stateValues.answerSpecifiedInForAnswer,
+                        variableNames: [
+                            "justSubmitted",
+                            "creditAchieved",
+                            "showCorrectness",
+                            "colorCorrectness",
+                        ],
+                        variablesOptional: true,
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                let componentDeterminingDisplayedCorrectness = null;
+                if (dependencyValues.sectionDeterminingColorCorrectness) {
+                    componentDeterminingDisplayedCorrectness =
+                        dependencyValues.sectionDeterminingColorCorrectness;
+                } else if (dependencyValues.answerAncestor) {
+                    componentDeterminingDisplayedCorrectness =
+                        dependencyValues.answerAncestor;
+                } else if (dependencyValues.answerSpecifiedInForAnswer) {
+                    componentDeterminingDisplayedCorrectness =
+                        dependencyValues.answerSpecifiedInForAnswer;
+                }
+
+                return {
+                    setValue: { componentDeterminingDisplayedCorrectness },
+                };
+            },
+        };
+
+        stateVariableDefinitions.justSubmitted = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                componentDeterminingDisplayedCorrectness: {
+                    dependencyType: "stateVariable",
+                    variableName: "componentDeterminingDisplayedCorrectness",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let justSubmitted = false;
+
+                if (dependencyValues.componentDeterminingDisplayedCorrectness) {
+                    if (
+                        dependencyValues
+                            .componentDeterminingDisplayedCorrectness
+                            .stateValues.justSubmitted
+                    ) {
+                        justSubmitted = true;
+                    }
+                }
+                return {
+                    setValue: { justSubmitted },
+                };
+            },
+        };
+
+        stateVariableDefinitions.showCorrectness = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                showCorrectnessFlag: {
+                    dependencyType: "flag",
+                    flagName: "showCorrectness",
+                },
+                componentDeterminingDisplayedCorrectness: {
+                    dependencyType: "stateVariable",
+                    variableName: "componentDeterminingDisplayedCorrectness",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let showCorrectness;
+                if (dependencyValues.componentDeterminingDisplayedCorrectness) {
+                    showCorrectness =
+                        dependencyValues
+                            .componentDeterminingDisplayedCorrectness
+                            .stateValues.showCorrectness;
+                } else {
+                    showCorrectness =
+                        dependencyValues.showCorrectnessFlag !== false;
+                }
+                return { setValue: { showCorrectness } };
+            },
+        };
+
+        stateVariableDefinitions.colorCorrectness = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                componentDeterminingDisplayedCorrectness: {
+                    dependencyType: "stateVariable",
+                    variableName: "componentDeterminingDisplayedCorrectness",
+                },
+                showCorrectness: {
+                    dependencyType: "stateVariable",
+                    variableName: "showCorrectness",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let colorCorrectness = true;
+                if (!dependencyValues.showCorrectness) {
+                    colorCorrectness = false;
+                } else if (
+                    dependencyValues.componentDeterminingDisplayedCorrectness
+                ) {
+                    colorCorrectness =
+                        dependencyValues
+                            .componentDeterminingDisplayedCorrectness
+                            .stateValues.colorCorrectness;
+                }
+                return { setValue: { colorCorrectness } };
+            },
+        };
+
+        stateVariableDefinitions.creditAchieved = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                componentDeterminingDisplayedCorrectness: {
+                    dependencyType: "stateVariable",
+                    variableName: "componentDeterminingDisplayedCorrectness",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let creditAchieved = 0;
+                if (dependencyValues.componentDeterminingDisplayedCorrectness) {
+                    creditAchieved =
+                        dependencyValues
+                            .componentDeterminingDisplayedCorrectness
+                            .stateValues.creditAchieved;
+                }
+                return {
+                    setValue: { creditAchieved },
                 };
             },
         };
@@ -227,39 +332,58 @@ export default class Input extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.creditAchieved = {
+        stateVariableDefinitions.forceFullCheckWorkButton = {
             forRenderer: true,
             returnDependencies: () => ({
                 answerAncestor: {
                     dependencyType: "stateVariable",
                     variableName: "answerAncestor",
                 },
-                answerDelegate: {
+                showCheckWork: {
                     dependencyType: "stateVariable",
-                    variableName: "answerDelegate",
-                },
-                answerOverride: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerOverride",
+                    variableName: "showCheckWork",
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let creditAchieved = 0;
-                if (dependencyValues.answerOverride) {
-                    creditAchieved =
-                        dependencyValues.answerOverride.stateValues
-                            .creditAchieved;
-                } else if (dependencyValues.answerAncestor) {
-                    creditAchieved =
+                let forceFullCheckWorkButton = false;
+                if (
+                    dependencyValues.answerAncestor &&
+                    dependencyValues.showCheckWork
+                ) {
+                    forceFullCheckWorkButton =
                         dependencyValues.answerAncestor.stateValues
-                            .creditAchieved;
-                } else if (dependencyValues.answerDelegate) {
-                    creditAchieved =
-                        dependencyValues.answerDelegate.stateValues
-                            .creditAchieved;
+                            .forceFullCheckWorkButton;
                 }
                 return {
-                    setValue: { creditAchieved },
+                    setValue: { forceFullCheckWorkButton },
+                };
+            },
+        };
+
+        stateVariableDefinitions.forceSmallCheckWorkButton = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+                showCheckWork: {
+                    dependencyType: "stateVariable",
+                    variableName: "showCheckWork",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let forceSmallCheckWorkButton = false;
+                if (
+                    dependencyValues.answerAncestor &&
+                    dependencyValues.showCheckWork
+                ) {
+                    forceSmallCheckWorkButton =
+                        dependencyValues.answerAncestor.stateValues
+                            .forceSmallCheckWorkButton;
+                }
+                return {
+                    setValue: { forceSmallCheckWorkButton },
                 };
             },
         };
@@ -282,136 +406,6 @@ export default class Input extends InlineComponent {
                 return {
                     setValue: { creditIsReducedByAttempt },
                 };
-            },
-        };
-
-        stateVariableDefinitions.justSubmitted = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                answerAncestor: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerAncestor",
-                },
-                answerDelegate: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerDelegate",
-                },
-                answerOverride: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerOverride",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                let justSubmitted = false;
-
-                if (dependencyValues.answerOverride) {
-                    if (
-                        dependencyValues.answerOverride.stateValues
-                            .justSubmitted
-                    ) {
-                        justSubmitted = true;
-                    }
-                } else if (dependencyValues.answerAncestor) {
-                    if (
-                        dependencyValues.answerAncestor.stateValues
-                            .justSubmitted
-                    ) {
-                        justSubmitted = true;
-                    }
-                } else if (dependencyValues.answerDelegate) {
-                    if (
-                        dependencyValues.answerDelegate.stateValues
-                            .justSubmitted
-                    ) {
-                        justSubmitted = true;
-                    }
-                }
-                return {
-                    setValue: { justSubmitted },
-                };
-            },
-        };
-
-        stateVariableDefinitions.showCorrectness = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                showCorrectnessFlag: {
-                    dependencyType: "flag",
-                    flagName: "showCorrectness",
-                },
-                answerAncestor: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerAncestor",
-                },
-                answerDelegate: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerDelegate",
-                },
-                answerOverride: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerOverride",
-                },
-            }),
-            definition({ dependencyValues }) {
-                let showCorrectness;
-                if (dependencyValues.answerOverride) {
-                    showCorrectness =
-                        dependencyValues.answerOverride.stateValues
-                            .showCorrectness;
-                } else if (dependencyValues.answerAncestor) {
-                    showCorrectness =
-                        dependencyValues.answerAncestor.stateValues
-                            .showCorrectness;
-                } else if (dependencyValues.answerDelegate) {
-                    showCorrectness =
-                        dependencyValues.answerDelegate.stateValues
-                            .showCorrectness;
-                } else {
-                    showCorrectness =
-                        dependencyValues.showCorrectnessFlag !== false;
-                }
-                return { setValue: { showCorrectness } };
-            },
-        };
-
-        stateVariableDefinitions.colorCorrectness = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                answerAncestor: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerAncestor",
-                },
-                answerDelegate: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerDelegate",
-                },
-                answerOverride: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerOverride",
-                },
-                showCorrectness: {
-                    dependencyType: "stateVariable",
-                    variableName: "showCorrectness",
-                },
-            }),
-            definition({ dependencyValues }) {
-                let colorCorrectness = true;
-                if (!dependencyValues.showCorrectness) {
-                    colorCorrectness = false;
-                } else if (dependencyValues.answerOverride) {
-                    colorCorrectness =
-                        dependencyValues.answerOverride.stateValues
-                            .colorCorrectness;
-                } else if (dependencyValues.answerAncestor) {
-                    colorCorrectness =
-                        dependencyValues.answerAncestor.stateValues
-                            .colorCorrectness;
-                } else if (dependencyValues.answerDelegate) {
-                    colorCorrectness =
-                        dependencyValues.answerDelegate.stateValues
-                            .colorCorrectness;
-                }
-                return { setValue: { colorCorrectness } };
             },
         };
 

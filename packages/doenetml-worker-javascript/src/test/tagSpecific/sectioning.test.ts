@@ -565,10 +565,10 @@ describe("Sectioning tag tests", async () => {
         await test_section_credit(core, resolvePathToNodeIdx, check_items);
     });
 
-    it("section-wide checkwork button implies aggregate scores", async () => {
+    it("section-wide check work button implies aggregate scores", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <section sectionWideCheckwork name="theSection">
+    <section sectionWideCheckWork name="theSection">
       <p>Enter x: <answer><mathInput name="mi1" />x</answer></p>
       <p>Enter y: <answer><mathInput name="mi2" />y</answer></p>
     </section>

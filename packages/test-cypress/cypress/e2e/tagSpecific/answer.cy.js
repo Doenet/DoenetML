@@ -986,13 +986,13 @@ describe("Answer Tag Tests", function () {
   <text name="a">a</text>
   <p><answer name="answer1">x</answer></p>
   <p><answer name="answer2" maxNumAttempts="2">x</answer></p>
-  <p><answer name="answer3" forceFullCheckworkButton>x</answer></p>
-  <p><answer name="answer4" forceFullCheckworkButton maxNumAttempts="2">x</answer></p>
+  <p><answer name="answer3" forceFullCheckWorkButton>x</answer></p>
+  <p><answer name="answer4" forceFullCheckWorkButton maxNumAttempts="2">x</answer></p>
   
   <p><answer name="answer5" type="text">hello</answer></p>
   <p><answer name="answer6" type="text" maxNumAttempts="2">hello</answer></p>
-  <p><answer name="answer7" type="text" forceFullCheckworkButton>hello</answer></p>
-  <p><answer name="answer8" type="text" forceFullCheckworkButton maxNumAttempts="2">hello</answer></p>
+  <p><answer name="answer7" type="text" forceFullCheckWorkButton>hello</answer></p>
+  <p><answer name="answer8" type="text" forceFullCheckWorkButton maxNumAttempts="2">hello</answer></p>
     
   <p><answer name="answer9">
     <choiceInput name="choiceInput1">
@@ -1006,13 +1006,13 @@ describe("Answer Tag Tests", function () {
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer11" forceFullCheckworkButton>
+  <p><answer name="answer11" forceFullCheckWorkButton>
     <choiceInput name="choiceInput3">
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer12" forceFullCheckworkButton maxNumAttempts="2">
+  <p><answer name="answer12" forceFullCheckWorkButton maxNumAttempts="2">
     <choiceInput name="choiceInput4">
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -1031,23 +1031,23 @@ describe("Answer Tag Tests", function () {
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer15" forceFullCheckworkButton>
+  <p><answer name="answer15" forceFullCheckWorkButton>
     <choiceInput name="choiceInput7" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer16" forceFullCheckworkButton maxNumAttempts="2">
+  <p><answer name="answer16" forceFullCheckWorkButton maxNumAttempts="2">
     <choiceInput name="choiceInput8" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-d
+  
   <p><answer name="answer17" type="boolean">true</answer></p>
   <p><answer name="answer18" type="boolean" maxNumAttempts="2">true</answer></p>
-  <p><answer name="answer19" type="boolean" forceFullCheckworkButton>true</answer></p>
-  <p><answer name="answer20" type="boolean" forceFullCheckworkButton maxNumAttempts="2">true</answer></p>
+  <p><answer name="answer19" type="boolean" forceFullCheckWorkButton>true</answer></p>
+  <p><answer name="answer20" type="boolean" forceFullCheckWorkButton maxNumAttempts="2">true</answer></p>
    `,
                 },
                 "*",
@@ -1068,47 +1068,31 @@ d
             }
 
             cy.log("Submit correct answers");
-            cy.get("#_id_" + inputIndices[0] + " textarea").type("x{enter}", {
+            cy.get("#answer1 textarea").type("x{enter}", {
                 force: true,
             });
-            cy.get("#_id_" + inputIndices[1] + " textarea").type("x{enter}", {
+            cy.get("#answer2 textarea").type("x{enter}", {
                 force: true,
             });
-            cy.get("#_id_" + inputIndices[2] + " textarea").type("x{enter}", {
+            cy.get("#answer3 textarea").type("x{enter}", {
                 force: true,
             });
-            cy.get("#_id_" + inputIndices[3] + " textarea").type("x{enter}", {
+            cy.get("#answer4 textarea").type("x{enter}", {
                 force: true,
             });
-            cy.get("#answer3_button").click();
-            cy.get("#answer4_button").click();
-            cy.get("#_id_" + inputIndices[0] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#_id_" + inputIndices[1] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#answer3_button").should("contain.text", "Correct");
-            cy.get("#answer4_button").should("contain.text", "Correct");
+            cy.get("#answer1 button").should("contain.text", "Correct");
+            cy.get("#answer2 button").should("contain.text", "Correct");
+            cy.get("#answer3 button").should("contain.text", "Correct");
+            cy.get("#answer4 button").should("contain.text", "Correct");
 
-            cy.get("#_id_" + inputIndices[4] + "_input").type("hello{enter}");
-            cy.get("#_id_" + inputIndices[5] + "_input").type("hello{enter}");
-            cy.get("#_id_" + inputIndices[6] + "_input").type("hello{enter}");
-            cy.get("#_id_" + inputIndices[7] + "_input").type("hello{enter}");
-            cy.get("#answer7_button").click();
-            cy.get("#answer8_button").click();
-            cy.get("#_id_" + inputIndices[4] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#_id_" + inputIndices[5] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#answer7_button").should("contain.text", "Correct");
-            cy.get("#answer8_button").should("contain.text", "Correct");
+            cy.get("#answer5 input").type("hello{enter}");
+            cy.get("#answer6 input").type("hello{enter}");
+            cy.get("#answer7 input").type("hello{enter}");
+            cy.get("#answer8 input").type("hello{enter}");
+            cy.get("#answer5 button").should("contain.text", "Correct");
+            cy.get("#answer6 button").should("contain.text", "Correct");
+            cy.get("#answer7 button").should("contain.text", "Correct");
+            cy.get("#answer8 button").should("contain.text", "Correct");
 
             cy.get("#choiceInput1").contains("yes").click({ force: true });
             cy.get("#choiceInput2").contains("yes").click({ force: true });
@@ -1116,12 +1100,12 @@ d
             cy.get("#choiceInput4").contains("yes").click({ force: true });
             cy.get("#choiceInput1_button").click();
             cy.get("#choiceInput2_button").click();
-            cy.get("#answer11_button").click();
-            cy.get("#answer12_button").click();
+            cy.get("#answer11 button").click();
+            cy.get("#answer12 button").click();
             cy.get("#choiceInput1_button").should("contain.text", "Correct");
             cy.get("#choiceInput2_button").should("contain.text", "Correct");
-            cy.get("#answer11_button").should("contain.text", "Correct");
-            cy.get("#answer12_button").should("contain.text", "Correct");
+            cy.get("#answer11 button").should("contain.text", "Correct");
+            cy.get("#answer12 button").should("contain.text", "Correct");
 
             cy.get("#choiceInput5").click();
             cy.get(`${"#choiceInput5"} [class*="menu"]`)
@@ -1149,12 +1133,12 @@ d
                 .click();
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").click();
-            cy.get("#answer15_button").click();
-            cy.get("#answer16_button").click();
+            cy.get("#answer15 button").click();
+            cy.get("#answer16 button").click();
             cy.get("#choiceInput5_button").should("contain.text", "Correct");
             cy.get("#choiceInput6_button").should("contain.text", "Correct");
-            cy.get("#answer15_button").should("contain.text", "Correct");
-            cy.get("#answer16_button").should("contain.text", "Correct");
+            cy.get("#answer15 button").should("contain.text", "Correct");
+            cy.get("#answer16 button").should("contain.text", "Correct");
 
             cy.get("#_id_" + inputIndices[16] + "-label").click();
             cy.get("#_id_" + inputIndices[17] + "-label").click();
@@ -1162,8 +1146,8 @@ d
             cy.get("#_id_" + inputIndices[19] + "-label").click();
             cy.get("#_id_" + inputIndices[16] + "_button").click();
             cy.get("#_id_" + inputIndices[17] + "_button").click();
-            cy.get("#answer19_button").click();
-            cy.get("#answer20_button").click();
+            cy.get("#answer19 button").click();
+            cy.get("#answer20 button").click();
             cy.get("#_id_" + inputIndices[16] + "_button").should(
                 "contain.text",
                 "Correct",
@@ -1172,67 +1156,43 @@ d
                 "contain.text",
                 "Correct",
             );
-            cy.get("#answer19_button").should("contain.text", "Correct");
-            cy.get("#answer20_button").should("contain.text", "Correct");
+            cy.get("#answer19 button").should("contain.text", "Correct");
+            cy.get("#answer20 button").should("contain.text", "Correct");
 
             cy.log("Submit incorrect answers");
-            cy.get("#_id_" + inputIndices[0] + " textarea").type(
-                "{end}{backspace}y",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[1] + " textarea").type(
-                "{end}{backspace}y",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[2] + " textarea").type(
-                "{end}{backspace}y",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[3] + " textarea").type(
-                "{end}{backspace}y",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[0] + "_button").click();
-            cy.get("#_id_" + inputIndices[1] + "_button").click();
-            cy.get("#answer3_button").click();
-            cy.get("#answer4_button").click();
-            cy.get("#_id_" + inputIndices[0] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#_id_" + inputIndices[1] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#answer3_button").should("contain.text", "Incorrect");
-            cy.get("#answer4_button").should("contain.text", "Incorrect");
+            cy.get("#answer1 textarea").type("{end}{backspace}y", {
+                force: true,
+            });
+            cy.get("#answer2 textarea").type("{end}{backspace}y", {
+                force: true,
+            });
+            cy.get("#answer3 textarea").type("{end}{backspace}y", {
+                force: true,
+            });
+            cy.get("#answer4 textarea").type("{end}{backspace}y", {
+                force: true,
+            });
+            cy.get("#answer1 button").click();
+            cy.get("#answer2 button").click();
+            cy.get("#answer3 button").click();
+            cy.get("#answer4 button").click();
+            cy.get("#answer1 button").should("contain.text", "Incorrect");
+            cy.get("#answer2 button").should("contain.text", "Incorrect");
+            cy.get("#answer3 button").should("contain.text", "Incorrect");
+            cy.get("#answer4 button").should("contain.text", "Incorrect");
 
-            cy.get("#_id_" + inputIndices[4] + "_input")
-                .clear()
-                .type("bye");
-            cy.get("#_id_" + inputIndices[5] + "_input")
-                .clear()
-                .type("bye");
-            cy.get("#_id_" + inputIndices[6] + "_input")
-                .clear()
-                .type("bye");
-            cy.get("#_id_" + inputIndices[7] + "_input")
-                .clear()
-                .type("bye");
-            cy.get("#_id_" + inputIndices[4] + "_button").click();
-            cy.get("#_id_" + inputIndices[5] + "_button").click();
-            cy.get("#answer7_button").click();
-            cy.get("#answer8_button").click();
-            cy.get("#_id_" + inputIndices[4] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#_id_" + inputIndices[5] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#answer7_button").should("contain.text", "Incorrect");
-            cy.get("#answer8_button").should("contain.text", "Incorrect");
+            cy.get("#answer5 input").clear().type("bye");
+            cy.get("#answer6 input").clear().type("bye");
+            cy.get("#answer7 input").clear().type("bye");
+            cy.get("#answer8 input").clear().type("bye");
+            cy.get("#answer5 button").click();
+            cy.get("#answer6 button").click();
+            cy.get("#answer7 button").click();
+            cy.get("#answer8 button").click();
+            cy.get("#answer5 button").should("contain.text", "Incorrect");
+            cy.get("#answer6 button").should("contain.text", "Incorrect");
+            cy.get("#answer7 button").should("contain.text", "Incorrect");
+            cy.get("#answer8 button").should("contain.text", "Incorrect");
 
             cy.get("#choiceInput1").contains("no").click({ force: true });
             cy.get("#choiceInput2").contains("no").click({ force: true });
@@ -1240,14 +1200,14 @@ d
             cy.get("#choiceInput4").contains("no").click({ force: true });
             cy.get("#choiceInput1_button").click();
             cy.get("#choiceInput2_button").click();
-            cy.get("#answer11_button").click();
-            cy.get("#answer12_button").click();
+            cy.get("#answer11 button").click();
+            cy.get("#answer12 button").click();
             cy.get("#choiceInput1_button").should("contain.text", "Incorrect");
-            cy.get("#answer12_button").should("contain.text", "Incorrect");
+            cy.get("#answer12 button").should("contain.text", "Incorrect");
             cy.get("#choiceInput2_button").should("contain.text", "Incorrect");
-            cy.get("#answer12_button").should("contain.text", "Incorrect");
-            cy.get("#answer11_button").should("contain.text", "Incorrect");
-            cy.get("#answer12_button").should("contain.text", "Incorrect");
+            cy.get("#answer12 button").should("contain.text", "Incorrect");
+            cy.get("#answer11 button").should("contain.text", "Incorrect");
+            cy.get("#answer12 button").should("contain.text", "Incorrect");
 
             cy.get("#choiceInput5").click();
             cy.get(`${"#choiceInput5"} [class*="menu"]`)
@@ -1275,12 +1235,12 @@ d
                 .click();
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").click();
-            cy.get("#answer15_button").click();
-            cy.get("#answer16_button").click();
+            cy.get("#answer15 button").click();
+            cy.get("#answer16 button").click();
             cy.get("#choiceInput5_button").should("contain.text", "Incorrect");
             cy.get("#choiceInput6_button").should("contain.text", "Incorrect");
-            cy.get("#answer15_button").should("contain.text", "Incorrect");
-            cy.get("#answer16_button").should("contain.text", "Incorrect");
+            cy.get("#answer15 button").should("contain.text", "Incorrect");
+            cy.get("#answer16 button").should("contain.text", "Incorrect");
 
             cy.get("#_id_" + inputIndices[16] + "-label").click();
             cy.get("#_id_" + inputIndices[17] + "-label").click();
@@ -1288,8 +1248,8 @@ d
             cy.get("#_id_" + inputIndices[19] + "-label").click();
             cy.get("#_id_" + inputIndices[16] + "_button").click();
             cy.get("#_id_" + inputIndices[17] + "_button").click();
-            cy.get("#answer19_button").click();
-            cy.get("#answer20_button").click();
+            cy.get("#answer19 button").click();
+            cy.get("#answer20 button").click();
             cy.get("#_id_" + inputIndices[16] + "_button").should(
                 "contain.text",
                 "Incorrect",
@@ -1298,63 +1258,41 @@ d
                 "contain.text",
                 "Incorrect",
             );
-            cy.get("#answer19_button").should("contain.text", "Incorrect");
-            cy.get("#answer20_button").should("contain.text", "Incorrect");
+            cy.get("#answer19 button").should("contain.text", "Incorrect");
+            cy.get("#answer20 button").should("contain.text", "Incorrect");
 
             cy.log("Type to submit correct answers again");
 
             // Every other input should be disabled
-            cy.get("#_id_" + inputIndices[0] + " textarea").type(
-                "{end}{backspace}x",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[1] + " textarea").should(
-                "be.disabled",
-            );
-            cy.get("#_id_" + inputIndices[2] + " textarea").type(
-                "{end}{backspace}x",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[3] + " textarea").should(
-                "be.disabled",
-            );
-            cy.get("#_id_" + inputIndices[0] + "_button").click();
-            cy.get("#_id_" + inputIndices[1] + "_button").should("be.disabled");
-            cy.get("#answer3_button").click();
-            cy.get("#answer4_button").should("be.disabled");
-            cy.get("#_id_" + inputIndices[0] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#_id_" + inputIndices[1] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#answer3_button").should("contain.text", "Correct");
-            cy.get("#answer4_button").should("contain.text", "Incorrect");
+            cy.get("#answer1 textarea").type("{end}{backspace}x", {
+                force: true,
+            });
+            cy.get("#answer2 textarea").should("be.disabled");
+            cy.get("#answer3 textarea").type("{end}{backspace}x", {
+                force: true,
+            });
+            cy.get("#answer4 textarea").should("be.disabled");
+            cy.get("#answer1 button").click();
+            cy.get("#answer2 button").should("be.disabled");
+            cy.get("#answer3 button").click();
+            cy.get("#answer4 button").should("be.disabled");
+            cy.get("#answer1 button").should("contain.text", "Correct");
+            cy.get("#answer2 button").should("contain.text", "Incorrect");
+            cy.get("#answer3 button").should("contain.text", "Correct");
+            cy.get("#answer4 button").should("contain.text", "Incorrect");
 
-            cy.get("#_id_" + inputIndices[4] + "_input")
-                .clear()
-                .type("hello");
-            cy.get("#_id_" + inputIndices[5] + "_input").should("be.disabled");
-            cy.get("#_id_" + inputIndices[6] + "_input")
-                .clear()
-                .type("hello");
-            cy.get("#_id_" + inputIndices[7] + "_input").should("be.disabled");
-            cy.get("#_id_" + inputIndices[4] + "_button").click();
-            cy.get("#_id_" + inputIndices[5] + "_button").should("be.disabled");
-            cy.get("#answer7_button").click();
-            cy.get("#answer8_button").should("be.disabled");
-            cy.get("#_id_" + inputIndices[4] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#_id_" + inputIndices[5] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#answer7_button").should("contain.text", "Correct");
-            cy.get("#answer8_button").should("contain.text", "Incorrect");
+            cy.get("#answer5 input").clear().type("hello");
+            cy.get("#answer6 input").should("be.disabled");
+            cy.get("#answer7 input").clear().type("hello");
+            cy.get("#answer8 input").should("be.disabled");
+            cy.get("#answer5 button").click();
+            cy.get("#answer6 button").should("be.disabled");
+            cy.get("#answer7 button").click();
+            cy.get("#answer8 button").should("be.disabled");
+            cy.get("#answer5 button").should("contain.text", "Correct");
+            cy.get("#answer6 button").should("contain.text", "Incorrect");
+            cy.get("#answer7 button").should("contain.text", "Correct");
+            cy.get("#answer8 button").should("contain.text", "Incorrect");
 
             cy.get("#choiceInput1").contains("yes").click({ force: true });
             cy.get("#choiceInput2").contains("yes").click({ force: true });
@@ -1362,12 +1300,12 @@ d
             cy.get("#choiceInput4").contains("yes").click({ force: true });
             cy.get("#choiceInput1_button").click();
             cy.get("#choiceInput2_button").should("be.disabled");
-            cy.get("#answer11_button").click();
-            cy.get("#answer12_button").should("be.disabled");
+            cy.get("#answer11 button").click();
+            cy.get("#answer12 button").should("be.disabled");
             cy.get("#choiceInput1_button").should("contain.text", "Correct");
             cy.get("#choiceInput2_button").should("contain.text", "Incorrect");
-            cy.get("#answer11_button").should("contain.text", "Correct");
-            cy.get("#answer12_button").should("contain.text", "Incorrect");
+            cy.get("#answer11 button").should("contain.text", "Correct");
+            cy.get("#answer12 button").should("contain.text", "Incorrect");
 
             cy.get("#choiceInput5").click();
             cy.get(`${"#choiceInput5"} [class*="menu"]`)
@@ -1385,12 +1323,12 @@ d
             cy.get("#choiceInput8 input").should("be.disabled");
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").should("be.disabled");
-            cy.get("#answer15_button").click();
-            cy.get("#answer16_button").should("be.disabled");
+            cy.get("#answer15 button").click();
+            cy.get("#answer16 button").should("be.disabled");
             cy.get("#choiceInput5_button").should("contain.text", "Correct");
             cy.get("#choiceInput6_button").should("contain.text", "Incorrect");
-            cy.get("#answer15_button").should("contain.text", "Correct");
-            cy.get("#answer16_button").should("contain.text", "Incorrect");
+            cy.get("#answer15 button").should("contain.text", "Correct");
+            cy.get("#answer16 button").should("contain.text", "Incorrect");
 
             cy.get("#_id_" + inputIndices[16] + "-label").click();
             cy.get("#_id_" + inputIndices[17] + "_input").should("be.disabled");
@@ -1400,8 +1338,8 @@ d
             cy.get("#_id_" + inputIndices[17] + "_button").should(
                 "be.disabled",
             );
-            cy.get("#answer19_button").click();
-            cy.get("#answer20_button").should("be.disabled");
+            cy.get("#answer19 button").click();
+            cy.get("#answer20 button").should("be.disabled");
             cy.get("#_id_" + inputIndices[16] + "_button").should(
                 "contain.text",
                 "Correct",
@@ -1410,8 +1348,8 @@ d
                 "contain.text",
                 "Incorrect",
             );
-            cy.get("#answer19_button").should("contain.text", "Correct");
-            cy.get("#answer20_button").should("contain.text", "Incorrect");
+            cy.get("#answer19 button").should("contain.text", "Correct");
+            cy.get("#answer20 button").should("contain.text", "Incorrect");
         });
     });
 
@@ -1423,13 +1361,13 @@ d
   <text name="a">a</text>
   <p><answer name="answer1">x</answer></p>
   <p><answer name="answer2" disableAfterCorrect>x</answer></p>
-  <p><answer name="answer3" forceFullCheckworkButton>x</answer></p>
-  <p><answer name="answer4" forceFullCheckworkButton disableAfterCorrect>x</answer></p>
+  <p><answer name="answer3" forceFullCheckWorkButton>x</answer></p>
+  <p><answer name="answer4" forceFullCheckWorkButton disableAfterCorrect>x</answer></p>
   
   <p><answer name="answer5" type="text">hello</answer></p>
   <p><answer name="answer6" type="text" disableAfterCorrect>hello</answer></p>
-  <p><answer name="answer7" type="text" forceFullCheckworkButton>hello</answer></p>
-  <p><answer name="answer8" type="text" forceFullCheckworkButton disableAfterCorrect>hello</answer></p>
+  <p><answer name="answer7" type="text" forceFullCheckWorkButton>hello</answer></p>
+  <p><answer name="answer8" type="text" forceFullCheckWorkButton disableAfterCorrect>hello</answer></p>
     
   <p><answer name="answer9">
     <choiceInput name="choiceInput1">
@@ -1443,13 +1381,13 @@ d
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer11" forceFullCheckworkButton>
+  <p><answer name="answer11" forceFullCheckWorkButton>
     <choiceInput name="choiceInput3">
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer12" forceFullCheckworkButton disableAfterCorrect>
+  <p><answer name="answer12" forceFullCheckWorkButton disableAfterCorrect>
     <choiceInput name="choiceInput4">
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -1468,13 +1406,13 @@ d
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer15" forceFullCheckworkButton>
+  <p><answer name="answer15" forceFullCheckWorkButton>
     <choiceInput name="choiceInput7" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer16" forceFullCheckworkButton disableAfterCorrect>
+  <p><answer name="answer16" forceFullCheckWorkButton disableAfterCorrect>
     <choiceInput name="choiceInput8" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -1483,8 +1421,8 @@ d
 
   <p><answer name="answer17" type="boolean">true</answer></p>
   <p><answer name="answer18" type="boolean" disableAfterCorrect>true</answer></p>
-  <p><answer name="answer19" type="boolean" forceFullCheckworkButton>true</answer></p>
-  <p><answer name="answer20" type="boolean" forceFullCheckworkButton disableAfterCorrect>true</answer></p>
+  <p><answer name="answer19" type="boolean" forceFullCheckWorkButton>true</answer></p>
+  <p><answer name="answer20" type="boolean" forceFullCheckWorkButton disableAfterCorrect>true</answer></p>
    `,
                 },
                 "*",
@@ -1505,47 +1443,31 @@ d
             }
 
             cy.log("Submit incorrect answers");
-            cy.get("#_id_" + inputIndices[0] + " textarea").type("y{enter}", {
+            cy.get("#answer1 textarea").type("y{enter}", {
                 force: true,
             });
-            cy.get("#_id_" + inputIndices[1] + " textarea").type("y{enter}", {
+            cy.get("#answer2 textarea").type("y{enter}", {
                 force: true,
             });
-            cy.get("#_id_" + inputIndices[2] + " textarea").type("y{enter}", {
+            cy.get("#answer3 textarea").type("y{enter}", {
                 force: true,
             });
-            cy.get("#_id_" + inputIndices[3] + " textarea").type("y{enter}", {
+            cy.get("#answer4 textarea").type("y{enter}", {
                 force: true,
             });
-            cy.get("#answer3_button").click();
-            cy.get("#answer4_button").click();
-            cy.get("#_id_" + inputIndices[0] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#_id_" + inputIndices[1] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#answer3_button").should("contain.text", "Incorrect");
-            cy.get("#answer4_button").should("contain.text", "Incorrect");
+            cy.get("#answer1 button").should("contain.text", "Incorrect");
+            cy.get("#answer2 button").should("contain.text", "Incorrect");
+            cy.get("#answer3 button").should("contain.text", "Incorrect");
+            cy.get("#answer4 button").should("contain.text", "Incorrect");
 
-            cy.get("#_id_" + inputIndices[4] + "_input").type("bye{enter}");
-            cy.get("#_id_" + inputIndices[5] + "_input").type("bye{enter}");
-            cy.get("#_id_" + inputIndices[6] + "_input").type("bye{enter}");
-            cy.get("#_id_" + inputIndices[7] + "_input").type("bye{enter}");
-            cy.get("#answer7_button").click();
-            cy.get("#answer8_button").click();
-            cy.get("#_id_" + inputIndices[4] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#_id_" + inputIndices[5] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#answer7_button").should("contain.text", "Incorrect");
-            cy.get("#answer8_button").should("contain.text", "Incorrect");
+            cy.get("#answer5 input").type("bye{enter}");
+            cy.get("#answer6 input").type("bye{enter}");
+            cy.get("#answer7 input").type("bye{enter}");
+            cy.get("#answer8 input").type("bye{enter}");
+            cy.get("#answer5 button").should("contain.text", "Incorrect");
+            cy.get("#answer6 button").should("contain.text", "Incorrect");
+            cy.get("#answer7 button").should("contain.text", "Incorrect");
+            cy.get("#answer8 button").should("contain.text", "Incorrect");
 
             cy.get("#choiceInput1").contains("no").click({ force: true });
             cy.get("#choiceInput2").contains("no").click({ force: true });
@@ -1553,12 +1475,12 @@ d
             cy.get("#choiceInput4").contains("no").click({ force: true });
             cy.get("#choiceInput1_button").click();
             cy.get("#choiceInput2_button").click();
-            cy.get("#answer11_button").click();
-            cy.get("#answer12_button").click();
+            cy.get("#answer11 button").click();
+            cy.get("#answer12 button").click();
             cy.get("#choiceInput1_button").should("contain.text", "Incorrect");
             cy.get("#choiceInput2_button").should("contain.text", "Incorrect");
-            cy.get("#answer11_button").should("contain.text", "Incorrect");
-            cy.get("#answer12_button").should("contain.text", "Incorrect");
+            cy.get("#answer11 button").should("contain.text", "Incorrect");
+            cy.get("#answer12 button").should("contain.text", "Incorrect");
 
             cy.get("#choiceInput5").click();
             cy.get("#choiceInput5 [class*='menu']")
@@ -1586,86 +1508,56 @@ d
                 .click();
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").click();
-            cy.get("#answer15_button").click();
-            cy.get("#answer16_button").click();
+            cy.get("#answer15 button").click();
+            cy.get("#answer16 button").click();
             cy.get("#choiceInput5_button").should("contain.text", "Incorrect");
             cy.get("#choiceInput6_button").should("contain.text", "Incorrect");
-            cy.get("#answer15_button").should("contain.text", "Incorrect");
-            cy.get("#answer16_button").should("contain.text", "Incorrect");
+            cy.get("#answer15 button").should("contain.text", "Incorrect");
+            cy.get("#answer16 button").should("contain.text", "Incorrect");
 
-            cy.get("#_id_" + inputIndices[16] + "_button").click();
-            cy.get("#_id_" + inputIndices[17] + "_button").click();
-            cy.get("#answer19_button").click();
-            cy.get("#answer20_button").click();
-            cy.get("#_id_" + inputIndices[16] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#_id_" + inputIndices[17] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#answer19_button").should("contain.text", "Incorrect");
-            cy.get("#answer20_button").should("contain.text", "Incorrect");
+            cy.get("#answer17 button").click();
+            cy.get("#answer18 button").click();
+            cy.get("#answer19 button").click();
+            cy.get("#answer20 button").click();
+            cy.get("#answer17 button").should("contain.text", "Incorrect");
+            cy.get("#answer18 button").should("contain.text", "Incorrect");
+            cy.get("#answer19 button").should("contain.text", "Incorrect");
+            cy.get("#answer20 button").should("contain.text", "Incorrect");
 
             cy.log("Submit correct answers");
-            cy.get("#_id_" + inputIndices[0] + " textarea").type(
-                "{end}{backspace}x",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[1] + " textarea").type(
-                "{end}{backspace}x",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[2] + " textarea").type(
-                "{end}{backspace}x",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[3] + " textarea").type(
-                "{end}{backspace}x",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[0] + "_button").click();
-            cy.get("#_id_" + inputIndices[1] + "_button").click();
-            cy.get("#answer3_button").click();
-            cy.get("#answer4_button").click();
-            cy.get("#_id_" + inputIndices[0] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#_id_" + inputIndices[1] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#answer3_button").should("contain.text", "Correct");
-            cy.get("#answer4_button").should("contain.text", "Correct");
+            cy.get("#answer1 textarea").type("{end}{backspace}x", {
+                force: true,
+            });
+            cy.get("#answer2 textarea").type("{end}{backspace}x", {
+                force: true,
+            });
+            cy.get("#answer3 textarea").type("{end}{backspace}x", {
+                force: true,
+            });
+            cy.get("#answer4 textarea").type("{end}{backspace}x", {
+                force: true,
+            });
+            cy.get("#answer1 button").click();
+            cy.get("#answer2 button").click();
+            cy.get("#answer3 button").click();
+            cy.get("#answer4 button").click();
+            cy.get("#answer1 button").should("contain.text", "Correct");
+            cy.get("#answer2 button").should("contain.text", "Correct");
+            cy.get("#answer3 button").should("contain.text", "Correct");
+            cy.get("#answer4 button").should("contain.text", "Correct");
 
-            cy.get("#_id_" + inputIndices[4] + "_input")
-                .clear()
-                .type("hello");
-            cy.get("#_id_" + inputIndices[5] + "_input")
-                .clear()
-                .type("hello");
-            cy.get("#_id_" + inputIndices[6] + "_input")
-                .clear()
-                .type("hello");
-            cy.get("#_id_" + inputIndices[7] + "_input")
-                .clear()
-                .type("hello");
-            cy.get("#_id_" + inputIndices[4] + "_button").click();
-            cy.get("#_id_" + inputIndices[5] + "_button").click();
-            cy.get("#answer7_button").click();
-            cy.get("#answer8_button").click();
-            cy.get("#_id_" + inputIndices[4] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#_id_" + inputIndices[5] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#answer7_button").should("contain.text", "Correct");
-            cy.get("#answer8_button").should("contain.text", "Correct");
+            cy.get("#answer5 input").clear().type("hello");
+            cy.get("#answer6 input").clear().type("hello");
+            cy.get("#answer7 input").clear().type("hello");
+            cy.get("#answer8 input").clear().type("hello");
+            cy.get("#answer5 button").click();
+            cy.get("#answer6 button").click();
+            cy.get("#answer7 button").click();
+            cy.get("#answer8 button").click();
+            cy.get("#answer5 button").should("contain.text", "Correct");
+            cy.get("#answer6 button").should("contain.text", "Correct");
+            cy.get("#answer7 button").should("contain.text", "Correct");
+            cy.get("#answer8 button").should("contain.text", "Correct");
 
             cy.get("#choiceInput1").contains("yes").click({ force: true });
             cy.get("#choiceInput2").contains("yes").click({ force: true });
@@ -1673,12 +1565,12 @@ d
             cy.get("#choiceInput4").contains("yes").click({ force: true });
             cy.get("#choiceInput1_button").click();
             cy.get("#choiceInput2_button").click();
-            cy.get("#answer11_button").click();
-            cy.get("#answer12_button").click();
+            cy.get("#answer11 button").click();
+            cy.get("#answer12 button").click();
             cy.get("#choiceInput1_button").should("contain.text", "Correct");
             cy.get("#choiceInput2_button").should("contain.text", "Correct");
-            cy.get("#answer11_button").should("contain.text", "Correct");
-            cy.get("#answer12_button").should("contain.text", "Correct");
+            cy.get("#answer11 button").should("contain.text", "Correct");
+            cy.get("#answer12 button").should("contain.text", "Correct");
 
             cy.get("#choiceInput5").click();
             cy.get("#choiceInput5 [class*='menu']")
@@ -1706,12 +1598,12 @@ d
                 .click();
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").click();
-            cy.get("#answer15_button").click();
-            cy.get("#answer16_button").click();
+            cy.get("#answer15 button").click();
+            cy.get("#answer16 button").click();
             cy.get("#choiceInput5_button").should("contain.text", "Correct");
             cy.get("#choiceInput6_button").should("contain.text", "Correct");
-            cy.get("#answer15_button").should("contain.text", "Correct");
-            cy.get("#answer16_button").should("contain.text", "Correct");
+            cy.get("#answer15 button").should("contain.text", "Correct");
+            cy.get("#answer16 button").should("contain.text", "Correct");
 
             cy.get("#_id_" + inputIndices[16] + "-label").click();
             cy.get("#_id_" + inputIndices[17] + "-label").click();
@@ -1719,8 +1611,8 @@ d
             cy.get("#_id_" + inputIndices[19] + "-label").click();
             cy.get("#_id_" + inputIndices[16] + "_button").click();
             cy.get("#_id_" + inputIndices[17] + "_button").click();
-            cy.get("#answer19_button").click();
-            cy.get("#answer20_button").click();
+            cy.get("#answer19 button").click();
+            cy.get("#answer20 button").click();
             cy.get("#_id_" + inputIndices[16] + "_button").should(
                 "contain.text",
                 "Correct",
@@ -1729,63 +1621,41 @@ d
                 "contain.text",
                 "Correct",
             );
-            cy.get("#answer19_button").should("contain.text", "Correct");
-            cy.get("#answer20_button").should("contain.text", "Correct");
+            cy.get("#answer19 button").should("contain.text", "Correct");
+            cy.get("#answer20 button").should("contain.text", "Correct");
 
             cy.log("Type to submit incorrect answers again");
 
             // Every other input should be disabled
-            cy.get("#_id_" + inputIndices[0] + " textarea").type(
-                "{end}{backspace}y",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[1] + " textarea").should(
-                "be.disabled",
-            );
-            cy.get("#_id_" + inputIndices[2] + " textarea").type(
-                "{end}{backspace}y",
-                { force: true },
-            );
-            cy.get("#_id_" + inputIndices[3] + " textarea").should(
-                "be.disabled",
-            );
-            cy.get("#_id_" + inputIndices[0] + "_button").click();
-            cy.get("#_id_" + inputIndices[1] + "_button").should("be.disabled");
-            cy.get("#answer3_button").click();
-            cy.get("#answer4_button").should("be.disabled");
-            cy.get("#_id_" + inputIndices[0] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#_id_" + inputIndices[1] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#answer3_button").should("contain.text", "Incorrect");
-            cy.get("#answer4_button").should("contain.text", "Correct");
+            cy.get("#answer1 textarea").type("{end}{backspace}y", {
+                force: true,
+            });
+            cy.get("#answer2 textarea").should("be.disabled");
+            cy.get("#answer3 textarea").type("{end}{backspace}y", {
+                force: true,
+            });
+            cy.get("#answer4 textarea").should("be.disabled");
+            cy.get("#answer1 button").click();
+            cy.get("#answer2 button").should("be.disabled");
+            cy.get("#answer3 button").click();
+            cy.get("#answer4 button").should("be.disabled");
+            cy.get("#answer1 button").should("contain.text", "Incorrect");
+            cy.get("#answer2 button").should("contain.text", "Correct");
+            cy.get("#answer3 button").should("contain.text", "Incorrect");
+            cy.get("#answer4 button").should("contain.text", "Correct");
 
-            cy.get("#_id_" + inputIndices[4] + "_input")
-                .clear()
-                .type("bye");
-            cy.get("#_id_" + inputIndices[5] + "_input").should("be.disabled");
-            cy.get("#_id_" + inputIndices[6] + "_input")
-                .clear()
-                .type("bye");
-            cy.get("#_id_" + inputIndices[7] + "_input").should("be.disabled");
-            cy.get("#_id_" + inputIndices[4] + "_button").click();
-            cy.get("#_id_" + inputIndices[5] + "_button").should("be.disabled");
-            cy.get("#answer7_button").click();
-            cy.get("#answer8_button").should("be.disabled");
-            cy.get("#_id_" + inputIndices[4] + "_button").should(
-                "contain.text",
-                "Incorrect",
-            );
-            cy.get("#_id_" + inputIndices[5] + "_button").should(
-                "contain.text",
-                "Correct",
-            );
-            cy.get("#answer7_button").should("contain.text", "Incorrect");
-            cy.get("#answer8_button").should("contain.text", "Correct");
+            cy.get("#answer5 input").clear().type("bye");
+            cy.get("#answer6 input").should("be.disabled");
+            cy.get("#answer7 input").clear().type("bye");
+            cy.get("#answer8 input").should("be.disabled");
+            cy.get("#answer5 button").click();
+            cy.get("#answer6 button").should("be.disabled");
+            cy.get("#answer7 button").click();
+            cy.get("#answer8 button").should("be.disabled");
+            cy.get("#answer5 button").should("contain.text", "Incorrect");
+            cy.get("#answer6 button").should("contain.text", "Correct");
+            cy.get("#answer7 button").should("contain.text", "Incorrect");
+            cy.get("#answer8 button").should("contain.text", "Correct");
 
             cy.get("#choiceInput1").contains("no").click({ force: true });
             cy.get("#choiceInput2").contains("no").click({ force: true });
@@ -1793,12 +1663,12 @@ d
             cy.get("#choiceInput4").contains("no").click({ force: true });
             cy.get("#choiceInput1_button").click();
             cy.get("#choiceInput2_button").should("be.disabled");
-            cy.get("#answer11_button").click();
-            cy.get("#answer12_button").should("be.disabled");
+            cy.get("#answer11 button").click();
+            cy.get("#answer12 button").should("be.disabled");
             cy.get("#choiceInput1_button").should("contain.text", "Incorrect");
             cy.get("#choiceInput2_button").should("contain.text", "Correct");
-            cy.get("#answer11_button").should("contain.text", "Incorrect");
-            cy.get("#answer12_button").should("contain.text", "Correct");
+            cy.get("#answer11 button").should("contain.text", "Incorrect");
+            cy.get("#answer12 button").should("contain.text", "Correct");
 
             cy.get("#choiceInput5").click();
             cy.get("#choiceInput5 [class*='menu']")
@@ -1816,12 +1686,12 @@ d
             cy.get("#choiceInput8 input").should("be.disabled");
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").should("be.disabled");
-            cy.get("#answer15_button").click();
-            cy.get("#answer16_button").should("be.disabled");
+            cy.get("#answer15 button").click();
+            cy.get("#answer16 button").should("be.disabled");
             cy.get("#choiceInput5_button").should("contain.text", "Incorrect");
             cy.get("#choiceInput6_button").should("contain.text", "Correct");
-            cy.get("#answer15_button").should("contain.text", "Incorrect");
-            cy.get("#answer16_button").should("contain.text", "Correct");
+            cy.get("#answer15 button").should("contain.text", "Incorrect");
+            cy.get("#answer16 button").should("contain.text", "Correct");
 
             cy.get("#_id_" + inputIndices[16] + "-label").click();
             cy.get("#_id_" + inputIndices[17] + "_input").should("be.disabled");
@@ -1831,8 +1701,8 @@ d
             cy.get("#_id_" + inputIndices[17] + "_button").should(
                 "be.disabled",
             );
-            cy.get("#answer19_button").click();
-            cy.get("#answer20_button").should("be.disabled");
+            cy.get("#answer19 button").click();
+            cy.get("#answer20 button").should("be.disabled");
             cy.get("#_id_" + inputIndices[16] + "_button").should(
                 "contain.text",
                 "Incorrect",
@@ -1841,8 +1711,8 @@ d
                 "contain.text",
                 "Correct",
             );
-            cy.get("#answer19_button").should("contain.text", "Incorrect");
-            cy.get("#answer20_button").should("contain.text", "Correct");
+            cy.get("#answer19 button").should("contain.text", "Incorrect");
+            cy.get("#answer20 button").should("contain.text", "Correct");
         });
     });
 
@@ -1995,10 +1865,10 @@ d
                 {
                     doenetML: `
   <text name="a">a</text>
-  <p><answer name="ans1" forceFullCheckworkButton>x</answer></p>
-  <p><answer name="ans2" forceFullCheckworkButton submitLabel="Hit it!">x</answer></p>
-  <p><answer name="ans3" forceFullCheckworkButton submitLabelNoCorrectness="Guess">x</answer></p>
-  <p><answer name="ans4" forceFullCheckworkButton submitLabel="Hit it!" submitLabelNoCorrectness="Guess">x</answer></p>
+  <p><answer name="ans1" forceFullCheckWorkButton>x</answer></p>
+  <p><answer name="ans2" forceFullCheckWorkButton submitLabel="Hit it!">x</answer></p>
+  <p><answer name="ans3" forceFullCheckWorkButton submitLabelNoCorrectness="Guess">x</answer></p>
+  <p><answer name="ans4" forceFullCheckWorkButton submitLabel="Hit it!" submitLabelNoCorrectness="Guess">x</answer></p>
   `,
                 },
                 "*",
@@ -2030,55 +1900,55 @@ d
                     .inputChildren[0].componentIdx;
             let mathInput4Anchor = "#_id_" + mathInput4Idx + " textarea";
 
-            cy.get("#ans1_button").should("contain.text", "Check Work");
-            cy.get("#ans2_button").should("contain.text", "Hit it!");
-            cy.get("#ans3_button").should("contain.text", "Check Work");
-            cy.get("#ans4_button").should("contain.text", "Hit it!");
+            cy.get("#ans1 button").should("contain.text", "Check Work");
+            cy.get("#ans2 button").should("contain.text", "Hit it!");
+            cy.get("#ans3 button").should("contain.text", "Check Work");
+            cy.get("#ans4 button").should("contain.text", "Hit it!");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
             cy.get(mathInput2Anchor).type("x{enter}", { force: true });
             cy.get(mathInput3Anchor).type("x{enter}", { force: true });
             cy.get(mathInput4Anchor).type("x{enter}", { force: true });
 
-            cy.get("#ans1_button").click();
-            cy.get("#ans2_button").click();
-            cy.get("#ans3_button").click();
-            cy.get("#ans4_button").click();
+            cy.get("#ans1 button").click();
+            cy.get("#ans2 button").click();
+            cy.get("#ans3 button").click();
+            cy.get("#ans4 button").click();
 
-            cy.get("#ans1_button").should("contain.text", "Correct");
-            cy.get("#ans2_button").should("contain.text", "Correct");
-            cy.get("#ans3_button").should("contain.text", "Correct");
-            cy.get("#ans4_button").should("contain.text", "Correct");
+            cy.get("#ans1 button").should("contain.text", "Correct");
+            cy.get("#ans2 button").should("contain.text", "Correct");
+            cy.get("#ans3 button").should("contain.text", "Correct");
+            cy.get("#ans4 button").should("contain.text", "Correct");
 
             cy.get("#testRunner_toggleControls").click();
             cy.get("#testRunner_showCorrectness").click();
             cy.wait(100);
             cy.get("#testRunner_toggleControls").click();
 
-            cy.get("#ans1_button").should("contain.text", "Submit Response");
-            cy.get("#ans2_button").should("contain.text", "Submit Response");
-            cy.get("#ans3_button").should("contain.text", "Guess");
-            cy.get("#ans4_button").should("contain.text", "Guess");
+            cy.get("#ans1 button").should("contain.text", "Submit Response");
+            cy.get("#ans2 button").should("contain.text", "Submit Response");
+            cy.get("#ans3 button").should("contain.text", "Guess");
+            cy.get("#ans4 button").should("contain.text", "Guess");
 
-            cy.get("#ans1_button").should("contain.text", "Submit Response");
-            cy.get("#ans2_button").should("contain.text", "Submit Response");
-            cy.get("#ans3_button").should("contain.text", "Guess");
-            cy.get("#ans4_button").should("contain.text", "Guess");
+            cy.get("#ans1 button").should("contain.text", "Submit Response");
+            cy.get("#ans2 button").should("contain.text", "Submit Response");
+            cy.get("#ans3 button").should("contain.text", "Guess");
+            cy.get("#ans4 button").should("contain.text", "Guess");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
             cy.get(mathInput2Anchor).type("x{enter}", { force: true });
             cy.get(mathInput3Anchor).type("x{enter}", { force: true });
             cy.get(mathInput4Anchor).type("x{enter}", { force: true });
 
-            cy.get("#ans1_button").click();
-            cy.get("#ans2_button").click();
-            cy.get("#ans3_button").click();
-            cy.get("#ans4_button").click();
+            cy.get("#ans1 button").click();
+            cy.get("#ans2 button").click();
+            cy.get("#ans3 button").click();
+            cy.get("#ans4 button").click();
 
-            cy.get("#ans1_button").should("contain.text", "Response Saved");
-            cy.get("#ans2_button").should("contain.text", "Response Saved");
-            cy.get("#ans3_button").should("contain.text", "Response Saved");
-            cy.get("#ans4_button").should("contain.text", "Response Saved");
+            cy.get("#ans1 button").should("contain.text", "Response Saved");
+            cy.get("#ans2 button").should("contain.text", "Response Saved");
+            cy.get("#ans3 button").should("contain.text", "Response Saved");
+            cy.get("#ans4 button").should("contain.text", "Response Saved");
         });
     });
 
@@ -2602,7 +2472,7 @@ d
       <choice>D</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer2" inline creditByAttempt="1 0.6 0.4" disableWrongChoices forceFullCheckworkButton>
+  <p><answer name="answer2" inline creditByAttempt="1 0.6 0.4" disableWrongChoices forceFullCheckWorkButton>
     <choiceInput name="choiceInput2">
       <choice credit="1">A</choice>
       <choice>B</choice>
@@ -2633,9 +2503,9 @@ d
             .parent()
             .click();
         cy.get("#choiceInput1_button").click();
-        cy.get("#answer2_button").click();
+        cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button").should("contain.text", "Correct");
-        cy.get("#answer2_button").should("contain.text", "Correct");
+        cy.get("#answer2 button").should("contain.text", "Correct");
 
         cy.get("#answer1").should("contain.text", "Max credit available: 100%");
         cy.get("#answer2").should("contain.text", "Max credit available: 100%");
@@ -2654,9 +2524,9 @@ d
             .parent()
             .click();
         cy.get("#choiceInput1_button").click();
-        cy.get("#answer2_button").click();
+        cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button").should("contain.text", "Incorrect");
-        cy.get("#answer2_button").should("contain.text", "Incorrect");
+        cy.get("#answer2 button").should("contain.text", "Incorrect");
 
         cy.get("#answer1").should("contain.text", "Max credit available: 60%");
         cy.get("#answer2").should("contain.text", "Max credit available: 60%");
@@ -2689,11 +2559,11 @@ d
             .parent()
             .click();
         cy.get("#choiceInput1_button").click();
-        cy.get("#answer2_button").click();
+        cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button")
             .should("contain.text", "60 %")
             .should("contain.text", "60% Credit");
-        cy.get("#answer2_button").should("contain.text", "60% Credit");
+        cy.get("#answer2 button").should("contain.text", "60% Credit");
 
         cy.get("#answer1").should("contain.text", "Max credit available: 60%");
         cy.get("#answer2").should("contain.text", "Max credit available: 60%");
@@ -2726,9 +2596,9 @@ d
             .parent()
             .click();
         cy.get("#choiceInput1_button").click();
-        cy.get("#answer2_button").click();
+        cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button").should("contain.text", "Incorrect");
-        cy.get("#answer2_button").should("contain.text", "Incorrect");
+        cy.get("#answer2 button").should("contain.text", "Incorrect");
 
         cy.get("#answer1").should("contain.text", "Max credit available: 40%");
         cy.get("#answer2").should("contain.text", "Max credit available: 40%");
@@ -2772,11 +2642,11 @@ d
             .parent()
             .click();
         cy.get("#choiceInput1_button").click();
-        cy.get("#answer2_button").click();
+        cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button")
             .should("contain.text", "40 %")
             .should("contain.text", "40% Credit");
-        cy.get("#answer2_button").should("contain.text", "40% Credit");
+        cy.get("#answer2 button").should("contain.text", "40% Credit");
 
         cy.get("#answer1").should("contain.text", "Max credit available: 40%");
         cy.get("#answer2").should("contain.text", "Max credit available: 40%");
@@ -2820,9 +2690,9 @@ d
             .parent()
             .click();
         cy.get("#choiceInput1_button").click();
-        cy.get("#answer2_button").click();
+        cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button").should("contain.text", "Incorrect");
-        cy.get("#answer2_button").should("contain.text", "Incorrect");
+        cy.get("#answer2 button").should("contain.text", "Incorrect");
 
         cy.get("#answer1").should("contain.text", "Max credit available: 40%");
         cy.get("#answer2").should("contain.text", "Max credit available: 40%");
@@ -2876,11 +2746,11 @@ d
             .parent()
             .click();
         cy.get("#choiceInput1_button").click();
-        cy.get("#answer2_button").click();
+        cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button")
             .should("contain.text", "40 %")
             .should("contain.text", "40% Credit");
-        cy.get("#answer2_button").should("contain.text", "40% Credit");
+        cy.get("#answer2 button").should("contain.text", "40% Credit");
 
         cy.get("#answer1").should("contain.text", "Max credit available: 40%");
         cy.get("#answer2").should("contain.text", "Max credit available: 40%");
@@ -3773,6 +3643,203 @@ d
             cy.get("#pText").should("have.text", "Current responses: y");
         });
     });
+
+    it("forceSmallCheckWorkButton attribute forces small check work button", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>
+        <mathInput name="mi1" forAnswer="ans1"><label>1+1=</label></mathInput>
+        <answer name="ans1" forceSmallCheckWorkButton>
+            <award symbolicEquality><when>$mi1 = 2</when></award>
+            <award credit="0.5"><when>$mi1 = 2</when></award>
+        </answer>
+    </p>
+    
+    <p>
+        <mathInput name="mi2" forAnswer="ans2"><label>2+2=</label></mathInput>
+        <answer name="ans2">
+            <award symbolicEquality><when>$mi2 = 4</when></award>
+            <award credit="0.5"><when>$mi2 = 4</when></award>
+        </answer>
+    </p>
+    
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans1_button").should("contain.text", "Check Work");
+        cy.get("#ans2_button").should("contain.text", "Check Work");
+
+        // Check that ans1 does not have a visible "Check Work" text node, while ans2 does,
+        // which indicates that ans1 is using the small check work button and ans2 is using the full check work button.
+        // (Both components have "Check Work" in the title of the SVG and in the visually hidden text for screen readers.)
+        cy.get("#ans1_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Check Work")).to.equal(false);
+        });
+        cy.get("#ans2_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Check Work")).to.equal(true);
+        });
+
+        cy.get("#mi1 textarea").type("2", { force: true });
+        cy.get("#mi2 textarea").type("4", { force: true });
+
+        cy.get("#ans1_button").click();
+        cy.get("#ans2_button").click();
+
+        cy.get("#ans1_button").should("contain.text", "Correct");
+        cy.get("#ans2_button").should("contain.text", "Correct");
+
+        cy.get("#ans1_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Correct")).to.equal(false);
+        });
+        cy.get("#ans2_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Correct")).to.equal(true);
+        });
+
+        cy.get("#mi1 textarea").type("{end}{backspace}3", { force: true });
+        cy.get("#mi2 textarea").type("{end}{backspace}5", { force: true });
+
+        cy.get("#ans1_button").click();
+        cy.get("#ans2_button").click();
+
+        cy.get("#ans1_button").should("contain.text", "Incorrect");
+        cy.get("#ans2_button").should("contain.text", "Incorrect");
+
+        cy.get("#ans1_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Incorrect")).to.equal(false);
+        });
+        cy.get("#ans2_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Incorrect")).to.equal(true);
+        });
+
+        cy.get("#mi1 textarea").type("{end}{backspace}1+1", { force: true });
+        cy.get("#mi2 textarea").type("{end}{backspace}2+2", { force: true });
+
+        cy.get("#ans1_button").click();
+        cy.get("#ans2_button").click();
+
+        cy.get("#ans1_button").should("contain.text", "50% Correct");
+        cy.get("#ans2_button").should("contain.text", "50% Correct");
+
+        cy.get("#ans1_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "50% Correct")).to.equal(false);
+            expect(hasDirectText($el[0], "50 %")).to.equal(true);
+        });
+        cy.get("#ans2_button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "50% Correct")).to.equal(true);
+            expect(hasDirectText($el[0], "50 %")).to.equal(false);
+        });
+    });
+
+    it("forceFullCheckWorkButton attribute forces large check work button", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>
+        <answer name="ans1">
+            <label>1+1=</label>
+            2
+        </answer>
+    </p>
+    
+    <p>
+        <answer name="ans2" forceFullCheckWorkButton>
+            <label>2+2=</label>
+            4
+        </answer>
+    </p>
+    
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans1 button").should("contain.text", "Check Work");
+        cy.get("#ans2 button").should("contain.text", "Check Work");
+
+        // Check that ans1 does not have a visible "Check Work" text node, while ans2 does,
+        // which indicates that ans1 is using the small check work button and ans2 is using the full check work button.
+        // (Both components have "Check Work" in the title of the SVG and in the visually hidden text for screen readers.)
+        cy.get("#ans1 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Check Work")).to.equal(false);
+        });
+        cy.get("#ans2 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Check Work")).to.equal(true);
+        });
+
+        cy.get("#ans1 textarea").type("2{enter}", { force: true });
+        cy.get("#ans2 textarea").type("4{enter}", { force: true });
+
+        cy.get("#ans1 button").should("contain.text", "Correct");
+        cy.get("#ans2 button").should("contain.text", "Correct");
+
+        cy.get("#ans1 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Correct")).to.equal(false);
+        });
+        cy.get("#ans2 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Correct")).to.equal(true);
+        });
+
+        cy.get("#ans1 textarea").type("{end}{backspace}3{enter}", {
+            force: true,
+        });
+        cy.get("#ans2 textarea").type("{end}{backspace}5{enter}", {
+            force: true,
+        });
+
+        cy.get("#ans1 button").should("contain.text", "Incorrect");
+        cy.get("#ans2 button").should("contain.text", "Incorrect");
+
+        cy.get("#ans1 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Incorrect")).to.equal(false);
+        });
+        cy.get("#ans2 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Incorrect")).to.equal(true);
+        });
+    });
+
+    it("forceFullCheckWorkButton overrides forceSmallCheckWorkButton", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>
+        <answer name="ans1" forceSmallCheckWorkButton forceFullCheckWorkButton>
+            <label>1+1=</label>
+            2
+        </answer>
+    </p>
+
+    <p>
+        <mathInput name="mi2" forAnswer="ans2"><label>2+2=</label></mathInput>
+        <answer name="ans2" forceSmallCheckWorkButton forceFullCheckWorkButton>
+            <award><when>$mi2 = 4</when></award>
+        </answer>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ans1 button").should("contain.text", "Check Work");
+        cy.get("#ans2 button").should("contain.text", "Check Work");
+
+        // Check that both ans1 and ans2 have a visible "Check Work" text node, which indicates that both are using the full check work button.
+        // (Both components have "Check Work" in the title of the SVG and in the visually hidden text for screen readers.)
+        cy.get("#ans1 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Check Work")).to.equal(true);
+        });
+        cy.get("#ans2 button [aria-hidden='true']").then(($el) => {
+            expect(hasDirectText($el[0], "Check Work")).to.equal(true);
+        });
+    });
 });
 
 function getCSSVariableAsRGB(win, varName) {
@@ -3782,4 +3849,16 @@ function getCSSVariableAsRGB(win, varName) {
     const rgbValue = win.getComputedStyle(el).color;
     el.remove();
     return rgbValue;
+}
+
+/**
+ * Returns true when an element has a direct text-node child matching text.
+ * Ignores text that appears only in deeper descendants.
+ */
+function hasDirectText(element, text) {
+    return Array.from(element.childNodes).some(
+        (node) =>
+            node.nodeType === Node.TEXT_NODE &&
+            node.textContent.trim() === text,
+    );
 }

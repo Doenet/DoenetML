@@ -58,9 +58,17 @@ export default class Answer extends InlineComponent {
             defaultValue: false,
             public: true,
         };
-        attributes.forceFullCheckworkButton = {
+        attributes.forceFullCheckWorkButton = {
             createComponentOfType: "boolean",
-            createStateVariable: "forceFullCheckworkButton",
+            createStateVariable: "forceFullCheckWorkButton",
+            forRenderer: true,
+            defaultValue: false,
+            public: true,
+        };
+        attributes.forceSmallCheckWorkButton = {
+            createComponentOfType: "boolean",
+            createStateVariable: "forceSmallCheckWorkButton",
+            forRenderer: true,
             defaultValue: false,
             public: true,
         };
@@ -1661,10 +1669,6 @@ export default class Answer extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "inputChildren",
                 },
-                forceFullCheckworkButton: {
-                    dependencyType: "stateVariable",
-                    variableName: "forceFullCheckworkButton",
-                },
                 sectionAncestor: {
                     dependencyType: "ancestor",
                     componentType: "_sectioningComponent",
@@ -1716,10 +1720,7 @@ export default class Answer extends InlineComponent {
                         .suppressAnswerSubmitButtons
                 ) {
                     delegateCheckWorkToAncestor = delegateCheckWork = true;
-                } else if (
-                    dependencyValues.inputChildren.length === 1 &&
-                    !dependencyValues.forceFullCheckworkButton
-                ) {
+                } else if (dependencyValues.inputChildren.length === 1) {
                     delegateCheckWorkToInput = delegateCheckWork = true;
                 }
                 return {
