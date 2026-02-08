@@ -741,15 +741,15 @@ describe("Basic accessibility tests", function () {
         cy.get("#m3 textarea").type("{enter}", { force: true });
 
         cy.get("#m5 textarea").type("x{enter}", { force: true });
-        cy.get("#a5_button").click();
+        cy.get("#a5 button").click();
         cy.get("#m6 textarea").type("{enter}", { force: true });
-        cy.get("#a6_button").click();
+        cy.get("#a6 button").click();
         cy.get("#m7 textarea").type("x{enter}", { force: true });
         cy.get("#m8 textarea").type("x{enter}", { force: true });
-        cy.get("#a8_button").click();
+        cy.get("#a8 button").click();
 
         cy.get("#m9 textarea").type("{enter}", { force: true });
-        cy.get("#a10_button").click();
+        cy.get("#a10 button").click();
 
         cy.checkAccessibility([".doenet-viewer"], {
             onlyWarnImpacts: ["moderate", "minor"],
