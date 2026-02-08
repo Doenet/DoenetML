@@ -497,6 +497,7 @@ describe("Math tag tests", async () => {
     <p>Full simplify b: <math name="m4" simplify="full">1x^2-3 +0x^2 + 4 -2x^2-3 + 5x^2</math></p>
     <p>Simplify numbers: <math name="m5" simplify="numbers">1x^2-3 +0x^2 + 4 -2x^2-3 + 5x^2</math></p>
     <p>Simplify numbers preserve order: <math name="m6" simplify="numberspreserveorder">1x^2-3 +0x^2 + 4 -2x^2-3 + 5x^2</math></p>
+    <p>Normalize order: <math name="m7" simplify="normalizeorder">1x^2-3 +0x^2 + 4 -2x^2-3 + 5x^2</math></p>
     `,
         });
 
@@ -538,6 +539,12 @@ describe("Math tag tests", async () => {
                     .latex,
             ),
         ).eq("x^{2}+1-2x^{2}-3+5x^{2}");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m7")].stateValues
+                    .latex,
+            ),
+        ).eq("-2x^{2}+0x^{2}+1x^{2}+5x^{2}-3-3+4");
 
         let originalTree = [
             "+",
@@ -586,6 +593,19 @@ describe("Math tag tests", async () => {
             ["*", -2, ["^", "x", 2]],
             -3,
             ["*", 5, ["^", "x", 2]],
+        ]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m7")].stateValues.value
+                .tree,
+        ).eqls([
+            "+",
+            ["-", ["*", 2, ["^", "x", 2]]],
+            ["*", 0, ["^", "x", 2]],
+            ["*", 1, ["^", "x", 2]],
+            ["*", 5, ["^", "x", 2]],
+            -3,
+            -3,
+            4,
         ]);
     });
 

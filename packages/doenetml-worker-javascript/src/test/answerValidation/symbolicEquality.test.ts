@@ -444,6 +444,51 @@ describe("Symbolic equality tests", async () => {
         });
     });
 
+    it("symbolic equality match with normalizing order", async () => {
+        const doenetML = `
+    <p>Response: <mathInput name="resp" /></p>
+
+    <p>
+    <math name="m">1x^2+2-0x^2+3+x^2+3x^2+7+4</math>: 
+    <answer name="ansS">
+      <award symbolicEquality simplifyOnCompare="normalizeOrder"><when>$resp=$m</when></award>
+    </answer>
+    </p>
+    
+    <p>Numeric versions</p>
+    <p><answer name="ansN">
+      <award><when>$resp=$m</when></award>
+    </answer></p>
+    `;
+
+        await run_tests({
+            doenetML,
+            responseCredits: [
+                { responses: {}, credits: { S: 0, N: 0 } },
+                {
+                    responses: { resp: "1x^2+2-0x^2+3+x^2+3x^2+7+4" },
+                    credits: { S: 1, N: 1 },
+                },
+                {
+                    responses: { resp: "4-0x^2 +7+ (x^2)1+3+x^2+2+(x^2)3" },
+                    credits: { S: 1, N: 1 },
+                },
+                {
+                    responses: { resp: "1x^2+2-0x^2+3+x^2+3x^2+11" },
+                    credits: { S: 0, N: 1 },
+                },
+                {
+                    responses: { resp: "1x^2+2+3+x^2+3x^2+7+4" },
+                    credits: { S: 0, N: 1 },
+                },
+                {
+                    responses: { resp: "x^2+2-0x^2+3+x^2+3x^2+7+4" },
+                    credits: { S: 0, N: 1 },
+                },
+            ],
+        });
+    });
+
     it("symbolic equality match with full simplification", async () => {
         const doenetML = `
     <p>Response: <mathInput name="resp" /></p>
