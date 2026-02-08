@@ -559,7 +559,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         id,
         validationState,
         submitAnswer,
-        SVs.forceFullCheckworkButton,
+        SVs.forceFullCheckWorkButton,
     );
 
     let input;

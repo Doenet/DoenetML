@@ -166,8 +166,8 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     // For inline, the default is a small check work button,
     // for non-inline, the default is a full check work button
     const fullCheckWork = SVs.inline
-        ? SVs.forceFullCheckworkButton
-        : SVs.forceFullCheckworkButton || !SVs.forceSmallCheckworkButton;
+        ? SVs.forceFullCheckWorkButton
+        : SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton;
 
     const checkWorkComponent = createCheckWorkComponent(
         SVs,

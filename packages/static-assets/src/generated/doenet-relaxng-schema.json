@@ -90041,14 +90041,14 @@
                         "false"
                     ]
                 },
-                "forceFullCheckworkButton": {
+                "forceFullCheckWorkButton": {
                     "optional": true,
                     "type": [
                         "true",
                         "false"
                     ]
                 },
-                "forceSmallCheckworkButton": {
+                "forceSmallCheckWorkButton": {
                     "optional": true,
                     "type": [
                         "true",
@@ -90596,12 +90596,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "forceFullCheckworkButton",
+                    "name": "forceFullCheckWorkButton",
                     "type": "boolean",
                     "isArray": false
                 },
                 {
-                    "name": "forceSmallCheckworkButton",
+                    "name": "forceSmallCheckWorkButton",
                     "type": "boolean",
                     "isArray": false
                 },

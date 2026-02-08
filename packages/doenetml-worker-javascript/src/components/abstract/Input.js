@@ -59,8 +59,8 @@ export default class Input extends InlineComponent {
                         "numPreviousIncorrectSubmissions",
                         "creditFactorUsed",
                         "nextCreditFactor",
-                        "forceFullCheckworkButton",
-                        "forceSmallCheckworkButton",
+                        "forceFullCheckWorkButton",
+                        "forceSmallCheckWorkButton",
                     ],
                 },
             }),
@@ -332,7 +332,7 @@ export default class Input extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.forceFullCheckworkButton = {
+        stateVariableDefinitions.forceFullCheckWorkButton = {
             forRenderer: true,
             returnDependencies: () => ({
                 answerAncestor: {
@@ -345,22 +345,22 @@ export default class Input extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let forceFullCheckworkButton = false;
+                let forceFullCheckWorkButton = false;
                 if (
                     dependencyValues.answerAncestor &&
                     dependencyValues.showCheckWork
                 ) {
-                    forceFullCheckworkButton =
+                    forceFullCheckWorkButton =
                         dependencyValues.answerAncestor.stateValues
-                            .forceFullCheckworkButton;
+                            .forceFullCheckWorkButton;
                 }
                 return {
-                    setValue: { forceFullCheckworkButton },
+                    setValue: { forceFullCheckWorkButton },
                 };
             },
         };
 
-        stateVariableDefinitions.forceSmallCheckworkButton = {
+        stateVariableDefinitions.forceSmallCheckWorkButton = {
             forRenderer: true,
             returnDependencies: () => ({
                 answerAncestor: {
@@ -373,17 +373,17 @@ export default class Input extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let forceSmallCheckworkButton = false;
+                let forceSmallCheckWorkButton = false;
                 if (
                     dependencyValues.answerAncestor &&
                     dependencyValues.showCheckWork
                 ) {
-                    forceSmallCheckworkButton =
+                    forceSmallCheckWorkButton =
                         dependencyValues.answerAncestor.stateValues
-                            .forceSmallCheckworkButton;
+                            .forceSmallCheckWorkButton;
                 }
                 return {
-                    setValue: { forceSmallCheckworkButton },
+                    setValue: { forceSmallCheckWorkButton },
                 };
             },
         };

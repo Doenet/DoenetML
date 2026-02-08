@@ -58,16 +58,16 @@ export default class Answer extends InlineComponent {
             defaultValue: false,
             public: true,
         };
-        attributes.forceFullCheckworkButton = {
+        attributes.forceFullCheckWorkButton = {
             createComponentOfType: "boolean",
-            createStateVariable: "forceFullCheckworkButton",
+            createStateVariable: "forceFullCheckWorkButton",
             forRenderer: true,
             defaultValue: false,
             public: true,
         };
-        attributes.forceSmallCheckworkButton = {
+        attributes.forceSmallCheckWorkButton = {
             createComponentOfType: "boolean",
-            createStateVariable: "forceSmallCheckworkButton",
+            createStateVariable: "forceSmallCheckWorkButton",
             forRenderer: true,
             defaultValue: false,
             public: true,

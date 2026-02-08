@@ -55328,14 +55328,14 @@
                     ]
                 },
                 {
-                    "name": "forceFullCheckworkButton",
+                    "name": "forceFullCheckWorkButton",
                     "values": [
                         "true",
                         "false"
                     ]
                 },
                 {
-                    "name": "forceSmallCheckworkButton",
+                    "name": "forceSmallCheckWorkButton",
                     "values": [
                         "true",
                         "false"
@@ -55564,12 +55564,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "forceFullCheckworkButton",
+                    "name": "forceFullCheckWorkButton",
                     "type": "boolean",
                     "isArray": false
                 },
                 {
-                    "name": "forceSmallCheckworkButton",
+                    "name": "forceSmallCheckWorkButton",
                     "type": "boolean",
                     "isArray": false
                 },

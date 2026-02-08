@@ -252,7 +252,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         id,
         validationState.current,
         submitAnswer,
-        SVs.forceFullCheckworkButton,
+        SVs.forceFullCheckWorkButton,
     );
 
     let label = SVs.label;

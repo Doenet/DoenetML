@@ -6,13 +6,13 @@ describe("Problem Tag Tests", function () {
         cy.visit("/");
     });
 
-    it("section wide checkwork in problem", () => {
+    it("section wide check work in problem", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-        <p>Section wide checkwork: <booleanInput name="swcw" /></p>
-        <problem sectionWideCheckwork="$swcw" name="theProblem">
+        <p>Section wide check work: <booleanInput name="swcw" /></p>
+        <problem sectionWideCheckWork="$swcw" name="theProblem">
         <title>Problem 1</title>
       
         <p>2x: <answer name="twox">2x</answer></p>
@@ -105,7 +105,7 @@ describe("Problem Tag Tests", function () {
             cy.get(cesc("#sum3_button")).click();
             cy.get(cesc("#sum3_button")).should("contain.text", "Correct");
 
-            cy.log("switch to section wide checkwork");
+            cy.log("switch to section wide check work");
 
             cy.get(cesc("#swcw")).click();
             cy.get(cesc("#swcw_input")).should("be.checked");
@@ -150,7 +150,7 @@ describe("Problem Tag Tests", function () {
                 "50% Correct",
             );
 
-            cy.log("turn off section wide checkwork");
+            cy.log("turn off section wide check work");
 
             cy.get(cesc("#swcw")).click();
             cy.get(cesc("#swcw_input")).should("not.be.checked");
@@ -170,13 +170,13 @@ describe("Problem Tag Tests", function () {
         });
     });
 
-    it("section wide checkwork in section", () => {
+    it("section wide check work in section", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-        <p>Section wide checkwork: <booleanInput name="swcw" /></p>
-        <section aggregateScores sectionWideCheckwork="$swcw" name="theProblem">
+        <p>Section wide check work: <booleanInput name="swcw" /></p>
+        <section aggregateScores sectionWideCheckWork="$swcw" name="theProblem">
         <title>Problem 1</title>
       
         <p>2x: <answer name="twox">2x</answer></p>
@@ -269,7 +269,7 @@ describe("Problem Tag Tests", function () {
             cy.get(cesc("#sum3_button")).click();
             cy.get(cesc("#sum3_button")).should("contain.text", "Correct");
 
-            cy.log("switch to section wide checkwork");
+            cy.log("switch to section wide check work");
 
             cy.get(cesc("#swcw")).click();
             cy.get(cesc("#swcw_input")).should("be.checked");
@@ -317,7 +317,7 @@ describe("Problem Tag Tests", function () {
                 "50% Correct",
             );
 
-            cy.log("turn off section wide checkwork");
+            cy.log("turn off section wide check work");
 
             cy.get(cesc("#swcw")).click();
             cy.get(cesc("#swcw_input")).should("not.be.checked");
@@ -337,15 +337,15 @@ describe("Problem Tag Tests", function () {
         });
     });
 
-    it("document wide checkwork", () => {
+    it("document wide check work", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-        <document documentWideCheckwork="$dwcw" name="theDocument">
+        <document documentWideCheckWork="$dwcw" name="theDocument">
         <title>The problem</title>
 
-        <p>Document wide checkwork: <booleanInput name="dwcw" /></p>
+        <p>Document wide check work: <booleanInput name="dwcw" /></p>
       
         <p>2x: <answer name="twox">2x</answer></p>
       
@@ -436,7 +436,7 @@ describe("Problem Tag Tests", function () {
             cy.get(cesc("#sum3_button")).click();
             cy.get(cesc("#sum3_button")).should("contain.text", "Correct");
 
-            cy.log("switch to document wide checkwork");
+            cy.log("switch to document wide check work");
 
             cy.get(cesc("#dwcw")).click();
             cy.get(cesc("#dwcw_input")).should("be.checked");
@@ -484,7 +484,7 @@ describe("Problem Tag Tests", function () {
                 "50% Correct",
             );
 
-            cy.log("turn off document wide checkwork");
+            cy.log("turn off document wide check work");
 
             cy.get(cesc("#dwcw")).click();
             cy.get(cesc("#dwcw_input")).should("not.be.checked");
@@ -504,20 +504,20 @@ describe("Problem Tag Tests", function () {
         });
     });
 
-    it("outer section wide checkwork supersedes inner section", () => {
+    it("outer section wide check work supersedes inner section", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-        <p>Section wide checkwork: <booleanInput name="swcw" /></p>
-        <section aggregateScores sectionWideCheckwork="$swcw" name="theProblem">
+        <p>Section wide check work: <booleanInput name="swcw" /></p>
+        <section aggregateScores sectionWideCheckWork="$swcw" name="theProblem">
         <title>Problem 1</title>
 
         <p>2x: <answer name="twox">2x</answer></p>
       
         <p>hello: <answer type="text" name="hello">hello</answer></p>
 
-        <subsection aggregateScores sectionWideCheckwork name="subProblem">
+        <subsection aggregateScores sectionWideCheckWork name="subProblem">
           <title>Sub problem a</title>
           <p>banana: 
           <answer name="fruit">
@@ -614,7 +614,7 @@ describe("Problem Tag Tests", function () {
                 "Correct",
             );
 
-            cy.log("switch to section wide checkwork");
+            cy.log("switch to section wide check work");
 
             cy.get(cesc("#swcw")).click();
             cy.get(cesc("#swcw_input")).should("be.checked");
@@ -664,7 +664,7 @@ describe("Problem Tag Tests", function () {
                 "33% Correct",
             );
 
-            cy.log("turn off section wide checkwork");
+            cy.log("turn off section wide check work");
 
             cy.get(cesc("#swcw")).click();
             cy.get(cesc("#swcw_input")).should("not.be.checked");
@@ -686,20 +686,20 @@ describe("Problem Tag Tests", function () {
         });
     });
 
-    it("document wide checkwork supercedes section", () => {
+    it("document wide check work supercedes section", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-        <document documentWideCheckwork="$dwcw" name="theDocument">
+        <document documentWideCheckWork="$dwcw" name="theDocument">
         <title>The problem</title>
 
-        <p>Document wide checkwork: <booleanInput name="dwcw" /></p>
+        <p>Document wide check work: <booleanInput name="dwcw" /></p>
         <p>2x: <answer name="twox">2x</answer></p>
       
         <p>hello: <answer type="text" name="hello">hello</answer></p>
 
-        <section aggregateScores sectionWideCheckwork name="subProblem">
+        <section aggregateScores sectionWideCheckWork name="subProblem">
           <title>Sub problem a</title>
           <p>banana: 
           <answer name="fruit">
@@ -796,7 +796,7 @@ describe("Problem Tag Tests", function () {
                 "Correct",
             );
 
-            cy.log("switch to document wide checkwork");
+            cy.log("switch to document wide check work");
 
             cy.get(cesc("#dwcw")).click();
             cy.get(cesc("#dwcw_input")).should("be.checked");
@@ -846,7 +846,7 @@ describe("Problem Tag Tests", function () {
                 "33% Correct",
             );
 
-            cy.log("turn off document wide checkwork");
+            cy.log("turn off document wide check work");
 
             cy.get(cesc("#dwcw")).click();
             cy.get(cesc("#dwcw_input")).should("not.be.checked");
@@ -868,22 +868,22 @@ describe("Problem Tag Tests", function () {
         });
     });
 
-    it("section wide checkwork, submit label", () => {
+    it("section wide check work, submit label", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
       <text name="a">a</text>
-      <problem sectionWideCheckwork name="prob1">
+      <problem sectionWideCheckWork name="prob1">
         <answer name="ans1">x</answer>
       </problem>
-      <problem sectionWideCheckwork name="prob2" submitLabel="Hit it!">
+      <problem sectionWideCheckWork name="prob2" submitLabel="Hit it!">
         <answer name="ans2">x</answer>
       </problem>
-      <problem sectionWideCheckwork name="prob3" submitLabelNoCorrectness="Guess">
+      <problem sectionWideCheckWork name="prob3" submitLabelNoCorrectness="Guess">
         <answer name="ans3">x</answer>
       </problem>
-      <problem sectionWideCheckwork name="prob4" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
+      <problem sectionWideCheckWork name="prob4" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
         <answer name="ans4">x</answer>
       </problem>
     `,
@@ -994,12 +994,12 @@ describe("Problem Tag Tests", function () {
         });
     });
 
-    it("document wide checkwork, submit label", () => {
+    it("document wide check work, submit label", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-      <document documentWideCheckwork name="doc" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
+      <document documentWideCheckWork name="doc" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
         <text name="a">a</text>
         <answer name="ans1">x</answer>
       </document>

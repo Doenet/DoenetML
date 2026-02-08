@@ -986,13 +986,13 @@ describe("Answer Tag Tests", function () {
   <text name="a">a</text>
   <p><answer name="answer1">x</answer></p>
   <p><answer name="answer2" maxNumAttempts="2">x</answer></p>
-  <p><answer name="answer3" forceFullCheckworkButton>x</answer></p>
-  <p><answer name="answer4" forceFullCheckworkButton maxNumAttempts="2">x</answer></p>
+  <p><answer name="answer3" forceFullCheckWorkButton>x</answer></p>
+  <p><answer name="answer4" forceFullCheckWorkButton maxNumAttempts="2">x</answer></p>
   
   <p><answer name="answer5" type="text">hello</answer></p>
   <p><answer name="answer6" type="text" maxNumAttempts="2">hello</answer></p>
-  <p><answer name="answer7" type="text" forceFullCheckworkButton>hello</answer></p>
-  <p><answer name="answer8" type="text" forceFullCheckworkButton maxNumAttempts="2">hello</answer></p>
+  <p><answer name="answer7" type="text" forceFullCheckWorkButton>hello</answer></p>
+  <p><answer name="answer8" type="text" forceFullCheckWorkButton maxNumAttempts="2">hello</answer></p>
     
   <p><answer name="answer9">
     <choiceInput name="choiceInput1">
@@ -1006,13 +1006,13 @@ describe("Answer Tag Tests", function () {
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer11" forceFullCheckworkButton>
+  <p><answer name="answer11" forceFullCheckWorkButton>
     <choiceInput name="choiceInput3">
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer12" forceFullCheckworkButton maxNumAttempts="2">
+  <p><answer name="answer12" forceFullCheckWorkButton maxNumAttempts="2">
     <choiceInput name="choiceInput4">
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -1031,13 +1031,13 @@ describe("Answer Tag Tests", function () {
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer15" forceFullCheckworkButton>
+  <p><answer name="answer15" forceFullCheckWorkButton>
     <choiceInput name="choiceInput7" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer16" forceFullCheckworkButton maxNumAttempts="2">
+  <p><answer name="answer16" forceFullCheckWorkButton maxNumAttempts="2">
     <choiceInput name="choiceInput8" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -1046,8 +1046,8 @@ describe("Answer Tag Tests", function () {
 d
   <p><answer name="answer17" type="boolean">true</answer></p>
   <p><answer name="answer18" type="boolean" maxNumAttempts="2">true</answer></p>
-  <p><answer name="answer19" type="boolean" forceFullCheckworkButton>true</answer></p>
-  <p><answer name="answer20" type="boolean" forceFullCheckworkButton maxNumAttempts="2">true</answer></p>
+  <p><answer name="answer19" type="boolean" forceFullCheckWorkButton>true</answer></p>
+  <p><answer name="answer20" type="boolean" forceFullCheckWorkButton maxNumAttempts="2">true</answer></p>
    `,
                 },
                 "*",
@@ -1361,13 +1361,13 @@ d
   <text name="a">a</text>
   <p><answer name="answer1">x</answer></p>
   <p><answer name="answer2" disableAfterCorrect>x</answer></p>
-  <p><answer name="answer3" forceFullCheckworkButton>x</answer></p>
-  <p><answer name="answer4" forceFullCheckworkButton disableAfterCorrect>x</answer></p>
+  <p><answer name="answer3" forceFullCheckWorkButton>x</answer></p>
+  <p><answer name="answer4" forceFullCheckWorkButton disableAfterCorrect>x</answer></p>
   
   <p><answer name="answer5" type="text">hello</answer></p>
   <p><answer name="answer6" type="text" disableAfterCorrect>hello</answer></p>
-  <p><answer name="answer7" type="text" forceFullCheckworkButton>hello</answer></p>
-  <p><answer name="answer8" type="text" forceFullCheckworkButton disableAfterCorrect>hello</answer></p>
+  <p><answer name="answer7" type="text" forceFullCheckWorkButton>hello</answer></p>
+  <p><answer name="answer8" type="text" forceFullCheckWorkButton disableAfterCorrect>hello</answer></p>
     
   <p><answer name="answer9">
     <choiceInput name="choiceInput1">
@@ -1381,13 +1381,13 @@ d
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer11" forceFullCheckworkButton>
+  <p><answer name="answer11" forceFullCheckWorkButton>
     <choiceInput name="choiceInput3">
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer12" forceFullCheckworkButton disableAfterCorrect>
+  <p><answer name="answer12" forceFullCheckWorkButton disableAfterCorrect>
     <choiceInput name="choiceInput4">
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -1406,13 +1406,13 @@ d
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer15" forceFullCheckworkButton>
+  <p><answer name="answer15" forceFullCheckWorkButton>
     <choiceInput name="choiceInput7" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer16" forceFullCheckworkButton disableAfterCorrect>
+  <p><answer name="answer16" forceFullCheckWorkButton disableAfterCorrect>
     <choiceInput name="choiceInput8" inline>
       <choice credit="1">yes</choice>
       <choice>no</choice>
@@ -1421,8 +1421,8 @@ d
 
   <p><answer name="answer17" type="boolean">true</answer></p>
   <p><answer name="answer18" type="boolean" disableAfterCorrect>true</answer></p>
-  <p><answer name="answer19" type="boolean" forceFullCheckworkButton>true</answer></p>
-  <p><answer name="answer20" type="boolean" forceFullCheckworkButton disableAfterCorrect>true</answer></p>
+  <p><answer name="answer19" type="boolean" forceFullCheckWorkButton>true</answer></p>
+  <p><answer name="answer20" type="boolean" forceFullCheckWorkButton disableAfterCorrect>true</answer></p>
    `,
                 },
                 "*",
@@ -1865,10 +1865,10 @@ d
                 {
                     doenetML: `
   <text name="a">a</text>
-  <p><answer name="ans1" forceFullCheckworkButton>x</answer></p>
-  <p><answer name="ans2" forceFullCheckworkButton submitLabel="Hit it!">x</answer></p>
-  <p><answer name="ans3" forceFullCheckworkButton submitLabelNoCorrectness="Guess">x</answer></p>
-  <p><answer name="ans4" forceFullCheckworkButton submitLabel="Hit it!" submitLabelNoCorrectness="Guess">x</answer></p>
+  <p><answer name="ans1" forceFullCheckWorkButton>x</answer></p>
+  <p><answer name="ans2" forceFullCheckWorkButton submitLabel="Hit it!">x</answer></p>
+  <p><answer name="ans3" forceFullCheckWorkButton submitLabelNoCorrectness="Guess">x</answer></p>
+  <p><answer name="ans4" forceFullCheckWorkButton submitLabel="Hit it!" submitLabelNoCorrectness="Guess">x</answer></p>
   `,
                 },
                 "*",
@@ -2472,7 +2472,7 @@ d
       <choice>D</choice>
     </choiceInput>
   </answer></p>
-  <p><answer name="answer2" inline creditByAttempt="1 0.6 0.4" disableWrongChoices forceFullCheckworkButton>
+  <p><answer name="answer2" inline creditByAttempt="1 0.6 0.4" disableWrongChoices forceFullCheckWorkButton>
     <choiceInput name="choiceInput2">
       <choice credit="1">A</choice>
       <choice>B</choice>
@@ -3644,14 +3644,14 @@ d
         });
     });
 
-    it("forceSmallCheckworkButton and attribute forces small check work button", () => {
+    it("forceSmallCheckWorkButton and attribute forces small check work button", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
     <p>
         <mathInput name="mi1" forAnswer="ans1"><label>1+1=</label></mathInput>
-        <answer name="ans1" forceSmallCheckworkButton>
+        <answer name="ans1" forceSmallCheckWorkButton>
             <award symbolicEquality><when>$mi1 = 2</when></award>
             <award credit="0.5"><when>$mi1 = 2</when></award>
         </answer>
@@ -3735,7 +3735,7 @@ d
         });
     });
 
-    it("forceFullCheckworkButton and attribute forces large check work button", () => {
+    it("forceFullCheckWorkButton and attribute forces large check work button", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -3748,7 +3748,7 @@ d
     </p>
     
     <p>
-        <answer name="ans2" forceFullCheckworkButton>
+        <answer name="ans2" forceFullCheckWorkButton>
             <label>2+2=</label>
             4
         </answer>
@@ -3804,13 +3804,13 @@ d
         });
     });
 
-    it("forceFullCheckworkButton overrides forceSmallCheckworkButton", () => {
+    it("forceFullCheckWorkButton overrides forceSmallCheckWorkButton", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
     <p>
-        <answer name="ans1" forceSmallCheckworkButton forceFullCheckworkButton>
+        <answer name="ans1" forceSmallCheckWorkButton forceFullCheckWorkButton>
             <label>1+1=</label>
             2
         </answer>
@@ -3818,7 +3818,7 @@ d
 
     <p>
         <mathInput name="mi2" forAnswer="ans2"><label>2+2=</label></mathInput>
-        <answer name="ans2" forceSmallCheckworkButton forceFullCheckworkButton>
+        <answer name="ans2" forceSmallCheckWorkButton forceFullCheckWorkButton>
             <award><when>$mi2 = 4</when></award>
         </answer>
     </p>
