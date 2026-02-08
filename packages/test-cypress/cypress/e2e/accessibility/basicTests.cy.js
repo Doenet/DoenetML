@@ -252,10 +252,10 @@ describe("Basic accessibility tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-                    <image name="image1" source="https://beta.doenet.org/Doenet_Logo_Frontpage.png">
+                    <image name="image1" source="./Doenet_Logo_Frontpage.png">
                         <shortDescription>The Doenet logo</shortDescription>
                     </image>
-                    <image name="image2" source="https://beta.doenet.org/Doenet_Logo_Frontpage.png" decorative />
+                    <image name="image2" source="./Doenet_Logo_Frontpage.png" decorative />
   `,
                 },
                 "*",
@@ -947,7 +947,7 @@ describe("Basic accessibility tests", function () {
                 {
                     doenetML: `
     <figure name="fig1">
-        <image source="https://beta.doenet.org/Doenet_Logo_Frontpage.png">
+        <image source="./Doenet_Logo_Frontpage.png">
             <shortDescription>logo</shortDescription>
         </image>
         <caption>The Doenet logo</caption>
