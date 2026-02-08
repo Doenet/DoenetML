@@ -78,7 +78,13 @@ export default class MathComponent extends InlineComponent {
             toLowerCase: true,
             valueForTrue: "full",
             valueForFalse: "none",
-            validValues: ["none", "full", "numbers", "numberspreserveorder"],
+            validValues: [
+                "none",
+                "full",
+                "numbers",
+                "numberspreserveorder",
+                "normalizeorder",
+            ],
         };
         attributes.expand = {
             createComponentOfType: "boolean",

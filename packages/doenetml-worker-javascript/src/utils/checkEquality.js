@@ -100,10 +100,16 @@ export default function checkEquality({
             effectiveExpand = true;
         }
 
-        if (effectiveSimplify === "none") {
+        if (
+            effectiveSimplify === "none" ||
+            effectiveSimplify === "normalizeorder"
+        ) {
             if (allowedErrorInNumbers > 0) {
                 // only if allowing rounding, do we replace constants with floats
                 x = x.constants_to_floats();
+            }
+            if (effectiveSimplify === "normalizeorder") {
+                x = x.default_order();
             }
         } else if (effectiveSimplify === "numberspreserveorder") {
             x = x.evaluate_numbers({

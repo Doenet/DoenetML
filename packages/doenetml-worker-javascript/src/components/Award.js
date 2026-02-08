@@ -55,7 +55,13 @@ export default class Award extends BaseComponent {
             toLowerCase: true,
             valueForTrue: "full",
             valueForFalse: "none",
-            validValues: ["none", "full", "numbers", "numberspreserveorder"],
+            validValues: [
+                "none",
+                "full",
+                "numbers",
+                "numberspreserveorder",
+                "normalizeorder",
+            ],
             public: true,
             fallBackToParentStateVariable: "simplifyOnCompare",
         };
