@@ -3644,7 +3644,7 @@ describe("Answer Tag Tests", function () {
         });
     });
 
-    it("forceSmallCheckWorkButton and attribute forces small check work button", () => {
+    it("forceSmallCheckWorkButton attribute forces small check work button", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -3735,7 +3735,7 @@ describe("Answer Tag Tests", function () {
         });
     });
 
-    it("forceFullCheckWorkButton and attribute forces large check work button", () => {
+    it("forceFullCheckWorkButton attribute forces large check work button", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
