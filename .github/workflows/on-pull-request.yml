@@ -40,7 +40,7 @@ jobs:
 
             - name: Debug Build Artifacts
               run: |
-                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
                   du -sh ./packages/*/.wireit/*/
 
             # upload all the .wireit directories so that the test job can use them.
@@ -78,7 +78,7 @@ jobs:
 
             - name: Debug Build Artifacts
               run: |
-                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
 
             # with the wireit cache saved, this build step should be fast.
             - name: Build (cached)
@@ -114,13 +114,13 @@ jobs:
 
             - name: Debug Build Artifacts
               run: |
-                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
 
             # with the wireit cache saved, this build step should be fast.
             - name: Build (cached)
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
-                  npm run build
+                  npm run build -w packages/doenetml-worker
               env:
                   WIREIT_CACHE: "local"
 
@@ -150,7 +150,7 @@ jobs:
 
             - name: Debug Build Artifacts
               run: |
-                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
 
             # with the wireit cache saved, this build step should be fast.
             - name: Build (cached)
@@ -284,7 +284,7 @@ jobs:
 
             - name: Debug Build Artifacts
               run: |
-                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
 
             - name: Update versions
               run: |
