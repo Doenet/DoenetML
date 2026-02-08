@@ -120,7 +120,7 @@ jobs:
             - name: Build (cached)
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
-                  npm run build -w packages/doenetml-worker-javascript
+                  npm run build
               env:
                   WIREIT_CACHE: "local"
 
