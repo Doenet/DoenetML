@@ -215,7 +215,7 @@ By default, a function will simplify the result of its evaluation.
 To reduce or eliminate the simplification, one can specify a different value for `simplify`.
 
 
-The `simplify` atttribute has four options:
+The `simplify` attribute has five options:
 
 * `simplify="none"`: no simplification.
 * `simplify="full"` (or simply `simplify` by itself): apply currently available simplification routines.  
@@ -223,6 +223,7 @@ The `simplify` atttribute has four options:
 * `simplify="numbers"`: simplify numerical expressions like `1+2` but not algebraic expressions.  
   Permute terms and factors into a canonical order.
 * `simplify="numbersPreserveOrder"`: simplify numbers but without permuting terms or factors.
+* `simplify="normalizeOrder"`: permute terms and factors to a standard order but perform no other simplifications.
 
 
 
