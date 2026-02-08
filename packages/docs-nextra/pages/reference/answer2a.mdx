@@ -208,7 +208,7 @@ With the large button, it is also possible to customize the message on the butto
 <p>Enter two numbers that multiply to 12:
   <mathInput name="m1" forAnswer="$ans2"><shortDescription>first number</shortDescription></mathInput>
   <mathInput name="m2" forAnswer="$ans2"><shortDescription>second number</shortDescription></mathInput>
-  <answer name="ans2" forceSmallCheckWorkButton><award><when>$m1$m2=12</when></award></answer>
+  <answer name="ans2" forceSmallCheckWorkButton><award><when>$m1 $m2=12</when></award></answer>
 </p>
 
 <p><answer><label>1+1=</label>2</answer></p>
@@ -220,7 +220,7 @@ When an ` <answer>{:dn}` does not have an input field inside it, it will, by def
 To override this default and use the small button, add the  `forceSmallCheckWorkButton` attribute.
 
 
-An answer an input field always uses the small button, by default. (See `forceFullCheckWorkButton`, above.)
+An answer with an input field always uses the small button, by default. (See `forceFullCheckWorkButton`, above.)
 
 
 If both `forceFullCheckWorkButton` and `forceSmallCheckWorkButton` are supplied, `forceFullCheckWorkButton` takes precedence.
