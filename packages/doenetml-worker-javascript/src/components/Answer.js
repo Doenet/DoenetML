@@ -79,7 +79,13 @@ export default class Answer extends InlineComponent {
             toLowerCase: true,
             valueForTrue: "full",
             valueForFalse: "none",
-            validValues: ["none", "full", "numbers", "numberspreserveorder"],
+            validValues: [
+                "none",
+                "full",
+                "numbers",
+                "numberspreserveorder",
+                "normalizeorder",
+            ],
             public: true,
         };
         attributes.expandOnCompare = {

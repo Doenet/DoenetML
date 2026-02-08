@@ -22,6 +22,8 @@ export function normalizeMathExpression({
         return value.evaluate_numbers();
     } else if (simplify === "numberspreserveorder") {
         return value.evaluate_numbers({ skip_ordering: true });
+    } else if (simplify === "normalizeorder") {
+        return value.default_order();
     }
     return value;
 }

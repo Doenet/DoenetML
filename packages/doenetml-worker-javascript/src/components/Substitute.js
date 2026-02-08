@@ -47,7 +47,13 @@ export default class Substitute extends CompositeComponent {
             toLowerCase: true,
             valueForTrue: "full",
             valueForFalse: "none",
-            validValues: ["none", "full", "numbers", "numberspreserveorder"],
+            validValues: [
+                "none",
+                "full",
+                "numbers",
+                "numberspreserveorder",
+                "normalizeorder",
+            ],
         };
 
         Object.assign(attributes, returnRoundingAttributes());

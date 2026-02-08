@@ -392,7 +392,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -6467,7 +6468,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -6735,7 +6737,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -6998,7 +7001,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -7261,7 +7265,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -7585,7 +7590,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -7909,7 +7915,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -8233,7 +8240,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -8570,7 +8578,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -9112,7 +9121,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -9654,7 +9664,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -10188,7 +10199,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -10722,7 +10734,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -11256,7 +11269,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -11782,7 +11796,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -12288,7 +12303,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -12806,7 +12822,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -13324,7 +13341,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -13842,7 +13860,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -14360,7 +14379,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -14902,7 +14922,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -15444,7 +15465,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -15998,7 +16020,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -16552,7 +16575,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -17094,7 +17118,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -17636,7 +17661,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -18178,7 +18204,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -18720,7 +18747,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -19262,7 +19290,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -19804,7 +19833,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -20344,7 +20374,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -20925,7 +20956,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -21506,7 +21538,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -39929,7 +39962,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -46580,7 +46614,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -47020,7 +47055,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -49070,7 +49106,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -55347,7 +55384,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -55975,7 +56013,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -56406,7 +56445,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -59841,7 +59881,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -60339,7 +60380,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -60877,7 +60919,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -68109,7 +68152,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -69486,7 +69530,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -69671,7 +69716,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -72925,7 +72971,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 }
             ],
@@ -76878,7 +76925,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -79128,7 +79176,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -80373,7 +80422,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {
@@ -80709,7 +80759,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder"
+                        "numberspreserveorder",
+                        "normalizeorder"
                     ]
                 },
                 {

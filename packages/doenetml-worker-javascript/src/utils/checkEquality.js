@@ -100,7 +100,10 @@ export default function checkEquality({
             effectiveExpand = true;
         }
 
-        if (effectiveSimplify === "none") {
+        if (
+            effectiveSimplify === "none" ||
+            effectiveSimplify === "normalizeorder"
+        ) {
             if (allowedErrorInNumbers > 0) {
                 // only if allowing rounding, do we replace constants with floats
                 x = x.constants_to_floats();
