@@ -84,7 +84,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         id,
         validationState,
         submitAnswer,
-        !SVs.forceSmallCheckworkButton,
+        SVs.forceFullCheckworkButton || !SVs.forceSmallCheckworkButton,
     );
 
     if (checkWorkComponent) {

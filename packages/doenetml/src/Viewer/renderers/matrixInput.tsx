@@ -53,7 +53,7 @@ export default React.memo(function MatrixInput(props) {
         id,
         validationState.current,
         submitAnswer,
-        false,
+        SVs.forceFullCheckworkButton,
     );
 
     let matrixInputs = [];

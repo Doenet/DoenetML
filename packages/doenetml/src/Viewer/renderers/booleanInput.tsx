@@ -482,7 +482,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
         id,
         validationState,
         submitAnswer,
-        false,
+        SVs.forceFullCheckworkButton,
     );
 
     let input;
