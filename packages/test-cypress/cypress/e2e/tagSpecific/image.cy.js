@@ -11,8 +11,8 @@ describe("Image Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-  <image name="image1" source="http://mathinsight.org/media/image/image/giant_anteater.jpg" width="300px">
-    <shortDescription>A giant anteater</shortDescription>
+  <image name="image1" source="https://beta.doenet.org/Doenet_Logo_Frontpage.png" width="300px">
+    <shortDescription>The Doenet logo</shortDescription>
   </image>
   `,
                 },
@@ -27,7 +27,7 @@ describe("Image Tag Tests", function () {
         // cy.get(cesc('#image1')).invoke('css', 'height').then((height) => expect(height).eq(undefined))
         cy.get(cesc("#image1"))
             .invoke("attr", "alt")
-            .then((alt) => expect(alt).eq("A giant anteater"));
+            .then((alt) => expect(alt).eq("The Doenet logo"));
     });
 
     it("image in graph", () => {
@@ -36,8 +36,8 @@ describe("Image Tag Tests", function () {
                 {
                     doenetML: `
     <graph >
-      <image source="http://mathinsight.org/media/image/image/giant_anteater.jpg" width="$width1%" aspectRatio="$aspectRatio1" anchor="$anchorCoords1" name="image1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1"/>
-      <image source="http://mathinsight.org/media/image/image/giant_anteater.jpg" name="image2" />
+      <image source="https://beta.doenet.org/Doenet_Logo_Frontpage.png" width="$width1%" aspectRatio="$aspectRatio1" anchor="$anchorCoords1" name="image1" positionFromAnchor="$positionFromAnchor1" draggable="$draggable1"/>
+      <image source="https://beta.doenet.org/Doenet_Logo_Frontpage.png" name="image2" />
     </graph>
     
     <p name="pWidth1">Width 1: $image1.width</p>
@@ -218,7 +218,7 @@ describe("Image Tag Tests", function () {
                 {
                     doenetML: `
     <graph >
-      <image source="http://mathinsight.org/media/image/image/giant_anteater.jpg" width="$width1" aspectRatio="$aspectRatio1" name="image1" />
+      <image source="https://beta.doenet.org/Doenet_Logo_Frontpage.png" width="$width1" aspectRatio="$aspectRatio1" name="image1" />
     </graph>
     
     <p name="pWidth1">Width 1: $image1.width</p>
@@ -338,10 +338,10 @@ describe("Image Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <image name="image"  source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
+    <image name="image"  source="https://beta.doenet.org/Doenet_Logo_Frontpage.png">
         <shortDescription>An image</shortDescription>
         <description>
-            <p>An anteater image.</p>
+            <p>The Doenet logo.</p>
         </description>
     </image>
 
@@ -363,7 +363,7 @@ describe("Image Tag Tests", function () {
         );
         cy.get(`#image-description-content`).should(
             "contain.text",
-            "An anteater image.",
+            "The Doenet logo.",
         );
 
         cy.get("#image-container [data-test='Description Summary']").click();
@@ -375,7 +375,7 @@ describe("Image Tag Tests", function () {
 
         cy.get("#image-container [data-test='Description']").should(
             "contain.text",
-            "An anteater image.",
+            "The Doenet logo.",
         );
 
         cy.get("#image").click();
@@ -397,10 +397,10 @@ describe("Image Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <image name="image" displayMode="inline" source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
+    <image name="image" displayMode="inline" source="https://beta.doenet.org/Doenet_Logo_Frontpage.png">
         <shortDescription>An image</shortDescription>
         <description>
-            <p>An anteater image.</p>
+            <p>The Doenet logo.</p>
         </description>
     </image>
 
@@ -423,14 +423,14 @@ describe("Image Tag Tests", function () {
         );
         cy.get(`#image-description-content`).should(
             "contain.text",
-            "An anteater image.",
+            "The Doenet logo.",
         );
 
         cy.get("#image-container [data-test='Description Button']").click();
 
         cy.get("#image-container [data-test='Description']").should(
             "contain.text",
-            "An anteater image.",
+            "The Doenet logo.",
         );
 
         cy.get("#image").click();
@@ -445,7 +445,7 @@ describe("Image Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <image name="image"  source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
+    <image name="image"  source="https://beta.doenet.org/Doenet_Logo_Frontpage.png">
         <shortDescription>An image</shortDescription>
     </image>
 
@@ -471,7 +471,7 @@ describe("Image Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <image name="image" displayMode="inline" source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
+    <image name="image" displayMode="inline" source="https://beta.doenet.org/Doenet_Logo_Frontpage.png">
         <shortDescription>An image</shortDescription>
     </image>
 

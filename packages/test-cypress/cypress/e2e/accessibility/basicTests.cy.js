@@ -252,10 +252,10 @@ describe("Basic accessibility tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-                    <image name="image1" source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
-                        <shortDescription>A giant anteater</shortDescription>
+                    <image name="image1" source="https://beta.doenet.org/Doenet_Logo_Frontpage.png">
+                        <shortDescription>The Doenet logo</shortDescription>
                     </image>
-                    <image name="image2" source="http://mathinsight.org/media/image/image/giant_anteater.jpg" decorative />
+                    <image name="image2" source="https://beta.doenet.org/Doenet_Logo_Frontpage.png" decorative />
   `,
                 },
                 "*",
@@ -947,10 +947,10 @@ describe("Basic accessibility tests", function () {
                 {
                     doenetML: `
     <figure name="fig1">
-        <image source="http://mathinsight.org/media/image/image/giant_anteater.jpg">
-            <shortDescription>anteater</shortDescription>
+        <image source="https://beta.doenet.org/Doenet_Logo_Frontpage.png">
+            <shortDescription>logo</shortDescription>
         </image>
-        <caption>A giant anteater</caption>
+        <caption>The Doenet logo</caption>
     </figure>`,
                 },
                 "*",
