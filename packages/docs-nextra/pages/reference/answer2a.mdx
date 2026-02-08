@@ -188,11 +188,42 @@ When an ` <answer>{:dn}` has an input field inside it, it will, by default use a
 input field.  To override this default and use the large button, add the  `forceFullCheckWorkButton` attribute.
 
 
-An answer without an input field always uses the large button.
+An answer without an input field uses the large button, by default. (See `forceSmallCheckWorkButton`, below).
 
 
 With the large button, it is also possible to customize the message on the button using the `submitLabel` attribute.
 
+
+
+---
+
+### Example: forceSmallCheckWorkButton
+```doenet-example
+<p>Enter two numbers that add up to 5:
+  <mathInput name="n1" forAnswer="$ans1"><shortDescription>first number</shortDescription></mathInput>
+  <mathInput name="n2" forAnswer="$ans1"><shortDescription>second number</shortDescription></mathInput>
+  <answer name="ans1"><award><when>$n1+$n2=5</when></award></answer>
+</p>
+
+<p>Enter two numbers that multiply to 12:
+  <mathInput name="m1" forAnswer="$ans2"><shortDescription>first number</shortDescription></mathInput>
+  <mathInput name="m2" forAnswer="$ans2"><shortDescription>second number</shortDescription></mathInput>
+  <answer name="ans2" forceSmallCheckWorkButton><award><when>$m1$m2=12</when></award></answer>
+</p>
+
+<p><answer><label>1+1=</label>2</answer></p>
+
+```
+
+
+When an ` <answer>{:dn}` does not have an input field inside it, it will, by default use a full check work button.
+To override this default and use the small button, add the  `forceSmallCheckWorkButton` attribute.
+
+
+An answer an input field always uses the small button, by default. (See `forceFullCheckWorkButton`, above.)
+
+
+If both `forceFullCheckWorkButton` and `forceSmallCheckWorkButton` are supplied, `forceFullCheckWorkButton` takes precedence.
 
 
 ---
