@@ -43,6 +43,7 @@
         "prettier:format": "prettier --write .",
         "publish": "npm run publish -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07",
         "test": "npm run test -ws --if-present -- run",
+        "test:all-no-worker-js": "npm --if-present run test -w packages/codemirror -w packages/debug-hooks -w packages/docs-nextra -w packages/doenetml -w packages/doenetml-iframe -w packages/doenetml-prototype -w packages/doenetml-to-pretext -w packages/doenetml-worker -w packages/doenetml-worker-rust -w packages/lsp -w packages/lsp-tools -w packages/parser -w packages/standalone -w packages/static-assets -w packages/test-cypress -w packages/test-viewer -w packages/ui-components -w packages/utils -w packages/v06-to-v07 -w packages/virtual-keyboard -w packages/vscode-extension -- run",
         "version": "npm version -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07"
     },
     "prettier": {

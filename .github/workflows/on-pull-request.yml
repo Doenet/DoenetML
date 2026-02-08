@@ -55,8 +55,8 @@ jobs:
                       ./packages/*/.wireit/**/*
                       ./package.json
 
-    test:
-        name: Test
+    test-main:
+        name: Test Main
         runs-on: ubuntu-latest
         needs: build
         strategy:
@@ -84,12 +84,48 @@ jobs:
             - name: Build (cached)
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
-                  npm run build
+                  npm run build:all-no-docs
               env:
                   WIREIT_CACHE: "local"
 
             - name: Test
-              run: npm test
+              run: npm run test:all-no-worker-js
+
+    test-worker-js:
+        name: Test Worker JS
+        runs-on: ubuntu-latest
+        needs: build
+        strategy:
+            matrix:
+                node-version: [24.x]
+                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: build-artifacts
+
+            - name: Debug Build Artifacts
+              run: |
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory in parser"
+
+            # with the wireit cache saved, this build step should be fast.
+            - name: Build (cached)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build -w packages/doenetml-worker-javascript
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Test doenetml-worker-javascript
+              run: npm run test -w packages/doenetml-worker-javascript
 
     test-cypress:
         name: Cypress Tests
@@ -120,12 +156,9 @@ jobs:
             - name: Build (cached)
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
-                  npm run build
+                  npm run build --workspace packages/test-cypress
               env:
                   WIREIT_CACHE: "local"
-
-            - name: Build cypress
-              run: npm run build --workspace packages/test-cypress
 
             - name: Cypress run
               uses: cypress-io/github-action@v6
@@ -225,7 +258,7 @@ jobs:
     dev-release:
         name: Dev Release
         runs-on: ubuntu-latest
-        needs: [test, test-cypress]
+        needs: [test-main, test-worker-js, test-cypress]
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
         permissions:
             id-token: write
