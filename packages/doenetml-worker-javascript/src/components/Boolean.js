@@ -4,6 +4,7 @@ import {
     buildParsedExpression,
     returnChildrenByCodeStateVariableDefinitions,
 } from "../utils/booleanLogic";
+import { returnSimplifyExpandOnCompareWarning } from "../utils/answer";
 
 export default class BooleanComponent extends InlineComponent {
     static componentType = "boolean";
@@ -122,6 +123,11 @@ export default class BooleanComponent extends InlineComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnSimplifyExpandOnCompareWarning(),
+        );
 
         stateVariableDefinitions.inUnorderedList = {
             defaultValue: false,
@@ -263,6 +269,11 @@ export default class BooleanComponent extends InlineComponent {
                 otherChildrenByCode: {
                     dependencyType: "stateVariable",
                     variableName: "otherChildrenByCode",
+                },
+                // include solely to trigger warning
+                simplifyExpandOnCompareWarning: {
+                    dependencyType: "stateVariable",
+                    variableName: "simplifyExpandOnCompareWarning",
                 },
             }),
             definition({ dependencyValues, usedDefault }) {

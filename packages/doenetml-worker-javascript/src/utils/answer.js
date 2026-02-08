@@ -578,3 +578,58 @@ export function returnStandardAnswerStateVariableDefinition() {
 
     return stateVariableDefinitions;
 }
+
+export function returnSimplifyExpandOnCompareWarning() {
+    const stateVariableDefinitions = {};
+
+    stateVariableDefinitions.simplifyExpandOnCompareWarning = {
+        returnDependencies: () => ({
+            expandOnCompare: {
+                dependencyType: "stateVariable",
+                variableName: "expandOnCompare",
+            },
+            simplifyOnCompare: {
+                dependencyType: "stateVariable",
+                variableName: "simplifyOnCompare",
+            },
+            symbolicEquality: {
+                dependencyType: "stateVariable",
+                variableName: "symbolicEquality",
+            },
+        }),
+        definition({ dependencyValues, usedDefault }) {
+            const sendWarnings = [];
+            if (!dependencyValues.symbolicEquality) {
+                const attributesSpecified = [];
+
+                if (!usedDefault.expandOnCompare) {
+                    attributesSpecified.push("expandOnCompare");
+                }
+
+                if (!usedDefault.simplifyOnCompare) {
+                    attributesSpecified.push("simplifyOnCompare");
+                }
+
+                if (attributesSpecified.length > 0) {
+                    sendWarnings.push({
+                        message: `The ${attributesSpecified.join(
+                            " and ",
+                        )} attribute${
+                            attributesSpecified.length > 1 ? "s" : ""
+                        } will have no effect without symbolicEquality set.`,
+                        level: 1,
+                    });
+                }
+            }
+
+            return {
+                sendWarnings,
+                setValue: {
+                    simplifyExpandOnCompareWarning: null,
+                },
+            };
+        },
+    };
+
+    return stateVariableDefinitions;
+}

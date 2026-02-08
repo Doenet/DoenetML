@@ -2093,6 +2093,21 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.triggerSimplifyExpandOnCompareWarning = {
+            // set for renderer so that state variable is always evaluated and the warning will be issued
+            forRenderer: true,
+            returnDependencies: () => ({
+                awardChildren: {
+                    dependencyType: "child",
+                    childGroups: ["awards"],
+                    variableNames: ["simplifyExpandOnCompareWarning"],
+                },
+            }),
+            definition: () => ({
+                setValue: { triggerSimplifyExpandOnCompareWarning: null },
+            }),
+        };
+
         return stateVariableDefinitions;
     }
 
