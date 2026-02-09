@@ -74,6 +74,16 @@ export class RunThroughCore {
                 } catch (e) {
                     lastError = e instanceof Error ? e : new Error(String(e));
 
+                    // Clean up browser session if it was created but later steps failed
+                    if (this.browser) {
+                        try {
+                            await this.browser.deleteSession();
+                        } catch (cleanupError) {
+                            // Ignore cleanup errors, we're already handling a failure
+                        }
+                        this.browser = undefined;
+                    }
+
                     // If this is not the last attempt, wait before retrying
                     if (attempt < maxRetries) {
                         const delay = initialDelay * Math.pow(2, attempt);
@@ -89,8 +99,6 @@ export class RunThroughCore {
                     }
                 }
             }
-        } catch (e) {
-            throw e;
         } finally {
             this.initRunning = false;
             this.initRunningPromiseResolve();
