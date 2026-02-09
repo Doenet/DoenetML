@@ -119,6 +119,7 @@ numerical checker), combine `symbolicEquality` with the `simplifyOnCompare` and
   <choiceInput name="simpOnComp" inline preselectChoice="1">
     <choice>none</choice>
     <choice>numbersPreserveOrder</choice>
+    <choice>normalizeOrder</choice>
     <choice>numbers</choice>
     <choice>full</choice>
   </choiceInput>
@@ -137,16 +138,17 @@ Specifying the `symbolicEquality` attribute switches to a symbolic answer-checke
 demands exact syntatical equality.  The symbolic equality can be relaxed with the `simplifyOnCompare` attribute.
 
 
-The `simplifyOnCompare` attribute has four options:
-<ol>
+The `simplifyOnCompare` attribute has five options:
 * `simplifyOnCompare="none"`: the default value of demanding exact equality.
 * `simplifyOnCompare="full"` (or simply `simplifyOnCompare` by itself): apply currently available simplification routines before checking.  Does not include expanding factored expressions.
 * `simplifyOnCompare="numbers"`: simplify numerical expressions like `1+2` but not algebraic expressions.  Permute terms and factors into a canonical order before checking equality.
 * `simplifyOnCompare="numbersPreserveOrder"`: simplify numbers but without permuting terms or factors.
-</ol>
+* `simplifyOnCompare="normalizeOrder"`: permute terms and factors to a standard order but perform no other simplifications.
 
 
 To include expansion of factored expressions, you can add the `expandOnCompare` attribute.
+
+Note: if `symbolicEquality` is not specified, `simplifyOnCompare` has no effect.
 
 
 
@@ -180,6 +182,9 @@ equality. Specifying the `symbolicEquality` attribute switches to a symbolic
 answer-checker that demands exact syntatical equality. The symbolic equality can be 
 relaxed with the `simplifyOnCompare` attribute. To expand factor expressions prior to 
 comparison, you should also include the `expandOnCompare` attribute.
+
+
+Note: if `symbolicEquality` is not specified, `expandOnCompare` has no effect.
 
 
 ---
