@@ -33,30 +33,62 @@ export class RunThroughCore {
         }
         this.initRunning = true;
         try {
-            // Initialize the browser
-            this.browser = await remote({
-                capabilities: {
-                    browserName: "firefox",
-                    "goog:chromeOptions": {
-                        args: ["headless", "disable-gpu"],
-                    },
-                    "moz:firefoxOptions": {
-                        args: ["-headless"],
-                    },
-                },
-                logLevel: "error",
-            });
-            // Set up logging of console.log messages from scripts the browser is executing
-            await this.browser.sessionSubscribe({ events: ["log.entryAdded"] });
-            this.browser.on("log.entryAdded", (entry) => this.onLog(entry));
+            // Initialize the browser with retry logic for transient network failures
+            const maxRetries = 3;
+            const initialDelay = 1000; // 1 second
+            let lastError: Error | undefined;
 
-            // Load in the web worker script
-            await this.browser.execute((source) => {
-                const scriptElement = document.createElement("script");
-                scriptElement.type = "module";
-                scriptElement.textContent = source;
-                document.head.appendChild(scriptElement);
-            }, convertScript);
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                try {
+                    this.browser = await remote({
+                        capabilities: {
+                            browserName: "firefox",
+                            "goog:chromeOptions": {
+                                args: ["headless", "disable-gpu"],
+                            },
+                            "moz:firefoxOptions": {
+                                args: ["-headless"],
+                            },
+                        },
+                        logLevel: "error",
+                    });
+
+                    // Set up logging of console.log messages from scripts the browser is executing
+                    await this.browser.sessionSubscribe({
+                        events: ["log.entryAdded"],
+                    });
+                    this.browser.on("log.entryAdded", (entry) =>
+                        this.onLog(entry),
+                    );
+
+                    // Load in the web worker script
+                    await this.browser.execute((source) => {
+                        const scriptElement = document.createElement("script");
+                        scriptElement.type = "module";
+                        scriptElement.textContent = source;
+                        document.head.appendChild(scriptElement);
+                    }, convertScript);
+
+                    // Success - exit retry loop
+                    break;
+                } catch (e) {
+                    lastError = e instanceof Error ? e : new Error(String(e));
+
+                    // If this is not the last attempt, wait before retrying
+                    if (attempt < maxRetries) {
+                        const delay = initialDelay * Math.pow(2, attempt);
+                        console.warn(
+                            `Browser initialization failed (attempt ${attempt + 1}/${maxRetries + 1}): ${lastError.message}. Retrying in ${delay}ms...`,
+                        );
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, delay),
+                        );
+                    } else {
+                        // Last attempt failed - throw the error
+                        throw lastError;
+                    }
+                }
+            }
         } catch (e) {
             throw e;
         } finally {
