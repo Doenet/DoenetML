@@ -691,4 +691,74 @@ describe("Warning Tests", async () => {
         expect(errorWarnings.warnings[0].position.end.line).eq(3);
         expect(errorWarnings.warnings[0].position.end.column).eq(24);
     });
+
+    it("Warn if simplifyOnCompare or expandOnCompare are specified with symbolicEquality set to false", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+    <answer simplifyOnCompare><label>Enter x:</label>x</answer>
+    <answer expandOnCompare><label>Enter x:</label>x</answer>
+    <answer expandOnCompare simplifyOnCompare><label>Enter x:</label>x</answer>
+
+    <answer symbolicEquality simplifyOnCompare><label>Enter x:</label>x</answer>
+    <answer symbolicEquality expandOnCompare><label>Enter x:</label>x</answer>
+    <answer symbolicEquality expandOnCompare simplifyOnCompare><label>Enter x:</label>x</answer>
+
+    <answer><award simplifyOnCompare>x</award><label>Enter x:</label></answer>
+    <answer><award expandOnCompare>x</award><label>Enter x:</label></answer>
+    <answer><award expandOnCompare simplifyOnCompare>x</award><label>Enter x:</label></answer>
+
+    <answer><award symbolicEquality simplifyOnCompare>x</award><label>Enter x:</label></answer>
+    <answer><award symbolicEquality expandOnCompare>x</award><label>Enter x:</label></answer>
+    <answer><award symbolicEquality expandOnCompare simplifyOnCompare>x</award><label>Enter x:</label></answer>
+
+    <answer simplifyOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+    <answer expandOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+    <answer expandOnCompare simplifyOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+
+    <answer symbolicEquality simplifyOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+    <answer symbolicEquality expandOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+    <answer symbolicEquality expandOnCompare simplifyOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+
+    <boolean simplifyOnCompare>true</boolean>
+    <boolean expandOnCompare>true</boolean>
+    <boolean expandOnCompare simplifyOnCompare>true</boolean>
+
+    <boolean symbolicEquality simplifyOnCompare>true</boolean>
+    <boolean symbolicEquality expandOnCompare>true</boolean>
+    <boolean symbolicEquality expandOnCompare simplifyOnCompare>true</boolean>
+
+
+    `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(12);
+
+        const expectedErrorByLine: Record<string, string> = {
+            2: "The simplifyOnCompare attribute",
+            3: "The expandOnCompare attribute",
+            4: "The expandOnCompare and simplifyOnCompare attributes",
+            10: "The simplifyOnCompare attribute",
+            11: "The expandOnCompare attribute",
+            12: "The expandOnCompare and simplifyOnCompare attributes",
+            18: "The simplifyOnCompare attribute",
+            19: "The expandOnCompare attribute",
+            20: "The expandOnCompare and simplifyOnCompare attributes",
+            26: "The simplifyOnCompare attribute",
+            27: "The expandOnCompare attribute",
+            28: "The expandOnCompare and simplifyOnCompare attributes",
+        };
+
+        for (const lineNum in expectedErrorByLine) {
+            const expectedError = expectedErrorByLine[lineNum];
+            const warning = errorWarnings.warnings.find(
+                (warning) => warning.position.start.line === parseInt(lineNum),
+            );
+            expect(warning!.message).toContain(
+                `${expectedError} will have no effect without symbolicEquality set`,
+            );
+        }
+    });
 });

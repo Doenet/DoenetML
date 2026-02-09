@@ -7,6 +7,7 @@ import {
 } from "../utils/booleanLogic";
 import { unwrapSource } from "../utils/dast/convertNormalizedDast";
 import { comparePathsIgnorePosition } from "../utils/dast/path";
+import { returnSimplifyExpandOnCompareWarning } from "../utils/answer";
 
 export default class Award extends BaseComponent {
     static componentType = "award";
@@ -322,6 +323,11 @@ export default class Award extends BaseComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnSimplifyExpandOnCompareWarning(),
+        );
 
         stateVariableDefinitions.parsedExpression = {
             additionalStateVariablesDefined: [
