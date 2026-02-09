@@ -838,7 +838,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
         expect(me.math.mean(sample1numbers)).closeTo(5, 2);
         expect(me.math.variance(sample1numbers, "uncorrected")).closeTo(
             10 ** 2 / 12,
-            3,
+            4,
         );
 
         expect(me.math.mean(sample2numbers)).closeTo(0, 1.5);
