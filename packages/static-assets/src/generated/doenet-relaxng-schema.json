@@ -141,7 +141,6 @@
         "parabola",
         "curve",
         "bezierControls",
-        "controlVectors",
         "vector",
         "angle",
         "answer",
@@ -566,9 +565,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -1153,9 +1149,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -1857,9 +1850,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -2639,9 +2629,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -3378,9 +3365,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -4028,9 +4012,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -4853,9 +4834,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -5767,9 +5745,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -6677,9 +6652,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -8232,9 +8204,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -9001,9 +8970,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -9699,9 +9665,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -10340,9 +10303,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -10979,9 +10939,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -12036,9 +11993,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -12608,9 +12562,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -14110,9 +14061,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -14622,9 +14570,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -15149,9 +15094,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -15745,9 +15687,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -16494,9 +16433,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -17237,9 +17173,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -17984,9 +17917,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -18729,9 +18659,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -19468,9 +19395,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -20189,9 +20113,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -20905,9 +20826,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -21630,9 +21548,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -22353,9 +22268,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -23074,9 +22986,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -23811,9 +23720,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -24558,9 +24464,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -25312,9 +25215,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -26073,9 +25973,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -26825,9 +26722,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -27570,9 +27464,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -28319,9 +28210,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -29064,9 +28952,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -29813,9 +29698,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -30558,9 +30440,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -31313,9 +31192,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -32077,9 +31953,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -32901,9 +32774,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -33723,9 +33593,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -34420,9 +34287,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -35017,9 +34881,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -35578,9 +35439,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -36143,9 +36001,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -36704,9 +36559,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -37269,9 +37121,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -37830,9 +37679,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -38395,9 +38241,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -38956,9 +38799,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -39521,9 +39361,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -40082,9 +39919,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -41946,9 +41780,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -43000,9 +42831,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -44058,9 +43886,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -45112,9 +44937,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -46191,9 +46013,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -47252,9 +47071,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -48306,9 +48122,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -49364,9 +49177,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -50418,9 +50228,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -51476,9 +51283,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -52530,9 +52334,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -53588,9 +53389,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -54642,9 +54440,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -55700,9 +55495,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -56756,9 +56548,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -57810,9 +57599,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -58888,9 +58674,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -59943,9 +59726,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -60991,9 +60771,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -62251,9 +62028,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -63829,9 +63603,6 @@
                     "ref": "coords"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -64548,9 +64319,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -65253,9 +65021,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -66738,9 +66503,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -67326,9 +67088,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -69176,9 +68935,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -70938,9 +70694,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -71850,9 +71603,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -72703,9 +72453,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -73514,9 +73261,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -74353,9 +74097,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -75567,9 +75308,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -76290,9 +76028,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -77204,9 +76939,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -78856,9 +78588,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -79424,9 +79153,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -80218,9 +79944,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -80874,9 +80597,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -81322,9 +81042,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -81799,9 +81516,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -82466,9 +82180,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -83082,9 +82793,6 @@
                 },
                 {
                     "ref": "coords"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -83808,9 +83516,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -84493,9 +84198,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -88052,9 +87754,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -88736,9 +88435,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -89423,9 +89119,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -90442,9 +90135,6 @@
                     "ref": "coords"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -90942,9 +90632,6 @@
                 },
                 {
                     "ref": "coords"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -91683,9 +91370,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -92350,9 +92034,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -93150,9 +92831,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -93787,9 +93465,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -94405,9 +94080,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -95634,9 +95306,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -96715,9 +96384,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -97435,9 +97101,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -97999,9 +97662,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -98633,9 +98293,6 @@
                 },
                 {
                     "ref": "curve"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -99485,9 +99142,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -100787,9 +100441,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -101654,9 +101305,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -103265,9 +102913,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -105030,9 +104675,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -105780,9 +105422,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -107061,9 +106700,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -107903,9 +107539,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -109182,9 +108815,6 @@
                     "ref": "curve"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -109567,9 +109197,6 @@
                 },
                 {
                     "ref": "curve"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -110252,9 +109879,6 @@
                 },
                 {
                     "ref": "curve"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -111049,9 +110673,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -111690,9 +111311,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -112951,9 +112569,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -115377,9 +114992,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -117313,9 +116925,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -119288,9 +118897,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -120094,9 +119700,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -120914,9 +120517,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -122868,9 +122468,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -123654,9 +123251,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -124455,9 +124049,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -125095,9 +124686,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -125661,9 +125249,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -126338,9 +125923,6 @@
                 },
                 {
                     "ref": "coords"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -127247,9 +126829,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -128063,9 +127642,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -128602,9 +128178,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -129440,9 +129013,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -130375,9 +129945,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -132237,9 +131804,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -132943,9 +132507,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -134176,9 +133737,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -134795,9 +134353,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -135807,9 +135362,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -136422,9 +135974,6 @@
                 },
                 {
                     "ref": "line"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -137122,9 +136671,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -137705,9 +137251,6 @@
                 },
                 {
                     "ref": "curve"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -138880,9 +138423,6 @@
                     "ref": "bezierControls"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -139496,9 +139036,6 @@
                     "ref": "coords"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -139956,9 +139493,6 @@
                     "ref": "line"
                 },
                 {
-                    "ref": "controlVectors"
-                },
-                {
                     "ref": "vector"
                 },
                 {
@@ -140282,9 +139816,6 @@
                 },
                 {
                     "ref": "coords"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
