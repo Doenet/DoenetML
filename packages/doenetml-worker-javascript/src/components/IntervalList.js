@@ -16,6 +16,8 @@ export default class IntervalList extends CompositeComponent {
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
+    static allowInSchemaAsComponent = ["interval"];
+
     // when another component has an attribute that is a intervalList,
     // use the intervals state variable to populate that attribute
     static stateVariableToBeShadowed = "intervals";
