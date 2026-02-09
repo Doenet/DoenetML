@@ -20,6 +20,8 @@ export default class MathList extends CompositeComponent {
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
+    static allowInSchemaAsComponent = ["math"];
+
     // when another component has an attribute that is a mathList,
     // use the maths state variable to populate that attribute
     static stateVariableToBeShadowed = "maths";

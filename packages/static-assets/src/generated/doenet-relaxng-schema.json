@@ -529,10 +529,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -551,6 +566,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -707,6 +725,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -1104,7 +1131,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -1114,6 +1153,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -1195,6 +1237,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -1769,10 +1820,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -1791,6 +1857,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -1947,6 +2016,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -3261,10 +3339,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -3283,6 +3376,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -3439,6 +3535,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -3886,10 +3991,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -3908,6 +4028,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -4064,6 +4187,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -7146,10 +7278,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -7225,6 +7372,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "ndash"
@@ -8043,10 +8193,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -8065,6 +8230,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -8221,6 +8389,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "ol"
@@ -9483,10 +9660,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -9505,6 +9697,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -9661,6 +9856,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -10097,10 +10301,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -10119,6 +10338,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -10275,6 +10497,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -10711,10 +10942,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -10733,6 +10979,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -10889,6 +11138,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -11739,10 +11997,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -11761,6 +12034,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -11917,6 +12193,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -12301,7 +12586,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -12311,6 +12608,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -12394,6 +12694,15 @@
                     "ref": "latex"
                 },
                 {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                },
+                {
                     "ref": "xLabel"
                 },
                 {
@@ -12422,6 +12731,9 @@
                 },
                 {
                     "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "when"
@@ -12745,6 +13057,9 @@
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "booleanInput"
                 },
                 {
@@ -13052,6 +13367,9 @@
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "booleanInput"
                 },
                 {
@@ -13357,6 +13675,9 @@
                 },
                 {
                     "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "booleanInput"
@@ -13765,7 +14086,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -13775,6 +14108,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -13856,6 +14192,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -14255,7 +14600,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -14265,6 +14622,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -14346,6 +14706,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -14758,7 +15127,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -14768,6 +15149,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -14849,6 +15233,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -15330,7 +15723,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -15340,6 +15745,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -15421,6 +15829,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -16053,7 +16470,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -16063,6 +16492,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -16144,6 +16576,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -16774,7 +17215,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -16784,6 +17237,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -16865,6 +17321,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -17495,7 +17960,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -17505,6 +17982,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -17586,6 +18066,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -18216,7 +18705,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -18226,6 +18727,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -18307,6 +18811,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -18931,7 +19444,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -18941,6 +19466,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -19022,6 +19550,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -19628,7 +20165,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -19638,6 +20187,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -19719,6 +20271,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -20322,7 +20883,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -20332,6 +20905,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -20413,6 +20989,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -21021,7 +21606,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -21031,6 +21628,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -21112,6 +21712,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -21720,7 +22329,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -21730,6 +22351,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -21811,6 +22435,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -22419,7 +23052,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -22429,6 +23074,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -22510,6 +23158,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -23132,7 +23789,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -23142,6 +23811,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -23223,6 +23895,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -23855,7 +24536,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -23865,6 +24558,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -23946,6 +24642,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -24585,7 +25290,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -24595,6 +25312,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -24676,6 +25396,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -25320,7 +26049,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -25330,6 +26071,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -25411,6 +26155,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -26048,7 +26801,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -26058,6 +26823,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -26139,6 +26907,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -26771,7 +27548,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -26781,6 +27570,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -26862,6 +27654,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -27494,7 +28295,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -27504,6 +28317,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -27585,6 +28401,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -28217,7 +29042,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -28227,6 +29064,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -28308,6 +29148,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -28940,7 +29789,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -28950,6 +29811,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -29031,6 +29895,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -29663,7 +30536,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -29673,6 +30558,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -29754,6 +30642,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -30394,7 +31291,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -30404,6 +31313,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -30485,6 +31397,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -31134,7 +32055,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -31144,6 +32077,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -31225,6 +32161,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "xLabel"
@@ -31932,7 +32877,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -31942,6 +32899,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -32023,6 +32983,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "xLabel"
@@ -32730,7 +33699,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -32740,6 +33721,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -32821,6 +33805,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "xLabel"
@@ -33403,7 +34396,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -33413,6 +34418,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -33494,6 +34502,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": false,
@@ -33961,10 +34978,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -33983,6 +35015,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -34139,6 +35174,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -34497,10 +35541,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -34519,6 +35578,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -34675,6 +35737,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -35033,10 +36104,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -35055,6 +36141,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -35211,6 +36300,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -35569,10 +36667,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -35591,6 +36704,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -35747,6 +36863,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -36105,10 +37230,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -36127,6 +37267,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -36283,6 +37426,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -36641,10 +37793,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -36663,6 +37830,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -36819,6 +37989,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -37177,10 +38356,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -37199,6 +38393,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -37355,6 +38552,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -37713,10 +38919,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -37735,6 +38956,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -37891,6 +39115,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -38249,10 +39482,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -38271,6 +39519,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -38427,6 +39678,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -38785,10 +40045,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -38807,6 +40082,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -38963,6 +40241,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -62530,10 +63817,19 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "point"
                 },
                 {
                     "ref": "coords"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -62564,6 +63860,15 @@
                 },
                 {
                     "ref": "matrix"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "constrainToGrid"
@@ -62600,6 +63905,12 @@
                 },
                 {
                     "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "number"
@@ -63213,7 +64524,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -63223,6 +64546,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -63304,6 +64630,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -63896,7 +65231,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -63906,6 +65253,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -63981,6 +65331,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -65355,7 +66714,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -65365,6 +66736,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -65446,6 +66820,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -65924,7 +67307,16 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -65934,6 +67326,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -66015,6 +67410,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -68337,10 +69741,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -68416,6 +69835,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "ndash"
@@ -68835,10 +70257,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -68914,6 +70351,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -74088,10 +75528,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -74110,6 +75565,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -74266,6 +75724,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "description"
@@ -74786,10 +76253,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -74808,6 +76290,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -74964,6 +76449,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "description"
@@ -76285,10 +77779,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -76364,6 +77873,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "ndash"
@@ -76801,10 +78313,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -76880,6 +78407,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -77287,10 +78817,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -77309,6 +78854,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -77465,6 +79013,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "ol"
@@ -77845,7 +79402,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -77855,6 +79424,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -77938,6 +79510,15 @@
                     "ref": "latex"
                 },
                 {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                },
+                {
                     "ref": "xLabel"
                 },
                 {
@@ -77966,6 +79547,9 @@
                 },
                 {
                     "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "when"
@@ -78216,6 +79800,9 @@
                 },
                 {
                     "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "booleanInput"
@@ -78607,7 +80194,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -78617,6 +80216,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -78698,6 +80300,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -79239,7 +80850,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -79249,6 +80872,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -79330,6 +80956,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -79665,7 +81300,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -79675,6 +81322,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -79756,6 +81406,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -80019,7 +81678,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -80082,6 +81753,9 @@
                     "ref": "latex"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -80127,6 +81801,9 @@
                     "ref": "line"
                 },
                 {
+                    "ref": "controlVectors"
+                },
+                {
                     "ref": "vector"
                 },
                 {
@@ -80149,6 +81826,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -81389,10 +83072,19 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "point"
                 },
                 {
                     "ref": "coords"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -81423,6 +83115,15 @@
                 },
                 {
                     "ref": "matrix"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "constrainToGrid"
@@ -81459,6 +83160,12 @@
                 },
                 {
                     "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "number"
@@ -82077,7 +83784,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -82087,6 +83806,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -82168,6 +83890,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -82740,7 +84471,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -82750,6 +84493,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -82831,6 +84577,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -86273,7 +88028,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -86283,6 +88050,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -86364,6 +88134,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -86935,7 +88714,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -86945,6 +88736,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -87026,6 +88820,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -87598,7 +89401,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -87608,6 +89423,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -87683,6 +89501,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -88234,7 +90061,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -88325,6 +90164,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -88585,7 +90433,16 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "coords"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -88613,6 +90470,12 @@
                 },
                 {
                     "ref": "matrix"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "topic"
@@ -88664,6 +90527,12 @@
                 },
                 {
                     "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -88724,6 +90593,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -89060,10 +90932,19 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "point"
                 },
                 {
                     "ref": "coords"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -89096,6 +90977,15 @@
                     "ref": "matrix"
                 },
                 {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                },
+                {
                     "ref": "topic"
                 },
                 {
@@ -89106,6 +90996,12 @@
                 },
                 {
                     "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "number"
@@ -89664,7 +91560,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -89727,6 +91635,9 @@
                     "ref": "latex"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -89772,6 +91683,9 @@
                     "ref": "line"
                 },
                 {
+                    "ref": "controlVectors"
+                },
+                {
                     "ref": "vector"
                 },
                 {
@@ -89794,6 +91708,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -90408,7 +92328,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -90418,6 +92350,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -90498,13 +92433,13 @@
                     "ref": "latex"
                 },
                 {
-                    "ref": "mathList"
+                    "ref": "pointList"
                 },
                 {
-                    "ref": "tupleList"
+                    "ref": "intervalList"
                 },
                 {
-                    "ref": "numberList"
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "not"
@@ -90531,6 +92466,9 @@
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "when"
                 },
                 {
@@ -90538,12 +92476,6 @@
                 },
                 {
                     "ref": "matchesPattern"
-                },
-                {
-                    "ref": "textList"
-                },
-                {
-                    "ref": "booleanList"
                 }
             ],
             "textChildrenAllowed": false,
@@ -91194,7 +93126,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -91204,6 +93148,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -91287,6 +93234,15 @@
                     "ref": "latex"
                 },
                 {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                },
+                {
                     "ref": "xLabel"
                 },
                 {
@@ -91315,6 +93271,9 @@
                 },
                 {
                     "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "hasSameFactoring"
@@ -91804,7 +93763,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -91814,6 +93785,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -91897,6 +93871,15 @@
                     "ref": "latex"
                 },
                 {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                },
+                {
                     "ref": "xLabel"
                 },
                 {
@@ -91925,6 +93908,9 @@
                 },
                 {
                     "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "when"
@@ -92397,7 +94383,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -92407,6 +94405,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -92488,6 +94489,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -93015,10 +95025,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -93091,6 +95116,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -93447,6 +95475,9 @@
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "booleanInput"
                 },
                 {
@@ -93579,7 +95610,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -93589,6 +95632,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -93670,6 +95716,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -95257,7 +97312,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -95320,6 +97387,9 @@
                     "ref": "latex"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -95365,6 +97435,9 @@
                     "ref": "line"
                 },
                 {
+                    "ref": "controlVectors"
+                },
+                {
                     "ref": "vector"
                 },
                 {
@@ -95387,6 +97460,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "xLabel"
@@ -95417,6 +97496,9 @@
                 },
                 {
                     "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "when"
@@ -95796,7 +97878,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -95859,6 +97953,9 @@
                     "ref": "latex"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "m"
                 },
                 {
@@ -95904,6 +98001,9 @@
                     "ref": "line"
                 },
                 {
+                    "ref": "controlVectors"
+                },
+                {
                     "ref": "vector"
                 },
                 {
@@ -95926,6 +98026,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "xLabel"
@@ -95956,6 +98062,9 @@
                 },
                 {
                     "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "when"
@@ -96478,6 +98587,12 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "collect"
                 },
                 {
@@ -96518,6 +98633,9 @@
                 },
                 {
                     "ref": "curve"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -96610,6 +98728,15 @@
                     "ref": "stickyGroup"
                 },
                 {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                },
+                {
                     "ref": "image"
                 },
                 {
@@ -96664,7 +98791,16 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "when"
@@ -97327,7 +99463,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -97337,6 +99485,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -97418,6 +99569,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "xLabel"
@@ -98603,7 +100763,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -98613,6 +100785,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -98694,6 +100869,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -100232,7 +102416,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -100295,6 +102491,9 @@
                     "ref": "latex"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "xLabel"
                 },
                 {
@@ -100341,6 +102540,9 @@
                 },
                 {
                     "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "when"
@@ -101041,7 +103243,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -101051,6 +103265,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -101132,6 +103349,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "title"
@@ -101362,9 +103588,6 @@
                     "ref": "document"
                 },
                 {
-                    "ref": "textList"
-                },
-                {
                     "ref": "p"
                 },
                 {
@@ -101372,15 +103595,6 @@
                 },
                 {
                     "ref": "booleanList"
-                },
-                {
-                    "ref": "mathList"
-                },
-                {
-                    "ref": "tupleList"
-                },
-                {
-                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -101420,9 +103634,6 @@
                 },
                 {
                     "ref": "bezierControls"
-                },
-                {
-                    "ref": "controlVectors"
                 },
                 {
                     "ref": "answer"
@@ -101600,15 +103811,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "pointList"
-                },
-                {
-                    "ref": "intervalList"
-                },
-                {
-                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -102789,10 +104991,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -102811,6 +105028,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -102967,6 +105187,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "description"
@@ -103514,10 +105743,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -103536,6 +105780,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -103692,6 +105939,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "description"
@@ -104117,10 +106373,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -104196,6 +106467,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
                 }
             ],
             "textChildrenAllowed": false,
@@ -106860,6 +109134,12 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "collect"
                 },
                 {
@@ -106900,6 +109180,9 @@
                 },
                 {
                     "ref": "curve"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -106990,6 +109273,15 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": false,
@@ -107229,6 +109521,12 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "collect"
                 },
                 {
@@ -107269,6 +109567,9 @@
                 },
                 {
                     "ref": "curve"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -107359,6 +109660,15 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": false,
@@ -107896,6 +110206,12 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "collect"
                 },
                 {
@@ -107936,6 +110252,9 @@
                 },
                 {
                     "ref": "curve"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -108026,6 +110345,15 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": false,
@@ -109325,10 +111653,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -109347,6 +111690,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -109503,6 +111849,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -115529,10 +117884,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -115608,6 +117978,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "ndash"
@@ -116084,10 +118457,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -116163,6 +118551,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "ndash"
@@ -122665,10 +125056,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -122687,6 +125093,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -122843,6 +125252,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -123206,10 +125624,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -123228,6 +125661,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -123384,6 +125820,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "description"
@@ -123883,10 +126328,19 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "point"
                 },
                 {
                     "ref": "coords"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -123917,6 +126371,15 @@
                 },
                 {
                     "ref": "matrix"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "constrainToGrid"
@@ -123953,6 +126416,12 @@
                 },
                 {
                     "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "number"
@@ -126111,7 +128580,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -126121,6 +128602,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -126202,6 +128686,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -126925,7 +129418,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -126935,6 +129440,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -127016,6 +129524,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -130404,7 +132921,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -130414,6 +132943,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -130495,6 +133027,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": false,
@@ -131596,10 +134137,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "collect"
@@ -131618,6 +134174,9 @@
                 },
                 {
                     "ref": "bezierControls"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -131774,6 +134333,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -132205,7 +134773,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -132215,6 +134795,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -132296,6 +134879,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -133191,7 +135783,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -133201,6 +135805,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -133282,6 +135889,15 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": false,
@@ -133628,10 +136244,25 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "boolean"
                 },
                 {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "coords"
@@ -133707,6 +136338,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
                 },
                 {
                     "ref": "ndash"
@@ -133790,6 +136424,9 @@
                     "ref": "line"
                 },
                 {
+                    "ref": "controlVectors"
+                },
+                {
                     "ref": "vector"
                 },
                 {
@@ -133809,6 +136446,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "md"
@@ -135016,6 +137659,12 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "collect"
                 },
                 {
@@ -135056,6 +137705,9 @@
                 },
                 {
                     "ref": "curve"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -135146,6 +137798,15 @@
                 },
                 {
                     "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": false,
@@ -136823,10 +139484,19 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "point"
                 },
                 {
                     "ref": "coords"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -136857,6 +139527,15 @@
                 },
                 {
                     "ref": "matrix"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "topic"
@@ -136905,6 +139584,12 @@
                 },
                 {
                     "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "line"
@@ -137121,6 +139806,9 @@
                     "ref": "interval"
                 },
                 {
+                    "ref": "intervalList"
+                },
+                {
                     "ref": "rightHandSide"
                 },
                 {
@@ -137244,7 +139932,19 @@
                     "ref": "text"
                 },
                 {
+                    "ref": "textList"
+                },
+                {
                     "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -137254,6 +139954,9 @@
                 },
                 {
                     "ref": "line"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -137332,6 +140035,12 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "vectorList"
                 }
             ],
             "textChildrenAllowed": true,
@@ -137566,7 +140275,16 @@
                     "ref": "math"
                 },
                 {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
                     "ref": "coords"
+                },
+                {
+                    "ref": "controlVectors"
                 },
                 {
                     "ref": "vector"
@@ -137594,6 +140312,12 @@
                 },
                 {
                     "ref": "matrix"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
                 },
                 {
                     "ref": "topic"
@@ -137645,6 +140369,12 @@
                 },
                 {
                     "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "numberList"
                 },
                 {
                     "ref": "point"
@@ -137705,6 +140435,9 @@
                 },
                 {
                     "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
                 }
             ],
             "textChildrenAllowed": true,

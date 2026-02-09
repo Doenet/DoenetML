@@ -19,6 +19,8 @@ export default class NumberList extends CompositeComponent {
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
+    static allowInSchemaAsComponent = ["number"];
+
     // when another component has an attribute that is a numberList,
     // use the numbers state variable to populate that attribute
     static stateVariableToBeShadowed = "numbers";

@@ -12,6 +12,8 @@ export default class BooleanList extends CompositeComponent {
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
+    static allowInSchemaAsComponent = ["boolean"];
+
     // when another component has a attribute that is a booleanList,
     // use the booleans state variable to populate that attribute
     static stateVariableToBeShadowed = "booleans";

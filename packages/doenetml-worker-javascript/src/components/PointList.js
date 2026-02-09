@@ -23,6 +23,8 @@ export default class PointList extends CompositeComponent {
     static stateVariableToBeShadowed = "points";
     static primaryStateVariableForDefinition = "pointsShadow";
 
+    static allowInSchemaAsComponent = ["point"];
+
     // even if inside a component that turned on descendantCompositesMustHaveAReplacement
     // don't required composite replacements
     static descendantCompositesMustHaveAReplacement = false;

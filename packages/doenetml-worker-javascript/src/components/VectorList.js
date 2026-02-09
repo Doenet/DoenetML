@@ -18,6 +18,8 @@ export default class VectorListComponent extends CompositeComponent {
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
+    static allowInSchemaAsComponent = ["vector"];
+
     // when another component has an attribute that is a vectorList,
     // use the vectors state variable to populate that attribute
     static stateVariableToBeShadowed = "vectors";

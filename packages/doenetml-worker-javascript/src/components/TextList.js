@@ -12,6 +12,8 @@ export default class TextList extends CompositeComponent {
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
+    static allowInSchemaAsComponent = ["text"];
+
     // when another component has a attribute that is a textList,
     // use the texts state variable to populate that attribute
     static stateVariableToBeShadowed = "texts";
