@@ -46,11 +46,8 @@ export class RunThroughCore {
                 },
                 logLevel: "error",
             });
-
             // Set up logging of console.log messages from scripts the browser is executing
-            await this.browser.sessionSubscribe({
-                events: ["log.entryAdded"],
-            });
+            await this.browser.sessionSubscribe({ events: ["log.entryAdded"] });
             this.browser.on("log.entryAdded", (entry) => this.onLog(entry));
 
             // Load in the web worker script
