@@ -6,7 +6,7 @@ export default class ControlVectors extends VectorListComponent {
     static inSchemaOnlyInheritAs = [];
 
     // don't let it appear in schema as a vector
-    static allowInSchemaAsComponent = [];
+    static allowInSchemaAsComponent = undefined;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
