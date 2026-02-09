@@ -10,7 +10,7 @@ console.log = (...args) => {
     origLog(...args.map((x) => util.inspect(x, false, 10, true)));
 };
 
-const coreRunner = new RunThroughCore();
+let coreRunner: RunThroughCore;
 
 function renderToPretextString(flatDast: FlatDastRoot) {
     return xastToXml(renderFlatDastToPretext(flatDast), {
@@ -32,12 +32,15 @@ beforeAll(async () => {
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
+            coreRunner = new RunThroughCore();
             await coreRunner.processToFlatDast(`<p>Hi</p>`);
 
             // Success - exit retry loop
             break;
         } catch (e) {
             lastError = e instanceof Error ? e : new Error(String(e));
+
+            await coreRunner.close(); // Ensure any partially initialized browser is closed before retrying
 
             // If this is not the last attempt, wait before retrying
             if (attempt < maxRetries) {
