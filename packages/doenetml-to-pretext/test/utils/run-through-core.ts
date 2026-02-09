@@ -42,9 +42,9 @@ export class RunThroughCore {
                 try {
                     this.browser = await remote({
                         capabilities: {
-                            browserName: "firefox",
+                            browserName: "chrome",
                             "goog:chromeOptions": {
-                                args: ["headless", "disable-gpu"],
+                                args: ["headless", "disable-gpu", "no-sandbox"],
                             },
                             "moz:firefoxOptions": {
                                 args: ["-headless"],
