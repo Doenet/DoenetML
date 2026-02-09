@@ -584,29 +584,29 @@ export function returnSimplifyExpandOnCompareWarning() {
 
     stateVariableDefinitions.simplifyExpandOnCompareWarning = {
         returnDependencies: () => ({
-            expandOnCompare: {
-                dependencyType: "stateVariable",
-                variableName: "expandOnCompare",
+            expandOnCompareAttr: {
+                dependencyType: "attributeComponent",
+                attributeName: "expandOnCompare",
             },
-            simplifyOnCompare: {
-                dependencyType: "stateVariable",
-                variableName: "simplifyOnCompare",
+            simplifyOnCompareAttr: {
+                dependencyType: "attributeComponent",
+                attributeName: "simplifyOnCompare",
             },
             symbolicEquality: {
                 dependencyType: "stateVariable",
                 variableName: "symbolicEquality",
             },
         }),
-        definition({ dependencyValues, usedDefault }) {
+        definition({ dependencyValues }) {
             const sendWarnings = [];
             if (!dependencyValues.symbolicEquality) {
                 const attributesSpecified = [];
 
-                if (!usedDefault.expandOnCompare) {
+                if (dependencyValues.expandOnCompareAttr !== null) {
                     attributesSpecified.push("expandOnCompare");
                 }
 
-                if (!usedDefault.simplifyOnCompare) {
+                if (dependencyValues.simplifyOnCompareAttr !== null) {
                     attributesSpecified.push("simplifyOnCompare");
                 }
 

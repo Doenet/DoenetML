@@ -2,6 +2,7 @@ import InlineComponent from "./abstract/InlineComponent";
 import { renameStateVariable } from "../utils/stateVariables";
 import me from "math-expressions";
 import {
+    returnSimplifyExpandOnCompareWarning,
     returnStandardAnswerAttributes,
     returnStandardAnswerStateVariableDefinition,
 } from "../utils/answer";
@@ -762,6 +763,11 @@ export default class Answer extends InlineComponent {
         Object.assign(
             stateVariableDefinitions,
             returnStandardAnswerStateVariableDefinition(),
+        );
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnSimplifyExpandOnCompareWarning(),
         );
 
         const labelDefinitions = returnLabelStateVariableDefinitions();
@@ -2097,6 +2103,10 @@ export default class Answer extends InlineComponent {
             // set for renderer so that state variable is always evaluated and the warning will be issued
             forRenderer: true,
             returnDependencies: () => ({
+                simplifyExpandOnCompareWarning: {
+                    dependencyType: "stateVariable",
+                    variableName: "simplifyExpandOnCompareWarning",
+                },
                 awardChildren: {
                     dependencyType: "child",
                     childGroups: ["awards"],

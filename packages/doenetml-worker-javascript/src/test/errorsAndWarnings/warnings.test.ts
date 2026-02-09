@@ -711,6 +711,14 @@ describe("Warning Tests", async () => {
     <answer><award symbolicEquality expandOnCompare>x</award><label>Enter x:</label></answer>
     <answer><award symbolicEquality expandOnCompare simplifyOnCompare>x</award><label>Enter x:</label></answer>
 
+    <answer simplifyOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+    <answer expandOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+    <answer expandOnCompare simplifyOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+
+    <answer symbolicEquality simplifyOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+    <answer symbolicEquality expandOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+    <answer symbolicEquality expandOnCompare simplifyOnCompare><label>Enter x or y:</label><award>x</award><award>y</award></answer>
+
     <boolean simplifyOnCompare>true</boolean>
     <boolean expandOnCompare>true</boolean>
     <boolean expandOnCompare simplifyOnCompare>true</boolean>
@@ -726,7 +734,7 @@ describe("Warning Tests", async () => {
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(9);
+        expect(errorWarnings.warnings.length).eq(12);
 
         const expectedErrorByLine: Record<string, string> = {
             2: "The simplifyOnCompare attribute",
@@ -738,6 +746,9 @@ describe("Warning Tests", async () => {
             18: "The simplifyOnCompare attribute",
             19: "The expandOnCompare attribute",
             20: "The expandOnCompare and simplifyOnCompare attributes",
+            26: "The simplifyOnCompare attribute",
+            27: "The expandOnCompare attribute",
+            28: "The expandOnCompare and simplifyOnCompare attributes",
         };
 
         for (const lineNum in expectedErrorByLine) {
