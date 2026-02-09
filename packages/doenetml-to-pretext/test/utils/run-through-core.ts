@@ -33,72 +33,33 @@ export class RunThroughCore {
         }
         this.initRunning = true;
         try {
-            // Initialize the browser with retry logic for transient network failures
-            const maxRetries = 3;
-            const initialDelay = 1000; // 1 second
-            let lastError: Error | undefined;
+            // Initialize the browser
+            this.browser = await remote({
+                capabilities: {
+                    browserName: "chrome",
+                    "goog:chromeOptions": {
+                        args: ["headless", "disable-gpu", "no-sandbox"],
+                    },
+                    "moz:firefoxOptions": {
+                        args: ["-headless"],
+                    },
+                },
+                logLevel: "error",
+            });
 
-            for (let attempt = 0; attempt <= maxRetries; attempt++) {
-                try {
-                    this.browser = await remote({
-                        capabilities: {
-                            browserName: "chrome",
-                            "goog:chromeOptions": {
-                                args: ["headless", "disable-gpu", "no-sandbox"],
-                            },
-                            "moz:firefoxOptions": {
-                                args: ["-headless"],
-                            },
-                        },
-                        logLevel: "error",
-                    });
+            // Set up logging of console.log messages from scripts the browser is executing
+            await this.browser.sessionSubscribe({
+                events: ["log.entryAdded"],
+            });
+            this.browser.on("log.entryAdded", (entry) => this.onLog(entry));
 
-                    // Set up logging of console.log messages from scripts the browser is executing
-                    await this.browser.sessionSubscribe({
-                        events: ["log.entryAdded"],
-                    });
-                    this.browser.on("log.entryAdded", (entry) =>
-                        this.onLog(entry),
-                    );
-
-                    // Load in the web worker script
-                    await this.browser.execute((source) => {
-                        const scriptElement = document.createElement("script");
-                        scriptElement.type = "module";
-                        scriptElement.textContent = source;
-                        document.head.appendChild(scriptElement);
-                    }, convertScript);
-
-                    // Success - exit retry loop
-                    break;
-                } catch (e) {
-                    lastError = e instanceof Error ? e : new Error(String(e));
-
-                    // Clean up browser session if it was created but later steps failed
-                    if (this.browser) {
-                        try {
-                            await this.browser.deleteSession();
-                        } catch (cleanupError) {
-                            // Ignore cleanup errors, we're already handling a failure
-                        }
-                        this.browser = undefined;
-                    }
-
-                    // If this is not the last attempt, wait before retrying
-                    if (attempt < maxRetries) {
-                        const delay = initialDelay * Math.pow(2, attempt);
-                        console.warn(
-                            `Browser initialization failed (attempt ${attempt + 1}/${maxRetries + 1}): ${lastError.message}. Retrying in ${delay}ms...`,
-                        );
-                        await new Promise((resolve) =>
-                            setTimeout(resolve, delay),
-                        );
-                    } else {
-                        // Last attempt failed - throw the error
-                        throw lastError;
-                    }
-                }
-            }
+            // Load in the web worker script
+            await this.browser.execute((source) => {
+                const scriptElement = document.createElement("script");
+                scriptElement.type = "module";
+                scriptElement.textContent = source;
+                document.head.appendChild(scriptElement);
+            }, convertScript);
         } finally {
             this.initRunning = false;
             this.initRunningPromiseResolve();
