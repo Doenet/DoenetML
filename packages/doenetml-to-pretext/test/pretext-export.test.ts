@@ -23,7 +23,35 @@ afterAll(async () => {
 });
 
 beforeAll(async () => {
-    await coreRunner.processToFlatDast(`<p>Hi</p>`);
+    // Infrequently, the browser download can fail due to transient network issues.
+    // To mitigate this, we implement a retry mechanism with exponential backoff.
+
+    const maxRetries = 3;
+    const initialDelay = 1000; // 1 second
+    let lastError: Error | undefined;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            await coreRunner.processToFlatDast(`<p>Hi</p>`);
+
+            // Success - exit retry loop
+            break;
+        } catch (e) {
+            lastError = e instanceof Error ? e : new Error(String(e));
+
+            // If this is not the last attempt, wait before retrying
+            if (attempt < maxRetries) {
+                const delay = initialDelay * Math.pow(2, attempt);
+                console.warn(
+                    `Failed to download browser (attempt ${attempt + 1}/${maxRetries + 1}): ${lastError.message}. Retrying in ${delay}ms...`,
+                );
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            } else {
+                // Last attempt failed - throw the error
+                throw lastError;
+            }
+        }
+    }
 }, 40000);
 
 describe("Pretext export", async () => {
