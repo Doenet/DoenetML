@@ -38,7 +38,7 @@ export class RunThroughCore {
                 capabilities: {
                     browserName: "chrome",
                     "goog:chromeOptions": {
-                        args: ["headless", "disable-gpu", "no-sandbox"],
+                        args: ["headless", "disable-gpu"],
                     },
                     "moz:firefoxOptions": {
                         args: ["-headless"],
