@@ -38,20 +38,18 @@ beforeAll(async () => {
             // Success - exit retry loop
             break;
         } catch (e) {
-            lastError = e instanceof Error ? e : new Error(String(e));
-
             await coreRunner.close(); // Ensure any partially initialized browser is closed before retrying
 
             // If this is not the last attempt, wait before retrying
             if (attempt < maxRetries) {
                 const delay = initialDelay * Math.pow(2, attempt);
                 console.warn(
-                    `Failed to download browser (attempt ${attempt + 1}/${maxRetries + 1}): ${lastError.message}. Retrying in ${delay}ms...`,
+                    `Failed to download browser (attempt ${attempt + 1}/${maxRetries + 1}): ${e}`,
                 );
                 await new Promise((resolve) => setTimeout(resolve, delay));
             } else {
                 // Last attempt failed - throw the error
-                throw lastError;
+                throw e;
             }
         }
     }
