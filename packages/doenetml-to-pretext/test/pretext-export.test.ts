@@ -10,7 +10,7 @@ console.log = (...args) => {
     origLog(...args.map((x) => util.inspect(x, false, 10, true)));
 };
 
-const coreRunner = new RunThroughCore();
+let coreRunner: RunThroughCore;
 
 function renderToPretextString(flatDast: FlatDastRoot) {
     return xastToXml(renderFlatDastToPretext(flatDast), {
@@ -23,7 +23,36 @@ afterAll(async () => {
 });
 
 beforeAll(async () => {
-    await coreRunner.processToFlatDast(`<p>Hi</p>`);
+    // Infrequently, the browser download can fail due to transient network issues.
+    // To mitigate this, we implement a retry mechanism with exponential backoff.
+
+    const maxRetries = 3;
+    const initialDelay = 1000; // 1 second
+    let lastError: Error | undefined;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            coreRunner = new RunThroughCore();
+            await coreRunner.processToFlatDast(`<p>Hi</p>`);
+
+            // Success - exit retry loop
+            break;
+        } catch (e) {
+            await coreRunner.close(); // Ensure any partially initialized browser is closed before retrying
+
+            // If this is not the last attempt, wait before retrying
+            if (attempt < maxRetries) {
+                const delay = initialDelay * Math.pow(2, attempt);
+                console.warn(
+                    `Failed to download browser (attempt ${attempt + 1}/${maxRetries + 1}): ${e}`,
+                );
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            } else {
+                // Last attempt failed - throw the error
+                throw e;
+            }
+        }
+    }
 }, 40000);
 
 describe("Pretext export", async () => {

@@ -36,7 +36,7 @@ export class RunThroughCore {
             // Initialize the browser
             this.browser = await remote({
                 capabilities: {
-                    browserName: "firefox",
+                    browserName: "chrome",
                     "goog:chromeOptions": {
                         args: ["headless", "disable-gpu"],
                     },
@@ -57,8 +57,6 @@ export class RunThroughCore {
                 scriptElement.textContent = source;
                 document.head.appendChild(scriptElement);
             }, convertScript);
-        } catch (e) {
-            throw e;
         } finally {
             this.initRunning = false;
             this.initRunningPromiseResolve();
