@@ -11321,6 +11321,9 @@
             "children": [
                 {
                     "ref": "mrow"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -11522,6 +11525,9 @@
             "children": [
                 {
                     "ref": "mrow"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -13023,6 +13029,9 @@
                     "ref": "booleanInput"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -13333,6 +13342,9 @@
                     "ref": "booleanInput"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -13641,6 +13653,9 @@
                 },
                 {
                     "ref": "booleanInput"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "hasSameFactoring"
@@ -41438,6 +41453,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -41967,9 +41985,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -42491,6 +42506,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -43020,9 +43038,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -43544,6 +43559,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -44073,9 +44091,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -44597,6 +44612,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -45126,9 +45144,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -45671,6 +45686,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -46200,9 +46218,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -46729,6 +46744,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -47258,9 +47276,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -47782,6 +47797,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -48311,9 +48329,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -48835,6 +48850,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -49364,9 +49382,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -49888,6 +49903,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -50417,9 +50435,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -50941,6 +50956,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -51470,9 +51488,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -51994,6 +52009,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -52523,9 +52541,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -53047,6 +53062,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -53576,9 +53594,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -54100,6 +54115,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -54629,9 +54647,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -55153,6 +55168,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -55682,9 +55700,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -56206,6 +56221,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -56735,9 +56753,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -57259,6 +57274,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -57788,9 +57806,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -58332,6 +58347,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -58861,9 +58879,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -59384,6 +59399,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -59913,9 +59931,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -60431,6 +60446,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -60962,9 +60980,6 @@
                     "ref": "intersection"
                 },
                 {
-                    "ref": "conditionalContent"
-                },
-                {
                     "ref": "asList"
                 },
                 {
@@ -61365,6 +61380,9 @@
             "children": [
                 {
                     "ref": "li"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -61517,6 +61535,9 @@
             "children": [
                 {
                     "ref": "li"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -62646,6 +62667,9 @@
             "children": [
                 {
                     "ref": "rightHandSide"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -63139,6 +63163,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 }
             ],
@@ -63606,6 +63633,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -63706,9 +63736,6 @@
                 },
                 {
                     "ref": "sequence"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -64268,6 +64295,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -64449,9 +64479,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -64966,6 +64993,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -65150,9 +65180,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -65953,6 +65980,9 @@
             "children": [
                 {
                     "ref": "atom"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -66167,6 +66197,9 @@
                 },
                 {
                     "ref": "ion"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -67051,6 +67084,9 @@
                     "ref": "tupleList"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "orbitalDiagram"
                 },
                 {
@@ -67229,9 +67265,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -68452,6 +68485,9 @@
             "children": [
                 {
                     "ref": "sideBySide"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -70001,6 +70037,9 @@
                     "ref": "h"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "rightHandSide"
                 },
                 {
@@ -70170,9 +70209,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -74897,6 +74933,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -76623,6 +76662,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -77149,9 +77191,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -79658,6 +79697,9 @@
                 },
                 {
                     "ref": "booleanInput"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "hasSameFactoring"
@@ -82840,6 +82882,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -82940,9 +82985,6 @@
                 },
                 {
                     "ref": "sequence"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -84194,6 +84236,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -84375,9 +84420,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -84799,6 +84841,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 }
             ],
@@ -85098,6 +85143,9 @@
                 },
                 {
                     "ref": "yLabel"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "label"
@@ -85469,6 +85517,9 @@
                 },
                 {
                     "ref": "yLabel"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "label"
@@ -85878,6 +85929,9 @@
                 },
                 {
                     "ref": "yLabel"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "label"
@@ -86312,6 +86366,9 @@
                 },
                 {
                     "ref": "yLabel"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "label"
@@ -86764,6 +86821,9 @@
                 },
                 {
                     "ref": "yLabel"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "label"
@@ -87275,6 +87335,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 }
             ],
@@ -87751,6 +87814,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -87932,9 +87998,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -88437,6 +88500,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -88618,9 +88684,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -89115,6 +89178,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -89299,9 +89365,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -89787,6 +89850,9 @@
                     "ref": "controlVectors"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "rightHandSide"
                 },
                 {
@@ -89965,9 +90031,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -90703,6 +90766,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -90803,9 +90869,6 @@
                 },
                 {
                     "ref": "sequence"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -91325,6 +91388,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -91443,9 +91509,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -92027,6 +92090,9 @@
                     "ref": "award"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "matrixInput"
                 },
                 {
@@ -92232,9 +92298,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -92855,6 +92918,9 @@
                     "ref": "when"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "rightHandSide"
                 },
                 {
@@ -93033,9 +93099,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -94103,6 +94166,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -94290,9 +94356,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -94745,6 +94808,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -94920,9 +94986,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -95297,6 +95360,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -95520,9 +95586,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -95832,6 +95895,9 @@
                 },
                 {
                     "ref": "yLabel"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "label"
@@ -98337,6 +98403,9 @@
                     "ref": "xLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "yLabel"
                 },
                 {
@@ -98515,9 +98584,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -99966,6 +100032,9 @@
                 },
                 {
                     "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "xLabel"
@@ -102685,6 +102754,9 @@
                     "ref": "cell"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "row"
                 },
                 {
@@ -103898,6 +103970,9 @@
             "children": [
                 {
                     "ref": "cell"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -104083,6 +104158,9 @@
             "children": [
                 {
                     "ref": "cell"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -104223,6 +104301,9 @@
             "children": [
                 {
                     "ref": "cell"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "row"
@@ -104430,6 +104511,9 @@
             "children": [
                 {
                     "ref": "row"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -104607,6 +104691,9 @@
             "children": [
                 {
                     "ref": "title"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "rightHandSide"
@@ -104931,9 +105018,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -105352,6 +105436,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "caption"
                 },
                 {
@@ -105680,9 +105767,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -108157,6 +108241,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 }
             ],
@@ -109654,6 +109741,9 @@
                 },
                 {
                     "ref": "constrainToInterior"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -109804,6 +109894,9 @@
                 },
                 {
                     "ref": "constrainToInterior"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": false,
@@ -110322,6 +110415,9 @@
                     "ref": "line"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "bestFitLine"
                 },
                 {
@@ -110450,6 +110546,9 @@
                 }
             },
             "children": [
+                {
+                    "ref": "conditionalContent"
+                },
                 {
                     "ref": "case"
                 },
@@ -110968,9 +111067,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -112215,6 +112311,9 @@
             "children": [
                 {
                     "ref": "option"
+                },
+                {
+                    "ref": "conditionalContent"
                 }
             ],
             "textChildrenAllowed": true,
@@ -116270,6 +116369,9 @@
                     "ref": "shortDescription"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "description"
                 }
             ],
@@ -116520,6 +116622,9 @@
                     "ref": "shortDescription"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "description"
                 }
             ],
@@ -116709,6 +116814,9 @@
             "children": [
                 {
                     "ref": "title"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "rightHandSide"
@@ -117222,9 +117330,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -121378,6 +121483,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 }
             ],
@@ -121620,6 +121728,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 }
             ],
@@ -121831,6 +121942,9 @@
                 }
             },
             "children": [
+                {
+                    "ref": "conditionalContent"
+                },
                 {
                     "ref": "updateValue"
                 },
@@ -123833,6 +123947,9 @@
                     "ref": "styleDefinition"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "feedbackDefinition"
                 },
                 {
@@ -124350,9 +124467,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -126042,6 +126156,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -126142,9 +126259,6 @@
                 },
                 {
                     "ref": "sequence"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -130617,6 +130731,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 }
             ],
@@ -130950,6 +131067,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 }
             ],
@@ -131145,6 +131265,9 @@
                 },
                 {
                     "ref": "yLabel"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "label"
@@ -131369,6 +131492,9 @@
                 },
                 {
                     "ref": "yLabel"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "label"
@@ -133497,6 +133623,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 }
             ],
@@ -135069,6 +135198,9 @@
             "children": [
                 {
                     "ref": "row"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "column"
@@ -137334,6 +137466,9 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "label"
                 },
                 {
@@ -137512,9 +137647,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
@@ -138216,6 +138348,9 @@
             },
             "children": [
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "variantControl"
                 },
                 {
@@ -138745,9 +138880,6 @@
                 },
                 {
                     "ref": "intersection"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "asList"
@@ -139577,6 +139709,9 @@
                     "ref": "interval"
                 },
                 {
+                    "ref": "conditionalContent"
+                },
+                {
                     "ref": "intervalList"
                 },
                 {
@@ -139755,9 +139890,6 @@
                 },
                 {
                     "ref": "cell"
-                },
-                {
-                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "selectFromSequence"
